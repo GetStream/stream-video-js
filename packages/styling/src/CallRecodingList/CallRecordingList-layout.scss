@@ -1,105 +1,60 @@
-@use '../utils';
+.str-video__call-recording-list__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 
-.str-video__call-recording-list {
-  padding: 0.625rem; // todo: unify menu root paddings
-  min-width: 300px;
+  &:first-of-type {
+    .str-video__call-recording-list__item {
+      font-weight: 600;
+    }
+  }
 }
 
-.str-video__call-recording-list__header {
+.str-video__call-recording-list__item {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
-  padding: 0rem 0.5rem 0.5rem; // todo: unify menu header paddings
   align-items: center;
+  font-size: var(--str-video__font-size-xs);
+  border-bottom: 1px solid var(--str-video__base-color2);
+  padding: var(--str-video__spacing-sm) 0;
+  gap: var(--str-video__spacing-sm);
 
-  .str-video__call-recording-list__title {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .str-video__call-controls__button {
-    .str-video__icon {
-      width: 1rem;
-      height: 1rem;
-    }
+  &:last-of-type {
+    border-bottom: none;
   }
 }
-
-.str-video__call-recording-list__listing {
-  padding-inline: 0.5rem;
-  max-height: 400px;
-  overflow-y: auto;
-
-  &.str-video__call-recording-list__listing--empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-block: 2rem;
-
-    .str-video__call-recording-list__listing--icon-empty {
-      width: 3rem;
-      height: 3rem;
-    }
-
-    .str-video__call-recording-list__listing--text-empty {
-      margin: 0;
-    }
-  }
+.str-video__call-recording-list__filename {
+  width: 200px;
 }
 
-.str-video__call-recording-list-item {
+.str-video__call-recording-list__time {
+  width: 100px;
+}
+
+.str-video__call-recording-list__download {
   display: flex;
-  justify-content: space-between;
-  overflow: hidden;
-  width: 100%;
-  padding-block: 0.125rem;
-
-  .str-video__call-recording-list-item__info {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .str-video__call-recording-list-item__actions {
-    display: flex;
-
-    .str-video__call-recording-list-item__action-button {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 0;
-      width: 1.5rem;
-      height: 1.5rem;
-
-      .str-video__call-recording-list-item__action-button-icon {
-        display: block;
-        width: 1.5rem;
-        height: 1.5rem;
-
-        &.str-video__copy-button--icon {
-          width: 1.25rem;
-          height: 1.25rem;
-        }
-      }
-    }
-  }
+  justify-content: flex-end;
+  width: 100px;
 }
 
-.str-video__call-recording-list__listing {
-  .str-video__loading-indicator {
-    padding-block: 0.5rem;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 0.5rem;
+.str-video__call-recording-list__filename,
+.str-video__call-recording-list__time {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
 
-    .str-video__loading-indicator__icon.spinner {
-      height: 1rem;
-      width: 1rem;
-      mask-size: 1rem;
-    }
-
-    .str-video__loading-indicator-text {
-      @include utils.ellipsis-text;
+.str-video__call-recording-list-item__action-button--download {
+  .str-video__icon--download {
+    height: 32px;
+    width: 32px;
+  }
+  &:hover {
+    .str-video__icon--download {
+      cursor: pointer;
+      background-color: var(--str-video__brand-color1);
     }
   }
 }

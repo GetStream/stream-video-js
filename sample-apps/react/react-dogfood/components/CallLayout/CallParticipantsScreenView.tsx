@@ -1,21 +1,21 @@
 import { ComponentType, useEffect, useState } from 'react';
 
 import {
-  Call,
   DefaultParticipantViewUI,
   IconButton,
   ParticipantView,
   SfuModels,
+  useCall,
   useCallStateHooks,
   useVerticalScrollPosition,
   Video,
 } from '@stream-io/video-react-sdk';
 
 export const CallParticipantsScreenView = (props: {
-  call: Call;
   ParticipantViewUI?: ComponentType;
 }) => {
-  const { call, ParticipantViewUI } = props;
+  const { ParticipantViewUI } = props;
+  const call = useCall();
   const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
@@ -28,7 +28,7 @@ export const CallParticipantsScreenView = (props: {
   );
 
   useEffect(() => {
-    if (!scrollWrapper) return;
+    if (!scrollWrapper || !call) return;
     const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
   }, [scrollWrapper, call]);

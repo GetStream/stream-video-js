@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Call, StatCard, useCallStateHooks } from '@stream-io/video-react-sdk';
-import {
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  size,
-  useFloating,
-  UseFloatingData,
-} from '@floating-ui/react';
+import { useFloatingUIPreset } from '../../hooks/useFloatingUIPreset';
 
 export const DebugStatsView = (props: {
   call: Call;
@@ -129,43 +121,4 @@ const unwrapStats = (rawStats?: RTCStatsReport) => {
     decodedStats[s.id] = s;
   });
   return decodedStats;
-};
-
-const useFloatingUIPreset = (
-  props: Pick<UseFloatingData, 'placement' | 'strategy'>,
-) => {
-  const {
-    refs,
-    x,
-    y,
-    update,
-    elements: { domReference, floating },
-  } = useFloating({
-    placement: props.placement,
-    strategy: props.strategy,
-    middleware: [
-      offset(10),
-      shift(),
-      flip(),
-      size({
-        padding: 10,
-        apply: ({ availableHeight, elements }) => {
-          Object.assign(elements.floating.style, {
-            maxHeight: `${availableHeight}px`,
-          });
-        },
-      }),
-    ],
-  });
-
-  // handle window resizing
-  useEffect(() => {
-    if (!domReference || !floating) return;
-    const cleanup = autoUpdate(domReference, floating, update);
-    return () => {
-      cleanup();
-    };
-  }, [domReference, floating, update]);
-
-  return { refs, x, y, domReference, floating, strategy: props.strategy };
 };

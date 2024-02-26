@@ -13,6 +13,7 @@ $scope-name: 'str-video__speaker-layout';
   width: 100%;
   gap: 1rem;
   padding-inline: 2px; // to see "speaking" outline
+  padding: 2px;
 
   .str-video__participant-view {
     aspect-ratio: 16/9;
@@ -20,9 +21,9 @@ $scope-name: 'str-video__speaker-layout';
 
   .str-video__speaker-layout__spotlight {
     display: flex;
-    align-items: center;
     justify-content: center;
     min-height: 0;
+    height: 100%;
 
     .str-video__participant-view--speaking:has(
         .str-video__video--screen-share
@@ -31,7 +32,8 @@ $scope-name: 'str-video__speaker-layout';
     }
 
     .str-video__video {
-      object-fit: contain;
+      height: 100%;
+      width: 100%;
     }
 
     .str-video__participant-details,
@@ -128,6 +130,19 @@ $scope-name: 'str-video__speaker-layout';
     }
     .str-video__participant-view {
       max-width: 110vh;
+    }
+  }
+}
+
+@media (min-width: 600px) {
+  .str-video__speaker-layout {
+    .str-video__speaker-layout__spotlight {
+      align-items: center;
+      height: auto;
+
+      .str-video__video {
+        object-fit: contain;
+      }
     }
   }
 }

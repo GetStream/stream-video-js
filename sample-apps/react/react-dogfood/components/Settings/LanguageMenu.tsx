@@ -1,13 +1,10 @@
-import { SettingsController } from './SettingsDialog';
-import { TranslationLanguage } from '@stream-io/video-react-sdk';
-import { Settings } from '../../context/SettingsContext';
+import { useCallback } from 'react';
+
 import {
-  FormControl,
-  MenuItem,
-  Select,
-  Stack,
-  Typography,
-} from '@mui/material';
+  DropDownSelect,
+  DropDownSelectOption,
+  TranslationLanguage,
+} from '@stream-io/video-react-sdk';
 
 const LANGUAGES: Record<TranslationLanguage, string> = {
   de: 'German',
@@ -15,31 +12,33 @@ const LANGUAGES: Record<TranslationLanguage, string> = {
   es: 'Spanish',
 };
 
-export type LanguageMenuProps = Pick<SettingsController, 'setLanguage'> &
-  Pick<Settings, 'language'>;
+export type LanguageMenuProps = {
+  setLanguage: (lng: string) => void;
+};
 
-export const LanguageMenu = ({ language, setLanguage }: LanguageMenuProps) => {
+export const LanguageMenu = ({ setLanguage }: LanguageMenuProps) => {
+  const handleSelect = useCallback(
+    (index: number) => {
+      const selected = Object.keys(LANGUAGES)[index];
+      setLanguage(selected);
+    },
+    [setLanguage],
+  );
+
   return (
-    <Stack>
-      <Typography variant="caption" color="#72767e">
-        Language of the Meeting
-      </Typography>
-      <FormControl fullWidth>
-        <Select
-          value={language?.split('-')[0]}
-          label="Language"
-          onChange={(e) => {
-            setLanguage(e.target.value);
-          }}
-          sx={{ fontSize: '0.875rem' }}
-        >
-          {Object.entries(LANGUAGES).map(([lngCode, languageName]) => (
-            <MenuItem key={`settings-language-${lngCode}`} value={lngCode}>
-              {languageName}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Stack>
+    <DropDownSelect
+      icon="language"
+      defaultSelectedIndex={0}
+      defaultSelectedLabel="English"
+      handleSelect={handleSelect}
+    >
+      {Object.entries(LANGUAGES).map(([lngCode, languageName]) => (
+        <DropDownSelectOption
+          key={lngCode}
+          label={languageName}
+          icon="language"
+        />
+      ))}
+    </DropDownSelect>
   );
 };

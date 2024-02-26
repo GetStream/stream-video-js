@@ -9,7 +9,7 @@ export type VideoPlaceholderProps = {
 export const DefaultVideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
->(({ participant, style }, ref) => {
+>(function DefaultVideoPlaceholder({ participant, style }, ref) {
   const { t } = useI18n();
   const [error, setError] = useState(false);
   const name = participant.name || participant.userId;
@@ -17,11 +17,11 @@ export const DefaultVideoPlaceholder = forwardRef<
     <div className="str-video__video-placeholder" style={style} ref={ref}>
       {(!participant.image || error) &&
         (name ? (
-          <div className="str-video__video-placeholder__initials-fallback">
-            <div>{name[0]}</div>
-          </div>
+          <InitialsFallback name={name} />
         ) : (
-          <div>{t('Video is disabled')}</div>
+          <div className="str-video__video-placeholder__no-video-label">
+            {t('Video is disabled')}
+          </div>
         ))}
       {participant.image && !error && (
         <img
@@ -34,3 +34,17 @@ export const DefaultVideoPlaceholder = forwardRef<
     </div>
   );
 });
+
+const InitialsFallback = (props: { name: string }) => {
+  const { name } = props;
+  const initials = name
+    .split(' ')
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join('');
+  return (
+    <div className="str-video__video-placeholder__initials-fallback">
+      {initials}
+    </div>
+  );
+};

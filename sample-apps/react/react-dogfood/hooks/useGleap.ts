@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Gleap from 'gleap';
 import {
   Call,
@@ -6,23 +6,148 @@ import {
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
+import { getLayoutSettings } from './useLayoutSwitcher';
+
+type GleapReportPayload = {
+  type: 'gleap.report';
+  userId: string | undefined;
+  toUserId: string;
+  totalChunks: number;
+  chunkIndex: number;
+  data: string;
+};
+
+const MAX_LOGS_QUEUE_SIZE = 350;
 
 export const useGleap = (
-  gleapApiKey: string | undefined,
+  gleapApiKey: string | null | undefined,
   client: StreamVideoClient | undefined,
+  call: Call | undefined,
   user: User,
 ) => {
+  const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {
-    if (gleapApiKey) {
+    if (gleapApiKey && !isInitialized) {
       Gleap.initialize(gleapApiKey);
       Gleap.identify(user.name || user.id || '!anon', {
         name: user.name,
       });
+      setIsInitialized(true);
     }
-  }, [gleapApiKey, user.name, user.id]);
+  }, [gleapApiKey, user.name, user.id, isInitialized]);
+
+  const logsQueue = useRef<string[]>([]);
+  const pushToLogQueue = (log: string) => {
+    if (logsQueue.current.length >= MAX_LOGS_QUEUE_SIZE) {
+      logsQueue.current.shift();
+    }
+    logsQueue.current.push(log);
+  };
 
   useEffect(() => {
-    if (!gleapApiKey || !client) return;
+    if (!gleapApiKey || !call) return;
+
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+    const stringify = (o: any) => {
+      if (typeof o !== 'object') return o;
+      try {
+        return JSON.stringify(o);
+      } catch (e) {
+        return o;
+      }
+    };
+    const timestamp = () => {
+      const d = new Date();
+      return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}.${d.getMilliseconds()}`;
+    };
+    console.log = (...args: any[]) => {
+      originalLog(...args);
+      pushToLogQueue(`[LOG: ${timestamp()}] ${args.map(stringify).join(' ')}`);
+    };
+    console.warn = (...args: any[]) => {
+      originalWarn(...args);
+      pushToLogQueue(`[WARN: ${timestamp()}] ${args.map(stringify).join(' ')}`);
+    };
+    console.error = (...args: any[]) => {
+      originalError(...args);
+      pushToLogQueue(`[ERR: ${timestamp()}] ${args.map(stringify).join(' ')}`);
+    };
+
+    const off = call.on('custom', async (event) => {
+      if (event.type !== 'custom') return;
+      const { type } = event.custom;
+      if (
+        type === 'gleap.collect-report' &&
+        event.user.id !== call.currentUserId
+      ) {
+        const report = serializeCallState(call);
+        report.logs = logsQueue.current;
+        const serializedReport = JSON.stringify(report);
+        // split in 4.6k chunks - custom events have a 5k limit
+        const chunkSize = 4600;
+        const chunks = serializedReport.match(
+          new RegExp(`.{1,${chunkSize}}`, 'g'),
+        );
+        // send each chunk as a separate event
+        if (!chunks) return;
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          await call.sendCustomEvent({
+            type: 'gleap.report',
+            userId: call.currentUserId,
+            toUserId: event.user.id,
+            totalChunks: chunks.length,
+            chunkIndex: i,
+            data: chunk,
+          } satisfies GleapReportPayload);
+        }
+      }
+    });
+    return () => {
+      off();
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
+    };
+  }, [call, gleapApiKey]);
+
+  useEffect(() => {
+    if (!gleapApiKey || !call) return;
+    const cache = new Map<string, string[]>();
+    return call.on('custom', (event) => {
+      if (event.type !== 'custom') return;
+      const { custom } = event;
+      const { type, userId, toUserId, totalChunks, chunkIndex, data } =
+        custom as GleapReportPayload;
+      if (
+        type === 'gleap.report' &&
+        userId &&
+        toUserId === call.currentUserId
+      ) {
+        if (!cache.has(userId)) {
+          cache.set(userId, Array.from({ length: totalChunks }));
+        }
+        const existingData = cache.get(userId)!;
+        existingData[chunkIndex] = data;
+        // wait until we have all chunks
+        if (existingData.every((d) => !!d)) {
+          const report = JSON.parse(existingData.join(''));
+          Gleap.attachCustomData({
+            [userId]: report,
+          });
+        }
+      }
+    });
+  }, [call, gleapApiKey]);
+
+  useEffect(() => {
+    if (!gleapApiKey || !client || !call) return;
+
+    Gleap.on('open', async () => {
+      await call.sendCustomEvent({ type: 'gleap.collect-report' });
+    });
 
     Gleap.on('flow-started', () => {
       try {
@@ -53,7 +178,9 @@ export const useGleap = (
           // We want to detect this early and include the serialization error
           // as part of the Gleap feedback item.
           JSON.stringify(data);
-          Gleap.attachCustomData(data);
+          Gleap.attachCustomData({
+            [call.currentUserId || 'me']: data,
+          });
         } catch (e) {
           console.warn(e);
         }
@@ -61,7 +188,7 @@ export const useGleap = (
         console.error(e);
       }
     });
-  }, [client, client?.readOnlyStateStore, gleapApiKey]);
+  }, [call, client, gleapApiKey]);
 };
 
 export const serializeCallState = (call: Call) => {
@@ -72,6 +199,7 @@ export const serializeCallState = (call: Call) => {
       edgeName: call['sfuClient']?.edgeName,
       sessionId: call['sfuClient']?.sessionId,
     },
+    layout: getLayoutSettings()?.selectedLayout ?? 'N/A',
     devices: {
       microphone: {
         enabled: microphone.state.status,

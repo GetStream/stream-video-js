@@ -8,22 +8,87 @@
 .str-video__device-settings {
   padding: 0.625rem;
   z-index: 1;
+  font-family: 'Inter';
+}
+
+.str-video__device-settings__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 0px 16px;
+  margin-bottom: 33px;
+}
+
+.str-video__icon.str-video__device-settings__settings-icon {
+  height: 24px;
+  width: 24px;
+  color: var(--str-video__base-color1);
+}
+
+.str-video__device-settings__heading {
+  width: 100%;
+  justify-self: start;
+  margin: unset;
+  margin-left: 8px;
+  color: var(--str-video__base-color1);
+  font-size: 24;
+  font-weight: 500;
+  word-wrap: 'break-word';
+}
+
+.str-video__device-settings__close-button {
+  color: var(--str-video__base-color1);
+  background-color: transparent;
 }
 
 .str-video__device-settings__device-kind {
-  padding: 0.75rem 1rem;
+  background-color: var(--str-video__base-color7);
+  padding: var(--str-video__spacing-lg);
+  border-radius: var(--str-video__border-radius-lg);
 
   .str-video__device-settings__device-selector-title {
+    font-size: var(--str-video__font-size-xs);
+    line-height: 1.25rem;
+
     padding-bottom: 0.5rem;
+    font-size: 13px;
+    margin-bottom: 8px;
   }
 
+  .str-video__option,
   .str-video__device-settings__option {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.5rem;
+    border-radius: var(--str-video__border-radius-lg);
+    background-color: var(--str-video__button-primary-base);
+    padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
 
-    input[type="radio"] {
+    gap: 8px;
+
+    font-weight: 600;
+    font-size: var(--str-video__font-size-sm);
+
+    &:not(:first-of-type) {
+      margin-top: 8px;
+    }
+
+    &__icon {
+      &--selected {
+        background-color: var(--str-video__brand-color1);
+      }
+    }
+
+    &:hover {
+      background-color: var(--str-video__button-default-hover);
+      cursor: pointer;
+    }
+
+    &--selected,
+    &--active {
+      background-color: var(--str-video__button-default-hover);
+    }
+
+    input[type='radio'] {
       margin: 0;
       height: 1rem;
       width: 1rem;
@@ -31,13 +96,17 @@
       place-content: center;
 
       &::before {
-        content: "";
+        content: '';
         width: 0.5rem;
         height: 0.5rem;
         transform: scale(0);
       }
       &:checked::before {
         transform: scale(1);
+      }
+
+      &:checked {
+        border-color: var(--str-video__primary-color);
       }
     }
   }

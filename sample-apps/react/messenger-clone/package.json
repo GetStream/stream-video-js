@@ -17,13 +17,13 @@
     "clsx": "^2.0.0",
     "dayjs": "^1.11.6",
     "immer": "^9.0.16",
-    "nanoid": "^5.0.2",
+    "nanoid": "^5.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.17.0",
-    "sass": "^1.69.3",
-    "stream-chat": "^8.13.0",
-    "stream-chat-react": "^10.14.0"
+    "sass": "^1.69.5",
+    "stream-chat": "^8.14.4",
+    "stream-chat-react": "^11.2.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.28",
@@ -31,7 +31,6 @@
     "@vitejs/plugin-react": "^4.1.0",
     "dotenv": "^16.3.1",
     "typescript": "^5.2.2",
-    "vercel": "^32.4.1",
     "vite": "^4.4.11"
   }
 }

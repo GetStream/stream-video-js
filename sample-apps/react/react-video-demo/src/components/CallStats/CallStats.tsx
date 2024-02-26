@@ -1,12 +1,15 @@
 import { FC, useEffect, useRef, useState } from 'react';
-import { CallStatsReport, useCallStateHooks } from '@stream-io/video-react-sdk';
+import {
+  CallStatsLatencyChart,
+  CallStatsReport,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
 import StatCard from '../StatCard';
 import { BarGraph, Close, Cog, Info, Latency } from '../Icons';
 import Button from '../Button';
 import Tooltip from '../Tooltip';
-import CallStatsLatencyChart from '../CallStatsLatencyChart';
 
 import { useModalContext } from '../../contexts/ModalContext';
 
@@ -126,10 +129,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
               </p>
 
               <div className={styles.chartContainer}>
-                <CallStatsLatencyChart
-                  className={styles.chart}
-                  values={latencyBuffer}
-                />
+                <CallStatsLatencyChart values={latencyBuffer} />
               </div>
 
               <div className={styles.containerHeader}>
@@ -144,7 +144,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
                 />
               </div>
               <p className={styles.description}>
-                Your call is recieving data and the connection speed is healthy.
+                Your call is receiving data and the connection speed is healthy.
               </p>
               <div className={styles.statCards}>
                 <StatCard

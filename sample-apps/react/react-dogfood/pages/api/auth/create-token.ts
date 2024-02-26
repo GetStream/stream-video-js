@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createToken, maxTokenValidityInSeconds } from '../../../helpers/jwt';
 import { SampleAppCallConfig } from '../call/sample';
+import type { AppEnvironment } from '../../../context/AppEnvironmentContext';
 
 const config: SampleAppCallConfig = JSON.parse(
   process.env.SAMPLE_APP_CALL_CONFIG || '{}',
@@ -13,8 +14,6 @@ if (!config['pronto']) {
     secret: process.env.STREAM_SECRET_KEY,
   };
 }
-
-export type EnvironmentName = 'pronto' | 'demo' | string;
 
 export type CreateJwtTokenErrorResponse = {
   error: string;
@@ -29,7 +28,7 @@ export type CreateJwtTokenResponse = {
 
 export type CreateJwtTokenRequest = {
   user_id: string;
-  environment?: EnvironmentName;
+  environment?: AppEnvironment;
   /** @deprecated */
   api_key?: string;
   [key: string]: string | string[] | undefined;
@@ -48,13 +47,13 @@ const createJwtToken = async (
 
   // support for the deprecated `api_key` param during the transition phase
   if (apiKeyFromRequest && !environment) {
-    if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto';
+    if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto-legacy';
     else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
     // https://getstream.slack.com/archives/C022N8JNQGZ/p1691402858403159
     else if (apiKeyFromRequest === '2g3htdemzwhg') environment = 'demo-flutter';
   }
 
-  const appConfig = config[(environment || 'demo') as EnvironmentName];
+  const appConfig = config[(environment || 'demo') as AppEnvironment];
   if (!appConfig) {
     return error(res, `'environment' parameter is invalid.`);
   }

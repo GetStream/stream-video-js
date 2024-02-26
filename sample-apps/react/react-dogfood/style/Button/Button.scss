@@ -1,0 +1,79 @@
+button.rd__button,
+.rd__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--str-video__border-radius-md);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
+  text-align: center;
+  width: 100%;
+  font-size: var(--str-video__font-size-sm);
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: var(--str-video__text-color1);
+
+  background-color: var(--str-video__button-default-base);
+  &:hover {
+    background-color: var(--str-video__button-default-hover);
+    cursor: pointer;
+  }
+
+  &__icon {
+    margin-right: var(--str-video__spacing-xs);
+    height: 16px;
+    background-color: var(--str-video__text-color1);
+  }
+
+  &:disabled {
+    background-color: var(--str-video__button-default-disabled);
+    cursor: not-allowed;
+  }
+
+  &--align-left {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  &--primary {
+    background-color: var(--str-video__button-primary-active);
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+      cursor: pointer;
+    }
+
+    &:disabled {
+      background-color: var(--str-video__button-default-disabled);
+      cursor: not-allowed;
+    }
+
+    .rd__button__icon {
+      background-color: white;
+    }
+  }
+
+  &--large {
+    font-size: var(--str-video__font-size-md);
+    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+    border-radius: var(--str-video__border-radius-md);
+  }
+
+  &--secondary {
+    background-color: transparent;
+    border: 1px solid var(--str-video__base-color3);
+
+    &:disabled {
+      background-color: transparent;
+      border: 1px solid var(--str-video__base-color3);
+      cursor: not-allowed;
+    }
+  }
+}
+
+a.rd__button {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}

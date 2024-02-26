@@ -4,9 +4,10 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton, IconButton } from '../Button/';
+import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
+import { Icon } from '../Icon';
 
 export type ScreenShareButtonProps = {
   caption?: string;
@@ -14,7 +15,7 @@ export type ScreenShareButtonProps = {
 
 export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
-  const { caption = t('Screen Share') } = props;
+  const { caption } = props;
 
   const { useHasOngoingScreenShare, useScreenShareState } = useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
@@ -34,20 +35,29 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         messageAwaitingApproval={t('Awaiting for an approval to share screen.')}
         messageRevoked={t('You can no longer share your screen.')}
       >
-        <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
-          <IconButton
+        <CompositeButton
+          active={isSomeoneScreenSharing}
+          caption={caption}
+          title={caption || t('Share screen')}
+          variant="primary"
+          data-testid={
+            isSomeoneScreenSharing
+              ? 'screen-share-stop-button'
+              : 'screen-share-start-button'
+          }
+          disabled={disableScreenShareButton}
+          onClick={async () => {
+            if (!hasPermission) {
+              await requestPermission();
+            } else {
+              await screenShare.toggle();
+            }
+          }}
+        >
+          <Icon
             icon={
               isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
             }
-            title={t('Share screen')}
-            disabled={disableScreenShareButton}
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await screenShare.toggle();
-              }
-            }}
           />
         </CompositeButton>
       </PermissionNotification>

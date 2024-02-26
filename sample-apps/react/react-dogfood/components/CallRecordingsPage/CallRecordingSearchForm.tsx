@@ -6,15 +6,10 @@ import { useRouter } from 'next/router';
 import {
   ChangeEventHandler,
   FormEventHandler,
-  KeyboardEventHandler,
   useCallback,
   useEffect,
   useState,
 } from 'react';
-import { Button, Stack } from '@mui/material';
-import clsx from 'clsx';
-
-const CALL_TYPES = ['default', 'development', 'audio-room', 'livestream'];
 
 type CallRecordingSearchFormProps = {
   setLoading: (loading: boolean) => void;
@@ -30,8 +25,6 @@ export const CallRecordingSearchForm = ({
   const videoClient = useStreamVideoClient();
 
   const [enabled, setEnabled] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [highlightedOption, setHighlightedOption] = useState(0);
   const [callIdInput, setCallIdInput] = useState<HTMLInputElement | null>(null);
   const [callTypeInput, setCallTypeInput] = useState<HTMLInputElement | null>(
     null,
@@ -86,48 +79,6 @@ export const CallRecordingSearchForm = ({
     setResultError(undefined);
   }, [callTypeInput, callIdInput, setResult, setResultError]);
 
-  const handleDropdownNavigation: KeyboardEventHandler<HTMLInputElement> =
-    useCallback(
-      (e) => {
-        if (!callTypeInput) return;
-        if (e.code === 'ArrowDown') {
-          if (!showDropdown) {
-            setShowDropdown(true);
-            return;
-          }
-          setHighlightedOption((prev) => {
-            return ++prev % CALL_TYPES.length;
-          });
-        }
-
-        if (e.code === 'ArrowUp') {
-          setHighlightedOption((prev) => {
-            return prev === 0
-              ? CALL_TYPES.length - 1
-              : --prev % CALL_TYPES.length;
-          });
-        }
-
-        if (e.code === 'Enter') {
-          callTypeInput.value = CALL_TYPES[highlightedOption];
-          setShowDropdown(false);
-          setEnabled(!!callIdInput?.value);
-          setResultError(undefined);
-        }
-
-        if (e.code === 'Escape' && showDropdown) {
-          setShowDropdown(false);
-        }
-      },
-      [
-        callTypeInput,
-        callIdInput,
-        showDropdown,
-        highlightedOption,
-        setResultError,
-      ],
-    );
-
   useEffect(() => {
     const { callCid } = router.query;
 
@@ -137,15 +88,25 @@ export const CallRecordingSearchForm = ({
 
       callTypeInput.value = callType as string;
       callIdInput.value = callId as string;
-      queryRecordings(callType, callId);
+      queryRecordings(callType, callId).catch((err) => {
+        console.error('Error querying recordings', err);
+        setResultError(err as Error);
+      });
     }
-  }, [callIdInput, callTypeInput, router, router.query, queryRecordings]);
+  }, [
+    callIdInput,
+    callTypeInput,
+    router,
+    router.query,
+    queryRecordings,
+    setResultError,
+  ]);
 
   const formId = 'recording-search-form';
   return (
-    <Stack spacing={2} alignItems="center" padding={2} maxWidth={'300px'}>
+    <div className="rd__call-recordings-page-form">
       <form onSubmit={handleSubmit} id={formId}>
-        <Stack direction="row">
+        <div className="rd__call-recordings-page-form__container">
           <div className="rd__call-type-dropdown-container">
             <input
               form={formId}
@@ -153,33 +114,10 @@ export const CallRecordingSearchForm = ({
               className="rd__input rd__input--underlined rd__call-recording-search-input"
               type="text"
               onChange={handleChange}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 100)}
-              onKeyDown={handleDropdownNavigation}
               placeholder="Call Type"
-              tabIndex={1}
+              defaultValue="default"
             />
-            {showDropdown && (
-              <div className="rd__call-recording-search-input__call-type-dropdown">
-                {CALL_TYPES.map((callType, i) => (
-                  <div
-                    className={clsx('rd__call-recording-search-input__option', {
-                      'rd__call-recording-search-input__option--highlighted':
-                        i === highlightedOption,
-                    })}
-                    key={callType}
-                    onClick={() => {
-                      if (!callTypeInput) return;
-                      callTypeInput.value = callType;
-                    }}
-                  >
-                    {callType}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-          <span>:</span>
           <input
             form={formId}
             className="rd__input rd__input--underlined rd__call-recording-search-input"
@@ -187,21 +125,16 @@ export const CallRecordingSearchForm = ({
             onChange={handleChange}
             ref={setCallIdInput}
             placeholder="Call ID"
-            tabIndex={2}
           />
-        </Stack>
-        <Button
-          className="rd__call-recording-search-submit-button"
-          type="submit"
-          variant="contained"
-          sx={{ marginTop: '1rem' }}
+        </div>
+        <button
           disabled={!enabled}
-          fullWidth
-          tabIndex={3}
+          className="rd__button rd__button--primary"
+          type="submit"
         >
-          Go
-        </Button>
+          Search
+        </button>
       </form>
-    </Stack>
+    </div>
   );
 };

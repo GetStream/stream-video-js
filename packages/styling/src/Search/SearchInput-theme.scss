@@ -47,6 +47,12 @@
   }
   .str-video__search-input__clear-btn {
     background-color: transparent;
+    border-radius: var(--str-video__border-radius-circle);
+    border: none;
+
+    &:hover {
+      cursor: pointer;
+    }
 
     .str-video__search-input__icon--active {
       @include utils.apply-mask-image(

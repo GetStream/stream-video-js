@@ -23,3 +23,10 @@ As such, this application accepts certain configuration parameters to be provide
 - run `yarn start`
 - open browser
 - uncomment and tweak the setup script at the bottom of the [`main.tsx`](./src/main.tsx) file to your likings
+
+## To update the Playwright test baseline screenshots
+
+- in the root of the repo, edit `docker-compose.yml` and provide the API Key and User Token
+- run `docker compose up generate-screenshots`
+- check the generated screenshots in `./tests/__screenshots__/`
+- push the changes to the repo

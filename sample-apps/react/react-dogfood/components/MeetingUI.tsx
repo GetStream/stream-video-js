@@ -3,41 +3,18 @@ import { JSX, useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
   CallingState,
-  CallParticipantsList,
-  CallStatsButton,
-  CancelCallButton,
-  CompositeButton,
   defaultSortPreset,
-  IconButton,
   LoadingIndicator,
   noopComparator,
-  PermissionRequests,
-  ReactionsButton,
-  RecordCallButton,
-  ScreenShareButton,
-  SpeakingWhileMutedNotification,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
-import { Lobby } from './Lobby';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { Lobby, UserMode } from './Lobby';
 import { StreamChat } from 'stream-chat';
-
-import {
-  ChatUI,
-  ChatWrapper,
-  NewMessageNotification,
-  UnreadCountBadge,
-} from '.';
-import { ActiveCallHeader } from './ActiveCallHeader';
-import { useKeyboardShortcuts, useWakeLock, useWatchChannel } from '../hooks';
-import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
-import { Stage } from './Stage';
-import { ToggleParticipantListButton } from './ToggleParticipantListButton';
+import { useKeyboardShortcuts, useWakeLock } from '../hooks';
+import { ActiveCall } from './ActiveCall';
 
 const contents = {
   'error-join': {
@@ -50,9 +27,9 @@ const contents = {
 
 type MeetingUIProps = {
   chatClient?: StreamChat | null;
-  enablePreview?: boolean;
+  mode?: UserMode;
 };
-export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
+export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
@@ -61,59 +38,59 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const activeCall = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
-  const [showParticipants, setShowParticipants] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
-    const storedLayout = getLayoutSettings()?.selectedLayout;
 
-    if (!storedLayout) return DEFAULT_LAYOUT;
-
-    return Object.hasOwn(LayoutMap, storedLayout)
-      ? storedLayout
-      : DEFAULT_LAYOUT;
-  });
-
-  const showSidebar = showParticipants || showChat;
-
-  // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
-  // possible fix with "allow to join" permissions in place (expensive?)
-  const channelWatched = useWatchChannel({
-    chatClient,
-    channelId: activeCall?.id,
-  });
-
-  const onJoin = useCallback(async () => {
-    setShow('loading');
-    try {
-      const preferredCodec = router.query['video_codec'];
-      if (typeof preferredCodec === 'string') {
-        activeCall?.camera.setPreferredCodec(preferredCodec);
+  const onJoin = useCallback(
+    async ({ fastJoin = false } = {}) => {
+      if (!fastJoin) setShow('loading');
+      try {
+        const preferredCodec = router.query['video_codec'];
+        if (typeof preferredCodec === 'string') {
+          activeCall?.camera.setPreferredCodec(preferredCodec);
+        }
+        await activeCall?.join({ create: true });
+        setShow('active-call');
+      } catch (e) {
+        console.error(e);
+        setLastError(e as Error);
+        setShow('error-join');
       }
-      await activeCall?.join({ create: true });
-      setShow('active-call');
-    } catch (e) {
-      console.error(e);
-      setLastError(e as Error);
-      setShow('error-join');
-    }
-  }, [activeCall, router]);
+    },
+    [activeCall, router],
+  );
 
-  const onLeave = useCallback(async () => {
-    setShow('loading');
-    try {
-      await router.push('/');
-    } catch (e) {
-      console.error(e);
-      setLastError(e as Error);
-      setShow('error-leave');
-    }
-  }, [router]);
+  const onLeave = useCallback(
+    async ({ withFeedback = true }: { withFeedback?: boolean } = {}) => {
+      if (!withFeedback) return;
+      setShow('loading');
+      try {
+        await router.push(`/leave/${activeCall?.id}`);
+      } catch (e) {
+        console.error(e);
+        setLastError(e as Error);
+        setShow('error-leave');
+      }
+    },
+    [router, activeCall?.id],
+  );
 
   useEffect(() => {
     if (callState === CallingState.LEFT) {
-      void onLeave();
+      onLeave({ withFeedback: false }).catch(console.error);
     }
   }, [callState, onLeave]);
+
+  useEffect(() => {
+    if (!activeCall) return;
+    return activeCall.on('call.ended', async (e) => {
+      if (e.type !== 'call.ended' || !e.user) return;
+      if (e.user.id === activeCall.currentUserId) return;
+      alert(`Call ended for everyone by: ${e.user.name || e.user.id}`);
+      if (activeCall.state.callingState !== CallingState.LEFT) {
+        await activeCall.leave();
+      }
+      setShow('lobby');
+    });
+  }, [activeCall, router]);
 
   useEffect(() => {
     const handlePageLeave = async () => {
@@ -156,13 +133,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
       />
     );
   } else if (show === 'lobby') {
-    ComponentToRender = (
-      <Lobby
-        onJoin={onJoin}
-        callId={activeCall?.id}
-        enablePreview={enablePreview}
-      />
-    );
+    ComponentToRender = <Lobby onJoin={onJoin} mode={mode} />;
   } else if (show === 'loading') {
     ComponentToRender = <LoadingScreen />;
   } else if (!activeCall) {
@@ -175,83 +146,12 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     );
   } else {
     ComponentToRender = (
-      <div className="str-video__call">
-        <div className="str-video__main-call-panel">
-          <ActiveCallHeader
-            selectedLayout={layout}
-            onMenuItemClick={setLayout}
-          />
-          <PermissionRequests />
-          <Stage selectedLayout={layout} />
-          <div
-            className="str-video__call-controls"
-            data-testid="str-video__call-controls"
-          >
-            <div className="str-video__call-controls--group">
-              <RecordCallButton />
-              <ScreenShareButton />
-              <ReactionsButton />
-            </div>
-            <div className="str-video__call-controls--group">
-              <SpeakingWhileMutedNotification>
-                <ToggleAudioPublishingButton />
-              </SpeakingWhileMutedNotification>
-              <ToggleVideoPublishingButton />
-              <CancelCallButton onLeave={onLeave} />
-            </div>
-            <div className="str-video__call-controls--group">
-              <CallStatsButton />
-              <ToggleParticipantListButton
-                enabled={showParticipants}
-                onClick={() => setShowParticipants((prev) => !prev)}
-              />
-              <NewMessageNotification
-                chatClient={chatClient}
-                channelWatched={channelWatched}
-                disableOnChatOpen={showChat}
-              >
-                <div className="str-chat__chat-button__wrapper">
-                  <CompositeButton caption="Chat" active={showChat}>
-                    <IconButton
-                      enabled={showChat}
-                      disabled={!chatClient}
-                      onClick={() => setShowChat((prev) => !prev)}
-                      icon="chat"
-                    />
-                  </CompositeButton>
-                  {!showChat && (
-                    <UnreadCountBadge
-                      channelWatched={channelWatched}
-                      chatClient={chatClient}
-                      channelId={activeCall.id}
-                    />
-                  )}
-                </div>
-              </NewMessageNotification>
-            </div>
-          </div>
-        </div>
-        {showSidebar && (
-          <div className="str-video__sidebar">
-            {showParticipants && (
-              <CallParticipantsList
-                onClose={() => setShowParticipants(false)}
-              />
-            )}
-
-            <ChatWrapper chatClient={chatClient}>
-              {showChat && (
-                <div className="str-video__chat">
-                  <ChatUI
-                    onClose={() => setShowChat(false)}
-                    channelId={activeCall.id}
-                  />
-                </div>
-              )}
-            </ChatWrapper>
-          </div>
-        )}
-      </div>
+      <ActiveCall
+        activeCall={activeCall}
+        chatClient={chatClient}
+        onLeave={onLeave}
+        onJoin={onJoin}
+      />
     );
   }
 
@@ -271,54 +171,47 @@ const ErrorPage = ({
   onClickLobby,
   error,
 }: ErrorPageProps) => (
-  <Stack height={1} justifyContent="center" alignItems="center" gap={5}>
-    <div>
-      <Typography variant="h2" textAlign="center">
-        {heading}
-      </Typography>
-      <Typography variant="subtitle1" textAlign="center">
+  <div className="rd__error">
+    <div className="rd__error__container">
+      <h1 className="rd__error__header">{heading}</h1>
+      <div className="rd__error__content">
         {error?.stack && (
-          <Box
-            textAlign="left"
-            fontFamily="Monospace"
-            color="#d32f2f"
-            fontSize="0.75rem"
-          >
+          <div className="rd__error__message">
             <pre>{error.stack}</pre>
-          </Box>
+          </div>
         )}
-        (see the console for more info)
-      </Typography>
+        <p>(see the console for more info)</p>
+      </div>
+
+      <div className="rd__error__actions">
+        <button
+          data-testid="return-home-button"
+          className="rd__button rd__button--primary"
+          onClick={onClickHome}
+        >
+          Return home
+        </button>
+
+        <button
+          data-testid="return-home-button"
+          className="rd__button rd__button--secondary"
+          onClick={onClickLobby}
+        >
+          Back to lobby
+        </button>
+
+        <button
+          data-testid="report-issue-button"
+          className="rd__button"
+          onClick={() => {
+            Gleap.startFeedbackFlow('bugreporting');
+          }}
+        >
+          Report an issue
+        </button>
+      </div>
     </div>
-    <Stack direction="row" gap={2}>
-      <Button
-        data-testid="return-home-button"
-        variant="contained"
-        onClick={onClickHome}
-      >
-        Return home
-      </Button>
-
-      <Button
-        data-testid="return-home-button"
-        variant="contained"
-        onClick={onClickLobby}
-      >
-        Back to lobby
-      </Button>
-
-      <Button
-        data-testid="report-issue-button"
-        variant="contained"
-        color="error"
-        onClick={() => {
-          Gleap.startFeedbackFlow('bugreporting');
-        }}
-      >
-        Report an issue
-      </Button>
-    </Stack>
-  </Stack>
+  </div>
 );
 
 export const LoadingScreen = () => {

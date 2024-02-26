@@ -1,7 +1,5 @@
 import {
-  ComponentProps,
   Dispatch,
-  ForwardedRef,
   forwardRef,
   SetStateAction,
   useCallback,
@@ -17,14 +15,9 @@ import {
   OwnCapability,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import clsx from 'clsx';
 
 import { BlockedUserListing } from './BlockedUserListing';
-import {
-  CopyToClipboardButtonWithPopup,
-  IconButton,
-  TextButton,
-} from '../Button';
+import { IconButton, TextButton } from '../Button';
 import { CallParticipantListHeader } from './CallParticipantListHeader';
 import { CallParticipantListing } from './CallParticipantListing';
 import { EmptyParticipantSearchList } from './EmptyParticipantSearchList';
@@ -97,12 +90,6 @@ export const CallParticipantsList = ({
           />
         )}
       </div>
-      <div className="str-video__participant-list__footer">
-        <CopyToClipboardButtonWithPopup
-          Button={InviteLinkButton}
-          copyValue={typeof window !== 'undefined' ? window.location.href : ''}
-        />
-      </div>
     </div>
   );
 };
@@ -123,7 +110,6 @@ const CallParticipantListContentHeader = ({
   return (
     <div className="str-video__participant-list__content-header">
       <div className="str-video__participant-list__content-header-title">
-        <span>{UserListTypes[userListType]}</span>
         {userListType === 'active' && (
           <Restricted
             requiredGrants={[OwnCapability.MUTE_USERS]}
@@ -234,23 +220,7 @@ const BlockedUsersSearchResults = ({
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleButton(props, ref) {
     return <IconButton enabled={props.menuShown} icon="filter" ref={ref} />;
   },
-);
-
-const InviteLinkButton = forwardRef(
-  (
-    { className, ...props }: ComponentProps<'button'>,
-    ref: ForwardedRef<HTMLButtonElement>,
-  ) => (
-    <button
-      {...props}
-      className={clsx('str-video__invite-link-button', className)}
-      ref={ref}
-    >
-      <div className="str-video__invite-participant-icon" />
-      <div className="str-video__invite-link-button__text">Invite Link</div>
-    </button>
-  ),
 );

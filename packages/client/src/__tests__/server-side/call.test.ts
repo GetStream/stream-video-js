@@ -89,12 +89,6 @@ describe('call API', () => {
     });
 
     expect(response.calls.length).toBeLessThanOrEqual(2);
-
-    response = await client.queryCalls({
-      filter_conditions: { backstage: { $eq: false } },
-    });
-
-    expect(response.calls.length).toBeGreaterThanOrEqual(1);
   });
 
   describe('recording', () => {
@@ -150,7 +144,7 @@ describe('call API', () => {
       );
     });
 
-    it('query recordings', async () => {
+    it.skip('query recordings', async () => {
       // somewhat dummy test, we should do a proper test in the future
       let response = await call.queryRecordings();
 

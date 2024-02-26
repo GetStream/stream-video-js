@@ -83,9 +83,7 @@ export const ActiveChat = ({ channelId, channelType }: ActiveChatProps) => {
     >
       <Window>
         <MessageList messageActions={ALLOWED_MESSAGE_ACTIONS} />
-        <MessageInput
-          additionalTextareaProps={{ placeholder: 'Send a message' }}
-        />
+        <MessageInput additionalTextareaProps={{ placeholder: 'Message' }} />
       </Window>
     </Channel>
   );

@@ -7,21 +7,35 @@ export const useLanguage = () => {
   const [language, _setLanguage] = useState<string | undefined>();
 
   const setLanguage = useCallback((lng: TranslationLanguage) => {
-    if (typeof window === 'undefined') return;
     _setLanguage(lng);
-    window.localStorage.setItem(LANGUAGE_SETTINGS_KEY, lng);
+    storeLanguage(lng);
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    setLanguage(
-      window.localStorage.getItem(LANGUAGE_SETTINGS_KEY) ||
-        window.navigator.language,
-    );
+    setLanguage(getStoredLanguage() || window.navigator.language);
   }, [setLanguage]);
 
   return {
     language,
+    fallbackLanguage: 'en',
     setLanguage,
   };
+};
+
+const storeLanguage = (lng: TranslationLanguage) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(LANGUAGE_SETTINGS_KEY, lng);
+  } catch (e) {
+    console.warn(`Language couldn't be stored`, e);
+  }
+};
+
+const getStoredLanguage = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    return window.localStorage.getItem(LANGUAGE_SETTINGS_KEY);
+  } catch (e) {
+    console.warn(`Language couldn't be retrieved`, e);
+  }
 };

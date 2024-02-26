@@ -8,29 +8,91 @@
 
   /* The background color of the component */
   --str-video__composite-button__button-group--background-color: var(
-    --str-video__background-color1
+    --str-video__button-primary-base
+  );
+
+  /* The active background color of the component */
+  --str-video__composite-button__button-group-active--background-color: var(
+    --str-video__button-primary-active
+  );
+
+  --str-video__composite-button__button-group-active-primary--background-color: var(
+    --str-video__button-primary-active
+  );
+
+  --str-video__composite-button__button-group-active-secondary--background-color: var(
+    --str-video__button-secondary-active
+  );
+
+  --str-video__composite-button__button-group-active-secondary-hover--background-color: var(
+    --str-video__button-secondary-hover
+  );
+
+  /* The hover background color of the component */
+  --str-video__composite-button__button-group-hover--background-color: var(
+    --str-video__button-default-hover
   );
 
   /* The border radius used for the borders of the component */
   --str-video__composite-button__button-group--border-radius: var(
     --str-video__border-radius-xs
   );
-
-  /* The background color of the component */
-  --str-video__composite-button__button-group-active--background-color: var(
-    --str-video__background-color7
-  );
 }
 
 .str-video__composite-button__button-group {
   @include utils.component-layer-overrides('composite-button__button-group');
-
-  .str-video__call-controls__button {
-    background-color: transparent;
-  }
+  background-color: var(
+    --str-video__composite-button__button-group--background-color
+  );
+  border-radius: var(--str-video__border-radius-circle);
 
   .str-video__call-controls__button.str-video__menu-toggle-button {
-    background-color: var(--str-video__background-color1);
+    background-color: var(--str-video__button-primary-base);
+
+    &:hover {
+      background-color: var(--str-video__button-default-hover);
+    }
+
+    &--active {
+      background-color: var(
+        --str-video__composite-button__button-group-hover--background-color
+      );
+      color: white;
+
+      &:hover {
+        background-color: var(
+          --str-video__composite-button__button-group-hover--background-color
+        );
+      }
+
+      &:disabled {
+        background-color: var(
+          --str-video__composite-button__button-group-hover--background-color
+        );
+      }
+    }
+  }
+
+  &.str-video__composite-button__button-group--active {
+    background-color: var(
+      --str-video__composite-button__button-group-active--background-color
+    );
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+  }
+
+  &.str-video__composite-button__button-group--active-primary {
+    background-color: var(
+      --str-video__composite-button__button-group-active-primary--background-color
+    );
+  }
+
+  &.str-video__composite-button__button-group--active-secondary {
+    background-color: var(
+      --str-video__composite-button__button-group-active-secondary--background-color
+    );
   }
 }
 
@@ -42,32 +104,50 @@
   white-space: nowrap;
 }
 
-.str-video__composite-button__button-group:hover,
-.str-video__composite-button__button-group--active {
+.str-video__composite-button__button-group:hover {
   background-color: var(
-    --str-video__composite-button__button-group-active--background-color
+    --str-video__composite-button__button-group-hover--background-color
   );
+
+  &.str-video__composite-button__button-group--active-secondary:hover {
+    background-color: var(
+      --str-video__composite-button__button-group-active-secondary-hover--background-color
+    );
+  }
+
+  .str-video__icon {
+    background-color: var(--str-video__icon-hover);
+  }
 }
 
 .str-video__call-controls__button {
-  border-radius: var(--str-video__border-radius-xs);
+  border-radius: var(--str-video__border-radius-circle);
   text-decoration: none;
   box-shadow: none;
   border: none;
-  background-color: var(--str-video__background-color1);
+  background-color: var(--str-video__button-primary-base);
 
   &:hover {
     text-decoration: none;
     background-color: var(
-      --str-video__composite-button__button-group-active--background-color
+      --str-video__composite-button__button-group-hover--background-color
     );
+
+    .str-video__icon {
+      background-color: var(--str-video__icon-hover);
+    }
   }
 
   &--variant-danger {
-    background-color: var(--str-video__danger-color);
+    background-color: var(--str-video__button-tertiary-base);
+    padding: 0.4rem;
+
+    .str-video__icon {
+      background-color: white;
+    }
 
     &:hover {
-      background-color: var(--str-video__danger-color--accent);
+      background-color: var(--str-video__button-tertiary-hover);
     }
   }
 

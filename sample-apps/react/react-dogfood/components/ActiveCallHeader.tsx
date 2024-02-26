@@ -1,76 +1,127 @@
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CallingState,
-  CopyToClipboardButtonWithPopup,
-  DeviceSettings,
-  IconButton,
+  CancelCallConfirmButton,
+  Icon,
   LoadingIndicator,
   Notification,
   useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
+
 import { CallHeaderTitle } from './CallHeaderTitle';
-import { CallRecordings } from './CallRecordings';
-import { USAGE_GUIDE_LINK } from './index';
-import { IconInviteLinkButton } from './InviteLinkButton';
-import { LayoutSelector, LayoutSelectorProps } from './LayoutSelector';
-import { useSettings } from '../context/SettingsContext';
-import { DevMenu } from './DevMenu';
+import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { ToggleDocumentationButton } from './ToggleDocumentationButton';
+
+import { LayoutSelectorProps } from './LayoutSelector';
+
+import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
+
+export const LatencyIndicator = () => {
+  const { useCallStatsReport } = useCallStateHooks();
+  const statsReport = useCallStatsReport();
+  const latency = statsReport?.publisherStats?.averageRoundTripTimeInMs ?? 0;
+
+  return (
+    <div className="rd__header__latency">
+      <div
+        className={clsx('rd__header__latency-indicator', {
+          'rd__header__latency-indicator--good': latency && latency <= 100,
+          'rd__header__latency-indicator--ok':
+            latency && latency > 100 && latency < 400,
+          'rd__header__latency-indicator--bad': latency && latency > 400,
+        })}
+      ></div>
+      {latency} ms
+    </div>
+  );
+};
+
+export const Elapsed = ({
+  startedAt,
+}: {
+  className?: string;
+  startedAt: string | undefined;
+}) => {
+  const [elapsed, setElapsed] = useState<string>();
+  const startedAtDate = useMemo(
+    () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
+    [startedAt],
+  );
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
+      const date = new Date(0);
+      date.setSeconds(elapsedSeconds);
+      const format = date.toISOString(); // '1970-01-01T00:00:35.000Z'
+      const hours = format.substring(11, 13);
+      const minutes = format.substring(14, 16);
+      const seconds = format.substring(17, 19);
+      const time = `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds}`;
+      setElapsed(time);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startedAtDate]);
+
+  return (
+    <div className="rd__header__elapsed">
+      <Icon className="rd__header__elapsed-icon" icon="verified" />
+      <div className="rd__header__elapsed-time">{elapsed}</div>
+    </div>
+  );
+};
 
 export const ActiveCallHeader = ({
+  onLeave,
   selectedLayout,
-  onMenuItemClick: setLayout,
-}: LayoutSelectorProps) => {
-  const { setOpen } = useSettings();
-  const { useCallCallingState } = useCallStateHooks();
+  onMenuItemClick,
+}: { onLeave: () => void } & LayoutSelectorProps) => {
+  const { useCallCallingState, useCallSession } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const session = useCallSession();
   const isOffline = callingState === CallingState.OFFLINE;
   const isMigrating = callingState === CallingState.MIGRATING;
   const isJoining = callingState === CallingState.JOINING;
   const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
 
+  const { t } = useI18n();
+
+  const isDemo = useIsDemoEnvironment();
+
   return (
     <>
-      <div className="str-video__call-header">
-        <CallHeaderTitle />
-        <div className="str-video__call-header__controls-group">
-          <DevMenu />
-          <LayoutSelector
-            selectedLayout={selectedLayout}
-            onMenuItemClick={setLayout}
+      <div className="rd__call-header rd__call-header--active">
+        <div className="rd__call-header__title">
+          <CallHeaderTitle
+            title={isDemo ? t('Stream Video Calling') : undefined}
           />
-          <IconButton
-            icon="info-document"
-            title="Usage guide and known limitations"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                window.open(USAGE_GUIDE_LINK, '_blank', 'noopener,noreferrer');
-              }
+
+          <ToggleDocumentationButton />
+        </div>
+
+        <div className="rd__call-header__settings">
+          <ToggleSettingsTabModal
+            layoutProps={{
+              selectedLayout: selectedLayout,
+              onMenuItemClick: onMenuItemClick,
+            }}
+            tabModalProps={{
+              inMeeting: true,
             }}
           />
-          <CopyToClipboardButtonWithPopup
-            Button={IconInviteLinkButton}
-            copyValue={
-              typeof window !== 'undefined' ? window.location.href : ''
-            }
-            popupPlacement="bottom"
-          />
-          <CallRecordings />
-          <DeviceSettings />
-          <button
-            style={{
-              padding: 0,
-              background: '#1c1e22',
-              color: 'white',
-              borderRadius: '8px',
-            }}
-            onClick={() => setOpen(true)}
-          >
-            <MoreVertIcon fill="white" />
-          </button>
+        </div>
+
+        <div className="rd__call-header__controls-group">
+          <Elapsed startedAt={session?.started_at} />
+          <LatencyIndicator />
+        </div>
+        <div className="rd__call-header__leave">
+          <CancelCallConfirmButton onLeave={onLeave} />
         </div>
       </div>
-      <div className="str-video__call-header__notifications">
+      <div className="rd__call-header__notifications">
         {(() => {
           if (isOffline || hasFailedToRecover) {
             return (

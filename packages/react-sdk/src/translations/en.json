@@ -24,6 +24,7 @@
   "Waiting for recording to start...": "Waiting for recording to start...",
   "Record call": "Record call",
   "Reactions": "Reactions",
+  "Statistics": "Statistics",
   "You can now share your screen.": "You can now share your screen.",
   "Awaiting for an approval to share screen.": "Awaiting for an approval to share screen.",
   "You can no longer share your screen.": "You can no longer share your screen.",
@@ -37,6 +38,8 @@
   "Me": "Me",
   "Unknown": "Unknown",
   "Toggle device menu": "Toggle device menu",
+  "Call Recordings": "Call Recordings",
+  "Refresh": "Refresh",
 
   "You are presenting your screen": "You are presenting your screen",
   "Stop Screen Sharing": "Stop Screen Sharing",
@@ -69,6 +72,8 @@
   "Disable screen sharing": "Disable screen sharing",
   "Enter": "Enter",
   "Leave": "Leave",
+  "Leave call": "Leave call",
+  "End call for all": "End call for all",
   "{{ direction }} fullscreen": "{{ direction }} fullscreen",
   "{{ direction }} picture-in-picture": "{{ direction }} picture-in-picture",
 

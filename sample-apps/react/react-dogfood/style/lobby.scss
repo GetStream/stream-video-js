@@ -1,0 +1,242 @@
+.rd__lobby {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+
+  &-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: 100%;
+    padding: var(--str-video__spacing-lg);
+
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  &-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+
+    .rd__lobby-video-preview {
+      position: relative;
+    }
+
+    .rd__lobby-media-toggle {
+      display: flex;
+      position: absolute;
+      bottom: 0px;
+      gap: var(--str-video__spacing-sm);
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .rd__lobby-video-preview,
+    .str-video__video-preview-container {
+      height: 320px;
+      width: 100%;
+      border-radius: var(--str-video__border-radius-md);
+      border-color: transparent;
+    }
+  }
+
+  &-edge-network {
+    display: flex;
+    align-items: center;
+    padding: var(--str-video__spacing-md);
+    border-radius: var(--str-video__border-radius-md);
+    background-color: var(--str-video__base-color6);
+    gap: var(--str-video__spacing-md);
+    font-size: var(--str-video__font-size-xs);
+  }
+
+  &-heading {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--str-video__font-size-xl);
+    font-weight: 500;
+    margin-bottom: var(--str-video__spacing-xs);
+    text-align: center;
+  }
+
+  &-heading__description {
+    font-size: var(--str-video__font-size-sm);
+    font-weight: 400;
+    margin-top: 0;
+    margin-bottom: var(--str-video__spacing-md);
+    text-align: center;
+  }
+
+  &-camera {
+    width: calc(100vw - var(--str-video__spacing-lg));
+    height: auto;
+
+    &--off {
+      .str-video__video-preview-container {
+        opacity: 0.75;
+      }
+    }
+  }
+
+  &-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: var(--str-video__spacing-md);
+    margin-bottom: var(--str-video__spacing-sm);
+  }
+
+  .rd__lobby-media {
+    gap: var(--str-video__spacing-sm);
+  }
+
+  .rd__lobby-settings {
+    display: flex;
+    gap: var(--str-video__spacing-sm);
+  }
+
+  &-join {
+    margin-top: var(--str-video__spacing-lg);
+  }
+
+  &-media {
+    display: flex;
+    align-items: center;
+
+    .str-video__composite-button {
+      flex-direction: row;
+    }
+
+    .str-video__composite-button__caption {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+  }
+
+  .rd__lobby__user-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    padding-top: 25px;
+  }
+}
+
+.rd__try-native {
+  padding: 10px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  gap: 10px;
+
+  position: absolute;
+  z-index: 10;
+  background-color: var(--str-video__background-color1);
+
+  .rd__try-native__logo {
+    width: 96px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .rd__try-native__title {
+    margin: 0;
+  }
+
+  .rd__try-native__info-text {
+    padding: 10px 0;
+    color: var(--str-video__base-color2);
+  }
+}
+
+.rd__latencymap {
+  height: 100vh;
+  width: 100vw;
+  z-index: 1;
+
+  &-container {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+
+    > canvas {
+      height: 100vh;
+      width: 100vw;
+    }
+  }
+}
+
+.rd__lobby__no-permission {
+  text-align: center;
+}
+@include respond-above(sm) {
+  .rd__lobby-content {
+    max-width: 40vw;
+
+    .rd__lobby-camera {
+      width: 600px;
+      .rd__lobby-video-preview,
+      .str-video__video-preview-container {
+        height: 320px;
+        width: 100%;
+      }
+    }
+
+    .rd__lobby-media {
+      .str-video__composite-button__caption {
+        width: 150px;
+      }
+    }
+  }
+}
+
+.rd__lobby__camera-button.rd__button,
+.rd__lobby__mic-button.rd__button {
+  display: none;
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
+  font-size: var(--str-video__font-size-xs);
+}
+.rd__lobby__camera-button__device,
+.rd__lobby__mic-button__device {
+  width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  margin: 0;
+}
+
+@include respond-above(sm) {
+  .rd__lobby__camera-button.rd__button,
+  .rd__lobby__mic-button.rd__button {
+    display: flex;
+  }
+}
+
+@include respond-above(md) {
+  .rd__lobby-content {
+    max-width: 25vw;
+  }
+}
+
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-attrib a,
+a.mapboxgl-ctrl-logo {
+  display: none;
+}

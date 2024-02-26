@@ -1,24 +1,67 @@
-.str-video__composite-button {
+.str-video__button {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  height: 100%;
+  justify-content: center;
+  border-radius: var(--str-video__border-radius-md);
+  padding: var(--str-video__spacing-sm) var(--str-video__spacing-lg);
+  text-align: center;
+  min-width: 120px;
+  width: 100%;
+  font-size: var(--str-video__font-size-md);
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: var(--str-video__text-color1);
+
+  background-color: var(--str-video__button-primary-base);
+
+  &:hover {
+    background-color: var(--str-video__button-primary-hover);
+    cursor: pointer;
+  }
+
+  &__icon {
+    margin-right: var(--str-video__spacing-xs);
+    height: 16px;
+    background-color: var(--str-video__text-color1);
+  }
+
+  &:disabled {
+    background-color: var(--str-video__button-default-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.str-video__composite-button {
+  &--caption {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 
   .str-video__composite-button__button-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    height: 38px;
 
-    .str-video__call-controls__button {
-      padding: 0;
+    .str-video__composite-button__button {
+      all: unset;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      height: calc(38px - 1rem);
+      padding: 0.5rem;
+
+      &:hover {
+        cursor: pointer;
+      }
     }
 
-    .str-video__call-controls__button.str-video__menu-toggle-button {
-      height: 100%;
-      padding-inline: 2px;
+    .str-video__menu-toggle-button {
+      padding: 0;
+      margin-left: -30px;
+      margin-right: 8px;
     }
 
     .str-video__loading-indicator__icon {
@@ -28,32 +71,30 @@
       mask-size: 1.25rem;
     }
   }
+
+  &.str-video__composite-button--menu .str-video__composite-button__button {
+    padding-right: 2.5rem;
+  }
 }
 
 .str-video__call-controls__button {
   padding: 0.5rem;
 
-  &--variant-danger, &--variant-success {
+  &--variant-danger,
+  &--variant-success {
     padding: 0.5rem 1rem;
   }
 
-  // FIXME: ask Jared for better styling
   &[disabled] {
     cursor: not-allowed;
-    opacity: 0.7;
+  }
+
+  &:hover,
+  &:hover > *:hover {
+    cursor: pointer;
   }
 
   .str-video__icon {
-    &--caret-down {
-      width: 0.5rem;
-      height: 0.5rem;
-    }
-
-    &--caret-up {
-      width: 0.5rem;
-      height: 0.5rem;
-    }
-
     &--call-end {
       width: 1.5rem;
       height: 1.5rem;
@@ -76,4 +117,8 @@
   background: var(
     --str-video__participant-list-header__close-button--background-color
   );
+}
+
+.str-video__call-recording-list-item__action-button {
+  border: none;
 }

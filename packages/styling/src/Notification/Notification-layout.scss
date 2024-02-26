@@ -13,4 +13,14 @@
   .str-video__notification__message {
     flex: 1;
   }
+
+  .str-video__notification__close {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
 }

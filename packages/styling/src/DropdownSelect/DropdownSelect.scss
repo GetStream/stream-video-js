@@ -1,0 +1,104 @@
+.str-video {
+  &__dropdown {
+    position: relative;
+    &-selected {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--str-video__base-color4);
+      border-radius: var(--str-video__border-radius-lg);
+      border: 1px solid var(--str-video__base-color6);
+
+      &__label {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        padding: var(--str-video__spacing-sm);
+        font-size: var(--str-video__font-size-xs);
+      }
+
+      &__icon {
+        margin-right: var(--str-video__spacing-sm);
+      }
+
+      &__chevron {
+        margin-right: var(--str-video__spacing-md);
+      }
+
+      & > *:hover,
+      &:hover {
+        cursor: pointer;
+      }
+
+      &:hover {
+        border: 1px solid var(--str-video__brand-color1);
+      }
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      z-index: 2;
+      width: 100%;
+      margin-top: var(--str-video__spacing-sm);
+      background-color: var(--str-video__base-color4);
+      border-radius: var(--str-video__border-radius-lg);
+      padding: var(--str-video__spacing-md);
+
+      box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+    }
+
+    &-option {
+      display: flex;
+      align-items: center;
+      border-radius: var(--str-video__border-radius-lg);
+
+      padding: 8px 16px;
+      margin-top: 8px;
+      gap: 8px;
+
+      font-weight: 600;
+      font-size: var(--str-video__font-size-sm);
+
+      &:hover {
+        background-color: var(--str-video__button-default-hover);
+        cursor: pointer;
+      }
+
+      &--selected {
+        background-color: var(--str-video__button-primary-active);
+        color: var(--str-video__text-color1);
+
+        &:hover {
+          background-color: var(--str-video__button-primary-hover);
+        }
+      }
+    }
+
+    &-icon {
+      background-color: var(--str-video__icon-default);
+
+      .str-video__dropdown__option:hover & {
+        background-color: var(--str-video__icon-hover);
+      }
+
+      .str-video__dropdown-option--selected & {
+        background-color: var(--str-video__text-color1);
+      }
+    }
+
+    &-label {
+      font-size: var(--str-video__font-size-xs);
+      .str-video__dropdown__option:hover & {
+        color: var(--str-video__base-color1);
+      }
+    }
+  }
+}
+
+@media (min-width: 600px) {
+  .str-video__dropdown-selected__label {
+    font-size: var(--str-video__font-size-sm);
+  }
+}

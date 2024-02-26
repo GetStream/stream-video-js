@@ -1,0 +1,102 @@
+.rd__feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  background-color: var(--str-video__base-color7);
+  border-radius: var(--str-video__border-radius-lg);
+  padding: 32px;
+
+  width: 100%;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.75);
+}
+
+.rd__feedback-image {
+  width: 300px;
+}
+
+.rd__feedback-heading {
+  font-weight: 600;
+  font-size: 24px;
+  margin: 0;
+}
+
+.rd__feedback-description {
+  color: var(--str-video__base-color2);
+  font-size: var(--str-video__font-size-sm);
+  margin: var(--str-video__spacing-lg) 0 var(--str-video__spacing-md) 0;
+}
+
+.rd__feedback-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--str-video__spacing-lg);
+  width: 100%;
+}
+
+.rd__feedback-input,
+.rd__feedback-textarea {
+  background-color: var(--str-video__base-color4);
+  border-radius: var(--str-video__border-radius-md);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
+  margin-bottom: var(--str-video__spacing-md);
+  border: 1px solid var(--str-video__base-color3);
+  width: 100%;
+  color: var(--str-video__text-color1);
+
+  &:focus,
+  &:focus-visible {
+    border: 1px solid var(--str-video__base-color1);
+  }
+}
+
+.rd__feedback-textarea {
+  height: 100px;
+}
+
+.rd__feedback-footer {
+  width: 100%;
+  margin-bottom: var(--str-video__spacing-lg);
+}
+
+.rd__feedback-rating {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--str-video__spacing-lg);
+}
+
+.rd__feedback-rating-description {
+  font-size: var(--str-video__font-size-sm);
+}
+
+.rd__feedback-rating-stars {
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    .rd__feedback-star:hover ~ .rd__feedback-star {
+      background-color: var(--str-video__alert-caution);
+    }
+  }
+}
+
+.rd__feedback-star:hover {
+  background-color: var(--str-video__alert-caution);
+  cursor: pointer;
+}
+.rd__feedback-star--active {
+  background-color: var(--str-video__alert-caution);
+}
+
+.rd__feedback-sent {
+}
+
+.rd__feedback-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--str-video__spacing-md);
+}
