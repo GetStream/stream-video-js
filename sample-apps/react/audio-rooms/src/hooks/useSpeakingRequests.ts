@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   OwnCapability,
   PermissionRequestEvent,
-  StreamCallEvent,
   useCall,
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
@@ -30,18 +29,13 @@ export const useSpeakingRequests = () => {
 
   useEffect(() => {
     if (!(call && canUpdatePermissions)) return;
-    const unsubscribe = call.on(
-      'call.permission_request',
-      (event: StreamCallEvent) => {
-        if (event.type !== 'call.permission_request') return;
-
-        setSpeakingRequests((prevSpeakingRequests) => [
-          ...prevSpeakingRequests,
-          event,
-        ]);
-        setIsOpenRequestList(true);
-      },
-    );
+    const unsubscribe = call.on('call.permission_request', (event) => {
+      setSpeakingRequests((prevSpeakingRequests) => [
+        ...prevSpeakingRequests,
+        event,
+      ]);
+      setIsOpenRequestList(true);
+    });
 
     return () => {
       unsubscribe();

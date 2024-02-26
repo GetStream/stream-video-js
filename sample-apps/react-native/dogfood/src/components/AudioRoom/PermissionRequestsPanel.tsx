@@ -6,7 +6,7 @@ import {
   useI18n,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
-import { Text, Button, ScrollView, StyleSheet, View } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export const PermissionRequestsPanel = () => {
   const call = useCall();
@@ -41,9 +41,6 @@ export const PermissionRequestsPanel = () => {
       return;
     }
     return call.on('call.permission_request', (event) => {
-      if (event.type !== 'call.permission_request') {
-        return;
-      }
       setSpeakingRequests((prevSpeakingRequests) => [
         ...prevSpeakingRequests,
         event,

@@ -38,12 +38,6 @@ export default function ToggleAudioButton() {
       return;
     }
     return call.on('call.permissions_updated', (event) => {
-      if (event.type !== 'call.permissions_updated') {
-        return;
-      }
-      if (connectedUser.id !== event.user.id) {
-        return;
-      }
       setIsAwaitingAudioApproval(false);
       // automatically publish/unpublish audio stream based on the new permissions
       if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {

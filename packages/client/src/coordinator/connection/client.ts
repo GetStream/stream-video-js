@@ -6,7 +6,6 @@ import axios, {
   AxiosResponse,
 } from 'axios';
 import https from 'https';
-import WebSocket from 'isomorphic-ws';
 import { StableWSConnection } from './connection';
 import { DevToken, JWTUserToken } from './signing';
 import { TokenManager } from './token_manager';
@@ -22,10 +21,12 @@ import {
 } from './utils';
 
 import {
+  AllClientEvents,
+  AllClientEventTypes,
   APIErrorResponse,
+  ClientEventListener,
   ConnectAPIResponse,
   ErrorFromResponse,
-  EventHandler,
   Logger,
   StreamClientOptions,
   StreamVideoEvent,
@@ -47,7 +48,9 @@ export class StreamClient {
   cleaningIntervalRef?: NodeJS.Timeout;
   clientID?: string;
   key: string;
-  listeners: Record<string, Array<(event: StreamVideoEvent) => void>>;
+  listeners: Partial<
+    Record<AllClientEventTypes, ClientEventListener<any>[] | undefined>
+  > = {};
   logger: Logger;
 
   private locationHint: Promise<string> | undefined;
@@ -89,7 +92,6 @@ export class StreamClient {
   constructor(key: string, options?: StreamClientOptions) {
     // set the key
     this.key = key;
-    this.listeners = {};
 
     // set the secret
     this.secret = options?.secret;
@@ -456,50 +458,40 @@ export class StreamClient {
    * on - Listen to events on all channels and users your watching
    *
    * client.on('message.new', event => {console.log("my new message", event, channel.state.messages)})
-   * or
-   * client.on(event => {console.log(event.type)})
    *
-   * @param {EventHandler | string} callbackOrEventName  The event type to listen for (optional)
-   * @param {EventHandler} [callbackOrNothing] The callback to call
+   * @param eventName The event type to listen for (optional)
+   * @param callback The callback to call
    *
-   * @return {Function} Returns a function which, when called, unsubscribes the event handler.
+   * @return  Returns a function which, when called, unsubscribes the event handler.
    */
-  on = (
-    callbackOrEventName: EventHandler | string,
-    callbackOrNothing?: EventHandler,
+  on = <E extends keyof AllClientEvents>(
+    eventName: E,
+    callback: ClientEventListener<E>,
   ) => {
-    const key = callbackOrNothing ? (callbackOrEventName as string) : 'all';
-    const callback = callbackOrNothing
-      ? callbackOrNothing
-      : (callbackOrEventName as EventHandler);
-    if (!(key in this.listeners)) {
-      this.listeners[key] = [];
+    if (!this.listeners[eventName]) {
+      this.listeners[eventName] = [];
     }
-    this.listeners[key].push(callback);
 
+    this.logger('debug', `Adding listener for ${eventName} event`);
+    this.listeners[eventName]?.push(callback as ClientEventListener<any>);
     return () => {
-      this.off(key, callback);
+      this.off(eventName, callback);
     };
   };
 
   /**
    * off - Remove the event handler
-   *
    */
-  off = (
-    callbackOrEventName: EventHandler | string,
-    callbackOrNothing?: EventHandler,
+  off = <E extends keyof AllClientEvents>(
+    eventName: E,
+    callback: ClientEventListener<E>,
   ) => {
-    const key = callbackOrNothing ? (callbackOrEventName as string) : 'all';
-    const callback = callbackOrNothing
-      ? callbackOrNothing
-      : (callbackOrEventName as EventHandler);
-    if (!(key in this.listeners)) {
-      this.listeners[key] = [];
+    if (!this.listeners[eventName]) {
+      this.listeners[eventName] = [];
     }
 
-    this.logger('debug', `Removing listener for ${key} event`);
-    this.listeners[key] = this.listeners[key].filter(
+    this.logger('debug', `Removing listener for ${eventName} event`);
+    this.listeners[eventName] = this.listeners[eventName]?.filter(
       (value) => value !== callback,
     );
   };
@@ -671,31 +663,16 @@ export class StreamClient {
 
   dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
-
     this.logger('debug', `Dispatching event: ${event.type}`, event);
-    this._callClientListeners(event);
-  };
+    if (!this.listeners) return;
 
-  handleEvent = (messageEvent: WebSocket.MessageEvent) => {
-    // dispatch the event to the channel listeners
-    const jsonString = messageEvent.data as string;
-    const event = JSON.parse(jsonString) as StreamVideoEvent;
-    this.dispatchEvent(event);
-  };
-
-  _callClientListeners = (event: StreamVideoEvent) => {
-    const client = this;
-    // gather and call the listeners
-    const listeners: Array<(e: StreamVideoEvent) => void> = [];
-    if (client.listeners.all) {
-      listeners.push(...client.listeners.all);
-    }
-    if (client.listeners[event.type]) {
-      listeners.push(...client.listeners[event.type]);
+    // call generic listeners
+    for (const listener of this.listeners.all || []) {
+      listener(event);
     }
 
-    // call the event and send it to the listeners
-    for (const listener of listeners) {
+    // call type specific listeners
+    for (const listener of this.listeners[event.type] || []) {
       listener(event);
     }
   };

@@ -14,7 +14,12 @@ import {
   retryInterval,
   sleep,
 } from './utils';
-import type { ConnectAPIResponse, LogLevel, UR } from './types';
+import type {
+  ConnectAPIResponse,
+  LogLevel,
+  StreamVideoEvent,
+  UR,
+} from './types';
 import type {
   ConnectedEvent,
   WSAuthMessageRequest,
@@ -525,20 +530,21 @@ export class StableWSConnection {
     if (this.wsID !== wsID) return;
 
     this._log('onmessage() - onmessage callback', { event, wsID });
-    const data = typeof event.data === 'string' ? JSON.parse(event.data) : null;
+    const data =
+      typeof event.data === 'string'
+        ? (JSON.parse(event.data) as StreamVideoEvent)
+        : null;
 
     // we wait till the first message before we consider the connection open.
     // the reason for this is that auth errors and similar errors trigger a ws.onopen and immediately
     // after that a ws.onclose.
-    if (!this.isResolved && data && data.type === 'connection.ok') {
+    if (!this.isResolved && data && data.type === 'connection.error') {
       this.isResolved = true;
       if (data.error) {
+        // @ts-expect-error - the types of _errorFromWSEvent are incorrect
         this.rejectPromise?.(this._errorFromWSEvent(data, false));
         return;
       }
-
-      this.resolvePromise?.(data);
-      this._setHealth(true);
     }
 
     // trigger the event..
@@ -552,8 +558,13 @@ export class StableWSConnection {
       this.scheduleNextPing();
     }
 
-    if (data && data.error) {
-      const { code } = this._errorFromWSEvent(data, true);
+    if (data && data.type === 'connection.ok') {
+      this.resolvePromise?.(data);
+      this._setHealth(true);
+    }
+
+    if (data && data.type === 'connection.error' && data.error) {
+      const { code } = data.error;
       this.isHealthy = false;
       this.isConnecting = false;
       this.consecutiveFailures += 1;
@@ -569,7 +580,9 @@ export class StableWSConnection {
       }
     }
 
-    this.client.handleEvent(event);
+    if (data) {
+      this.client.dispatchEvent(data);
+    }
     this.scheduleConnectionCheck();
   };
 

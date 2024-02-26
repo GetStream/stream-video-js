@@ -69,18 +69,14 @@ export class Subscriber {
 
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
-      async (message) => {
-        if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
-        const { subscriberOffer } = message.eventPayload;
+      async (subscriberOffer) => {
         await this.negotiate(subscriberOffer);
       },
     );
 
     this.unregisterOnIceRestart = dispatcher.on(
       'iceRestart',
-      async (message) => {
-        if (message.eventPayload.oneofKind !== 'iceRestart') return;
-        const { iceRestart } = message.eventPayload;
+      async (iceRestart) => {
         if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
         await this.restartIce();
       },

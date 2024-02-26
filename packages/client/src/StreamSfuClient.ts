@@ -185,9 +185,7 @@ export class StreamSfuClient {
     // connection is established. In that case, those events (ICE candidates)
     // need to be buffered and later added to the appropriate PeerConnection
     // once the remoteDescription is known and set.
-    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (e) => {
-      if (e.eventPayload.oneofKind !== 'iceTrickle') return;
-      const { iceTrickle } = e.eventPayload;
+    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (iceTrickle) => {
       this.iceTrickleBuffer.push(iceTrickle);
     });
 
