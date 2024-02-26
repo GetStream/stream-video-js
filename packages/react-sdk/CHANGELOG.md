@@ -2,87 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
-# Styling
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.26...@stream-io/video-react-sdk-0.5.0) (2024-02-26)
 
-- New global variables like spacing, font-size, colors, button states etc, have been added. The old variables are still available.
-- Major style changes have been made to the following items: Call Stats, Device settings, Buttons, Participant layout
-- Icons have been updated and added
+### Dependency Updates
 
-# Components
+* `@stream-io/video-client` updated to version `0.6.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.0`
+* `@stream-io/video-styling` updated to version `0.2.0`
 
-## Button
+### ⚠ BREAKING CHANGES
 
-### CompositeButton.tsx
+* **hooks:** expose permission hooks through useCallStateHooks() (#1254)
+* **events:** improved type narrowing on call events (#1246)
+* **react-sdk:** Visual redesign of the SDK and Demo App (#1194)
 
-- `ToggleMenuButton` prop has been added by default `DefaultToggleMenuButton`
-- The composite buttons has an optional variant `primary` and `secondary` to indicate a primary and secondary active state of the button
-- An `active` class has been added to the `DefaultToggleMenuButton`.
+### Features
 
-## Call controls
+* **events:** improved type narrowing on call events ([#1246](https://github.com/GetStream/stream-video-js/issues/1246)) ([b5bdab1](https://github.com/GetStream/stream-video-js/commit/b5bdab1b526b451402867a849f5790f4f9a9fa1e))
+* **hooks:** expose permission hooks through useCallStateHooks() ([#1254](https://github.com/GetStream/stream-video-js/issues/1254)) ([3eaa8bd](https://github.com/GetStream/stream-video-js/commit/3eaa8bd7592920eedb434b6ec747b6d22077ed87))
+* **react-sdk:** Visual redesign of the SDK and Demo App ([#1194](https://github.com/GetStream/stream-video-js/issues/1194)) ([c1c6a7b](https://github.com/GetStream/stream-video-js/commit/c1c6a7b9bb0551442457f6d0ef5fedc92a985a3d))
 
-- The default caption value has been removed
-- A title has been added to the buttons
-- Some buttons have been provided a variant prop
-- CallStats button has been replaced with Reactions button
 
-### CancelCallButton.tsx
+### Bug Fixes
 
-- A cancel call confirmation button is added to allow the user end the call for all participants or leave the call.
-
-### ToggleAudioButton.tsx
-
-- A default permission state has been added to indicate that the browsers audio permissions have not been granted
-
-### ToggleVideoButton.tsx
-
-- A default permission state has been added to indicate that the browsers camera permissions have not been granted
-
-### ReactionsButton.tsx
-
-- Added a layout prop `horizontal` or `vertical` defaults to `horizontal`
-
-### RecordCallButton.tsx
-
-- An end recording confirmation button component has been added. To display a confirmation modal to the user either continue the recording or cancel it
-
-### Other
-
-### CallParticipantsList.tsx
-
-- Removed the copy url button invite new participants
-- Removed other related invite functionality
-
-### CallRecordingListHeader
-
-- Put the refresh functionality to optional
-
-### CallStats.tsx
-
-- The stats are defined with a `lowBound` (default 75) and a `highBound` (default 400) prop to indicate what you think is an acceptable latency.
-
-### DropdownSelect.tsx
-
-- Added a dropdown selector used in the device settings
-
-### Icon.tsx
-
-- Added a className prop to icon
-
-### MenuToggle.tsx
-
-- Ability to choose between to visual types `portal` or `menu` to display the MenuToggle.
-
-### Notification.tsx
-
-- Added a `close` prop so a notification can be closed by the user
-
-### RecordingInProgressNotification.tsx
-
-- Added a notification that can be used to be displayed when a recording is in progress
-
-### DefaultVideoPlaceholder
-
-- Added an initials fallback
+* **react-sdk:** consider call setting permissions in CallControls ([c2ff1f9](https://github.com/GetStream/stream-video-js/commit/c2ff1f98c005ce6165743082882da6d62835ad99))
 
 ### [0.4.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.25...@stream-io/video-react-sdk-0.4.26) (2024-02-19)
 
