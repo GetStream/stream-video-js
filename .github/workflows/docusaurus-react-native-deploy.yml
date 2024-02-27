@@ -1,6 +1,4 @@
 name: Push React Native docusaurus documentation
-env:
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 on:
   push:
@@ -14,14 +12,14 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Node Setup
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 20.x
 
       - name: Push React Native SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
