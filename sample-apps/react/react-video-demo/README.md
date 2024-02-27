@@ -1,4 +1,3 @@
 ## @stream-io/react-video-demo
 
-Preview: https://staging.getstream.io/video/demos/
-Production: https://getstream.io/video/demos/
+This application has been merged with [react-dogfood](../react-dogfood) and is no longer maintained.
