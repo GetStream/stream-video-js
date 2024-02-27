@@ -128,6 +128,19 @@ describe('InputMediaDeviceManager.test', () => {
     } satisfies StopPublishOptions);
   });
 
+  it('disable device with forceStop', async () => {
+    manager['call'].state.setCallingState(CallingState.JOINED);
+    await manager.enable();
+
+    expect(manager.state.mediaStream).toBeDefined();
+
+    await manager.disable(true);
+
+    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
+    expect(manager.state.mediaStream).toBeUndefined();
+    expect(manager.state.status).toBe('disabled');
+  });
+
   it('toggle device', async () => {
     vi.spyOn(manager, 'disable');
     vi.spyOn(manager, 'enable');

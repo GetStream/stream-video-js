@@ -12,7 +12,7 @@ export type BaseVideoProps = ComponentPropsWithRef<'video'> & {
  * (`srcObject`) to reactively handle stream changes
  */
 export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
-  ({ stream, ...rest }, ref) => {
+  function BaseVideo({ stream, ...rest }, ref) {
     const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
       null,
     );

@@ -220,7 +220,7 @@ const BlockedUsersSearchResults = ({
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleButton(props, ref) {
     return <IconButton enabled={props.menuShown} icon="filter" ref={ref} />;
   },
 );

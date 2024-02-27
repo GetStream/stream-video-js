@@ -8,9 +8,9 @@
 
 .str-video__call-controls__button--icon-call-recordings {
   @include utils.apply-mask-image(
-      var(--str-video__icon--film-roll),
-      var(--str-video__text-color1),
-      2px,
+    var(--str-video__icon--film-roll),
+    var(--str-video__text-color1),
+    2px
   );
 }
 
@@ -37,60 +37,14 @@
       var(--str-video__icon--refresh),
       var(--str-video__text-color1),
       contain
-    )
+    );
   }
 }
 
 .str-video__call-recording-list__listing--icon-empty {
   @include utils.apply-mask-image(
-      var(--str-video__icon--film-roll),
-      var(--str-video__text-color1),
-      contain
+    var(--str-video__icon--film-roll),
+    var(--str-video__text-color1),
+    contain
   );
 }
-
-.str-video__call-recording-list-item__actions {
-  .str-video__call-recording-list-item__action-button {
-    border-radius: 4px;
-    background-color: transparent;
-
-
-    &:hover {
-      background-color: var(--str-video__background-color7);
-    }
-
-    &:active {
-      background-color: var(--str-video__background-color5);
-      transition: background-color 0.2s ease-out;
-    }
-
-    .str-video__download-button--icon {
-      @include utils.apply-mask-image(
-          var(--str-video__icon--download),
-          var(--str-video__text-color1),
-          contain
-      );
-    }
-
-    .str-video__copy-button--icon {
-      @include utils.apply-mask-image(
-          var(--str-video__icon--copy),
-          var(--str-video__text-color1),
-          contain
-      );
-    }
-  }
-}
-
-
-.str-video__call-recording-list__listing {
-  .str-video__loading-indicator {
-    .str-video__loading-indicator-text {
-      font-weight: 500;
-      font-size: 0.75rem;
-      line-height: 1rem;
-    }
-  }
-}
-
-

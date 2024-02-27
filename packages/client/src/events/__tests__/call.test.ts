@@ -28,8 +28,8 @@ describe('Call ringing events', () => {
       expect(call.join).not.toHaveBeenCalled();
     });
 
-    it(`will join the call if at least one callee has accepted`, async () => {
-      const call = fakeCall();
+    it(`will join the call for the caller if atleast one callee has accepted`, async () => {
+      const call = fakeCall({ currentUserId: 'test-user' });
       vi.spyOn(call, 'join').mockImplementation(async () => {
         console.log(`TEST: join() called`);
       });
@@ -40,12 +40,44 @@ describe('Call ringing events', () => {
         user: {
           id: 'test-user-id-callee',
         },
+        call: {
+          // @ts-expect-error
+          created_by: {
+            id: 'test-user',
+          },
+        },
       };
       // @ts-ignore
       await handler(event);
 
       expect(call.join).toHaveBeenCalled();
     });
+  });
+
+  it('will not join the call for the other callee automatically when someone accepts', async () => {
+    const call = fakeCall({ currentUserId: 'test-user-id-callee-2' });
+    vi.spyOn(call, 'join').mockImplementation(async () => {
+      console.log(`TEST: join() called`);
+    });
+    const handler = watchCallAccepted(call);
+    const event: CallAcceptedEvent = {
+      type: 'call.accepted',
+      // @ts-expect-error
+      user: {
+        id: 'test-user-id-callee-1',
+      },
+      call: {
+        // @ts-expect-error
+        created_by: {
+          id: 'test-user-id-caller',
+        },
+      },
+    };
+
+    // @ts-ignore
+    await handler(event);
+
+    expect(call.join).not.toHaveBeenCalled();
   });
 
   describe(`call.rejected`, () => {

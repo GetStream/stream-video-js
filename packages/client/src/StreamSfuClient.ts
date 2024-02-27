@@ -185,9 +185,7 @@ export class StreamSfuClient {
     // connection is established. In that case, those events (ICE candidates)
     // need to be buffered and later added to the appropriate PeerConnection
     // once the remoteDescription is known and set.
-    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (e) => {
-      if (e.eventPayload.oneofKind !== 'iceTrickle') return;
-      const { iceTrickle } = e.eventPayload;
+    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (iceTrickle) => {
       this.iceTrickleBuffer.push(iceTrickle);
     });
 
@@ -215,7 +213,7 @@ export class StreamSfuClient {
     reason: string = 'js-client: requested signal connection close',
   ) => {
     this.logger('debug', 'Closing SFU WS connection', code, reason);
-    if (this.signalWs.readyState === this.signalWs.CLOSED) {
+    if (this.signalWs.readyState !== this.signalWs.CLOSED) {
       this.signalWs.close(code, reason);
     }
 

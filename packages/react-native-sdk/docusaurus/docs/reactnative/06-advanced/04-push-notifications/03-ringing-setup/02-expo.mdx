@@ -153,7 +153,8 @@ export function setPushConfig() {
         // This is the advised importance of receiving incoming call notifications.
         // This will ensure that the notification will appear on-top-of applications.
         importance: AndroidImportance.HIGH,
-        sound: 'default',
+        // optional: if you dont pass a sound, default ringtone will be used
+        // sound: <your sound url>
       },
       // configure the functions to create the texts shown in the notification
       // for incoming calls in Android.

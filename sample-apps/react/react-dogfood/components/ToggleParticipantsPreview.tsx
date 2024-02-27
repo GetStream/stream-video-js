@@ -4,7 +4,6 @@ import {
   CallPreview,
   CompositeButton,
   Icon,
-  IconButton,
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
@@ -51,7 +50,7 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
 };
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleMenuButton(props, ref) {
     const { useCallSession } = useCallStateHooks();
     const session = useCallSession();
     const total = session?.participants?.length || 0;
@@ -63,7 +62,7 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
         className="rd__participants-preview__button"
         title="Participants already in the call"
       >
-        <IconButton icon="participants" />
+        <Icon icon="participants" />
         {total > 0 && (
           <span className="rd__participants-preview__count">{total}</span>
         )}

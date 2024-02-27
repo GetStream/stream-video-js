@@ -4,7 +4,6 @@ import {
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useHasPermissions,
   useIncallManager,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
@@ -15,7 +14,7 @@ export default function ToggleAudioButton() {
   const call = useCall();
   const connectedUser = useConnectedUser();
 
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const isMuted = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -38,12 +37,6 @@ export default function ToggleAudioButton() {
       return;
     }
     return call.on('call.permissions_updated', (event) => {
-      if (event.type !== 'call.permissions_updated') {
-        return;
-      }
-      if (connectedUser.id !== event.user.id) {
-        return;
-      }
       setIsAwaitingAudioApproval(false);
       // automatically publish/unpublish audio stream based on the new permissions
       if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {

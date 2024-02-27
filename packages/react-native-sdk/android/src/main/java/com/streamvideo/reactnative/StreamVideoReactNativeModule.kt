@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.bridge.Promise;
+import android.media.RingtoneManager;
 
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -31,6 +32,11 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
             this.isInPictureInPictureMode = isInPictureInPictureMode
         }
+    }
+
+    @ReactMethod
+    fun getDefaultRingtoneUrl(promise: Promise) {
+        promise.resolve(RingtoneManager.getActualDefaultRingtoneUri(reactApplicationContext, RingtoneManager.TYPE_RINGTONE).toString());
     }
 
     @ReactMethod

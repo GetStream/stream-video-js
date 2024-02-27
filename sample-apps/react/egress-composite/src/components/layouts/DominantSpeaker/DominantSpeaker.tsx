@@ -1,5 +1,6 @@
 import {
   DefaultParticipantViewUI,
+  ParticipantsAudio,
   ParticipantView,
   SfuModels,
   useCall,
@@ -8,7 +9,6 @@ import {
 
 import { useSpotlightParticipant } from './useSpotlightParticipant';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
-import { AudioTracks } from './AudioTracks';
 
 import './DominantSpeaker.scss';
 
@@ -29,15 +29,12 @@ export const DominantSpeaker = () => {
       className="eca__dominant-speaker__container"
       data-testid="single-participant"
     >
-      <AudioTracks
-        participants={participants}
-        dominantSpeaker={speakerInSpotlight}
-      />
+      <ParticipantsAudio participants={participants} />
       {speakerInSpotlight && (
         <ParticipantView
           participant={speakerInSpotlight}
           refs={{ setVideoElement, setVideoPlaceholderElement }}
-          muteAudio
+          muteAudio // audio is handled by <ParticipantsAudio />
           ParticipantViewUI={
             <DefaultParticipantViewUI
               indicatorsVisible={false}

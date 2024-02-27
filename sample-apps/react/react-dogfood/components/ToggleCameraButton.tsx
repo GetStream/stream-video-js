@@ -1,19 +1,19 @@
 import { forwardRef } from 'react';
 
 import {
-  Icon,
   DeviceSelectorVideo,
+  Icon,
+  MenuToggle,
+  MenuVisualType,
   ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 
-import { MenuToggle, MenuVisualType } from '@stream-io/video-react-sdk';
-
 export const ToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function ToggleMenuButton(props, ref) {
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
   const { selectedDevice: selectedCamera, devices: cameras } = useCameraState();

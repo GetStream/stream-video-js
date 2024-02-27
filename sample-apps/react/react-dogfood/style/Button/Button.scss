@@ -12,9 +12,9 @@ button.rd__button,
   border: 1px solid transparent;
   color: var(--str-video__text-color1);
 
-  background-color: var(--str-video__button-primary-base);
+  background-color: var(--str-video__button-default-base);
   &:hover {
-    background-color: var(--str-video__button-primary-hover);
+    background-color: var(--str-video__button-default-hover);
     cursor: pointer;
   }
 
@@ -25,7 +25,7 @@ button.rd__button,
   }
 
   &:disabled {
-    background-color: var(--str-video__button-primary-disabled);
+    background-color: var(--str-video__button-default-disabled);
     cursor: not-allowed;
   }
 
@@ -35,7 +35,7 @@ button.rd__button,
   }
 
   &--primary {
-    background-color: var(--str-video__brand-color1);
+    background-color: var(--str-video__button-primary-active);
 
     &:hover {
       background-color: var(--str-video__button-primary-hover);
@@ -43,7 +43,7 @@ button.rd__button,
     }
 
     &:disabled {
-      background-color: var(--str-video__brand-color1);
+      background-color: var(--str-video__button-default-disabled);
       cursor: not-allowed;
     }
 
@@ -75,79 +75,5 @@ a.rd__button {
 
   &:hover {
     text-decoration: none;
-  }
-}
-
-.rd__dual-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--str-video__spacing-xs);
-  padding: 2px 4px; //var(--str-video__spacing-xs);
-  border-radius: var(--str-video__border-radius-circle);
-  background-color: var(--str-video__button-primary-base);
-
-  .str-video__composite-button .str-video__composite-button__button-group {
-    height: 34px;
-    width: 34px;
-    justify-content: center;
-  }
-
-  .str-video__device-settings__device-kind {
-    margin-bottom: var(--str-video__spacing-lg);
-  }
-
-  &:hover {
-    background-color: var(--str-video__button-default-hover);
-    .str-video__call-controls__button,
-    .str-video__composite-button__button-group {
-      background-color: transparent;
-    }
-  }
-
-  &--active {
-    background-color: var(--str-video__button-secondary-active);
-
-    &:hover {
-      background-color: var(--str-video__button-secondary-hover);
-    }
-  }
-
-  &__device-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--str-video__spacing-xs);
-    border-radius: var(--str-video__border-radius-circle);
-    background-color: var(--str-video__button-primary-base);
-    color: var(--str-video__text-color1);
-    font-size: var(--str-video__font-size-sm);
-    font-weight: 500;
-    border: 1px solid transparent;
-
-    &:hover {
-      background-color: var(--str-video__button-primary-hover);
-      cursor: pointer;
-    }
-
-    &:disabled {
-      background-color: var(--str-video__button-primary-disabled);
-      cursor: not-allowed;
-    }
-
-    &--active {
-      background-color: var(--str-video__brand-color1);
-      color: white;
-
-      &:hover {
-        background-color: var(--str-video__brand-color1);
-        cursor: pointer;
-      }
-
-      &:disabled {
-        background-color: var(--str-video__brand-color1);
-        cursor: not-allowed;
-      }
-    }
   }
 }

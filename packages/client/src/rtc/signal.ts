@@ -1,10 +1,11 @@
 import WebSocket from 'isomorphic-ws';
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
+import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
-  onMessage: (message: SfuEvent) => void;
+  onMessage: <K extends SfuEventKinds>(message: DispatchableMessage<K>) => void;
 }) => {
   const logger = getLogger(['sfu-client']);
   const { endpoint, onMessage } = opts;
@@ -30,7 +31,7 @@ export const createWebSocketSignalChannel = (opts: {
           ? SfuEvent.fromBinary(new Uint8Array(e.data))
           : SfuEvent.fromJsonString(e.data.toString());
 
-      onMessage(message);
+      onMessage(message as DispatchableMessage<SfuEventKinds>);
     } catch (err) {
       logger(
         'error',

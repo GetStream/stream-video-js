@@ -61,16 +61,18 @@
       font-weight: 600;
       font-size: var(--str-video__font-size-sm);
 
-      color: var(--str-video__base-color2);
-
       &:hover {
-        background-color: var(--str-video__button-primary-hover);
+        background-color: var(--str-video__button-default-hover);
         cursor: pointer;
       }
 
       &--selected {
-        background-color: var(--str-video__brand-color1);
+        background-color: var(--str-video__button-primary-active);
         color: var(--str-video__text-color1);
+
+        &:hover {
+          background-color: var(--str-video__button-primary-hover);
+        }
       }
     }
 

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import {
   Call,
   CallingState,
+  CallRequest,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -21,6 +22,7 @@ import {
   useAppEnvironment,
   useIsDemoEnvironment,
 } from '../../context/AppEnvironmentContext';
+import { TourProvider } from '../../context/TourContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
 import {
@@ -37,10 +39,13 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
+
+  // support for connecting to any application using an API key and user token
+  const apiKeyOverride = !!router.query['api_key'];
 
   const isDemoEnvironment = useIsDemoEnvironment();
   useEffect(() => {
@@ -59,11 +64,19 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     }
   }, [callId, isDemoEnvironment, router]);
 
-  const { user, gleapApiKey } = props;
+  const { apiKey, userToken, user, gleapApiKey } = props;
 
   const environment = useAppEnvironment();
   const fetchAuthDetails = useCallback(
     async (init?: RequestInit) => {
+      if (apiKeyOverride) {
+        return {
+          apiKey,
+          token: userToken,
+          userId: user.id || '!anon',
+        } satisfies CreateJwtTokenResponse;
+      }
+
       const params = {
         user_id: user.id || '!anon',
         environment,
@@ -74,7 +87,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         init,
       ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
     },
-    [environment, user.id],
+    [apiKey, apiKeyOverride, environment, user.id, userToken],
   );
 
   const tokenProvider = useCallback(
@@ -147,10 +160,18 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, [callId, callType, client]);
 
   useEffect(() => {
-    call?.getOrCreate().catch((err) => {
+    if (!call) return;
+    // "restricted" is a special call type that only allows
+    // `call_member` role to join the call
+    const data: CallRequest =
+      callType === 'restricted'
+        ? { members: [{ user_id: user.id || '!anon', role: 'call_member' }] }
+        : {};
+
+    call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
-  }, [call]);
+  }, [call, callType, user.id]);
 
   // apple-itunes-app meta-tag is used to open the app from the browser
   // we need to update the app-argument to the current URL so that the app
@@ -179,13 +200,17 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
+
       <StreamVideo
         client={client}
         language={language}
+        fallbackLanguage={fallbackLanguage}
         translationsOverrides={appTranslations}
       >
         <StreamCall call={call}>
-          <MeetingUI chatClient={chatClient} />
+          <TourProvider>
+            <MeetingUI chatClient={chatClient} />
+          </TourProvider>
         </StreamCall>
       </StreamVideo>
     </>

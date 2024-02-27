@@ -19,12 +19,12 @@
 
     color: var(--str-video__text-color1);
 
-    background-color: var(--str-video__button-primary-base);
+    background-color: var(--str-video__button-default-base);
 
     text-decoration: none;
 
     &:hover {
-      background-color: var(--str-video__button-primary-hover);
+      background-color: var(--str-video__button-default-hover);
       cursor: pointer;
       text-decoration: none;
     }
@@ -32,6 +32,10 @@
 
   &--primary {
     background-color: var(--str-video__brand-color1);
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
   }
 
   &--large {
@@ -47,7 +51,7 @@
   }
 
   &:disabled {
-    background-color: var(--str-video__button-primary-disabled);
+    background-color: var(--str-video__button-default-disabled);
     cursor: not-allowed;
   }
 }

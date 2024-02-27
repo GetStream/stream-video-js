@@ -2,6 +2,130 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.3...@stream-io/video-react-native-sdk-0.5.0) (2024-02-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.0`
+
+### ⚠ BREAKING CHANGES
+
+* **hooks:** expose permission hooks through useCallStateHooks() (#1254)
+
+### Features
+
+* **hooks:** expose permission hooks through useCallStateHooks() ([#1254](https://github.com/GetStream/stream-video-js/issues/1254)) ([3eaa8bd](https://github.com/GetStream/stream-video-js/commit/3eaa8bd7592920eedb434b6ec747b6d22077ed87))
+
+### [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.2...@stream-io/video-react-native-sdk-0.4.3) (2024-02-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.11`
+* `@stream-io/video-react-bindings` updated to version `0.3.22`
+### [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.1...@stream-io/video-react-native-sdk-0.4.2) (2024-02-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.10`
+* `@stream-io/video-react-bindings` updated to version `0.3.21`
+### [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.0...@stream-io/video-react-native-sdk-0.4.1) (2024-02-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.9`
+* `@stream-io/video-react-bindings` updated to version `0.3.20`
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.18...@stream-io/video-react-native-sdk-0.4.0) (2024-02-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** add missing push call.cancellation support in app terminated state (#1264)
+
+### Bug Fixes
+
+* **react-native:** add missing push call.cancellation support in app terminated state ([#1264](https://github.com/GetStream/stream-video-js/issues/1264)) ([e5dae2e](https://github.com/GetStream/stream-video-js/commit/e5dae2e7f2a99185b5329d5dd5634fbfad318b63))
+
+### [0.3.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.17...@stream-io/video-react-native-sdk-0.3.18) (2024-02-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.8`
+* `@stream-io/video-react-bindings` updated to version `0.3.19`
+### [0.3.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.16...@stream-io/video-react-native-sdk-0.3.17) (2024-01-31)
+
+
+### Bug Fixes
+
+* **react-native:** align outgoing call controls button sizes ([800e330](https://github.com/GetStream/stream-video-js/commit/800e3308893212a305c53710939d9f47aad0d48d))
+* **react-native:** check for ios provider name presence ([c6c5d2b](https://github.com/GetStream/stream-video-js/commit/c6c5d2bcc3f97ba3d7c28eac112db4cac9714078))
+
+### [0.3.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.15...@stream-io/video-react-native-sdk-0.3.16) (2024-01-30)
+
+
+### Bug Fixes
+
+* **react-native-sdk:** use call settings permissions in CallControls ([#1255](https://github.com/GetStream/stream-video-js/issues/1255)) ([3eefa0d](https://github.com/GetStream/stream-video-js/commit/3eefa0db85693f79e32e6970cc42b2e8a5765f1a))
+
+### [0.3.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.14...@stream-io/video-react-native-sdk-0.3.15) (2024-01-30)
+
+
+### Features
+
+* migrate expo example app to v50 ([#1249](https://github.com/GetStream/stream-video-js/issues/1249)) ([f4c99ac](https://github.com/GetStream/stream-video-js/commit/f4c99ac8bcd750c9bfc1628f5c05cfe42e50bb9f))
+
+### [0.3.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.13...@stream-io/video-react-native-sdk-0.3.14) (2024-01-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.7`
+* `@stream-io/video-react-bindings` updated to version `0.3.18`
+### [0.3.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.12...@stream-io/video-react-native-sdk-0.3.13) (2024-01-26)
+
+
+### Features
+
+* add android default ringtone as the default ringing sound ([#1251](https://github.com/GetStream/stream-video-js/issues/1251)) ([bd47748](https://github.com/GetStream/stream-video-js/commit/bd47748177d82b9b0f5b1d01cfa1c8c5c28cc1ce))
+
+### [0.3.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.11...@stream-io/video-react-native-sdk-0.3.12) (2024-01-25)
+
+
+### Bug Fixes
+
+* pass sound and vibration to android notifications display ([f4e34ec](https://github.com/GetStream/stream-video-js/commit/f4e34ec77ae8ab2885d6b98c428085431b52bc00))
+
+### [0.3.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.10...@stream-io/video-react-native-sdk-0.3.11) (2024-01-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.6`
+* `@stream-io/video-react-bindings` updated to version `0.3.17`
+### [0.3.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.9...@stream-io/video-react-native-sdk-0.3.10) (2024-01-16)
+
+
+### Features
+
+* **react-native:** add support for kotlin in expo config plugin ([#1239](https://github.com/GetStream/stream-video-js/issues/1239)) ([d285e32](https://github.com/GetStream/stream-video-js/commit/d285e32940cf3864932cc6053f8e66bc164bceb0)), closes [#1231](https://github.com/GetStream/stream-video-js/issues/1231)
+
+### [0.3.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.8...@stream-io/video-react-native-sdk-0.3.9) (2024-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.5`
+* `@stream-io/video-react-bindings` updated to version `0.3.16`
+### [0.3.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.7...@stream-io/video-react-native-sdk-0.3.8) (2024-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.4`
+* `@stream-io/video-react-bindings` updated to version `0.3.15`
+### [0.3.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.6...@stream-io/video-react-native-sdk-0.3.7) (2024-01-05)
+
+
+### Features
+
+* **react-native:** add ability to customize the objectFit for participant view ([#1225](https://github.com/GetStream/stream-video-js/issues/1225)) ([06c7010](https://github.com/GetStream/stream-video-js/commit/06c7010cd0fc128e4cfb582c8e8771e43a007629))
+
 ### [0.3.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.5...@stream-io/video-react-native-sdk-0.3.6) (2023-12-22)
 
 ### Dependency Updates

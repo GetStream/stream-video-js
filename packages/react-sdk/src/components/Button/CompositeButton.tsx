@@ -1,6 +1,12 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import { ComponentType, forwardRef, JSX, PropsWithChildren } from 'react';
+import {
+  ComponentProps,
+  ComponentType,
+  forwardRef,
+  JSX,
+  PropsWithChildren,
+} from 'react';
 import { Placement } from '@floating-ui/react';
 
 import { IconButton } from './IconButton';
@@ -13,68 +19,82 @@ export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
     caption?: string;
     className?: string;
     menuPlacement?: Placement;
+    menuOffset?: number;
     ToggleMenuButton?: ComponentType<ToggleMenuButtonProps<E>>;
-    title?: string;
     variant?: 'primary' | 'secondary';
-  }>;
+  }> &
+    ComponentProps<'button'>;
 
 export const CompositeButton = forwardRef<
   HTMLDivElement,
   IconButtonWithMenuProps
->(
-  (
-    {
-      caption,
-      children,
-      className,
-      active,
-      Menu,
-      menuPlacement,
-      title,
-      ToggleMenuButton = DefaultToggleMenuButton,
-      variant,
-    },
-    ref,
-  ) => {
-    return (
+>(function CompositeButton(
+  {
+    caption,
+    children,
+    className,
+    active,
+    Menu,
+    menuPlacement,
+    menuOffset,
+    title,
+    ToggleMenuButton = DefaultToggleMenuButton,
+    variant,
+    onClick,
+    ...restButtonProps
+  },
+  ref,
+) {
+  return (
+    <div
+      className={clsx('str-video__composite-button', className, {
+        'str-video__composite-button--caption': caption,
+        'str-video__composite-button--menu': Menu,
+      })}
+      title={title}
+      ref={ref}
+    >
       <div
-        className={clsx('str-video__composite-button', className, {
-          'str-video__composite-button--caption': caption,
+        className={clsx('str-video__composite-button__button-group', {
+          'str-video__composite-button__button-group--active': active,
+          'str-video__composite-button__button-group--active-primary':
+            active && variant === 'primary',
+          'str-video__composite-button__button-group--active-secondary':
+            active && variant === 'secondary',
         })}
-        title={title}
-        ref={ref}
       >
-        <div
-          className={clsx('str-video__composite-button__button-group', {
-            'str-video__composite-button__button-group--active': active,
-            'str-video__composite-button__button-group--active-primary':
-              variant === 'primary' && active,
-            'str-video__composite-button__button-group--active-secondary':
-              variant === 'secondary' && active,
-          })}
+        <button
+          type="button"
+          className="str-video__composite-button__button"
+          onClick={(e) => {
+            e.preventDefault();
+            onClick?.(e);
+          }}
+          {...restButtonProps}
         >
           {children}
-          {Menu && (
-            <MenuToggle
-              placement={menuPlacement}
-              ToggleButton={ToggleMenuButton}
-            >
-              {isComponentType(Menu) ? <Menu /> : Menu}
-            </MenuToggle>
-          )}
-        </div>
-        {caption && (
-          <div className="str-video__composite-button__caption">{caption}</div>
+        </button>
+        {Menu && (
+          <MenuToggle
+            offset={menuOffset}
+            placement={menuPlacement}
+            ToggleButton={ToggleMenuButton}
+          >
+            {isComponentType(Menu) ? <Menu /> : Menu}
+          </MenuToggle>
         )}
       </div>
-    );
-  },
-);
+      {caption && (
+        <div className="str-video__composite-button__caption">{caption}</div>
+      )}
+    </div>
+  );
+});
 
 const DefaultToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->(({ menuShown }, ref) => {
+>(function DefaultToggleMenuButton({ menuShown }, ref) {
   return (
     <IconButton
       className={clsx('str-video__menu-toggle-button', {

@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CreateMeetingCall from '../components/CreateMeetingCall';
 import CreateRingingCall from '../components/CreateRingingCall';
 import * as Notifications from 'expo-notifications';
+import { Stack } from 'expo-router';
 
 export default function CreateCallScreen() {
   useEffect(() => {

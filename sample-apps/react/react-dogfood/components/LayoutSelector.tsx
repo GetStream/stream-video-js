@@ -74,7 +74,7 @@ const DropdownMenu = ({
 }) => {
   return (
     <DropDownSelect
-      icon="grid"
+      icon={LayoutMap[selectedLayout].icon || 'grid'}
       defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
         (k) => k === selectedLayout,
       )}

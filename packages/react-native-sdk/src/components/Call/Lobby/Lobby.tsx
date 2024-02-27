@@ -64,7 +64,9 @@ export const Lobby = ({
     theme: { colors, lobby, typefaces },
   } = useTheme();
   const connectedUser = useConnectedUser();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
+  const callSettings = useCallSettings();
+  const isVideoEnabledInCall = callSettings?.video.enabled;
   const { status: cameraStatus, mediaStream } = useCameraState();
   const { t } = useI18n();
   const localVideoStream = mediaStream as unknown as MediaStream | undefined;
@@ -109,30 +111,34 @@ export const Lobby = ({
               typefaces.subtitle,
             ]}
           >
-            {t('Setup your audio and video')}
+            {isVideoEnabledInCall
+              ? t('Setup your audio and video')
+              : t('Setup your audio')}
           </Text>
-          <View
-            style={[
-              styles.videoContainer,
-              { backgroundColor: colors.disabled },
-              lobby.videoContainer,
-            ]}
-          >
-            <View style={styles.topView} />
-            {cameraStatus === 'enabled' && localVideoStream ? (
-              <RTCView
-                mirror={true}
-                streamURL={localVideoStream.toURL()}
-                objectFit="cover"
-                style={StyleSheet.absoluteFillObject}
-              />
-            ) : (
-              <View style={[styles.avatarContainer, lobby.avatarContainer]}>
-                <Avatar participant={connectedUserAsParticipant} />
-              </View>
-            )}
-            <ParticipantStatus />
-          </View>
+          {isVideoEnabledInCall && (
+            <View
+              style={[
+                styles.videoContainer,
+                { backgroundColor: colors.disabled },
+                lobby.videoContainer,
+              ]}
+            >
+              <View style={styles.topView} />
+              {cameraStatus === 'enabled' && localVideoStream ? (
+                <RTCView
+                  mirror={true}
+                  streamURL={localVideoStream.toURL()}
+                  objectFit="cover"
+                  style={StyleSheet.absoluteFillObject}
+                />
+              ) : (
+                <View style={[styles.avatarContainer, lobby.avatarContainer]}>
+                  <Avatar participant={connectedUserAsParticipant} />
+                </View>
+              )}
+              <ParticipantStatus />
+            </View>
+          )}
         </View>
       )}
       <View style={[styles.bottomContainer, lobby.bottomContainer]}>
@@ -203,7 +209,7 @@ const ParticipantStatus = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
   },
   topContainer: {
     flex: 2,
@@ -226,7 +232,7 @@ const styles = StyleSheet.create({
   },
   topView: {},
   bottomContainer: {
-    flex: 1,
+    flex: 2,
     justifyContent: 'space-evenly',
     paddingHorizontal: 12,
   },

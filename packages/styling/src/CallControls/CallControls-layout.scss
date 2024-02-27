@@ -15,7 +15,6 @@
 
     &--horizontal {
       flex-direction: row;
-      margin-bottom: var(--str-video__spacing-md);
     }
 
     &--vertical {
@@ -29,6 +28,9 @@
       background-color: var(--str-video__button-primary-base);
       border-radius: var(--str-video__border-radius-circle);
       border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       &:hover {
         background-color: var(--str-video__button-primary-hover);
@@ -50,7 +52,18 @@
 
   font-size: var(--str-video__font-size-xxs);
   color: var(--str-video__base-color4);
+  cursor: pointer;
   font-weight: 600;
   top: 0;
   right: -3px;
+}
+
+.str-video__composite-button.str-video__device-unavailable {
+  .str-video__composite-button__button-group {
+    background-color: var(--str-video__button-default-disabled);
+
+    &:hover {
+      background-color: var(--str-video__button-default-hover);
+    }
+  }
 }

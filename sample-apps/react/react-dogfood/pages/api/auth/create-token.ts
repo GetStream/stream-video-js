@@ -47,7 +47,7 @@ const createJwtToken = async (
 
   // support for the deprecated `api_key` param during the transition phase
   if (apiKeyFromRequest && !environment) {
-    if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto';
+    if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto-legacy';
     else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
     // https://getstream.slack.com/archives/C022N8JNQGZ/p1691402858403159
     else if (apiKeyFromRequest === '2g3htdemzwhg') environment = 'demo-flutter';

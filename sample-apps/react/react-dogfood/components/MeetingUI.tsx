@@ -82,8 +82,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   useEffect(() => {
     if (!activeCall) return;
     return activeCall.on('call.ended', async (e) => {
-      if (e.type !== 'call.ended' || !e.user) return;
-      if (e.user.id === activeCall.currentUserId) return;
+      if (!e.user || e.user.id === activeCall.currentUserId) return;
       alert(`Call ended for everyone by: ${e.user.name || e.user.id}`);
       if (activeCall.state.callingState !== CallingState.LEFT) {
         await activeCall.leave();
@@ -133,9 +132,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       />
     );
   } else if (show === 'lobby') {
-    ComponentToRender = (
-      <Lobby onJoin={onJoin} callId={activeCall?.id} mode={mode} />
-    );
+    ComponentToRender = <Lobby onJoin={onJoin} mode={mode} />;
   } else if (show === 'loading') {
     ComponentToRender = <LoadingScreen />;
   } else if (!activeCall) {

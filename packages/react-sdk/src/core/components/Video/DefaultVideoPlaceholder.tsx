@@ -9,7 +9,7 @@ export type VideoPlaceholderProps = {
 export const DefaultVideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
->(({ participant, style }, ref) => {
+>(function DefaultVideoPlaceholder({ participant, style }, ref) {
   const { t } = useI18n();
   const [error, setError] = useState(false);
   const name = participant.name || participant.userId;

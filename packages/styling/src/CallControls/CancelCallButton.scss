@@ -22,7 +22,7 @@
   }
 
   &__leave {
-    background-color: var(--str-video__button-primary-base);
+    background-color: var(--str-video__button-tertiary-base);
     border: 1px solid transparent;
 
     &:hover {
@@ -31,7 +31,7 @@
   }
 
   &__end {
-    background-color: var(--str-video__button-tertiary-base);
+    background-color: var(--str-video__button-primary-base);
 
     &:hover {
       background-color: var(--str-video__button-tertiary-hover);

@@ -14,10 +14,9 @@ import type {
   QueryCallsRequest,
   QueryCallsResponse,
 } from './gen/coordinator';
-import type {
-  ConnectionChangedEvent,
-  EventHandler,
-  EventTypes,
+import {
+  AllClientEvents,
+  ClientEventListener,
   Logger,
   LogLevel,
   StreamClientOptions,
@@ -167,8 +166,7 @@ export class StreamVideoClient {
     }
 
     this.eventHandlersToUnregister.push(
-      this.on('connection.changed', (e) => {
-        const event = e as ConnectionChangedEvent;
+      this.on('connection.changed', (event) => {
         if (event.online) {
           const callsToReWatch = this.writeableStateStore.calls
             .filter((call) => call.watching)
@@ -197,7 +195,6 @@ export class StreamVideoClient {
 
     this.eventHandlersToUnregister.push(
       this.on('call.created', (event) => {
-        if (event.type !== 'call.created') return;
         const { call, members } = event;
         if (user.id === call.created_by.id) {
           this.logger(
@@ -222,7 +219,6 @@ export class StreamVideoClient {
 
     this.eventHandlersToUnregister.push(
       this.on('call.ring', async (event) => {
-        if (event.type !== 'call.ring') return;
         const { call, members } = event;
         if (user.id === call.created_by.id) {
           this.logger(
@@ -290,18 +286,24 @@ export class StreamVideoClient {
    * @param callback the callback which will be called when the event is emitted.
    * @returns an unsubscribe function.
    */
-  on = (eventName: EventTypes, callback: EventHandler) => {
+  on = <E extends keyof AllClientEvents>(
+    eventName: E,
+    callback: ClientEventListener<E>,
+  ) => {
     return this.streamClient.on(eventName, callback);
   };
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.
    *
-   * @param event the event name.
+   * @param eventName the event name.
    * @param callback the callback which was passed to the `on` method.
    */
-  off = (event: string, callback: EventHandler) => {
-    return this.streamClient.off(event, callback);
+  off = <E extends keyof AllClientEvents>(
+    eventName: E,
+    callback: ClientEventListener<E>,
+  ) => {
+    return this.streamClient.off(eventName, callback);
   };
 
   /**
@@ -435,7 +437,6 @@ export class StreamVideoClient {
    *
    * @param {string} id The device id
    * @param {string} [userID] The user id. Only specify this for serverside requests
-   *
    */
   removeDevice = async (id: string, userID?: string) => {
     return await this.streamClient.delete('/devices', {

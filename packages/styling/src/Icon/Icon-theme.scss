@@ -21,6 +21,11 @@
     mask-image: var(--str-video__icon--network-quality);
   }
 
+  &--support-agent {
+    -webkit-mask-image: var(--str-video__icon--support-agent);
+    mask-image: var(--str-video__icon--support-agent);
+  }
+
   &--recording-on {
     mask-image: var(--str-video__icon--recording-on);
     -webkit-mask-image: var(--str-video__icon--recording-on);
@@ -39,6 +44,11 @@
   &--caret-up {
     mask-image: var(--str-video__icon--caret-up);
     -webkit-mask-image: var(--str-video__icon--caret-up);
+  }
+
+  &--download {
+    mask-image: var(--str-video__icon--download);
+    -webkit-mask-image: var(--str-video__icon--download);
   }
 
   &--caret-down {

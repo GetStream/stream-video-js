@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { useParticipantViewContext } from './ParticipantViewContext';
-import { GenericMenu, GenericMenuButtonItem, Icon } from '../../../components';
+import {
+  GenericMenu,
+  GenericMenuButtonItem,
+  Icon,
+  useMenuContext,
+} from '../../../components';
 
 export const ParticipantActionsContextMenu = () => {
   const { participant, participantViewElement, videoElement } =
@@ -80,17 +85,22 @@ export const ParticipantActionsContextMenu = () => {
 
   const toggleFullscreenMode = () => {
     if (!fullscreenModeOn) {
-      return participantViewElement
-        ?.requestFullscreen()
-        .then(() => setFullscreenModeOn(true))
-        .catch(console.error);
+      return participantViewElement?.requestFullscreen().catch(console.error);
     }
-
-    return document
-      .exitFullscreen()
-      .catch(console.error)
-      .finally(() => setFullscreenModeOn(false));
+    return document.exitFullscreen().catch(console.error);
   };
+
+  useEffect(() => {
+    // handles the case when fullscreen mode is toggled externally,
+    // e.g., by pressing ESC key or some other keyboard shortcut
+    const handleFullscreenChange = () => {
+      setFullscreenModeOn(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (!videoElement) return;
@@ -118,8 +128,9 @@ export const ParticipantActionsContextMenu = () => {
     return document.exitPictureInPicture().catch(console.error);
   };
 
+  const { close } = useMenuContext() || {};
   return (
-    <GenericMenu>
+    <GenericMenu onItemClick={close}>
       <GenericMenuButtonItem
         onClick={toggleParticipantPin}
         disabled={pin && !pin.isLocalPin}
@@ -150,28 +161,30 @@ export const ParticipantActionsContextMenu = () => {
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-        <GenericMenuButtonItem disabled={!hasVideo} onClick={muteVideo}>
-          <Icon icon="camera-off-outline" />
-          {t('Turn off video')}
-        </GenericMenuButtonItem>
-        <GenericMenuButtonItem
-          disabled={!hasScreenShare}
-          onClick={muteScreenShare}
-        >
-          <Icon icon="screen-share-off" />
-          {t('Turn off screen share')}
-        </GenericMenuButtonItem>
-        <GenericMenuButtonItem disabled={!hasAudio} onClick={muteAudio}>
-          <Icon icon="no-audio" />
-          {t('Mute audio')}
-        </GenericMenuButtonItem>
-        <GenericMenuButtonItem
-          disabled={!hasScreenShareAudio}
-          onClick={muteScreenShareAudio}
-        >
-          <Icon icon="no-audio" />
-          {t('Mute screen share audio')}
-        </GenericMenuButtonItem>
+        {hasVideo && (
+          <GenericMenuButtonItem onClick={muteVideo}>
+            <Icon icon="camera-off-outline" />
+            {t('Turn off video')}
+          </GenericMenuButtonItem>
+        )}
+        {hasScreenShare && (
+          <GenericMenuButtonItem onClick={muteScreenShare}>
+            <Icon icon="screen-share-off" />
+            {t('Turn off screen share')}
+          </GenericMenuButtonItem>
+        )}
+        {hasAudio && (
+          <GenericMenuButtonItem onClick={muteAudio}>
+            <Icon icon="no-audio" />
+            {t('Mute audio')}
+          </GenericMenuButtonItem>
+        )}
+        {hasScreenShareAudio && (
+          <GenericMenuButtonItem onClick={muteScreenShareAudio}>
+            <Icon icon="no-audio" />
+            {t('Mute screen share audio')}
+          </GenericMenuButtonItem>
+        )}
       </Restricted>
       {participantViewElement && (
         <GenericMenuButtonItem onClick={toggleFullscreenMode}>

@@ -1,8 +1,24 @@
-import { EventTypes, Logger } from '../coordinator/connection/types';
+import { CallEventListener, EventTypes } from '../coordinator/connection/types';
 import type { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
+export type AllSfuEvents = {
+  [K in SfuEventKinds]: K extends keyof Extract<
+    SfuEvent['eventPayload'],
+    { oneofKind: K }
+  >
+    ? Extract<SfuEvent['eventPayload'], { oneofKind: K }>[K]
+    : never;
+};
+
+export type DispatchableMessage<K extends SfuEventKinds> = {
+  eventPayload: {
+    oneofKind: K;
+  } & {
+    [Key in K]: AllSfuEvents[Key];
+  };
+};
 
 const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   subscriberOffer: undefined,
@@ -31,41 +47,42 @@ export const isSfuEvent = (
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
-export type SfuEventListener = (event: SfuEvent) => void;
-
 export class Dispatcher {
-  private subscribers: {
-    [eventName: string]: SfuEventListener[] | undefined;
-  } = {};
-  private readonly logger: Logger = getLogger(['sfu-client']);
+  private readonly logger = getLogger(['Dispatcher']);
+  private subscribers: Partial<
+    Record<SfuEventKinds, CallEventListener<any>[] | undefined>
+  > = {};
 
-  dispatch = (message: SfuEvent) => {
+  dispatch = <K extends SfuEventKinds>(message: DispatchableMessage<K>) => {
     const eventKind = message.eventPayload.oneofKind;
-    if (eventKind) {
-      this.logger(
-        'debug',
-        `Dispatching ${eventKind}`,
-        (message.eventPayload as any)[eventKind],
-      );
-      const listeners = this.subscribers[eventKind];
-      listeners?.forEach((fn) => {
-        try {
-          fn(message);
-        } catch (e) {
-          this.logger('warn', 'Listener failed with error', e);
-        }
-      });
+    if (!eventKind) return;
+    const payload = message.eventPayload[eventKind];
+    this.logger('debug', `Dispatching ${eventKind}`, payload);
+    const listeners = this.subscribers[eventKind];
+    if (!listeners) return;
+    for (const fn of listeners) {
+      try {
+        fn(payload);
+      } catch (e) {
+        this.logger('warn', 'Listener failed with error', e);
+      }
     }
   };
 
-  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
-    (this.subscribers[eventName] ??= []).push(fn);
+  on = <E extends keyof AllSfuEvents>(
+    eventName: E,
+    fn: CallEventListener<E>,
+  ) => {
+    (this.subscribers[eventName] ??= []).push(fn as never);
     return () => {
       this.off(eventName, fn);
     };
   };
 
-  off = (eventName: SfuEventKinds, fn: SfuEventListener) => {
+  off = <E extends keyof AllSfuEvents>(
+    eventName: E,
+    fn: CallEventListener<E>,
+  ) => {
     this.subscribers[eventName] = (this.subscribers[eventName] || []).filter(
       (f) => f !== fn,
     );

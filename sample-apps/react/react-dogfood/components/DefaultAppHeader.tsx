@@ -19,7 +19,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
       </div>
       <div className="rd__call-header__documentation">
         <a
-          className="rd__button rd__button"
+          className="rd__button rd__button--align-left"
           href="https://getstream.io/video/sdk/react/"
           target="_blank"
           rel="noreferrer"
@@ -28,7 +28,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
           {t('Tutorials')}
         </a>
         <a
-          className="rd__button"
+          className="rd__button rd__button--align-left"
           href="https://getstream.io/video/docs/"
           target="_blank"
           rel="noreferrer"

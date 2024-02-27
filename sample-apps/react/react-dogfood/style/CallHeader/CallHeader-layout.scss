@@ -47,6 +47,12 @@
   }
 }
 
+.rd__call-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--str-video__spacing-md);
+}
+
 .rd__call-header__documentation {
   display: flex;
   gap: var(--str-video__spacing-md);
@@ -67,6 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  font-variant: tabular-nums;
   background-color: var(--str-video__base-color6);
   padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
   border-radius: var(--str-video__border-radius-md);
@@ -86,6 +93,7 @@
   display: none;
   justify-content: center;
   align-items: center;
+  font-variant: tabular-nums;
   background-color: var(--str-video__base-color6);
   padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
   border-radius: var(--str-video__border-radius-md);

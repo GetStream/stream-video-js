@@ -3,11 +3,7 @@ import clsx from 'clsx';
 
 import { useField, useForm } from 'react-form';
 
-import {
-  Icon,
-  useI18n,
-  useMenuPortalContext,
-} from '@stream-io/video-react-sdk';
+import { Icon, useI18n, useMenuContext } from '@stream-io/video-react-sdk';
 
 import { getCookie } from '../../helpers/getCookie';
 
@@ -135,7 +131,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
     'rd__feedback-error': errorMessage,
   });
 
-  const { close } = useMenuPortalContext();
+  const { close } = useMenuContext();
 
   if (feedbackSent) {
     return (
@@ -156,7 +152,12 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <button
           className="rd__button rd__button--primaryrd__feedback-button rd__feedback-button--close"
           disabled={isSubmitting}
-          onClick={close}
+          onClick={
+            close ||
+            (() => {
+              window.location.href = '/';
+            })
+          }
         >
           {' '}
           {t('Close')}

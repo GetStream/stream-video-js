@@ -98,6 +98,19 @@ export class Publisher {
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
+  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
+  private _connectionConfiguration: RTCConfiguration | undefined;
+
+  /**
+   * Returns the current connection configuration.
+   *
+   * @internal
+   */
+  get connectionConfiguration() {
+    if (this.pc.getConfiguration) return this.pc.getConfiguration();
+    return this._connectionConfiguration;
+  }
+
   /**
    * The SFU client instance to use for publishing and signaling.
    */
@@ -132,9 +145,7 @@ export class Publisher {
 
     this.unsubscribeOnIceRestart = dispatcher.on(
       'iceRestart',
-      async (message) => {
-        if (message.eventPayload.oneofKind !== 'iceRestart') return;
-        const { iceRestart } = message.eventPayload;
+      async (iceRestart) => {
         if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
         await this.restartIce();
       },
@@ -143,6 +154,7 @@ export class Publisher {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
+    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
@@ -158,15 +170,6 @@ export class Publisher {
     pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
     return pc;
   };
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    return this.pc.getConfiguration();
-  }
 
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
@@ -251,10 +254,16 @@ export class Publisher {
 
       let preferredCodec = opts.preferredCodec;
       if (!preferredCodec && trackType === TrackType.VIDEO) {
-        const isRNAndroid =
-          isReactNative() && getOSInfo()?.name.toLowerCase() === 'android';
-        if (isRNAndroid) {
-          preferredCodec = 'VP8';
+        if (isReactNative()) {
+          const osName = getOSInfo()?.name.toLowerCase();
+          if (osName === 'ipados') {
+            // in ipads it was noticed that if vp8 codec is used
+            // then the bytes sent is 0 in the outbound-rtp
+            // so we are forcing h264 codec for ipads
+            preferredCodec = 'H264';
+          } else if (osName === 'android') {
+            preferredCodec = 'VP8';
+          }
         }
       }
       const codecPreferences = this.getCodecPreferences(
@@ -576,6 +585,7 @@ export class Publisher {
   ) => {
     this.sfuClient = sfuClient;
     this.pc.setConfiguration(connectionConfig);
+    this._connectionConfiguration = connectionConfig;
 
     const shouldRestartIce = this.pc.iceConnectionState === 'connected';
     if (shouldRestartIce) {

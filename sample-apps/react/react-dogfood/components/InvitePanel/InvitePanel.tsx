@@ -13,6 +13,7 @@ export const InvitePopup = ({
   const { isCopied, copyInviteLink } = useCopyInviteLink();
 
   const qrCodeContent = new URL(window.location.toString());
+  qrCodeContent.searchParams.set('from_qr', 'true');
 
   return (
     <div className="rd__invite-popup">
@@ -32,7 +33,7 @@ export const InvitePopup = ({
         onClick={copyInviteLink}
       >
         <Icon className="rd__button__icon" icon="person-add" />
-        {isCopied ? 'Copied invite link' : 'Add others'}
+        {isCopied ? 'Copied invite link' : 'Copy invite link'}
       </button>
 
       <p className="rd__invite-popup__description">
@@ -45,7 +46,10 @@ export const InvitePopup = ({
         </div>
         <Icon className="rd__invite-popup__id-button" icon="copy" />
       </div>
-      <div className="rd__invite-popup__qr-container">
+      <div
+        className="rd__invite-popup__qr-container"
+        title={qrCodeContent.toString()}
+      >
         <p className="rd__invite-popup__qr-description">
           To test on a mobile device, scan the QR Code below:
         </p>
@@ -71,7 +75,7 @@ export const Invite = () => {
         onClick={copyInviteLink}
       >
         <Icon className="rd__button__icon" icon="person-add" />
-        {isCopied ? 'Copied invite link' : 'Add more people'}
+        {isCopied ? 'Copied invite link' : 'Copy invite link'}
       </button>
     </div>
   );
@@ -79,6 +83,7 @@ export const Invite = () => {
 
 export const InvitePanel = () => {
   const qrCodeContent = new URL(window.location.toString());
+  qrCodeContent.searchParams.set('from_qr', 'true');
   return (
     <div className="rd__invite">
       <Invite />
@@ -87,7 +92,10 @@ export const InvitePanel = () => {
         <p className="rd__invite__qr-description">
           To test on a mobile device, can the QR Code below:
         </p>
-        <div className="rd__invite__qr-container">
+        <div
+          className="rd__invite__qr-container"
+          title={qrCodeContent.toString()}
+        >
           <QRCodeSVG
             className="rd__invite__qr-code"
             value={qrCodeContent.toString()}

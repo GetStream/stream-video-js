@@ -2,8 +2,9 @@ import { forwardRef } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 
 import { CallStats } from '../CallStats';
-import { CompositeButton, IconButton } from '../Button/';
+import { CompositeButton } from '../Button/';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { Icon } from '../Icon';
 
 export type CallStatsButtonProps = {
   caption?: string;
@@ -18,17 +19,19 @@ export const CallStatsButton = () => (
 const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps<HTMLDivElement> & CallStatsButtonProps
->((props, ref) => {
+>(function ToggleMenuButton(props, ref) {
   const { t } = useI18n();
   const { caption, menuShown } = props;
 
   return (
-    <CompositeButton ref={ref} active={menuShown} caption={caption}>
-      <IconButton
-        icon="stats"
-        title={caption || t('Statistics')}
-        data-testid="stats-button"
-      />
+    <CompositeButton
+      ref={ref}
+      active={menuShown}
+      caption={caption}
+      title={caption || t('Statistics')}
+      data-testid="stats-button"
+    >
+      <Icon icon="stats" />
     </CompositeButton>
   );
 });

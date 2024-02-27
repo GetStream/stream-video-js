@@ -3,7 +3,7 @@ import {
   AxiosResponseTransformer,
   default as axios,
 } from 'axios';
-import { JoinCallResponse } from '@stream-io/video-react-sdk';
+import { JoinCallRequest, JoinCallResponse } from '@stream-io/video-react-sdk';
 
 const cascadingTransformer: AxiosRequestTransformer =
   /**
@@ -39,6 +39,55 @@ const cascadingTransformer: AxiosRequestTransformer =
     return data;
   };
 
+const generalLocationOverrideTransformer: AxiosRequestTransformer =
+  /**
+   * This transformer is used to override the general location returned determined
+   * by the SDK with a random location from the list of IATA codes.
+   *
+   * Note: it needs to be declared as a `function` instead of an arrow function
+   * as it executes in the context of the current axios instance.
+   */
+  function generalLocationOverrideTransformer(data) {
+    if (
+      typeof window === 'undefined' ||
+      !this.url?.endsWith('/join') ||
+      process.env.NEXT_PUBLIC_ENABLE_LOCATION_RANDOMIZATION !== 'true'
+    ) {
+      return data;
+    }
+
+    // prettier-ignore
+    const iataCodes = [
+      // North America
+      'ATL', 'BOS', 'BWI', 'CLT', 'DEN', 'DFW', 'DTW', 'EWR', 'IAH', 'IAD',
+      'JFK', 'LAS', 'LAX', 'LGA', 'MCO', 'MEX', 'MIA', 'MSP', 'ORD', 'PDX',
+      'PHL', 'PHX', 'PIT', 'SAN', 'SEA', 'SFO', 'SLC', 'TPA', 'YUL', 'YVR',
+      // South America
+      'AEP', 'AFA', 'ASU', 'BEL', 'BGI', 'BRC', 'BSB', 'CCS', 'CLO', 'CNF',
+      'CPT', 'CUN', 'DAC', 'EZE', 'FOR', 'GYE', 'GIG', 'GRU', 'LIM', 'LPB',
+      'MVD', 'RIO', 'RUH', 'SAL', 'SCL', 'SJO', 'SSA', 'UIO', 'VCP', 'VVI',
+      // Europe
+      'AMS', 'ATH', 'BCN', 'BGO', 'BLL', 'BRU', 'BUD', 'CDG', 'CPH', 'DUB',
+      'FRA', 'HEL', 'IST', 'LED', 'LHR', 'LIS', 'LUX', 'MAD', 'MUC', 'MXP',
+      'OSL', 'PRG', 'RUH', 'SKP', 'SOF', 'VIE', 'WAW', 'ZAG', 'ZRH',
+      // Asia
+      'AMM', 'BKK', 'CAN', 'CCU', 'CGK', 'DEL', 'DOH', 'DXB', 'HKG', 'HND',
+      'ICN', 'KIX', 'KUL', 'PEK', 'PVG', 'SGN', 'SIN', 'TPE',
+      // Africa
+      'ACC', 'CAI', 'JNB', 'LOS', 'NBO', 'CMN', 'ADD', 'DKR', 'CPT', 'TUN',
+      // Australia
+      'ADL', 'AKL', 'BNE', 'CHC', 'DUD', 'MEL', 'PER', 'SYD', 'WLG', 'ZQN'
+    ];
+
+    const randomLocation =
+      iataCodes[Math.floor(Math.random() * iataCodes.length)];
+
+    console.log(`Overriding location: ${data.location} with ${randomLocation}`);
+
+    (data as JoinCallRequest).location = randomLocation;
+    return data;
+  };
+
 const sfuOverrideTransformer: AxiosResponseTransformer =
   /**
    * This transformer is used to override the SFU URL and WS URL returned by the
@@ -71,6 +120,7 @@ const sfuOverrideTransformer: AxiosResponseTransformer =
  */
 export const defaultRequestTransformers: AxiosRequestTransformer[] = [
   cascadingTransformer,
+  generalLocationOverrideTransformer,
   ...(axios.defaults.transformRequest as AxiosRequestTransformer[]),
 ];
 

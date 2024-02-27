@@ -5,8 +5,9 @@ import { OwnCapability, StreamReaction } from '@stream-io/video-client';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
 import { MenuToggle, MenuVisualType, ToggleMenuButtonProps } from '../Menu';
-import { CompositeButton, IconButton } from '../Button';
+import { CompositeButton } from '../Button';
 import { defaultEmojiReactionMap } from '../Reaction';
+import { Icon } from '../Icon';
 
 export const defaultReactions: StreamReaction[] = [
   {
@@ -59,11 +60,16 @@ export const ReactionsButton = ({
 const ToggleReactionsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(({ menuShown }, ref) => {
+>(function ToggleReactionsMenuButton({ menuShown }, ref) {
   const { t } = useI18n();
   return (
-    <CompositeButton ref={ref} active={menuShown} variant="primary">
-      <IconButton icon="reactions" title={t('Reactions')} />
+    <CompositeButton
+      ref={ref}
+      active={menuShown}
+      variant="primary"
+      title={t('Reactions')}
+    >
+      <Icon icon="reactions" />
     </CompositeButton>
   );
 });

@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import {
   Call,
@@ -5,7 +6,7 @@ import {
   CallParticipantsList,
   CancelCallConfirmButton,
   CompositeButton,
-  IconButton,
+  Icon,
   PermissionRequests,
   ReactionsButton,
   RecordCallConfirmationButton,
@@ -32,12 +33,15 @@ import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
+import { TourPanel } from './TourPanel';
 
 import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
 import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+
+import { StepNames, useTourContext } from '../context/TourContext';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -52,6 +56,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
+  const {
+    current: currentTourStep,
+    active: isTourActive,
+    next: nextTourStep,
+  } = useTourContext();
 
   const { layout, setLayout } = useLayoutSwitcher();
   const breakpoint = useBreakpoint();
@@ -65,7 +74,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, [breakpoint, layout, setLayout]);
 
   const isDemoEnvironment = useIsDemoEnvironment();
-  const [showInvitePopup, setShowInvitePopup] = useState(isDemoEnvironment);
+  const isPronto = useIsProntoEnvironment();
+
+  const [showInvitePopup, setShowInvitePopup] = useState(
+    isDemoEnvironment && !isTourActive,
+  );
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
   const showParticipants = sidebarContent === 'participants';
@@ -86,10 +99,23 @@ export const ActiveCall = (props: ActiveCallProps) => {
     }
   }, [activeCall, onJoin]);
 
-  const isPronto = useIsProntoEnvironment();
+  useEffect(() => {
+    if (currentTourStep === StepNames.Chat) {
+      setSidebarContent('chat');
+    } else {
+      setSidebarContent(null);
+    }
+  }, [currentTourStep]);
+
+  useEffect(() => {
+    if (isDemoEnvironment && !isTourActive) {
+      setShowInvitePopup(true);
+    }
+  }, [isDemoEnvironment, isTourActive]);
 
   return (
     <div className="rd__call">
+      {isDemoEnvironment && <TourPanel highlightClass="rd__highlight" />}
       <div className="rd__main-call-panel">
         <ActiveCallHeader
           selectedLayout={layout}
@@ -106,31 +132,44 @@ export const ActiveCall = (props: ActiveCallProps) => {
               close={() => setShowInvitePopup(false)}
             />
           )}
-          {showSidebar && (
-            <div className="rd__sidebar">
-              {showParticipants && (
-                <div className="rd__participants">
-                  <CallParticipantsList
-                    onClose={() => setSidebarContent(null)}
-                  />
-                  <InvitePanel />
-                </div>
-              )}
 
-              {showChat && (
-                <ChatWrapper chatClient={chatClient}>
-                  <div className="str-video__chat">
-                    <ChatUI
+          <div
+            className={clsx('rd__sidebar', showSidebar && 'rd__sidebar--open')}
+          >
+            {showSidebar && (
+              <div className="rd__sidebar__container">
+                {showParticipants && (
+                  <div className="rd__participants">
+                    <CallParticipantsList
                       onClose={() => setSidebarContent(null)}
-                      channelId={activeCall.id}
                     />
+                    <InvitePanel />
                   </div>
-                </ChatWrapper>
-              )}
+                )}
 
-              {showStats && <CallStatsSidebar />}
-            </div>
-          )}
+                {showChat && (
+                  <ChatWrapper chatClient={chatClient}>
+                    <div className="str-video__chat">
+                      <ChatUI
+                        onClose={() => {
+                          if (
+                            isTourActive &&
+                            currentTourStep === StepNames.Chat
+                          ) {
+                            nextTourStep();
+                          }
+                          setSidebarContent(null);
+                        }}
+                        channelId={activeCall.id}
+                      />
+                    </div>
+                  </ChatWrapper>
+                )}
+
+                {showStats && <CallStatsSidebar />}
+              </div>
+            )}
+          </div>
         </div>
         <div className="rd__notifications">
           <RecordingInProgressNotification />
@@ -141,7 +180,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
           data-testid="str-video__call-controls"
         >
           <div className="str-video__call-controls--group str-video__call-controls--options">
-            <div className="str-video__call-controls__desktop">
+            <div className="str-video__call-controls__desktop" title="Settings">
               <ToggleSettingsTabModal
                 layoutProps={{
                   selectedLayout: layout,
@@ -152,11 +191,14 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 }}
               />
             </div>
-            <div className="str-video__call-controls__desktop">
+            <div className="str-video__call-controls__desktop" title="Feedback">
               <ToggleFeedbackButton />
             </div>
             {isPronto && (
-              <div className="str-video__call-controls__desktop">
+              <div
+                className="str-video__call-controls__desktop"
+                title="Dev Settings"
+              >
                 <ToggleDeveloperButton />
               </div>
             )}
@@ -181,22 +223,21 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-            <ToggleLayoutButton
-              selectedLayout={layout}
-              onMenuItemClick={setLayout}
-            />
-
-            {isPronto && (
-              <div className="str-video__call-controls__desktop">
-                <ToggleStatsButton
-                  active={showStats}
-                  onClick={() => setSidebarContent(showStats ? null : 'stats')}
-                />
-              </div>
-            )}
+            <div className="str-video__call-controls__desktop">
+              <ToggleLayoutButton
+                selectedLayout={layout}
+                onMenuItemClick={setLayout}
+              />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleStatsButton
+                active={showStats}
+                onClick={() => setSidebarContent(showStats ? null : 'stats')}
+              />
+            </div>
 
             <ToggleParticipantListButton
-              enabled={showParticipants}
+              active={showParticipants}
               onClick={() => {
                 setSidebarContent(showParticipants ? null : 'participants');
               }}
@@ -207,14 +248,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
               disableOnChatOpen={showChat}
             >
               <div className="str-chat__chat-button__wrapper">
-                <CompositeButton active={showChat}>
-                  <IconButton
-                    enabled={showChat}
-                    disabled={!chatClient}
-                    title="Chat"
-                    onClick={() => setSidebarContent(showChat ? null : 'chat')}
-                    icon="chat"
-                  />
+                <CompositeButton
+                  active={showChat}
+                  disabled={!chatClient}
+                  title="Chat"
+                  onClick={() => {
+                    if (isTourActive && currentTourStep === StepNames.Chat) {
+                      nextTourStep();
+                    }
+                    setSidebarContent(showChat ? null : 'chat');
+                  }}
+                >
+                  <Icon icon="chat" />
                 </CompositeButton>
                 {!showChat && (
                   <UnreadCountBadge

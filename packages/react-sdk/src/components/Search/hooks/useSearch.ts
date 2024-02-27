@@ -25,7 +25,11 @@ export const useSearch = <T>({
   const [searchQueryInProgress, setSearchQueryInProgress] = useState(false);
 
   useEffect(() => {
-    if (!searchQuery.length) return setSearchResults([]);
+    if (!searchQuery.length) {
+      setSearchQueryInProgress(false);
+      setSearchResults([]);
+      return;
+    }
 
     setSearchQueryInProgress(true);
 

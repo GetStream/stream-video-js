@@ -1,8 +1,4 @@
-import {
-  CallStats,
-  CompositeButton,
-  IconButton,
-} from '@stream-io/video-react-sdk';
+import { CallStats, CompositeButton, Icon } from '@stream-io/video-react-sdk';
 
 export const ToggleStatsButton = (props: {
   active?: boolean;
@@ -10,8 +6,13 @@ export const ToggleStatsButton = (props: {
 }) => {
   const { active, onClick } = props;
   return (
-    <CompositeButton active={active} variant="primary">
-      <IconButton icon="stats" title="Stats" onClick={onClick} />
+    <CompositeButton
+      active={active}
+      variant="primary"
+      title="Stats"
+      onClick={onClick}
+    >
+      <Icon icon="stats" />
     </CompositeButton>
   );
 };

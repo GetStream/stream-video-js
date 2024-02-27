@@ -14,6 +14,8 @@
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
 
+#import "StreamVideoReactNative.h"
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
@@ -66,11 +68,19 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   
+  
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
+  NSString *cid = stream[@"call_cid"];
   
-  // --- Process the received push // fire 'notification' event to JS
+  [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
+  
+  // required if you want to call `completion()` on the js side
+  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+  
+  // Process the received push // fire 'notification' event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
   [RNCallKeep reportNewIncomingCall: uuid
@@ -84,7 +94,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
                  supportsUngrouping: YES
                         fromPushKit: YES
                             payload: stream
-              withCompletionHandler: completion];
+              withCompletionHandler: nil];
 }
 
 //Called when a notification is delivered to a foreground app.
@@ -118,21 +128,16 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
+  return [self getBundleURL];
+}
+
+- (NSURL *)getBundleURL
+{
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
-}
-
-/// This method controls whether the `concurrentRoot`feature of React18 is turned on or off.
-///
-/// @see: https://reactjs.org/blog/2022/03/29/react-v18.html
-/// @note: This requires to be rendering on Fabric (i.e. on the New Architecture).
-/// @return: `true` if the `concurrentRoot` feature is enabled. Otherwise, it returns `false`.
-- (BOOL)concurrentRootEnabled
-{
-  return false;
 }
 
 @end

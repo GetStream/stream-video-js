@@ -22,6 +22,10 @@ export abstract class InputMediaDeviceManager<
    * @internal
    */
   disablePromise?: Promise<void>;
+  /**
+   * if true, stops the media stream when call is left
+   */
+  stopOnLeave = true;
   logger: Logger;
   private subscriptions: Subscription[] = [];
 
@@ -68,16 +72,19 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
-   * Stops the stream.
+   * Stops or pauses the stream based on state.disableMode
+   * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
-  async disable() {
-    return this.disableInternal({ notifySfu: true });
+  async disable(forceStop: boolean = false) {
+    // TODO OL: fix the type
+    return this.disableInternal({ notifySfu: true, forceStop });
   }
 
   private async disableInternal(opts: StopPublishOptions) {
     this.state.prevStatus = this.state.status;
-    if (this.state.status === 'disabled') return;
-    const stopTracks = this.state.disableMode === 'stop-tracks';
+    const { forceStop } = opts;
+    if (!forceStop && this.state.status === 'disabled') return;
+    const stopTracks = forceStop || this.state.disableMode === 'stop-tracks';
     this.disablePromise = this.muteStream({
       ...opts,
       stopTracks,

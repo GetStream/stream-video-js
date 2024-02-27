@@ -3,7 +3,7 @@ import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
-import { SfuEvent } from '../gen/video/sfu/event/events';
+import type { PinsChanged } from '../gen/video/sfu/event/events';
 import { ErrorCode } from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
 
@@ -17,8 +17,7 @@ export const watchChangePublishQuality = (
   call: Call,
 ) => {
   return dispatcher.on('changePublishQuality', (e) => {
-    if (e.eventPayload.oneofKind !== 'changePublishQuality') return;
-    const { videoSenders } = e.eventPayload.changePublishQuality;
+    const { videoSenders } = e;
     videoSenders.forEach((videoSender) => {
       const { layers } = videoSender;
       call.updatePublishQuality(layers.filter((l) => l.active));
@@ -31,9 +30,7 @@ export const watchConnectionQualityChanged = (
   state: CallState,
 ) => {
   return dispatcher.on('connectionQualityChanged', (e) => {
-    if (e.eventPayload.oneofKind !== 'connectionQualityChanged') return;
-    const { connectionQualityChanged } = e.eventPayload;
-    const { connectionQualityUpdates } = connectionQualityChanged;
+    const { connectionQualityUpdates } = e;
     if (!connectionQualityUpdates) return;
     state.updateParticipants(
       connectionQualityUpdates.reduce<StreamVideoParticipantPatches>(
@@ -59,8 +56,7 @@ export const watchParticipantCountChanged = (
   state: CallState,
 ) => {
   return dispatcher.on('healthCheckResponse', (e) => {
-    if (e.eventPayload.oneofKind !== 'healthCheckResponse') return;
-    const { participantCount } = e.eventPayload.healthCheckResponse;
+    const { participantCount } = e;
     if (participantCount) {
       state.setParticipantCount(participantCount.total);
       state.setAnonymousParticipantCount(participantCount.anonymous);
@@ -70,15 +66,13 @@ export const watchParticipantCountChanged = (
 
 export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
   return dispatcher.on('error', (e) => {
-    if (
-      e.eventPayload.oneofKind !== 'error' ||
-      !e.eventPayload.error.error ||
-      e.eventPayload.error.error.code !== ErrorCode.LIVE_ENDED
-    )
-      return;
+    if (e.error && e.error.code !== ErrorCode.LIVE_ENDED) return;
 
-    if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE))
-      call.leave();
+    if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)) {
+      call.leave().catch((err) => {
+        logger('error', 'Failed to leave call after live ended', err);
+      });
+    }
   });
 };
 
@@ -87,9 +81,8 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
  */
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
   return dispatcher.on('error', (e) => {
-    if (e.eventPayload.oneofKind !== 'error' || !e.eventPayload.error.error)
-      return;
-    const error = e.eventPayload.error.error;
+    if (!e.error) return;
+    const { error } = e;
     logger('error', 'SFU reported error', {
       code: ErrorCode[error.code],
       message: error.message,
@@ -103,9 +96,8 @@ export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
  * in the call.
  */
 export const watchPinsUpdated = (state: CallState) => {
-  return function onPinsUpdated(e: SfuEvent) {
-    if (e.eventPayload.oneofKind !== 'pinsUpdated') return;
-    const { pins } = e.eventPayload.pinsUpdated;
+  return function onPinsUpdated(e: PinsChanged) {
+    const { pins } = e;
     state.setServerSidePins(pins);
   };
 };

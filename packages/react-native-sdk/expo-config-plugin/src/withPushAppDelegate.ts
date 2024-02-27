@@ -33,6 +33,7 @@ const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
             '"RNCallKeep.h"',
             '<PushKit/PushKit.h>',
             '"RNVoipPushNotificationManager.h"',
+            '"StreamVideoReactNative.h"',
           ],
         );
 
@@ -135,6 +136,11 @@ function addDidReceiveIncomingPushCallback(contents: string) {
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
+  NSString *cid = stream[@"call_cid"];
+
+  [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
+
+  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
 
   // display the incoming call notification
   [RNCallKeep reportNewIncomingCall: uuid
@@ -148,7 +154,7 @@ function addDidReceiveIncomingPushCallback(contents: string) {
                  supportsUngrouping: YES
                         fromPushKit: YES
                             payload: stream
-              withCompletionHandler: completion];
+              withCompletionHandler: nil];
 `;
   if (
     !contents.includes(

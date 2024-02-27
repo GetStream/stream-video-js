@@ -20,7 +20,7 @@ type GleapReportPayload = {
 const MAX_LOGS_QUEUE_SIZE = 350;
 
 export const useGleap = (
-  gleapApiKey: string | undefined,
+  gleapApiKey: string | null | undefined,
   client: StreamVideoClient | undefined,
   call: Call | undefined,
   user: User,
@@ -76,7 +76,6 @@ export const useGleap = (
     };
 
     const off = call.on('custom', async (event) => {
-      if (event.type !== 'custom') return;
       const { type } = event.custom;
       if (
         type === 'gleap.collect-report' &&
@@ -117,7 +116,6 @@ export const useGleap = (
     if (!gleapApiKey || !call) return;
     const cache = new Map<string, string[]>();
     return call.on('custom', (event) => {
-      if (event.type !== 'custom') return;
       const { custom } = event;
       const { type, userId, toUserId, totalChunks, chunkIndex, data } =
         custom as GleapReportPayload;

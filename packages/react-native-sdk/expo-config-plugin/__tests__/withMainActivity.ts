@@ -98,16 +98,5 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     expect(() => withMainActivity(config, props)).toThrow();
-
-    config = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {
-        // unsupported language contents
-        language: 'kt',
-        contents: ExpoModulesMainActivity,
-      },
-    };
-    expect(() => withMainActivity(config, props)).toThrow();
   });
 });

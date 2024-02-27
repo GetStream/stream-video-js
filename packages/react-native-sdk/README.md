@@ -1,4 +1,4 @@
-# Official React Native SDK for [Stream Video](https://getstream.io/video/docs/)
+# Official React Native SDK for [Stream Video](https://getstream.io/video/sdk/react-native/)
 
 <img src="https://github.com/GetStream/stream-video-js/assets/11586388/954bab42-303d-45a7-843f-ab244a994b82" alt="Stream Video for React Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
 

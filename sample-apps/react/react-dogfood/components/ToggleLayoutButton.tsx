@@ -1,8 +1,8 @@
-import { forwardRef } from 'react';
+import { forwardRef, useMemo } from 'react';
 
 import {
   CompositeButton,
-  IconButton,
+  Icon,
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
@@ -13,29 +13,39 @@ import {
   LayoutSelectorProps,
   LayoutSelectorType,
 } from './LayoutSelector';
-
-export const ToggleMenuButton = forwardRef<
-  HTMLDivElement,
-  ToggleMenuButtonProps
->((props, ref) => {
-  return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="grid" title="Layout" />
-    </CompositeButton>
-  );
-});
+import { LayoutMap } from '../hooks';
 
 export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
+  const { onMenuItemClick, selectedLayout } = props;
+  const ToggleMenuButtonComponent = useMemo(
+    () =>
+      forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
+        function ToggleMenuButton(buttonProps, ref) {
+          return (
+            <CompositeButton
+              ref={ref}
+              active={buttonProps.menuShown}
+              variant="primary"
+              title="Layout"
+            >
+              <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
+            </CompositeButton>
+          );
+        },
+      ),
+    [selectedLayout],
+  );
+
   return (
     <MenuToggle
       placement="top-end"
-      ToggleButton={ToggleMenuButton}
+      ToggleButton={ToggleMenuButtonComponent}
       visualType={MenuVisualType.MENU}
     >
       <LayoutSelector
         visualType={LayoutSelectorType.LIST}
-        selectedLayout={props.selectedLayout}
-        onMenuItemClick={props.onMenuItemClick}
+        selectedLayout={selectedLayout}
+        onMenuItemClick={onMenuItemClick}
       />
     </MenuToggle>
   );

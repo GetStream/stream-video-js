@@ -1,11 +1,11 @@
-import { CompositeButton, IconButton } from '../Button';
+import { CompositeButton, IconButtonWithMenuProps } from '../Button';
 import { useI18n } from '@stream-io/video-react-bindings';
-import { ComponentType } from 'react';
+import { Icon } from '../Icon';
 
-export type ToggleAudioOutputButtonProps = {
-  caption?: string;
-  Menu?: ComponentType;
-};
+export type ToggleAudioOutputButtonProps = Pick<
+  IconButtonWithMenuProps,
+  'caption' | 'Menu' | 'menuPlacement'
+>;
 
 export const ToggleAudioOutputButton = (
   props: ToggleAudioOutputButtonProps,
@@ -14,12 +14,13 @@ export const ToggleAudioOutputButton = (
   const { caption, Menu } = props;
 
   return (
-    <CompositeButton Menu={Menu} caption={caption}>
-      <IconButton
-        icon="speaker"
-        title={caption || t('Speakers')}
-        data-testid="audio-output-button"
-      />
+    <CompositeButton
+      Menu={Menu}
+      caption={caption}
+      title={caption || t('Speakers')}
+      data-testid="audio-output-button"
+    >
+      <Icon icon="speaker" />
     </CompositeButton>
   );
 };

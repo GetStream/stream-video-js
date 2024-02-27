@@ -27,8 +27,10 @@ export const ToggleCameraFaceButton = ({
   onPressHandler,
 }: ToggleCameraFaceButtonProps) => {
   const call = useCall();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { status, direction } = useCameraState();
+  const callSettings = useCallSettings();
+  const isVideoEnabledInCall = callSettings?.video.enabled;
 
   const {
     theme: { colors, toggleCameraFaceButton },
@@ -42,6 +44,10 @@ export const ToggleCameraFaceButton = ({
     await call?.camera.flip();
   };
 
+  if (!isVideoEnabledInCall) {
+    return;
+  }
+
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
@@ -52,7 +58,9 @@ export const ToggleCameraFaceButton = ({
       >
         <CameraSwitch
           color={
-            direction === 'front' ? colors.static_black : colors.static_white
+            direction === 'front' || direction === undefined
+              ? colors.static_black
+              : colors.static_white
           }
         />
       </CallControlsButton>

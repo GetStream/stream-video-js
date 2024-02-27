@@ -10,13 +10,14 @@ import { useSettings } from '../../context/SettingsContext';
 
 export default function Leave() {
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
 
   return (
     <StreamI18nProvider
       translationsOverrides={translations}
       language={language}
+      fallbackLanguage={fallbackLanguage}
     >
       <LeaveContent />
     </StreamI18nProvider>

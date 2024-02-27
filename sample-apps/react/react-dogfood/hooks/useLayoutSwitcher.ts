@@ -113,7 +113,7 @@ export const useLayoutSwitcher = () => {
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout;
     if (!storedLayout) return DEFAULT_LAYOUT;
-    return Object.hasOwn(LayoutMap, storedLayout)
+    return LayoutMap.hasOwnProperty(storedLayout)
       ? storedLayout
       : DEFAULT_LAYOUT;
   });
@@ -130,7 +130,7 @@ export const useLayoutSwitcher = () => {
     }
 
     const storedLayout = getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
-    const isStoredLayoutInMap = Object.hasOwn(LayoutMap, storedLayout);
+    const isStoredLayoutInMap = LayoutMap.hasOwnProperty(storedLayout);
     setLayout(
       // reset to "stored" layout, use default if incompatible layout is used
       storedLayout === 'LegacySpeaker' || !isStoredLayoutInMap

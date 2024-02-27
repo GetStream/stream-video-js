@@ -82,6 +82,12 @@ export type ParticipantViewProps = ParticipantViewComponentProps &
      * @default true
      */
     isVisible?: boolean;
+    /**
+     * Represents how the video view fits within the parent view.
+     *
+     * In the fashion of https://www.w3.org/TR/html5/embedded-content-0.html#dom-video-videowidth and https://www.w3.org/TR/html5/rendering.html#video-object-fit, resembles the CSS style object-fit.
+     */
+    objectFit?: 'contain' | 'cover';
   };
 
 /**
@@ -99,6 +105,7 @@ export const ParticipantView = ({
   VideoRenderer = DefaultVideoRenderer,
   ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
+  objectFit = 'cover',
   videoZOrder = 0,
   supportedReactions,
 }: ParticipantViewProps) => {
@@ -137,6 +144,7 @@ export const ParticipantView = ({
           participant={participant}
           trackType={trackType}
           ParticipantVideoFallback={ParticipantVideoFallback}
+          objectFit={objectFit}
           videoZOrder={videoZOrder}
         />
       )}

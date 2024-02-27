@@ -33,10 +33,8 @@ export const CallParticipantListingItem = ({
 
   return (
     <div className="str-video__participant-listing-item">
-      <div className="str-video__participant-avatar">
-        <Avatar name={participant.name} imageSrc={participant.image} />
-        <DisplayName participant={participant} />
-      </div>
+      <Avatar name={participant.name} imageSrc={participant.image} />
+      <DisplayName participant={participant} />
       <div className="str-video__participant-listing-item__media-indicator-group">
         <MediaIndicator
           title={isAudioOn ? t('Microphone on') : t('Microphone off')}
@@ -113,7 +111,7 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleButton(props, ref) {
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );

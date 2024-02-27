@@ -27,8 +27,10 @@ export const ToggleVideoPublishingButton = ({
   onPressHandler,
 }: ToggleVideoPublishingButtonProps) => {
   const call = useCall();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { status } = useCameraState();
+  const callSettings = useCallSettings();
+  const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
     theme: { colors },
   } = useTheme();
@@ -39,6 +41,10 @@ export const ToggleVideoPublishingButton = ({
     }
     await call?.camera.toggle();
   };
+
+  if (!isVideoEnabledInCall) {
+    return;
+  }
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>

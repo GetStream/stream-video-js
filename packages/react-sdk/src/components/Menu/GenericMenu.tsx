@@ -1,7 +1,29 @@
-import { ComponentProps, PropsWithChildren } from 'react';
+import { ComponentProps, MouseEvent, PropsWithChildren, useRef } from 'react';
 
-export const GenericMenu = ({ children }: PropsWithChildren) => {
-  return <ul className="str-video__generic-menu">{children}</ul>;
+export const GenericMenu = ({
+  children,
+  onItemClick,
+}: PropsWithChildren<{
+  onItemClick?: (e: MouseEvent) => void;
+}>) => {
+  const ref = useRef<HTMLUListElement>(null);
+  return (
+    <ul
+      className="str-video__generic-menu"
+      ref={ref}
+      onClick={(e) => {
+        if (
+          onItemClick &&
+          e.target !== ref.current &&
+          ref.current?.contains(e.target as Node)
+        ) {
+          onItemClick(e);
+        }
+      }}
+    >
+      {children}
+    </ul>
+  );
 };
 
 export const GenericMenuButtonItem = ({

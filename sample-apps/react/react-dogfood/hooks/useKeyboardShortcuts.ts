@@ -24,36 +24,41 @@ const isMacOS = () => {
 const [, raiseHandReaction] = defaultReactions;
 
 export const usePushToTalk = (key: string) => {
-  const [isTalking, setIsTalking] = useState(false);
-  const interactedRef = useRef(false);
-
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone } = useMicrophoneState();
+  const { microphone, isMute } = useMicrophoneState();
+  const hotkeyHandlerRef = useRef<(e: KeyboardEvent) => void>();
+  const enableMicWithPushToTalkPromiseRef = useRef<Promise<void> | null>(null);
+
+  hotkeyHandlerRef.current = (e) => {
+    if (e.metaKey || e.ctrlKey) {
+      return;
+    }
+
+    e.preventDefault();
+
+    if (e.type === 'keydown' && isMute) {
+      enableMicWithPushToTalkPromiseRef.current = microphone
+        .enable()
+        .catch(console.error);
+    }
+
+    if (e.type === 'keyup' && enableMicWithPushToTalkPromiseRef.current) {
+      enableMicWithPushToTalkPromiseRef.current
+        .then(() => microphone.disable())
+        .catch(console.error);
+      enableMicWithPushToTalkPromiseRef.current = null;
+    }
+  };
 
   useEffect(() => {
     hotkeys(key, { keyup: true }, (e) => {
-      if (e.metaKey || e.ctrlKey) return;
-
-      if (e.type === 'keydown') {
-        interactedRef.current = true;
-        setIsTalking(true);
-      }
-
-      if (e.type === 'keyup') setIsTalking(false);
+      hotkeyHandlerRef.current?.(e);
     });
 
     return () => {
       hotkeys.unbind(key);
     };
   }, [key]);
-
-  useEffect(() => {
-    if (isTalking) microphone.enable().catch(console.error);
-
-    return () => {
-      if (interactedRef.current) microphone.disable().catch(console.error);
-    };
-  }, [isTalking, microphone]);
 };
 
 export const useKeyboardShortcuts = () => {

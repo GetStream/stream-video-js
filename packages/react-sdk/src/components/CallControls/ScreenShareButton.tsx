@@ -4,9 +4,10 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton, IconButton } from '../Button/';
+import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
+import { Icon } from '../Icon';
 
 export type ScreenShareButtonProps = {
   caption?: string;
@@ -16,14 +17,18 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
   const { caption } = props;
 
-  const { useHasOngoingScreenShare, useScreenShareState } = useCallStateHooks();
+  const { useHasOngoingScreenShare, useScreenShareState, useCallSettings } =
+    useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SCREENSHARE);
 
+  const callSettings = useCallSettings();
+  const isScreenSharingAllowed = callSettings?.screensharing.enabled;
+
   const { screenShare, isMute: amIScreenSharing } = useScreenShareState();
   const disableScreenShareButton = amIScreenSharing
-    ? isSomeoneScreenSharing
+    ? isSomeoneScreenSharing || isScreenSharingAllowed === false
     : false;
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
@@ -37,26 +42,26 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         <CompositeButton
           active={isSomeoneScreenSharing}
           caption={caption}
+          title={caption || t('Share screen')}
           variant="primary"
+          data-testid={
+            isSomeoneScreenSharing
+              ? 'screen-share-stop-button'
+              : 'screen-share-start-button'
+          }
+          disabled={disableScreenShareButton}
+          onClick={async () => {
+            if (!hasPermission) {
+              await requestPermission();
+            } else {
+              await screenShare.toggle();
+            }
+          }}
         >
-          <IconButton
+          <Icon
             icon={
               isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
             }
-            data-testid={
-              isSomeoneScreenSharing
-                ? 'screen-share-stop-button'
-                : 'screen-share-start-button'
-            }
-            title={caption || t('Share screen')}
-            disabled={disableScreenShareButton}
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await screenShare.toggle();
-              }
-            }}
           />
         </CompositeButton>
       </PermissionNotification>

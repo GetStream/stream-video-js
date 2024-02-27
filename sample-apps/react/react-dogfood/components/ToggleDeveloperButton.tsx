@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 
 import {
   CompositeButton,
-  IconButton,
+  Icon,
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
@@ -13,10 +13,10 @@ import { DevMenu } from './DevMenu';
 export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function ToggleMenuButton(props, ref) {
   return (
     <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="developer" />
+      <Icon icon="developer" />
     </CompositeButton>
   );
 });
