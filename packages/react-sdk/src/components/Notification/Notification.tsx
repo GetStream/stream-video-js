@@ -1,8 +1,6 @@
 import { PropsWithChildren, ReactNode, useEffect } from 'react';
 import { Placement } from '@floating-ui/react';
 
-import { Icon } from '../Icon';
-
 import { useFloatingUIPreset } from '../../hooks';
 
 export type NotificationProps = {
