@@ -153,6 +153,11 @@ export type StopPublishOptions = {
    * if `true` the track will be stopped otherwise, it will be just disabled.
    */
   stopTracks?: boolean;
+
+  /**
+   * When true, stops the tracks regardless of the state.disableMode.
+   */
+  forceStop?: boolean;
 };
 
 export type PublishOptions = {

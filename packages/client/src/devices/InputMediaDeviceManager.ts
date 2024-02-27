@@ -76,7 +76,6 @@ export abstract class InputMediaDeviceManager<
    * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
   async disable(forceStop: boolean = false) {
-    // TODO OL: fix the type
     return this.disableInternal({ notifySfu: true, forceStop });
   }
 
