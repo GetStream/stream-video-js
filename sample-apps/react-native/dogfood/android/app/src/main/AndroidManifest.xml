@@ -1,75 +1,75 @@
-<manifest xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-  <uses-feature android:name="android.hardware.camera" />
-  <uses-feature android:name="android.hardware.camera.autofocus" />
-  <uses-feature android:name="android.hardware.audio.output" />
-  <uses-feature android:name="android.hardware.microphone" />
-  <uses-permission android:name="android.permission.CAMERA" />
-  <uses-permission android:name="android.permission.RECORD_AUDIO" />
-  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-  <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-  <uses-permission android:name="android.permission.INTERNET" />
-  <!-- Request legacy Bluetooth permissions on older devices. -->
-  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <uses-permission android:name="android.permission.WAKE_LOCK" />
-  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-  <!-- Added for Chat SDK -->
-  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-  <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-    android:maxSdkVersion="32" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-  <uses-permission android:name="android.permission.BIND_TELECOM_CONNECTION_SERVICE" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-  <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-  <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature android:name="android.hardware.audio.output" />
+    <uses-feature android:name="android.hardware.microphone" />
 
-  <application android:name=".MainApplication" android:label="@string/app_name"
-    android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"
-    android:allowBackup="false" android:theme="@style/AppTheme">
-    <activity android:name=".MainActivity" android:label="@string/app_name"
-        android:supportsPictureInPicture="true"
-      android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
-      android:launchMode="singleTask" android:windowSoftInputMode="adjustResize"
-      android:exported="true"
-        tools:targetApi="n">
-      <intent-filter android:autoVerify="true">
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-      <intent-filter android:autoVerify="true">
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <!-- Accepts URIs that begin with "https://stream-calls-dogfood.vercel.app” -->
-        <data android:scheme="http" />
-        <data android:scheme="https" />
-        <data android:host="stream-calls-dogfood.vercel.app" />
-      </intent-filter>
-    </activity>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Request legacy Bluetooth permissions on older devices. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Added for Chat SDK -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
-    <!-- Don't change the name and the label of this service. Ref -
-    https://github.com/react-native-webrtc/react-native-callkeep/issues/289#issuecomment-1113102613 -->
-    <service android:name="io.wazo.callkeep.VoiceConnectionService"
-      android:label="Wazo"
-      android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
-      android:foregroundServiceType="camera|microphone"
-      android:exported="true"
-    >
-      <intent-filter>
-        <action android:name="android.telecom.ConnectionService" />
-      </intent-filter>
-    </service>
-    <service
-      android:name="app.notifee.core.ForegroundService"
-      android:stopWithTask="true"
-      android:foregroundServiceType="mediaProjection|camera|microphone" />
+    <application
+        android:name=".MainApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:supportsPictureInPicture="true"
+            android:windowSoftInputMode="adjustResize"
+            tools:targetApi="n">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
 
-    <service android:name="io.wazo.callkeep.RNCallKeepBackgroundMessagingService" />
-  </application>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Accepts URIs that begin with "https://stream-calls-dogfood.vercel.app” -->
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="stream-calls-dogfood.vercel.app" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="app.notifee.core.ForegroundService"
+            android:foregroundServiceType="mediaProjection|microphone"
+            android:stopWithTask="true" />
+    </application>
 </manifest>

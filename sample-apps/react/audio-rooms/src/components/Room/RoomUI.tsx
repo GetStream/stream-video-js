@@ -2,13 +2,10 @@ import {
   CallingState,
   OwnCapability,
   Restricted,
-  SfuEvents,
   SfuModels,
-  StreamVideoEvent,
   StreamVideoParticipant,
   useCall,
   useCallStateHooks,
-  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChatIcon, CloseIcon, ListIcon, PersonIcon } from '../icons';
@@ -37,6 +34,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
     useParticipants,
     useCallEndedAt,
     useIsCallLive,
+    useHasPermissions,
   } = useCallStateHooks();
   const customData = useCallCustomData();
   const endedAt = useCallEndedAt();
@@ -67,30 +65,19 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   useEffect(() => {
     if (!call || !localParticipant) return;
 
-    const unsubscribeFromLiveEnded = call.on(
-      'error',
-      (e: SfuEvents.SfuEvent) => {
-        if (
-          e.eventPayload.oneofKind !== 'error' ||
-          !e.eventPayload.error.error ||
-          e.eventPayload.error.error.code !== SfuModels.ErrorCode.LIVE_ENDED
-        ) {
-          return;
-        }
-        if (
-          !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
-        )
-          loadRoom().catch((err) => {
-            console.error('Error loading room', err);
-          });
-      },
-    );
+    const unsubscribeFromLiveEnded = call.on('error', (e) => {
+      if (!e.error || e.error.code !== SfuModels.ErrorCode.LIVE_ENDED) {
+        return;
+      }
+      if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE))
+        loadRoom().catch((err) => {
+          console.error('Error loading room', err);
+        });
+    });
 
     const unsubscribeFromParticipantLeft = call.on(
       'call.session_participant_left',
-      (e: StreamVideoEvent) => {
-        if (e.type !== 'call.session_participant_left') return;
-
+      (e) => {
         if (e.participant.user_session_id === localParticipant.sessionId) {
           loadRoom().catch((err) => {
             console.error('Error loading room', err);

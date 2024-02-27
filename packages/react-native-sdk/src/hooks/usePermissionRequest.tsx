@@ -1,11 +1,12 @@
 import { OwnCapability, PermissionRequestEvent } from '@stream-io/video-client';
-import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
 export const usePermissionRequest = () => {
   const call = useCall();
 
+  const { useHasPermissions } = useCallStateHooks();
   const userHasUpdateCallPermissionsCapability = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );

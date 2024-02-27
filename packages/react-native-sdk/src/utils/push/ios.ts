@@ -10,7 +10,10 @@ import {
   voipCallkeepAcceptedCallOnNativeDialerMap$,
   pushNonRingingCallData$,
 } from './rxSubjects';
-import { processCallFromPushInBackground } from './utils';
+import {
+  clearPushWSEventSubscriptions,
+  processCallFromPushInBackground,
+} from './utils';
 import { getExpoNotificationsLib, getPushNotificationIosLib } from './libs';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
@@ -47,6 +50,7 @@ export const iosCallkeepAcceptCall = (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
+  clearPushWSEventSubscriptions();
   // to call end callkeep later if ended in app and not through callkeep
   voipCallkeepAcceptedCallOnNativeDialerMap$.next({
     uuid: callUUIDFromCallkeep,
@@ -66,6 +70,7 @@ export const iosCallkeepRejectCall = async (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
+  clearPushWSEventSubscriptions();
   // no need to keep these references anymore
   voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
   voipCallkeepCallOnForegroundMap$.next(undefined);

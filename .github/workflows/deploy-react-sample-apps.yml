@@ -59,21 +59,20 @@ jobs:
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
       VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
       VITE_EGRESS_SENTRY_DNS: ${{ secrets.EGRESS_SENTRY_DNS }}
-      VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
       PRONTO_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       EGRESS_SENTRY_AUTH_TOKEN: ${{ secrets.EGRESS_SENTRY_AUTH_TOKEN }}
       MODE: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'yarn'
 
       - name: Install Dependencies

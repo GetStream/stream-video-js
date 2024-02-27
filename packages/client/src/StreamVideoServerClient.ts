@@ -1,12 +1,19 @@
 import { StreamVideoClient } from './StreamVideoClient';
 import { StreamClientOptions } from './coordinator/connection/types';
 import {
+  CheckExternalStorageResponse,
   CreateCallTypeRequest,
   CreateCallTypeResponse,
+  CreateExternalStorageRequest,
+  CreateExternalStorageResponse,
+  DeleteExternalStorageResponse,
   GetCallTypeResponse,
   ListCallTypeResponse,
+  ListExternalStorageResponse,
   UpdateCallTypeRequest,
   UpdateCallTypeResponse,
+  UpdateExternalStorageRequest,
+  UpdateExternalStorageResponse,
 } from './gen/coordinator';
 
 /**
@@ -59,6 +66,41 @@ export class StreamVideoServerClient extends StreamVideoClient {
     return this.streamClient.put<UpdateCallTypeResponse>(
       `/calltypes/${name}`,
       data,
+    );
+  };
+
+  listExternalStorage = () => {
+    return this.streamClient.get<ListExternalStorageResponse>(
+      '/external_storage',
+    );
+  };
+
+  createExternalStorage = (request: CreateExternalStorageRequest) => {
+    return this.streamClient.post<
+      CreateExternalStorageResponse,
+      CreateExternalStorageRequest
+    >('/external_storage', request);
+  };
+
+  deleteExternalStorage = (name: string) => {
+    return this.streamClient.delete<DeleteExternalStorageResponse>(
+      `/external_storage/${name}`,
+    );
+  };
+
+  updateExternalStorage = (
+    name: string,
+    request: UpdateExternalStorageRequest,
+  ) => {
+    return this.streamClient.put<
+      UpdateExternalStorageResponse,
+      UpdateExternalStorageRequest
+    >(`/external_storage/${name}`, request);
+  };
+
+  checkExternalStorage = (name: string) => {
+    return this.streamClient.get<CheckExternalStorageResponse>(
+      `/external_storage/${name}/check`,
     );
   };
 }
