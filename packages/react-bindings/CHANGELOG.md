@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.3.22...@stream-io/video-react-bindings-0.4.0) (2024-02-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.0`
+
+### ⚠ BREAKING CHANGES
+
+* **hooks:** expose permission hooks through useCallStateHooks() (#1254)
+* **react-sdk:** Visual redesign of the SDK and Demo App (#1194)
+
+### Features
+
+* **hooks:** expose permission hooks through useCallStateHooks() ([#1254](https://github.com/GetStream/stream-video-js/issues/1254)) ([3eaa8bd](https://github.com/GetStream/stream-video-js/commit/3eaa8bd7592920eedb434b6ec747b6d22077ed87))
+* **react-sdk:** Visual redesign of the SDK and Demo App ([#1194](https://github.com/GetStream/stream-video-js/issues/1194)) ([c1c6a7b](https://github.com/GetStream/stream-video-js/commit/c1c6a7b9bb0551442457f6d0ef5fedc92a985a3d))
+
 ### [0.3.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.3.21...@stream-io/video-react-bindings-0.3.22) (2024-02-19)
 
 ### Dependency Updates

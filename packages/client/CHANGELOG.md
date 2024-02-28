@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.11...@stream-io/video-client-0.6.0) (2024-02-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **events:** improved type narrowing on call events (#1246)
+* **react-sdk:** Visual redesign of the SDK and Demo App (#1194)
+
+### Features
+
+* **events:** improved type narrowing on call events ([#1246](https://github.com/GetStream/stream-video-js/issues/1246)) ([b5bdab1](https://github.com/GetStream/stream-video-js/commit/b5bdab1b526b451402867a849f5790f4f9a9fa1e))
+* **react-sdk:** Visual redesign of the SDK and Demo App ([#1194](https://github.com/GetStream/stream-video-js/issues/1194)) ([c1c6a7b](https://github.com/GetStream/stream-video-js/commit/c1c6a7b9bb0551442457f6d0ef5fedc92a985a3d))
+
+
+### Bug Fixes
+
+* **permissions:** relax device permission handling for Safari ([#1248](https://github.com/GetStream/stream-video-js/issues/1248)) ([39dc231](https://github.com/GetStream/stream-video-js/commit/39dc23175d0c892228b195fc77083d9bc256e1fb))
+
 ### [0.5.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.10...@stream-io/video-client-0.5.11) (2024-02-19)
 
 

@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.14...@stream-io/video-styling-0.2.0) (2024-02-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-sdk:** Visual redesign of the SDK and Demo App (#1194)
+
+### Features
+
+* **react-sdk:** Visual redesign of the SDK and Demo App ([#1194](https://github.com/GetStream/stream-video-js/issues/1194)) ([c1c6a7b](https://github.com/GetStream/stream-video-js/commit/c1c6a7b9bb0551442457f6d0ef5fedc92a985a3d))
+
 ### [0.1.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.13...@stream-io/video-styling-0.1.14) (2023-11-07)
 
 

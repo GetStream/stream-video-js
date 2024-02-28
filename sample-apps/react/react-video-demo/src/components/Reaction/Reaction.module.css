@@ -1,7 +1,0 @@
-.root {
-  @apply hidden;
-}
-
-.showing {
-  @apply visible;
-}
