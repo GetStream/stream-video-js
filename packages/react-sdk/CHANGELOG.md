@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.0...@stream-io/video-react-sdk-0.5.1) (2024-02-28)
+
+
+### Bug Fixes
+
+* **react-sdk:** add default menus to ToggleAudio and ToggleVideo buttons ([#1275](https://github.com/GetStream/stream-video-js/issues/1275)) ([462bd40](https://github.com/GetStream/stream-video-js/commit/462bd408bfea4edfe2062525872f06500814328d)), closes [#1194](https://github.com/GetStream/stream-video-js/issues/1194)
+
 ## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.26...@stream-io/video-react-sdk-0.5.0) (2024-02-26)
 
 ### Dependency Updates
