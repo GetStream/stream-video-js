@@ -19,7 +19,12 @@ export type ToggleVideoPreviewButtonProps = Pick<
 export const ToggleVideoPreviewButton = (
   props: ToggleVideoPreviewButtonProps,
 ) => {
-  const { caption, ...restCompositeButtonProps } = props;
+  const {
+    caption,
+    Menu = DeviceSelectorVideo,
+    menuPlacement = 'top',
+    ...restCompositeButtonProps
+  } = props;
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
   const { camera, isMute, hasBrowserPermission } = useCameraState();
@@ -40,6 +45,8 @@ export const ToggleVideoPreviewButton = (
       }
       onClick={() => camera.toggle()}
       disabled={!hasBrowserPermission}
+      Menu={Menu}
+      menuPlacement={menuPlacement}
       {...restCompositeButtonProps}
     >
       <Icon icon={!isMute ? 'camera' : 'camera-off'} />
