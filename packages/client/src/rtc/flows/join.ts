@@ -21,8 +21,9 @@ export const join = async (
   id: string,
   data?: JoinCallData,
 ) => {
-  const joinCallResponse = await doJoin(httpClient, type, id, data);
-  const { call, credentials, members, own_capabilities } = joinCallResponse;
+  const { call, credentials, members, own_capabilities, stats_options } =
+    await doJoin(httpClient, type, id, data);
+
   return {
     connectionConfig: toRtcConfiguration(credentials.ice_servers),
     sfuServer: credentials.server,
@@ -30,6 +31,7 @@ export const join = async (
     metadata: call,
     members,
     ownCapabilities: own_capabilities,
+    statsOptions: stats_options,
   };
 };
 
