@@ -1,4 +1,4 @@
-import { BaseStats } from '../stats/types';
+import { BaseStats } from '../stats';
 import { SoundStateChangeHandler } from './sound-detector';
 
 /**

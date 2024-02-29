@@ -12,7 +12,7 @@ import {
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
 } from '../types';
-import { CallStatsReport } from '../stats/types';
+import { CallStatsReport } from '../stats';
 import {
   BlockedUserEvent,
   CallHLSBroadcastingStartedEvent,
