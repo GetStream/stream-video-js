@@ -7,7 +7,11 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
+import {
+  GoAwayReason,
+  SdkType,
+  TrackType,
+} from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -401,6 +405,35 @@ export class Call {
           this.state.setCallingState(CallingState.RINGING);
         }
         this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
+      }),
+    );
+
+    const { sdk, browser, device } = getClientDetails();
+    this.leaveCallHooks.add(
+      createSubscription(this.state.callStatsReport$, (report) => {
+        if (!report || !this.sfuClient) return;
+
+        const publisherStats: Array<any> = [];
+        report.publisherRawStats?.forEach((stats) => {
+          publisherStats.push(stats);
+        });
+
+        const subscriberStats: Array<any> = [];
+        report.subscriberRawStats?.forEach((stats) => {
+          subscriberStats.push(stats);
+        });
+
+        this.sfuClient
+          .sendStats({
+            sdk: SdkType[sdk?.type ?? SdkType.UNSPECIFIED] || 'JS',
+            sdkVersion: sdk
+              ? `${sdk.major}.${sdk.minor}.${sdk.patch}`
+              : '0.0.0-development',
+            webrtcVersion: device?.version || browser?.version || 'N/A',
+            publisherStats: JSON.stringify(publisherStats),
+            subscriberStats: JSON.stringify(subscriberStats),
+          })
+          .catch((err) => this.logger('error', 'Error sending stats', err));
       }),
     );
   }
