@@ -38,12 +38,13 @@ import {
   OutgoingCall,
   useCall,
   useCalls,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
 const CallPanel = () => {
   const call = useCall();
   const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
+  const { useCallCallingState } = useCallStateHooks();
 
   const callingState = useCallCallingState();
 
