@@ -19,6 +19,12 @@
     display: none;
   }
 
+  &__tab-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
   &__tabmodal-sidebar {
     display: flex;
     flex-direction: column;
@@ -69,6 +75,52 @@
 
     -ms-overflow-style: none;
     scrollbar-width: none;
+
+    .rd__video-effects {
+      padding: var(--str-video__spacing-lg);
+
+      .rd__video-effects__list {
+        padding-top: var(--str-video__spacing-md);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .str-video__call-controls__button {
+          width: 48px;
+          height: 48px;
+
+          .str-video__icon {
+            width: 2rem;
+            height: 2rem;
+          }
+        }
+      }
+
+      .rd__video-effects__preview-container {
+        display: flex;
+        min-height: 320px;
+      }
+
+      .rd__video-effects--option {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 16/9;
+        border: 1px solid var(--str-video__base-color6);
+        border-radius: var(--str-video__border-radius-xs);
+        display: inline-block;
+
+        &:hover {
+          border-color: var(--str-video__brand-color1);
+        }
+      }
+
+      .rd__video-effects--image {
+        width: 180px;
+        height: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+    }
   }
 
   &__tab {
@@ -145,39 +197,6 @@
 
     &__tab-panel__content {
       .rd__video-effects {
-        padding: var(--str-video__spacing-lg);
-
-        .rd__video-effects__container {
-          display: flex;
-          gap: 16px;
-        }
-
-        .rd__video-effects__list {
-          padding-top: var(--str-video__spacing-md);
-          display: flex;
-          gap: 8px;
-        }
-
-        .rd__video-effects__list-box {
-          width: 48px;
-          height: 48px;
-          border: 1px solid var(--str-video__base-color6);
-          border-radius: calc(
-            // +1px to fix border radius issue
-            var(--str-video__border-radius-xs) + 1px
-          );
-
-          &:hover {
-            border-color: var(--str-video__brand-color1);
-          }
-        }
-
-        .rd__video-effects--option {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: var(--str-video__border-radius-xs);
-        }
       }
     }
   }
@@ -188,9 +207,6 @@
 }
 .str-video__icon--video-effects {
   mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTE5IDlsMS4yNS0yLjc1TDIzIDVsLTIuNzUtMS4yNUwxOSAxbC0xLjI1IDIuNzVMMTUgNWwyLjc1IDEuMjVMMTkgOXptLTcuNS41TDkgNCA2LjUgOS41IDEgMTJsNS41IDIuNUw5IDIwbDIuNS01LjVMMTcgMTJsLTUuNS0yLjV6TTE5IDE1bC0xLjI1IDIuNzVMMTUgMTlsMi43NSAxLjI1TDE5IDIzbDEuMjUtMi43NUwyMyAxOWwtMi43NS0xLjI1TDE5IDE1eiIvPjwvc3ZnPg==');
-}
-.str-video__icon--no-effects {
-  mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04IDAtMS44NS42My0zLjU1IDEuNjktNC45TDE2LjkgMTguMzFDMTUuNTUgMTkuMzcgMTMuODUgMjAgMTIgMjB6bTYuMzEtMy4xTDcuMSA1LjY5QzguNDUgNC42MyAxMC4xNSA0IDEyIDRjNC40MiAwIDggMy41OCA4IDggMCAxLjg1LS42MyAzLjU1LTEuNjkgNC45eiIvPjwvc3ZnPg==');
 }
 
 @include respond-above(lg) {

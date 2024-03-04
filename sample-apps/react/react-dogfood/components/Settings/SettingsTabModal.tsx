@@ -208,35 +208,33 @@ const VideoEffectsSettings = () => {
     useBackgroundFilters() || {};
   return (
     <div className="rd__video-effects">
-      <VideoPreview />
+      <div className="rd__video-effects__preview-container">
+        <VideoPreview />
+      </div>
       <div className="rd__video-effects__container">
-        <div className="rd_video-effects__card">
+        <div className="rd__video-effects__card">
           <h4>Effects</h4>
           <div className="rd__video-effects__list">
-            <div
-              className="rd__video-effects__list-box"
+            <IconButton
+              icon="close"
               onClick={() => setBackgroundFilter?.('none')}
-            >
-              <Icon className="rd__video-effects--option" icon="no-effects" />
-            </div>
+            />
             {isBlurringEnabled && (
-              <div
-                className="rd__video-effects__list-box"
+              <IconButton
+                icon="blur-icon"
                 onClick={() => setBackgroundFilter?.('blur')}
-              >
-                <Icon className="rd__video-effects--option" icon="blur-icon" />
-              </div>
+              />
             )}
           </div>
         </div>
         {backgroundImages && backgroundImages.length > 0 && (
-          <div className="rd_video-effects__card">
+          <div className="rd__video-effects__card">
             <h4>Backgrounds</h4>
             <div className="rd__video-effects__list">
               {backgroundImages.map((imageUrl, index) => (
                 <div key={index} className="rd__video-effects__list-box">
                   <img
-                    className="rd__video-effects--option"
+                    className="rd__video-effects--option rd__video-effects--image"
                     src={imageUrl}
                     alt="Background"
                     onClick={() => setBackgroundFilter?.('image', imageUrl)}
