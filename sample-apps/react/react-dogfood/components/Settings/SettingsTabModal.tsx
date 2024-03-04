@@ -220,10 +220,22 @@ const VideoEffectsSettings = () => {
               onClick={() => setBackgroundFilter?.('none')}
             />
             {isBlurringEnabled && (
-              <IconButton
-                icon="blur-icon"
-                onClick={() => setBackgroundFilter?.('blur')}
-              />
+              <>
+                <IconButton
+                  icon="blur-icon"
+                  onClick={() => setBackgroundFilter?.('blur')}
+                />
+                <IconButton
+                  icon="blur-icon"
+                  className="rd__video-effects__blur--medium"
+                  onClick={() => setBackgroundFilter?.('blur')}
+                />
+                <IconButton
+                  icon="blur-icon"
+                  className="rd__video-effects__blur--low"
+                  onClick={() => setBackgroundFilter?.('blur')}
+                />
+              </>
             )}
           </div>
         </div>
