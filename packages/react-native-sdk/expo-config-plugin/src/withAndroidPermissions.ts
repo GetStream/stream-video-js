@@ -1,13 +1,21 @@
 import { AndroidConfig, ConfigPlugin } from '@expo/config-plugins';
+import { ConfigProps } from './common/types';
 
-const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin = (
-  config,
-) => {
-  config = AndroidConfig.Permissions.withPermissions(config, [
-    'android.permission.POST_NOTIFICATIONS',
+const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
+  ConfigProps
+> = (configuration, props) => {
+  const foregroundServicePermissions = [
     'android.permission.FOREGROUND_SERVICE',
     'android.permission.FOREGROUND_SERVICE_MICROPHONE',
-    'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION',
+  ];
+  if (props?.enableScreenshare) {
+    foregroundServicePermissions.push(
+      'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION',
+    );
+  }
+  const config = AndroidConfig.Permissions.withPermissions(configuration, [
+    'android.permission.POST_NOTIFICATIONS',
+    ...foregroundServicePermissions,
     'android.permission.BLUETOOTH',
     'android.permission.BLUETOOTH_CONNECT',
     'android.permission.BLUETOOTH_ADMIN',

@@ -26,7 +26,7 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
     () => withiOSInfoPlist(config, props),
     () => withIosScreenCapture(config, props),
     // android
-    withAndroidPermissions,
+    () => withAndroidPermissions(config, props),
     withAppBuildGradle,
     withBuildProperties,
     () => withAndroidManifest(config, props),

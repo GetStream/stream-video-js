@@ -235,11 +235,12 @@ import { Pressable, Text, View, StyleSheet } from 'react-native';
 import {
   CallingState,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
 export const IncomingCallButtonGroup = () => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const acceptCallHandler = useCallback(async () => {
@@ -319,11 +320,12 @@ import { Pressable, Text, View, StyleSheet } from 'react-native';
 import {
   CallingState,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
 export const OutgoingCallButtonGroup = () => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const hangupCallHandler = useCallback(async () => {
