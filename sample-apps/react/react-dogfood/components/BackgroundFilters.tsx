@@ -101,17 +101,20 @@ const BackgroundFilters = (props: {
     useRef<(value: MediaStream | PromiseLike<MediaStream>) => void>();
 
   const [mediaStream, setMediaStream] = useState<MediaStream>();
+  const registerFilterRef = useRef(Promise.resolve(async () => {}));
   useEffect(() => {
     if (!call || backgroundFilter === 'none') return;
-    const registerFilter = call.camera.registerFilter(async (ms) => {
-      return new Promise<MediaStream>((resolve) => {
-        setMediaStream(ms);
-        resolveFilterRef.current = resolve;
-      });
-    });
+    registerFilterRef.current = registerFilterRef.current.then(() =>
+      call.camera.registerFilter(async (ms) => {
+        return new Promise<MediaStream>((resolve) => {
+          setMediaStream(ms);
+          resolveFilterRef.current = resolve;
+        });
+      }),
+    );
 
     return () => {
-      registerFilter
+      registerFilterRef.current
         .then((unregister) => unregister())
         .then(() => setMediaStream(undefined))
         .catch((err) => console.error('Failed to unregister filter', err));
