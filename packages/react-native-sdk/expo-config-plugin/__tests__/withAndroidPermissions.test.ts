@@ -1,5 +1,6 @@
 import withStreamVideoReactNativeSDKAndroidPermissions from '../src/withAndroidPermissions';
 import { ExpoConfig } from '@expo/config-types';
+import { ConfigProps } from '../src/common/types';
 
 describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
   it('should add specified permissions to Android config', () => {
@@ -11,9 +12,14 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
         permissions: [],
       },
     };
+    const props: ConfigProps = {
+      enableScreenshare: true,
+    };
 
-    const updatedConfig =
-      withStreamVideoReactNativeSDKAndroidPermissions(inputConfig);
+    const updatedConfig = withStreamVideoReactNativeSDKAndroidPermissions(
+      inputConfig,
+      props,
+    );
 
     // Assert that the necessary permissions are added to the Android config
     expect(updatedConfig?.android?.permissions).toEqual(
