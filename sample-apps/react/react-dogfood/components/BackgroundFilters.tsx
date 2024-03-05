@@ -175,13 +175,14 @@ const BackgroundFilters = (props: {
           ref={setBackgroundImageRef}
           key={backgroundImage}
           src={backgroundImage}
-          width="1920"
-          height="1080"
+          width={width}
+          height={height}
         />
       )}
       <canvas
         width={width}
         height={height}
+        key={'key-' + width + height}
         // @ts-expect-error null vs undefined
         ref={setCanvasRef}
       />
