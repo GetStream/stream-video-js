@@ -41,8 +41,6 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-console.log(Config.RN_DOGFOOD_ANDROID_KEYSTORE);
-
 const LoginScreen = () => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
@@ -130,11 +128,15 @@ const LoginScreen = () => {
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />
         <View>
-          <Text style={styles.title}>
-            {prontoEnvironment
-              ? t('Stream DogFood App')
-              : t('Stream Video Calling')}
-          </Text>
+          {Config.ENVIRONMENT === 'pronto' ? (
+            <Text style={styles.title}>
+              {prontoEnvironment
+                ? t('Stream DogFood App')
+                : t('Stream Video Calling')}
+            </Text>
+          ) : (
+            <Text style={styles.title}>{t('Stream Video Calling')}</Text>
+          )}
           <Text style={styles.subTitle}>
             {t(
               'Please sign in with your Google Stream account or a Custom user id.',
