@@ -6,6 +6,7 @@
   "Join as Guest or Anonymously": "Join as Guest or Anonymously",
   "Join with your Stream Account": "Join with your Stream Account",
   "Stream DogFood App": "Stream DogFood App",
+  "Stream Video Calling": "Stream Video Calling",
   "Choose the Mode": "Choose the Mode",
   "Please sign in with your Google Stream account or a Custom user id.": "Please sign in with your Google Stream account or a Custom user id.",
   "OR": "OR",
@@ -61,5 +62,6 @@
   "Hello, {{ userName }}": "Hello, {{ userName }}",
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",
   "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}.",
-  "{{ user }} requested to {{ permissions }}": "{{ user }} requested to {{ permissions }}"
+  "{{ user }} requested to {{ permissions }}": "{{ user }} requested to {{ permissions }}",
+  "Pronto": "Pronto"
 }

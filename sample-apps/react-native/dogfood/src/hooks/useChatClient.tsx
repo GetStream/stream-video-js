@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { StreamChat, OwnUserResponse, UserResponse } from 'stream-chat';
 import { StreamChatGenerics } from '../../types';
 import { createToken } from '../modules/helpers/createToken';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 export const useChatClient = <
   SCG extends StreamChatGenerics = StreamChatGenerics,
@@ -10,6 +11,9 @@ export const useChatClient = <
 }: {
   userData: OwnUserResponse<SCG> | UserResponse<SCG>;
 }) => {
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | undefined>();
   const disconnectRef = useRef(Promise.resolve());
 
@@ -17,7 +21,10 @@ export const useChatClient = <
     let connectPromise: Promise<void> | undefined;
     let client: StreamChat<SCG> | undefined;
     const run = async () => {
-      const { token, apiKey } = await createToken({ user_id: userData.id });
+      const { token, apiKey } = await createToken(
+        { user_id: userData.id },
+        appEnvironment,
+      );
       client = new StreamChat<SCG>(apiKey);
       const connectUser = async () => {
         await disconnectRef.current;
@@ -53,7 +60,7 @@ export const useChatClient = <
     return () => {
       disconnectRef.current = cleanUp();
     };
-  }, [userData]);
+  }, [userData, appEnvironment]);
 
   return chatClient;
 };

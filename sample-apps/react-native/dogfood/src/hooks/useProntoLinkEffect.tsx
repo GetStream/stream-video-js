@@ -7,9 +7,9 @@ export const prontoCallId$ = new BehaviorSubject<string | undefined>(undefined);
 export const useProntoLinkEffect = () => {
   useEffect(() => {
     const parseAndSetCallID = (url: string | null) => {
-      const matchResponse = url?.match(/.*join\/(\w+)\/?/);
+      const matchResponse = url?.match(/.*(join|video\/demos\/join)\/(\w+)\/?/);
       if (matchResponse?.length) {
-        prontoCallId$.next(matchResponse[1]);
+        prontoCallId$.next(matchResponse[2]);
       }
     };
     const { remove } = Linking.addEventListener('url', ({ url }) => {

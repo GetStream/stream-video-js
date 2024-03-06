@@ -79,7 +79,7 @@ jobs:
 
       - name: Build
         working-directory: sample-apps/react-native/dogfood
-        run: bundle exec fastlane build_ios
+        run: bundle exec fastlane build_ios_app_store
 
       - name: Upload .ipa
         uses: actions/upload-artifact@v3
@@ -177,7 +177,7 @@ jobs:
 
       - name: Build
         working-directory: sample-apps/react-native/dogfood
-        run: bundle exec fastlane build_android
+        run: bundle exec fastlane build_android_play_store
 
       - name: Upload .apk
         uses: actions/upload-artifact@v3
@@ -283,4 +283,4 @@ jobs:
 
       - name: Deploy
         working-directory: sample-apps/react-native/dogfood
-        run: bundle exec fastlane deploy_android
+        run: bundle exec fastlane deploy_android_play_store

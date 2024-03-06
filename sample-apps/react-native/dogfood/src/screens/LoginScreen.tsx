@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Config from 'react-native-config';
 import {
   Image,
   StyleSheet,
@@ -7,12 +8,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ViewStyle,
+  Switch,
 } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
@@ -36,8 +41,16 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
+console.log(Config.RN_DOGFOOD_ANDROID_KEYSTORE);
+
 const LoginScreen = () => {
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
   const [localUserId, setLocalUserId] = useState('');
+  const [prontoEnvironment, setProntoEnvironment] = useState(
+    appEnvironment === 'pronto',
+  );
   const [loader, setLoader] = useState(false);
   const { t } = useI18n();
   const orientation = useOrientation();
@@ -96,10 +109,32 @@ const LoginScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, landscapeStyles]}
     >
+      {Config.ENVIRONMENT === 'pronto' && (
+        <View style={styles.header}>
+          <Text style={styles.envText}>{t('Pronto')}</Text>
+          <Switch
+            value={prontoEnvironment}
+            onValueChange={(value) => {
+              if (value === true) {
+                setState({ appEnvironment: 'pronto' });
+              } else {
+                setState({ appEnvironment: 'demo' });
+              }
+              setProntoEnvironment(value);
+            }}
+            trackColor={{ true: appTheme.colors.light_blue }}
+            thumbColor={appTheme.colors.primary}
+          />
+        </View>
+      )}
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />
         <View>
-          <Text style={styles.title}>{t('Stream DogFood App')}</Text>
+          <Text style={styles.title}>
+            {prontoEnvironment
+              ? t('Stream DogFood App')
+              : t('Stream Video Calling')}
+          </Text>
           <Text style={styles.subTitle}>
             {t(
               'Please sign in with your Google Stream account or a Custom user id.',
@@ -147,6 +182,15 @@ const styles = StyleSheet.create({
   topContainer: {
     flex: 1,
     justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
+  },
+  envText: {
+    color: appTheme.colors.static_white,
+    fontSize: 16,
   },
   logo: {
     height: 100,

@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import {
   StreamVideo,
   StreamVideoClient,
@@ -11,23 +11,30 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
 
+  const user = useMemo(
+    () => ({
+      id: userId,
+      name: userName,
+      image: userImageUrl,
+    }),
+    [userId, userName, userImageUrl],
+  );
+
   useEffect(() => {
-    if (!userId || !userImageUrl) {
-      return;
-    }
     let _videoClient: StreamVideoClient | undefined;
     const run = async () => {
-      const user = {
-        id: userId,
-        name: userName,
-        image: userImageUrl,
-      };
-      const { token, apiKey } = await createToken({ user_id: user.id });
+      const { token, apiKey } = await createToken(
+        { user_id: user.id },
+        appEnvironment,
+      );
       _videoClient = new StreamVideoClient({
         apiKey,
         user,
@@ -37,11 +44,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       setVideoClient(_videoClient);
     };
     run();
+
     return () => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [userName, userId, userImageUrl]);
+  }, [appEnvironment, user]);
 
   if (!videoClient) {
     return null;

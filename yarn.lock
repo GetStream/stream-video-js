@@ -8904,7 +8904,7 @@ __metadata:
     react: 18.2.0
     react-native: 0.73.4
     react-native-callkeep: 4.3.11
-    react-native-dotenv: ^3.4.10
+    react-native-config: ^1.5.1
     react-native-fs: ^2.20.0
     react-native-gesture-handler: ^2.15.0
     react-native-haptic-feedback: ^2.0.3
@@ -15570,13 +15570,6 @@ __metadata:
   version: 16.3.1
   resolution: "dotenv@npm:16.3.1"
   checksum: 15d75e7279018f4bafd0ee9706593dd14455ddb71b3bcba9c52574460b7ccaf67d5cf8b2c08a5af1a9da6db36c956a04a1192b101ee102a3e0cf8817bbcf3dfd
-  languageName: node
-  linkType: hard
-
-"dotenv@npm:^16.4.1":
-  version: 16.4.4
-  resolution: "dotenv@npm:16.4.4"
-  checksum: fbe0355972634d8843e1804115885e94d70618cfc975eadca67e26b2d71eb46f0ed45c12c2b88fd88cd6b1476a151471227b13311127a3504d10060cc74ce2f7
   languageName: node
   linkType: hard
 
@@ -27996,14 +27989,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-dotenv@npm:^3.4.10":
-  version: 3.4.10
-  resolution: "react-native-dotenv@npm:3.4.10"
-  dependencies:
-    dotenv: ^16.4.1
+"react-native-config@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "react-native-config@npm:1.5.1"
   peerDependencies:
-    "@babel/runtime": ^7.20.6
-  checksum: a99d571a0973e54f0b0cf43daeed4efa6a87e3226703e2dc20acae7fd1156c6c49aaec31471d4a2d874564edb496731b550003a89d2f8e622bda51de95fe942f
+    react-native-windows: ">=0.61"
+  peerDependenciesMeta:
+    react-native-windows:
+      optional: true
+  checksum: ae17b750e445310573ce33798db67c9b8c50e55cb2ba136e9a9ef8372dd3f7669ce236bb18bf1fa8a426fd1aa9e6b516fb2f593767bd24688242f6847cd37712
   languageName: node
   linkType: hard
 

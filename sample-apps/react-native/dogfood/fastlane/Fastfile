@@ -95,7 +95,7 @@ lane :pod_install do
   end
 end
 
-lane :bump_ios_version_number do
+lane :bump_ios_version_number_app_store do
   increment_version_number(
     version_number: load_package['version'],
     xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
@@ -111,12 +111,12 @@ lane :bump_ios_version_number do
   )
 end
 
-lane :build_ios do
+lane :build_ios_app_store do
   app_store_connect_api_key
 
   ENV['NODE_ENV'] = 'production'
 
-  bump_ios_version_number if is_ci
+  bump_ios_version_number_app_store if is_ci
 
   match_appstore
 
@@ -192,7 +192,7 @@ rescue StandardError => e
   UI.important('Another build is already in beta review. Skipping beta review submission')
 end
 
-lane :bump_android_version_number do
+lane :bump_android_version_number_play_store do
   latest_app_distribution_version_code = latest_googleplay_version_code
 
   increment_version_code(
@@ -206,15 +206,15 @@ lane :bump_android_version_number do
   )
 end
 
-lane :build_android do
+lane :build_android_play_store do
   ENV['NODE_ENV'] = 'production'
 
-  bump_android_version_number if is_ci
+  bump_android_version_number_play_store if is_ci
 
   gradle(
     project_dir: 'android',
     print_command: false,
-    tasks: ["clean", "bundleRelease", "assembleRelease"],
+    tasks: ["clean", "assembleRelease", "bundleRelease"],
     properties: {
       "android.injected.signing.store.file" => ENV.fetch('RN_DOGFOOD_ANDROID_KEYSTORE', nil),
       "android.injected.signing.store.password" => ENV.fetch('RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD', nil),
@@ -229,7 +229,7 @@ lane :build_android do
 end
 
 lane :test_android do |options|
-  build_android unless is_ci || options[:skip_install]
+  build_android_play_store unless is_ci || options[:skip_install]
 
   start_video_buddy
 
@@ -267,7 +267,7 @@ lane :test_android do |options|
   end
 end
 
-lane :deploy_android do
+lane :deploy_android_play_store do
   supply(
     track: "internal",
     package_name: android_package_name,
