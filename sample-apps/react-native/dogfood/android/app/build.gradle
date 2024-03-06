@@ -94,10 +94,10 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile = file(project.env.get("RN_DOGFOOD_ANDROID_KEYSTORE"))
-            storePassword =  project.env.get("RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD")
-            keyAlias = project.env.get("RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS")
-            keyPassword = project.env.get("RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD")
+            storeFile file(System.getenv("RN_DOGFOOD_ANDROID_KEYSTORE"))
+            storePassword System.getenv("RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS")
+            keyPassword System.getenv("RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD")
         }
     }
     buildTypes {
