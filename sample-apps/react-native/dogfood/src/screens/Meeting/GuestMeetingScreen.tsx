@@ -67,7 +67,7 @@ export const GuestMeetingScreen = (props: Props) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [userToConnect, mode, callId]);
+  }, [userToConnect, mode, callId, appEnvironment]);
 
   const call = useMemo<Call | undefined>(() => {
     if (!videoClient) {

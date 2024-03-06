@@ -46,7 +46,7 @@ export const useAnonymousInitVideoClient = ({
         .catch((error) => console.error('Unable to disconnect user', error));
       setClient(undefined);
     };
-  }, [callId, callType]);
+  }, [callId, callType, appEnvironment]);
 
   return client;
 };
