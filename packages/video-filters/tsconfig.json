@@ -17,8 +17,7 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "inlineSources": true,
-    "jsx": "react-jsxdev"
+    "inlineSources": true
   },
   "exclude": ["**/__tests__/**"],
   "include": [

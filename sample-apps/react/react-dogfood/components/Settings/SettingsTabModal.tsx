@@ -18,6 +18,7 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
+  useBackgroundFilters,
   useI18n,
   useMenuContext,
   VideoPreview,
@@ -26,9 +27,7 @@ import {
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
 import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
-
 import { useLanguage } from '../../hooks/useLanguage';
-import { useBackgroundFilters } from '../BackgroundFilters';
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;

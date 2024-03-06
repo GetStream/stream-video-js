@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
+  BackgroundFiltersProvider,
   Call,
   CallingState,
   CallRequest,
@@ -33,7 +34,6 @@ import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../api/auth/create-token';
-import { BackgroundFiltersProvider } from '../../components/BackgroundFilters';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 

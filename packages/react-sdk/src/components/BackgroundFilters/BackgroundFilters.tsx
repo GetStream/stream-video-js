@@ -7,14 +7,14 @@ import {
   useRef,
   useState,
 } from 'react';
+import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-sdk';
-import { loadTFLite, TFLite } from '../lib/filters/tflite';
 import {
   BackgroundConfig,
   createRenderer,
-} from '../lib/filters/createRenderer';
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  loadTFLite,
+  TFLite,
+} from '@stream-io/video-filters';
 
 export type BackgroundFiltersProps = {
   isBlurringEnabled?: boolean;
@@ -23,6 +23,7 @@ export type BackgroundFiltersProps = {
   backgroundImage?: string;
   tfFilePath?: string;
   modelFilePath?: string;
+  basePath?: string;
 };
 
 export type BackgroundFiltersAPI = {
@@ -51,6 +52,7 @@ export const BackgroundFiltersProvider = (
     backgroundImage: backgroundImageFromProps = undefined,
     tfFilePath,
     modelFilePath,
+    basePath,
   } = props;
 
   const [backgroundFilterConfig, setBackgroundFilterConfig] = useState(
@@ -80,6 +82,7 @@ export const BackgroundFiltersProvider = (
       <BackgroundFilters
         tfFilePath={tfFilePath}
         modelFilePath={modelFilePath}
+        basePath={basePath}
       />
     </BackgroundFiltersContext.Provider>
   );
@@ -88,13 +91,13 @@ export const BackgroundFiltersProvider = (
 const BackgroundFilters = (props: {
   tfFilePath?: string;
   modelFilePath?: string;
+  basePath?: string;
 }) => {
-  const { tfFilePath, modelFilePath } = props;
+  const { tfFilePath, modelFilePath, basePath } = props;
   const call = useCall();
   const { backgroundImage, backgroundFilter } = useBackgroundFilters() || {};
   const [videoRef, setVideoRef] = useState<HTMLVideoElement>();
-  const [backgroundImageRef, setBackgroundImageRef] =
-    useState<HTMLImageElement>();
+  const [bgImageRef, setBgImageRef] = useState<HTMLImageElement>();
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement>();
 
   const resolveFilterRef =
@@ -141,22 +144,32 @@ const BackgroundFilters = (props: {
   }, [canvasRef, mediaStream, videoRef]);
 
   const videoTrack = mediaStream?.getVideoTracks()[0];
-  const { width = 0, height = 0 } = videoTrack?.getSettings() || {};
+  const { width = 1920, height = 1080 } = videoTrack?.getSettings() || {};
 
-  const objectFit = width > height ? 'cover' : 'contain';
   return (
-    <div className="rd__camera-filters">
+    <div
+      className="str-video__background-filters"
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+      }}
+    >
       {mediaStream && (
         <RenderPipeline
           videoRef={videoRef}
           canvasRef={canvasRef}
-          backgroundImageRef={backgroundImageRef}
+          backgroundImageRef={bgImageRef}
           backgroundFilter={backgroundFilter || 'none'}
           tfFilePath={tfFilePath}
           modelFilePath={modelFilePath}
+          basePath={basePath}
         />
       )}
       <video
+        className={clsx(
+          'str-video__background-filters__video',
+          height > width && 'str-video__background-filters__video--tall',
+        )}
         // @ts-expect-error null vs undefined
         ref={setVideoRef}
         autoPlay
@@ -166,23 +179,24 @@ const BackgroundFilters = (props: {
         height={height}
         muted
         loop
-        style={{ objectFit }}
       />
       {backgroundImage && (
         <img
+          className="str-video__background-filters__background-image"
+          key={backgroundImage}
           alt="Background"
           // @ts-expect-error null vs undefined
-          ref={setBackgroundImageRef}
-          key={backgroundImage}
+          ref={setBgImageRef}
           src={backgroundImage}
           width={width}
           height={height}
         />
       )}
       <canvas
+        className="str-video__background-filters__target-canvas"
+        key={'key-' + width + height}
         width={width}
         height={height}
-        key={'key-' + width + height}
         // @ts-expect-error null vs undefined
         ref={setCanvasRef}
       />
@@ -197,6 +211,7 @@ const RenderPipeline = (props: {
   backgroundFilter: BackgroundConfig;
   tfFilePath?: string;
   modelFilePath?: string;
+  basePath?: string;
 }) => {
   const {
     videoRef,
@@ -205,6 +220,7 @@ const RenderPipeline = (props: {
     backgroundFilter,
     tfFilePath,
     modelFilePath,
+    basePath,
   } = props;
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
