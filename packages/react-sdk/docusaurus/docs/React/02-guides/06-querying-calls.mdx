@@ -16,15 +16,19 @@ The SDK makes it easy to query calls.
 
 Sorting is supported on these fields below:
 
-- `starts_at`
-- `created_at`
-- `updated_at`
-- `ended_at`
-- `type`
-- `id`
-- `cid`
+| Field        | Description                                             |
+| ------------ | ------------------------------------------------------- |
+| `starts_at`  | When the call starts at                                 |
+| `created_at` | When the call was created                               |
+| `updated_at` | When the call was updated                               |
+| `ended_at`   | When the call ended                                     |
+| `type`       | The call type. Typically `default`, `livestream` etc... |
+| `id`         | The id for this call                                    |
+| `cid`        | The cid for this call. IE: `default:123`                |
 
 ```typescript
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
 let client: StreamVideoClient;
 
 await client.queryCalls({
@@ -37,6 +41,8 @@ await client.queryCalls({
 It's possible to provide multiple sort parameters:
 
 ```typescript
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
 let client: StreamVideoClient;
 
 await client.queryCalls({
@@ -51,29 +57,34 @@ await client.queryCalls({
 
 ## Filters
 
-You can filter on the following fields
+You can filter on the following fields:
 
-| Option               | Description                                                 |
-| -------------------- | ----------------------------------------------------------- |
-| `type`               | The call type. Typically default, livestream etc            |
-| `id`                 | The id for this call                                        |
-| `cid`                | The cid for this call. IE default:123                       |
-| `created_by_user_id` | The user id who created the call                            |
-| `created_at`         | When the call was created                                   |
-| `updated_at`         | When the call was updated                                   |
-| `starts_at`          | When the call starts at                                     |
-| `ended_at`           | When the call ended                                         |
-| `backstage`          | If the call is in backstage mode or not                     |
-| `members`            | Check if you are a member of this call                      |
-| `custom`             | You can query custom data using the "custom.myfield" syntax |
+| Field                | Description                                                   |
+| -------------------- | ------------------------------------------------------------- |
+| `id`                 | The id for this call                                          |
+| `cid`                | The cid for this call. IE: `default:123`                      |
+| `team`               | The team id for the call.                                     |
+| `type`               | The call type. Typically `default`, `livestream` etc...       |
+| `created_by_user_id` | The user id who created the call                              |
+| `created_at`         | When the call was created                                     |
+| `updated_at`         | When the call was updated                                     |
+| `ended_at`           | When the call ended                                           |
+| `starts_at`          | When the call starts at                                       |
+| `backstage`          | If the call is in backstage mode or not                       |
+| `members`            | Check if the call has these members listed                    |
+| `ongoing`            | Check if the call is ongoing or not                           |
+| `custom`             | You can query custom data using the `"custom.myfield"` syntax |
 
-Filter expressions support multiple match criteria and it's also possible to combine filters. For more information visit the [filter operators guide](https://getstream.io/chat/docs/ios-swift/query_syntax_operators/?language=swift&q=filter).
+Filter expressions support multiple match criteria, and it's also possible to combine filters.
+For more information, visit the [filter operators guide](https://getstream.io/chat/docs/react/query_syntax_operators/?language=javascript).
 
 Here are some example filters:
 
-**Calls that are about to start**
+### Calls that are about to start
 
 ```typescript
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
 let client: StreamVideoClient;
 
 const inNext30mins = 1000 * 60 * 60 * 30;
@@ -89,40 +100,44 @@ await client.queryCalls({
 });
 ```
 
-**Call filters on a custom property**
+### Call filters on a custom property
 
 ```typescript
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
 let client: StreamVideoClient;
 
 await client.queryCalls({
-  filter_conditions: {
-    'custom.color': 'red',
-  },
+  filter_conditions: { 'custom.color': 'red' },
   limit: 10,
   watch: true,
 });
 ```
 
-**Calls that live / currently have participants**
+### Calls that are live / currently have participants
 
 ```typescript
-TODO;
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
+let client: StreamVideoClient;
+
+await client.queryCalls({
+  filter_conditions: { ongoing: true },
+});
 ```
 
-** Calls the user has created or is a member of **
+### Calls the user has created or is a member of
 
 ```typescript
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
 let client: StreamVideoClient;
 
 await client.queryCalls({
   filter_conditions: {
     $or: [
-      {
-        created_by_user_id: '<user id>',
-      },
-      {
-        members: { $in: ['<user id>'] },
-      },
+      { created_by_user_id: '<user id>' },
+      { members: { $in: ['<user id>'] } },
     ],
   },
   limit: 10,
@@ -132,14 +147,19 @@ await client.queryCalls({
 
 ## Watching calls
 
-If you specify `watch: true` the SDK will automatically keep the data about these calls updated.
-This allows you to show a live preview of who's in the call.
+If you specify `watch: true` as an option, the SDK will create a subscription to the call data on the server and you'll be able to receive updates in real-time.
+
+The server will send updates to the client when the call data changes
+(for example, members are updated, a call session has started, etc...).
+This is useful for showing a live preview of who is in the call or building a call dashboard.
 
 ## Pagination
 
 You can specify the page size using the `limit` option. The API response will include links to the previous/next pages. The following code example shows how pagination works:
 
 ```typescript
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
 let client: StreamVideoClient;
 
 const inNext30mins = 1000 * 60 * 60 * 30;
