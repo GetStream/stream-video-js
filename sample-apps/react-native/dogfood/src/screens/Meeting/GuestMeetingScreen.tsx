@@ -10,6 +10,7 @@ import {
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -17,6 +18,9 @@ type Props = NativeStackScreenProps<
 >;
 
 export const GuestMeetingScreen = (props: Props) => {
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
@@ -41,10 +45,13 @@ export const GuestMeetingScreen = (props: Props) => {
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
     const run = async () => {
-      const { token, apiKey } = await createToken({
-        user_id: userToConnect.id ?? '!anon',
-        call_cids: mode === 'anonymous' ? `${callType}:${callId}` : undefined,
-      });
+      const { token, apiKey } = await createToken(
+        {
+          user_id: userToConnect.id ?? '!anon',
+          call_cids: mode === 'anonymous' ? `${callType}:${callId}` : undefined,
+        },
+        appEnvironment,
+      );
       _videoClient = new StreamVideoClient({
         apiKey,
         user: userToConnect,

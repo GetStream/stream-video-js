@@ -2,6 +2,7 @@ import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { useEffect, useState } from 'react';
 
 import { createToken } from '../modules/helpers/createToken';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 type InitAnonymousVideoClientType = {
   callId?: string;
@@ -12,6 +13,9 @@ export const useAnonymousInitVideoClient = ({
   callId,
   callType,
 }: InitAnonymousVideoClientType) => {
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
   const [client, setClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
@@ -20,10 +24,13 @@ export const useAnonymousInitVideoClient = ({
       const anonymousUser = {
         id: '!anon',
       };
-      const { token, apiKey } = await createToken({
-        user_id: anonymousUser.id,
-        call_cids: `${callType}:${callId}`,
-      });
+      const { token, apiKey } = await createToken(
+        {
+          user_id: anonymousUser.id,
+          call_cids: `${callType}:${callId}`,
+        },
+        appEnvironment,
+      );
       _client = new StreamVideoClient({
         apiKey,
         token,
