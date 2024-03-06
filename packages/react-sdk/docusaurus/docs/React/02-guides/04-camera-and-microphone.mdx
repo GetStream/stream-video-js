@@ -197,6 +197,17 @@ const preferredDevice = devices.find((d) => d.label === 'My Speakers');
 await speaker.select(preferredDevice.deviceId);
 ```
 
+### Set master output volume
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useSpeakerState } = useCallStateHooks();
+const { speaker } = useSpeakerState();
+
+speaker.setVolume(0.5); // 0.5 is 50% of the maximum volume
+```
+
 ## Persisting user's device preferences
 
 For user's convenience, you might want to persist the user's choices for the camera, microphone and speaker devices across sessions.
