@@ -92,7 +92,6 @@ jobs:
   test_ios:
     name: Test iOS
     needs: build_ios
-    if: ${{ github.ref != 'refs/heads/main' }}
     timeout-minutes: 100
     runs-on: macos-latest
     steps:
@@ -125,7 +124,7 @@ jobs:
     name: Deploy iOS
     needs: build_ios
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
