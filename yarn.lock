@@ -6709,7 +6709,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.17.0
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6728,7 +6728,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.1.0
     react: ^18.2.0
     react-dom: ^18.2.0
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6750,7 +6750,7 @@ __metadata:
     nanoid: ^5.0.4
     react: ^18.2.0
     react-dom: ^18.2.0
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6796,7 +6796,7 @@ __metadata:
     react-native-screens: ~3.29.0
     react-native-svg: 14.1.0
     react-native-voip-push-notification: ^3.3.2
-    typescript: ^5.3.3
+    typescript: ^5.4.2
   languageName: unknown
   linkType: soft
 
@@ -6826,7 +6826,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.17.0
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6851,7 +6851,7 @@ __metadata:
     sass: ^1.69.5
     stream-chat: ^8.14.4
     stream-chat-react: ^11.2.1
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6879,7 +6879,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.1.0
     react: ^18.2.0
     react-dom: ^18.2.0
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6901,7 +6901,7 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@vitejs/plugin-basic-ssl": ^1.0.1
     js-base64: ^3.7.5
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6932,7 +6932,7 @@ __metadata:
     rollup: ^3.29.4
     rxjs: ~7.8.1
     sdp-transform: ^2.14.1
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     ua-parser-js: ^1.0.36
     vite: ^4.4.11
     vitest: ^0.34.4
@@ -6950,7 +6950,7 @@ __metadata:
     "@types/emscripten": ^1.39.10
     rimraf: ^5.0.5
     rollup: ^3.29.4
-    typescript: ^5.3.3
+    typescript: ^5.4.2
   languageName: unknown
   linkType: soft
 
@@ -6974,7 +6974,7 @@ __metadata:
     ngx-deploy-npm: ^5.2.0
     nx: 16.0.1
     prettier: ^2.8.8
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vercel: ^33.2.0
     vite: ^4.4.11
   languageName: unknown
@@ -6992,7 +6992,7 @@ __metadata:
     rimraf: ^5.0.5
     rollup: ^3.29.4
     rxjs: ~7.8.1
-    typescript: ^5.3.3
+    typescript: ^5.4.2
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
     react: ">=17.0.0"
@@ -7099,7 +7099,7 @@ __metadata:
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
     stream-chat-react-native: ^5.15.1
-    typescript: ^5.3.3
+    typescript: ^5.4.2
   languageName: unknown
   linkType: soft
 
@@ -7149,7 +7149,7 @@ __metadata:
     text-encoding-polyfill: 0.6.7
     ts-jest: ^29.1.0
     ts-node: ^10.9.1
-    typescript: ^5.3.3
+    typescript: ^5.4.2
   peerDependencies:
     "@notifee/react-native": ">=7.8.0"
     "@react-native-community/netinfo": ">=9.0.0"
@@ -7214,7 +7214,7 @@ __metadata:
     react-dom: ^18.2.0
     rimraf: ^5.0.5
     rollup: ^3.29.4
-    typescript: ^5.3.3
+    typescript: ^5.4.2
   peerDependencies:
     "@stream-io/video-filters": ^0.0.0
     react: ^18.0.0
@@ -7253,7 +7253,7 @@ __metadata:
     stream-chat: ^8.14.4
     stream-chat-react: ^11.2.1
     tailwindcss: ^3.2.4
-    typescript: ^5.3.3
+    typescript: ^5.4.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -25372,13 +25372,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.3.3":
-  version: 5.3.3
-  resolution: "typescript@npm:5.3.3"
+"typescript@npm:^5.4.2":
+  version: 5.4.2
+  resolution: "typescript@npm:5.4.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2007ccb6e51bbbf6fde0a78099efe04dc1c3dfbdff04ca3b6a8bc717991862b39fd6126c0c3ebf2d2d98ac5e960bcaa873826bb2bb241f14277034148f41f6a2
+  checksum: 96d80fde25a09bcb04d399082fb27a808a9e17c2111e43849d2aafbd642d835e4f4ef0de09b0ba795ec2a700be6c4c2c3f62bf4660c05404c948727b5bbfb32a
   languageName: node
   linkType: hard
 
@@ -25402,13 +25402,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5.3.3#~builtin<compat/typescript>":
-  version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=85af82"
+"typescript@patch:typescript@^5.4.2#~builtin<compat/typescript>":
+  version: 5.4.2
+  resolution: "typescript@patch:typescript@npm%3A5.4.2#~builtin<compat/typescript>::version=5.4.2&hash=85af82"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
+  checksum: c1b669146bca5529873aae60870e243fa8140c85f57ca32c42f898f586d73ce4a6b4f6bb02ae312729e214d7f5859a0c70da3e527a116fdf5ad00c9fc733ecc6
   languageName: node
   linkType: hard
 
