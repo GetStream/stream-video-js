@@ -59,7 +59,7 @@ jobs:
         run: yarn test:react-native:sdk
 
       - name: Dogfood version update
-        if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: yarn releaseNative
 
   build_ios:
@@ -92,6 +92,7 @@ jobs:
   test_ios:
     name: Test iOS
     needs: build_ios
+    if: ${{ github.ref == 'refs/heads/main' }}
     timeout-minutes: 100
     runs-on: macos-latest
     steps:
@@ -194,7 +195,7 @@ jobs:
     name: Test Android
     needs: build_android
     timeout-minutes: 100
-    if: ${{ github.ref != 'refs/heads/react-native-auto-deploy' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -261,7 +262,7 @@ jobs:
     name: Deploy Android
     needs: build_android
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
