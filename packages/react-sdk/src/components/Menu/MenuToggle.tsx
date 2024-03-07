@@ -1,11 +1,20 @@
 import {
   ComponentType,
-  PropsWithChildren,
-  useEffect,
-  useState,
+  createContext,
   ForwardedRef,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from 'react';
-import { Placement, Strategy } from '@floating-ui/react';
+import {
+  FloatingOverlay,
+  FloatingPortal,
+  Placement,
+  Strategy,
+  UseFloatingReturn,
+} from '@floating-ui/react';
 
 import { useFloatingUIPreset } from '../../hooks';
 
@@ -14,16 +23,66 @@ export type ToggleMenuButtonProps<E extends HTMLElement = HTMLButtonElement> = {
   ref: ForwardedRef<E>;
 };
 
+export enum MenuVisualType {
+  PORTAL = 'portal',
+  MENU = 'menu',
+}
+
 export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
+  offset?: number;
+  visualType?: MenuVisualType;
 }>;
+
+export type MenuContextValue = {
+  close?: () => void;
+};
+
+/**
+ * Used to provide utility APIs to the components rendered inside the portal.
+ */
+const MenuContext = createContext<MenuContextValue>({});
+
+/**
+ * Access to the closes MenuContext.
+ */
+export const useMenuContext = (): MenuContextValue => {
+  return useContext(MenuContext);
+};
+
+const MenuPortal = ({
+  children,
+  refs,
+}: PropsWithChildren<{
+  refs: UseFloatingReturn['refs'];
+}>) => {
+  const portalId = useMemo(
+    () => `str-video-portal-${Math.random().toString(36).substring(2, 9)}`,
+    [],
+  );
+
+  return (
+    <>
+      <div id={portalId} className="str-video__portal" />
+      <FloatingOverlay>
+        <FloatingPortal id={portalId}>
+          <div className="str-video__portal-content" ref={refs.setFloating}>
+            {children}
+          </div>
+        </FloatingPortal>
+      </FloatingOverlay>
+    </>
+  );
+};
 
 export const MenuToggle = <E extends HTMLElement>({
   ToggleButton,
   placement = 'top-start',
   strategy = 'absolute',
+  offset,
+  visualType = MenuVisualType.MENU,
   children,
 }: MenuToggleProps<E>) => {
   const [menuShown, setMenuShown] = useState(false);
@@ -31,6 +90,7 @@ export const MenuToggle = <E extends HTMLElement>({
   const { floating, domReference, refs, x, y } = useFloatingUIPreset({
     placement,
     strategy,
+    offset,
   });
 
   useEffect(() => {
@@ -62,18 +122,23 @@ export const MenuToggle = <E extends HTMLElement>({
   return (
     <>
       {menuShown && (
-        <div
-          className="str-video__menu-container"
-          ref={refs.setFloating}
-          style={{
-            position: strategy,
-            top: y ?? 0,
-            left: x ?? 0,
-            overflowY: 'auto',
-          }}
-        >
-          {children}
-        </div>
+        <MenuContext.Provider value={{ close: () => setMenuShown(false) }}>
+          {visualType === MenuVisualType.PORTAL ? (
+            <MenuPortal refs={refs} children={children} />
+          ) : visualType === MenuVisualType.MENU ? (
+            <div
+              className="str-video__menu-container"
+              ref={refs.setFloating}
+              style={{
+                position: strategy,
+                top: y ?? 0,
+                left: x ?? 0,
+                overflowY: 'auto',
+              }}
+              children={children}
+            />
+          ) : null}
+        </MenuContext.Provider>
       )}
       <ToggleButton menuShown={menuShown} ref={refs.setReference} />
     </>

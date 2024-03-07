@@ -9,6 +9,7 @@ const env = dotenv.config({ path: '.env.local' });
 const nextConfig = {
   env: env.parsed,
   productionBrowserSourceMaps: true,
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
   async headers() {
     return [

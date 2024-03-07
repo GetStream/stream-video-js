@@ -1,0 +1,33 @@
+.rd__call-recordings-page {
+  display: flex;
+  justify-content: center;
+
+  .rd__call-recordings-page__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .rd__call-recordings-page__recordings-list {
+    overflow: hidden auto;
+    padding-bottom: 0.5rem;
+    width: 100%;
+    text-align: center;
+    max-height: 400px;
+    max-width: 400px;
+  }
+}
+
+.rd__call-recordings-page-form {
+  display: flex;
+  align-items: center;
+  max-width: 350px;
+  padding: 20px;
+
+  .rd__call-recordings-page-form__container {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    padding-bottom: 10px;
+  }
+}

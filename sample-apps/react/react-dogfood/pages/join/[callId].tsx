@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import {
   Call,
   CallingState,
+  CallRequest,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -17,44 +18,76 @@ import {
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
+import {
+  useAppEnvironment,
+  useIsDemoEnvironment,
+} from '../../context/AppEnvironmentContext';
+import { TourProvider } from '../../context/TourContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
 import {
   defaultRequestTransformers,
   defaultResponseTransformers,
 } from '../../helpers/axiosApiTransformers';
-import {
+import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
-  EnvironmentName,
 } from '../api/auth/create-token';
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  const { user, gleapApiKey } = props;
+  // support for connecting to any application using an API key and user token
+  const apiKeyOverride = !!router.query['api_key'];
 
+  const isDemoEnvironment = useIsDemoEnvironment();
+  useEffect(() => {
+    if (!isDemoEnvironment) return;
+    // For backwards compatibility, we need to append `?id=${callId}` to the URL
+    // if it's not already there.
+    // Otherwise, deep links in the mobile apps won't work.
+    const id = router.query['id'] as string | undefined;
+    if (id !== callId) {
+      router
+        .replace({
+          pathname: router.pathname,
+          query: { ...router.query, id: callId },
+        })
+        .catch((err) => console.error('Failed to replace router', err));
+    }
+  }, [callId, isDemoEnvironment, router]);
+
+  const { apiKey, userToken, user, gleapApiKey } = props;
+
+  const environment = useAppEnvironment();
   const fetchAuthDetails = useCallback(
     async (init?: RequestInit) => {
-      const environment = process.env.NEXT_PUBLIC_APP_ENVIRONMENT as
-        | EnvironmentName
-        | undefined;
+      if (apiKeyOverride) {
+        return {
+          apiKey,
+          token: userToken,
+          userId: user.id || '!anon',
+        } satisfies CreateJwtTokenResponse;
+      }
+
       const params = {
         user_id: user.id || '!anon',
-        environment: environment || 'pronto',
+        environment,
         exp: String(4 * 60 * 60), // 4 hours
       } satisfies CreateJwtTokenRequest;
       return fetch(
-        `/api/auth/create-token?${new URLSearchParams(params)}`,
+        `${basePath}/api/auth/create-token?${new URLSearchParams(params)}`,
         init,
       ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
     },
-    [user.id],
+    [apiKey, apiKeyOverride, environment, user.id, userToken],
   );
 
   const tokenProvider = useCallback(
@@ -127,12 +160,37 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, [callId, callType, client]);
 
   useEffect(() => {
-    call?.getOrCreate().catch((err) => {
+    if (!call) return;
+    // "restricted" is a special call type that only allows
+    // `call_member` role to join the call
+    const data: CallRequest =
+      callType === 'restricted'
+        ? { members: [{ user_id: user.id || '!anon', role: 'call_member' }] }
+        : {};
+
+    call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
-  }, [call]);
+  }, [call, callType, user.id]);
 
-  useGleap(gleapApiKey, client, user);
+  // apple-itunes-app meta-tag is used to open the app from the browser
+  // we need to update the app-argument to the current URL so that the app
+  // can open the correct call
+  useEffect(() => {
+    const appleItunesAppMeta = document
+      .getElementsByTagName('meta')
+      .namedItem('apple-itunes-app');
+    if (appleItunesAppMeta) {
+      appleItunesAppMeta.setAttribute(
+        'content',
+        `app-id=1644313060, app-argument=${window.location.href
+          .replace('http://', 'streamvideo://')
+          .replace('https://', 'streamvideo://')}`,
+      );
+    }
+  }, []);
+
+  useGleap(gleapApiKey, client, call, user);
 
   if (!client || !call) return null;
 
@@ -142,13 +200,17 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
+
       <StreamVideo
         client={client}
         language={language}
+        fallbackLanguage={fallbackLanguage}
         translationsOverrides={appTranslations}
       >
         <StreamCall call={call}>
-          <MeetingUI chatClient={chatClient} />
+          <TourProvider>
+            <MeetingUI chatClient={chatClient} />
+          </TourProvider>
         </StreamCall>
       </StreamVideo>
     </>

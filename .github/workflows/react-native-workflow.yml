@@ -39,7 +39,7 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -68,7 +68,7 @@ jobs:
     needs: code_review
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 20
@@ -96,7 +96,7 @@ jobs:
     timeout-minutes: 100
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 20
@@ -128,7 +128,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -148,7 +148,7 @@ jobs:
     needs: code_review
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -198,7 +198,7 @@ jobs:
     if: ${{ github.ref != 'refs/heads/react-native-auto-deploy' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -265,7 +265,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15

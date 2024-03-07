@@ -6,12 +6,11 @@ import {
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useState } from 'react';
-import { Box } from '@mui/material';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
-import { LobbyHeader } from '../LobbyHeader';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 import { useSettings } from '../../context/SettingsContext';
 import { customSentryLogger } from '../../helpers/logger';
+import { DefaultAppHeader } from '../DefaultAppHeader';
 
 export const CallRecordingsPage = ({
   apiKey,
@@ -19,7 +18,7 @@ export const CallRecordingsPage = ({
   userToken,
 }: ServerSideCredentialsProps) => {
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
   const [recordings, setRecordings] = useState<CallRecording[] | undefined>();
   const [error, setError] = useState<Error | undefined>();
@@ -51,28 +50,25 @@ export const CallRecordingsPage = ({
   }
 
   return (
-    <StreamVideo client={videoClient} language={language}>
-      <LobbyHeader />
-      <Box display="flex" justifyContent="center">
-        <Box display="flex" alignItems="center" flexDirection="column">
+    <StreamVideo
+      client={videoClient}
+      language={language}
+      fallbackLanguage={fallbackLanguage}
+    >
+      <DefaultAppHeader />
+      <div className="rd__call-recordings-page">
+        <div className="rd__call-recordings-page__container">
           <CallRecordingSearchForm
             setResult={setRecordings}
             setResultError={setError}
             setLoading={setLoading}
           />
           {loading ? (
-            <LoadingIndicator className="rd__call-recording__loading-indicator" />
+            <LoadingIndicator />
           ) : error?.message ? (
             <div>{error.message}</div>
           ) : (
-            <Box
-              maxHeight="400px"
-              maxWidth="400px"
-              overflow={'hidden auto'}
-              paddingBottom="0.5rem"
-              width="100%"
-              textAlign="center"
-            >
+            <div className="rd__call-recordings-page__recordings-list">
               {!recordings
                 ? null
                 : recordings.length
@@ -83,10 +79,10 @@ export const CallRecordingsPage = ({
                     />
                   ))
                 : 'No recordings found for the call'}
-            </Box>
+            </div>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
     </StreamVideo>
   );
 };

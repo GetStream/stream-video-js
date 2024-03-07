@@ -4,25 +4,4 @@
   *::after {
     box-sizing: border-box;
   }
-
-  button {
-    cursor: pointer;
-    border-style: none;
-    box-shadow: none;
-  }
-}
-
-.str-video {
-  .ngxp__container {
-    opacity: 1;
-    z-index: 1;
-    padding: 0;
-    border: none;
-  }
-
-  .ngxp__container > .ngxp__arrow,
-  .ngxp__container > .ngxp__arrow:before {
-    width: 0;
-    height: 0;
-  }
 }

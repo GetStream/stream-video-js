@@ -1,0 +1,45 @@
+---
+id: recording-in-progress-notification
+title: Recording in progress notification
+---
+
+import RecordingInProgressNotification from '../../assets/03-ui-components/recording-in-progress-notification.png';
+
+The `RecordingInProgressNotification` component is based on `Notification` component that is a simple popover. The SDK attaches the component to [`RecordCallButton`](../../call/call-controls). The popover rendering is controlled by detecting if there is a recording in progress, `useToggleCallRecording()`.
+
+<div
+  style={{
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    marginBlock: '1rem',
+  }}
+>
+  <img
+    src={RecordingInProgressNotification}
+    alt="Default UI of RecordingInProgressNotification component"
+    width={300}
+  />
+</div>
+
+## General usage
+
+The component is used by wrapping the component to which it will refer:
+
+```tsx
+<RecordingInProgressNotification>
+  <RecordCallButton />
+</RecordingInProgressNotification>
+```
+
+## Props
+
+| Name   | Type                    | Default                      |
+| ------ | ----------------------- | ---------------------------- |
+| `text` | `string` \| `undefined` | `'Recording in progress...'` |
+
+Text message displayed by the notification.
+
+## Customization
+
+To learn more about the recording functionality, have a look at our [call-controls](../../../ui-components/call/call-controls).

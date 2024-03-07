@@ -32,6 +32,19 @@ export class Subscriber {
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
+  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
+  private _connectionConfiguration: RTCConfiguration | undefined;
+
+  /**
+   * Returns the current connection configuration.
+   *
+   * @internal
+   */
+  get connectionConfiguration() {
+    if (this.pc.getConfiguration) return this.pc.getConfiguration();
+    return this._connectionConfiguration;
+  }
+
   /**
    * Constructs a new `Subscriber` instance.
    *
@@ -56,18 +69,14 @@ export class Subscriber {
 
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
-      async (message) => {
-        if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
-        const { subscriberOffer } = message.eventPayload;
+      async (subscriberOffer) => {
         await this.negotiate(subscriberOffer);
       },
     );
 
     this.unregisterOnIceRestart = dispatcher.on(
       'iceRestart',
-      async (message) => {
-        if (message.eventPayload.oneofKind !== 'iceRestart') return;
-        const { iceRestart } = message.eventPayload;
+      async (iceRestart) => {
         if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
         await this.restartIce();
       },
@@ -81,6 +90,7 @@ export class Subscriber {
    */
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
+    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('track', this.handleOnTrack);
 

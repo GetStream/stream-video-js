@@ -1,0 +1,21 @@
+.str-video__portal {
+  position: fixed;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--str-video__backdrop1);
+
+  left: 0;
+  top: 0;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+.str-video__portal-content {
+  z-index: 2;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

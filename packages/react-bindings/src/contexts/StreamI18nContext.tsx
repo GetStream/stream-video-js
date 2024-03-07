@@ -23,6 +23,7 @@ const StreamI18nContext = createContext<StreamI18nContextValue>({
 type CreateI18nParams = {
   i18nInstance?: StreamI18n;
   language?: string;
+  fallbackLanguage?: string;
   translationsOverrides?: TranslationsMap;
 };
 
@@ -44,12 +45,17 @@ export const StreamI18nProvider = ({
 export const useCreateI18n = ({
   i18nInstance,
   language,
+  fallbackLanguage,
   translationsOverrides,
 }: CreateI18nParams) => {
   const [i18n] = useState(
     () =>
       i18nInstance ||
-      new StreamI18n({ currentLanguage: language, translationsOverrides }),
+      new StreamI18n({
+        currentLanguage: language,
+        fallbackLanguage,
+        translationsOverrides,
+      }),
   );
   const [t, setTranslationFn] = useState<StreamI18n['t']>(
     () => defaultTranslationFunction,

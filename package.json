@@ -28,7 +28,6 @@
     "build:react:deps": "yarn build:client && yarn build:styling && yarn build:react:bindings && yarn build:react:sdk",
     "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
-    "build:react:video-demo": "yarn build:react:deps && yarn workspace @stream-io/react-video-demo run build:website",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
     "build:egress": "yarn workspace @stream-io/egress-composite build",
     "build:all": "yarn workspaces foreach -v --topological-dev run build",
@@ -73,7 +72,7 @@
     "nx": "16.0.1",
     "prettier": "^2.8.8",
     "typescript": "^5.2.2",
-    "vercel": "^32.4.1",
+    "vercel": "^33.2.0",
     "vite": "^4.4.11"
   }
 }

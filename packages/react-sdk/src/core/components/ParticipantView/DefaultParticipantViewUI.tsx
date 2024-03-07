@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { ComponentType, forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import { SfuModels } from '@stream-io/video-client';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
@@ -9,9 +9,9 @@ import {
   IconButton,
   MenuToggle,
   Notification,
-  ParticipantActionsContextMenu,
   ToggleMenuButtonProps,
 } from '../../../components';
+import { ParticipantActionsContextMenu as DefaultParticipantActionsContextMenu } from './ParticipantActionsContextMenu';
 import { Reaction } from '../../../components/Reaction';
 import { useParticipantViewContext } from './ParticipantViewContext';
 
@@ -28,10 +28,14 @@ export type DefaultParticipantViewUIProps = {
    * Option to show/hide menu button component
    */
   showMenuButton?: boolean;
+  /**
+   * Custom component to render the context menu
+   */
+  ParticipantActionsContextMenu?: ComponentType;
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleButton(props, ref) {
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );
@@ -62,11 +66,11 @@ export const DefaultScreenShareOverlay = () => {
 
 export const DefaultParticipantViewUI = ({
   indicatorsVisible = true,
-  menuPlacement = 'bottom-end',
+  menuPlacement = 'bottom-start',
   showMenuButton = true,
+  ParticipantActionsContextMenu = DefaultParticipantActionsContextMenu,
 }: DefaultParticipantViewUIProps) => {
-  const { participant, participantViewElement, trackType, videoElement } =
-    useParticipantViewContext();
+  const { participant, trackType } = useParticipantViewContext();
   const { publishedTracks } = participant;
 
   const hasScreenShare = publishedTracks.includes(
@@ -94,11 +98,7 @@ export const DefaultParticipantViewUI = ({
           placement={menuPlacement}
           ToggleButton={ToggleButton}
         >
-          <ParticipantActionsContextMenu
-            participantViewElement={participantViewElement}
-            participant={participant}
-            videoElement={videoElement}
-          />
+          <ParticipantActionsContextMenu />
         </MenuToggle>
       )}
       <Reaction participant={participant} />
@@ -112,7 +112,6 @@ export const ParticipantDetails = ({
 }: Pick<DefaultParticipantViewUIProps, 'indicatorsVisible'>) => {
   const { participant } = useParticipantViewContext();
   const {
-    isDominantSpeaker,
     isLocalParticipant,
     connectionQuality,
     publishedTracks,
@@ -133,50 +132,65 @@ export const ParticipantDetails = ({
   const canUnpin = !!pin && pin.isLocalPin;
 
   return (
-    <div className="str-video__participant-details">
-      <span className="str-video__participant-details__name">
-        {name || userId}
-        {indicatorsVisible && isDominantSpeaker && (
-          <span
-            className="str-video__participant-details__name--dominant_speaker"
-            title={t('Dominant speaker')}
-          />
-        )}
-        {indicatorsVisible && (
-          <Notification
-            isVisible={
-              isLocalParticipant &&
-              connectionQuality === SfuModels.ConnectionQuality.POOR
-            }
-            message={t('Poor connection quality')}
-          >
-            {connectionQualityAsString && (
-              <span
-                className={clsx(
-                  'str-video__participant-details__connection-quality',
-                  `str-video__participant-details__connection-quality--${connectionQualityAsString}`,
-                )}
-                title={connectionQualityAsString}
-              />
-            )}
-          </Notification>
-        )}
-        {indicatorsVisible && !hasAudio && (
-          <span className="str-video__participant-details__name--audio-muted" />
-        )}
-        {indicatorsVisible && !hasVideo && (
-          <span className="str-video__participant-details__name--video-muted" />
-        )}
-        {indicatorsVisible && canUnpin && (
-          // TODO: remove this monstrosity once we have a proper design
-          <span
-            title={t('Unpin')}
-            onClick={() => call?.unpin(sessionId)}
-            style={{ cursor: 'pointer' }}
-            className="str-video__participant-details__name--pinned"
-          />
-        )}
-      </span>
-    </div>
+    <>
+      <div className="str-video__participant-details">
+        <span className="str-video__participant-details__name">
+          {name || userId}
+
+          {indicatorsVisible && !hasAudio && (
+            <span className="str-video__participant-details__name--audio-muted" />
+          )}
+          {indicatorsVisible && !hasVideo && (
+            <span className="str-video__participant-details__name--video-muted" />
+          )}
+          {indicatorsVisible && canUnpin && (
+            // TODO: remove this monstrosity once we have a proper design
+            <span
+              title={t('Unpin')}
+              onClick={() => call?.unpin(sessionId)}
+              className="str-video__participant-details__name--pinned"
+            />
+          )}
+          {indicatorsVisible && <SpeechIndicator />}
+        </span>
+      </div>
+      {indicatorsVisible && (
+        <Notification
+          isVisible={
+            isLocalParticipant &&
+            connectionQuality === SfuModels.ConnectionQuality.POOR
+          }
+          message={t('Poor connection quality')}
+        >
+          {connectionQualityAsString && (
+            <span
+              className={clsx(
+                'str-video__participant-details__connection-quality',
+                `str-video__participant-details__connection-quality--${connectionQualityAsString}`,
+              )}
+              title={connectionQualityAsString}
+            />
+          )}
+        </Notification>
+      )}
+    </>
+  );
+};
+
+export const SpeechIndicator = () => {
+  const { participant } = useParticipantViewContext();
+  const { isSpeaking, isDominantSpeaker } = participant;
+  return (
+    <span
+      className={clsx(
+        'str-video__speech-indicator',
+        isSpeaking && 'str-video__speech-indicator--speaking',
+        isDominantSpeaker && 'str-video__speech-indicator--dominant',
+      )}
+    >
+      <span className="str-video__speech-indicator__bar" />
+      <span className="str-video__speech-indicator__bar" />
+      <span className="str-video__speech-indicator__bar" />
+    </span>
   );
 };

@@ -1,4 +1,4 @@
-import { JWTUserToken } from 'stream-chat';
+import { decodeBase64, JWTUserToken } from 'stream-chat';
 
 /**
  * The maximum validity of a token, in seconds.
@@ -37,4 +37,15 @@ export const createToken = (
   };
 
   return JWTUserToken(jwtSecret, userId, payload);
+};
+
+export const decodeToken = (token: string): Record<string, any> => {
+  const [, payload] = token.split('.');
+  if (!payload) throw new Error('Malformed token, missing payload');
+  try {
+    return JSON.parse(decodeBase64(payload)) ?? {};
+  } catch (e) {
+    console.log('Error parsing token payload', e);
+    return {};
+  }
 };

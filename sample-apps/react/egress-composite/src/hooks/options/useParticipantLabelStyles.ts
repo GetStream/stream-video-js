@@ -12,7 +12,7 @@ export const useParticipantLabelStyles = () => {
       'participant_label.display': participantLabelDisplay = true,
       'participant_label.text_color': participantLabelTextColor,
       'participant_label.background_color': participantLabelBackgroundColor,
-      'participant_label.border_width': participantLabelBorderWidth = '0px',
+      'participant_label.border_width': participantLabelBorderWidth = '0',
       'participant_label.border_radius': participantLabelBorderRadius,
       'participant_label.border_color':
         participantLabelBorderColor = 'rgba(0,0,0,0)',
@@ -20,9 +20,8 @@ export const useParticipantLabelStyles = () => {
         participantLabelHorizontalPosition = 'left',
       'participant_label.vertical_position':
         participantLabelVerticalPosition = 'bottom',
-      'participant_label.margin_inline':
-        participantLabelMarginInline = '.875rem',
-      'participant_label.margin_block': participantLabelMarginBlock = '.875rem',
+      'participant_label.margin_inline': participantLabelMarginInline = '0',
+      'participant_label.margin_block': participantLabelMarginBlock = '0',
     },
   } = useConfigurationContext();
 
@@ -70,10 +69,6 @@ export const useParticipantLabelStyles = () => {
 
           transition: unset;
           opacity: unset;
-          left: unset;
-          bottom: unset;
-          right: unset;
-          top: unset;
         }
       }
     `,

@@ -71,6 +71,18 @@ This component can be used to leave a call or to reject an incoming/outgoing cal
 | `onClick`  | Event handler to override the default click behavior | `MouseEventHandler<HTMLButtonElement>` \| `undefined` |
 | `onLeave`  | Custom event handler to call after the call was left | `() => void` \| `undefined`                           |
 
+### `CancelCallConfirmButton`
+
+This component can be used to leave a call or end the call for all participants but only if the particpant has the requiredGrants `OwnCapability.END_CALL`.
+
+#### Props
+
+| Name       | Description                                          | Type                                                  |
+| ---------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| `disabled` | Set `true` to disable the button                     | `boolean` \| `undefined`                              |
+| `onClick`  | Event handler to override the default click behavior | `MouseEventHandler<HTMLButtonElement>` \| `undefined` |
+| `onLeave`  | Custom event handler to call after the call was left | `() => void` \| `undefined`                           |
+
 ### `ReactionsButton`
 
 This component can be used to send reactions during a call. The following reactions are supported by default:
@@ -88,6 +100,16 @@ This component can be used to send reactions during a call. The following reacti
 ### `RecordCallButton`
 
 This component can be used to start/stop call recording. It's also used as a visual indicator to let participants know if there is an ongoing call recording.
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+
+### `RecordCallConfirmationButton`
+
+This component can be used to start/stop a call recording. A confirmation will be show to let the particpant cancel or confirm to ending the recording that is in progress.
 
 #### Props
 

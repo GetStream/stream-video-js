@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useHasPermissions } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type PermissionNotificationProps = PropsWithChildren<{
   /**
@@ -55,6 +55,7 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
     visibilityTimeout = 3500,
     children,
   } = props;
+  const { useHasPermissions } = useCallStateHooks();
   const hasPermission = useHasPermissions(permission);
   const prevHasPermission = useRef(hasPermission);
   const [showNotification, setShowNotification] = useState<

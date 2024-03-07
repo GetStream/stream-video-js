@@ -7,32 +7,30 @@ import {
   useRef,
   useState,
 } from 'react';
+import { GetServerSideProps } from 'next/types';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import PhotoCameraFrontIcon from '@mui/icons-material/PhotoCameraFront';
-import { Box, Button, Stack, Typography } from '@mui/material';
-import { StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
 
-import { LobbyHeader } from '../components/LobbyHeader';
+import { Icon, StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
 
 import { meetingId } from '../lib/meetingId';
 import translations from '../translations';
 import { useSettings } from '../context/SettingsContext';
-import { Countdown } from '../components/Countdown';
+import { DefaultAppHeader } from '../components/DefaultAppHeader';
+import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
-type HomeProps = {
-  launchDeadlineTimestamp: number;
-};
-
-export default function Home({ launchDeadlineTimestamp }: HomeProps) {
+export default function Home() {
   const { data: session, status } = useSession();
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      void signIn();
+      signIn().catch((err) => {
+        console.error('Sign in error', err);
+      });
     }
   }, [status]);
 
@@ -44,53 +42,26 @@ export default function Home({ launchDeadlineTimestamp }: HomeProps) {
     <StreamI18nProvider
       translationsOverrides={translations}
       language={language}
+      fallbackLanguage={fallbackLanguage}
     >
-      <HomeContent launchDeadlineTimestamp={launchDeadlineTimestamp} />
+      <HomeContent />
     </StreamI18nProvider>
   );
 }
 
-const HomeContent = ({ launchDeadlineTimestamp }: HomeProps) => {
-  const { t } = useI18n();
-
-  return (
-    <>
-      <LobbyHeader />
-      <Stack
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
-        flexGrow={1}
-      >
-        <Stack spacing={2} alignItems="center" flexGrow={1}>
-          <Box padding={2}>
-            <Typography variant="h2" textAlign="center">
-              {t('Stream Meetings')}
-            </Typography>
-          </Box>
-          <JoinCallForm />
-        </Stack>
-      </Stack>
-      <Countdown deadlineTimestamp={launchDeadlineTimestamp} />
-    </>
-  );
-};
-
-const JoinCallForm = () => {
+const HomeContent = () => {
   const { t } = useI18n();
   const router = useRouter();
   const ref = useRef<HTMLInputElement | null>(null);
+
   const [disabled, setDisabled] = useState(true);
+
   const onJoin = useCallback(() => {
     router.push(`join/${ref.current!.value}`);
   }, [ref, router]);
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) =>
-      setDisabled(() => {
-        return e.target.value.length < 3;
-      }),
+    (e) => setDisabled(() => e.target.value.length < 3),
     [],
   );
 
@@ -103,56 +74,89 @@ const JoinCallForm = () => {
     },
     [onJoin, disabled],
   );
+  const isDemoEnvironment = useIsDemoEnvironment();
   return (
-    <div
-      style={{
-        maxWidth: '300px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-      }}
-    >
-      {disabled ? (
-        <Link href={`/join/${meetingId()}`} legacyBehavior>
-          <Button
+    <>
+      <DefaultAppHeader />
+      <div className="rd__home">
+        <div className="rd__home-content">
+          <img
+            className="rd__home-image"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
+            alt="Home"
+          />
+          <h1 className="rd__home-heading">
+            {t('Stream')}
+            <span>{t('[Video Calling]')}</span>
+            {isDemoEnvironment && t('Demo')}
+          </h1>
+          <p className="rd__home-description">
+            Start a new call or join an existing one by providing its Call ID
+          </p>
+          <div className="rd__home-join">
+            <input
+              className="rd__input rd__home-input"
+              data-testid="join-call-input"
+              ref={ref}
+              onChange={handleChange}
+              onKeyUp={handleKeyUp}
+              placeholder={t('Call ID')}
+            />
+            <button
+              className={clsx(
+                'rd__home-new rd__button rd__button__join',
+                !disabled && 'rd__button--primary',
+              )}
+              data-testid="join-call-button"
+              disabled={disabled}
+              onClick={onJoin}
+            >
+              <Icon className="rd__button__icon" icon="login" />
+              {t('Join call')}
+            </button>
+          </div>
+          <Link
+            href={`/join/${meetingId()}`}
+            className={clsx(
+              'rd__home-new rd__link rd__link--faux-button',
+              disabled && 'rd__link--primary',
+            )}
             data-testid="create-and-join-meeting-button"
-            variant="contained"
-            fullWidth
           >
-            <PhotoCameraFrontIcon sx={{ mr: 1 }} />
-            {t('New meeting')}
-          </Button>
-        </Link>
-      ) : (
-        <Button
-          data-testid="join-call-button"
-          variant="contained"
-          onClick={onJoin}
-        >
-          {t('Join')}
-        </Button>
-      )}
-      <input
-        className="rd__input rd__input--underlined rd__join-call-input"
-        data-testid="join-call-input"
-        ref={ref}
-        onChange={handleChange}
-        onKeyUp={handleKeyUp}
-        placeholder={t('Or join a call with code')}
-      />
-    </div>
+            <Icon className="rd__link__icon" icon="camera-add" />
+            {t('Start new call')}
+          </Link>
+          <Link
+            href={`/join/${meetingId()}?type=restricted`}
+            className="rd__home-new rd__link rd__link--faux-button"
+            data-testid="create-and-join-restricted-meeting-button"
+          >
+            <Icon className="rd__link__icon" icon="camera-add" />
+            {t('Start new restricted call')}
+          </Link>
+        </div>
+      </div>
+    </>
   );
 };
 
-export const getServerSideProps = async () => {
-  const launchDeadlineTimestamp = new Date(
-    new Date(process.env.LAUNCH_DEADLINE || '2023-06-01T00:00:00Z').getTime() +
-      12 * 3600 * 1000,
-  ).getTime();
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'demo') {
+    const { query } = ctx;
+    const params = new URLSearchParams(query as Record<string, string>);
+    const callId = params.get('id') || meetingId();
+    params.set('id', callId);
+
+    // support the legacy https://getstream.io/video/demos?id=<call-id>
+    return {
+      redirect: {
+        destination: `/join/${callId}?${params.toString()}`,
+        permanent: false,
+      },
+    };
+  }
 
   return {
-    props: {
-      launchDeadlineTimestamp,
-    } as HomeProps,
+    props: {},
   };
 };

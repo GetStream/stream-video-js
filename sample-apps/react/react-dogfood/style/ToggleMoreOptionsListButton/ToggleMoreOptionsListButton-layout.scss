@@ -1,0 +1,30 @@
+.rd__more-menu {
+  display: flex;
+  list-style: none;
+  padding: var(--str-video__spacing-lg);
+  flex-direction: column;
+  margin: 0;
+
+  max-width: calc(100vw - var(--str-video__spacing-lg) * 2);
+
+  &--developer-setttings {
+    margin-top: 24px;
+  }
+}
+
+.rd__more-menu__item {
+  margin-top: var(--str-video__spacing-md);
+}
+
+.rd__more-menu__button {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  color: var(--str-video__text-color1);
+}
+
+@include respond-above(sm) {
+  .str-video__more-option--screen-share {
+    display: none;
+  }
+}

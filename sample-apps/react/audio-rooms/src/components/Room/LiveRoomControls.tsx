@@ -3,11 +3,9 @@ import {
   OwnCapability,
   Restricted,
   SfuModels,
-  StreamCallEvent,
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -28,8 +26,12 @@ export const LiveRoomControls = ({
   openRequestsList,
 }: LiveRoomControlsProps) => {
   const call = useCall();
-  const { useCallCustomData, useCallCallingState, useLocalParticipant } =
-    useCallStateHooks();
+  const {
+    useCallCustomData,
+    useCallCallingState,
+    useLocalParticipant,
+    useHasPermissions,
+  } = useCallStateHooks();
   const customData = useCallCustomData();
   const callingState = useCallCallingState();
   const connectedUser = useConnectedUser();
@@ -68,8 +70,7 @@ export const LiveRoomControls = ({
 
   useEffect(() => {
     if (!(call && connectedUser)) return;
-    return call.on('call.permissions_updated', (event: StreamCallEvent) => {
-      if (event.type !== 'call.permissions_updated') return;
+    return call.on('call.permissions_updated', (event) => {
       if (connectedUser.id !== event.user.id) return;
       if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
         call.microphone.enable().catch((err) => {

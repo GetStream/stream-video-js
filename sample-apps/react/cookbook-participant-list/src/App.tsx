@@ -1,5 +1,5 @@
-import './App.scss';
-import { createTheme, ThemeProvider } from '@mui/material';
+import createTheme from '@mui/material/styles/createTheme';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import { CallSetup } from './CallSetup';
 import { useEffect, useState } from 'react';
 import {
@@ -49,7 +49,7 @@ const App = () => {
     <StreamTheme as="main" className="main-container">
       <ThemeProvider theme={theme}>
         {!callId && <CallSetup onJoin={setCallId} />}
-        {callId && (
+        {call && (
           <StreamVideo client={client}>
             {call && (
               <StreamCall call={call}>

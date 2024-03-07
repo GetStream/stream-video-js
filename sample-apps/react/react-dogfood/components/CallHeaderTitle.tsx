@@ -21,21 +21,18 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
     if (!connectedUser) return 'Connecting...';
 
     if (!participants.length) return connectedUser.name;
-    return (
-      'Call with: ' +
-      participants
-        .slice(0, 3)
-        .map((p) => p.name || p.userId)
-        .join(', ')
-    );
+    return participants
+      .slice(0, 3)
+      .map((p) => p.name || p.userId)
+      .join(', ');
   }, [connectedUser, participants]);
 
   if (!activeCall) return null;
 
   return (
-    <div className="str-video__call-header__title-group">
+    <div className="rd__call-header__title-group">
       <HomeButton />
-      <h4 className="str-video__call-header-title">{title || standInTitle}</h4>
+      <h4 className="rd__call-header-title">{title || standInTitle}</h4>
     </div>
   );
 };

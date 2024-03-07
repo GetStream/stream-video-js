@@ -1,5 +1,5 @@
 .str-video__icon {
-  background-color: var(--str-video__text-color1);
+  background-color: var(--str-video__base-color1);
 
   &--chat {
     mask-image: var(--str-video__icon--chat);
@@ -11,15 +11,171 @@
     mask-image: var(--str-video__icon--reactions);
   }
 
+  &--call-latency {
+    -webkit-mask-image: var(--str-video__icon--call-latency);
+    mask-image: var(--str-video__icon--call-latency);
+  }
+
+  &--network-quality {
+    -webkit-mask-image: var(--str-video__icon--network-quality);
+    mask-image: var(--str-video__icon--network-quality);
+  }
+
+  &--support-agent {
+    -webkit-mask-image: var(--str-video__icon--support-agent);
+    mask-image: var(--str-video__icon--support-agent);
+  }
+
   &--recording-on {
     mask-image: var(--str-video__icon--recording-on);
     -webkit-mask-image: var(--str-video__icon--recording-on);
-    background-color: var(--str-video__danger-color);
+  }
+
+  &--mediation {
+    mask-image: var(--str-video__icon--mediation);
+    -webkit-mask-image: var(--str-video__icon--mediation);
+  }
+
+  &--copy {
+    mask-image: var(--str-video__icon--copy);
+    -webkit-mask-image: var(--str-video__icon--copy);
+  }
+
+  &--caret-up {
+    mask-image: var(--str-video__icon--caret-up);
+    -webkit-mask-image: var(--str-video__icon--caret-up);
+  }
+
+  &--download {
+    mask-image: var(--str-video__icon--download);
+    -webkit-mask-image: var(--str-video__icon--download);
+  }
+
+  &--caret-down {
+    mask-image: var(--str-video__icon--caret-down);
+    -webkit-mask-image: var(--str-video__icon--caret-down);
+    transform: rotate(180deg);
+  }
+
+  &--layout-speaker-bottom {
+    mask-image: var(--str-video__icon--layout-speaker-bottom);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-bottom);
+  }
+
+  &--layout-speaker-top {
+    mask-image: var(--str-video__icon--layout-speaker-top);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-top);
+  }
+
+  &--layout-speaker-left {
+    mask-image: var(--str-video__icon--layout-speaker-left);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-left);
+  }
+
+  &--layout-speaker-one-on-one {
+    mask-image: var(--str-video__icon--layout-speaker-one-on-one);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-one-on-one);
+  }
+
+  &--layout-speaker-live-stream {
+    mask-image: var(--str-video__icon--layout-speaker-live-stream);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-live-stream);
+  }
+
+  &--layout-speaker-right {
+    mask-image: var(--str-video__icon--layout-speaker-right);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-right);
+  }
+
+  &--layout {
+    mask-image: var(--str-video__icon--layout);
+    -webkit-mask-image: var(--str-video__icon--layout);
+  }
+
+  &--folder {
+    mask-image: var(--str-video__icon--folder);
+    -webkit-mask-image: var(--str-video__icon--folder);
+  }
+
+  &--paperclip {
+    mask-image: var(--str-video__icon--paperclip);
+    -webkit-mask-image: var(--str-video__icon--paperclip);
+  }
+
+  &--chevron-right {
+    mask-image: var(--str-video__icon--chevron-right);
+    -webkit-mask-image: var(--str-video__icon--chevron-right);
   }
 
   &--recording-off {
     mask-image: var(--str-video__icon--recording-off);
     -webkit-mask-image: var(--str-video__icon--recording-off);
+  }
+
+  &--camera-add {
+    mask-image: var(--str-video__icon--camera-add);
+    -webkit-mask-image: var(--str-video__icon--camera-add);
+  }
+
+  &--person-add {
+    mask-image: var(--str-video__icon--person-add);
+    -webkit-mask-image: var(--str-video__icon--person-add);
+  }
+
+  &--qr-code {
+    mask-image: var(--str-video__icon--qr-code);
+    -webkit-mask-image: var(--str-video__icon--qr-code);
+  }
+
+  &--loading {
+    mask-image: var(--str-video__icon--loading);
+    -webkit-mask-image: var(--str-video__icon--loading);
+
+    transform: rotate(360deg);
+    transition-duration: 1s;
+    transition-delay: now;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  &--login {
+    mask-image: var(--str-video__icon--login);
+    -webkit-mask-image: var(--str-video__icon--login);
+  }
+
+  &--logout {
+    mask-image: var(--str-video__icon--logout);
+    -webkit-mask-image: var(--str-video__icon--logout);
+  }
+
+  &--provider-google {
+    mask-image: var(--str-video__icon--provider-google);
+    -webkit-mask-image: var(--str-video__icon--provider-google);
+  }
+
+  &--person-off {
+    mask-image: var(--str-video__icon--person-off);
+    -webkit-mask-image: var(--str-video__icon--person-off);
+  }
+
+  &--verified {
+    mask-image: var(--str-video__icon--verified);
+    -webkit-mask-image: var(--str-video__icon--verified);
+  }
+
+  &--chevron-up {
+    mask-image: var(--str-video__icon--chevron-up);
+    -webkit-mask-image: var(--str-video__icon--chevron-up);
+  }
+
+  &--chevron-down {
+    mask-image: var(--str-video__icon--chevron-down);
+    -webkit-mask-image: var(--str-video__icon--chevron-down);
+  }
+
+  &--developer {
+    mask-image: var(--str-video__icon--developer);
+    -webkit-mask-image: var(--str-video__icon--developer);
   }
 
   &--screen-share-on {
@@ -55,6 +211,11 @@
     -webkit-mask-image: var(--str-video__icon--caret);
   }
 
+  &--star {
+    mask-image: var(--str-video__icon--star);
+    -webkit-mask-image: var(--str-video__icon--star);
+  }
+
   &--close {
     mask-image: var(--str-video__icon--close);
     -webkit-mask-image: var(--str-video__icon--close);
@@ -68,6 +229,11 @@
   &--mic-off {
     mask-image: var(--str-video__icon--mic-off);
     -webkit-mask-image: var(--str-video__icon--mic-off);
+  }
+
+  &--more {
+    mask-image: var(--str-video__icon--more);
+    -webkit-mask-image: var(--str-video__icon--more);
   }
 
   &--camera {
@@ -100,6 +266,11 @@
     mask-image: var(--str-video__icon--info-icon);
   }
 
+  &--feedback {
+    -webkit-mask-image: var(--str-video__icon--feedback);
+    mask-image: var(--str-video__icon--feedback);
+  }
+
   &--info-document {
     -webkit-mask-image: var(--str-video__icon--info-document);
     mask-image: var(--str-video__icon--info-document);
@@ -123,6 +294,11 @@
   &--speaker {
     mask-image: var(--str-video__icon--speaker);
     -webkit-mask-image: var(--str-video__icon--speaker);
+  }
+
+  &--language {
+    mask-image: var(--str-video__icon--language);
+    -webkit-mask-image: var(--str-video__icon--language);
   }
 
   &--ellipsis {
@@ -150,7 +326,7 @@
     -webkit-mask-image: var(--str-video__icon--not-allowed);
   }
 
-  &--call-recordings {
+  &--film-roll {
     mask-image: var(--str-video__icon--film-roll);
     -webkit-mask-image: var(--str-video__icon--film-roll);
   }
@@ -164,8 +340,6 @@
     mask-image: var(--str-video__icon--filter);
     -webkit-mask-image: var(--str-video__icon--filter);
   }
-
-
 
   &--refresh {
     mask-image: var(--str-video__icon--refresh);

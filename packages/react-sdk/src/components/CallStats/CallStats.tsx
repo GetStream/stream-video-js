@@ -1,12 +1,52 @@
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import {
   AggregatedStatsReport,
   CallStatsReport,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallStatsLatencyChart } from './CallStatsLatencyChart';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 
-export const CallStats = () => {
+import { useFloating, useHover, useInteractions } from '@floating-ui/react';
+
+import { CallStatsLatencyChart } from './CallStatsLatencyChart';
+import { Icon } from '../Icon';
+
+export enum Statuses {
+  GOOD = 'Good',
+  OK = 'Ok',
+  BAD = 'Bad',
+}
+export type Status = Statuses.GOOD | Statuses.OK | Statuses.BAD;
+
+const statsStatus = ({
+  value,
+  lowBound,
+  highBound,
+}: {
+  value: number;
+  lowBound: number;
+  highBound: number;
+}): Status => {
+  if (value <= lowBound) {
+    return Statuses.GOOD;
+  }
+
+  if (value >= lowBound && value <= highBound) {
+    return Statuses.OK;
+  }
+
+  if (value >= highBound) {
+    return Statuses.BAD;
+  }
+
+  return Statuses.GOOD;
+};
+
+export const CallStats = (props: {
+  latencyLowBound?: number;
+  latencyHighBound?: number;
+}) => {
+  const { latencyLowBound = 75, latencyHighBound = 400 } = props;
   const [latencyBuffer, setLatencyBuffer] = useState<
     Array<{ x: number; y: number }>
   >(() => {
@@ -14,6 +54,7 @@ export const CallStats = () => {
     return Array.from({ length: 20 }, (_, i) => ({ x: now + i, y: 0 }));
   });
 
+  const { t } = useI18n();
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>();
@@ -49,27 +90,72 @@ export const CallStats = () => {
     previousStats.current = callStatsReport;
   }, [callStatsReport]);
 
+  const latencyComparison = {
+    lowBound: latencyLowBound,
+    highBound: latencyHighBound,
+    value: callStatsReport?.publisherStats.averageRoundTripTimeInMs || 0,
+  };
+
   return (
     <div className="str-video__call-stats">
       {callStatsReport && (
         <>
-          <h3>Call Latency</h3>
-          <CallStatsLatencyChart values={latencyBuffer} />
+          <div className="str-video__call-stats__header">
+            <h3 className="str-video__call-stats__heading">
+              <Icon
+                className="str-video__call-stats__icon"
+                icon="call-latency"
+              />
+              {t('Call Latency')}
+            </h3>
+            <p className="str-video__call-stats__description">
+              {t(
+                'Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.',
+              )}
+            </p>
+          </div>
 
-          <h3>Call performance</h3>
+          <div className="str-video__call-stats__latencychart">
+            <CallStatsLatencyChart values={latencyBuffer} />
+          </div>
+
+          <div className="str-video__call-stats__header">
+            <h3 className="str-video__call-stats__heading">
+              <Icon
+                className="str-video__call-stats__icon"
+                icon="network-quality"
+              />
+              {t('Call performance')}
+            </h3>
+            <p className="str-video__call-stats__description">
+              {t(
+                'Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.',
+              )}
+            </p>
+          </div>
+
           <div className="str-video__call-stats__card-container">
             <StatCard label="Region" value={callStatsReport.datacenter} />
             <StatCard
               label="Latency"
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
+              comparison={latencyComparison}
             />
             <StatCard
               label="Receive jitter"
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
+              comparison={{
+                ...latencyComparison,
+                value: callStatsReport.subscriberStats.averageJitterInMs,
+              }}
             />
             <StatCard
               label="Publish jitter"
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
+              comparison={{
+                ...latencyComparison,
+                value: callStatsReport.publisherStats.averageJitterInMs,
+              }}
             />
             <StatCard
               label="Publish resolution"
@@ -96,12 +182,83 @@ export const CallStats = () => {
   );
 };
 
-export const StatCard = (props: { label: string; value: string }) => {
-  const { label, value } = props;
+export const StatCardExplanation = (props: { description: string }) => {
+  const { description } = props;
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+  });
+
+  const hover = useHover(context);
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+
+  return (
+    <>
+      <div
+        className="str-video__call-explanation"
+        ref={refs.setReference}
+        {...getReferenceProps()}
+      >
+        <Icon className="str-video__call-explanation__icon" icon="info" />
+      </div>
+      {isOpen && (
+        <div
+          className="str-video__call-explanation__description"
+          ref={refs.setFloating}
+          style={floatingStyles}
+          {...getFloatingProps()}
+        >
+          {description}
+        </div>
+      )}
+    </>
+  );
+};
+
+export const StatsTag = ({
+  children,
+  status = Statuses.GOOD,
+}: {
+  children: ReactNode;
+  status: Statuses.GOOD | Statuses.OK | Statuses.BAD;
+}) => {
+  return (
+    <div
+      className={clsx('str-video__call-stats__tag', {
+        'str-video__call-stats__tag--good': status === Statuses.GOOD,
+        'str-video__call-stats__tag--ok': status === Statuses.OK,
+        'str-video__call-stats__tag--bad': status === Statuses.BAD,
+      })}
+    >
+      <div className="str-video__call-stats__tag__text">{children}</div>
+    </div>
+  );
+};
+
+export const StatCard = (props: {
+  label: string;
+  value: string | ReactNode;
+  description?: string;
+  comparison?: { value: number; highBound: number; lowBound: number };
+}) => {
+  const { label, value, description, comparison } = props;
+
+  const { t } = useI18n();
+  const status = comparison ? statsStatus(comparison) : undefined;
+
   return (
     <div className="str-video__call-stats__card">
-      <div className="str-video__call-stats__card_label">{label}</div>
-      <div className="str-video__call-stats__card_value">{value}</div>
+      <div className="str-video__call-stats__card-content">
+        <div className="str-video__call-stats__card-label">
+          {label}
+          {description && <StatCardExplanation description={description} />}
+        </div>
+        <div className="str-video__call-stats__card-value">{value}</div>
+      </div>
+      {comparison && status && <StatsTag status={status}>{t(status)}</StatsTag>}
     </div>
   );
 };

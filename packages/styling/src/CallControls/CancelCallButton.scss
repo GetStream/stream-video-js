@@ -1,0 +1,114 @@
+.str-video__end-call {
+  &__confirmation {
+    background-color: var(--str-video__base-color7);
+
+    border-radius: var(--str-video__border-radius-xl);
+
+    padding: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-md);
+
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__leave,
+  &__end {
+    min-width: 211px;
+    color: var(--str-video__text-color1);
+
+    &-icon {
+      background-color: var(--str-video__text-color1);
+    }
+  }
+
+  &__leave {
+    background-color: var(--str-video__button-tertiary-base);
+    border: 1px solid transparent;
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+  }
+
+  &__end {
+    background-color: var(--str-video__button-primary-base);
+
+    &:hover {
+      background-color: var(--str-video__button-tertiary-hover);
+    }
+  }
+}
+
+.str-video__end-call.str-video__end-call__leave-icon,
+.str-video__icon.str-video__end-call__end-icon {
+  background-color: var(--str-video__text-color1);
+}
+
+.str-video__end-recording__confirmation {
+  background-color: var(--str-video__base-color7);
+  border-radius: var(--str-video__border-radius-lg);
+  padding: var(--str-video__spacing-xl);
+  gap: var(--str-video__spacing-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.str-video__end-recording__header {
+  display: flex;
+  flex-direction: row;
+  gap: var(--str-video__spacing-md);
+}
+
+.str-video__end-recording__heading {
+  font-size: var(--str-video__font-size-lg);
+  font-weight: 600;
+  margin: 0;
+}
+
+.str-video__end-recording__description {
+  margin: 0;
+  color: var(--str-video__text-color2);
+  font-size: var(--str-video__font-size-sm);
+}
+
+.str-video__end-recording__actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: var(--str-video__spacing-md);
+
+  .str-video__composite-button {
+    width: 100%;
+    gap: var(--str-video__spacing-md);
+
+    &:first-of-type {
+      background-color: transparent;
+
+      .str-video__composite-button__button-group {
+        background-color: transparent;
+        border: 1px solid var(--str-video__base-color2);
+        width: 100%;
+        justify-content: center;
+
+        &:hover {
+          background-color: var(--str-video__button-default-hover);
+        }
+      }
+    }
+    .str-video__composite-button__button-group {
+      background-color: var(--str-video__button-tertiary-base);
+      width: 100%;
+      justify-content: center;
+
+      .str-video__text-button {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      &:hover {
+        background-color: var(--str-video__button-tertiary-hover);
+      }
+    }
+  }
+}
