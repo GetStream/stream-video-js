@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 import clsx from 'clsx';
-import { useCall } from '@stream-io/video-react-sdk';
+import { useCall } from '@stream-io/video-react-bindings';
 import {
   BackgroundConfig,
   createRenderer,
