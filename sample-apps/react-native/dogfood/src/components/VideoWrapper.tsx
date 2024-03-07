@@ -30,6 +30,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
+    console.log({ appEnvironment }, 'VideoWrapper');
     const run = async () => {
       const { token, apiKey } = await createToken(
         { user_id: user.id },

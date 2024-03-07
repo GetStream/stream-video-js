@@ -1,7 +1,7 @@
 import createStoreContext from './createStoreContext';
 
 export type AppMode = 'Meeting' | 'Call' | 'Audio-Room' | 'LiveStream' | 'None';
-export type AppEnvironment = 'pronto' | 'demo';
+export type AppEnvironment = 'pronto' | 'demo' | 'None';
 
 type AppGlobalStore = {
   userId: string;
@@ -22,7 +22,7 @@ export const {
     userImageUrl: '',
     userName: '',
     appMode: 'None',
-    appEnvironment: 'pronto',
+    appEnvironment: 'None',
     chatLabelNoted: false,
   },
   ['appEnvironment', 'userId', 'userName', 'userImageUrl', 'appMode'],
