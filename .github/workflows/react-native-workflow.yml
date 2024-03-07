@@ -79,7 +79,7 @@ jobs:
 
       - name: Build
         working-directory: sample-apps/react-native/dogfood
-        run: bundle exec fastlane build_ios_app_store
+        run: bundle exec fastlane build_ios
 
       - name: Upload .ipa
         uses: actions/upload-artifact@v3

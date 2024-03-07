@@ -111,7 +111,7 @@ lane :bump_ios_version_number_app_store do
   )
 end
 
-lane :build_ios_app_store do
+lane :build_ios do
   app_store_connect_api_key
 
   ENV['NODE_ENV'] = 'production'

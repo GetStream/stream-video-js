@@ -176,7 +176,7 @@ const LoginScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: appTheme.spacing.lg,
+    padding: appTheme.spacing.xl,
     flex: 1,
     justifyContent: 'space-evenly',
     backgroundColor: appTheme.colors.static_grey,
@@ -187,12 +187,14 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignSelf: 'flex-end',
+    justifyContent: 'center',
   },
   envText: {
     color: appTheme.colors.static_white,
     fontSize: 16,
+    marginRight: 8,
+    alignSelf: 'center',
   },
   logo: {
     height: 100,
