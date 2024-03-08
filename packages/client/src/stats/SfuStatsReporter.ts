@@ -4,7 +4,7 @@ import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { SdkType } from '../gen/video/sfu/models/models';
 import { flatten } from './utils';
-import { LocalClientDetailsType } from '../client-details';
+import { LocalClientDetailsType, getWebRTCInfo } from '../client-details';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
@@ -35,8 +35,9 @@ export class SfuStatsReporter {
     this.options = options;
     this.subscriber = subscriber;
     this.publisher = publisher;
+    const webRTCInfo = getWebRTCInfo();
 
-    const { sdk, browser, webRTCInfo } = clientDetails;
+    const { sdk, browser } = clientDetails;
 
     this.sdkName =
       sdk && sdk.type === SdkType.REACT

@@ -54,7 +54,6 @@ export const getClientDetails = (): LocalClientDetailsType => {
       sdk: getSdkInfo(),
       os: getOSInfo(),
       device: getDeviceInfo(),
-      webRTCInfo: getWebRTCInfo(),
     };
   }
 
