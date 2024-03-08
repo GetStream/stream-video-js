@@ -26,7 +26,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
   // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-  // hostedDomain: 'getstream.io', // specifies a hosted domain restriction
+  hostedDomain: 'getstream.io', // specifies a hosted domain restriction
   // forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
   // accountName: '', // [Android] specifies an account name on the device that should be used
   // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
@@ -147,9 +147,11 @@ const LoginScreen = () => {
               <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             )}
             <Text style={styles.subTitle}>
-              {t(
-                'Please sign in with your Google Stream account or a Custom user id.',
-              )}
+              {ENVIRONMENT === 'pronto'
+                ? t(
+                    'Please sign in with your Google Stream account or a Custom user id.',
+                  )
+                : t('Please sign in with Custom User ID')}
             </Text>
           </View>
         </View>
@@ -171,13 +173,17 @@ const LoginScreen = () => {
               buttonStyle={styles.loginButton}
             />
           </View>
-          <Text style={styles.orText}>{t('OR')}</Text>
-          <Button
-            title={t('Google Sign In')}
-            onPress={signInViaGoogle}
-            disabled={loader}
-            buttonStyle={styles.googleSignin}
-          />
+          {ENVIRONMENT === 'pronto' && (
+            <>
+              <Text style={styles.orText}>{t('OR')}</Text>
+              <Button
+                title={t('Google Sign In')}
+                onPress={signInViaGoogle}
+                disabled={loader}
+                buttonStyle={styles.googleSignin}
+              />
+            </>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
