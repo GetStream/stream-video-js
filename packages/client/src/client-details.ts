@@ -2,9 +2,14 @@ import { ClientDetails, Device, OS, Sdk } from './gen/video/sfu/models/models';
 import { isReactNative } from './helpers/platforms';
 import { UAParser } from 'ua-parser-js';
 
+type WebRTCInfoType = {
+  version: string;
+};
+
 let sdkInfo: Sdk | undefined;
 let osInfo: OS | undefined;
 let deviceInfo: Device | undefined;
+let webRtcInfo: WebRTCInfoType | undefined;
 
 export const setSdkInfo = (info: Sdk) => {
   sdkInfo = info;
@@ -30,13 +35,26 @@ export const getDeviceInfo = () => {
   return deviceInfo;
 };
 
-export const getClientDetails = (): ClientDetails => {
+export const getWebRTCInfo = () => {
+  return webRtcInfo;
+};
+
+export const setWebRTCInfo = (info: WebRTCInfoType) => {
+  webRtcInfo = info;
+};
+
+export type LocalClientDetailsType = ClientDetails & {
+  webRTCInfo?: WebRTCInfoType;
+};
+
+export const getClientDetails = (): LocalClientDetailsType => {
   if (isReactNative()) {
     // Since RN doesn't support web, sharing browser info is not required
     return {
       sdk: getSdkInfo(),
       os: getOSInfo(),
       device: getDeviceInfo(),
+      webRTCInfo: getWebRTCInfo(),
     };
   }
 
