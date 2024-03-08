@@ -114,7 +114,7 @@ jobs:
     name: Deploy iOS
     needs: build_ios
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/call-stats-reporter' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -234,7 +234,7 @@ jobs:
     name: Deploy Android
     needs: build_android
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/call-stats-reporter' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
