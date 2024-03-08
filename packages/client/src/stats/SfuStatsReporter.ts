@@ -2,12 +2,13 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
-import { ClientDetails, SdkType } from '../gen/video/sfu/models/models';
+import { SdkType } from '../gen/video/sfu/models/models';
 import { flatten } from './utils';
+import { LocalClientDetailsType } from '../client-details';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
-  clientDetails: ClientDetails;
+  clientDetails: LocalClientDetailsType;
   subscriber: Subscriber;
   publisher: Publisher;
 };
@@ -35,7 +36,7 @@ export class SfuStatsReporter {
     this.subscriber = subscriber;
     this.publisher = publisher;
 
-    const { sdk, browser, device } = clientDetails;
+    const { sdk, browser, webRTCInfo } = clientDetails;
 
     this.sdkName =
       sdk && sdk.type === SdkType.REACT
@@ -48,8 +49,9 @@ export class SfuStatsReporter {
       ? `${sdk.major}.${sdk.minor}.${sdk.patch}`
       : '0.0.0-development';
 
+    // The WebRTC version if passed from the SDK, it is taken else the browser info is sent.
     this.webRTCVersion =
-      device?.version ||
+      webRTCInfo?.version ||
       `${browser?.name || ''}-${browser?.version || ''}` ||
       'N/A';
   }
