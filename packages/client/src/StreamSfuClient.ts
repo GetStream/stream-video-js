@@ -18,6 +18,7 @@ import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
 import {
   ICERestartRequest,
   SendAnswerRequest,
+  SendStatsRequest,
   SetPublisherRequest,
   TrackSubscriptionDetails,
   UpdateMuteStatesRequest,
@@ -295,6 +296,17 @@ export class StreamSfuClient {
       () =>
         this.rpc.updateMuteStates({
           ...data,
+          sessionId: this.sessionId,
+        }),
+      this.logger,
+    );
+  };
+
+  sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
+    return retryable(
+      () =>
+        this.rpc.sendStats({
+          ...stats,
           sessionId: this.sessionId,
         }),
       this.logger,

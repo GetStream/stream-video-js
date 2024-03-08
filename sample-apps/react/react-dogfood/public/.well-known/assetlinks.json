@@ -45,6 +45,16 @@
       "namespace": "android_app",
       "package_name": "io.getstream.rnvideosample",
       "sha256_cert_fingerprints": [
+        "6C:6E:F2:D7:57:08:9D:9E:A4:13:D5:8E:F5:57:0A:5A:5B:47:3E:BD:04:D9:18:15:BF:FE:65:31:BD:53:E1:F8"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.getstream.rnvideosample",
+      "sha256_cert_fingerprints": [
         "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"
       ]
     }

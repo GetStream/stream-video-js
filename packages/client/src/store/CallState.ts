@@ -12,7 +12,7 @@ import {
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
 } from '../types';
-import { CallStatsReport } from '../stats/types';
+import { CallStatsReport } from '../stats';
 import {
   BlockedUserEvent,
   CallHLSBroadcastingStartedEvent,
@@ -396,6 +396,7 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'call.closed_caption': undefined,
       'call.permission_request': undefined,
       'call.recording_failed': undefined,
       'call.recording_ready': undefined,

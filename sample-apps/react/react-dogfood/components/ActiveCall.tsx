@@ -23,6 +23,7 @@ import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
 import { ChatWrapper } from './ChatWrapper';
 import { ChatUI } from './ChatUI';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
+import { ClosedCaptions, ClosedCaptionsSidebar } from './ClosedCaptions';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleFeedbackButton } from './ToggleFeedbackButton';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
@@ -50,7 +51,12 @@ export type ActiveCallProps = {
   onJoin: ({ fastJoin }: { fastJoin: boolean }) => void;
 };
 
-type SidebarContent = 'participants' | 'chat' | 'stats' | null;
+type SidebarContent =
+  | 'participants'
+  | 'chat'
+  | 'stats'
+  | 'closed-captions'
+  | null;
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
@@ -84,6 +90,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const showParticipants = sidebarContent === 'participants';
   const showChat = sidebarContent === 'chat';
   const showStats = sidebarContent === 'stats';
+  const showClosedCaptions = sidebarContent === 'closed-captions';
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
@@ -125,13 +132,16 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
         <PermissionRequests />
         <div className="rd__layout">
-          <Stage selectedLayout={layout} />
-          {showInvitePopup && participantCount === 1 && (
-            <InvitePopup
-              callId={activeCall.id}
-              close={() => setShowInvitePopup(false)}
-            />
-          )}
+          <div className="rd__layout__stage-container">
+            <Stage selectedLayout={layout} />
+            {showInvitePopup && participantCount === 1 && (
+              <InvitePopup
+                callId={activeCall.id}
+                close={() => setShowInvitePopup(false)}
+              />
+            )}
+            {isPronto && <ClosedCaptions />}
+          </div>
 
           <div
             className={clsx('rd__sidebar', showSidebar && 'rd__sidebar--open')}
@@ -167,6 +177,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 )}
 
                 {showStats && <CallStatsSidebar />}
+                {isPronto && showClosedCaptions && <ClosedCaptionsSidebar />}
               </div>
             )}
           </div>
@@ -229,6 +240,22 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 onMenuItemClick={setLayout}
               />
             </div>
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <CompositeButton
+                  active={showClosedCaptions}
+                  title="Closed Captions"
+                  variant="primary"
+                  onClick={() =>
+                    setSidebarContent(
+                      showClosedCaptions ? null : 'closed-captions',
+                    )
+                  }
+                >
+                  <Icon icon="closed-captions" />
+                </CompositeButton>
+              </div>
+            )}
             <div className="str-video__call-controls__desktop">
               <ToggleStatsButton
                 active={showStats}
