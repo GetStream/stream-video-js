@@ -7,7 +7,7 @@ import axios, {
 } from 'axios';
 import https from 'https';
 import { StableWSConnection } from './connection';
-import { DevToken, JWTUserToken } from './signing';
+import { DevToken } from './signing';
 import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
@@ -416,7 +416,6 @@ export class StreamClient {
       {
         user: {
           ...user,
-          role: 'guest',
         },
       },
       { publicEndpoint: true },
