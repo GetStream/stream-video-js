@@ -2,6 +2,7 @@ import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 
 export type BackgroundConfig = 'none' | 'blur' | 'image';
+export type BackgroundBlurLevel = 'low' | 'medium' | 'high';
 
 export function createRenderer(
   tflite: TFLite,
@@ -10,10 +11,16 @@ export function createRenderer(
   options: {
     backgroundConfig: BackgroundConfig;
     backgroundImage?: HTMLImageElement;
+    backgroundBlurLevel?: BackgroundBlurLevel;
     fps?: number;
   },
 ) {
-  const { backgroundConfig, backgroundImage, fps = 30 } = options;
+  const {
+    backgroundConfig,
+    backgroundImage,
+    backgroundBlurLevel,
+    fps = 30,
+  } = options;
   if (backgroundConfig === 'image' && !backgroundImage) {
     throw new Error(
       'backgroundImage element is required when backgroundConfig is image',
@@ -23,6 +30,7 @@ export function createRenderer(
   const pipeline = buildWebGL2Pipeline(
     videoSource,
     backgroundImage,
+    backgroundBlurLevel,
     backgroundConfig,
     targetCanvas,
     tflite,

@@ -4,6 +4,7 @@ import {
   createTexture,
   glsl,
 } from '../helpers/webglHelper';
+import type { BackgroundBlurLevel } from '../createRenderer';
 
 export type BackgroundBlurStage = {
   render(): void;
@@ -18,6 +19,7 @@ export function buildBackgroundBlurStage(
   texCoordBuffer: WebGLBuffer,
   personMaskTexture: WebGLTexture,
   canvas: HTMLCanvasElement,
+  blurLevel: BackgroundBlurLevel,
 ): BackgroundBlurStage {
   const blurPass = buildBlurPass(
     gl,
@@ -26,6 +28,7 @@ export function buildBackgroundBlurStage(
     texCoordBuffer,
     personMaskTexture,
     canvas,
+    blurLevel,
   );
   const blendPass = buildBlendPass(gl, positionBuffer, texCoordBuffer, canvas);
 
@@ -57,7 +60,15 @@ function buildBlurPass(
   texCoordBuffer: WebGLBuffer,
   personMaskTexture: WebGLTexture,
   canvas: HTMLCanvasElement,
+  blurLevel: BackgroundBlurLevel,
 ) {
+  const weights =
+    blurLevel === 'low'
+      ? [0.227027027, 0.1545945946, 0.1016216216, 0.0340540541, 0.0142162162]
+      : blurLevel === 'medium'
+      ? [0.327027027, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162]
+      : [0.627027027, 0.3445945946, 0.2216216216, 0.0540540541, 0.0162162162];
+
   const fragmentShaderSource = glsl`#version 300 es
 
     precision highp float;
@@ -71,11 +82,7 @@ function buildBlurPass(
 
     const float offset[5] = float[](0.0, 1.0, 2.0, 3.0, 4.0);
     const float weight[5] = float[](
-      0.5270270270,
-      0.2945945946,
-      0.2216216216,
-      0.0540540541,
-      0.0162162162
+      ${weights.join(',')}
     );
 
     void main() {

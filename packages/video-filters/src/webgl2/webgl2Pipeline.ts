@@ -11,11 +11,12 @@ import {
 import { buildJointBilateralFilterStage } from './jointBilateralFilterStage';
 import { buildResizingStage } from './resizingStage';
 import { buildSoftmaxStage } from './softmaxStage';
-import { BackgroundConfig } from '../createRenderer';
+import { type BackgroundBlurLevel, BackgroundConfig } from '../createRenderer';
 
 export function buildWebGL2Pipeline(
   videoSource: HTMLVideoElement,
   backgroundImage: HTMLImageElement | undefined,
+  blurLevel: BackgroundBlurLevel | undefined,
   backgroundConfig: BackgroundConfig,
   canvas: HTMLCanvasElement,
   tflite: TFLite,
@@ -120,6 +121,7 @@ export function buildWebGL2Pipeline(
           texCoordBuffer,
           personMaskTexture,
           canvas,
+          blurLevel || 'high',
         )
       : buildBackgroundImageStage(
           gl,

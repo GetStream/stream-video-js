@@ -10,6 +10,7 @@ import {
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
 import {
+  BackgroundBlurLevel,
   BackgroundConfig,
   createRenderer,
   loadTFLite,
@@ -21,13 +22,16 @@ export type BackgroundFiltersProps = {
   backgroundImages?: string[];
   backgroundFilter?: BackgroundConfig;
   backgroundImage?: string;
+  backgroundBlurLevel?: BackgroundBlurLevel;
   tfFilePath?: string;
   modelFilePath?: string;
   basePath?: string;
 };
 
 export type BackgroundFiltersAPI = {
-  setBackgroundFilter: (filter: BackgroundConfig, imageUrl?: string) => void;
+  disableBackgroundFilter: () => void;
+  applyBackgroundBlurFilter: (blurLevel: BackgroundBlurLevel) => void;
+  applyBackgroundImageFilter: (imageUrl: string) => void;
 };
 
 export type BackgroundFiltersContextValue = BackgroundFiltersProps &
@@ -38,7 +42,13 @@ const BackgroundFiltersContext = createContext<
 >(undefined);
 
 export const useBackgroundFilters = () => {
-  return useContext(BackgroundFiltersContext);
+  const context = useContext(BackgroundFiltersContext);
+  if (!context) {
+    throw new Error(
+      'useBackgroundFilters must be used within a BackgroundFiltersProvider',
+    );
+  }
+  return context;
 };
 
 export const BackgroundFiltersProvider = (
@@ -48,52 +58,61 @@ export const BackgroundFiltersProvider = (
     children,
     isBlurringEnabled = true,
     backgroundImages = [],
-    backgroundFilter: backgroundFilterFromProps = 'none',
-    backgroundImage: backgroundImageFromProps = undefined,
+    backgroundFilter: bgFilterFromProps = 'none',
+    backgroundImage: bgImageFromProps = undefined,
+    backgroundBlurLevel: bgBlurLevelFromProps = 'high',
     tfFilePath,
     modelFilePath,
     basePath,
   } = props;
 
-  const [backgroundFilterConfig, setBackgroundFilterConfig] = useState(
-    backgroundFilterFromProps,
-  );
-  const [backgroundImage, setBackgroundImage] = useState(
-    backgroundImageFromProps,
-  );
-  const setBackgroundFilter = useCallback(
-    (filter: BackgroundConfig, imageUrl?: string) => {
-      setBackgroundFilterConfig(filter);
-      setBackgroundImage(imageUrl);
+  const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
+  const [backgroundImage, setBackgroundImage] = useState(bgImageFromProps);
+  const [backgroundBlurLevel, setBackgroundBlurLevel] =
+    useState(bgBlurLevelFromProps);
+
+  const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
+    setBackgroundFilter('image');
+    setBackgroundImage(imageUrl);
+  }, []);
+
+  const applyBackgroundBlurFilter = useCallback(
+    (blurLevel: BackgroundBlurLevel = 'high') => {
+      setBackgroundFilter('blur');
+      setBackgroundBlurLevel(blurLevel);
     },
     [],
   );
+
+  const disableBackgroundFilter = useCallback(() => {
+    setBackgroundFilter('none');
+    setBackgroundImage(undefined);
+    setBackgroundBlurLevel('high');
+  }, []);
+
   return (
     <BackgroundFiltersContext.Provider
       value={{
-        isBlurringEnabled,
-        backgroundImages,
-        backgroundFilter: backgroundFilterConfig,
-        setBackgroundFilter,
         backgroundImage,
+        backgroundBlurLevel,
+        backgroundFilter,
+        disableBackgroundFilter,
+        applyBackgroundBlurFilter,
+        applyBackgroundImageFilter,
+        backgroundImages,
+        isBlurringEnabled,
+        tfFilePath,
+        modelFilePath,
+        basePath,
       }}
     >
       {children}
-      <BackgroundFilters
-        tfFilePath={tfFilePath}
-        modelFilePath={modelFilePath}
-        basePath={basePath}
-      />
+      <BackgroundFilters />
     </BackgroundFiltersContext.Provider>
   );
 };
 
-const BackgroundFilters = (props: {
-  tfFilePath?: string;
-  modelFilePath?: string;
-  basePath?: string;
-}) => {
-  const { tfFilePath, modelFilePath, basePath } = props;
+const BackgroundFilters = () => {
   const call = useCall();
   const { backgroundImage, backgroundFilter } = useBackgroundFilters() || {};
   const [videoRef, setVideoRef] = useState<HTMLVideoElement>();
@@ -159,10 +178,6 @@ const BackgroundFilters = (props: {
           videoRef={videoRef}
           canvasRef={canvasRef}
           backgroundImageRef={bgImageRef}
-          backgroundFilter={backgroundFilter || 'none'}
-          tfFilePath={tfFilePath}
-          modelFilePath={modelFilePath}
-          basePath={basePath}
         />
       )}
       <video
@@ -208,37 +223,41 @@ const RenderPipeline = (props: {
   videoRef: HTMLVideoElement | undefined;
   canvasRef: HTMLCanvasElement | undefined;
   backgroundImageRef: HTMLImageElement | undefined;
-  backgroundFilter: BackgroundConfig;
-  tfFilePath?: string;
-  modelFilePath?: string;
-  basePath?: string;
 }) => {
+  const { videoRef, canvasRef, backgroundImageRef } = props;
   const {
-    videoRef,
-    canvasRef,
-    backgroundImageRef,
-    backgroundFilter,
+    backgroundFilter = 'none',
+    backgroundBlurLevel,
     tfFilePath,
     modelFilePath,
     basePath,
-  } = props;
+  } = useBackgroundFilters();
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
     loadTFLite({ basePath, modelFilePath, tfFilePath }).then(setTfLite);
-  }, [modelFilePath, tfFilePath]);
+  }, [basePath, modelFilePath, tfFilePath]);
 
   useEffect(() => {
     if (!tfLite || !videoRef || !canvasRef) return;
+    if (backgroundFilter === 'none') return;
     if (backgroundFilter === 'image' && !backgroundImageRef) return;
 
     const dispose = createRenderer(tfLite, videoRef, canvasRef, {
       backgroundConfig: backgroundFilter,
       backgroundImage: backgroundImageRef,
+      backgroundBlurLevel,
     });
     return () => {
       dispose();
     };
-  }, [backgroundImageRef, canvasRef, backgroundFilter, tfLite, videoRef]);
+  }, [
+    backgroundBlurLevel,
+    backgroundFilter,
+    backgroundImageRef,
+    canvasRef,
+    tfLite,
+    videoRef,
+  ]);
 
   return null;
 };

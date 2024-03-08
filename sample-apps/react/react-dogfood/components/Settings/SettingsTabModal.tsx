@@ -203,8 +203,16 @@ export const ToggleSettingsTabModal = (props: {
 };
 
 const VideoEffectsSettings = () => {
-  const { backgroundImages, isBlurringEnabled, setBackgroundFilter } =
-    useBackgroundFilters() || {};
+  const {
+    backgroundImages,
+    isBlurringEnabled,
+    backgroundBlurLevel,
+    backgroundImage,
+    backgroundFilter,
+    disableBackgroundFilter,
+    applyBackgroundBlurFilter,
+    applyBackgroundImageFilter,
+  } = useBackgroundFilters();
   return (
     <div className="rd__video-effects">
       <div className="rd__video-effects__preview-container">
@@ -214,26 +222,49 @@ const VideoEffectsSettings = () => {
         <div className="rd__video-effects__card">
           <h4>Effects</h4>
           <div className="rd__video-effects__list">
-            <IconButton
-              icon="close"
-              onClick={() => setBackgroundFilter?.('none')}
-            />
+            <CompositeButton
+              title="Disable"
+              onClick={() => disableBackgroundFilter()}
+            >
+              <Icon icon="close" />
+            </CompositeButton>
             {isBlurringEnabled && (
               <>
-                <IconButton
-                  icon="blur-icon"
-                  onClick={() => setBackgroundFilter?.('blur')}
-                />
-                <IconButton
-                  icon="blur-icon"
-                  className="rd__video-effects__blur--medium"
-                  onClick={() => setBackgroundFilter?.('blur')}
-                />
-                <IconButton
-                  icon="blur-icon"
-                  className="rd__video-effects__blur--low"
-                  onClick={() => setBackgroundFilter?.('blur')}
-                />
+                <CompositeButton
+                  title="Blur"
+                  active={
+                    backgroundFilter === 'blur' &&
+                    backgroundBlurLevel === 'high'
+                  }
+                  onClick={() => applyBackgroundBlurFilter('high')}
+                >
+                  <Icon icon="blur-icon" />
+                </CompositeButton>
+                <CompositeButton
+                  title="Medium blur"
+                  active={
+                    backgroundFilter === 'blur' &&
+                    backgroundBlurLevel === 'medium'
+                  }
+                  onClick={() => applyBackgroundBlurFilter('medium')}
+                >
+                  <Icon
+                    icon="blur-icon"
+                    className="rd__video-effects__blur--medium"
+                  />
+                </CompositeButton>
+                <CompositeButton
+                  title="Low blur"
+                  active={
+                    backgroundFilter === 'blur' && backgroundBlurLevel === 'low'
+                  }
+                  onClick={() => applyBackgroundBlurFilter('low')}
+                >
+                  <Icon
+                    icon="blur-icon"
+                    className="rd__video-effects__blur--low"
+                  />
+                </CompositeButton>
               </>
             )}
           </div>
@@ -245,10 +276,15 @@ const VideoEffectsSettings = () => {
               {backgroundImages.map((imageUrl, index) => (
                 <div key={index} className="rd__video-effects__list-box">
                   <img
-                    className="rd__video-effects--option rd__video-effects--image"
+                    className={clsx(
+                      'rd__video-effects__image',
+                      backgroundFilter === 'image' &&
+                        backgroundImage === imageUrl &&
+                        'rd__video-effects__image--active',
+                    )}
                     src={imageUrl}
                     alt="Background"
-                    onClick={() => setBackgroundFilter?.('image', imageUrl)}
+                    onClick={() => applyBackgroundImageFilter(imageUrl)}
                   />
                 </div>
               ))}

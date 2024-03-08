@@ -85,7 +85,7 @@
         flex-wrap: wrap;
         gap: 8px;
 
-        .str-video__call-controls__button {
+        .str-video__composite-button__button-group {
           width: 48px;
           height: 48px;
           display: flex;
@@ -118,12 +118,17 @@
         flex-direction: column;
         min-height: 320px;
         max-width: 480px;
+
+        .str-video__video-preview-container {
+          width: 100%;
+        }
       }
 
-      .rd__video-effects--option {
-        width: 100%;
+      .rd__video-effects__image {
+        width: 180px;
         height: 100%;
-        aspect-ratio: 16/9;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
         border: 1px solid var(--str-video__base-color6);
         border-radius: var(--str-video__border-radius-xs);
         display: inline-block;
@@ -131,13 +136,10 @@
         &:hover {
           border-color: var(--str-video__brand-color1);
         }
-      }
 
-      .rd__video-effects--image {
-        width: 180px;
-        height: 100%;
-        aspect-ratio: 16 / 9;
-        object-fit: cover;
+        &--active {
+          border-color: var(--str-video__brand-color1);
+        }
       }
     }
   }
