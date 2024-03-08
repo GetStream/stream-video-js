@@ -9,9 +9,9 @@ else
   PROTOCOL_REPO_DIR="../../../protocol"
 fi
 if  [ "$FROM_REPO" == 'chat' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi.yaml"
+  SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi-clientside.yaml"
 else
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi.yaml"
+  SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi-clientside.yaml"
 fi
 
 if  [ "$FROM_REPO" == 'chat' ]; then
