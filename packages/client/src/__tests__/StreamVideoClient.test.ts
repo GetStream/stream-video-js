@@ -2,18 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamVideoClient } from '../StreamVideoClient';
 import 'dotenv/config';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamVideoServerClient } from '../StreamVideoServerClient';
 import { User } from '../coordinator/connection/types';
+import { StreamClient } from '../coordinator/connection/client';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
 const tokenProvider = (userId: string) => {
-  const serverClient = new StreamVideoServerClient(apiKey, { secret });
+  const client = new StreamClient(apiKey, { secret });
   return async () => {
     return new Promise<string>((resolve) => {
       setTimeout(() => {
-        const token = serverClient.createToken(userId);
+        const token = client.createToken(userId);
         resolve(token);
       }, 100);
     });
