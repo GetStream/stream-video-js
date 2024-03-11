@@ -1,4 +1,4 @@
-import { Observable, Subscription, combineLatest, pairwise } from 'rxjs';
+import { combineLatest, Observable, pairwise, Subscription } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -7,6 +7,8 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
+import { PublishOptions, StopPublishOptions } from '../types';
+import { getCurrentValue } from '../store/rxUtils';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -26,7 +28,6 @@ export abstract class InputMediaDeviceManager<
   stopOnLeave = true;
   logger: Logger;
   private subscriptions: Subscription[] = [];
-  private isTrackStoppedDueToTrackEnd = false;
 
   protected constructor(
     protected readonly call: Call,
@@ -75,10 +76,18 @@ export abstract class InputMediaDeviceManager<
    * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
   async disable(forceStop: boolean = false) {
+    return this.disableInternal({ notifySfu: true, forceStop });
+  }
+
+  private async disableInternal(opts: StopPublishOptions) {
     this.state.prevStatus = this.state.status;
+    const { forceStop } = opts;
     if (!forceStop && this.state.status === 'disabled') return;
     const stopTracks = forceStop || this.state.disableMode === 'stop-tracks';
-    this.disablePromise = this.muteStream(stopTracks);
+    this.disablePromise = this.muteStream({
+      ...opts,
+      stopTracks,
+    });
     try {
       await this.disablePromise;
       this.state.setStatus('disabled');
@@ -144,9 +153,13 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    if (this.state.status === 'enabled') {
-      await this.muteStream();
-      await this.unmuteStream();
+    const isSwitchingDevice = this.state.status === 'enabled';
+    if (isSwitchingDevice) {
+      // we don't notify the SFU (UpdateMuteState) when switching devices
+      // as that would cause a brief mute -> unmute on the other sides
+      const notifySfu = !isSwitchingDevice;
+      await this.muteStream({ stopTracks: true, notifySfu });
+      await this.unmuteStream({ notifySfu });
     }
   }
 
@@ -154,19 +167,28 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
-  protected abstract publishStream(stream: MediaStream): Promise<void>;
+  protected abstract publishStream(
+    stream: MediaStream,
+    opts: PublishOptions,
+  ): Promise<void>;
 
-  protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
+  protected abstract stopPublishStream(opts: StopPublishOptions): Promise<void>;
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];
   }
 
-  protected async muteStream(stopTracks: boolean = true) {
+  protected hasPermission(): boolean {
+    return getCurrentValue(this.state.hasBrowserPermission$);
+  }
+
+  protected async muteStream(opts: StopPublishOptions) {
     if (!this.state.mediaStream) return;
+
+    const { stopTracks = true } = opts;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream(stopTracks);
+      await this.stopPublishStream(opts);
     }
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
@@ -212,7 +234,12 @@ export abstract class InputMediaDeviceManager<
     }
   }
 
-  protected async unmuteStream() {
+  protected async unmuteStream(opts: PublishOptions = {}) {
+    if (!this.hasPermission()) {
+      this.logger('debug', `Couldn't start a stream: no permissions`);
+      return;
+    }
+
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (
@@ -230,24 +257,18 @@ export abstract class InputMediaDeviceManager<
       stream = await this.getStream(constraints as C);
     }
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.publishStream(stream);
+      await this.publishStream(stream, opts);
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
-          if (this.enablePromise) {
-            await this.enablePromise;
-          }
-          if (this.disablePromise) {
-            await this.disablePromise;
-          }
+          if (this.enablePromise) await this.enablePromise;
+          if (this.disablePromise) await this.disablePromise;
           if (this.state.status === 'enabled') {
-            this.isTrackStoppedDueToTrackEnd = true;
-            setTimeout(() => {
-              this.isTrackStoppedDueToTrackEnd = false;
-            }, 2000);
-            await this.disable();
+            // `Publisher.ts` listens for track's `ended` event too
+            // and takes care of notifying the SFU.
+            await this.disableInternal({ notifySfu: false });
           }
         });
       });
@@ -270,15 +291,9 @@ export abstract class InputMediaDeviceManager<
         deviceIds$!.pipe(pairwise()),
         this.state.selectedDevice$,
       ]).subscribe(async ([[prevDevices, currentDevices], deviceId]) => {
-        if (!deviceId) {
-          return;
-        }
-        if (this.enablePromise) {
-          await this.enablePromise;
-        }
-        if (this.disablePromise) {
-          await this.disablePromise;
-        }
+        if (!deviceId) return;
+        if (this.enablePromise) await this.enablePromise;
+        if (this.disablePromise) await this.disablePromise;
 
         let isDeviceDisconnected = false;
         let isDeviceReplaced = false;
@@ -292,23 +307,20 @@ export abstract class InputMediaDeviceManager<
           currentDevice.deviceId === prevDevice.deviceId &&
           currentDevice.groupId !== prevDevice.groupId
         ) {
+          // covers the case when a `default` device is replaced:
+          // - internal mic configured as default
+          // - external mic is plugged
+          // - external mic is used as default
           isDeviceReplaced = true;
         }
 
         if (isDeviceDisconnected) {
           await this.disable();
-          this.select(undefined);
-        }
-        if (isDeviceReplaced) {
-          if (
-            this.isTrackStoppedDueToTrackEnd &&
-            this.state.status === 'disabled'
-          ) {
-            await this.enable();
-            this.isTrackStoppedDueToTrackEnd = false;
-          } else {
-            await this.applySettingsToStream();
-          }
+          await this.select(undefined);
+        } else if (isDeviceReplaced && this.state.status === 'enabled') {
+          // A new device has been selected in the OS settings.
+          // We need to re-create the stream and publish it.
+          await this.applySettingsToStream();
         }
       }),
     );

@@ -4,10 +4,10 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  MockTrack,
   emitDeviceIds,
   mockCall,
   mockDeviceIds$,
+  MockTrack,
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
@@ -15,6 +15,7 @@ import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { PublishOptions, StopPublishOptions } from '../../types';
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -96,6 +97,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.publishStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      {} satisfies PublishOptions,
     );
   });
 
@@ -120,7 +122,10 @@ describe('InputMediaDeviceManager.test', () => {
 
     await manager.disable();
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
+    expect(manager.stopPublishStream).toHaveBeenCalledWith({
+      stopTracks: true,
+      notifySfu: true,
+    } satisfies StopPublishOptions);
   });
 
   it('disable device with forceStop', async () => {
@@ -176,7 +181,10 @@ describe('InputMediaDeviceManager.test', () => {
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
+    expect(manager.stopPublishStream).toHaveBeenCalledWith({
+      stopTracks: true,
+      notifySfu: false,
+    } satisfies StopPublishOptions);
     expect(manager.getStream).toHaveBeenCalledWith({
       deviceId,
     });

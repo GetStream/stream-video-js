@@ -16,7 +16,7 @@ import {
 import { getPreferredCodecs } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
-import { PublishOptions } from '../types';
+import { PublishOptions, StopPublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
 import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
@@ -232,7 +232,12 @@ export class Publisher {
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
+      await this.updateAndNotifyTrackMuteState(
+        mediaStream,
+        trackType,
+        true, // muted
+        true, // notify
+      );
       // clean-up, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
     };
@@ -310,33 +315,44 @@ export class Publisher {
       await transceiver.sender.replaceTrack(track);
     }
 
-    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
+    const { notifySfu = true } = opts;
+    await this.updateAndNotifyTrackMuteState(
+      mediaStream,
+      trackType,
+      false,
+      notifySfu,
+    );
   };
 
   /**
    * Stops publishing the given track type to the SFU, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
    * @param trackType the track type to unpublish.
-   * @param stopTrack specifies whether track should be stopped or just disabled
+   * @param opts the optional stop publish options to use.
    */
-  unpublishStream = async (trackType: TrackType, stopTrack: boolean) => {
+  unpublishStream = async (trackType: TrackType, opts: StopPublishOptions) => {
     const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
-    if (
-      transceiver &&
-      transceiver.sender.track &&
-      (stopTrack
-        ? transceiver.sender.track.readyState === 'live'
-        : transceiver.sender.track.enabled)
-    ) {
-      stopTrack
-        ? transceiver.sender.track.stop()
-        : (transceiver.sender.track.enabled = false);
-      // We don't need to notify SFU if unpublishing in response to remote soft mute
-      if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
-        await this.notifyTrackMuteStateChanged(undefined, trackType, true);
-      }
+
+    if (!transceiver || !transceiver.sender.track) return;
+
+    const { stopTracks = true, notifySfu = true } = opts;
+    const track = transceiver.sender.track;
+    if (stopTracks && track.readyState === 'live') {
+      track.stop();
+    } else if (track.enabled) {
+      track.enabled = false;
+    }
+
+    // We don't need to notify SFU if unpublishing in response to remote soft mute
+    if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
+      await this.updateAndNotifyTrackMuteState(
+        undefined,
+        trackType,
+        true,
+        notifySfu,
+      );
     }
   };
 
@@ -372,12 +388,15 @@ export class Publisher {
     return false;
   };
 
-  private notifyTrackMuteStateChanged = async (
+  private updateAndNotifyTrackMuteState = async (
     mediaStream: MediaStream | undefined,
     trackType: TrackType,
     isMuted: boolean,
+    notifySfu: boolean,
   ) => {
-    await this.sfuClient.updateMuteState(trackType, isMuted);
+    if (notifySfu) {
+      await this.sfuClient.updateMuteState(trackType, isMuted);
+    }
 
     const audioOrVideoOrScreenShareStream =
       trackTypeToParticipantStreamKey(trackType);
