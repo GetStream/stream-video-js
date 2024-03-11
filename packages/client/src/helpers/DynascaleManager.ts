@@ -8,6 +8,7 @@ import {
 } from '../types';
 import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
 import {
+  combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
   map,
@@ -384,11 +385,12 @@ export class DynascaleManager {
           }
         });
 
-    const volumeSubscription = this.call.speaker.state.volume$.subscribe(
-      (volume) => {
-        audioElement.volume = volume;
-      },
-    );
+    const volumeSubscription = combineLatest([
+      this.call.speaker.state.volume$,
+      participant$.pipe(distinctUntilKeyChanged('audioVolume')),
+    ]).subscribe(([volume, p]) => {
+      audioElement.volume = p.audioVolume ?? volume;
+    });
 
     audioElement.autoplay = true;
 
