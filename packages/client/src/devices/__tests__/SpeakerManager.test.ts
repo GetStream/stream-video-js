@@ -79,8 +79,12 @@ describe('SpeakerManager.test', () => {
     });
 
     manager.setParticipantVolume('session-id', 0.5);
-    const participant = call.state.findParticipantBySessionId('session-id');
+    let participant = call.state.findParticipantBySessionId('session-id');
     expect(participant!.audioVolume).toBe(0.5);
+
+    manager.setParticipantVolume('session-id', undefined);
+    participant = call.state.findParticipantBySessionId('session-id');
+    expect(participant!.audioVolume).toBe(undefined);
 
     expect(() => manager.setParticipantVolume('session-id', 2)).toThrowError();
     expect(() => manager.setParticipantVolume('session-id', -1)).toThrowError();
