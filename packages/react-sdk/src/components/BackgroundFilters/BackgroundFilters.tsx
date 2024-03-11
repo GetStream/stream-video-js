@@ -114,10 +114,10 @@ export const BackgroundFiltersProvider = (
 
 const BackgroundFilters = () => {
   const call = useCall();
-  const { backgroundImage, backgroundFilter } = useBackgroundFilters() || {};
-  const [videoRef, setVideoRef] = useState<HTMLVideoElement>();
-  const [bgImageRef, setBgImageRef] = useState<HTMLImageElement>();
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement>();
+  const { backgroundImage, backgroundFilter } = useBackgroundFilters();
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const [bgImageRef, setBgImageRef] = useState<HTMLImageElement | null>(null);
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
 
   const resolveFilterRef =
     useRef<(value: MediaStream | PromiseLike<MediaStream>) => void>();
@@ -185,7 +185,6 @@ const BackgroundFilters = () => {
           'str-video__background-filters__video',
           height > width && 'str-video__background-filters__video--tall',
         )}
-        // @ts-expect-error null vs undefined
         ref={setVideoRef}
         autoPlay
         playsInline
@@ -200,7 +199,6 @@ const BackgroundFilters = () => {
           className="str-video__background-filters__background-image"
           key={backgroundImage}
           alt="Background"
-          // @ts-expect-error null vs undefined
           ref={setBgImageRef}
           src={backgroundImage}
           width={width}
@@ -209,10 +207,9 @@ const BackgroundFilters = () => {
       )}
       <canvas
         className="str-video__background-filters__target-canvas"
-        key={'key-' + width + height}
+        key={`key-${width}${height}`}
         width={width}
         height={height}
-        // @ts-expect-error null vs undefined
         ref={setCanvasRef}
       />
     </div>
@@ -220,9 +217,9 @@ const BackgroundFilters = () => {
 };
 
 const RenderPipeline = (props: {
-  videoRef: HTMLVideoElement | undefined;
-  canvasRef: HTMLCanvasElement | undefined;
-  backgroundImageRef: HTMLImageElement | undefined;
+  videoRef: HTMLVideoElement | null;
+  canvasRef: HTMLCanvasElement | null;
+  backgroundImageRef: HTMLImageElement | null;
 }) => {
   const { videoRef, canvasRef, backgroundImageRef } = props;
   const {
@@ -244,7 +241,7 @@ const RenderPipeline = (props: {
 
     const dispose = createRenderer(tfLite, videoRef, canvasRef, {
       backgroundConfig: backgroundFilter,
-      backgroundImage: backgroundImageRef,
+      backgroundImage: backgroundImageRef ?? undefined,
       backgroundBlurLevel,
     });
     return () => {
