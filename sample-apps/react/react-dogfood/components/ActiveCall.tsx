@@ -43,6 +43,7 @@ import {
 } from '../context/AppEnvironmentContext';
 
 import { StepNames, useTourContext } from '../context/TourContext';
+import { ToggleEffectsButton } from './ToggleEffectsButton';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -223,6 +224,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ScreenShareButton />
             </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleEffectsButton />
+            </div>
+
             <div className="str-video__call-controls__desktop">
               <ReactionsButton />
             </div>

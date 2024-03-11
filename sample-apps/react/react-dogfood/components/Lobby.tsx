@@ -31,6 +31,7 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { ToggleEffectsButton } from './ToggleEffectsButton';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 
@@ -135,7 +136,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
 
                     <div className="rd__lobby-settings">
                       <ToggleParticipantsPreviewButton onJoin={onJoin} />
-
+                      <ToggleEffectsButton />
                       <ToggleSettingsTabModal
                         layoutProps={{
                           selectedLayout: layout,
