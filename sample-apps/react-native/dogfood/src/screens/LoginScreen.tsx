@@ -158,7 +158,7 @@ const LoginScreen = () => {
         <View style={styles.bottomContainer}>
           <View style={styles.customUser}>
             <TextInput
-              placeholder={t('Enter custom user')}
+              placeholder={t('Enter User ID')}
               value={localUserId}
               onChangeText={(text) => {
                 setLocalUserId(text);
