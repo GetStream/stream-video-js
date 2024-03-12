@@ -6998,7 +6998,6 @@ __metadata:
     "@protobuf-ts/twirp-transport": ^2.9.3
     "@rollup/plugin-replace": ^5.0.5
     "@rollup/plugin-typescript": ^11.1.6
-    "@types/jsonwebtoken": ^9.0.3
     "@types/sdp-transform": ^2.4.7
     "@types/ua-parser-js": ^0.7.37
     "@types/ws": ^8.5.7
@@ -7008,7 +7007,6 @@ __metadata:
     dotenv: ^16.3.1
     happy-dom: ^11.0.2
     isomorphic-ws: ^5.0.0
-    jsonwebtoken: ^9.0.2
     prettier: ^2.8.8
     rimraf: ^5.0.5
     rollup: ^3.29.4
@@ -7689,7 +7687,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:^9.0.3, @types/jsonwebtoken@npm:~9.0.0":
+"@types/jsonwebtoken@npm:~9.0.0":
   version: 9.0.3
   resolution: "@types/jsonwebtoken@npm:9.0.3"
   dependencies:
@@ -17463,7 +17461,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.2, jsonwebtoken@npm:~9.0.0":
+"jsonwebtoken@npm:~9.0.0":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:

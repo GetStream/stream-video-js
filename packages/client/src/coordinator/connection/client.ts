@@ -861,42 +861,4 @@ export class StreamClient {
   createAbortControllerForNextRequest = () => {
     return (this.nextRequestAbortController = new AbortController());
   };
-
-  /**
-   * createToken - Creates a token to authenticate this user. This function is used server side.
-   * The resulting token should be passed to the client side when the users registers or logs in.
-   *
-   * @param {string} userID The UserWithId ID
-   * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
-   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
-   *
-   * @return {string} Returns a token
-   */
-  createToken = (
-    userID: string,
-    exp?: number,
-    iat?: number,
-    call_cids?: string[],
-  ) => {
-    if (this.secret == null) {
-      throw Error(
-        `tokens can only be created server-side using the API Secret`,
-      );
-    }
-    const extra: { exp?: number; iat?: number; call_cids?: string[] } = {};
-
-    if (exp) {
-      extra.exp = exp;
-    }
-
-    if (iat) {
-      extra.iat = iat;
-    }
-
-    if (call_cids) {
-      extra.call_cids = call_cids;
-    }
-
-    return JWTUserToken(this.secret, userID, extra, {});
-  };
 }
