@@ -31,6 +31,7 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LogBox, StyleSheet } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
+import { ENVIRONMENT } from '@env';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -52,6 +53,12 @@ const StackNavigator = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
+
+  useEffect(() => {
+    if (ENVIRONMENT === 'demo') {
+      setState({ appMode: 'Meeting' });
+    }
+  }, [setState]);
 
   useProntoLinkEffect();
   useSyncPermissions();

@@ -63,7 +63,7 @@ const LoginScreen = () => {
         userId: _userId,
         userName: _userId,
         userImageUrl: _userImageUrl,
-        appMode: 'None',
+        appMode: ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
         appEnvironment:
           ENVIRONMENT === 'demo'
             ? 'demo'
@@ -89,7 +89,7 @@ const LoginScreen = () => {
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
-        appMode: 'None',
+        appMode: ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
         appEnvironment:
           ENVIRONMENT === 'demo'
             ? 'demo'
