@@ -45,6 +45,7 @@
     "@openapitools/openapi-generator-cli": "^2.7.0",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@stream-io/node-sdk": "^0.1.12",
     "@types/sdp-transform": "^2.4.7",
     "@types/ua-parser-js": "^0.7.37",
     "@vitest/coverage-v8": "^0.34.4",

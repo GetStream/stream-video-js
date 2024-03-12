@@ -1,4 +1,4 @@
-import { encodeBase64 } from './base64';
+import { decodeBase64, encodeBase64 } from './base64';
 
 /**
  *
@@ -11,4 +11,15 @@ export function DevToken(userId: string) {
     encodeBase64(JSON.stringify({ user_id: userId })),
     'devtoken', // hardcoded signature
   ].join('.');
+}
+
+export function UserFromToken(token: string) {
+  const fragments = token.split('.');
+  if (fragments.length !== 3) {
+    return '';
+  }
+  const b64Payload = fragments[1];
+  const payload = decodeBase64(b64Payload);
+  const data = JSON.parse(payload);
+  return data.user_id as string;
 }
