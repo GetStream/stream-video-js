@@ -4960,4 +4960,66 @@ export type WSEvent =
   | ({ type: 'call.updated' } & CallUpdatedEvent)
   | ({ type: 'call.user_muted' } & CallUserMuted)
   | ({ type: 'connection.error' } & ConnectionErrorEvent)
-  | ({ type: 'connection.ok' } & ConnectedEvent);
+  | ({ type: 'connection.ok' } & ConnectedEvent)
+  | ({ type: 'health.check' } & HealthCheckEvent)
+  | ({ type: 'custom' } & CustomVideoEvent);
+
+// Added manually
+/**
+ *
+ * @export
+ * @interface HealthCheckEvent
+ */
+export interface HealthCheckEvent {
+  /**
+   * The connection_id for this client
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "health.check" in this case
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  type: string;
+}
+
+export interface CustomVideoEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  created_at: string;
+  /**
+   * Custom data for this object
+   * @type {{ [key: string]: any; }}
+   * @memberof CustomVideoEvent
+   */
+  custom: { [key: string]: any };
+  /**
+   * The type of event, "custom" in this case
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CustomVideoEvent
+   */
+  user: UserResponse;
+}
