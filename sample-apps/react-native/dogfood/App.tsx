@@ -54,12 +54,6 @@ const StackNavigator = () => {
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
 
-  useEffect(() => {
-    if (ENVIRONMENT === 'demo') {
-      setState({ appMode: 'Meeting' });
-    }
-  }, [setState]);
-
   useProntoLinkEffect();
   useSyncPermissions();
 
