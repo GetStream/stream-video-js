@@ -4,13 +4,7 @@ import replace from '@rollup/plugin-replace';
 import pkg from './package.json' assert { type: 'json' };
 
 // these modules are used only in nodejs and are not needed in the browser
-const browserIgnoredModules = [
-  'jsonwebtoken',
-  'https',
-  'crypto',
-  'util',
-  'stream',
-];
+const browserIgnoredModules = ['https', 'util', 'stream'];
 
 /**
  * A plugin which converts the nodejs modules to empty modules for the browser.

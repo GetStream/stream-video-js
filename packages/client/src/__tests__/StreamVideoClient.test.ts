@@ -3,17 +3,15 @@ import { StreamVideoClient } from '../StreamVideoClient';
 import 'dotenv/config';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { User } from '../coordinator/connection/types';
-import { StreamClient } from '../coordinator/connection/client';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
 const tokenProvider = (userId: string) => {
-  const client = new StreamClient(apiKey, { secret });
   return async () => {
     return new Promise<string>((resolve) => {
       setTimeout(() => {
-        const token = client.createToken(userId);
+        const token = 'TODO';
         resolve(token);
       }, 100);
     });
