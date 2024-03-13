@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.3...@stream-io/video-react-native-sdk-0.5.4) (2024-03-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.1`
+### [0.5.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.2...@stream-io/video-react-native-sdk-0.5.3) (2024-03-13)
+
+
+### Bug Fixes
+
+* **react-native:** demo app login screen ([#1285](https://github.com/GetStream/stream-video-js/issues/1285)) ([eb7a4f4](https://github.com/GetStream/stream-video-js/commit/eb7a4f482edb8af13edf57cc404f96adc56abd09))
+
 ### [0.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.1...@stream-io/video-react-native-sdk-0.5.2) (2024-03-05)
 
 ### [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.0...@stream-io/video-react-native-sdk-0.5.1) (2024-03-01)

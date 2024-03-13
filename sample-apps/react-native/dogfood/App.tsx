@@ -31,6 +31,7 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LogBox, StyleSheet } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
+import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -106,17 +107,14 @@ const StackNavigator = () => {
   }
 
   useEffect(() => {
-    if (!(userId && userImageUrl)) {
-      return;
-    }
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
+      if (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && prontoCallId) {
         setState({ appMode: 'Meeting' });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [setState, userId, userImageUrl]);
+  }, [setState]);
 
   useEffect(() => {
     if (userId && userImageUrl) {

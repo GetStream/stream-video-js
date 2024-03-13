@@ -1,13 +1,13 @@
 ---
 require:
-- rubocop/require_tools
-- rubocop-performance
+  - rubocop/require_tools
+  - rubocop-performance
 AllCops:
   TargetRubyVersion: 2.5
   NewCops: enable
   Include:
-  - "**/*.rb"
-  - "**/*file"
+    - '**/*.rb'
+    - '**/*file'
 Style/MultipleComparison:
   Enabled: false
 Style/PercentLiteralDelimiters:
@@ -44,7 +44,7 @@ Style/EmptyMethod:
   Enabled: false
 Lint/UselessAssignment:
   Exclude:
-  - "**/spec/**/*"
+    - '**/spec/**/*'
 Require/MissingRequireStatement:
   Enabled: false
 Layout/FirstHashElementIndentation:
@@ -61,7 +61,7 @@ Layout/HeredocIndentation:
   Enabled: false
 Style/MixinGrouping:
   Exclude:
-  - "**/spec/**/*"
+    - '**/spec/**/*'
 Lint/SuppressedException:
   Enabled: false
 Lint/UnusedBlockArgument:
@@ -111,28 +111,28 @@ Lint/UnusedMethodArgument:
   Enabled: false
 Lint/ParenthesesAsGroupedExpression:
   Exclude:
-  - "**/spec/**/*"
+    - '**/spec/**/*'
 Naming/PredicateName:
   Enabled: false
 Style/PerlBackrefs:
   Enabled: false
 Naming/FileName:
   Exclude:
-  - "**/Dangerfile"
-  - "**/Brewfile"
-  - "**/Gemfile"
-  - "**/Podfile"
-  - "**/Rakefile"
-  - "**/Fastfile"
-  - "**/Scanfile"
-  - "**/Matchfile"
-  - "**/Appfile"
-  - "**/Allurefile"
-  - "**/Sonarfile"
-  - "**/Deliverfile"
-  - "**/Snapfile"
-  - "**/Pluginfile"
-  - "**/*.gemspec"
+    - '**/Dangerfile'
+    - '**/Brewfile'
+    - '**/Gemfile'
+    - '**/Podfile'
+    - '**/Rakefile'
+    - '**/Fastfile'
+    - '**/Scanfile'
+    - '**/Matchfile'
+    - '**/Appfile'
+    - '**/Allurefile'
+    - '**/Sonarfile'
+    - '**/Deliverfile'
+    - '**/Snapfile'
+    - '**/Pluginfile'
+    - '**/*.gemspec'
 Style/Documentation:
   Enabled: false
 Style/MutableConstant:
@@ -145,26 +145,26 @@ Style/CollectionMethods:
   Enabled: false
 Style/MethodCallWithArgsParentheses:
   Enabled: true
-  IgnoredMethods:
-  - require
-  - require_relative
-  - fastlane_require
-  - gem
-  - program
-  - command
-  - raise
-  - attr_accessor
-  - attr_reader
-  - desc
-  - lane
-  - private_lane
-  - platform
-  - to
-  - not_to
-  - describe
-  - it
-  - be
-  - context
-  - before
-  - after
-  - and
+  AllowedMethods:
+    - require
+    - require_relative
+    - fastlane_require
+    - gem
+    - program
+    - command
+    - raise
+    - attr_accessor
+    - attr_reader
+    - desc
+    - lane
+    - private_lane
+    - platform
+    - to
+    - not_to
+    - describe
+    - it
+    - be
+    - context
+    - before
+    - after
+    - and
