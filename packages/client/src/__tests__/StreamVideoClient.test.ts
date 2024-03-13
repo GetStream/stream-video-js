@@ -14,7 +14,11 @@ const tokenProvider = (userId: string) => {
   return async () => {
     return new Promise<string>((resolve) => {
       setTimeout(() => {
-        const token = serverClient.createToken(userId);
+        const token = serverClient.createToken(
+          userId,
+          undefined,
+          Math.round(Date.now() / 1000 - 10),
+        );
         resolve(token);
       }, 100);
     });
