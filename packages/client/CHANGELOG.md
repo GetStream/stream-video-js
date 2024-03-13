@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.0...@stream-io/video-client-0.6.1) (2024-03-13)
+
+
+### Features
+
+* **speakers:** Participant audio output levels ([#1284](https://github.com/GetStream/stream-video-js/issues/1284)) ([63b6077](https://github.com/GetStream/stream-video-js/commit/63b607709fd65019fe320e5970aab8132053995c))
+
 ## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.11...@stream-io/video-client-0.6.0) (2024-02-26)
 
 
