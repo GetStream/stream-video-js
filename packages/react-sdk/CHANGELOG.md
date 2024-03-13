@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.1...@stream-io/video-react-sdk-0.5.2) (2024-03-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.1`
+
+### Features
+
+* **speakers:** Participant audio output levels ([#1284](https://github.com/GetStream/stream-video-js/issues/1284)) ([63b6077](https://github.com/GetStream/stream-video-js/commit/63b607709fd65019fe320e5970aab8132053995c))
+
 ### [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.0...@stream-io/video-react-sdk-0.5.1) (2024-02-28)
 
 
