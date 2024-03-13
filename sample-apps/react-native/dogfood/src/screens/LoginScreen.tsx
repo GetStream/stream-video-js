@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ENVIRONMENT } from '@env';
+import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import {
   Image,
   StyleSheet,
@@ -42,7 +42,7 @@ const generateValidUserId = (userId: string) => {
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const [prontoEnvironment, setProntoEnvironment] = useState(
-    ENVIRONMENT === 'pronto',
+    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto',
   );
   const [loader, setLoader] = useState(false);
   const { t } = useI18n();
@@ -63,9 +63,10 @@ const LoginScreen = () => {
         userId: _userId,
         userName: _userId,
         userImageUrl: _userImageUrl,
-        appMode: ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
+        appMode:
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
         appEnvironment:
-          ENVIRONMENT === 'demo'
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
             ? 'demo'
             : prontoEnvironment
             ? 'pronto'
@@ -89,9 +90,10 @@ const LoginScreen = () => {
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
-        appMode: ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
+        appMode:
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
         appEnvironment:
-          ENVIRONMENT === 'demo'
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
             ? 'demo'
             : prontoEnvironment
             ? 'pronto'
@@ -116,7 +118,7 @@ const LoginScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.keyboardContainer, landscapeStyles]}
       >
-        {ENVIRONMENT === 'pronto' && (
+        {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && (
           <View style={styles.header}>
             <Text style={styles.envText}>{t('Pronto')}</Text>
             <Switch
@@ -137,7 +139,7 @@ const LoginScreen = () => {
         <View style={styles.topContainer}>
           <Image source={require('../assets/Logo.png')} style={styles.logo} />
           <View>
-            {ENVIRONMENT === 'pronto' ? (
+            {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' ? (
               <Text style={styles.title}>
                 {prontoEnvironment
                   ? t('Stream DogFood App')
@@ -147,7 +149,7 @@ const LoginScreen = () => {
               <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             )}
             <Text style={styles.subTitle}>
-              {ENVIRONMENT === 'pronto'
+              {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto'
                 ? t(
                     'Please sign in with your Google Stream account or a Custom user id.',
                   )
@@ -173,7 +175,7 @@ const LoginScreen = () => {
               buttonStyle={styles.loginButton}
             />
           </View>
-          {ENVIRONMENT === 'pronto' && (
+          {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && (
             <>
               <Text style={styles.orText}>{t('OR')}</Text>
               <Button

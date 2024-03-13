@@ -16,7 +16,7 @@ import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
 import { Button } from './Button';
 import { ButtonTestIds } from '../constants/TestIds';
-import { ENVIRONMENT } from '@env';
+import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
@@ -60,7 +60,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   };
 
   const showChooseModeButton =
-    ENVIRONMENT === 'pronto' &&
+    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' &&
     (route.name === 'JoinMeetingScreen' ||
       route.name === 'JoinCallScreen' ||
       route.name === 'AudioRoom' ||

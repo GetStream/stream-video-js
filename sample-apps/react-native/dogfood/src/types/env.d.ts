@@ -1,5 +1,5 @@
 type AppEnvironment = 'pronto' | 'demo';
 
 declare module '@env' {
-  export const ENVIRONMENT: AppEnvironment;
+  export const REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT: AppEnvironment;
 }
