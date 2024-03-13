@@ -36,12 +36,12 @@
     "react-chartjs-2": "^5.2.0"
   },
   "peerDependencies": {
-    "@stream-io/video-filters": "^0.0.0",
+    "@stream-io/video-filters-web": "^0.1.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
   "peerDependenciesMeta": {
-    "@stream-io/video-filters": {
+    "@stream-io/video-filters-web": {
       "optional": true
     }
   },

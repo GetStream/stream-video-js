@@ -15,7 +15,7 @@ import {
   createRenderer,
   loadTFLite,
   TFLite,
-} from '@stream-io/video-filters';
+} from '@stream-io/video-filters-web';
 
 export type BackgroundFiltersProps = {
   isBlurringEnabled?: boolean;
