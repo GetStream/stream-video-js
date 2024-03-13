@@ -65,14 +65,15 @@
 			<true />
 		</dict>
 		<key>NSCameraUsageDescription</key>
-		<string>$(PRODUCT_NAME) would like to use your device camera to stream video in a meeting</string>
+		<string>$(PRODUCT_NAME) requires camera access in order to capture and transmit video</string>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>$(PRODUCT_NAME) would like to use your device microphone to stream audio in a
-			meeting</string>
+		<string>$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>$(PRODUCT_NAME) would like to save photos to your photo gallery</string>
+		<string>$(PRODUCT_NAME) requires access to photo library to allow you to share photo
+			attachments</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>$(PRODUCT_NAME) would like access to your photo gallery to upload images in the chat</string>
+		<string>$(PRODUCT_NAME) requires access to photo library to allow you to share photo
+			attachments</string>
 		<key>RTCAppGroupIdentifier</key>
 		<string>group.io.getstream.rn.videodogfood</string>
 		<key>RTCScreenSharingExtension</key>
