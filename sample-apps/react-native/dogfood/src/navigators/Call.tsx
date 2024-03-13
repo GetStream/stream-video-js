@@ -2,9 +2,11 @@ import React, { useCallback, useEffect } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
+  CallingState,
   RingingCallContent,
   StreamCall,
   useCalls,
+  Call as StreamCallType,
 } from '@stream-io/video-react-native-sdk';
 import { Alert, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -47,11 +49,24 @@ const Calls = () => {
 
   return (
     <StreamCall call={firstCall}>
+      <CallLeaveOnUnmount call={firstCall} />
       <SafeAreaView style={[styles.container, { top }]}>
         <RingingCallContent landscape={orientation === 'landscape'} />
       </SafeAreaView>
     </StreamCall>
   );
+};
+
+const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
+  useEffect(() => {
+    return () => {
+      if (call && call.state.callingState !== CallingState.LEFT) {
+        call.leave();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
 };
 
 export const Call = () => {

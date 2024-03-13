@@ -136,24 +136,12 @@ export const CallContent = ({
    */
   useIncallManager({ media: 'video', auto: true });
 
-  const call = useCall();
-  const activeCallRef = useRef(call);
-  activeCallRef.current = call;
-
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {
       return;
     }
     setShowRemoteParticipantInFloatingView((prevState) => !prevState);
   };
-
-  useEffect(() => {
-    return () => {
-      if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
-        activeCallRef.current?.leave();
-      }
-    };
-  }, []);
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel: isInPiPMode ? null : ParticipantLabel,
