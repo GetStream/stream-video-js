@@ -137,6 +137,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const chatClient = useCreateStreamChatClient({
     apiKey: credentials?.apiKey,
     tokenOrProvider: tokenProvider,
+    // @ts-expect-error incompatible language definition between stream-chat and @stream-io/video-client
     userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
   });
 
