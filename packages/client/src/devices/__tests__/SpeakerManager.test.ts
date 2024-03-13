@@ -1,8 +1,11 @@
-import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { emitDeviceIds, mockAudioDevices, mockDeviceIds$ } from './mocks';
 import { of } from 'rxjs';
 import { SpeakerManager } from '../SpeakerManager';
 import { checkIfAudioOutputChangeSupported } from '../devices';
+import { Call } from '../../Call';
+import { StreamClient } from '../../coordinator/connection/client';
+import { StreamVideoWriteableStateStore } from '../../store';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices');
@@ -17,7 +20,14 @@ describe('SpeakerManager.test', () => {
   let manager: SpeakerManager;
 
   beforeEach(() => {
-    manager = new SpeakerManager();
+    manager = new SpeakerManager(
+      new Call({
+        id: '',
+        type: '',
+        streamClient: new StreamClient('abc123'),
+        clientStore: new StreamVideoWriteableStateStore(),
+      }),
+    );
   });
 
   it('list devices', () => {
@@ -58,6 +68,26 @@ describe('SpeakerManager.test', () => {
     manager.setVolume(0.5);
 
     expect(manager.state.volume).toBe(0.5);
+  });
+
+  it('set participant volume', () => {
+    const call = manager['call'];
+    // @ts-expect-error - incomplete data
+    call.state.updateOrAddParticipant('session-id', {
+      audioVolume: undefined,
+      sessionId: 'session-id',
+    });
+
+    manager.setParticipantVolume('session-id', 0.5);
+    let participant = call.state.findParticipantBySessionId('session-id');
+    expect(participant!.audioVolume).toBe(0.5);
+
+    manager.setParticipantVolume('session-id', undefined);
+    participant = call.state.findParticipantBySessionId('session-id');
+    expect(participant!.audioVolume).toBe(undefined);
+
+    expect(() => manager.setParticipantVolume('session-id', 2)).toThrowError();
+    expect(() => manager.setParticipantVolume('session-id', -1)).toThrowError();
   });
 
   it('should disable device if selected device is disconnected', () => {

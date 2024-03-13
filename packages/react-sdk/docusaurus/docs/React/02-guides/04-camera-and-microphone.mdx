@@ -253,6 +253,29 @@ const { speaker } = useSpeakerState();
 speaker.setVolume(0.5); // 0.5 is 50% of the maximum volume
 ```
 
+### Set participant volume
+
+```typescript
+import {
+  useCallStateHooks,
+  StreamVideoParticipant,
+} from '@stream-io/video-react-sdk';
+
+let p: StreamVideoParticipant;
+
+const { useSpeakerState } = useCallStateHooks();
+const { speaker } = useSpeakerState();
+
+// will set the volume of the participant to 50%
+speaker.setParticipantVolume(p.sessionId, 0.5);
+
+// will mute the participant
+speaker.setParticipantVolume(p.sessionId, 0);
+
+// will reset the volume to the default value
+speaker.setParticipantVolume(p.sessionId, undefined);
+```
+
 ## Persisting user's device preferences
 
 For user's convenience, you might want to persist the user's choices for the camera, microphone and speaker devices across sessions.

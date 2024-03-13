@@ -346,3 +346,22 @@ call.speaker.state.volume$.subscribe((volume) => {
   console.log(volume);
 });
 ```
+
+### Set participant volume
+
+You can control the volume of a specific participant in the call:
+
+```typescript
+import { StreamVideoParticipant } from '@stream-io/video-client';
+
+let p: StreamVideoParticipant;
+
+// will set the volume of the participant to 50%
+call.speaker.setParticipantVolume(p.sessionId, 0.5);
+
+// will mute the participant
+call.speaker.setParticipantVolume(p.sessionId, 0);
+
+// will reset the volume to the default value
+call.speaker.setParticipantVolume(p.sessionId, undefined);
+```

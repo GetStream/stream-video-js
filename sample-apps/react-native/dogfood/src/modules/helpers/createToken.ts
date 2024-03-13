@@ -1,13 +1,16 @@
+import { AppEnvironment } from '../../contexts/AppContext';
+import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
+
 type ParamsType = {
   user_id: string;
   call_cids?: string;
 };
 
-type EnvironmentType = 'pronto' | 'demo';
-
 export const createToken = async (
   params: ParamsType,
-  environment: EnvironmentType = 'pronto',
+  environment:
+    | AppEnvironment
+    | undefined = REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT as AppEnvironment,
 ) => {
   const endpoint = new URL('https://pronto.getstream.io/api/auth/create-token');
   endpoint.searchParams.set('user_id', params.user_id);

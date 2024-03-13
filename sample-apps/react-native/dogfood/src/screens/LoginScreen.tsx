@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import {
   Image,
   StyleSheet,
@@ -7,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ViewStyle,
+  Switch,
 } from 'react-native';
 import {
   GoogleSignin,
@@ -19,11 +21,12 @@ import { TextInput } from '../components/TextInput';
 import { useI18n } from '@stream-io/video-react-native-sdk';
 import { KnownUsers } from '../constants/KnownUsers';
 import { useOrientation } from '../hooks/useOrientation';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
   // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-  // hostedDomain: 'getstream.io', // specifies a hosted domain restriction
+  hostedDomain: 'getstream.io', // specifies a hosted domain restriction
   // forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
   // accountName: '', // [Android] specifies an account name on the device that should be used
   // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
@@ -38,6 +41,9 @@ const generateValidUserId = (userId: string) => {
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
+  const [prontoEnvironment, setProntoEnvironment] = useState(
+    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto',
+  );
   const [loader, setLoader] = useState(false);
   const { t } = useI18n();
   const orientation = useOrientation();
@@ -57,7 +63,14 @@ const LoginScreen = () => {
         userId: _userId,
         userName: _userId,
         userImageUrl: _userImageUrl,
-        appMode: 'None',
+        appMode:
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
+        appEnvironment:
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
+            ? 'demo'
+            : prontoEnvironment
+            ? 'pronto'
+            : 'demo',
       });
     } catch (error) {
       console.log(error);
@@ -70,13 +83,21 @@ const LoginScreen = () => {
       const userInfo = await GoogleSignin.signIn();
       const userId = generateValidUserId(userInfo.user.email);
       const userName = userInfo.user.name as string;
+
       setState({
         userId,
         userName,
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
-        appMode: 'None',
+        appMode:
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
+        appEnvironment:
+          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
+            ? 'demo'
+            : prontoEnvironment
+            ? 'pronto'
+            : 'demo',
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {
@@ -92,48 +113,82 @@ const LoginScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, landscapeStyles]}
-    >
-      <View style={styles.topContainer}>
-        <Image source={require('../assets/Logo.png')} style={styles.logo} />
-        <View>
-          <Text style={styles.title}>{t('Stream DogFood App')}</Text>
-          <Text style={styles.subTitle}>
-            {t(
-              'Please sign in with your Google Stream account or a Custom user id.',
+    <SafeAreaView style={[styles.container, landscapeStyles]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={[styles.keyboardContainer, landscapeStyles]}
+      >
+        {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && (
+          <View style={styles.header}>
+            <Text style={styles.envText}>{t('Pronto')}</Text>
+            <Switch
+              value={prontoEnvironment}
+              onValueChange={(value) => {
+                if (value === true) {
+                  setState({ appEnvironment: 'pronto' });
+                } else {
+                  setState({ appEnvironment: 'demo' });
+                }
+                setProntoEnvironment(value);
+              }}
+              trackColor={{ true: appTheme.colors.light_blue }}
+              thumbColor={appTheme.colors.primary}
+            />
+          </View>
+        )}
+        <View style={styles.topContainer}>
+          <Image source={require('../assets/Logo.png')} style={styles.logo} />
+          <View>
+            {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' ? (
+              <Text style={styles.title}>
+                {prontoEnvironment
+                  ? t('Stream DogFood App')
+                  : t('Stream Video Calling')}
+              </Text>
+            ) : (
+              <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             )}
-          </Text>
+            <Text style={styles.subTitle}>
+              {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto'
+                ? t(
+                    'Please sign in with your Google Stream account or a Custom user id.',
+                  )
+                : t('Please sign in with Custom User ID')}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.bottomContainer}>
-        <View style={styles.customUser}>
-          <TextInput
-            placeholder={t('Enter custom user')}
-            value={localUserId}
-            onChangeText={(text) => {
-              setLocalUserId(text);
-            }}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Button
-            title={t('Login')}
-            disabled={!localUserId}
-            onPress={loginHandler}
-            buttonStyle={styles.loginButton}
-          />
+        <View style={styles.bottomContainer}>
+          <View style={styles.customUser}>
+            <TextInput
+              placeholder={t('Enter User ID')}
+              value={localUserId}
+              onChangeText={(text) => {
+                setLocalUserId(text);
+              }}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <Button
+              title={t('Login')}
+              disabled={!localUserId}
+              onPress={loginHandler}
+              buttonStyle={styles.loginButton}
+            />
+          </View>
+          {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && (
+            <>
+              <Text style={styles.orText}>{t('OR')}</Text>
+              <Button
+                title={t('Google Sign In')}
+                onPress={signInViaGoogle}
+                disabled={loader}
+                buttonStyle={styles.googleSignin}
+              />
+            </>
+          )}
         </View>
-        <Text style={styles.orText}>{t('OR')}</Text>
-        <Button
-          title={t('Google Sign In')}
-          onPress={signInViaGoogle}
-          disabled={loader}
-          buttonStyle={styles.googleSignin}
-        />
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -141,12 +196,26 @@ const styles = StyleSheet.create({
   container: {
     padding: appTheme.spacing.lg,
     flex: 1,
-    justifyContent: 'space-evenly',
     backgroundColor: appTheme.colors.static_grey,
+  },
+  keyboardContainer: {
+    flex: 1,
+    justifyContent: 'space-evenly',
   },
   topContainer: {
     flex: 1,
     justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    justifyContent: 'center',
+  },
+  envText: {
+    color: appTheme.colors.static_white,
+    fontSize: 16,
+    marginRight: 8,
+    alignSelf: 'center',
   },
   logo: {
     height: 100,

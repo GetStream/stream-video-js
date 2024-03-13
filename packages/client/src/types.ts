@@ -88,6 +88,14 @@ export interface StreamVideoParticipant extends Participant {
    * The visibility state of the participant's tracks within a defined viewport.
    */
   viewportVisibilityState?: Record<VideoTrackType, VisibilityState>;
+
+  /**
+   * The volume of the participant's audio stream (from 0 to 1).
+   * Set it to `undefined` to use the default volume.
+   *
+   * Note: this value is not applicable in React Native.
+   */
+  audioVolume?: number;
 }
 
 export type VideoTrackType = 'videoTrack' | 'screenShareTrack';

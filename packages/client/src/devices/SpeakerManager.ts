@@ -1,4 +1,5 @@
 import { combineLatest, Subscription } from 'rxjs';
+import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
 import { deviceIds$, getAudioOutputDevices } from './devices';
@@ -6,8 +7,10 @@ import { deviceIds$, getAudioOutputDevices } from './devices';
 export class SpeakerManager {
   public readonly state = new SpeakerState();
   private subscriptions: Subscription[] = [];
+  private readonly call: Call;
 
-  constructor() {
+  constructor(call: Call) {
+    this.call = call;
     if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
         combineLatest([deviceIds$!, this.state.selectedDevice$]).subscribe(
@@ -39,7 +42,7 @@ export class SpeakerManager {
   }
 
   /**
-   * Select device
+   * Select a device.
    *
    * Note: this method is not supported in React Native
    *
@@ -63,7 +66,7 @@ export class SpeakerManager {
 
   /**
    * Set the volume of the audio elements
-   * @param volume a number between 0 and 1
+   * @param volume a number between 0 and 1.
    *
    * Note: this method is not supported in React Native
    */
@@ -75,5 +78,23 @@ export class SpeakerManager {
       throw new Error('Volume must be between 0 and 1');
     }
     this.state.setVolume(volume);
+  }
+
+  /**
+   * Set the volume of a participant.
+   *
+   * Note: this method is not supported in React Native.
+   *
+   * @param sessionId the participant's session id.
+   * @param volume a number between 0 and 1. Set it to `undefined` to use the default volume.
+   */
+  setParticipantVolume(sessionId: string, volume: number | undefined) {
+    if (isReactNative()) {
+      throw new Error('This feature is not supported in React Native');
+    }
+    if (volume && (volume < 0 || volume > 1)) {
+      throw new Error('Volume must be between 0 and 1, or undefined');
+    }
+    this.call.state.updateParticipant(sessionId, { audioVolume: volume });
   }
 }
