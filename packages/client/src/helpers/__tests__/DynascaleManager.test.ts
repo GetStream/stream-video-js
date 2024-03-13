@@ -148,7 +148,12 @@ describe('DynascaleManager', () => {
       );
 
       call.speaker.setVolume(0.5);
+      expect(audioElement.volume).toBe(0.5);
 
+      call.speaker.setParticipantVolume('session-id', 0.7);
+      expect(audioElement.volume).toBe(0.7);
+
+      call.speaker.setParticipantVolume('session-id', undefined);
       expect(audioElement.volume).toBe(0.5);
 
       cleanup?.();

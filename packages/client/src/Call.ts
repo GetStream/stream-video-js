@@ -283,7 +283,7 @@ export class Call {
 
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
-    this.speaker = new SpeakerManager();
+    this.speaker = new SpeakerManager(this);
     this.screenShare = new ScreenShareManager(this);
   }
 

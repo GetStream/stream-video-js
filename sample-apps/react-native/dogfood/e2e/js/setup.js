@@ -5,7 +5,7 @@ output.pages = {
     meeting: 'Meeting',
   },
   login: {
-    customUserInputField: 'Enter custom user',
+    customUserInputField: 'Enter User ID',
     userName: 'Gerri',
     loginButton: 'Login',
   },

@@ -58,14 +58,14 @@ const UnreadBadgeCountIndicator = ({
   return (
     <View
       testID={ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR}
-      style={(styles.chatBadge, { backgroundColor: colors.error })}
+      style={[styles.chatBadge, { backgroundColor: colors.error }]}
     >
       <Text
-        style={
-          (styles.chatBadgeText,
+        style={[
+          styles.chatBadgeText,
           { color: colors.static_white },
-          typefaces.bodyBold)
-        }
+          typefaces.subtitle,
+        ]}
       >
         {count}
       </Text>
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
     left: 15,
     bottom: 20,
     zIndex: Z_INDEX.IN_FRONT,
-    height: 30,
-    width: 30,
+    height: 24,
+    width: 24,
     justifyContent: 'center',
   },
   chatBadgeText: {

@@ -1,0 +1,29 @@
+{
+  "name": "@stream-io/video-react-native-dogfood",
+  "$schema": " ../../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "versionNative": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "dryRun": false,
+        "preset": {
+          "name": "conventionalcommits",
+          "types": [
+            { "type": "feat", "section": "Features" },
+            { "type": "fix", "section": "Bug Fixes" },
+            { "type": "chore", "hidden": true },
+            { "type": "docs", "hidden": true },
+            { "type": "style", "hidden": true },
+            { "type": "refactor", "hidden": true },
+            { "type": "perf", "section": "Features" },
+            { "type": "test", "hidden": true }
+          ]
+        },
+        "skipProjectChangelog": true,
+        "trackDeps": true,
+        "push": true,
+        "skipCommitTypes": ["chore", "ci", "docs"]
+      }
+    }
+  }
+}
