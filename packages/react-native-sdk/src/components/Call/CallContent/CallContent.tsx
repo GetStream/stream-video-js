@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
@@ -15,8 +15,8 @@ import {
   CallControls as DefaultCallControls,
   HangUpCallButtonProps,
 } from '../CallControls';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallingState, StreamReaction } from '@stream-io/video-client';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { StreamReaction } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
