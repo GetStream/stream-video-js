@@ -1,4 +1,3 @@
-import { Secret } from 'jsonwebtoken';
 import { UserFromToken } from './signing';
 import { isFunction } from './utils';
 import type { TokenOrProvider, UserWithId } from './types';
@@ -11,7 +10,7 @@ import type { TokenOrProvider, UserWithId } from './types';
 export class TokenManager {
   loadTokenPromise: Promise<string> | null;
   type: 'static' | 'provider';
-  secret?: Secret;
+  secret?: string;
   token?: string;
   tokenProvider?: TokenOrProvider;
   user?: UserWithId;
@@ -20,7 +19,7 @@ export class TokenManager {
    *
    * @param {Secret} secret
    */
-  constructor(secret?: Secret) {
+  constructor(secret?: string) {
     this.loadTokenPromise = null;
     if (secret) {
       this.secret = secret;
