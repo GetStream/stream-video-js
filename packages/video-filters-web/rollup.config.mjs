@@ -1,4 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
+import replace from '@rollup/plugin-replace';
 
 import pkg from './package.json' assert { type: 'json' };
 
@@ -23,7 +24,13 @@ const config = {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.peerDependencies || {}),
   ],
-  plugins: [typescript()],
+  plugins: [
+    replace({
+      preventAssignment: true,
+      'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+    }),
+    typescript(),
+  ],
 };
 
 export default [config];

@@ -13,7 +13,7 @@
     "@floating-ui/react": "^0.26.5",
     "@next/third-parties": "^14.1.0",
     "@sentry/nextjs": "^7.91.0",
-    "@stream-io/video-filters": "workspace:^",
+    "@stream-io/video-filters-web": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "axios": "^1.6.0",

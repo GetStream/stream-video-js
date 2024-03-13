@@ -6332,23 +6332,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-json@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "@rollup/plugin-json@npm:6.0.1"
+"@rollup/plugin-json@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@rollup/plugin-json@npm:6.1.0"
   dependencies:
-    "@rollup/pluginutils": ^5.0.1
+    "@rollup/pluginutils": ^5.1.0
   peerDependencies:
     rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
   peerDependenciesMeta:
     rollup:
       optional: true
-  checksum: 86995e3ceec0205bd0b5ae3075f4592e0ab3e6e6327a5dcfc825b44113eaae5819d26d5403d29b177ac59299e0b08c641c8d030e0c72805b92805ededc9cac44
+  checksum: cc018d20c80242a2b8b44fae61a968049cf31bb8406218187cc7cda35747616594e79452dd65722e7da6dd825b392e90d4599d43cd4461a02fefa2865945164e
   languageName: node
   linkType: hard
 
-"@rollup/plugin-replace@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@rollup/plugin-replace@npm:5.0.4"
+"@rollup/plugin-replace@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@rollup/plugin-replace@npm:5.0.5"
   dependencies:
     "@rollup/pluginutils": ^5.0.1
     magic-string: ^0.30.3
@@ -6357,15 +6357,15 @@ __metadata:
   peerDependenciesMeta:
     rollup:
       optional: true
-  checksum: 50c9ec927e98c9978954b1fdec171c3e5d62c2ae6c9e4eb1569e58ae2deff5483b0eec5817ed2fe02f70ec25c574dd83e4ddd8c0a63ae626e75039dc93fb4bc0
+  checksum: 5559b48fa098a842ddb3a25b23d9902d75496bed807d4cabac304bb7e75b06374ad4a44f7871ddcd1bfcf23e6015a0274d44564b42af54c722af0a514c247ec1
   languageName: node
   linkType: hard
 
-"@rollup/plugin-typescript@npm:^11.1.5":
-  version: 11.1.5
-  resolution: "@rollup/plugin-typescript@npm:11.1.5"
+"@rollup/plugin-typescript@npm:^11.1.6":
+  version: 11.1.6
+  resolution: "@rollup/plugin-typescript@npm:11.1.6"
   dependencies:
-    "@rollup/pluginutils": ^5.0.1
+    "@rollup/pluginutils": ^5.1.0
     resolve: ^1.22.1
   peerDependencies:
     rollup: ^2.14.0||^3.0.0||^4.0.0
@@ -6376,7 +6376,7 @@ __metadata:
       optional: true
     tslib:
       optional: true
-  checksum: 092eed73bdd4817d0d5958b67ca2e49bc8b10f9c49614d7c65925e98817adf7a0508b2e9fa00699b025cb0563d72d9eaca93580df8d7f9515767be39352bb11c
+  checksum: 3f5b981f4d9c9501be1f16396f7b6d4ae584cb1b61e9f0bed66f98245fb77f249caea2b9b5f222f933b46fd9043c1f2664a7445aefa386c1ffbb4f0b80fc6004
   languageName: node
   linkType: hard
 
@@ -6403,6 +6403,22 @@ __metadata:
     rollup:
       optional: true
   checksum: edea15e543bebc7dcac3b0ac8bc7b8e8e6dbd46e2864dbe5dd28072de1fbd5b0e10d545a610c0edaa178e8a7ac432e2a2a52e547ece1308471412caba47db8ce
+  languageName: node
+  linkType: hard
+
+"@rollup/pluginutils@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "@rollup/pluginutils@npm:5.1.0"
+  dependencies:
+    "@types/estree": ^1.0.0
+    estree-walker: ^2.0.2
+    picomatch: ^2.3.1
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 3cc5a6d91452a6eabbfd1ae79b4dd1f1e809d2eecda6e175deb784e75b0911f47e9ecce73f8dd315d6a8b3f362582c91d3c0f66908b6ced69345b3cbe28f8ce8
   languageName: node
   linkType: hard
 
@@ -6914,8 +6930,8 @@ __metadata:
     "@protobuf-ts/runtime": ^2.9.3
     "@protobuf-ts/runtime-rpc": ^2.9.3
     "@protobuf-ts/twirp-transport": ^2.9.3
-    "@rollup/plugin-replace": ^5.0.4
-    "@rollup/plugin-typescript": ^11.1.5
+    "@rollup/plugin-replace": ^5.0.5
+    "@rollup/plugin-typescript": ^11.1.6
     "@types/jsonwebtoken": ^9.0.3
     "@types/sdp-transform": ^2.4.7
     "@types/ua-parser-js": ^0.7.37
@@ -6942,11 +6958,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-filters@workspace:^, @stream-io/video-filters@workspace:packages/video-filters":
+"@stream-io/video-filters-web@workspace:^, @stream-io/video-filters-web@workspace:packages/video-filters-web":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-filters@workspace:packages/video-filters"
+  resolution: "@stream-io/video-filters-web@workspace:packages/video-filters-web"
   dependencies:
-    "@rollup/plugin-typescript": ^11.1.5
+    "@rollup/plugin-replace": ^5.0.5
+    "@rollup/plugin-typescript": ^11.1.6
     "@types/emscripten": ^1.39.10
     rimraf: ^5.0.5
     rollup: ^3.29.4
@@ -6984,7 +7001,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
   dependencies:
-    "@rollup/plugin-typescript": ^11.1.5
+    "@rollup/plugin-typescript": ^11.1.6
     "@stream-io/video-client": "workspace:^"
     "@types/react": ^18.2.28
     i18next: ^23.5.1
@@ -7007,7 +7024,7 @@ __metadata:
     "@floating-ui/react": ^0.26.5
     "@next/third-parties": ^14.1.0
     "@sentry/nextjs": ^7.91.0
-    "@stream-io/video-filters": "workspace:^"
+    "@stream-io/video-filters-web": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/geojson": ^7946.0.13
@@ -7200,11 +7217,11 @@ __metadata:
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
     "@floating-ui/react": ^0.26.5
-    "@rollup/plugin-json": ^6.0.1
-    "@rollup/plugin-replace": ^5.0.4
-    "@rollup/plugin-typescript": ^11.1.5
+    "@rollup/plugin-json": ^6.1.0
+    "@rollup/plugin-replace": ^5.0.5
+    "@rollup/plugin-typescript": ^11.1.6
     "@stream-io/video-client": "workspace:*"
-    "@stream-io/video-filters": "workspace:^"
+    "@stream-io/video-filters-web": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"
     "@stream-io/video-styling": "workspace:^"
     chart.js: ^4.4.1

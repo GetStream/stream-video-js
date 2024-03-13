@@ -44,8 +44,8 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.7.0",
-    "@rollup/plugin-replace": "^5.0.4",
-    "@rollup/plugin-typescript": "^11.1.5",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/jsonwebtoken": "^9.0.3",
     "@types/sdp-transform": "^2.4.7",
     "@types/ua-parser-js": "^0.7.37",

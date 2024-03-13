@@ -6,7 +6,7 @@ description: How to build video or audio filters
 ## Video Filters
 
 In this guide, we will show you how to apply custom video filters to a video stream.
-We are going to use the `@stream-io/video-filters` library that provides background blur and background replacement filters.
+We are going to use the `@stream-io/video-filters-web` library that provides background blur and background replacement filters.
 
 This library uses the [`camera.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API under the hood to register custom filters.
 
@@ -17,9 +17,9 @@ It isn't built-in within the Stream React SDK as we want to keep the core librar
 but we've made the SDK extensible so you can add any custom filters you want.
 
 ```bash
-npm install @stream-io/video-filters
+npm install @stream-io/video-filters-web
 # or
-yarn add @stream-io/video-filters
+yarn add @stream-io/video-filters-web
 ```
 
 ### Step 2 - Integration in your application

@@ -18,6 +18,8 @@ export interface TFLite extends EmscriptenModule {
   _runInference(): number;
 }
 
+export const version = process.env.PKG_VERSION || '0.0.0-development';
+
 export const loadTFLite = async (
   options: {
     basePath?: string;
@@ -26,7 +28,7 @@ export const loadTFLite = async (
   } = {},
 ) => {
   const {
-    basePath = '',
+    basePath = `https://unpkg.com/@stream-io/video-filters@${version}/tf`,
     tfFilePath = `${basePath}/tflite/tflite-simd.wasm`,
     modelFilePath = `${basePath}/models/segm_full_v679.tflite`,
   } = options;
