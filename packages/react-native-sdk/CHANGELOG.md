@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.5...@stream-io/video-react-native-sdk-0.5.6) (2024-03-14)
+
+
+### Bug Fixes
+
+* **react-native:** floating participant speaking border jump issue ([#1291](https://github.com/GetStream/stream-video-js/issues/1291)) ([8e6fb5a](https://github.com/GetStream/stream-video-js/commit/8e6fb5aa047b4353c16673b03fb215508d79951b))
+
 ### [0.5.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.4...@stream-io/video-react-native-sdk-0.5.5) (2024-03-14)
 
 
