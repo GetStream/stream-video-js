@@ -20,6 +20,18 @@ env:
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/react-native-workflow.yml'
+      - 'sample-apps/react-native/dogfood/**'
+      - 'packages/react-native-sdk'
+      - '!**.md'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - '.github/workflows/react-native-workflow.yml'
       - 'sample-apps/react-native/dogfood/**'
@@ -27,7 +39,7 @@ on:
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
       - '!**/docusaurus/**'
-
+      - '!**.md'
   workflow_dispatch:
 
 concurrency:
