@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.4...@stream-io/video-react-native-sdk-0.5.5) (2024-03-14)
+
+
+### Bug Fixes
+
+* remove automatic call leave in call content ([#1289](https://github.com/GetStream/stream-video-js/issues/1289)) ([b9714da](https://github.com/GetStream/stream-video-js/commit/b9714daea6146bf1ecd1c9b91aec0dcf85c5274f))
+
 ### [0.5.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.3...@stream-io/video-react-native-sdk-0.5.4) (2024-03-13)
 
 ### Dependency Updates
