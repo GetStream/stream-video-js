@@ -69,10 +69,6 @@ jobs:
       - name: Test RN SDK (Unit tests only)
         run: yarn test:react-native:sdk
 
-      - name: Dogfood version update
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: yarn releaseNative
-
   build_ios:
     name: Build iOS
     timeout-minutes: 60
