@@ -1,7 +1,7 @@
 import {
   getGestureHandlerLib,
   getReanimatedLib,
-} from '../../../../utils/internal/optionalLibs';
+} from '../../../../utils/internal/optionallibs';
 import { FloatingViewProps } from './common';
 
 const FloatingView: React.FC<FloatingViewProps> =
