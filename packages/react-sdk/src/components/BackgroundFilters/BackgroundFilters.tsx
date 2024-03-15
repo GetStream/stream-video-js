@@ -19,20 +19,84 @@ import {
 } from '@stream-io/video-filters-web';
 
 export type BackgroundFiltersProps = {
+  /**
+   * Enables or disables the background-blurring feature.
+   * @default true.
+   */
   isBlurringEnabled?: boolean;
+
+  /**
+   * A list of URLs to use as background images.
+   */
   backgroundImages?: string[];
+
+  /**
+   * The background filter to apply to the video (by default).
+   * @default 'none'.
+   */
   backgroundFilter?: BackgroundConfig;
+
+  /**
+   * The URL of the image to use as the background (by default).
+   */
   backgroundImage?: string;
+
+  /**
+   * The level of blur to apply to the background (by default).
+   * @default 'high'.
+   */
   backgroundBlurLevel?: BackgroundBlurLevel;
-  tfFilePath?: string;
-  modelFilePath?: string;
+
+  /**
+   * The base path for the TensorFlow Lite files.
+   * @default 'https://unpkg.com/@stream-io/video-filters-web/tf'.
+   */
   basePath?: string;
+
+  /**
+   * The path to the TensorFlow Lite WebAssembly file.
+   *
+   * Override this prop to use a custom path to the TensorFlow Lite WebAssembly file
+   * (e.g., if you choose to host it yourself).
+   */
+  tfFilePath?: string;
+
+  /**
+   * The path to the TensorFlow Lite model file.
+   * Override this prop to use a custom path to the TensorFlow Lite model file
+   * (e.g., if you choose to host it yourself).
+   */
+  modelFilePath?: string;
 };
 
 export type BackgroundFiltersAPI = {
+  /**
+   * Whether the current platform supports the background filters.
+   */
   isSupported: boolean;
+
+  /**
+   * Indicates whether the background filters engine is loaded and ready.
+   */
+  isReady: boolean;
+
+  /**
+   * Disables all background filters applied to the video.
+   */
   disableBackgroundFilter: () => void;
+
+  /**
+   * Applies a background blur filter to the video.
+   *
+   * @param blurLevel the level of blur to apply to the background.
+   */
   applyBackgroundBlurFilter: (blurLevel: BackgroundBlurLevel) => void;
+
+  /**
+   * Applies a background image filter to the video.
+   *
+   * @param imageUrl the URL of the image to use as the background.
+   */
   applyBackgroundImageFilter: (imageUrl: string) => void;
 };
 
@@ -43,6 +107,9 @@ const BackgroundFiltersContext = createContext<
   BackgroundFiltersContextValue | undefined
 >(undefined);
 
+/**
+ * A hook to access the background filters context API.
+ */
 export const useBackgroundFilters = () => {
   const context = useContext(BackgroundFiltersContext);
   if (!context) {
@@ -53,6 +120,12 @@ export const useBackgroundFilters = () => {
   return context;
 };
 
+/**
+ * A provider component that enables the use of background filters in your app.
+ *
+ * Please make sure you have the `@stream-io/video-filters-web` package installed
+ * in your project before using this component.
+ */
 export const BackgroundFiltersProvider = (
   props: PropsWithChildren<BackgroundFiltersProps>,
 ) => {
@@ -97,10 +170,18 @@ export const BackgroundFiltersProvider = (
     isPlatformSupported().then(setIsSupported);
   }, []);
 
+  const [tfLite, setTfLite] = useState<TFLite>();
+  useEffect(() => {
+    loadTFLite({ basePath, modelFilePath, tfFilePath })
+      .then(setTfLite)
+      .catch((err) => console.error('Failed to load TFLite', err));
+  }, [basePath, modelFilePath, tfFilePath]);
+
   return (
     <BackgroundFiltersContext.Provider
       value={{
         isSupported,
+        isReady: !!tfLite,
         backgroundImage,
         backgroundBlurLevel,
         backgroundFilter,
@@ -115,14 +196,17 @@ export const BackgroundFiltersProvider = (
       }}
     >
       {children}
-      <BackgroundFilters />
+      {tfLite && backgroundFilter !== 'none' && (
+        <BackgroundFilters tfLite={tfLite} />
+      )}
     </BackgroundFiltersContext.Provider>
   );
 };
 
-const BackgroundFilters = () => {
+const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const call = useCall();
   const { backgroundImage, backgroundFilter } = useBackgroundFilters();
+  const { tfLite } = props;
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [bgImageRef, setBgImageRef] = useState<HTMLImageElement | null>(null);
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
@@ -183,6 +267,7 @@ const BackgroundFilters = () => {
     >
       {mediaStream && (
         <RenderPipeline
+          tfLite={tfLite}
           videoRef={videoRef}
           canvasRef={canvasRef}
           backgroundImageRef={bgImageRef}
@@ -225,27 +310,17 @@ const BackgroundFilters = () => {
 };
 
 const RenderPipeline = (props: {
+  tfLite: TFLite;
   videoRef: HTMLVideoElement | null;
   canvasRef: HTMLCanvasElement | null;
   backgroundImageRef: HTMLImageElement | null;
 }) => {
-  const { videoRef, canvasRef, backgroundImageRef } = props;
-  const {
-    backgroundFilter = 'none',
-    backgroundBlurLevel,
-    tfFilePath,
-    modelFilePath,
-    basePath,
-  } = useBackgroundFilters();
-  const [tfLite, setTfLite] = useState<TFLite>();
-  useEffect(() => {
-    loadTFLite({ basePath, modelFilePath, tfFilePath })
-      .then(setTfLite)
-      .catch((err) => {});
-  }, [basePath, modelFilePath, tfFilePath]);
+  const { tfLite, videoRef, canvasRef, backgroundImageRef } = props;
+  const { backgroundFilter = 'none', backgroundBlurLevel } =
+    useBackgroundFilters();
 
   useEffect(() => {
-    if (!tfLite || !videoRef || !canvasRef) return;
+    if (!videoRef || !canvasRef) return;
     if (backgroundFilter === 'none') return;
     if (backgroundFilter === 'image' && !backgroundImageRef) return;
 

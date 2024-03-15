@@ -19,9 +19,6 @@ export interface TFLite extends EmscriptenModule {
   _runInference(): number;
 }
 
-let lastModelFilePath = '';
-let modelFileCache: ArrayBuffer | undefined;
-
 export const loadTFLite = async (
   options: {
     basePath?: string;
@@ -34,14 +31,22 @@ export const loadTFLite = async (
     tfFilePath = `${basePath}/tflite/tflite-simd.wasm`,
     modelFilePath = `${basePath}/models/segm_full_v679.tflite`,
   } = options;
-  let tfLite: TFLite | undefined;
-  try {
-    tfLite = await createTFLite({ locateFile: () => tfFilePath });
-  } catch (error) {
-    console.warn('Failed to create TFLite SIMD WebAssembly module.', error);
-    throw new Error(`TFLite backend unavailable`);
-  }
 
+  const [tfLite, model] = await Promise.all([
+    createTFLite({ locateFile: () => tfFilePath }),
+    fetchModel(modelFilePath),
+  ]);
+
+  const modelBufferOffset = tfLite._getModelBufferMemoryOffset();
+  tfLite.HEAPU8.set(new Uint8Array(model), modelBufferOffset);
+  tfLite._loadModel(model.byteLength);
+
+  return tfLite;
+};
+
+let lastModelFilePath = '';
+let modelFileCache: ArrayBuffer | undefined;
+const fetchModel = async (modelFilePath: string) => {
   const model =
     modelFilePath === lastModelFilePath && modelFileCache
       ? modelFileCache
@@ -49,10 +54,6 @@ export const loadTFLite = async (
 
   // Cache the model file for future use.
   modelFileCache = model;
-
-  const modelBufferOffset = tfLite._getModelBufferMemoryOffset();
-  tfLite.HEAPU8.set(new Uint8Array(model), modelBufferOffset);
-  tfLite._loadModel(model.byteLength);
-
-  return tfLite;
+  lastModelFilePath = modelFilePath;
+  return model;
 };
