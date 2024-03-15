@@ -159,9 +159,9 @@ const firebaseMessagingOnMessageHandler = async (
   }
 
   if (data.type === 'call.ring') {
-    const call_cid = data.call_cid;
-    const created_by_id = data.created_by_id;
-    const receiver_id = data.receiver_id;
+    const call_cid = data.call_cid as string;
+    const created_by_id = data.created_by_id as string;
+    const receiver_id = data.receiver_id as string;
 
     function shouldCallBeClosed(callToCheck: Call) {
       const { mustEndCall } = shouldCallBeEnded(
@@ -222,7 +222,7 @@ const firebaseMessagingOnMessageHandler = async (
     }
     await notifee.createChannel(incomingCallChannel);
     const { getTitle, getBody } = incomingCallNotificationTextGetters;
-    const createdUserName = data.created_by_display_name;
+    const createdUserName = data.created_by_display_name as string;
 
     const channelId = incomingCallChannel.id;
     await notifee.displayNotification({
@@ -288,7 +288,7 @@ const firebaseMessagingOnMessageHandler = async (
     await notifee.createChannel(callChannel);
     const channelId = callChannel.id;
     const { getTitle, getBody } = callNotificationTextGetters;
-    const createdUserName = data.created_by_display_name;
+    const createdUserName = data.created_by_display_name as string;
     // we can safely cast to string because the data is from "stream.video"
     const type = data.type as NonRingingPushEvent;
     await notifee.displayNotification({
@@ -306,7 +306,7 @@ const firebaseMessagingOnMessageHandler = async (
         timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
       },
     });
-    const cid = data.call_cid;
+    const cid = data.call_cid as string;
     pushNonRingingCallData$.next({ cid, type });
   }
 };

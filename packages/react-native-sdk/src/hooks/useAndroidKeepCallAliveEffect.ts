@@ -76,7 +76,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (Platform.OS !== 'android') {
       return;
     }

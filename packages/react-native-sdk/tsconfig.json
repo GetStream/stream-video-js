@@ -1,18 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "declaration": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "lib": ["es6", "dom"],
-    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
+    "lib": ["es6", "dom"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitUseStrict": false,
+    "noStrictGenericChecks": false,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
     "skipLibCheck": true,
     "strict": true,
-    "strictNullChecks": true,
-    "jsx": "react"
+    "target": "es6"
   },
   "include": ["src"]
 }
