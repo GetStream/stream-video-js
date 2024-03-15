@@ -204,6 +204,7 @@ export const ToggleSettingsTabModal = (props: {
 
 const VideoEffectsSettings = () => {
   const {
+    isSupported,
     backgroundImages,
     isBlurringEnabled,
     backgroundBlurLevel,
@@ -213,6 +214,7 @@ const VideoEffectsSettings = () => {
     applyBackgroundBlurFilter,
     applyBackgroundImageFilter,
   } = useBackgroundFilters();
+
   return (
     <div className="rd__video-effects">
       <div className="rd__video-effects__preview-container">
@@ -220,6 +222,9 @@ const VideoEffectsSettings = () => {
       </div>
       <div className="rd__video-effects__container">
         <div className="rd__video-effects__card">
+          {!isSupported && (
+            <h3>Video effects are not supported on this device</h3>
+          )}
           <h4>Effects</h4>
           <div className="rd__video-effects__list">
             <CompositeButton
@@ -233,6 +238,7 @@ const VideoEffectsSettings = () => {
               <>
                 <CompositeButton
                   title="Blur"
+                  disabled={!isSupported}
                   active={
                     backgroundFilter === 'blur' &&
                     backgroundBlurLevel === 'high'
@@ -243,6 +249,7 @@ const VideoEffectsSettings = () => {
                 </CompositeButton>
                 <CompositeButton
                   title="Medium blur"
+                  disabled={!isSupported}
                   active={
                     backgroundFilter === 'blur' &&
                     backgroundBlurLevel === 'medium'
@@ -256,6 +263,7 @@ const VideoEffectsSettings = () => {
                 </CompositeButton>
                 <CompositeButton
                   title="Low blur"
+                  disabled={!isSupported}
                   active={
                     backgroundFilter === 'blur' && backgroundBlurLevel === 'low'
                   }
@@ -285,7 +293,11 @@ const VideoEffectsSettings = () => {
                     )}
                     src={imageUrl}
                     alt="Background"
-                    onClick={() => applyBackgroundImageFilter(imageUrl)}
+                    onClick={
+                      isSupported
+                        ? () => applyBackgroundImageFilter(imageUrl)
+                        : undefined
+                    }
                   />
                 </div>
               ))}

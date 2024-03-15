@@ -13,6 +13,7 @@ import {
   BackgroundBlurLevel,
   BackgroundConfig,
   createRenderer,
+  isPlatformSupported,
   loadTFLite,
   TFLite,
 } from '@stream-io/video-filters-web';
@@ -29,6 +30,7 @@ export type BackgroundFiltersProps = {
 };
 
 export type BackgroundFiltersAPI = {
+  isSupported: boolean;
   disableBackgroundFilter: () => void;
   applyBackgroundBlurFilter: (blurLevel: BackgroundBlurLevel) => void;
   applyBackgroundImageFilter: (imageUrl: string) => void;
@@ -90,9 +92,15 @@ export const BackgroundFiltersProvider = (
     setBackgroundBlurLevel('high');
   }, []);
 
+  const [isSupported, setIsSupported] = useState(false);
+  useEffect(() => {
+    isPlatformSupported().then(setIsSupported);
+  }, []);
+
   return (
     <BackgroundFiltersContext.Provider
       value={{
+        isSupported,
         backgroundImage,
         backgroundBlurLevel,
         backgroundFilter,
@@ -231,7 +239,9 @@ const RenderPipeline = (props: {
   } = useBackgroundFilters();
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
-    loadTFLite({ basePath, modelFilePath, tfFilePath }).then(setTfLite);
+    loadTFLite({ basePath, modelFilePath, tfFilePath })
+      .then(setTfLite)
+      .catch((err) => {});
   }, [basePath, modelFilePath, tfFilePath]);
 
   useEffect(() => {

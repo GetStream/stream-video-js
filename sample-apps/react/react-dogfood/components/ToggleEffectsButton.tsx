@@ -4,6 +4,7 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
+  useBackgroundFilters,
 } from '@stream-io/video-react-sdk';
 import { forwardRef } from 'react';
 import { useLayoutSwitcher } from '../hooks';
@@ -13,11 +14,17 @@ const ToggleEffectsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleEffectsMenuButton(props, ref) {
+  const { isSupported: effectsSupported } = useBackgroundFilters();
   return (
     <CompositeButton
       ref={ref}
+      disabled={!effectsSupported}
       active={props.menuShown}
-      title="Video effects"
+      title={
+        effectsSupported
+          ? 'Video effects'
+          : 'Video effects are not supported on this device'
+      }
       variant="primary"
     >
       <Icon icon="video-effects" />

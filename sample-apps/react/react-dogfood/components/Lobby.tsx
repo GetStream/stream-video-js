@@ -20,6 +20,7 @@ import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LatencyMap } from './LatencyMap/LatencyMap';
 import { MobileAppBanner } from './MobileAppBanner';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { ToggleEffectsButton } from './ToggleEffectsButton';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
@@ -31,7 +32,6 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
-import { ToggleEffectsButton } from './ToggleEffectsButton';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 

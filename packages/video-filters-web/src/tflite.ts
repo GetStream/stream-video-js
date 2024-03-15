@@ -1,5 +1,6 @@
 // @ts-expect-error - module is not declared
 import { createTFLiteSIMDModule } from './tflite-simd.js';
+import { packageName, version } from './version';
 
 // This is a WebAssembly module compiled from the TensorFlow Lite C++ library.
 const createTFLite = createTFLiteSIMDModule as (opts?: any) => Promise<TFLite>;
@@ -18,7 +19,8 @@ export interface TFLite extends EmscriptenModule {
   _runInference(): number;
 }
 
-export const version = process.env.PKG_VERSION || '0.0.0-development';
+let lastModelFilePath = '';
+let modelFileCache: ArrayBuffer | undefined;
 
 export const loadTFLite = async (
   options: {
@@ -28,7 +30,7 @@ export const loadTFLite = async (
   } = {},
 ) => {
   const {
-    basePath = `https://unpkg.com/@stream-io/video-filters@${version}/tf`,
+    basePath = `https://unpkg.com/${packageName}@${version}/tf`,
     tfFilePath = `${basePath}/tflite/tflite-simd.wasm`,
     modelFilePath = `${basePath}/models/segm_full_v679.tflite`,
   } = options;
@@ -40,7 +42,14 @@ export const loadTFLite = async (
     throw new Error(`TFLite backend unavailable`);
   }
 
-  const model = await fetch(modelFilePath).then((r) => r.arrayBuffer());
+  const model =
+    modelFilePath === lastModelFilePath && modelFileCache
+      ? modelFileCache
+      : await fetch(modelFilePath).then((r) => r.arrayBuffer());
+
+  // Cache the model file for future use.
+  modelFileCache = model;
+
   const modelBufferOffset = tfLite._getModelBufferMemoryOffset();
   tfLite.HEAPU8.set(new Uint8Array(model), modelBufferOffset);
   tfLite._loadModel(model.byteLength);

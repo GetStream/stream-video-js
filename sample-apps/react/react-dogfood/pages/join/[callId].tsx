@@ -211,6 +211,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <StreamCall call={call}>
           <TourProvider>
             <BackgroundFiltersProvider
+              basePath={`${basePath}/tf`}
               isBlurringEnabled={true}
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
