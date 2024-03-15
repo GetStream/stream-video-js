@@ -1,7 +1,7 @@
 import { TFLite } from '../tflite';
 import {
   compileShader,
-  createPiplelineStageProgram,
+  createPipelineStageProgram,
   createTexture,
   glsl,
   readPixelsAsync,
@@ -40,7 +40,7 @@ export function buildResizingStage(
     gl.FRAGMENT_SHADER,
     fragmentShaderSource,
   );
-  const program = createPiplelineStageProgram(
+  const program = createPipelineStageProgram(
     gl,
     vertexShader,
     fragmentShader,

@@ -1,6 +1,6 @@
 import {
   compileShader,
-  createPiplelineStageProgram,
+  createPipelineStageProgram,
   glsl,
 } from '../helpers/webglHelper';
 
@@ -75,7 +75,7 @@ export function buildJointBilateralFilterStage(
     gl.FRAGMENT_SHADER,
     fragmentShaderSource,
   );
-  const program = createPiplelineStageProgram(
+  const program = createPipelineStageProgram(
     gl,
     vertexShader,
     fragmentShader,

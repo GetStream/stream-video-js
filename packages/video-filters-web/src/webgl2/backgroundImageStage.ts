@@ -1,6 +1,6 @@
 import {
   compileShader,
-  createPiplelineStageProgram,
+  createPipelineStageProgram,
   createTexture,
   glsl,
 } from '../helpers/webglHelper';
@@ -87,7 +87,7 @@ export function buildBackgroundImageStage(
     gl.FRAGMENT_SHADER,
     fragmentShaderSource,
   );
-  const program = createPiplelineStageProgram(
+  const program = createPipelineStageProgram(
     gl,
     vertexShader,
     fragmentShader,

@@ -9,7 +9,7 @@
  */
 export const glsl = String.raw;
 
-export function createPiplelineStageProgram(
+export function createPipelineStageProgram(
   gl: WebGL2RenderingContext,
   vertexShader: WebGLShader,
   fragmentShader: WebGLShader,
