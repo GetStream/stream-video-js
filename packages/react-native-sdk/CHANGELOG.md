@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.6...@stream-io/video-react-native-sdk-0.5.7) (2024-03-15)
+
+
+### Bug Fixes
+
+* commonjs optional libs bug workaround ([#1292](https://github.com/GetStream/stream-video-js/issues/1292)) ([6d47386](https://github.com/GetStream/stream-video-js/commit/6d47386de79dac2e4a6cf98b31cb1127f48b881c))
+
 ### [0.5.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.5...@stream-io/video-react-native-sdk-0.5.6) (2024-03-14)
 
 
