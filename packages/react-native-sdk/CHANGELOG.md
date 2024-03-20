@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.7...@stream-io/video-react-native-sdk-0.5.8) (2024-03-20)
+
+
+### Bug Fixes
+
+* **react-native:** react-native-callkeep optional dependency import issue in SDK ([#1294](https://github.com/GetStream/stream-video-js/issues/1294)) ([6c664a7](https://github.com/GetStream/stream-video-js/commit/6c664a701e6dc838c2a4fcd73ce3f2a24f7f915a))
+
 ### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.6...@stream-io/video-react-native-sdk-0.5.7) (2024-03-15)
 
 
