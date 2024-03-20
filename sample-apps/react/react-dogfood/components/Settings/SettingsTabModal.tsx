@@ -23,6 +23,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
+import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
 
@@ -155,6 +156,10 @@ export const SettingsTabModalMenu = (props: {
         inMeeting={tabModalProps.inMeeting}
       >
         <CallStats />
+      </TabWrapper>
+
+      <TabWrapper icon="transcriptions" label="Transcriptions" inMeeting>
+        <TranscriptionSettings />
       </TabWrapper>
 
       <TabWrapper icon="language" label={t('Language')} inMeeting>
