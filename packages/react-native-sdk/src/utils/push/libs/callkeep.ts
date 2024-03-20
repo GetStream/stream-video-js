@@ -2,6 +2,10 @@ export type RNCallKeepType = typeof import('react-native-callkeep').default;
 
 let callkeep: RNCallKeepType | undefined;
 
+try {
+  callkeep = require('react-native-callkeep').default;
+} catch (_e) {}
+
 export function getCallKeepLib() {
   if (!callkeep) {
     throw Error(
