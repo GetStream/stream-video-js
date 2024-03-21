@@ -4816,6 +4816,61 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-aria/focus@npm:^3.16.1":
+  version: 3.16.2
+  resolution: "@react-aria/focus@npm:3.16.2"
+  dependencies:
+    "@react-aria/interactions": ^3.21.1
+    "@react-aria/utils": ^3.23.2
+    "@react-types/shared": ^3.22.1
+    "@swc/helpers": ^0.5.0
+    clsx: ^2.0.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
+  checksum: d97eabc981acd8b6e0e3984a0316ebafddffdd19732c3efc6890482f89dc06605202f682b7700a73292f71c80e8a2e846136a61dfbfead3053f92bb865272ad5
+  languageName: node
+  linkType: hard
+
+"@react-aria/interactions@npm:^3.21.1":
+  version: 3.21.1
+  resolution: "@react-aria/interactions@npm:3.21.1"
+  dependencies:
+    "@react-aria/ssr": ^3.9.2
+    "@react-aria/utils": ^3.23.2
+    "@react-types/shared": ^3.22.1
+    "@swc/helpers": ^0.5.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
+  checksum: 73384b026ee0819cf37e4fa85ef7998c3b77d64ae9d97f4a0b78ee88d8ee6d44c6d43a44164485b90409cc065a24e9c9c1e2d06f152802d46714355dab74345d
+  languageName: node
+  linkType: hard
+
+"@react-aria/ssr@npm:^3.9.2":
+  version: 3.9.2
+  resolution: "@react-aria/ssr@npm:3.9.2"
+  dependencies:
+    "@swc/helpers": ^0.5.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
+  checksum: ef11ef02195665f8a05cc430781da33509d6a20b88590e3ca018323f0824ce80f7cf470f99789cb6aeaeeeeac5d345d2eb671ff5b2d470b7c274f071e7c8abf5
+  languageName: node
+  linkType: hard
+
+"@react-aria/utils@npm:^3.23.2":
+  version: 3.23.2
+  resolution: "@react-aria/utils@npm:3.23.2"
+  dependencies:
+    "@react-aria/ssr": ^3.9.2
+    "@react-stately/utils": ^3.9.1
+    "@react-types/shared": ^3.22.1
+    "@swc/helpers": ^0.5.0
+    clsx: ^2.0.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
+  checksum: 31a57fc3505879dde5da273e35a7f421b3473611e6b108a0a1a32f782c39b5c5a8cb99cc7f35afc742725e0a977165fec8462b127665be7d38d70d12fa40b544
+  languageName: node
+  linkType: hard
+
 "@react-native-async-storage/async-storage@npm:1.21.0":
   version: 1.21.0
   resolution: "@react-native-async-storage/async-storage@npm:1.21.0"
@@ -6060,6 +6115,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-stately/utils@npm:^3.9.1":
+  version: 3.9.1
+  resolution: "@react-stately/utils@npm:3.9.1"
+  dependencies:
+    "@swc/helpers": ^0.5.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
+  checksum: 290445ec2b48e24951c7685320b2cfd21694c3d8edd6c6db3135b168f0344c0740b5ee90b920c9ca6163cff6a4162219fb74b236cf47e8bf8a237c1efbdc908a
+  languageName: node
+  linkType: hard
+
+"@react-types/shared@npm:^3.22.1":
+  version: 3.22.1
+  resolution: "@react-types/shared@npm:3.22.1"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
+  checksum: 162031517b3b2762d23999ca7b2d4f1d404a1b1823037f28abd7b70138dfe7929beee8a56781ec171de12ec510ec64837e60cb7a83ec959796368e9f7dc51f78
+  languageName: node
+  linkType: hard
+
 "@remix-run/node@npm:^1.19.3":
   version: 1.19.3
   resolution: "@remix-run/node@npm:1.19.3"
@@ -6725,7 +6800,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.17.0
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6744,7 +6819,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.1.0
     react: ^18.2.0
     react-dom: ^18.2.0
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6766,7 +6841,7 @@ __metadata:
     nanoid: ^5.0.4
     react: ^18.2.0
     react-dom: ^18.2.0
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6812,7 +6887,7 @@ __metadata:
     react-native-screens: ~3.29.0
     react-native-svg: 14.1.0
     react-native-voip-push-notification: ^3.3.2
-    typescript: ^5.4.2
+    typescript: ^5.4.3
   languageName: unknown
   linkType: soft
 
@@ -6842,7 +6917,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.17.0
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6865,9 +6940,9 @@ __metadata:
     react-dom: ^18.2.0
     react-router-dom: ^6.17.0
     sass: ^1.69.5
-    stream-chat: ^8.14.4
-    stream-chat-react: ^11.2.1
-    typescript: ^5.4.2
+    stream-chat: ^8.24.0
+    stream-chat-react: ^11.12.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6895,7 +6970,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.1.0
     react: ^18.2.0
     react-dom: ^18.2.0
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6917,7 +6992,7 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@vitejs/plugin-basic-ssl": ^1.0.1
     js-base64: ^3.7.5
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6948,7 +7023,7 @@ __metadata:
     rollup: ^3.29.4
     rxjs: ~7.8.1
     sdp-transform: ^2.14.1
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     ua-parser-js: ^1.0.36
     vite: ^4.4.11
     vitest: ^0.34.4
@@ -6967,7 +7042,7 @@ __metadata:
     "@types/emscripten": ^1.39.10
     rimraf: ^5.0.5
     rollup: ^3.29.4
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     wasm-feature-detect: ^1.6.1
   languageName: unknown
   linkType: soft
@@ -6992,7 +7067,7 @@ __metadata:
     ngx-deploy-npm: ^5.2.0
     nx: 16.0.1
     prettier: ^2.8.8
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vercel: ^33.2.0
     vite: ^4.4.11
   languageName: unknown
@@ -7010,7 +7085,7 @@ __metadata:
     rimraf: ^5.0.5
     rollup: ^3.29.4
     rxjs: ~7.8.1
-    typescript: ^5.4.2
+    typescript: ^5.4.3
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
     react: ">=17.0.0"
@@ -7053,8 +7128,8 @@ __metadata:
     sass: ^1.69.5
     source-map-loader: ^4.0.1
     starwars-names: ^1.6.0
-    stream-chat: ^8.14.4
-    stream-chat-react: ^11.2.1
+    stream-chat: ^8.24.0
+    stream-chat-react: ^11.12.2
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -7118,7 +7193,7 @@ __metadata:
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
     stream-chat-react-native: ^5.15.1
-    typescript: ^5.4.2
+    typescript: ^5.4.3
   languageName: unknown
   linkType: soft
 
@@ -7168,7 +7243,7 @@ __metadata:
     text-encoding-polyfill: 0.6.7
     ts-jest: ^29.1.0
     ts-node: ^10.9.1
-    typescript: ^5.4.2
+    typescript: ^5.4.3
   peerDependencies:
     "@notifee/react-native": ">=7.8.0"
     "@react-native-community/netinfo": ">=9.0.0"
@@ -7233,7 +7308,7 @@ __metadata:
     react-dom: ^18.2.0
     rimraf: ^5.0.5
     rollup: ^3.29.4
-    typescript: ^5.4.2
+    typescript: ^5.4.3
   peerDependencies:
     "@stream-io/video-filters-web": ^0.1.0
     react: ^18.0.0
@@ -7269,10 +7344,10 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.17.0
-    stream-chat: ^8.14.4
-    stream-chat-react: ^11.2.1
+    stream-chat: ^8.24.0
+    stream-chat-react: ^11.12.2
     tailwindcss: ^3.2.4
-    typescript: ^5.4.2
+    typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -7283,6 +7358,15 @@ __metadata:
   dependencies:
     tslib: ^2.4.0
   checksum: 51d7e3d8bd56818c49d6bfbd715f0dbeedc13cf723af41166e45c03e37f109336bbcb57a1f2020f4015957721aeb21e1a7fff281233d797ff7d3dd1f447fa258
+  languageName: node
+  linkType: hard
+
+"@swc/helpers@npm:^0.5.0":
+  version: 0.5.7
+  resolution: "@swc/helpers@npm:0.5.7"
+  dependencies:
+    tslib: ^2.4.0
+  checksum: a8aff53563a60797cb7dc787e701b36032f40b021628667eb2d3e2f737c12db2e5cfb1207ae2096871c1b3b4d10bff615520704cd5b5477ec0d1771bcff33827
   languageName: node
   linkType: hard
 
@@ -17770,6 +17854,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.defaultsdeep@npm:^4.6.1":
+  version: 4.6.1
+  resolution: "lodash.defaultsdeep@npm:4.6.1"
+  checksum: 1f346f16158b760545ca99553cb13e907a28b281425751af6bfe681387b9e5685438a7ddbfd36a8d5cc8bda066867a134aa31416f17e318db8c461c377810a76
+  languageName: node
+  linkType: hard
+
 "lodash.includes@npm:^4.3.0":
   version: 4.3.0
   resolution: "lodash.includes@npm:4.3.0"
@@ -21990,6 +22081,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-markdown@npm:9.0.1":
+  version: 9.0.1
+  resolution: "react-markdown@npm:9.0.1"
+  dependencies:
+    "@types/hast": ^3.0.0
+    devlop: ^1.0.0
+    hast-util-to-jsx-runtime: ^2.0.0
+    html-url-attributes: ^3.0.0
+    mdast-util-to-hast: ^13.0.0
+    remark-parse: ^11.0.0
+    remark-rehype: ^11.0.0
+    unified: ^11.0.0
+    unist-util-visit: ^5.0.0
+    vfile: ^6.0.0
+  peerDependencies:
+    "@types/react": ">=18"
+    react: ">=18"
+  checksum: ca1daa650d48b84a5a9771683cdb3f3d2d418247ce0faf73ede3207c65f2a21cdebb9df37afda67f6fc8f0f0a7b9ce00eb239781954a4d6c7ad88ea4df068add
+  languageName: node
+  linkType: hard
+
 "react-markdown@npm:^5.0.3":
   version: 5.0.3
   resolution: "react-markdown@npm:5.0.3"
@@ -22008,27 +22120,6 @@ __metadata:
     "@types/react": ">=16"
     react: ">=16"
   checksum: c971d0bcced6910745dfcfa635b5d62ae14b8ac860136348ef11bb8db2b2eac3d8662c5e27ad13d5d1ba4eaf4be110043d8c6abd34c31d074a538a0fe6cdd464
-  languageName: node
-  linkType: hard
-
-"react-markdown@npm:^9.0.0":
-  version: 9.0.1
-  resolution: "react-markdown@npm:9.0.1"
-  dependencies:
-    "@types/hast": ^3.0.0
-    devlop: ^1.0.0
-    hast-util-to-jsx-runtime: ^2.0.0
-    html-url-attributes: ^3.0.0
-    mdast-util-to-hast: ^13.0.0
-    remark-parse: ^11.0.0
-    remark-rehype: ^11.0.0
-    unified: ^11.0.0
-    unist-util-visit: ^5.0.0
-    vfile: ^6.0.0
-  peerDependencies:
-    "@types/react": ">=18"
-    react: ">=18"
-  checksum: ca1daa650d48b84a5a9771683cdb3f3d2d418247ce0faf73ede3207c65f2a21cdebb9df37afda67f6fc8f0f0a7b9ce00eb239781954a4d6c7ad88ea4df068add
   languageName: node
   linkType: hard
 
@@ -24138,13 +24229,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^11.2.1":
-  version: 11.2.1
-  resolution: "stream-chat-react@npm:11.2.1"
+"stream-chat-react@npm:^11.12.2":
+  version: 11.12.2
+  resolution: "stream-chat-react@npm:11.12.2"
   dependencies:
     "@babel/runtime": ^7.23.6
     "@braintree/sanitize-url": ^6.0.4
     "@popperjs/core": ^2.11.5
+    "@react-aria/focus": ^3.16.1
     "@stream-io/transliterate": ^1.5.5
     clsx: ^2.0.0
     dayjs: ^1.10.4
@@ -24154,6 +24246,7 @@ __metadata:
     isomorphic-ws: ^4.0.1
     linkifyjs: ^4.1.0
     lodash.debounce: ^4.0.8
+    lodash.defaultsdeep: ^4.6.1
     lodash.throttle: ^4.1.1
     lodash.uniqby: ^4.7.0
     mml-react: ^0.4.7
@@ -24164,7 +24257,7 @@ __metadata:
     react-fast-compare: ^3.2.2
     react-image-gallery: 1.2.12
     react-is: ^18.1.0
-    react-markdown: ^9.0.0
+    react-markdown: 9.0.1
     react-player: 2.10.1
     react-popper: ^2.3.0
     react-textarea-autosize: ^8.3.0
@@ -24180,7 +24273,7 @@ __metadata:
     emoji-mart: ^5.4.0
     react: ^18.0.0 || ^17.0.0 || ^16.8.0
     react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
-    stream-chat: ^8.0.0
+    stream-chat: ^8.21.0
   dependenciesMeta:
     "@stream-io/transliterate":
       optional: true
@@ -24193,7 +24286,7 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 724fd803f9a1d2c9ee9dea86bc30ce519027009bf8fd09be5ed823408172d563b499a39ea250a60dcee24d92573b4b52d3d37b28357bd230d259b3afaf6ceeb1
+  checksum: 1ee080023a4b8ff7a2ee9a3d03217c5b920091244af9419c8005a5f06c192b31e24dcfe0a851923cd21a9bb4114f74597e7887c75b99a4d626fcdee1058e6aec
   languageName: node
   linkType: hard
 
@@ -24214,9 +24307,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^8.14.4":
-  version: 8.14.4
-  resolution: "stream-chat@npm:8.14.4"
+"stream-chat@npm:^8.24.0":
+  version: 8.24.0
+  resolution: "stream-chat@npm:8.24.0"
   dependencies:
     "@babel/runtime": ^7.16.3
     "@types/jsonwebtoken": ~9.0.0
@@ -24227,7 +24320,7 @@ __metadata:
     isomorphic-ws: ^4.0.1
     jsonwebtoken: ~9.0.0
     ws: ^7.4.4
-  checksum: b2c2cc23a26adeeb4c51e836ff029b2ffc63a540baee8a3fddee2aeb68190ff976649ac7c5341bf2a7b04b5984789920f2f35acfb81110ac3a3ee977b5837a1d
+  checksum: 9b9633e541bd737ce3ad9ae6bb19ddd536820f31e57779c071323d39ae4d4c7185e77151ceb008fcf29bd60c33d9b3aaae1c4e8774b08557cfe7dbec11ef5309
   languageName: node
   linkType: hard
 
@@ -25409,13 +25502,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.4.2":
-  version: 5.4.2
-  resolution: "typescript@npm:5.4.2"
+"typescript@npm:^5.4.3":
+  version: 5.4.3
+  resolution: "typescript@npm:5.4.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 96d80fde25a09bcb04d399082fb27a808a9e17c2111e43849d2aafbd642d835e4f4ef0de09b0ba795ec2a700be6c4c2c3f62bf4660c05404c948727b5bbfb32a
+  checksum: d74d731527e35e64d8d2dcf2f897cf8cfbc3428be0ad7c48434218ba4ae41239f53be7c90714089db1068c05cae22436af2ecba71fd36ecc5e7a9118af060198
   languageName: node
   linkType: hard
 
@@ -25439,13 +25532,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5.4.2#~builtin<compat/typescript>":
-  version: 5.4.2
-  resolution: "typescript@patch:typescript@npm%3A5.4.2#~builtin<compat/typescript>::version=5.4.2&hash=85af82"
+"typescript@patch:typescript@^5.4.3#~builtin<compat/typescript>":
+  version: 5.4.3
+  resolution: "typescript@patch:typescript@npm%3A5.4.3#~builtin<compat/typescript>::version=5.4.3&hash=85af82"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c1b669146bca5529873aae60870e243fa8140c85f57ca32c42f898f586d73ce4a6b4f6bb02ae312729e214d7f5859a0c70da3e527a116fdf5ad00c9fc733ecc6
+  checksum: 3a62fe90aa79d68c9ce38ea5edb2957e62801c733b99f0e5a2b8b50922761f68f7d9a40d28c544b449866e81185cddb93cba2496d0ff3fa52ef5b1f8bcace38c
   languageName: node
   linkType: hard
 

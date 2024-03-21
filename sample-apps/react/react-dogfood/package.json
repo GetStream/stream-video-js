@@ -33,8 +33,8 @@
     "react-dom": "^18.2.0",
     "react-form": "^4.0.1",
     "starwars-names": "^1.6.0",
-    "stream-chat": "^8.14.4",
-    "stream-chat-react": "^11.2.1",
+    "stream-chat": "^8.24.0",
+    "stream-chat-react": "^11.12.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
