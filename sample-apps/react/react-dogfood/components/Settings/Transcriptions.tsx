@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
@@ -72,7 +72,7 @@ export const TranscriptionSettings = () => {
         icon="language-sign"
         defaultSelectedLabel="English"
         defaultSelectedIndex={1}
-        handleSelect={(index) => setFirstLanguage(languages[index].code)}
+        handleSelect={(index) => setFirstLanguage(languages[index + 1].code)}
       >
         {languages.map((language) =>
           language.code ? (
@@ -82,7 +82,7 @@ export const TranscriptionSettings = () => {
               icon="language-sign"
             />
           ) : (
-            <></>
+            <Fragment key="none" />
           ),
         )}
       </DropDownSelect>
@@ -96,7 +96,7 @@ export const TranscriptionSettings = () => {
       >
         {languages.map((language) => (
           <DropDownSelectOption
-            key={language.code}
+            key={language.code || 'none'}
             label={language.label}
             icon="language-sign"
           />
