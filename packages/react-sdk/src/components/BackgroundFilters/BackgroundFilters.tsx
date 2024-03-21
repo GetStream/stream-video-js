@@ -210,6 +210,8 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [bgImageRef, setBgImageRef] = useState<HTMLImageElement | null>(null);
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
+  const [width, setWidth] = useState(1920);
+  const [height, setHeight] = useState(1080);
 
   const resolveFilterRef =
     useRef<(value: MediaStream | PromiseLike<MediaStream>) => void>();
@@ -239,6 +241,13 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
     if (!mediaStream || !videoRef || !canvasRef) return;
 
     const handleOnPlay = () => {
+      const [track] = mediaStream.getVideoTracks();
+      if (track) {
+        const { width: w = 0, height: h = 0 } = track.getSettings();
+        setWidth(w);
+        setHeight(h);
+      }
+
       const resolveFilter = resolveFilterRef.current;
       if (!resolveFilter) return;
       const filter = canvasRef.captureStream();
@@ -253,9 +262,6 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
       videoRef.srcObject = null;
     };
   }, [canvasRef, mediaStream, videoRef]);
-
-  const videoTrack = mediaStream?.getVideoTracks()[0];
-  const { width = 1920, height = 1080 } = videoTrack?.getSettings() || {};
 
   return (
     <div
