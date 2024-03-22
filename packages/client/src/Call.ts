@@ -1840,10 +1840,10 @@ export class Call {
    * Here `callSessionID` is mandatory.
    * 
    * @param callSessionID the call session ID to retrieve statistics for.
-   * @returns The call stats 
+   * @returns The call stats, 
    */
   getCallStats = async (callSessionID: string) => {
-    const endpoint = `${this.streamClientBasePath}/stats/${callSessionID};
+    const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
   };
 
