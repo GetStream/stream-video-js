@@ -1836,6 +1836,18 @@ export class Call {
   };
 
   /**
+   * Retrieve call statistics for a particular call session (historical).
+   * Here `callSessionID` is mandatory.
+   * 
+   * @param callSessionID the call session ID to retrieve statistics for.
+   * @returns The call stats 
+   */
+  getCallStats = async (callSessionID: string) => {
+    const endpoint = `${this.streamClientBasePath}/stats/${callSessionID};
+    return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
    * Sends a custom event to all call participants.
    *
    * @param payload the payload to send.
