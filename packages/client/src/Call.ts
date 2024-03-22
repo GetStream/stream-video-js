@@ -24,6 +24,7 @@ import {
   BlockUserResponse,
   EndCallResponse,
   GetCallResponse,
+  GetCallStatsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -1838,9 +1839,9 @@ export class Call {
   /**
    * Retrieve call statistics for a particular call session (historical).
    * Here `callSessionID` is mandatory.
-   * 
+   *
    * @param callSessionID the call session ID to retrieve statistics for.
-   * @returns The call stats, 
+   * @returns The call stats.
    */
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
