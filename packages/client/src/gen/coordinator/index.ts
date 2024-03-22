@@ -4621,19 +4621,19 @@ export interface UserInfoResponse {
    * @type {object}
    * @memberof UserInfoResponse
    */
-  Custom: object;
+  custom: object;
   /**
    *
    * @type {string}
    * @memberof UserInfoResponse
    */
-  Image: string;
+  image: string;
   /**
    *
    * @type {string}
    * @memberof UserInfoResponse
    */
-  Name: string;
+  name: string;
 }
 /**
  *
