@@ -14,9 +14,9 @@ const [major, minor, patch] = version.split('.');
 export const setClientDetails = () => {
   setSdkInfo({
     type: SfuModels.SdkType.REACT_NATIVE,
-    major,
-    minor,
-    patch,
+    major: major as string,
+    minor: minor as string,
+    patch: patch as string,
   });
 
   let osName: string = Platform.OS;

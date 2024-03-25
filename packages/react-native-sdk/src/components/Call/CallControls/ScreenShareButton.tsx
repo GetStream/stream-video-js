@@ -28,6 +28,7 @@ export type ScreenShareButtonProps = {
 // ios >= 14.0 or android
 const CanScreenShare =
   (Platform.OS === 'ios' &&
+    // @ts-ignore
     Number.parseInt(Platform.Version.split('.')[0], 10) >= 14) ||
   Platform.OS === 'android';
 

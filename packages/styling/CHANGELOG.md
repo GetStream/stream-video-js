@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.2.0...@stream-io/video-styling-1.0.1) (2024-03-15)
+
 ## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.14...@stream-io/video-styling-0.2.0) (2024-02-26)
 
 

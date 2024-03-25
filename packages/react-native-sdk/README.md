@@ -132,13 +132,13 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Livestream components
 - [x] Screen-share media track support
 - [x] PiP on Android
-- [x] Speaker management (needs docs)
-- [ ] Speaking while muted
+- [x] Speaking while muted
+- [x] Demo app on play-store and app-store
+- [ ] Speaker management (needs docs)
 - [ ] PiP on iOS
 - [ ] Audio & Video filters
 - [ ] CPU usage improvement
 - [ ] Analytics Integration
-- [ ] Demo app on play-store and app-store
 - [ ] Long press to focus
 - [ ] Dynascale 2.0
 - [ ] Test coverage

@@ -29,6 +29,7 @@ import {
   GoLiveRequest,
   GoLiveResponse,
   ListRecordingsResponse,
+  ListTranscriptionsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
@@ -47,10 +48,13 @@ import {
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StartTranscriptionRequest,
+  StartTranscriptionResponse,
   StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
+  StopTranscriptionResponse,
   UnblockUserRequest,
   UnblockUserResponse,
   UnpinRequest,
@@ -1576,6 +1580,29 @@ export class Call {
   };
 
   /**
+   * Starts the transcription of the call.
+   *
+   * @param request the request data.
+   */
+  startTranscription = async (
+    request?: StartTranscriptionRequest,
+  ): Promise<StartTranscriptionResponse> => {
+    return this.streamClient.post<
+      StartTranscriptionResponse,
+      StartTranscriptionRequest
+    >(`${this.streamClientBasePath}/start_transcription`, request);
+  };
+
+  /**
+   * Stops the transcription of the call.
+   */
+  stopTranscription = async (): Promise<StopTranscriptionResponse> => {
+    return this.streamClient.post<StopTranscriptionResponse>(
+      `${this.streamClientBasePath}/stop_transcription`,
+    );
+  };
+
+  /**
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
@@ -1849,6 +1876,17 @@ export class Call {
     }
     return this.streamClient.get<ListRecordingsResponse>(
       `${endpoint}/recordings`,
+    );
+  };
+
+  /**
+   * Retrieves the list of transcriptions for the current call.
+   *
+   * @returns the list of transcriptions.
+   */
+  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+    return this.streamClient.get<ListTranscriptionsResponse>(
+      `${this.streamClientBasePath}/transcriptions`,
     );
   };
 

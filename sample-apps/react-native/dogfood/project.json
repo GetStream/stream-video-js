@@ -2,7 +2,7 @@
   "name": "@stream-io/video-react-native-dogfood",
   "$schema": " ../../../node_modules/nx/schemas/project-schema.json",
   "targets": {
-    "versionNative": {
+    "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
