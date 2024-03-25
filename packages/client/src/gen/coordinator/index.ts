@@ -473,6 +473,7 @@ export interface CallEndedEvent {
   user?: UserResponse;
 }
 /**
+ *
  * @export
  * @interface CallEvent
  */
@@ -1630,6 +1631,12 @@ export interface CallSettingsResponse {
 export interface CallStateResponseFields {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof CallStateResponseFields
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof CallStateResponseFields
    */
@@ -1654,7 +1661,7 @@ export interface CallStateResponseFields {
   own_capabilities: Array<OwnCapability>;
 }
 /**
- * CallTranscription represents a transcription of a call.
+ *
  * @export
  * @interface CallTimeline
  */
@@ -1667,9 +1674,8 @@ export interface CallTimeline {
   events: Array<CallEvent>;
 }
 /**
- *
+ * CallTranscription represents a transcription of a call.
  * @export
- * @interface CallTypeResponse
  * @interface CallTranscription
  */
 export interface CallTranscription {
@@ -2028,7 +2034,6 @@ export interface Coordinates {
    */
   longitude: number;
 }
-
 /**
  *
  * @export
@@ -2040,13 +2045,13 @@ export interface CreateDeviceRequest {
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  push_provider?: CreateDeviceRequestPushProviderEnum;
+  push_provider: CreateDeviceRequestPushProviderEnum;
   /**
    *
    * @type {string}
@@ -2362,6 +2367,12 @@ export interface GeofenceSettingsRequest {
 export interface GetCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof GetCallResponse
    */
@@ -2476,7 +2487,6 @@ export interface GetCallStatsResponse {
    */
   total_quality_limitation_duration: number;
 }
-
 /**
  *
  * @export
@@ -2533,6 +2543,12 @@ export interface GetOrCreateCallRequest {
  * @interface GetOrCreateCallResponse
  */
 export interface GetOrCreateCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof GetOrCreateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -2649,7 +2665,7 @@ export interface HLSSettingsRequest {
    * @type {Array<string>}
    * @memberof HLSSettingsRequest
    */
-  quality_tracks?: Array<string>;
+  quality_tracks: Array<string>;
 }
 /**
  *
@@ -2758,6 +2774,12 @@ export interface JoinCallRequest {
 export interface JoinCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof JoinCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof JoinCallResponse
    */
@@ -2842,6 +2864,25 @@ export interface ListRecordingsResponse {
    * @memberof ListRecordingsResponse
    */
   recordings: Array<CallRecording>;
+}
+/**
+ *
+ * @export
+ * @interface ListTranscriptionsResponse
+ */
+export interface ListTranscriptionsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ListTranscriptionsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<CallTranscription>}
+   * @memberof ListTranscriptionsResponse
+   */
+  transcriptions: Array<CallTranscription>;
 }
 /**
  *
@@ -3039,6 +3080,12 @@ export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
 export interface OwnUserResponse {
   /**
    *
+   * @type {boolean}
+   * @memberof OwnUserResponse
+   */
+  banned: boolean;
+  /**
+   *
    * @type {string}
    * @memberof OwnUserResponse
    */
@@ -3049,6 +3096,12 @@ export interface OwnUserResponse {
    * @memberof OwnUserResponse
    */
   custom: object;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  deactivated_at?: string;
   /**
    *
    * @type {string}
@@ -3075,6 +3128,12 @@ export interface OwnUserResponse {
   image?: string;
   /**
    *
+   * @type {boolean}
+   * @memberof OwnUserResponse
+   */
+  invisible?: boolean;
+  /**
+   *
    * @type {string}
    * @memberof OwnUserResponse
    */
@@ -3084,7 +3143,25 @@ export interface OwnUserResponse {
    * @type {string}
    * @memberof OwnUserResponse
    */
+  last_active?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
   name?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof OwnUserResponse
+   */
+  online: boolean;
+  /**
+   *
+   * @type {PushNotificationSettings}
+   * @memberof OwnUserResponse
+   */
+  push_notifications?: PushNotificationSettings;
   /**
    *
    * @type {string}
@@ -3173,6 +3250,25 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface PushNotificationSettings
+ */
+export interface PushNotificationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PushNotificationSettings
+   */
+  disabled?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof PushNotificationSettings
+   */
+  disabled_until?: string;
 }
 /**
  *
@@ -3529,13 +3625,13 @@ export interface RingSettingsRequest {
    * @type {number}
    * @memberof RingSettingsRequest
    */
-  auto_cancel_timeout_ms?: number;
+  auto_cancel_timeout_ms: number;
   /**
    *
    * @type {number}
    * @memberof RingSettingsRequest
    */
-  incoming_call_timeout_ms?: number;
+  incoming_call_timeout_ms: number;
 }
 /**
  *
@@ -3904,13 +4000,13 @@ export interface TargetResolutionRequest {
    * @type {number}
    * @memberof TargetResolutionRequest
    */
-  height?: number;
+  height: number;
   /**
    *
    * @type {number}
    * @memberof TargetResolutionRequest
    */
-  width?: number;
+  width: number;
 }
 /**
  *
@@ -3999,7 +4095,7 @@ export interface TranscriptionSettingsRequest {
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  mode?: TranscriptionSettingsRequestModeEnum;
+  mode: TranscriptionSettingsRequestModeEnum;
 }
 
 /**
@@ -4172,6 +4268,12 @@ export interface UpdateCallRequest {
  * @interface UpdateCallResponse
  */
 export interface UpdateCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof UpdateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -4347,6 +4449,12 @@ export interface UserRequest {
  */
 export interface UserResponse {
   /**
+   *
+   * @type {boolean}
+   * @memberof UserResponse
+   */
+  banned: boolean;
+  /**
    * Date/time of creation
    * @type {string}
    * @memberof UserResponse
@@ -4358,6 +4466,12 @@ export interface UserResponse {
    * @memberof UserResponse
    */
   custom: object;
+  /**
+   *
+   * @type {string}
+   * @memberof UserResponse
+   */
+  deactivated_at?: string;
   /**
    * Date/time of deletion
    * @type {string}
@@ -4387,7 +4501,19 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
+  last_active?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserResponse
+   */
   name?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserResponse
+   */
+  online: boolean;
   /**
    *
    * @type {string}
@@ -4407,8 +4533,8 @@ export interface UserResponse {
    */
   updated_at: string;
 }
-
 /**
+ *
  * @export
  * @interface UserSessionStats
  */
@@ -4463,7 +4589,6 @@ export interface UserStats {
    */
   session_stats: { [key: string]: UserSessionStats };
 }
-
 /**
  *
  * @export
@@ -4570,6 +4695,12 @@ export type VideoSettingsRequestCameraFacingEnum =
 export interface WSAuthMessageRequest {
   /**
    *
+   * @type {Array<string>}
+   * @memberof WSAuthMessageRequest
+   */
+  products?: Array<string>;
+  /**
+   *
    * @type {string}
    * @memberof WSAuthMessageRequest
    */
@@ -4633,6 +4764,7 @@ export type WSEvent =
   | ({ type: 'call.updated' } & CallUpdatedEvent)
   | ({ type: 'call.user_muted' } & CallUserMuted)
   | ({ type: 'connection.error' } & ConnectionErrorEvent)
+  | ({ type: 'connection.ok' } & ConnectedEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)
   | ({ type: 'health.check' } & HealthCheckEvent)
   | ({ type: 'custom' } & CustomVideoEvent);
