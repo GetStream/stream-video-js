@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
@@ -15,8 +15,8 @@ import {
   CallControls as DefaultCallControls,
   HangUpCallButtonProps,
 } from '../CallControls';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallingState, StreamReaction } from '@stream-io/video-client';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { StreamReaction } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -136,24 +136,12 @@ export const CallContent = ({
    */
   useIncallManager({ media: 'video', auto: true });
 
-  const call = useCall();
-  const activeCallRef = useRef(call);
-  activeCallRef.current = call;
-
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {
       return;
     }
     setShowRemoteParticipantInFloatingView((prevState) => !prevState);
   };
-
-  useEffect(() => {
-    return () => {
-      if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
-        activeCallRef.current?.leave();
-      }
-    };
-  }, []);
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel: isInPiPMode ? null : ParticipantLabel,

@@ -782,8 +782,9 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
+    const iceState = this.pc.iceConnectionState;
     const logLevel =
-      this.pc.iceConnectionState === 'connected' ? 'debug' : 'error';
+      iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
     logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 

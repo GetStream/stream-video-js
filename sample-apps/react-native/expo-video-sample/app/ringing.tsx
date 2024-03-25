@@ -2,6 +2,8 @@ import {
   useCalls,
   StreamCall,
   RingingCallContent,
+  CallingState,
+  Call,
 } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
 import { Alert, StyleSheet } from 'react-native';
@@ -34,12 +36,25 @@ export default function JoinRingingCallScreen() {
 
   return (
     <StreamCall call={firstCall}>
+      <CallLeaveOnUnmount call={firstCall} />
       <SafeAreaView style={styles.flexedContainer}>
         <RingingCallContent />
       </SafeAreaView>
     </StreamCall>
   );
 }
+
+const CallLeaveOnUnmount = ({ call }: { call: Call }) => {
+  useEffect(() => {
+    return () => {
+      if (call && call.state.callingState !== CallingState.LEFT) {
+        call.leave();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+};
 
 const styles = StyleSheet.create({
   flexedContainer: {

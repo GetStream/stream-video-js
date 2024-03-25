@@ -54,7 +54,9 @@ export const getClientDetails = (): ClientDetails => {
       architecture: cpu.architecture || '',
     },
     device: {
-      name: `${device.vendor || ''} ${device.model || ''} ${device.type || ''}`,
+      name: [device.vendor, device.model, device.type]
+        .filter(Boolean)
+        .join(' '),
       version: '',
     },
   };
