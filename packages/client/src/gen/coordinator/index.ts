@@ -2899,6 +2899,12 @@ export interface JoinCallResponse {
    * @memberof JoinCallResponse
    */
   own_capabilities: Array<OwnCapability>;
+  /**
+   *
+   * @type {StatsOptions}
+   * @memberof JoinCallResponse
+   */
+  stats_options: StatsOptions;
 }
 /**
  *
@@ -4061,6 +4067,19 @@ export interface StartTranscriptionResponse {
    * @memberof StartTranscriptionResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StatsOptions
+ */
+export interface StatsOptions {
+  /**
+   *
+   * @type {number}
+   * @memberof StatsOptions
+   */
+  reporting_interval_ms: number;
 }
 /**
  *

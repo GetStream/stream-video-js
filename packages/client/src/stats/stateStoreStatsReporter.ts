@@ -7,6 +7,7 @@ import type {
 import { CallState } from '../store';
 import { Publisher, Subscriber } from '../rtc';
 import { getLogger } from '../logger';
+import { flatten } from './utils';
 
 export type StatsReporterOpts = {
   subscriber: Subscriber;
@@ -351,17 +352,4 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
   }
 
   return report;
-};
-
-/**
- * Flatten the stats report into an array of stats objects.
- *
- * @param report the report to flatten.
- */
-const flatten = (report: RTCStatsReport) => {
-  const stats: RTCStats[] = [];
-  report.forEach((s) => {
-    stats.push(s);
-  });
-  return stats;
 };

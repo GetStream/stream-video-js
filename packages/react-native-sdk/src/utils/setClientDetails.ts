@@ -3,9 +3,11 @@ import {
   setDeviceInfo,
   setOSInfo,
   SfuModels,
+  setWebRTCInfo,
 } from '@stream-io/video-client';
 import { Platform } from 'react-native';
 import { version } from '../version';
+import RNWebRTCPackageJSON from '@stream-io/react-native-webrtc/package.json';
 
 const [major, minor, patch] = version.split('.');
 
@@ -55,5 +57,9 @@ export const setClientDetails = () => {
   setDeviceInfo({
     name: deviceName,
     version: '',
+  });
+
+  setWebRTCInfo({
+    version: RNWebRTCPackageJSON.version,
   });
 };
