@@ -26,6 +26,44 @@ import {
 } from '@protobuf-ts/runtime';
 
 /**
+ * @generated from protobuf message stream.video.sfu.signal.SendStatsRequest
+ */
+export interface SendStatsRequest {
+  /**
+   * @generated from protobuf field: string session_id = 1;
+   */
+  sessionId: string;
+  /**
+   * @generated from protobuf field: string subscriber_stats = 2;
+   */
+  subscriberStats: string;
+  /**
+   * @generated from protobuf field: string publisher_stats = 3;
+   */
+  publisherStats: string;
+  /**
+   * @generated from protobuf field: string webrtc_version = 4;
+   */
+  webrtcVersion: string;
+  /**
+   * @generated from protobuf field: string sdk = 5;
+   */
+  sdk: string;
+  /**
+   * @generated from protobuf field: string sdk_version = 6;
+   */
+  sdkVersion: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.signal.SendStatsResponse
+ */
+export interface SendStatsResponse {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Error error = 1;
+   */
+  error?: Error;
+}
+/**
  * @generated from protobuf message stream.video.sfu.signal.ICERestartRequest
  */
 export interface ICERestartRequest {
@@ -220,6 +258,212 @@ export interface SetPublisherResponse {
    */
   error?: Error;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
+  constructor() {
+    super('stream.video.sfu.signal.SendStatsRequest', [
+      { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 2,
+        name: 'subscriber_stats',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 3,
+        name: 'publisher_stats',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 4,
+        name: 'webrtc_version',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      { no: 5, name: 'sdk', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 6,
+        name: 'sdk_version',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+    ]);
+  }
+  create(value?: PartialMessage<SendStatsRequest>): SendStatsRequest {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.sessionId = '';
+    message.subscriberStats = '';
+    message.publisherStats = '';
+    message.webrtcVersion = '';
+    message.sdk = '';
+    message.sdkVersion = '';
+    if (value !== undefined)
+      reflectionMergePartial<SendStatsRequest>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SendStatsRequest,
+  ): SendStatsRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string session_id */ 1:
+          message.sessionId = reader.string();
+          break;
+        case /* string subscriber_stats */ 2:
+          message.subscriberStats = reader.string();
+          break;
+        case /* string publisher_stats */ 3:
+          message.publisherStats = reader.string();
+          break;
+        case /* string webrtc_version */ 4:
+          message.webrtcVersion = reader.string();
+          break;
+        case /* string sdk */ 5:
+          message.sdk = reader.string();
+          break;
+        case /* string sdk_version */ 6:
+          message.sdkVersion = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: SendStatsRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* string session_id = 1; */
+    if (message.sessionId !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+    /* string subscriber_stats = 2; */
+    if (message.subscriberStats !== '')
+      writer.tag(2, WireType.LengthDelimited).string(message.subscriberStats);
+    /* string publisher_stats = 3; */
+    if (message.publisherStats !== '')
+      writer.tag(3, WireType.LengthDelimited).string(message.publisherStats);
+    /* string webrtc_version = 4; */
+    if (message.webrtcVersion !== '')
+      writer.tag(4, WireType.LengthDelimited).string(message.webrtcVersion);
+    /* string sdk = 5; */
+    if (message.sdk !== '')
+      writer.tag(5, WireType.LengthDelimited).string(message.sdk);
+    /* string sdk_version = 6; */
+    if (message.sdkVersion !== '')
+      writer.tag(6, WireType.LengthDelimited).string(message.sdkVersion);
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.signal.SendStatsRequest
+ */
+export const SendStatsRequest = new SendStatsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SendStatsResponse$Type extends MessageType<SendStatsResponse> {
+  constructor() {
+    super('stream.video.sfu.signal.SendStatsResponse', [
+      { no: 1, name: 'error', kind: 'message', T: () => Error },
+    ]);
+  }
+  create(value?: PartialMessage<SendStatsResponse>): SendStatsResponse {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    if (value !== undefined)
+      reflectionMergePartial<SendStatsResponse>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SendStatsResponse,
+  ): SendStatsResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* stream.video.sfu.models.Error error */ 1:
+          message.error = Error.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.error,
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: SendStatsResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* stream.video.sfu.models.Error error = 1; */
+    if (message.error)
+      Error.internalBinaryWrite(
+        message.error,
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.signal.SendStatsResponse
+ */
+export const SendStatsResponse = new SendStatsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ICERestartRequest$Type extends MessageType<ICERestartRequest> {
   constructor() {
@@ -1538,6 +1782,12 @@ export const SignalServer = new ServiceType(
       options: {},
       I: ICERestartRequest,
       O: ICERestartResponse,
+    },
+    {
+      name: 'SendStats',
+      options: {},
+      I: SendStatsRequest,
+      O: SendStatsResponse,
     },
   ],
 );

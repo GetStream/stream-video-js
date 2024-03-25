@@ -480,6 +480,36 @@ export interface CallEndedEvent {
   user?: UserResponse;
 }
 /**
+ * @export
+ * @interface CallEvent
+ */
+export interface CallEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallEvent
+   */
+  description: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallEvent
+   */
+  severity: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallEvent
+   */
+  timestamp: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallEvent
+   */
+  type: string;
+}
+/**
  * This event is sent when HLS broadcasting has failed
  * @export
  * @interface CallHLSBroadcastingFailedEvent
@@ -1643,6 +1673,19 @@ export interface CallStateResponseFields {
   own_capabilities: Array<OwnCapability>;
 }
 /**
+ *
+ * @export
+ * @interface CallTimeline
+ */
+export interface CallTimeline {
+  /**
+   *
+   * @type {Array<CallEvent>}
+   * @memberof CallTimeline
+   */
+  events: Array<CallEvent>;
+}
+/**
  * CallTranscription represents a transcription of a call.
  * @export
  * @interface CallTranscription
@@ -1779,7 +1822,6 @@ export interface CallTranscriptionStoppedEvent {
    */
   type: string;
 }
-
 /**
  *
  * @export
@@ -2020,13 +2062,32 @@ export interface ConnectionErrorEvent {
    * @type {APIError}
    * @memberof ConnectionErrorEvent
    */
-  error: APIError;
+  error: APIError | null;
   /**
    * The type of event: "connection.ok" in this case
    * @type {string}
    * @memberof ConnectionErrorEvent
    */
   type: string;
+}
+/**
+ *
+ * @export
+ * @interface Coordinates
+ */
+export interface Coordinates {
+  /**
+   *
+   * @type {number}
+   * @memberof Coordinates
+   */
+  latitude: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Coordinates
+   */
+  longitude: number;
 }
 /**
  *
@@ -2560,6 +2621,91 @@ export interface GetCallResponse {
 /**
  *
  * @export
+ * @interface GetCallStatsResponse
+ */
+export interface GetCallStatsResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  average_jitter: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  average_latency: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  call_duration_seconds: number;
+  /**
+   *
+   * @type {CallTimeline}
+   * @memberof GetCallStatsResponse
+   */
+  call_timeline?: CallTimeline;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof GetCallStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  max_participants: number;
+  /**
+   *
+   * @type {{ [key: string]: UserStats; }}
+   * @memberof GetCallStatsResponse
+   */
+  participant_report: { [key: string]: UserStats };
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  publishing_participants: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  quality_score: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  sfu_count: number;
+  /**
+   *
+   * @type {Array<SFULocationResponse>}
+   * @memberof GetCallStatsResponse
+   */
+  sfus: Array<SFULocationResponse>;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  total_freezes_duration: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  total_quality_limitation_duration: number;
+}
+/**
+ *
+ * @export
  * @interface GetCallTypeResponse
  */
 export interface GetCallTypeResponse {
@@ -2964,6 +3110,12 @@ export interface JoinCallResponse {
    * @memberof JoinCallResponse
    */
   own_capabilities: Array<OwnCapability>;
+  /**
+   *
+   * @type {StatsOptions}
+   * @memberof JoinCallResponse
+   */
+  stats_options: StatsOptions;
 }
 /**
  *
@@ -3130,6 +3282,31 @@ export interface ListTranscriptionsResponse {
    * @memberof ListTranscriptionsResponse
    */
   transcriptions: Array<CallTranscription>;
+}
+/**
+ *
+ * @export
+ * @interface Location
+ */
+export interface Location {
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  country_iso_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  subdivision_iso_code: string;
 }
 /**
  *
@@ -3883,6 +4060,37 @@ export interface RingSettingsRequest {
 /**
  *
  * @export
+ * @interface SFULocationResponse
+ */
+export interface SFULocationResponse {
+  /**
+   *
+   * @type {Coordinates}
+   * @memberof SFULocationResponse
+   */
+  coordinates: Coordinates;
+  /**
+   *
+   * @type {string}
+   * @memberof SFULocationResponse
+   */
+  datacenter: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SFULocationResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {Location}
+   * @memberof SFULocationResponse
+   */
+  location: Location;
+}
+/**
+ *
+ * @export
  * @interface SFUResponse
  */
 export interface SFUResponse {
@@ -4102,6 +4310,19 @@ export interface StartTranscriptionResponse {
    * @memberof StartTranscriptionResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StatsOptions
+ */
+export interface StatsOptions {
+  /**
+   *
+   * @type {number}
+   * @memberof StatsOptions
+   */
+  reporting_interval_ms: number;
 }
 /**
  *
@@ -4666,6 +4887,31 @@ export interface UpdatedCallPermissionsEvent {
 /**
  *
  * @export
+ * @interface UserInfoResponse
+ */
+export interface UserInfoResponse {
+  /**
+   *
+   * @type {object}
+   * @memberof UserInfoResponse
+   */
+  custom: object;
+  /**
+   *
+   * @type {string}
+   * @memberof UserInfoResponse
+   */
+  image: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserInfoResponse
+   */
+  name: string;
+}
+/**
+ *
+ * @export
  * @interface UserRequest
  */
 export interface UserRequest {
@@ -4766,6 +5012,62 @@ export interface UserResponse {
    * @memberof UserResponse
    */
   updated_at: string;
+}
+/**
+ *
+ * @export
+ * @interface UserSessionStats
+ */
+export interface UserSessionStats {
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  os: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  sdk: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  sdk_version: string;
+  /**
+   *
+   * @type {CallTimeline}
+   * @memberof UserSessionStats
+   */
+  timeline?: CallTimeline;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  webrtc_version: string;
+}
+/**
+ *
+ * @export
+ * @interface UserStats
+ */
+export interface UserStats {
+  /**
+   *
+   * @type {UserInfoResponse}
+   * @memberof UserStats
+   */
+  info: UserInfoResponse;
+  /**
+   *
+   * @type {{ [key: string]: UserSessionStats; }}
+   * @memberof UserStats
+   */
+  session_stats: { [key: string]: UserSessionStats };
 }
 /**
  * @type VideoEvent

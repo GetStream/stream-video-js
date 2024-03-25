@@ -24,6 +24,7 @@ import {
   BlockUserResponse,
   EndCallResponse,
   GetCallResponse,
+  GetCallStatsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -50,6 +51,7 @@ import {
   StartRecordingResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
+  StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
@@ -96,10 +98,7 @@ import {
   VideoLayerSetting,
 } from './gen/video/sfu/event/events';
 import { Timestamp } from './gen/google/protobuf/timestamp';
-import {
-  createStatsReporter,
-  StatsReporter,
-} from './stats/state-store-stats-reporter';
+import { createStatsReporter, SfuStatsReporter, StatsReporter } from './stats';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -206,6 +205,7 @@ export class Call {
   }>({ type: DebounceType.MEDIUM, data: [] });
 
   private statsReporter?: StatsReporter;
+  private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
@@ -489,6 +489,9 @@ export class Call {
     this.statsReporter?.stop();
     this.statsReporter = undefined;
 
+    this.sfuStatsReporter?.stop();
+    this.sfuStatsReporter = undefined;
+
     this.subscriber?.close();
     this.subscriber = undefined;
 
@@ -699,12 +702,14 @@ export class Call {
     let sfuServer: SFUResponse;
     let sfuToken: string;
     let connectionConfig: RTCConfiguration | undefined;
+    let statsOptions: StatsOptions | undefined;
     try {
       if (this.sfuClient?.isFastReconnecting) {
         // use previous SFU configuration and values
         connectionConfig = this.publisher?.connectionConfiguration;
         sfuServer = this.sfuClient.sfuServer;
         sfuToken = this.sfuClient.token;
+        statsOptions = this.sfuStatsReporter?.options;
       } else {
         // full join flow - let the Coordinator pick a new SFU for us
         const call = await join(this.streamClient, this.type, this.id, data);
@@ -714,6 +719,7 @@ export class Call {
         connectionConfig = call.connectionConfig;
         sfuServer = call.sfuServer;
         sfuToken = call.token;
+        statsOptions = call.statsOptions;
       }
 
       if (this.streamClient._hasConnectionID()) {
@@ -789,6 +795,8 @@ export class Call {
         this.publisher = undefined;
         this.statsReporter?.stop();
         this.statsReporter = undefined;
+        this.sfuStatsReporter?.stop();
+        this.sfuStatsReporter = undefined;
 
         // clean up current connection
         sfuClient.close(
@@ -975,11 +983,10 @@ export class Call {
       });
     }
 
-    const audioSettings = this.state.settings?.audio;
-    const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-    const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
-
     if (!this.publisher) {
+      const audioSettings = this.state.settings?.audio;
+      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
       this.publisher = new Publisher({
         sfuClient,
         dispatcher: this.dispatcher,
@@ -996,6 +1003,17 @@ export class Call {
         publisher: this.publisher,
         state: this.state,
       });
+    }
+
+    const clientDetails = getClientDetails();
+    if (!this.sfuStatsReporter && statsOptions) {
+      this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
+        clientDetails,
+        options: statsOptions,
+        subscriber: this.subscriber,
+        publisher: this.publisher,
+      });
+      this.sfuStatsReporter.start();
     }
 
     try {
@@ -1018,7 +1036,7 @@ export class Call {
 
           return sfuClient.join({
             subscriberSdp: sdp || '',
-            clientDetails: getClientDetails(),
+            clientDetails,
             migration,
             fastReconnect: previousSfuClient?.isFastReconnecting ?? false,
           });
@@ -1871,6 +1889,18 @@ export class Call {
     return this.streamClient.get<ListTranscriptionsResponse>(
       `${this.streamClientBasePath}/transcriptions`,
     );
+  };
+
+  /**
+   * Retrieve call statistics for a particular call session (historical).
+   * Here `callSessionID` is mandatory.
+   *
+   * @param callSessionID the call session ID to retrieve statistics for.
+   * @returns The call stats.
+   */
+  getCallStats = async (callSessionID: string) => {
+    const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
+    return this.streamClient.get<GetCallStatsResponse>(endpoint);
   };
 
   /**

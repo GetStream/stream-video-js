@@ -15,6 +15,8 @@ import type {
   ICETrickleResponse,
   SendAnswerRequest,
   SendAnswerResponse,
+  SendStatsRequest,
+  SendStatsResponse,
   SetPublisherRequest,
   SetPublisherResponse,
   UpdateMuteStatesRequest,
@@ -80,6 +82,13 @@ export interface ISignalServerClient {
     input: ICERestartRequest,
     options?: RpcOptions,
   ): UnaryCall<ICERestartRequest, ICERestartResponse>;
+  /**
+   * @generated from protobuf rpc: SendStats(stream.video.sfu.signal.SendStatsRequest) returns (stream.video.sfu.signal.SendStatsResponse);
+   */
+  sendStats(
+    input: SendStatsRequest,
+    options?: RpcOptions,
+  ): UnaryCall<SendStatsRequest, SendStatsResponse>;
 }
 /**
  * @generated from protobuf service stream.video.sfu.signal.SignalServer
@@ -190,6 +199,23 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
     const method = this.methods[5],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<ICERestartRequest, ICERestartResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * @generated from protobuf rpc: SendStats(stream.video.sfu.signal.SendStatsRequest) returns (stream.video.sfu.signal.SendStatsResponse);
+   */
+  sendStats(
+    input: SendStatsRequest,
+    options?: RpcOptions,
+  ): UnaryCall<SendStatsRequest, SendStatsResponse> {
+    const method = this.methods[6],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<SendStatsRequest, SendStatsResponse>(
       'unary',
       this._transport,
       method,
