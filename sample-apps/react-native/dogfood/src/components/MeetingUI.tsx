@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   CallingState,
@@ -31,6 +31,16 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+
+  // Leave the call if the call is not left and the component is unmounted.
+  useEffect(() => {
+    return () => {
+      if (call && call.state.callingState !== CallingState.LEFT) {
+        call.leave();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const returnToHomeHandler = () => {
     navigation.navigate('JoinMeetingScreen');

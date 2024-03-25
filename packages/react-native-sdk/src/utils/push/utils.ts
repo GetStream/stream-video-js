@@ -128,7 +128,7 @@ export const processNonIncomingCallFromPush = async (
     } else {
       // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
       const [callType, callId] = call_cid.split(':');
-      callFromPush = client.call(callType, callId);
+      callFromPush = client.call(callType as string, callId as string);
       await callFromPush.get();
     }
   } catch (e) {

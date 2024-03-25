@@ -20,6 +20,16 @@ env:
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - 'sample-apps/react-native/dogfood/**'
+      - '!**.md'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - '.github/workflows/react-native-workflow.yml'
       - 'sample-apps/react-native/dogfood/**'
@@ -27,7 +37,7 @@ on:
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
       - '!**/docusaurus/**'
-
+      - '!**.md'
   workflow_dispatch:
 
 concurrency:
@@ -58,10 +68,6 @@ jobs:
 
       - name: Test RN SDK (Unit tests only)
         run: yarn test:react-native:sdk
-
-      - name: Dogfood version update
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: yarn releaseNative
 
   build_ios:
     name: Build iOS

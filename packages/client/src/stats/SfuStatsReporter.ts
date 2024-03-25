@@ -4,7 +4,7 @@ import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { SdkType } from '../gen/video/sfu/models/models';
 import { flatten } from './utils';
-import { LocalClientDetailsType, getWebRTCInfo } from '../client-details';
+import { getWebRTCInfo, LocalClientDetailsType } from '../client-details';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
@@ -76,7 +76,7 @@ export class SfuStatsReporter {
     if (this.options.reporting_interval_ms <= 0) return;
     this.intervalId = setInterval(() => {
       this.run().catch((err) => {
-        this.logger('error', 'Failed to report stats', err);
+        this.logger('warn', 'Failed to report stats', err);
       });
     }, this.options.reporting_interval_ms);
   };

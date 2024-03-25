@@ -33,8 +33,8 @@ export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
     landscape?: boolean;
   };
 
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
+const hasScreenShare = (p: StreamVideoParticipant | undefined) =>
+  !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 /**
  * Component used to display the list of participants in a spotlight mode.

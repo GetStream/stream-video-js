@@ -71,7 +71,9 @@ export const getClientDetails = (): LocalClientDetailsType => {
       architecture: cpu.architecture || '',
     },
     device: {
-      name: `${device.vendor || ''} ${device.model || ''} ${device.type || ''}`,
+      name: [device.vendor, device.model, device.type]
+        .filter(Boolean)
+        .join(' '),
       version: '',
     },
   };

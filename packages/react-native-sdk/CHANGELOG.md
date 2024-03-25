@@ -2,6 +2,51 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.9...@stream-io/video-react-native-sdk-0.5.10) (2024-03-25)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.3`
+
+### Features
+
+* SFU stats reporting ([#1297](https://github.com/GetStream/stream-video-js/issues/1297)) ([f46e927](https://github.com/GetStream/stream-video-js/commit/f46e927cbd650bc9af64a01cd5ebcec6cf2cfda8)), closes [#1276](https://github.com/GetStream/stream-video-js/issues/1276)
+
+### [0.5.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.8...@stream-io/video-react-native-sdk-0.5.9) (2024-03-25)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.2`
+### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.7...@stream-io/video-react-native-sdk-0.5.8) (2024-03-20)
+
+
+### Bug Fixes
+
+* **react-native:** react-native-callkeep optional dependency import issue in SDK ([#1294](https://github.com/GetStream/stream-video-js/issues/1294)) ([6c664a7](https://github.com/GetStream/stream-video-js/commit/6c664a701e6dc838c2a4fcd73ce3f2a24f7f915a))
+
+### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.6...@stream-io/video-react-native-sdk-0.5.7) (2024-03-15)
+
+
+### Bug Fixes
+
+* commonjs optional libs bug workaround ([#1292](https://github.com/GetStream/stream-video-js/issues/1292)) ([6d47386](https://github.com/GetStream/stream-video-js/commit/6d47386de79dac2e4a6cf98b31cb1127f48b881c))
+
+### [0.5.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.5...@stream-io/video-react-native-sdk-0.5.6) (2024-03-14)
+
+
+### Bug Fixes
+
+* **react-native:** floating participant speaking border jump issue ([#1291](https://github.com/GetStream/stream-video-js/issues/1291)) ([8e6fb5a](https://github.com/GetStream/stream-video-js/commit/8e6fb5aa047b4353c16673b03fb215508d79951b))
+
+### [0.5.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.4...@stream-io/video-react-native-sdk-0.5.5) (2024-03-14)
+
+
+### Bug Fixes
+
+* remove automatic call leave in call content ([#1289](https://github.com/GetStream/stream-video-js/issues/1289)) ([b9714da](https://github.com/GetStream/stream-video-js/commit/b9714daea6146bf1ecd1c9b91aec0dcf85c5274f))
+
 ### [0.5.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.3...@stream-io/video-react-native-sdk-0.5.4) (2024-03-13)
 
 ### Dependency Updates

@@ -161,7 +161,6 @@ export const FloatingParticipantView = ({
                   styles.participantViewContainer,
                   style,
                   {
-                    backgroundColor: colors.static_grey,
                     shadowColor: colors.static_black,
                   },
                   floatingParticipantsView.participantViewContainer,
@@ -199,7 +198,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     elevation: 4,
-    borderWidth: 0,
   },
   videoFallback: {
     ...StyleSheet.absoluteFillObject,
