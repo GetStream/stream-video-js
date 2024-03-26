@@ -1105,10 +1105,10 @@ export interface CallRejectedEvent {
 export interface CallRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof CallRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {Array<MemberRequest>}
@@ -1178,10 +1178,10 @@ export interface CallResponse {
   current_session_id: string;
   /**
    * Custom data for this object
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof CallResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {EgressResponse}
@@ -2294,10 +2294,10 @@ export interface ChannelResponse {
   created_by?: UserObject;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof ChannelResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    * Date/time of deletion
    * @type {string}
@@ -2483,10 +2483,10 @@ export interface Command {
 export interface ConnectUserDetailsRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof ConnectUserDetailsRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -2699,6 +2699,43 @@ export interface Credentials {
    * @memberof Credentials
    */
   token: string;
+}
+/**
+ * A custom event, this event is used to send custom events to other participants in the call.
+ * @export
+ * @interface CustomVideoEvent
+ */
+export interface CustomVideoEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  created_at: string;
+  /**
+   * Custom data for this object
+   * @type {{ [key: string]: any; }}
+   * @memberof CustomVideoEvent
+   */
+  custom: { [key: string]: any };
+  /**
+   * The type of event, "custom" in this case
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CustomVideoEvent
+   */
+  user: UserResponse;
 }
 /**
  *
@@ -3532,10 +3569,10 @@ export interface Location {
 export interface MemberRequest {
   /**
    * Custom data for this object
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof MemberRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3563,10 +3600,10 @@ export interface MemberResponse {
   created_at: string;
   /**
    * Custom member response data
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof MemberResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    * Date/time of deletion
    * @type {string}
@@ -3713,10 +3750,10 @@ export interface OwnUser {
   created_at: string;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof OwnUser
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3846,10 +3883,10 @@ export interface OwnUserResponse {
   created_at: string;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof OwnUserResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -4032,10 +4069,10 @@ export interface PushNotificationSettings {
 export interface QueryCallsRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof QueryCallsRequest
    */
-  filter_conditions?: object;
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {number}
@@ -4106,10 +4143,10 @@ export interface QueryCallsResponse {
 export interface QueryMembersRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof QueryMembersRequest
    */
-  filter_conditions?: object;
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -4199,10 +4236,10 @@ export interface RTMPIngress {
 export interface ReactionResponse {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof ReactionResponse
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -4489,10 +4526,10 @@ export interface ScreensharingSettingsRequest {
 export interface SendEventRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof SendEventRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
 }
 /**
  *
@@ -4515,10 +4552,10 @@ export interface SendEventResponse {
 export interface SendReactionRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof SendReactionRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -5024,10 +5061,10 @@ export interface UpdateCallMembersResponse {
 export interface UpdateCallRequest {
   /**
    * Custom data for this object
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UpdateCallRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {CallSettingsRequest}
@@ -5314,10 +5351,10 @@ export interface UserDeletedEvent {
 export interface UserInfoResponse {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserInfoResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -5431,10 +5468,10 @@ export interface UserObject {
   readonly created_at?: string;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserObject
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    * Date of deactivation
    * @type {string}
@@ -5566,10 +5603,10 @@ export interface UserReactivatedEvent {
 export interface UserRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    * User ID
    * @type {string}
@@ -5615,10 +5652,10 @@ export interface UserResponse {
   created_at: string;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -5998,6 +6035,7 @@ export type WSEvent =
   | ({ type: 'call.user_muted' } & CallUserMuted)
   | ({ type: 'connection.error' } & ConnectionErrorEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)
+  | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent)
   | ({ type: 'user.banned' } & UserBannedEvent)
   | ({ type: 'user.deactivated' } & UserDeactivatedEvent)
@@ -6006,38 +6044,4 @@ export type WSEvent =
   | ({ type: 'user.presence.changed' } & UserPresenceChangedEvent)
   | ({ type: 'user.reactivated' } & UserReactivatedEvent)
   | ({ type: 'user.unbanned' } & UserUnbannedEvent)
-  | ({ type: 'user.updated' } & UserUpdatedEvent)
-  | ({ type: 'custom' } & CustomVideoEvent);
-
-export interface CustomVideoEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CustomVideoEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomVideoEvent
-   */
-  created_at: string;
-  /**
-   * Custom data for this object
-   * @type {{ [key: string]: any; }}
-   * @memberof CustomVideoEvent
-   */
-  custom: { [key: string]: any };
-  /**
-   * The type of event, "custom" in this case
-   * @type {string}
-   * @memberof CustomVideoEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CustomVideoEvent
-   */
-  user: UserResponse;
-}
+  | ({ type: 'user.updated' } & UserUpdatedEvent);
