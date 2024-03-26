@@ -446,6 +446,14 @@ export class CallState {
       'call.transcription_ready': undefined,
       'call.transcription_started': undefined,
       'call.transcription_stopped': undefined,
+      'user.banned': undefined,
+      'user.deleted': undefined,
+      'user.presence.changed': undefined,
+      'user.reactivated': undefined,
+      'user.deactivated': undefined,
+      'user.muted': undefined,
+      'user.unbanned': undefined,
+      'user.updated': undefined,
     };
   }
 
