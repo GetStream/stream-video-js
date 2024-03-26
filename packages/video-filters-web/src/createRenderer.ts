@@ -1,5 +1,6 @@
 import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
+import { getSegmentationParams, SegmentationLevel } from './segmentation';
 
 export type BackgroundConfig = 'none' | 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high';
@@ -10,6 +11,7 @@ export function createRenderer(
   targetCanvas: HTMLCanvasElement,
   options: {
     backgroundConfig: BackgroundConfig;
+    segmentationLevel?: SegmentationLevel;
     backgroundImage?: HTMLImageElement;
     backgroundBlurLevel?: BackgroundBlurLevel;
     fps?: number;
@@ -19,6 +21,7 @@ export function createRenderer(
     backgroundConfig,
     backgroundImage,
     backgroundBlurLevel,
+    segmentationLevel = SegmentationLevel.HIGH,
     fps = 30,
   } = options;
   if (backgroundConfig === 'image' && !backgroundImage) {
@@ -34,6 +37,7 @@ export function createRenderer(
     backgroundConfig,
     targetCanvas,
     tflite,
+    getSegmentationParams(segmentationLevel),
   );
 
   const id = setInterval(() => {

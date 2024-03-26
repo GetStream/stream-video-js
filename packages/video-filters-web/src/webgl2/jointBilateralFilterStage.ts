@@ -3,6 +3,7 @@ import {
   createPipelineStageProgram,
   glsl,
 } from '../helpers/webglHelper';
+import { SegmentationParams } from '../segmentation';
 
 export function buildJointBilateralFilterStage(
   gl: WebGL2RenderingContext,
@@ -12,6 +13,7 @@ export function buildJointBilateralFilterStage(
   inputTexture: WebGLTexture,
   outputTexture: WebGLTexture,
   canvas: HTMLCanvasElement,
+  segmentationConfig: SegmentationParams,
 ) {
   const fragmentShaderSource = glsl`#version 300 es
 
@@ -27,7 +29,6 @@ export function buildJointBilateralFilterStage(
     uniform float u_sigmaColor;
 
     in vec2 v_texCoord;
-
     out vec4 outColor;
 
     float gaussian(float x, float sigma) {
@@ -65,7 +66,8 @@ export function buildJointBilateralFilterStage(
     }
   `;
 
-  const [segmentationWidth, segmentationHeight] = [256, 144];
+  const { width: segmentationWidth, height: segmentationHeight } =
+    segmentationConfig;
   const { width: outputWidth, height: outputHeight } = canvas;
   const texelWidth = 1 / outputWidth;
   const texelHeight = 1 / outputHeight;
@@ -129,9 +131,8 @@ export function buildJointBilateralFilterStage(
       outputHeight / segmentationHeight,
     );
 
-    const kSparsityFactor = 0.66; // Higher is more sparse.
-    const sparsity = Math.max(1, Math.sqrt(sigmaSpace) * kSparsityFactor);
-    const step = sparsity;
+    const kSparsityFactor = 0.66; // Higher is sparser.
+    const step = Math.max(1, Math.sqrt(sigmaSpace) * kSparsityFactor);
     const radius = sigmaSpace;
     const offset = step > 1 ? step * 0.5 : 0;
     const sigmaTexel = Math.max(texelWidth, texelHeight) * sigmaSpace;

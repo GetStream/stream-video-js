@@ -12,6 +12,7 @@ import { buildJointBilateralFilterStage } from './jointBilateralFilterStage';
 import { buildResizingStage } from './resizingStage';
 import { buildSoftmaxStage } from './softmaxStage';
 import { type BackgroundBlurLevel, BackgroundConfig } from '../createRenderer';
+import { SegmentationParams } from '../segmentation';
 
 export function buildWebGL2Pipeline(
   videoSource: HTMLVideoElement,
@@ -20,20 +21,19 @@ export function buildWebGL2Pipeline(
   backgroundConfig: BackgroundConfig,
   canvas: HTMLCanvasElement,
   tflite: TFLite,
+  segmentationConfig: SegmentationParams,
 ) {
   const gl = canvas.getContext('webgl2')!;
-  if (!gl) {
-    throw new Error('WebGL2 is not supported');
-  }
+  if (!gl) throw new Error('WebGL2 is not supported');
 
   const { width: frameWidth, height: frameHeight } = videoSource;
-  const [segmentationWidth, segmentationHeight] = [256, 144];
+  const { width: segmentationWidth, height: segmentationHeight } =
+    segmentationConfig;
 
   const vertexShaderSource = glsl`#version 300 es
 
     in vec2 a_position;
     in vec2 a_texCoord;
-
     out vec2 v_texCoord;
 
     void main() {
@@ -93,6 +93,7 @@ export function buildWebGL2Pipeline(
     positionBuffer,
     texCoordBuffer,
     tflite,
+    segmentationConfig,
   );
   const loadSegmentationStage = buildSoftmaxStage(
     gl,
@@ -101,6 +102,7 @@ export function buildWebGL2Pipeline(
     texCoordBuffer,
     tflite,
     segmentationTexture,
+    segmentationConfig,
   );
 
   const jointBilateralFilterStage = buildJointBilateralFilterStage(
@@ -111,6 +113,7 @@ export function buildWebGL2Pipeline(
     segmentationTexture,
     personMaskTexture,
     canvas,
+    segmentationConfig,
   );
   const backgroundStage =
     backgroundConfig === 'blur'

@@ -6,6 +6,7 @@ import {
   glsl,
   readPixelsAsync,
 } from '../helpers/webglHelper';
+import { SegmentationParams } from '../segmentation';
 
 export function buildResizingStage(
   gl: WebGL2RenderingContext,
@@ -13,15 +14,13 @@ export function buildResizingStage(
   positionBuffer: WebGLBuffer,
   texCoordBuffer: WebGLBuffer,
   tflite: TFLite,
+  segmentationConfig: SegmentationParams,
 ) {
   const fragmentShaderSource = glsl`#version 300 es
 
     precision highp float;
-
     uniform sampler2D u_inputFrame;
-
     in vec2 v_texCoord;
-
     out vec4 outColor;
 
     void main() {
@@ -32,7 +31,7 @@ export function buildResizingStage(
   // TFLite memory will be accessed as float32
   const tfliteInputMemoryOffset = tflite._getInputMemoryOffset() / 4;
 
-  const [outputWidth, outputHeight] = [256, 144];
+  const { width: outputWidth, height: outputHeight } = segmentationConfig;
   const outputPixelCount = outputWidth * outputHeight;
 
   const fragmentShader = compileShader(

@@ -5,6 +5,7 @@ import {
   createTexture,
   glsl,
 } from '../helpers/webglHelper';
+import { SegmentationParams } from '../segmentation';
 
 export function buildSoftmaxStage(
   gl: WebGL2RenderingContext,
@@ -13,15 +14,14 @@ export function buildSoftmaxStage(
   texCoordBuffer: WebGLBuffer,
   tflite: TFLite,
   outputTexture: WebGLTexture,
+  segmentationConfig: SegmentationParams,
 ) {
   const fragmentShaderSource = glsl`#version 300 es
 
     precision highp float;
 
     uniform sampler2D u_inputSegmentation;
-
     in vec2 v_texCoord;
-
     out vec4 outColor;
 
     void main() {
@@ -35,8 +35,8 @@ export function buildSoftmaxStage(
 
   // TFLite memory will be accessed as float32
   const tfliteOutputMemoryOffset = tflite._getOutputMemoryOffset() / 4;
-
-  const [segmentationWidth, segmentationHeight] = [256, 144];
+  const { width: segmentationWidth, height: segmentationHeight } =
+    segmentationConfig;
 
   const fragmentShader = compileShader(
     gl,
