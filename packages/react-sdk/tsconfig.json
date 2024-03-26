@@ -23,7 +23,6 @@
   "exclude": ["**/__tests__/**"],
   "include": [
     "./src",
-    "index.ts",
-    "version.ts"
+    "index.ts"
   ]
 }

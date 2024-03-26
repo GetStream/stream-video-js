@@ -369,7 +369,6 @@ export class DynascaleManager {
             // play audio through the system's default device
             const { selectedDevice } = this.call.speaker.state;
             if (selectedDevice && 'setSinkId' in audioElement) {
-              // @ts-expect-error setSinkId is not yet in the lib
               audioElement.setSinkId(selectedDevice);
             }
           }
@@ -380,7 +379,6 @@ export class DynascaleManager {
       ? null
       : this.call.speaker.state.selectedDevice$.subscribe((deviceId) => {
           if (deviceId) {
-            // @ts-expect-error setSinkId is not yet in the lib
             audioElement.setSinkId(deviceId);
           }
         });

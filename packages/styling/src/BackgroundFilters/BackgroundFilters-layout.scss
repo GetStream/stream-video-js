@@ -1,0 +1,34 @@
+.str-video__background-filters {
+  position: absolute;
+  bottom: 0;
+  // it needs at least 1px to be visible in the viewport,
+  // otherwise, the browser will not play the videos
+  right: calc(100% - 1px);
+  overflow: hidden;
+  // trick to make the video not visible but still playable by the browser
+  // display: none doesn't work as the browser won't play the video
+  opacity: 0;
+
+  .str-video__background-filters__video {
+    top: 0;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .str-video__background-filters__video--tall {
+    object-fit: contain;
+  }
+
+  .str-video__background-filters__background-image {
+    top: 5px;
+    width: 100%;
+    height: auto;
+  }
+
+  .str-video__background-filters__target-canvas {
+    top: 10px;
+    width: 100%;
+    height: auto;
+  }
+}
