@@ -310,7 +310,7 @@ export class StreamVideoClient {
    * Creates a new call.
    *
    * @param type the type of the call.
-   * @param id the id of the call, if not provided a unique random value is used
+   * @param id the id of the call.
    */
   call = (type: string, id: string) => {
     return new Call({

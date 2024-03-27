@@ -16,7 +16,7 @@ fi
 
 if  [ "$FROM_REPO" == 'chat' ]; then
   # Generate the Coordinator OpenAPI schema
-  make -C $PROTOCOL_REPO_DIR video-openapi
+  make -C $PROTOCOL_REPO_DIR openapi
 fi
 
 OUTPUT_DIR="./src/gen/coordinator"

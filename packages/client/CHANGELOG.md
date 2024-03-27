@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.2...@stream-io/video-client-0.6.3) (2024-03-25)
+
+
+### Features
+
+* SFU stats reporting ([#1297](https://github.com/GetStream/stream-video-js/issues/1297)) ([f46e927](https://github.com/GetStream/stream-video-js/commit/f46e927cbd650bc9af64a01cd5ebcec6cf2cfda8)), closes [#1276](https://github.com/GetStream/stream-video-js/issues/1276)
+
+### [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.1...@stream-io/video-client-0.6.2) (2024-03-25)
+
+
+### Features
+
+* **call:** Add getCallStats method ([#1296](https://github.com/GetStream/stream-video-js/issues/1296)) ([b64a19e](https://github.com/GetStream/stream-video-js/commit/b64a19ecd2fcc74f5f531397ed34732d55b0f815))
+
 ### [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.0...@stream-io/video-client-0.6.1) (2024-03-13)
 
 
