@@ -130,7 +130,9 @@ export abstract class InputMediaDeviceManager<
    */
   async select(deviceId: string | undefined) {
     if (isReactNative()) {
-      throw new Error('This method is not supported in React Native');
+      throw new Error(
+        'This method is not supported in React Native. Please visit http://localhost:3000/chat/docs/sdk/reactnative/core/camera-and-microphone/#speaker-management for reference.',
+      );
     }
     if (deviceId === this.state.selectedDevice) {
       return;
