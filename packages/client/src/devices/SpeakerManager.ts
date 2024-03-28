@@ -88,7 +88,7 @@ export class SpeakerManager {
   /**
    * Set the volume of a participant.
    *
-   * Note: this method is not supported in React Native.
+   * Note: This method is not supported in React Native.
    *
    * @param sessionId the participant's session id.
    * @param volume a number between 0 and 1. Set it to `undefined` to use the default volume.
