@@ -15,6 +15,7 @@ import {
 } from '@stream-io/video-client';
 import { useCall } from '../contexts';
 import { useObservableValue } from './useObservableValue';
+import { isReactNative } from '../helpers/platforms';
 
 /**
  * Utility hook, which provides the current call's state.
@@ -408,8 +409,15 @@ export const useMicrophoneState = () => {
 
 /**
  * Returns the speaker state of the current call.
+ *
+ * Note: This hook is not supported in React Native
  */
 export const useSpeakerState = () => {
+  if (isReactNative()) {
+    throw new Error(
+      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
+    );
+  }
   const call = useCall();
   const { speaker } = call as Call;
 

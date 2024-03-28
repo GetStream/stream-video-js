@@ -125,12 +125,14 @@ export abstract class InputMediaDeviceManager<
   /**
    * Selects a device.
    *
-   * Note: this method is not supported in React Native
+   * Note: This method is not supported in React Native
    * @param deviceId the device id to select.
    */
   async select(deviceId: string | undefined) {
     if (isReactNative()) {
-      throw new Error('This method is not supported in React Native');
+      throw new Error(
+        'This method is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for reference.',
+      );
     }
     if (deviceId === this.state.selectedDevice) {
       return;

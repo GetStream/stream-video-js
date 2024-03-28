@@ -85,6 +85,10 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     }
   };
 
+  const onCallEnded = () => {
+    navigation.goBack();
+  };
+
   if (show === 'error-join' || show === 'error-leave') {
     return (
       <CallErrorComponent
@@ -117,11 +121,11 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   } else {
     return (
       <ActiveCall
+        onCallEnded={onCallEnded}
         onChatOpenHandler={onChatOpenHandler}
         unreadCountIndicator={unreadCountIndicator}
         onHangupCallHandler={onHangupCallHandler}
         onBackPressed={onHangupCallHandler}
-        onCallEnded={returnToHomeHandler}
       />
     );
   }
