@@ -155,11 +155,19 @@ const { speaker, selectedDevice, devices } = useSpeakerState();
 
 :::
 
-The audio by default streams through your earpiece/bluetooth speaker in all the cases.
+We primarily utilize [react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager) for managing speaker audio output in our SDK.
 
-We use [react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager) for most of our speaker audio output management.
+This functionality is seamlessly integrated into our video calling and livestream components.
 
-InCallManager allows you to start/stop the audio output on the device speaker through:
+In our SDK, we set the `media` type to `video` for video calls and livestream use-case, and `audio` for audio-only calls, in the [start](https://github.com/react-native-webrtc/react-native-incall-manager?tab=readme-ov-file#usage) method of the InCallManager.
+
+Passing `video` to `media`, routes the audio to device speaker by default unless an external device is connected.
+
+Passing `audio` to `media`, enables the proximity sensor, routes the audio through earpiece by default unless an external device is connected.
+
+When an external device is connected in between or before the call, the audio is always routed through it.
+
+For Audio Rooms, you have to control the behaviour of InCallManager. It allows you to start/stop the audio output on the device speaker through:
 
 ```tsx
 import InCallManager from 'react-native-incall-manager';
@@ -171,17 +179,15 @@ InCallManager.start({ media: 'video' }); // `media` values - audio/video, defaul
 InCallManager.stop();
 ```
 
-InCallManager doesn't allow you to change the output device if you have multiple devices. However, you can turn on the speaker and route the audio through speaker, using:
+To force route the audio through speaker, use the following method:
 
 ```tsx
 import InCallManager from 'react-native-incall-manager';
 
-// For Android
-InCallManager.setSpeakerphoneOn(true); // Pass true for on, and false for off.
-
-// To force speaker phone on/off on both android and iOS.
-InCallManager.setForceSpeakerphoneOn(true); // Pass true for on, and false for off. Once off audio is always routed through earpiece.
+InCallManager.setForceSpeakerphoneOn(true); // Pass true for speaker on, and false for off. Once off audio is always routed through earpiece.
 ```
+
+For more information and customization please visit the official docs of [InCallManager](https://github.com/react-native-webrtc/react-native-incall-manager).
 
 ## Client-side settings
 
