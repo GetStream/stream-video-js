@@ -494,7 +494,10 @@ export class Call {
     this.publisher?.close();
     this.publisher = undefined;
 
-    this.sfuClient?.close();
+    this.sfuClient?.close(
+      StreamSfuClient.NORMAL_CLOSURE,
+      'js-client: user is leaving the call',
+    );
     this.sfuClient = undefined;
 
     this.dispatcher.offAll();
@@ -740,7 +743,8 @@ export class Call {
      * A closure which hides away the re-connection logic.
      */
     const reconnect = async (
-      strategy: 'full' | 'fast' | 'migrate' = 'full',
+      strategy: 'full' | 'fast' | 'migrate',
+      reason: string,
     ): Promise<void> => {
       const currentState = this.state.callingState;
       if (
@@ -777,7 +781,7 @@ export class Call {
       if (strategy === 'fast') {
         sfuClient.close(
           StreamSfuClient.ERROR_CONNECTION_BROKEN,
-          'js-client: attempting fast reconnect',
+          `js-client: attempting fast reconnect - (${reason})`,
         );
       } else if (strategy === 'full') {
         // in migration or recovery scenarios, we don't want to
@@ -797,7 +801,7 @@ export class Call {
         // clean up current connection
         sfuClient.close(
           StreamSfuClient.NORMAL_CLOSURE,
-          'js-client: attempting full reconnect',
+          `js-client: attempting full reconnect - ${reason}`,
         );
       }
       await this.join({
@@ -866,7 +870,7 @@ export class Call {
           'info',
           `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
         );
-        reconnect('migrate').catch((err) => {
+        reconnect('migrate', GoAwayReason[reason]).catch((err) => {
           this.logger(
             'warn',
             `[Migration]: Failed to migrate to another SFU.`,
@@ -901,14 +905,16 @@ export class Call {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           sfuClient.isFastReconnecting = this.reconnectAttempts === 0;
           const strategy = sfuClient.isFastReconnecting ? 'fast' : 'full';
-          reconnect(strategy).catch((err) => {
-            this.logger(
-              'error',
-              `[Rejoin]: ${strategy} rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
-              err,
-            );
-            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-          });
+          reconnect(strategy, `SFU WS closed with code: ${e.code}`).catch(
+            (err) => {
+              this.logger(
+                'error',
+                `[Rejoin]: ${strategy} rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+                err,
+              );
+              this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+            },
+          );
         } else {
           this.logger(
             'error',
@@ -936,7 +942,10 @@ export class Call {
         do {
           try {
             sfuClient.isFastReconnecting = isFirstReconnectAttempt;
-            await reconnect(isFirstReconnectAttempt ? 'fast' : 'full');
+            await reconnect(
+              isFirstReconnectAttempt ? 'fast' : 'full',
+              'Network: online',
+            );
             return; // break the loop if rejoin is successful
           } catch (err) {
             this.logger(
@@ -1057,7 +1066,7 @@ export class Call {
           await this.publisher.restartIce();
         } else if (previousSfuClient?.isFastReconnecting) {
           // reconnection wasn't possible, so we need to do a full rejoin
-          return await reconnect('full').catch((err) => {
+          return await reconnect('full', 're-attempting').catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed forced full rejoin.`,
@@ -1125,7 +1134,7 @@ export class Call {
           `[Rejoin]: Rejoin ${this.reconnectAttempts} failed.`,
           err,
         );
-        await reconnect();
+        await reconnect('full', 'previous attempt failed');
         this.logger(
           'info',
           `[Rejoin]: Rejoin ${this.reconnectAttempts} successful!`,

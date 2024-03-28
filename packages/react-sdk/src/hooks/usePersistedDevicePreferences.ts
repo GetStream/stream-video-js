@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type LocalDevicePreference = {
@@ -22,12 +23,14 @@ const usePersistDevicePreferences = (key: string) => {
     useSpeakerState,
     useCallSettings,
   } = useCallStateHooks();
+  const call = useCall();
   const mic = useMicrophoneState();
   const camera = useCameraState();
   const speaker = useSpeakerState();
   const settings = useCallSettings();
   useEffect(() => {
-    if (!settings) return;
+    if (!call || !settings) return;
+    if (call.state.callingState === CallingState.LEFT) return;
     try {
       const hasPreferences = !!window.localStorage.getItem(key);
       const { audio, video } = settings;
@@ -51,6 +54,7 @@ const usePersistDevicePreferences = (key: string) => {
       console.warn('Failed to save device preferences', err);
     }
   }, [
+    call,
     camera.isMute,
     camera.selectedDevice,
     key,
