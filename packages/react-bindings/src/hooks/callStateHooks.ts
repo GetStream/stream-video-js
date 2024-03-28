@@ -409,6 +409,8 @@ export const useMicrophoneState = () => {
 
 /**
  * Returns the speaker state of the current call.
+ *
+ * Note: This hook is not supported in React Native
  */
 export const useSpeakerState = () => {
   if (isReactNative()) {

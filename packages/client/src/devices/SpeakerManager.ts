@@ -34,6 +34,7 @@ export class SpeakerManager {
    * Lists the available audio output devices
    *
    * Note: It prompts the user for a permission to use devices (if not already granted)
+   * Note: This method is not supported in React Native
    *
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
@@ -49,7 +50,7 @@ export class SpeakerManager {
   /**
    * Select a device.
    *
-   * Note: this method is not supported in React Native
+   * Note: This method is not supported in React Native
    *
    * @param deviceId empty string means the system default
    */
@@ -70,7 +71,7 @@ export class SpeakerManager {
    * Set the volume of the audio elements
    * @param volume a number between 0 and 1.
    *
-   * Note: this method is not supported in React Native
+   * Note: This method is not supported in React Native
    */
   setVolume(volume: number) {
     if (isReactNative()) {
