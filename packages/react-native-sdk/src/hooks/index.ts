@@ -1,4 +1,3 @@
-export * from './useIncallManager';
 export * from './usePermissionRequest';
 export * from './usePermissionNotification';
 export * from './push';

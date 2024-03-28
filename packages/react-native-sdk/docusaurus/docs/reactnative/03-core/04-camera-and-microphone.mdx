@@ -139,27 +139,48 @@ const { status } = useMicrophoneState(); // status returns enabled, disabled or 
 
 ## Speaker management
 
-We use [react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager) for most of our speaker/audio output management.
+:::warning
+We do not support using hooks to change audio output source for React Native SDK as React Native WebRTC doesn't support device switching in RN. This means the following would not work with React Native SDK.
 
-InCallManager allows you to start/stop the audio output on the device through:
+```tsx
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
+const { useMicrophoneState, useSpeakerState } = useCallStateHooks();
+
+// This will give error on React Native.
+const { selectedDevice } = useMicrophoneState();
+// Also, This will give error on React Native.
+const { speaker, selectedDevice, devices } = useSpeakerState();
+```
+
+:::
+
+The audio by default streams through your earpiece/bluetooth speaker in all the cases.
+
+We use [react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager) for most of our speaker audio output management.
+
+InCallManager allows you to start/stop the audio output on the device speaker through:
 
 ```tsx
 import InCallManager from 'react-native-incall-manager';
 
+// Called on call join
 InCallManager.start({ media: 'video' }); // `media` values - audio/video, default: audio
+
+// Called when call is left
 InCallManager.stop();
 ```
 
-InCallManager allows you to enable/disable the speaker phone.
+InCallManager doesn't allow you to change the output device if you have multiple devices. However, you can turn on the speaker and route the audio through speaker, using:
 
 ```tsx
 import InCallManager from 'react-native-incall-manager';
 
 // For Android
-InCallManager.setSpeakerphoneOn(enable: ?boolean); // Pass true for on, and false for off.
+InCallManager.setSpeakerphoneOn(true); // Pass true for on, and false for off.
 
 // To force speaker phone on/off on both android and iOS.
-InCallManager.setForceSpeakerphoneOn(flag: ?boolean) // Pass true for on, and false for off.
+InCallManager.setForceSpeakerphoneOn(true); // Pass true for on, and false for off. Once off audio is always routed through earpiece.
 ```
 
 ## Client-side settings

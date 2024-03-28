@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, SafeAreaView } from 'react-native';
+import InCallManager from 'react-native-incall-manager';
+
 import { useTheme } from '../../../contexts';
-import { useIncallManager } from '../../../hooks';
 import {
   HostLivestreamTopView as DefaultHostLivestreamTopView,
   HostLivestreamTopViewProps,
@@ -59,7 +60,10 @@ export const HostLivestream = ({
   } = useTheme();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
-  useIncallManager({ media: 'video', auto: true });
+  useEffect(() => {
+    InCallManager.start({ media: 'video' });
+    return () => InCallManager.stop();
+  }, []);
 
   const topViewProps: HostLivestreamTopViewProps = {
     LiveIndicator,

@@ -4,13 +4,11 @@ import {
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useIncallManager,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-native';
 
 export default function ToggleAudioButton() {
-  useIncallManager({ media: 'audio', auto: true });
   const call = useCall();
   const connectedUser = useConnectedUser();
 
