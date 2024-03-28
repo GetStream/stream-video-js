@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.3...@stream-io/video-client-0.6.4) (2024-03-28)
+
+
+### Bug Fixes
+
+* **react-native:** improve error logging for speaker manager hook and improve usage of incall manager in SDK ([#1299](https://github.com/GetStream/stream-video-js/issues/1299)) ([9527c41](https://github.com/GetStream/stream-video-js/commit/9527c4176d4e46224ddec18e3fddfb404e0aaae5))
+
 ### [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.2...@stream-io/video-client-0.6.3) (2024-03-25)
 
 
