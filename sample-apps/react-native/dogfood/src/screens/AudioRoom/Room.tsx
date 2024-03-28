@@ -19,7 +19,7 @@ export default function Room({ onClose }: { onClose: () => void }) {
   const callingState = useCallCallingState();
   const call = useCall();
 
-  // Automatically route audio to speaker devices as relevant for watching videos.
+  // Automatically route audio to ear piece.
   useEffect(() => {
     InCallManager.start({ media: 'audio' });
     return () => InCallManager.stop();
