@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   useCall,
   CallContent,
@@ -15,11 +15,13 @@ import { useOrientation } from '../hooks/useOrientation';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
+  onCallEnded: () => void;
 };
 
 export const ActiveCall = ({
   onChatOpenHandler,
   onBackPressed,
+  onCallEnded,
   onHangupCallHandler,
   unreadCountIndicator,
 }: ActiveCallProps) => {
@@ -31,6 +33,12 @@ export const ActiveCall = ({
   const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
   };
+
+  useEffect(() => {
+    return call?.on('call.ended', () => {
+      onCallEnded();
+    });
+  }, [call, onCallEnded]);
 
   const CustomControlsComponent = useCallback(
     ({ landscape }: CallControlProps) => {
