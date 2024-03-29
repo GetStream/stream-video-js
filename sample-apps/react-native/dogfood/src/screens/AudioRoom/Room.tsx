@@ -8,6 +8,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import InCallManager from 'react-native-incall-manager';
 import { ControlsPanel } from '../../components/AudioRoom/ControlsPanel';
 import { PermissionRequestsPanel } from '../../components/AudioRoom/PermissionRequestsPanel';
 import { ParticipantsPanel } from '../../components/AudioRoom/ParticipantsPanel';
@@ -17,6 +18,12 @@ export default function Room({ onClose }: { onClose: () => void }) {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
+
+  // Automatically route audio to ear piece.
+  useEffect(() => {
+    InCallManager.start({ media: 'audio' });
+    return () => InCallManager.stop();
+  }, []);
 
   // when the component unmounts, leave the call
   useEffect(() => {

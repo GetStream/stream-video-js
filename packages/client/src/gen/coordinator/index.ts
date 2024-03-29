@@ -4314,6 +4314,25 @@ export interface StartTranscriptionResponse {
 /**
  *
  * @export
+ * @interface Stats
+ */
+export interface Stats {
+  /**
+   *
+   * @type {number}
+   * @memberof Stats
+   */
+  average_seconds: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Stats
+   */
+  max_seconds: number;
+}
+/**
+ *
+ * @export
  * @interface StatsOptions
  */
 export interface StatsOptions {
@@ -4908,6 +4927,12 @@ export interface UserInfoResponse {
    * @memberof UserInfoResponse
    */
   name: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof UserInfoResponse
+   */
+  roles: Array<string>;
 }
 /**
  *
@@ -5021,10 +5046,40 @@ export interface UserResponse {
 export interface UserSessionStats {
   /**
    *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  freeze_duration_seconds: number;
+  /**
+   *
+   * @type {Stats}
+   * @memberof UserSessionStats
+   */
+  jitter?: Stats;
+  /**
+   *
+   * @type {Stats}
+   * @memberof UserSessionStats
+   */
+  latency?: Stats;
+  /**
+   *
    * @type {string}
    * @memberof UserSessionStats
    */
   os: string;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  packet_loss_fraction: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  quality_score: number;
   /**
    *
    * @type {string}

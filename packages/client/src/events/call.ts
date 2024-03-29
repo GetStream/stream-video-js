@@ -56,12 +56,12 @@ export const watchCallRejected = (call: Call) => {
         .every((m) => rejectedBy[m.user_id]);
       if (everyoneElseRejected) {
         call.logger('info', 'everyone rejected, leaving the call');
-        await call.leave();
+        await call.leave({ reason: 'ring: everyone rejected' });
       }
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
         call.logger('info', 'call creator rejected, leaving call');
-        await call.leave();
+        await call.leave({ reason: 'ring: creator rejected' });
       }
     }
   };
@@ -78,7 +78,7 @@ export const watchCallEnded = (call: Call) => {
       callingState === CallingState.JOINED ||
       callingState === CallingState.JOINING
     ) {
-      await call.leave();
+      await call.leave({ reason: 'call.ended event received' });
     }
   };
 };
