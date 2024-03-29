@@ -173,6 +173,12 @@ export type CallLeaveOptions = {
    * @default `false`.
    */
   reject?: boolean;
+
+  /**
+   * The reason for leaving the call.
+   * This will be sent to the backend and will be visible in the logs.
+   */
+  reason?: string;
 };
 
 /**
