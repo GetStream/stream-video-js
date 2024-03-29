@@ -497,10 +497,7 @@ export class Call {
     this.publisher?.close();
     this.publisher = undefined;
 
-    this.sfuClient?.close(
-      StreamSfuClient.NORMAL_CLOSURE,
-      `js-client: ${reason}`,
-    );
+    this.sfuClient?.close(StreamSfuClient.NORMAL_CLOSURE, reason);
     this.sfuClient = undefined;
 
     this.dispatcher.offAll();
@@ -784,7 +781,7 @@ export class Call {
       if (strategy === 'fast') {
         sfuClient.close(
           StreamSfuClient.ERROR_CONNECTION_BROKEN,
-          `js-client: attempting fast reconnect - (${reason})`,
+          `attempting fast reconnect: ${reason}`,
         );
       } else if (strategy === 'full') {
         // in migration or recovery scenarios, we don't want to
@@ -804,7 +801,7 @@ export class Call {
         // clean up current connection
         sfuClient.close(
           StreamSfuClient.NORMAL_CLOSURE,
-          `js-client: attempting full reconnect - ${reason}`,
+          `attempting full reconnect: ${reason}`,
         );
       }
       await this.join({
@@ -814,10 +811,7 @@ export class Call {
 
       // clean up previous connection
       if (strategy === 'migrate') {
-        sfuClient.close(
-          StreamSfuClient.NORMAL_CLOSURE,
-          'js-client: attempting migration',
-        );
+        sfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'attempting migration');
       }
 
       this.logger(
@@ -908,7 +902,7 @@ export class Call {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           sfuClient.isFastReconnecting = this.reconnectAttempts === 0;
           const strategy = sfuClient.isFastReconnecting ? 'fast' : 'full';
-          reconnect(strategy, `SFU WS closed with code: ${e.code}`).catch(
+          reconnect(strategy, `SFU closed the WS with code: ${e.code}`).catch(
             (err) => {
               this.logger(
                 'error',

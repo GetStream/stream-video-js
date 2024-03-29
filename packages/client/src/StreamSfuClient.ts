@@ -210,9 +210,9 @@ export class StreamSfuClient {
   }
 
   close = (code: number, reason: string) => {
-    this.logger('debug', 'Closing SFU WS connection', code, reason);
+    this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
     if (this.signalWs.readyState !== this.signalWs.CLOSED) {
-      this.signalWs.close(code, reason);
+      this.signalWs.close(code, `js-client: ${reason}`);
     }
 
     this.unsubscribeIceTrickle();
