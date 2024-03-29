@@ -273,6 +273,10 @@ export type Theme = {
     container: ViewStyle;
     icon: ViewStyle;
   };
+  livestreamScreenShareButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+  };
 };
 
 export const defaultTheme: Theme = {
@@ -568,6 +572,10 @@ export const defaultTheme: Theme = {
     icon: {},
   },
   livestreamVideoControlButton: {
+    container: {},
+    icon: {},
+  },
+  livestreamScreenShareButton: {
     container: {},
     icon: {},
   },

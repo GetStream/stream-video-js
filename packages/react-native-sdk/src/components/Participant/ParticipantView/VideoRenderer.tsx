@@ -72,10 +72,12 @@ export const VideoRenderer = ({
       : SfuModels.TrackType.VIDEO,
   );
   const hasJoinedCall = callingState === CallingState.JOINED;
-  const canShowVideo = !!videoStream && isVisible && isPublishingVideoTrack;
   const videoStreamToRender = (isScreenSharing
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
+
+  const canShowVideo =
+    !!videoStreamToRender && isVisible && isPublishingVideoTrack;
 
   const mirror =
     isLocalParticipant && !isScreenSharing && direction === 'front';
@@ -88,8 +90,11 @@ export const VideoRenderer = ({
     if (!call) {
       return;
     }
-    if (!isVisible) {
-      if (viewportVisibilityState?.videoTrack !== VisibilityState.VISIBLE) {
+    if (isVisible) {
+      if (
+        trackType === 'videoTrack' &&
+        viewportVisibilityState?.videoTrack !== VisibilityState.VISIBLE
+      ) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
           viewportVisibilityState: {
@@ -98,13 +103,40 @@ export const VideoRenderer = ({
           },
         }));
       }
+      if (
+        trackType === 'screenShareTrack' &&
+        viewportVisibilityState?.screenShareTrack !== VisibilityState.VISIBLE
+      ) {
+        call.state.updateParticipant(sessionId, (p) => ({
+          ...p,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            screenShareTrack: VisibilityState.VISIBLE,
+          },
+        }));
+      }
     } else {
-      if (viewportVisibilityState?.videoTrack !== VisibilityState.INVISIBLE) {
+      if (
+        trackType === 'videoTrack' &&
+        viewportVisibilityState?.videoTrack !== VisibilityState.INVISIBLE
+      ) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
           viewportVisibilityState: {
             ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
             videoTrack: VisibilityState.INVISIBLE,
+          },
+        }));
+      }
+      if (
+        trackType === 'screenShareTrack' &&
+        viewportVisibilityState?.screenShareTrack !== VisibilityState.INVISIBLE
+      ) {
+        call.state.updateParticipant(sessionId, (p) => ({
+          ...p,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            screenShareTrack: VisibilityState.INVISIBLE,
           },
         }));
       }
@@ -114,7 +146,7 @@ export const VideoRenderer = ({
         subscribedVideoLayoutRef.current = undefined;
       }
     }
-  }, [sessionId, viewportVisibilityState, isVisible, call]);
+  }, [sessionId, viewportVisibilityState, isVisible, call, trackType]);
 
   useEffect(() => {
     if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
@@ -134,7 +166,13 @@ export const VideoRenderer = ({
     // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
     const updateIsNeeded = pendingVideoLayoutRef.current;
 
-    if (!updateIsNeeded || !call || !isPublishingVideoTrack || !hasJoinedCall) {
+    if (
+      isLocalParticipant ||
+      !updateIsNeeded ||
+      !call ||
+      !isPublishingVideoTrack ||
+      !hasJoinedCall
+    ) {
       return;
     }
 
@@ -157,14 +195,8 @@ export const VideoRenderer = ({
     isVisible,
     sessionId,
     hasJoinedCall,
+    isLocalParticipant,
   ]);
-
-  useEffect(() => {
-    return () => {
-      subscribedVideoLayoutRef.current = undefined;
-      pendingVideoLayoutRef.current = undefined;
-    };
-  }, [trackType, sessionId]);
 
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
     event,
@@ -177,7 +209,13 @@ export const VideoRenderer = ({
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
+    if (
+      !call ||
+      isLocalParticipant ||
+      !isPublishingVideoTrack ||
+      !isVisible ||
+      !hasJoinedCall
+    ) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }

@@ -10,6 +10,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LivestreamMediaControls } from '../../components/LiveStream/LivestreamMediaControls';
 
 type HostLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -59,7 +60,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   return (
     <StreamCall call={call}>
       <SafeAreaView style={styles.container}>
-        <HostLivestream />
+        <HostLivestream LivestreamMediaControls={LivestreamMediaControls} />
       </SafeAreaView>
     </StreamCall>
   );
