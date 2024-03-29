@@ -372,7 +372,7 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
-          await this.leave();
+          await this.leave({ reason: 'user blocked' });
         }
       }),
     );
@@ -459,7 +459,10 @@ export class Call {
   /**
    * Leave the call and stop the media streams that were published by the call.
    */
-  leave = async ({ reject = false }: CallLeaveOptions = {}) => {
+  leave = async ({
+    reject = false,
+    reason = 'user is leaving the call',
+  }: CallLeaveOptions = {}) => {
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
@@ -496,7 +499,7 @@ export class Call {
 
     this.sfuClient?.close(
       StreamSfuClient.NORMAL_CLOSURE,
-      'js-client: user is leaving the call',
+      `js-client: ${reason}`,
     );
     this.sfuClient = undefined;
 
@@ -1834,7 +1837,7 @@ export class Call {
 
         clearTimeout(this.dropTimeout);
         this.dropTimeout = setTimeout(() => {
-          this.leave().catch((err) => {
+          this.leave({ reason: 'ring: timeout' }).catch((err) => {
             this.logger('error', 'Failed to drop call', err);
           });
         }, timeoutInMs);
