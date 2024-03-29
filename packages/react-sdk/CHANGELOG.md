@@ -2,6 +2,29 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.7...@stream-io/video-react-sdk-0.5.8) (2024-03-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.6`
+* `@stream-io/video-react-bindings` updated to version `0.4.6`
+### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.6...@stream-io/video-react-sdk-0.5.7) (2024-03-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.5`
+
+### Bug Fixes
+
+* various bug fixes and improvements ([#1300](https://github.com/GetStream/stream-video-js/issues/1300)) ([a6186e2](https://github.com/GetStream/stream-video-js/commit/a6186e2406fd0b3e0aaa51a4222fa2e24e9dfac3))
+
+### [0.5.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.5...@stream-io/video-react-sdk-0.5.6) (2024-03-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.4`
+* `@stream-io/video-react-bindings` updated to version `0.4.4`
 ### [0.5.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.4...@stream-io/video-react-sdk-0.5.5) (2024-03-25)
 
 ### Dependency Updates

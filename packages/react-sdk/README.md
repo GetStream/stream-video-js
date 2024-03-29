@@ -75,7 +75,7 @@ Here are some of the features we support:
 - [x] Performance and bundle-size optimizations
 - [x] Dynascale 2.0 (f resolution switches, resolution WebRTC handling)
 - [ ] Dynascale 2.0 (codec switching)
-- [ ] Call analytics / stats
+- [x] Call analytics / stats
 
 ### 0.6 milestone
 

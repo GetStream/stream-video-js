@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
+import InCallManager from 'react-native-incall-manager';
+
 import {
   CallTopView as DefaultCallTopView,
   CallTopViewProps,
@@ -17,7 +19,7 @@ import {
 } from '../CallControls';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StreamReaction } from '@stream-io/video-client';
-import { useIncallManager } from '../../../hooks';
+
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
 import {
@@ -107,12 +109,16 @@ export const CallContent = ({
     theme: { callContent },
   } = useTheme();
   const {
+    useCallSettings,
     useHasOngoingScreenShare,
     useRemoteParticipants,
     useLocalParticipant,
   } = useCallStateHooks();
 
   useAutoEnterPiPEffect();
+
+  const callSettings = useCallSettings();
+  const isVideoEnabledInCall = callSettings?.video.enabled;
 
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
@@ -134,7 +140,11 @@ export const CallContent = ({
   /**
    * This hook is used to handle IncallManager specs of the application.
    */
-  useIncallManager({ media: 'video', auto: true });
+  useEffect(() => {
+    InCallManager.start({ media: isVideoEnabledInCall ? 'video' : 'audio' });
+
+    return () => InCallManager.stop();
+  }, [isVideoEnabledInCall]);
 
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {

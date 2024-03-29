@@ -2,6 +2,29 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.12...@stream-io/video-react-native-sdk-0.5.13) (2024-03-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.6`
+* `@stream-io/video-react-bindings` updated to version `0.4.6`
+### [0.5.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.11...@stream-io/video-react-native-sdk-0.5.12) (2024-03-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.5`
+### [0.5.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.10...@stream-io/video-react-native-sdk-0.5.11) (2024-03-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.4`
+* `@stream-io/video-react-bindings` updated to version `0.4.4`
+
+### Bug Fixes
+
+* **react-native:** improve error logging for speaker manager hook and improve usage of incall manager in SDK ([#1299](https://github.com/GetStream/stream-video-js/issues/1299)) ([9527c41](https://github.com/GetStream/stream-video-js/commit/9527c4176d4e46224ddec18e3fddfb404e0aaae5))
+
 ### [0.5.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.9...@stream-io/video-react-native-sdk-0.5.10) (2024-03-25)
 
 ### Dependency Updates
