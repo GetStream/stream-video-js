@@ -202,6 +202,13 @@ export const VideoRenderer = ({
     isLocalParticipant,
   ]);
 
+  useEffect(() => {
+    return () => {
+      subscribedVideoLayoutRef.current = undefined;
+      pendingVideoLayoutRef.current = undefined;
+    };
+  }, [trackType, sessionId]);
+
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
     event,
   ) => {
