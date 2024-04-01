@@ -2,7 +2,7 @@ import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 import { getSegmentationParams, SegmentationLevel } from './segmentation';
 
-export type BackgroundConfig = 'none' | 'blur' | 'image';
+export type BackgroundFilter = 'none' | 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high';
 
 export function createRenderer(
@@ -10,7 +10,7 @@ export function createRenderer(
   videoSource: HTMLVideoElement,
   targetCanvas: HTMLCanvasElement,
   options: {
-    backgroundConfig: BackgroundConfig;
+    backgroundFilter: BackgroundFilter;
     segmentationLevel?: SegmentationLevel;
     backgroundImage?: HTMLImageElement;
     backgroundBlurLevel?: BackgroundBlurLevel;
@@ -18,13 +18,13 @@ export function createRenderer(
   },
 ) {
   const {
-    backgroundConfig,
+    backgroundFilter,
     backgroundImage,
     backgroundBlurLevel,
     segmentationLevel = SegmentationLevel.HIGH,
     fps = 30,
   } = options;
-  if (backgroundConfig === 'image' && !backgroundImage) {
+  if (backgroundFilter === 'image' && !backgroundImage) {
     throw new Error(
       'backgroundImage element is required when backgroundConfig is image',
     );
@@ -34,7 +34,7 @@ export function createRenderer(
     videoSource,
     backgroundImage,
     backgroundBlurLevel,
-    backgroundConfig,
+    backgroundFilter,
     targetCanvas,
     tflite,
     getSegmentationParams(segmentationLevel),
@@ -43,7 +43,7 @@ export function createRenderer(
   const id = setInterval(() => {
     pipeline.render();
 
-    if (backgroundConfig === 'image') {
+    if (backgroundFilter === 'image') {
       pipeline.updatePostProcessingConfig();
     }
   }, 1000 / (fps <= 0 ? 30 : fps));

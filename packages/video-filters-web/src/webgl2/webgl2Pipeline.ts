@@ -11,14 +11,14 @@ import {
 import { buildJointBilateralFilterStage } from './jointBilateralFilterStage';
 import { buildResizingStage } from './resizingStage';
 import { buildSoftmaxStage } from './softmaxStage';
-import { type BackgroundBlurLevel, BackgroundConfig } from '../createRenderer';
+import { BackgroundBlurLevel, BackgroundFilter } from '../createRenderer';
 import { SegmentationParams } from '../segmentation';
 
 export function buildWebGL2Pipeline(
   videoSource: HTMLVideoElement,
   backgroundImage: HTMLImageElement | undefined,
   blurLevel: BackgroundBlurLevel | undefined,
-  backgroundConfig: BackgroundConfig,
+  backgroundFilter: BackgroundFilter,
   canvas: HTMLCanvasElement,
   tflite: TFLite,
   segmentationConfig: SegmentationParams,
@@ -116,7 +116,7 @@ export function buildWebGL2Pipeline(
     segmentationConfig,
   );
   const backgroundStage =
-    backgroundConfig === 'blur'
+    backgroundFilter === 'blur'
       ? buildBackgroundBlurStage(
           gl,
           vertexShader,
@@ -165,12 +165,12 @@ export function buildWebGL2Pipeline(
     jointBilateralFilterStage.updateSigmaSpace(1);
     jointBilateralFilterStage.updateSigmaColor(0.1);
 
-    if (backgroundConfig === 'image') {
+    if (backgroundFilter === 'image') {
       const backgroundImageStage = backgroundStage as BackgroundImageStage;
       backgroundImageStage.updateCoverage([0.5, 0.75]);
       backgroundImageStage.updateLightWrapping(0.3);
       backgroundImageStage.updateBlendMode('screen');
-    } else if (backgroundConfig === 'blur') {
+    } else if (backgroundFilter === 'blur') {
       const backgroundBlurStage = backgroundStage as BackgroundBlurStage;
       backgroundBlurStage.updateCoverage([0.5, 0.75]);
     } else {

@@ -11,7 +11,7 @@ import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
 import {
   BackgroundBlurLevel,
-  BackgroundConfig,
+  BackgroundFilter,
   createRenderer,
   isPlatformSupported,
   loadTFLite,
@@ -34,7 +34,7 @@ export type BackgroundFiltersProps = {
    * The background filter to apply to the video (by default).
    * @default 'none'.
    */
-  backgroundFilter?: BackgroundConfig;
+  backgroundFilter?: BackgroundFilter;
 
   /**
    * The URL of the image to use as the background (by default).
@@ -339,7 +339,7 @@ const RenderPipeline = (props: {
     if (backgroundFilter === 'image' && !backgroundImageRef) return;
 
     const dispose = createRenderer(tfLite, videoRef, canvasRef, {
-      backgroundConfig: backgroundFilter,
+      backgroundFilter,
       backgroundImage: backgroundImageRef ?? undefined,
       backgroundBlurLevel,
     });
