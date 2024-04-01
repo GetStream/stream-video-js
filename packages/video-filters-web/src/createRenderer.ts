@@ -4,6 +4,12 @@ import { getSegmentationParams, SegmentationLevel } from './segmentation';
 
 export type BackgroundFilter = 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high';
+export type Renderer = {
+  /**
+   * Disposes of the renderer.
+   */
+  dispose: () => void;
+};
 
 export function createRenderer(
   tflite: TFLite,
@@ -16,7 +22,7 @@ export function createRenderer(
     backgroundBlurLevel?: BackgroundBlurLevel;
     fps?: number;
   },
-) {
+): Renderer {
   const {
     backgroundFilter,
     backgroundImage,
@@ -48,8 +54,10 @@ export function createRenderer(
     }
   }, 1000 / (fps <= 0 ? 30 : fps));
 
-  return function dispose() {
-    pipeline.cleanUp();
-    clearInterval(id);
+  return {
+    dispose: () => {
+      pipeline.cleanUp();
+      clearInterval(id);
+    },
   };
 }

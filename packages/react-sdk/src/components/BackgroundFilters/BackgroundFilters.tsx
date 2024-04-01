@@ -333,13 +333,13 @@ const RenderPipeline = (props: {
     if (!videoRef || !canvasRef || !backgroundFilter) return;
     if (backgroundFilter === 'image' && !backgroundImageRef) return;
 
-    const dispose = createRenderer(tfLite, videoRef, canvasRef, {
+    const renderer = createRenderer(tfLite, videoRef, canvasRef, {
       backgroundFilter,
       backgroundImage: backgroundImageRef ?? undefined,
       backgroundBlurLevel,
     });
     return () => {
-      dispose();
+      renderer.dispose();
     };
   }, [
     backgroundBlurLevel,

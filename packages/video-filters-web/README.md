@@ -34,14 +34,14 @@ const backgroundImage = document.getElementById('background-image');
 const tfLite = await loadTfLite();
 
 // 4. create the renderer
-const dispose = createRenderer(tfLite, sourceVideo, targetCanvas, {
+const renderer = createRenderer(tfLite, sourceVideo, targetCanvas, {
   backgroundFilter: 'image', // or 'blur'
   backgroundImage: backgroundImage,
   fps: 30,
 });
 
 // 5. Dispose the renderer when done
-dispose();
+renderer.dispose();
 ```
 
 ## Known limitations
