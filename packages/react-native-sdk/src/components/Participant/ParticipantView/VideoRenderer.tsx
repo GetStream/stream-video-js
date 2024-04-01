@@ -87,7 +87,7 @@ export const VideoRenderer = ({
    * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
    */
   useEffect(() => {
-    if (!call) {
+    if (!call || isLocalParticipant) {
       return;
     }
     if (isVisible) {
@@ -146,7 +146,14 @@ export const VideoRenderer = ({
         subscribedVideoLayoutRef.current = undefined;
       }
     }
-  }, [sessionId, viewportVisibilityState, isVisible, call, trackType]);
+  }, [
+    sessionId,
+    viewportVisibilityState,
+    isVisible,
+    call,
+    trackType,
+    isLocalParticipant,
+  ]);
 
   useEffect(() => {
     if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
@@ -163,16 +170,13 @@ export const VideoRenderer = ({
    * 3. when call was rejoined
    */
   useEffect(() => {
+    if (!call || isLocalParticipant) {
+      return;
+    }
     // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
     const updateIsNeeded = pendingVideoLayoutRef.current;
 
-    if (
-      isLocalParticipant ||
-      !updateIsNeeded ||
-      !call ||
-      !isPublishingVideoTrack ||
-      !hasJoinedCall
-    ) {
+    if (!updateIsNeeded || !isPublishingVideoTrack || !hasJoinedCall) {
       return;
     }
 
@@ -201,6 +205,9 @@ export const VideoRenderer = ({
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
     event,
   ) => {
+    if (!call || isLocalParticipant) {
+      return;
+    }
     const dimension = {
       width: Math.trunc(event.nativeEvent.layout.width),
       height: Math.trunc(event.nativeEvent.layout.height),
@@ -209,13 +216,7 @@ export const VideoRenderer = ({
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (
-      !call ||
-      isLocalParticipant ||
-      !isPublishingVideoTrack ||
-      !isVisible ||
-      !hasJoinedCall
-    ) {
+    if (!isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }
