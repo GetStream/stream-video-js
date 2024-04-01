@@ -139,7 +139,7 @@ export const BackgroundFiltersProvider = (
     children,
     isBlurringEnabled = true,
     backgroundImages = [],
-    backgroundFilter: bgFilterFromProps = 'none',
+    backgroundFilter: bgFilterFromProps = undefined,
     backgroundImage: bgImageFromProps = undefined,
     backgroundBlurLevel: bgBlurLevelFromProps = 'high',
     tfFilePath,
@@ -166,7 +166,7 @@ export const BackgroundFiltersProvider = (
   );
 
   const disableBackgroundFilter = useCallback(() => {
-    setBackgroundFilter('none');
+    setBackgroundFilter(undefined);
     setBackgroundImage(undefined);
     setBackgroundBlurLevel('high');
   }, []);
@@ -204,17 +204,15 @@ export const BackgroundFiltersProvider = (
       }}
     >
       {children}
-      {tfLite && backgroundFilter !== 'none' && (
-        <BackgroundFilters tfLite={tfLite} />
-      )}
+      {tfLite && backgroundFilter && <BackgroundFilters tfLite={tfLite} />}
     </BackgroundFiltersContext.Provider>
   );
 };
 
 const BackgroundFilters = (props: { tfLite: TFLite }) => {
+  const { tfLite } = props;
   const call = useCall();
   const { backgroundImage, backgroundFilter } = useBackgroundFilters();
-  const { tfLite } = props;
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [bgImageRef, setBgImageRef] = useState<HTMLImageElement | null>(null);
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
@@ -227,7 +225,7 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const [mediaStream, setMediaStream] = useState<MediaStream>();
   const registerFilterRef = useRef(Promise.resolve(async () => {}));
   useEffect(() => {
-    if (!call || backgroundFilter === 'none') return;
+    if (!call || !backgroundFilter) return;
     registerFilterRef.current = registerFilterRef.current.then(() =>
       call.camera.registerFilter(async (ms) => {
         return new Promise<MediaStream>((resolve) => {
@@ -330,12 +328,9 @@ const RenderPipeline = (props: {
   backgroundImageRef: HTMLImageElement | null;
 }) => {
   const { tfLite, videoRef, canvasRef, backgroundImageRef } = props;
-  const { backgroundFilter = 'none', backgroundBlurLevel } =
-    useBackgroundFilters();
-
+  const { backgroundFilter, backgroundBlurLevel } = useBackgroundFilters();
   useEffect(() => {
-    if (!videoRef || !canvasRef) return;
-    if (backgroundFilter === 'none') return;
+    if (!videoRef || !canvasRef || !backgroundFilter) return;
     if (backgroundFilter === 'image' && !backgroundImageRef) return;
 
     const dispose = createRenderer(tfLite, videoRef, canvasRef, {

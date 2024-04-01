@@ -27,15 +27,15 @@ if (!isSupported) {
 
 // 2. get reference to the source video, background image and target canvas elements
 const sourceVideo = document.getElementById('source-video');
-const backgroundImage = document.getElementById('background-image');
 const targetCanvas = document.getElementById('target-canvas');
+const backgroundImage = document.getElementById('background-image');
 
 // 3. load the TensorFlow Lite
 const tfLite = await loadTfLite();
 
 // 4. create the renderer
 const dispose = createRenderer(tfLite, sourceVideo, targetCanvas, {
-  backgroundFilter: 'image', // or 'blur' or 'none'
+  backgroundFilter: 'image', // or 'blur'
   backgroundImage: backgroundImage,
   fps: 30,
 });

@@ -2,7 +2,7 @@ import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 import { getSegmentationParams, SegmentationLevel } from './segmentation';
 
-export type BackgroundFilter = 'none' | 'blur' | 'image';
+export type BackgroundFilter = 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high';
 
 export function createRenderer(
