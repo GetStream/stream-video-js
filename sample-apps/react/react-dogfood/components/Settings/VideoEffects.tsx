@@ -39,7 +39,7 @@ export const VideoEffectsSettings = () => {
           <div className="rd__video-effects__list">
             <CompositeButton
               title="Disable"
-              active={backgroundFilter === 'none'}
+              active={!backgroundFilter}
               onClick={() => disableBackgroundFilter()}
             >
               <Icon icon="close" />
