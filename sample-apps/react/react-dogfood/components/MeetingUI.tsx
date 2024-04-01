@@ -13,7 +13,11 @@ import {
 
 import { Lobby, UserMode } from './Lobby';
 import { StreamChat } from 'stream-chat';
-import { useKeyboardShortcuts, useWakeLock } from '../hooks';
+import {
+  useKeyboardShortcuts,
+  usePersistedVideoFilter,
+  useWakeLock,
+} from '../hooks';
 import { ActiveCall } from './ActiveCall';
 
 const contents = {
@@ -120,6 +124,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   useKeyboardShortcuts();
   useWakeLock();
   usePersistedDevicePreferences('@pronto/device-preferences');
+  usePersistedVideoFilter('@pronto/video-filter');
 
   let ComponentToRender: JSX.Element;
   if (show === 'error-join' || show === 'error-leave') {
