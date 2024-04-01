@@ -100,9 +100,15 @@ export type BackgroundFiltersAPI = {
   applyBackgroundImageFilter: (imageUrl: string) => void;
 };
 
+/**
+ * The context value for the background filters context.
+ */
 export type BackgroundFiltersContextValue = BackgroundFiltersProps &
   BackgroundFiltersAPI;
 
+/**
+ * The context for the background filters.
+ */
 const BackgroundFiltersContext = createContext<
   BackgroundFiltersContextValue | undefined
 >(undefined);
@@ -172,10 +178,12 @@ export const BackgroundFiltersProvider = (
 
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
+    // don't try to load TFLite if the platform is not supported
+    if (!isSupported) return;
     loadTFLite({ basePath, modelFilePath, tfFilePath })
       .then(setTfLite)
       .catch((err) => console.error('Failed to load TFLite', err));
-  }, [basePath, modelFilePath, tfFilePath]);
+  }, [basePath, isSupported, modelFilePath, tfFilePath]);
 
   return (
     <BackgroundFiltersContext.Provider

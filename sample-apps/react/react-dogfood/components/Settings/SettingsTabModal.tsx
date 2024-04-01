@@ -18,13 +18,12 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useBackgroundFilters,
   useI18n,
   useMenuContext,
-  VideoPreview,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
+import { VideoEffectsSettings } from './VideoEffects';
 import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
@@ -204,112 +203,5 @@ export const ToggleSettingsTabModal = (props: {
     >
       <SettingsTabModalMenu {...props} />
     </MenuToggle>
-  );
-};
-
-const VideoEffectsSettings = () => {
-  const {
-    isSupported,
-    backgroundImages,
-    isBlurringEnabled,
-    backgroundBlurLevel,
-    backgroundImage,
-    backgroundFilter,
-    disableBackgroundFilter,
-    applyBackgroundBlurFilter,
-    applyBackgroundImageFilter,
-  } = useBackgroundFilters();
-
-  return (
-    <div className="rd__video-effects">
-      <div className="rd__video-effects__preview-container">
-        <VideoPreview />
-      </div>
-      <div className="rd__video-effects__container">
-        <div className="rd__video-effects__card">
-          {!isSupported && (
-            <h3>Video effects are not supported on this device</h3>
-          )}
-          <h4>Effects</h4>
-          <div className="rd__video-effects__list">
-            <CompositeButton
-              title="Disable"
-              active={backgroundFilter === 'none'}
-              onClick={() => disableBackgroundFilter()}
-            >
-              <Icon icon="close" />
-            </CompositeButton>
-            {isBlurringEnabled && (
-              <>
-                <CompositeButton
-                  title="Blur"
-                  disabled={!isSupported}
-                  active={
-                    backgroundFilter === 'blur' &&
-                    backgroundBlurLevel === 'high'
-                  }
-                  onClick={() => applyBackgroundBlurFilter('high')}
-                >
-                  <Icon icon="blur-icon" />
-                </CompositeButton>
-                <CompositeButton
-                  title="Medium blur"
-                  disabled={!isSupported}
-                  active={
-                    backgroundFilter === 'blur' &&
-                    backgroundBlurLevel === 'medium'
-                  }
-                  onClick={() => applyBackgroundBlurFilter('medium')}
-                >
-                  <Icon
-                    icon="blur-icon"
-                    className="rd__video-effects__blur--medium"
-                  />
-                </CompositeButton>
-                <CompositeButton
-                  title="Low blur"
-                  disabled={!isSupported}
-                  active={
-                    backgroundFilter === 'blur' && backgroundBlurLevel === 'low'
-                  }
-                  onClick={() => applyBackgroundBlurFilter('low')}
-                >
-                  <Icon
-                    icon="blur-icon"
-                    className="rd__video-effects__blur--low"
-                  />
-                </CompositeButton>
-              </>
-            )}
-          </div>
-        </div>
-        {backgroundImages && backgroundImages.length > 0 && (
-          <div className="rd__video-effects__card">
-            <h4>Backgrounds</h4>
-            <div className="rd__video-effects__list">
-              {backgroundImages.map((imageUrl, index) => (
-                <div key={index} className="rd__video-effects__list-box">
-                  <img
-                    className={clsx(
-                      'rd__video-effects__image',
-                      backgroundFilter === 'image' &&
-                        backgroundImage === imageUrl &&
-                        'rd__video-effects__image--active',
-                    )}
-                    src={imageUrl}
-                    alt="Background"
-                    onClick={
-                      isSupported
-                        ? () => applyBackgroundImageFilter(imageUrl)
-                        : undefined
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
   );
 };
