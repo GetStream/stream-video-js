@@ -59,6 +59,7 @@ export const ViewerLivestream = ({
   FollowerCount,
   DurationBadge,
   ViewerLeaveStreamButton,
+  ViewerLiveStreamControlsRightElement,
   onLeaveStreamHandler,
 }: ViewerLivestreamProps) => {
   const {
@@ -106,6 +107,9 @@ export const ViewerLivestream = ({
         {ViewerLivestreamControls && (
           <ViewerLivestreamControls
             ViewerLeaveStreamButton={ViewerLeaveStreamButton}
+            ViewerLiveStreamControlsRightElement={
+              ViewerLiveStreamControlsRightElement
+            }
             onLeaveStreamHandler={onLeaveStreamHandler}
           />
         )}

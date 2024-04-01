@@ -4,17 +4,44 @@ import {
   ViewerLivestream,
   useCallStateHooks,
   useStreamVideoClient,
+  ViewerLivestreamTopView,
 } from '@stream-io/video-react-native-sdk';
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  BottomSheetModal,
+  BottomSheetView,
+  BottomSheetModalProvider,
+} from '@gorhom/bottom-sheet';
 import { LiveStreamParamList } from '../../../types';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { appTheme } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ViewerLobby } from './ViewerLobby';
 import { useSetCall } from '../../hooks/useSetCall';
 import { Button } from '../../components/Button';
 import { useAnonymousInitVideoClient } from '../../hooks/useAnonymousInitVideoClient';
+import { Chat } from '../../assets/Chat';
+import { LivestreamChat } from '../../components/LivestreamChat';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 type ViewerLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -31,10 +58,17 @@ export const ViewLiveStreamWrapper = ({
   const {
     params: { callId },
   } = route;
+  /**
+   * We create a call using the logged in client in the app since we need to get the call live status.
+   */
   const call = useSetCall(callId, callType, client);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Getting the call details is done through `call.get()`.
+   * It is essential so that the call is watched and any changes in the call is intercepted.
+   */
   useEffect(() => {
     const getCall = async () => {
       if (!call) {
@@ -50,6 +84,15 @@ export const ViewLiveStreamWrapper = ({
       }
     };
     getCall();
+  }, [call]);
+
+  useEffect(() => {
+    call?.on('error', (e) => {
+      if (e.error && e.error.code !== 104) {
+        return;
+      }
+      console.log('Livestream Call Left');
+    });
   }, [call]);
 
   if (error) {
@@ -79,7 +122,11 @@ export const ViewLiveStreamWrapper = ({
     return null;
   }
 
-  return <StreamCall call={call}>{children}</StreamCall>;
+  return (
+    <BottomSheetModalProvider>
+      <StreamCall call={call}>{children}</StreamCall>
+    </BottomSheetModalProvider>
+  );
 };
 
 export const ViewLiveStreamChilden = ({
@@ -90,15 +137,54 @@ export const ViewLiveStreamChilden = ({
   const {
     params: { callId },
   } = route;
+  const { height } = Dimensions.get('window');
   const [callJoined, setCallJoined] = useState<boolean>(false);
+  const [headerFooterHidden, setHeaderFooterHidden] = useState(false);
+
+  /**
+   * The `useCallStateHooks` hooks would only work here in the children since we wrap the `StreamCall` component in the `ViewLiveStreamWrapper` above using the logged in client of the app.
+   */
   const { useIsCallLive } = useCallStateHooks();
   const isCallLive = useIsCallLive();
-  const client = useAnonymousInitVideoClient({
-    callId,
-    callType,
-  });
+  /**
+   * We create an anonymous client here to join the call anonymously.
+   */
+  const client = useAnonymousInitVideoClient();
   const call = useSetCall(callId, callType, client);
+  const currentPosition = useSharedValue(height);
 
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const snapPoints = useMemo(() => ['25%', '50%'], []);
+
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+
+  const handleSheetChanges = useCallback(
+    (index: number) => {
+      if (index === -1) {
+        // Sheet is closed
+        setHeaderFooterHidden(false);
+        currentPosition.value = withTiming(height);
+      } else {
+        // Sheet is open
+        setHeaderFooterHidden(true);
+        currentPosition.value = withTiming((height * 50) / 100);
+      }
+    },
+    [currentPosition, height],
+  );
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      height: currentPosition.value,
+    };
+  });
+
+  /**
+   * The call is joined using the anonymous user/client.
+   */
   const handleJoinCall = async () => {
     try {
       if (!(call && isCallLive)) {
@@ -136,6 +222,9 @@ export const ViewLiveStreamChilden = ({
     return null;
   }
 
+  /**
+   * Note: Here we provide the `StreamCall` component again. This is done, so that the call used, is created by the anonymous user.
+   */
   return (
     <StreamCall call={call}>
       {!(isCallLive && callJoined) ? (
@@ -145,10 +234,35 @@ export const ViewLiveStreamChilden = ({
           setCallJoined={setCallJoined}
         />
       ) : (
-        <SafeAreaView style={styles.livestream}>
-          <ViewerLivestream onLeaveStreamHandler={handleLeaveCall} />
-        </SafeAreaView>
+        <Animated.View style={[styles.animatedContainer, animatedStyles]}>
+          <SafeAreaView edges={['top']} style={styles.livestream}>
+            <ViewerLivestream
+              ViewerLivestreamTopView={
+                !headerFooterHidden ? ViewerLivestreamTopView : null
+              }
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ViewerLiveStreamRightElement={() => (
+                <LivestreamChatButton
+                  handlePresentModalPress={handlePresentModalPress}
+                />
+              )}
+              onLeaveStreamHandler={handleLeaveCall}
+            />
+          </SafeAreaView>
+        </Animated.View>
       )}
+      <BottomSheetModal
+        enablePanDownToClose={true}
+        handleStyle={{ backgroundColor: appTheme.colors.static_grey }}
+        ref={bottomSheetModalRef}
+        index={1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+      >
+        <BottomSheetView style={styles.contentContainer}>
+          <LivestreamChat callId={callId} callType={callType} />
+        </BottomSheetView>
+      </BottomSheetModal>
     </StreamCall>
   );
 };
@@ -164,7 +278,37 @@ export const ViewLiveStreamScreen = ({
   );
 };
 
+export const LivestreamChatButton = ({
+  handlePresentModalPress,
+}: {
+  handlePresentModalPress: () => void;
+}) => {
+  return (
+    <Pressable
+      onPress={handlePresentModalPress}
+      style={[
+        styles.chatContainer,
+        {
+          backgroundColor: appTheme.colors.dark_gray,
+        },
+      ]}
+    >
+      <View style={[styles.icon]}>
+        <Chat color={appTheme.colors.static_white} />
+      </View>
+    </Pressable>
+  );
+};
+
 const styles = StyleSheet.create({
+  animatedContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '100%', // Adjust the height according to your design
+    elevation: 5,
+  },
   livestream: {
     flex: 1,
   },
@@ -181,5 +325,21 @@ const styles = StyleSheet.create({
   },
   errorButton: {
     marginTop: 8,
+  },
+  chatContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+    borderRadius: 4,
+    height: 40,
+    width: 40,
+  },
+  icon: {
+    height: 20,
+    width: 20,
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
 });
