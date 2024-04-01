@@ -32,7 +32,7 @@ export function createRenderer(
   } = options;
   if (backgroundFilter === 'image' && !backgroundImage) {
     throw new Error(
-      'backgroundImage element is required when backgroundConfig is image',
+      `backgroundImage element is required when backgroundFilter is image`,
     );
   }
 
