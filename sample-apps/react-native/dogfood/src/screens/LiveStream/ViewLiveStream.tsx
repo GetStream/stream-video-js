@@ -241,7 +241,7 @@ export const ViewLiveStreamChilden = ({
                 !headerFooterHidden ? ViewerLivestreamTopView : null
               }
               // eslint-disable-next-line react/no-unstable-nested-components
-              ViewerLiveStreamRightElement={() => (
+              ViewerLiveStreamControlsRightElement={() => (
                 <LivestreamChatButton
                   handlePresentModalPress={handlePresentModalPress}
                 />
