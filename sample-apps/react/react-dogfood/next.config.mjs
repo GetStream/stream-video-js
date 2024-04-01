@@ -1,3 +1,5 @@
+// @ts-check
+
 import { withSentryConfig } from '@sentry/nextjs';
 import dotenv from 'dotenv';
 
@@ -55,16 +57,6 @@ const nextConfig = {
     ];
     return config;
   },
-
-  sentry: {
-    // Use `hidden-source-map` rather than `source-map` as the Webpack `devtool`
-    // for client-side builds. (This will be the default starting in
-    // `@sentry/nextjs` version 8.0.0.) See
-    // https://webpack.js.org/configuration/devtool/ and
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#use-hidden-source-map
-    // for more information.
-    hideSourceMaps: true,
-  },
 };
 
 const sentryWebpackPluginOptions = {
@@ -81,46 +73,36 @@ const sentryWebpackPluginOptions = {
   // prevents creating Sentry releases on local builds.
   dryRun: typeof process.env.CI === 'undefined',
   authToken: process.env.PRONTO_SENTRY_AUTH_TOKEN,
+  org: 'stream',
+  project: 'video-dogfooding',
 };
 
 // Make sure adding Sentry options is the last code to run before exporting, to
 // ensure that your source maps include changes from all other Webpack plugins
-export default withSentryConfig(
-  withSentryConfig(nextConfig, sentryWebpackPluginOptions),
-  {
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options
+export default withSentryConfig(nextConfig, sentryWebpackPluginOptions, {
+  // For all available options, see:
+  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-    // Suppresses source map uploading logs during build
-    silent: true,
-    org: 'stream',
-    project: 'video-dogfooding',
-  },
-  {
-    // For all available options, see:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
 
-    // Upload a larger set of source maps for prettier stack traces (increases build time)
-    widenClientFileUpload: true,
+  // Transpiles SDK to be compatible with IE11 (increases bundle size)
+  transpileClientSDK: false,
 
-    // Transpiles SDK to be compatible with IE11 (increases bundle size)
-    transpileClientSDK: true,
+  // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers. (increases server load)
+  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
+  // side errors will fail.
+  tunnelRoute: '/sentry',
 
-    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers. (increases server load)
-    // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-    // side errors will fail.
-    tunnelRoute: '/monitoring',
+  // Hides source maps from generated client bundles
+  hideSourceMaps: false,
 
-    // Hides source maps from generated client bundles
-    hideSourceMaps: true,
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
 
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
-
-    // Enables automatic instrumentation of Vercel Cron Monitors.
-    // See the following for more information:
-    // https://docs.sentry.io/product/crons/
-    // https://vercel.com/docs/cron-jobs
-    automaticVercelMonitors: true,
-  },
-);
+  // Enables automatic instrumentation of Vercel Cron Monitors.
+  // See the following for more information:
+  // https://docs.sentry.io/product/crons/
+  // https://vercel.com/docs/cron-jobs
+  automaticVercelMonitors: false,
+});
