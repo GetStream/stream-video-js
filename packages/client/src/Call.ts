@@ -35,8 +35,6 @@ import {
   OwnCapability,
   PinRequest,
   PinResponse,
-  QueryCallStatsRequest,
-  QueryCallStatsResponse,
   QueryMembersRequest,
   QueryMembersResponse,
   RejectCallResponse,
@@ -1871,16 +1869,6 @@ export class Call {
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
-  };
-
-  /**
-   * Retrieve the list of available call statistics reports matching a particular condition.
-   * 
-   * @param data Filter and sort conditions for retrieiving available call report summaries.
-   * @returns List with summary of available call reports matching the condition.
-   */
-  queryCallStats = async (data: QueryCallStatsRequest = {}) => {
-    return this.streamClient.post<QueryCallStatsResponse>(`/call/stats`, data);
   };
 
   /**
