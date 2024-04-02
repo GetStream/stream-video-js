@@ -34,6 +34,7 @@ import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../api/auth/create-token';
+import { TranslationLanguages } from 'stream-chat';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -138,7 +139,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const chatClient = useCreateStreamChatClient({
     apiKey: credentials?.apiKey,
     tokenOrProvider: tokenProvider,
-    userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
+    userData: {
+      id: '!anon',
+      ...(user as Omit<User, 'type'>),
+      language: user.language as TranslationLanguages | undefined,
+    },
   });
 
   const [call, setCall] = useState<Call>();
