@@ -43,6 +43,13 @@ const nextConfig = {
     ];
   },
 
+  transpilePackages: [
+    '@stream-io/video-client',
+    '@stream-io/video-react-bindings',
+    '@stream-io/video-react-sdk',
+    '@stream-io/video-filters-web',
+  ],
+
   webpack: (config) => {
     config.module.rules.push({
       test: /\.js$/,

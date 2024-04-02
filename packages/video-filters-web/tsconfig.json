@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES5",
-    "target": "ES5",
+    "module": "ES2020",
+    "target": "ES2020",
     "lib": [
       "esnext",
       "dom"
