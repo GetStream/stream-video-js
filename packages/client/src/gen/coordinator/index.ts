@@ -1644,6 +1644,43 @@ export interface CallStateResponseFields {
 /**
  *
  * @export
+ * @interface CallStatsReportSummaryResponse
+ */
+export interface CallStatsReportSummaryResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsReportSummaryResponse
+   */
+  app_pk: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportSummaryResponse
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportSummaryResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportSummaryResponse
+   */
+  call_status: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportSummaryResponse
+   */
+  first_stats_time: string;
+}
+/**
+ *
+ * @export
  * @interface CallTimeline
  */
 export interface CallTimeline {
@@ -3451,6 +3488,74 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface QueryCallStatsRequest
+ */
+export interface QueryCallStatsRequest {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryCallStatsRequest
+   */
+  filter_conditions?: { [key: string]: any };
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallStatsRequest
+   */
+  limit?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsRequest
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsRequest
+   */
+  prev?: string;
+  /**
+   *
+   * @type {Array<SortParamRequest>}
+   * @memberof QueryCallStatsRequest
+   */
+  sort?: Array<SortParamRequest>;
+}
+/**
+ *
+ * @export
+ * @interface QueryCallStatsResponse
+ */
+export interface QueryCallStatsResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof QueryCallStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsResponse
+   */
+  prev?: string;
+  /**
+   *
+   * @type {Array<CallStatsReportSummaryResponse>}
+   * @memberof QueryCallStatsResponse
+   */
+  reports: Array<CallStatsReportSummaryResponse>;
 }
 /**
  *
