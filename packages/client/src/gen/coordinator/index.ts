@@ -3497,10 +3497,10 @@ export interface PinResponse {
 export interface QueryCallStatsRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof QueryCallStatsRequest
    */
-  filter_conditions?: object;
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {number}
