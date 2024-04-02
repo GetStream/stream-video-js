@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES2020",
-    "target": "ES2020",
+    "module": "ES6",
+    "target": "ES6",
     "lib": ["esnext", "dom"],
     "declaration": true,
     "moduleResolution": "node",
