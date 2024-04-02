@@ -53,7 +53,8 @@
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
     "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public",
     "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public",
-    "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public"
+    "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public",
+    "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",

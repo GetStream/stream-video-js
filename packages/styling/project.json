@@ -32,6 +32,17 @@
         "tag": "${tag}",
         "notes": "${notes}"
       }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "yarn release:styling",
+            "forwardAllArgs": false
+          }
+        ]
+      }
     }
   }
 }
