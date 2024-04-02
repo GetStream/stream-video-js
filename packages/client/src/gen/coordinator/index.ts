@@ -832,12 +832,6 @@ export interface CallStateResponseFields {
 export interface CallStatsReportSummaryResponse {
   /**
    *
-   * @type {number}
-   * @memberof CallStatsReportSummaryResponse
-   */
-  app_pk: number;
-  /**
-   *
    * @type {string}
    * @memberof CallStatsReportSummaryResponse
    */
