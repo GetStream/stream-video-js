@@ -99,7 +99,7 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
         if (map.current.getSource('servers')) {
           const mapSource: any = map.current.getSource('servers');
 
-          function appendMarker() {
+          const appendMarker = () => {
             if (lazyloadFeatures.length > 0) {
               const [feature, ...rest] = lazyloadFeatures;
               lazyloadFeatures = rest;
@@ -109,7 +109,7 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
               });
               appendMarkerTimer = setTimeout(appendMarker, Math.random() * 150);
             }
-          }
+          };
 
           appendMarker();
         }

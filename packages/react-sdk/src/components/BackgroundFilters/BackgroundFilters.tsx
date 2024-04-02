@@ -262,7 +262,9 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
     videoRef.addEventListener('play', handleOnPlay);
 
     videoRef.srcObject = mediaStream;
-    videoRef.play().catch((err) => console.error('Failed to play video', err));
+    videoRef.play().catch((err) => {
+      console.error('Failed to play video', err);
+    });
     return () => {
       videoRef.removeEventListener('play', handleOnPlay);
       videoRef.srcObject = null;

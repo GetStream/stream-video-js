@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES6",
-    "target": "ES6",
+    "module": "ES5",
+    "target": "ES5",
     "lib": [
       "esnext",
       "dom"
