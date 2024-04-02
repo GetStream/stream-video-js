@@ -368,15 +368,18 @@ export class StreamVideoClient {
     };
   };
 
-    /**
+  /**
    * Retrieve the list of available call statistics reports matching a particular condition.
-   * 
-   * @param data Filter and sort conditions for retrieiving available call report summaries.
+   *
+   * @param data Filter and sort conditions for retrieving available call report summaries.
    * @returns List with summary of available call reports matching the condition.
    */
-    queryCallStats = async (data: QueryCallStatsRequest = {}) => {
-      return this.streamClient.post<QueryCallStatsResponse>(`/call/stats`, data);
-    };
+  queryCallStats = async (data: QueryCallStatsRequest = {}) => {
+    return this.streamClient.post<
+      QueryCallStatsResponse,
+      QueryCallStatsRequest
+    >(`/call/stats`, data);
+  };
 
   /**
    * Returns a list of available data centers available for hosting calls.
