@@ -12,15 +12,20 @@ This library uses the [`camera.registerFilter()`](../02-guides/04-camera-and-mic
 
 ### Step 1 - Install a helper library
 
-This library is available as a npm package and works as a plugin for the Stream React SDK.
-It isn't built-in within the Stream React SDK as we want to keep the core library as lightweight as possible
-but we've made the SDK extensible so you can add any custom filters you want.
+This library is available as a npm package and works as a plugin for the [Stream React Video SDK](https://getstream.io/video/sdk/react/).
+It isn't built-in within the SDK as we want to keep the core library as lightweight as possible.
+We've made the SDK extensible so you can add any custom filters you want.
 
 ```bash
 npm install @stream-io/video-filters-web
 # or
 yarn add @stream-io/video-filters-web
 ```
+
+:::note
+This library supports only modern desktop browsers.
+Support for mobile devices is coming soon.
+:::
 
 ### Step 2 - Integration in your application
 
@@ -74,6 +79,7 @@ import { useBackgroundFilters } from '@stream-io/video-react-sdk';
 export const MyBackgroundFilterSettings = () => {
   const {
     isSupported, // checks if these filters can run on this device
+    isReady, // checks if the filters are ready to be enabled
     disableBackgroundFilter, // disables the filter
     applyBackgroundBlurFilter, // applies the blur filter
     applyBackgroundImageFilter, // applies the image filter
@@ -82,6 +88,10 @@ export const MyBackgroundFilterSettings = () => {
 
   if (!isSupported) {
     return <div>Background filters are not supported on this device</div>;
+  }
+
+  if (!isReady) {
+    return <div className="my-loading-indicator" />;
   }
 
   return (
@@ -108,3 +118,5 @@ export const MyBackgroundFilterSettings = () => {
 ## Audio Filters
 
 An example is coming soon...
+
+In the meantime, you can use the [`microphone.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API to register custom audio filters.
