@@ -3373,18 +3373,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gorhom/bottom-sheet@npm:4.4.5":
-  version: 4.4.5
-  resolution: "@gorhom/bottom-sheet@npm:4.4.5"
+"@gorhom/bottom-sheet@npm:4.4.8":
+  version: 4.4.8
+  resolution: "@gorhom/bottom-sheet@npm:4.4.8"
   dependencies:
     "@gorhom/portal": 1.0.14
     invariant: ^2.2.4
   peerDependencies:
+    "@types/react": "*"
+    "@types/react-native": "*"
     react: "*"
     react-native: "*"
     react-native-gesture-handler: ">=1.10.1"
     react-native-reanimated: ">=2.2.0"
-  checksum: 19b3efeaacdd0eddb3f6c6e6c225dd20fcf21fae9d20f760c94e81b7ecba47a56737cb0e681225c368c93779beebe7a61102e064656a376eeb7761366b9874d6
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-native":
+      optional: true
+  checksum: b26eb2975a4ad7bec4385ff82e0ca9df047a58619f6323e23e7821c116de4f20885b882efe6f05338af68f88dfcf719811322edd79e76383ae8423a62d3b53e4
   languageName: node
   linkType: hard
 
@@ -7109,7 +7116,7 @@ __metadata:
     react-native-voip-push-notification: ~3.3.1
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
-    stream-chat-react-native: ^5.15.1
+    stream-chat-react-native: 5.27.0-beta.7
     typescript: ^5.2.2
   languageName: unknown
   linkType: soft
@@ -9384,15 +9391,6 @@ __metadata:
     follow-redirects: ^1.14.9
     form-data: ^4.0.0
   checksum: 38cb7540465fe8c4102850c4368053c21683af85c5fdf0ea619f9628abbcb59415d1e22ebc8a6390d2bbc9b58a9806c874f139767389c862ec9b772235f06854
-  languageName: node
-  linkType: hard
-
-"axios@npm:^0.22.0":
-  version: 0.22.0
-  resolution: "axios@npm:0.22.0"
-  dependencies:
-    follow-redirects: ^1.14.4
-  checksum: 83dc4d02e180f69aa9f0d1d0d50b84ec3603517230d58b4c3720ebd440c7e64ea86c5e892dc6e19061608e8e1103504a709d8baa4051c4b7652101b523d04b63
   languageName: node
   linkType: hard
 
@@ -12009,6 +12007,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"emoji-regex@npm:^10.3.0":
+  version: 10.3.0
+  resolution: "emoji-regex@npm:10.3.0"
+  checksum: 5da48edfeb9462fb1ae5495cff2d79129974c696853fb0ce952cbf560f29a2756825433bf51cfd5157ec7b9f93f46f31d712e896d63e3d8ac9c3832bdb45ab73
+  languageName: node
+  linkType: hard
+
 "emoji-regex@npm:^8.0.0":
   version: 8.0.0
   resolution: "emoji-regex@npm:8.0.0"
@@ -14020,7 +14025,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.4, follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.0":
+"follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.0":
   version: 1.15.2
   resolution: "follow-redirects@npm:1.15.2"
   peerDependenciesMeta:
@@ -17611,15 +17616,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"linkify-it@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "linkify-it@npm:4.0.1"
-  dependencies:
-    uc.micro: ^1.0.1
-  checksum: 3e0a29921269c14eb7ac6f5db2da68d4854ea9acca6e9014a323f75f2dd39b197ffab57c1fbd6a906ceb021aad3ee6d7ba7d0181236dd9630ffc452b392f7f71
-  languageName: node
-  linkType: hard
-
 "linkifyjs@npm:^2.1.9":
   version: 2.1.9
   resolution: "linkifyjs@npm:2.1.9"
@@ -17635,6 +17631,13 @@ __metadata:
   version: 4.1.1
   resolution: "linkifyjs@npm:4.1.1"
   checksum: 312b75ec9bc6e7107f2b70e50682e8baccd7b94a64bf7b88cecd352032126b0d6fa7ea41394c417a178c718caa79b70e6ab3570eee7b96a12399689d666e68fb
+  languageName: node
+  linkType: hard
+
+"linkifyjs@npm:^4.1.1":
+  version: 4.1.3
+  resolution: "linkifyjs@npm:4.1.3"
+  checksum: 023d467499a717a49ebbfa256a80cb2811a3b038ff2593e5be0fb8a4715b0a63bf80c571838e19e120833d5b9874464f3a1448965c8eebbde8c19458b3a6c6e4
   languageName: node
   linkType: hard
 
@@ -24057,39 +24060,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:5.15.1":
-  version: 5.15.1
-  resolution: "stream-chat-react-native-core@npm:5.15.1"
+"stream-chat-react-native-core@npm:5.27.0-beta.7":
+  version: 5.27.0-beta.7
+  resolution: "stream-chat-react-native-core@npm:5.27.0-beta.7"
   dependencies:
     "@babel/runtime": ^7.12.5
-    "@gorhom/bottom-sheet": 4.4.5
+    "@gorhom/bottom-sheet": 4.4.8
     dayjs: 1.10.5
+    emoji-regex: ^10.3.0
     file-loader: 6.2.0
     i18next: 20.2.4
-    linkify-it: ^4.0.1
+    linkifyjs: ^4.1.1
     lodash-es: 4.17.21
     metro-react-native-babel-preset: 0.66.2
     mime-types: ^2.1.34
     path: 0.12.7
     react-native-markdown-package: 1.8.2
     react-native-url-polyfill: ^1.3.0
-    stream-chat: 8.6.0
+    stream-chat: 8.17.0
   peerDependencies:
     react-native-quick-sqlite: ">=5.1.0"
     react-native-svg: ">=12.1.0"
   peerDependenciesMeta:
     react-native-quick-sqlite:
       optional: true
-  checksum: c3575c0b722b47be8fcfd1a754d30fb1a3a9d4cb39a66dbde65e51602a312917758ff8febf5a23c21ba0f062146de38be2cad3dc99b4b6dc8f6e571edcec563d
+  checksum: 92d3de7e856f4c3cc7c7187e2f56bebbfaf066e4176296caef597777f11318437beb05d4955f63423d7bed8a364a3597aabf6e7dbd417becd1ca1659b05e520e
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^5.15.1":
-  version: 5.15.1
-  resolution: "stream-chat-react-native@npm:5.15.1"
+"stream-chat-react-native@npm:5.27.0-beta.7":
+  version: 5.27.0-beta.7
+  resolution: "stream-chat-react-native@npm:5.27.0-beta.7"
   dependencies:
     es6-symbol: ^3.1.3
-    stream-chat-react-native-core: 5.15.1
+    stream-chat-react-native-core: 5.27.0-beta.7
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=5.0.0"
     "@react-native-clipboard/clipboard": ^1.11.1
@@ -24114,7 +24118,7 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 378cf0509288eb12c95d758532ee6e3cc4e76723bbb77fa8a4e5bb2dfdc297c293c31ee5f525c9e61fa5c947173a60b437acbc85c0b61ef87eed0c7207c0bffb
+  checksum: 5b080571e25efe243557206f569406dc8305a7610ed5944158e195c03d2b8c985371bbab17d3851fecb18dd8a845176ad915bb23be6e9be99fba240467466b28
   languageName: node
   linkType: hard
 
@@ -24177,20 +24181,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:8.6.0":
-  version: 8.6.0
-  resolution: "stream-chat@npm:8.6.0"
+"stream-chat@npm:8.17.0":
+  version: 8.17.0
+  resolution: "stream-chat@npm:8.17.0"
   dependencies:
     "@babel/runtime": ^7.16.3
     "@types/jsonwebtoken": ~9.0.0
     "@types/ws": ^7.4.0
-    axios: ^0.22.0
+    axios: ^1.6.0
     base64-js: ^1.5.1
     form-data: ^4.0.0
     isomorphic-ws: ^4.0.1
     jsonwebtoken: ~9.0.0
     ws: ^7.4.4
-  checksum: c4ddc13d0871455778ea96a4f61de99e46201cc1fc9d7d3e8d15c4bd8a7a281e78e678c73f7c211dca9a70312ab449fc51c3bf7e77772ef97f801042b13da34d
+  checksum: 035656103bca5b7a1009827c9bb2f8cf429babebdaf6bf04f7738d2d4cf8a3885791b306ee787a98347f68dc042bf40abc0f8847e19cdf7fa82c6eb1549dffcd
   languageName: node
   linkType: hard
 
@@ -25433,13 +25437,6 @@ __metadata:
   version: 1.0.36
   resolution: "ua-parser-js@npm:1.0.36"
   checksum: 5b2c8a5e3443dfbba7624421805de946457c26ae167cb2275781a2729d1518f7067c9d5c74c3b0acac4b9ff3278cae4eace08ca6eecb63848bc3b2f6a63cc975
-  languageName: node
-  linkType: hard
-
-"uc.micro@npm:^1.0.1":
-  version: 1.0.6
-  resolution: "uc.micro@npm:1.0.6"
-  checksum: 6898bb556319a38e9cf175e3628689347bd26fec15fc6b29fa38e0045af63075ff3fea4cf1fdba9db46c9f0cbf07f2348cd8844889dd31ebd288c29fe0d27e7a
   languageName: node
   linkType: hard
 

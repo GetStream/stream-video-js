@@ -10,6 +10,7 @@ import { AuthenticationProgress } from '../components/AuthenticatingProgress';
 import { Channel as ChannelType } from 'stream-chat';
 import { StreamChatGenerics } from '../../types';
 import { useBottomSheetInternal } from '@gorhom/bottom-sheet';
+import { appTheme } from '../theme';
 
 export type LivestreamChatProps = {
   callId: string;
@@ -40,7 +41,16 @@ export const LivestreamChat = ({ callId, callType }: LivestreamChatProps) => {
   }, [client, callId, callType]);
 
   if (!channel) {
-    return <AuthenticationProgress />;
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: appTheme.colors.static_grey },
+        ]}
+      >
+        <AuthenticationProgress />
+      </SafeAreaView>
+    );
   }
 
   return (
