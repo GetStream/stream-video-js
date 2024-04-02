@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-filters-web';
 
 type PersistedVideoFilter = {
-  backgroundFilter: BackgroundFilter;
+  backgroundFilter: BackgroundFilter | null;
   backgroundImage: string | null;
   backgroundBlurLevel: BackgroundBlurLevel;
 };
@@ -61,7 +61,7 @@ export const usePersistedVideoFilter = (storageKey: string) => {
   useEffect(() => {
     if (!isReady) return;
     storeVideoFilter(storageKey, {
-      backgroundFilter: backgroundFilter ?? 'none',
+      backgroundFilter: backgroundFilter ?? null,
       backgroundImage: backgroundImage ?? null,
       backgroundBlurLevel: backgroundBlurLevel ?? 'high',
     });
