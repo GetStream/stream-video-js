@@ -124,19 +124,14 @@ export abstract class InputMediaDeviceManager<
    * a new stream with the applied filter.
    *
    * @param filter the filter to register.
+   * @returns a function that will unregister the filter.
    */
   async registerFilter(filter: MediaStreamFilter) {
     this.filters.push(filter);
-    if (this.state.status === 'enabled') {
-      await this.disable();
-      await this.enable();
-    }
+    await this.applySettingsToStream();
     return async () => {
       this.filters = this.filters.filter((f) => f !== filter);
-      if (this.state.status === 'enabled') {
-        await this.disable();
-        await this.enable();
-      }
+      await this.applySettingsToStream();
     };
   }
 
@@ -283,39 +278,38 @@ export abstract class InputMediaDeviceManager<
       const chainWith =
         (parentStream?: Promise<MediaStream>) =>
         async (filterStream: MediaStream): Promise<MediaStream> => {
-          if (parentStream) {
-            // TODO OL: take care of track.enabled property as well
-            const parent = await parentStream;
-            filterStream.getTracks().forEach((t) => {
-              const originalStop = t.stop;
-              t.stop = function stop() {
-                originalStop.call(t);
-                parent.getTracks().forEach((pt) => {
-                  if (pt.kind === t.kind) {
-                    pt.stop();
-                  }
-                });
-              };
-            });
-
-            parent.getTracks().forEach((pt) => {
-              // When the parent stream abruptly ends, we propagate the event
-              // to the filter stream.
-              // This usually happens when the camera/microphone permissions
-              // are revoked or when the device is disconnected.
-              const handleParentTrackEnded = () => {
-                filterStream.getTracks().forEach((t) => {
-                  if (pt.kind !== t.kind) return;
-                  t.stop();
-                  t.dispatchEvent(new Event('ended')); // propagate the event
-                });
-              };
-              pt.addEventListener('ended', handleParentTrackEnded);
-              this.subscriptions.push(() => {
-                pt.removeEventListener('ended', handleParentTrackEnded);
+          if (!parentStream) return filterStream;
+          // TODO OL: take care of track.enabled property as well
+          const parent = await parentStream;
+          filterStream.getTracks().forEach((track) => {
+            const originalStop = track.stop;
+            track.stop = function stop() {
+              originalStop.call(track);
+              parent.getTracks().forEach((parentTrack) => {
+                if (parentTrack.kind === track.kind) {
+                  parentTrack.stop();
+                }
               });
+            };
+          });
+
+          parent.getTracks().forEach((parentTrack) => {
+            // When the parent stream abruptly ends, we propagate the event
+            // to the filter stream.
+            // This usually happens when the camera/microphone permissions
+            // are revoked or when the device is disconnected.
+            const handleParentTrackEnded = () => {
+              filterStream.getTracks().forEach((track) => {
+                if (parentTrack.kind !== track.kind) return;
+                track.stop();
+                track.dispatchEvent(new Event('ended')); // propagate the event
+              });
+            };
+            parentTrack.addEventListener('ended', handleParentTrackEnded);
+            this.subscriptions.push(() => {
+              parentTrack.removeEventListener('ended', handleParentTrackEnded);
             });
-          }
+          });
 
           return filterStream;
         };
