@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import { Platform, findNodeHandle, NativeModules } from 'react-native';
 import { useIsIosScreenshareBroadcastStarted } from '.';
-import { useCall, useCallStateHooks, SfuModels } from '..';
 import { usePrevious } from '../utils/hooks';
+import { SfuModels } from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 // ios >= 14.0 or android
 const CanDeviceScreenShare =
