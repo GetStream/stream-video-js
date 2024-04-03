@@ -1875,14 +1875,20 @@ export class Call {
 
   /**
    * Submit feedback on call experience
-   * 
-   * @param feedback Feedback on call experience
-   * @returns 
+   *
+   * @returns
    */
   submitFeedback = async (feedback: CollectUserFeedbackRequest) => {
-    const endpoint = `${this.streamClientBasePath}/feedback/${this.state?.session?.id}`;
-    return this.streamClient.post<CollectUserFeedbackResponse>(endpoint);
-  }
+    const callSessionId = this.state.session?.id;
+    if (!callSessionId) {
+      return;
+    }
+    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
+    return this.streamClient.post<CollectUserFeedbackResponse>(
+      endpoint,
+      feedback,
+    );
+  };
 
   /**
    * Sends a custom event to all call participants.
