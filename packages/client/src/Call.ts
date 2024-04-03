@@ -119,6 +119,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { retryable } from './helpers/runWithRetry';
 
 /**
  * An object representation of a `Call`.
@@ -277,7 +278,20 @@ export class Call {
           debounce((v) => timer(v.type)),
           map((v) => v.data),
         ),
-        (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
+        (subscriptions) => {
+          if (!this.sfuClient) return;
+
+          retryable(
+            this.sfuClient.updateSubscriptions,
+            'NeverGonnaGiveYouUp',
+            (initialSubscriptions) => {
+              return (
+                initialSubscriptions !==
+                this.trackSubscriptionsSubject.getValue().data
+              );
+            },
+          )(subscriptions);
+        },
       ),
     );
 
