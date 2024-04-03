@@ -3,6 +3,7 @@
   "version": "1.0.1",
   "packageManager": "yarn@3.2.4",
   "license": "See license in LICENSE",
+  "private": false,
   "scripts": {
     "clean": "rimraf dist",
     "start": "sass --watch index.scss ./dist/css/styles.css",
