@@ -4,6 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { PublishOptions, StopPublishOptions } from '../types';
 
 type PreferredCodec = 'vp8' | 'h264' | string;
 
@@ -106,13 +107,17 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     return getVideoStream(constraints);
   }
 
-  protected publishStream(stream: MediaStream): Promise<void> {
+  protected publishStream(
+    stream: MediaStream,
+    opts: PublishOptions,
+  ): Promise<void> {
     return this.call.publishVideoStream(stream, {
+      ...opts,
       preferredCodec: this.preferredCodec,
     });
   }
 
-  protected stopPublishStream(stopTracks: boolean): Promise<void> {
-    return this.call.stopPublish(TrackType.VIDEO, stopTracks);
+  protected stopPublishStream(opts: StopPublishOptions): Promise<void> {
+    return this.call.stopPublish(TrackType.VIDEO, opts);
   }
 }

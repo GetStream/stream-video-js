@@ -146,8 +146,45 @@ export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
 
+export type StopPublishOptions = {
+  /**
+   * A flag to indicate whether to notify the SFU or not
+   * that the track has been stopped.
+   *
+   * Common use case is when the user is switching devices.
+   * We don't want to notify the SFU that the track has been stopped
+   * as it will be replaced by another track.
+   */
+  notifySfu?: boolean;
+  /**
+   * A flag to indicate whether to stop the tracks or not.
+   * if `true` the track will be stopped otherwise, it will be just disabled.
+   */
+  stopTracks?: boolean;
+
+  /**
+   * When true, stops the tracks regardless of the state.disableMode.
+   */
+  forceStop?: boolean;
+};
+
 export type PublishOptions = {
+  /**
+   * A flag to indicate whether to notify the SFU or not
+   * that the track has been stopped.
+   *
+   * Common use case is when the user is switching devices.
+   * We don't want to notify the SFU that the track has been stopped
+   * as it will be replaced by another track.
+   */
+  notifySfu?: boolean;
+  /**
+   * A preferred codec to use for encoding the stream.
+   */
   preferredCodec?: string | null;
+  /**
+   * A set of settings to use for screen sharing.
+   */
   screenShareSettings?: ScreenShareSettings;
 };
 

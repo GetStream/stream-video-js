@@ -97,7 +97,9 @@ export const createSoundDetector = (
     // clean-up the AudioContext elements
     microphone.disconnect();
     analyser.disconnect();
-    await audioContext.close();
+    if (audioContext.state !== 'closed') {
+      await audioContext.close();
+    }
 
     // stop the stream
     if (destroyStreamOnStop) {

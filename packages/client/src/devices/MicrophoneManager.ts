@@ -9,6 +9,7 @@ import { isReactNative } from '../helpers/platforms';
 import { OwnCapability } from '../gen/coordinator';
 import { CallingState } from '../store';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
+import { PublishOptions, StopPublishOptions } from '../types';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
@@ -51,12 +52,15 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return getAudioStream(constraints);
   }
 
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishAudioStream(stream);
+  protected publishStream(
+    stream: MediaStream,
+    opts: PublishOptions,
+  ): Promise<void> {
+    return this.call.publishAudioStream(stream, opts);
   }
 
-  protected stopPublishStream(stopTracks: boolean): Promise<void> {
-    return this.call.stopPublish(TrackType.AUDIO, stopTracks);
+  protected stopPublishStream(opts: StopPublishOptions): Promise<void> {
+    return this.call.stopPublish(TrackType.AUDIO, opts);
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
@@ -75,6 +79,10 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         this.rnSpeechDetector = undefined;
       };
     } else {
+      if (!this.hasPermission()) {
+        this.logger('debug', `Couldn't start a stream: no permissions`);
+        return;
+      }
       // Need to start a new stream that's not connected to publisher
       const stream = await this.getStream({
         deviceId,
