@@ -5446,3 +5446,175 @@ export interface UpdateExternalStorageRequest {
    */
   storage_type: string;
 }
+
+/**
+ *
+ * @export
+ * @interface CollectUserFeedbackRequest
+ */
+export interface CollectUserFeedbackRequest {
+  /**
+   *
+   * @type {AudioFeedbackRequest}
+   * @memberof CollectUserFeedbackRequest
+   */
+  audio?: AudioFeedbackRequest;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CollectUserFeedbackRequest
+   */
+  cannot_join_call?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof CollectUserFeedbackRequest
+   */
+  other?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CollectUserFeedbackRequest
+   */
+  rating?: number;
+  /**
+   *
+   * @type {ScreenshareFeedbackRequest}
+   * @memberof CollectUserFeedbackRequest
+   */
+  screenshare?: ScreenshareFeedbackRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof CollectUserFeedbackRequest
+   */
+  user_session_id?: string;
+  /**
+   *
+   * @type {VideoFeedbackRequest}
+   * @memberof CollectUserFeedbackRequest
+   */
+  video?: VideoFeedbackRequest;
+}
+/**
+ *
+ * @export
+ * @interface CollectUserFeedbackResponse
+ */
+export interface CollectUserFeedbackResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof CollectUserFeedbackResponse
+   */
+  duration: string;
+}
+
+/**
+ *
+ * @export
+ * @interface AudioFeedbackRequest
+ */
+export interface AudioFeedbackRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioFeedbackRequest
+   */
+  cannot_hear_others?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioFeedbackRequest
+   */
+  choppy?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioFeedbackRequest
+   */
+  echo?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioFeedbackRequest
+   */
+  others_could_not_hear_me?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioFeedbackRequest
+   */
+  too_noisy?: boolean;
+}
+
+/**
+ *
+ * @export
+ * @interface ScreenshareFeedbackRequest
+ */
+export interface ScreenshareFeedbackRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof ScreenshareFeedbackRequest
+   */
+  blurry?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ScreenshareFeedbackRequest
+   */
+  could_not_present?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ScreenshareFeedbackRequest
+   */
+  could_not_see?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ScreenshareFeedbackRequest
+   */
+  slow_to_update?: boolean;
+}
+
+/**
+ *
+ * @export
+ * @interface VideoFeedbackRequest
+ */
+export interface VideoFeedbackRequest {
+
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoFeedbackRequest
+   */
+  blurry?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoFeedbackRequest
+   */
+  camera_not_working?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoFeedbackRequest
+   */
+  could_not_see_others?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoFeedbackRequest
+   */
+  freezing?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoFeedbackRequest
+   */
+  video_audio_out_of_sync?: boolean;
+}

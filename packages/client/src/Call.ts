@@ -22,6 +22,8 @@ import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
+  CollectUserFeedbackRequest,
+  CollectUserFeedbackResponse,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -1870,6 +1872,17 @@ export class Call {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
   };
+
+  /**
+   * Submit feedback on call experience
+   * 
+   * @param feedback Feedback on call experience
+   * @returns 
+   */
+  submitFeedback = async (feedback: CollectUserFeedbackRequest) => {
+    const endpoint = `${this.streamClientBasePath}/feedback/${this.state?.session?.id}`;
+    return this.streamClient.post<CollectUserFeedbackResponse>(endpoint);
+  }
 
   /**
    * Sends a custom event to all call participants.
