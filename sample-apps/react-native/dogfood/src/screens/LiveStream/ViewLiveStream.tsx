@@ -5,6 +5,8 @@ import {
   useCallStateHooks,
   useStreamVideoClient,
   ViewerLivestreamTopView,
+  LiveIndicator,
+  FollowerCount,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   PropsWithChildren,
@@ -47,6 +49,27 @@ type ViewerLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
   'ViewerLiveStream'
 >;
+
+const HandleComponent = () => {
+  return (
+    <View
+      style={[
+        styles.handleContainer,
+        { backgroundColor: appTheme.colors.static_grey },
+      ]}
+    >
+      <Text
+        style={[styles.handleText, { color: appTheme.colors.static_white }]}
+      >
+        Live Chat
+      </Text>
+      <View style={styles.liveContainer}>
+        <LiveIndicator />
+        <FollowerCount />
+      </View>
+    </View>
+  );
+};
 
 export const ViewLiveStreamWrapper = ({
   route,
@@ -122,11 +145,7 @@ export const ViewLiveStreamWrapper = ({
     return null;
   }
 
-  return (
-    <BottomSheetModalProvider>
-      <StreamCall call={call}>{children}</StreamCall>
-    </BottomSheetModalProvider>
-  );
+  return <StreamCall call={call}>{children}</StreamCall>;
 };
 
 export const ViewLiveStreamChilden = ({
@@ -227,42 +246,44 @@ export const ViewLiveStreamChilden = ({
    */
   return (
     <StreamCall call={call}>
-      {!(isCallLive && callJoined) ? (
-        <ViewerLobby
-          isLive={isCallLive}
-          handleJoinCall={handleJoinCall}
-          setCallJoined={setCallJoined}
-        />
-      ) : (
-        <Animated.View style={[styles.animatedContainer, animatedStyles]}>
-          <SafeAreaView edges={['top']} style={styles.livestream}>
-            <ViewerLivestream
-              ViewerLivestreamTopView={
-                !headerFooterHidden ? ViewerLivestreamTopView : null
-              }
-              // eslint-disable-next-line react/no-unstable-nested-components
-              ViewerLiveStreamControlsRightElement={() => (
-                <LivestreamChatButton
-                  handlePresentModalPress={handlePresentModalPress}
-                />
-              )}
-              onLeaveStreamHandler={handleLeaveCall}
-            />
-          </SafeAreaView>
-        </Animated.View>
-      )}
-      <BottomSheetModal
-        enablePanDownToClose={true}
-        handleStyle={{ backgroundColor: appTheme.colors.static_grey }}
-        ref={bottomSheetModalRef}
-        index={1}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-      >
-        <BottomSheetView style={styles.contentContainer}>
-          <LivestreamChat callId={callId} callType={callType} />
-        </BottomSheetView>
-      </BottomSheetModal>
+      <BottomSheetModalProvider>
+        {!(isCallLive && callJoined) ? (
+          <ViewerLobby
+            isLive={isCallLive}
+            handleJoinCall={handleJoinCall}
+            setCallJoined={setCallJoined}
+          />
+        ) : (
+          <Animated.View style={[styles.animatedContainer, animatedStyles]}>
+            <SafeAreaView edges={['top']} style={styles.livestream}>
+              <ViewerLivestream
+                ViewerLivestreamTopView={
+                  !headerFooterHidden ? ViewerLivestreamTopView : null
+                }
+                // eslint-disable-next-line react/no-unstable-nested-components
+                ViewerLiveStreamControlsRightElement={() => (
+                  <LivestreamChatButton
+                    handlePresentModalPress={handlePresentModalPress}
+                  />
+                )}
+                onLeaveStreamHandler={handleLeaveCall}
+              />
+            </SafeAreaView>
+          </Animated.View>
+        )}
+        <BottomSheetModal
+          enablePanDownToClose={true}
+          handleComponent={HandleComponent}
+          ref={bottomSheetModalRef}
+          index={1}
+          snapPoints={snapPoints}
+          onChange={handleSheetChanges}
+        >
+          <BottomSheetView style={styles.contentContainer}>
+            <LivestreamChat callId={callId} callType={callType} />
+          </BottomSheetView>
+        </BottomSheetModal>
+      </BottomSheetModalProvider>
     </StreamCall>
   );
 };
@@ -341,5 +362,20 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     alignItems: 'center',
+  },
+  handleContainer: {
+    flexDirection: 'row',
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  handleText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  liveContainer: {
+    flexDirection: 'row',
   },
 });

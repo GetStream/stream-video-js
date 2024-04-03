@@ -5,6 +5,8 @@ import {
   useConnectedUser,
   useStreamVideoClient,
   HostLivestreamTopView,
+  LiveIndicator,
+  FollowerCount,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -20,7 +22,7 @@ import {
 } from '@gorhom/bottom-sheet';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
-import { Dimensions, StyleSheet, Text } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { appTheme } from '../../theme';
 import Animated, {
@@ -35,6 +37,27 @@ type HostLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
   'HostLiveStream'
 >;
+
+const HandleComponent = () => {
+  return (
+    <View
+      style={[
+        styles.handleContainer,
+        { backgroundColor: appTheme.colors.static_grey },
+      ]}
+    >
+      <Text
+        style={[styles.handleText, { color: appTheme.colors.static_white }]}
+      >
+        Live Chat
+      </Text>
+      <View style={styles.liveContainer}>
+        <LiveIndicator />
+        <FollowerCount />
+      </View>
+    </View>
+  );
+};
 
 export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   const { height } = Dimensions.get('window');
@@ -109,8 +132,8 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   }
 
   return (
-    <BottomSheetModalProvider>
-      <StreamCall call={call}>
+    <StreamCall call={call}>
+      <BottomSheetModalProvider>
         <Animated.View style={[styles.animatedContainer, animatedStyles]}>
           <SafeAreaView edges={['top']} style={styles.container}>
             <HostLivestream
@@ -126,20 +149,20 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
             />
           </SafeAreaView>
         </Animated.View>
-      </StreamCall>
-      <BottomSheetModal
-        enablePanDownToClose={true}
-        handleStyle={{ backgroundColor: appTheme.colors.static_grey }}
-        ref={bottomSheetModalRef}
-        index={1}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-      >
-        <BottomSheetView style={styles.contentContainer}>
-          <LivestreamChat callId={callId} callType={callType} />
-        </BottomSheetView>
-      </BottomSheetModal>
-    </BottomSheetModalProvider>
+        <BottomSheetModal
+          enablePanDownToClose={true}
+          handleComponent={HandleComponent}
+          ref={bottomSheetModalRef}
+          index={1}
+          snapPoints={snapPoints}
+          onChange={handleSheetChanges}
+        >
+          <BottomSheetView style={styles.contentContainer}>
+            <LivestreamChat callId={callId} callType={callType} />
+          </BottomSheetView>
+        </BottomSheetModal>
+      </BottomSheetModalProvider>
+    </StreamCall>
   );
 };
 
@@ -162,5 +185,20 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     alignItems: 'center',
+  },
+  handleContainer: {
+    flexDirection: 'row',
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  handleText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  liveContainer: {
+    flexDirection: 'row',
   },
 });
