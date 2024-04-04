@@ -405,9 +405,14 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'call.closed_caption': undefined,
       'call.permission_request': undefined,
       'call.recording_failed': undefined,
       'call.recording_ready': undefined,
+      'call.transcription_started': undefined,
+      'call.transcription_stopped': undefined,
+      'call.transcription_ready': undefined,
+      'call.transcription_failed': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
