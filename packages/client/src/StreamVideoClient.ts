@@ -13,6 +13,8 @@ import type {
   ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
+  QueryCallStatsRequest,
+  QueryCallStatsResponse,
 } from './gen/coordinator';
 import {
   AllClientEvents,
@@ -364,6 +366,19 @@ export class StreamVideoClient {
       ...response,
       calls: calls,
     };
+  };
+
+  /**
+   * Retrieve the list of available call statistics reports matching a particular condition.
+   *
+   * @param data Filter and sort conditions for retrieving available call report summaries.
+   * @returns List with summary of available call reports matching the condition.
+   */
+  queryCallStats = async (data: QueryCallStatsRequest = {}) => {
+    return this.streamClient.post<
+      QueryCallStatsResponse,
+      QueryCallStatsRequest
+    >(`/call/stats`, data);
   };
 
   /**
