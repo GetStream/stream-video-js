@@ -9,7 +9,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
-    "build": "NODE_ENV=production rollup -c && yarn copy-css",
+    "build": "rimraf dist && NODE_ENV=production rollup -c && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s"
   },
@@ -30,26 +30,20 @@
   "dependencies": {
     "@floating-ui/react": "^0.26.5",
     "@stream-io/video-client": "workspace:*",
+    "@stream-io/video-filters-web": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",
     "chart.js": "^4.4.1",
     "clsx": "^2.0.0",
     "react-chartjs-2": "^5.2.0"
   },
   "peerDependencies": {
-    "@stream-io/video-filters-web": "^0.1.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@stream-io/video-filters-web": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@stream-io/video-filters-web": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

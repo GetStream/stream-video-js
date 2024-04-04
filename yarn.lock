@@ -7024,7 +7024,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-filters-web@workspace:^, @stream-io/video-filters-web@workspace:packages/video-filters-web":
+"@stream-io/video-filters-web@workspace:*, @stream-io/video-filters-web@workspace:^, @stream-io/video-filters-web@workspace:packages/video-filters-web":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-web@workspace:packages/video-filters-web"
   dependencies:
@@ -7289,7 +7289,7 @@ __metadata:
     "@rollup/plugin-replace": ^5.0.5
     "@rollup/plugin-typescript": ^11.1.6
     "@stream-io/video-client": "workspace:*"
-    "@stream-io/video-filters-web": "workspace:^"
+    "@stream-io/video-filters-web": "workspace:*"
     "@stream-io/video-react-bindings": "workspace:*"
     "@stream-io/video-styling": "workspace:^"
     chart.js: ^4.4.1
@@ -7301,12 +7301,8 @@ __metadata:
     rollup: ^3.29.4
     typescript: ^5.4.3
   peerDependencies:
-    "@stream-io/video-filters-web": ^0.1.0
     react: ^18.0.0
     react-dom: ^18.0.0
-  peerDependenciesMeta:
-    "@stream-io/video-filters-web":
-      optional: true
   languageName: unknown
   linkType: soft
 

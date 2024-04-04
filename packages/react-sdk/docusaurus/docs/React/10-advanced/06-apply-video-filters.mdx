@@ -6,30 +6,21 @@ description: How to build video or audio filters
 ## Video Filters
 
 In this guide, we will show you how to apply custom video filters to a video stream.
-We are going to use the `@stream-io/video-filters-web` library that provides background blur and background replacement filters.
+We are going to use the [Stream React Video SDK](https://getstream.io/video/sdk/react/) provided components that enable background blur and background replacement filters.
 
-This library uses the [`camera.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API under the hood to register custom filters.
-
-### Step 1 - Install a helper library
-
-This library is available as a npm package and works as a plugin for the [Stream React Video SDK](https://getstream.io/video/sdk/react/).
-It isn't built-in within the SDK as we want to keep the core library as lightweight as possible.
-We've made the SDK extensible so you can add any custom filters you want.
-
-```bash
-npm install @stream-io/video-filters-web
-# or
-yarn add @stream-io/video-filters-web
-```
+These components use the [`camera.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API under the hood to register custom filters.
 
 :::note
-This library supports only modern desktop browsers.
+We currently support video filters only on modern desktop browsers.
 Support for mobile devices is coming soon.
+
+As not all of your users will have the latest and greatest hardware,
+it's important to check if the filters are supported on the user's device before enabling them.
 :::
 
-### Step 2 - Integration in your application
+### Step 1 - Enable and initialize the filters
 
-The core of the library are the following APIs and components:
+Background filters are provided through the following APIs and components:
 
 - `<BackgroundFiltersProvider />` - a React context provider that will allow you to use the filters API in your application
 - `useBackgroundFilters()` - a React hook that will allow you to access the filters API in your application
@@ -68,10 +59,10 @@ export default function App() {
 }
 ```
 
-### Step 3 - Use the filters API
+### Step 2 - Use the API to control the filters
 
-Once you have the `BackgroundFiltersProvider` in your application,
-you can use the `useBackgroundFilters` hook to access the filters API and control the behavior of the filters.
+Once you have the `BackgroundFiltersProvider` rendered in your application,
+you can use the `useBackgroundFilters()` hook to access the filters API and control the behavior of the filters.
 
 ```tsx
 import { useBackgroundFilters } from '@stream-io/video-react-sdk';
