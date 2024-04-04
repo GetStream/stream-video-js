@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.6...@stream-io/video-client-0.6.7) (2024-04-02)
+
+
+### Features
+
+* [PBE-1611] Query call reports endpoint ([#1306](https://github.com/GetStream/stream-video-js/issues/1306)) ([0861a5d](https://github.com/GetStream/stream-video-js/commit/0861a5dd6e6e56c4ae286c44f174a319e8f308c4))
+
 ### [0.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.5...@stream-io/video-client-0.6.6) (2024-03-29)
 
 
