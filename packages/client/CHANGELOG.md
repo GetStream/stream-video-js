@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.9...@stream-io/video-client-0.6.10) (2024-04-05)
+
+
+### Features
+
+* revert add submit feedback method to Call ([#1307](https://github.com/GetStream/stream-video-js/issues/1307)) ([#1308](https://github.com/GetStream/stream-video-js/issues/1308)) ([df9a74d](https://github.com/GetStream/stream-video-js/commit/df9a74dddf0287812b723d134d92941ac939bb9f))
+
 ### [0.6.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.8...@stream-io/video-client-0.6.9) (2024-04-05)
 
 
