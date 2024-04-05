@@ -32,7 +32,8 @@ const ToggleEffectsMenuButton = forwardRef<
   );
 });
 
-export const ToggleEffectsButton = () => {
+export const ToggleEffectsButton = (props: { inMeeting?: boolean }) => {
+  const { inMeeting = true } = props;
   const { layout, setLayout } = useLayoutSwitcher();
   return (
     <MenuToggle
@@ -42,7 +43,7 @@ export const ToggleEffectsButton = () => {
     >
       <SettingsTabModalMenu
         tabModalProps={{
-          inMeeting: true,
+          inMeeting,
           activeTab: 1,
         }}
         layoutProps={{

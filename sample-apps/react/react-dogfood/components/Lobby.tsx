@@ -136,7 +136,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
 
                     <div className="rd__lobby-settings">
                       <ToggleParticipantsPreviewButton onJoin={onJoin} />
-                      <ToggleEffectsButton />
+                      <ToggleEffectsButton inMeeting={false} />
                       <ToggleSettingsTabModal
                         layoutProps={{
                           selectedLayout: layout,
