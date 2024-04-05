@@ -22,6 +22,8 @@ import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
+  CollectUserFeedbackRequest,
+  CollectUserFeedbackResponse,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -1907,6 +1909,23 @@ export class Call {
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
+   * Submit feedback on call experience
+   *
+   * @returns
+   */
+  submitFeedback = async (feedback: CollectUserFeedbackRequest) => {
+    const callSessionId = this.state.session?.id;
+    if (!callSessionId) {
+      return;
+    }
+    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
+    return this.streamClient.post<CollectUserFeedbackResponse>(
+      endpoint,
+      feedback,
+    );
   };
 
   /**
