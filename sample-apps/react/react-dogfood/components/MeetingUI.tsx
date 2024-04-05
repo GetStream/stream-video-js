@@ -120,6 +120,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   useKeyboardShortcuts();
   useWakeLock();
   usePersistedDevicePreferences('@pronto/device-preferences');
+  // TODO OL: fix race conditions and enable this
+  // usePersistedVideoFilter('@pronto/video-filter');
 
   let ComponentToRender: JSX.Element;
   if (show === 'error-join' || show === 'error-leave') {

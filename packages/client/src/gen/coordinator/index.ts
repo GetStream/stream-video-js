@@ -413,6 +413,37 @@ export interface CallAcceptedEvent {
   user: UserResponse;
 }
 /**
+ * CallClosedCaption represents a closed caption of a call.
+ * @export
+ * @interface CallClosedCaption
+ */
+export interface CallClosedCaption {
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  end_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  speaker_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  start_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  text: string;
+}
+/**
  * This event is sent when a call is created. Clients receiving this event should check if the ringing
  * field is set to true and if so, show the call screen
  * @export
@@ -1731,6 +1762,143 @@ export interface CallTimeline {
   events: Array<CallEvent>;
 }
 /**
+ * CallTranscription represents a transcription of a call.
+ * @export
+ * @interface CallTranscription
+ */
+export interface CallTranscription {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscription
+   */
+  end_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscription
+   */
+  filename: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscription
+   */
+  start_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscription
+   */
+  url: string;
+}
+/**
+ * This event is sent when call transcription has failed
+ * @export
+ * @interface CallTranscriptionFailedEvent
+ */
+export interface CallTranscriptionFailedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionFailedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionFailedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.transcription_failed" in this case
+   * @type {string}
+   * @memberof CallTranscriptionFailedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call transcription is ready
+ * @export
+ * @interface CallTranscriptionReadyEvent
+ */
+export interface CallTranscriptionReadyEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionReadyEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {CallTranscription}
+   * @memberof CallTranscriptionReadyEvent
+   */
+  call_transcription: CallTranscription;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionReadyEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.transcription_ready" in this case
+   * @type {string}
+   * @memberof CallTranscriptionReadyEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call transcription has started
+ * @export
+ * @interface CallTranscriptionStartedEvent
+ */
+export interface CallTranscriptionStartedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionStartedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.transcription_started" in this case
+   * @type {string}
+   * @memberof CallTranscriptionStartedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call transcription has stopped
+ * @export
+ * @interface CallTranscriptionStoppedEvent
+ */
+export interface CallTranscriptionStoppedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscriptionStoppedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.transcription_stopped" in this case
+   * @type {string}
+   * @memberof CallTranscriptionStoppedEvent
+   */
+  type: string;
+}
+/**
  *
  * @export
  * @interface CallTypeResponse
@@ -1913,6 +2081,37 @@ export interface CollectUserFeedbackResponse {
 }
 
 /**
+ * This event is sent when closed captions are being sent in a call, clients should use this to show the closed captions in the call screen
+ * @export
+ * @interface ClosedCaptionEvent
+ */
+export interface ClosedCaptionEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof ClosedCaptionEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {CallClosedCaption}
+   * @memberof ClosedCaptionEvent
+   */
+  closed_caption: CallClosedCaption;
+  /**
+   *
+   * @type {string}
+   * @memberof ClosedCaptionEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.closed_caption" in this case
+   * @type {string}
+   * @memberof ClosedCaptionEvent
+   */
+  type: string;
+}
+/**
  *
  * @export
  * @interface ConnectUserDetailsRequest
@@ -1936,6 +2135,12 @@ export interface ConnectUserDetailsRequest {
    * @memberof ConnectUserDetailsRequest
    */
   image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectUserDetailsRequest
+   */
+  language?: string;
   /**
    *
    * @type {string}
@@ -2810,6 +3015,12 @@ export interface GoLiveRequest {
    * @memberof GoLiveRequest
    */
   start_transcription?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof GoLiveRequest
+   */
+  transcription_storage_name?: string;
 }
 /**
  *
@@ -3192,6 +3403,25 @@ export interface ListRecordingsResponse {
    * @memberof ListRecordingsResponse
    */
   recordings: Array<CallRecording>;
+}
+/**
+ *
+ * @export
+ * @interface ListTranscriptionsResponse
+ */
+export interface ListTranscriptionsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ListTranscriptionsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<CallTranscription>}
+   * @memberof ListTranscriptionsResponse
+   */
+  transcriptions: Array<CallTranscription>;
 }
 /**
  *
@@ -4299,6 +4529,19 @@ export interface StartRecordingResponse {
 /**
  *
  * @export
+ * @interface StartTranscriptionRequest
+ */
+export interface StartTranscriptionRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StartTranscriptionRequest
+   */
+  transcription_external_storage?: string;
+}
+/**
+ *
+ * @export
  * @interface StartTranscriptionResponse
  */
 export interface StartTranscriptionResponse {
@@ -4501,7 +4744,13 @@ export interface TranscriptionSettings {
    */
   closed_caption_mode: string;
   /**
-   *
+   * omitempty,max=2,dive,oneof= en, fr, es, de, it, nl, pt, pl, ca, cs, da, el, fi, id, ja, ru, sv, ta, th, tr, hu, ro, zh, ar, tl, he, hi, hr, ko, ms, no, uk
+   * @type {Array<string>}
+   * @memberof TranscriptionSettings
+   */
+  languages: Array<string>;
+  /**
+   * oneof=available disabled auto-on
    * @type {string}
    * @memberof TranscriptionSettings
    */
@@ -4532,7 +4781,13 @@ export interface TranscriptionSettingsRequest {
    */
   closed_caption_mode?: string;
   /**
-   *
+   * omitempty,max=2,dive,oneof= en, fr, es, de, it, nl, pt, pl, ca, cs, da, el, fi, id, ja, ru, sv, ta, th, tr, hu, ro, zh, ar, tl, he, hi, hr, ko, ms, no, uk
+   * @type {Array<string>}
+   * @memberof TranscriptionSettingsRequest
+   */
+  languages?: Array<string>;
+  /**
+   * oneof=available disabled auto-on
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
@@ -5118,6 +5373,7 @@ export interface UserStats {
 export type VideoEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.closed_caption' } & ClosedCaptionEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
   | ({ type: 'call.hls_broadcasting_failed' } & CallHLSBroadcastingFailedEvent)
@@ -5152,6 +5408,10 @@ export type VideoEvent =
       type: 'call.session_participant_left';
     } & CallSessionParticipantLeftEvent)
   | ({ type: 'call.session_started' } & CallSessionStartedEvent)
+  | ({ type: 'call.transcription_failed' } & CallTranscriptionFailedEvent)
+  | ({ type: 'call.transcription_ready' } & CallTranscriptionReadyEvent)
+  | ({ type: 'call.transcription_started' } & CallTranscriptionStartedEvent)
+  | ({ type: 'call.transcription_stopped' } & CallTranscriptionStoppedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
   | ({ type: 'call.user_muted' } & CallUserMuted)

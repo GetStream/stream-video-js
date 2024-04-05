@@ -23,7 +23,10 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": ["@stream-io/video-styling:github"]
+        "postTargets": [
+          "@stream-io/video-styling:github",
+          "@stream-io/video-styling:publish"
+        ]
       }
     },
     "github": {
@@ -31,6 +34,17 @@
       "options": {
         "tag": "${tag}",
         "notes": "${notes}"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "yarn release:styling",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }

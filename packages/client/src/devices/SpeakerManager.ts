@@ -63,7 +63,12 @@ export class SpeakerManager {
     this.state.setDevice(deviceId);
   }
 
-  removeSubscriptions = () => {
+  /**
+   * Disposes the manager.
+   *
+   * @internal
+   */
+  dispose = () => {
     this.subscriptions.forEach((s) => s.unsubscribe());
   };
 

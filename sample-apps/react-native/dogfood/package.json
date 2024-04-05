@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -75,7 +75,7 @@
     "patch-package": "^6.4.7",
     "prettier": "2.8.8",
     "react-test-renderer": "18.2.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.4.3"
   },
   "engines": {
     "node": ">=18"
