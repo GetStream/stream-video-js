@@ -48,7 +48,7 @@ export const ViewerLivestreamControls = ({
       </View>
       <View
         style={[styles.rightElement, viewerLivestreamControls.rightElement]}
-      ></View>
+      />
     </View>
   );
 };
