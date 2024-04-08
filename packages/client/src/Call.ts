@@ -1914,6 +1914,7 @@ export class Call {
 
   /**
    * Submit user feedback for the call
+   * 
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
    * @param reason The reason/description for the rating
    * @param custom Custom data
@@ -1921,8 +1922,13 @@ export class Call {
    */
   submitFeedback = async (
     rating: number,
-    reason?: string,
-    custom?: Record<string, any>,
+    {
+      reason,
+      custom,
+    }: {
+      reason?: string;
+      custom?: Record<string, any>;
+    } = {},
   ) => {
     if (rating < 1 || rating > 5) {
       throw new Error('Rating must be between 1 and 5');
