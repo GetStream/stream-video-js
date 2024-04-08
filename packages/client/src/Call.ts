@@ -7,7 +7,11 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
+import {
+  GoAwayReason,
+  SdkType,
+  TrackType,
+} from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -22,6 +26,8 @@ import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
+  CollectUserFeedbackRequest,
+  CollectUserFeedbackResponse,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -123,6 +129,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { getSdkSignature } from './stats/utils';
 
 /**
  * An object representation of a `Call`.
@@ -1907,6 +1914,38 @@ export class Call {
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
+   * Submit feedback on call experience
+   *
+   * @returns
+   */
+  submitFeedback = async (feedback: CollectUserFeedbackRequest) => {
+    const userSessionId = this.sfuClient?.sessionId;
+    const callSessionId = this.state.session?.id;
+    if (!callSessionId || !userSessionId) {
+      return;
+    }
+
+    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
+      getClientDetails(),
+    );
+
+    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
+    return this.streamClient.post<
+      CollectUserFeedbackResponse,
+      CollectUserFeedbackRequest
+    >(endpoint, {
+      ...feedback,
+      user_session_id: userSessionId,
+      sdk: sdkName,
+      sdk_version: sdkVersion,
+      custom: {
+        ...feedback.custom,
+        'x-stream-platform-data': { ...platform },
+      },
+    });
   };
 
   /**
