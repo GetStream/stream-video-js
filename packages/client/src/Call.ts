@@ -1917,7 +1917,10 @@ export class Call {
    *
    * @returns
    */
-  submitFeedback = async (feedback: CollectUserFeedbackRequest) => {
+  submitFeedback = async (rating: number, reason?: string, custom?: object) => {
+    if (rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
     const userSessionId = this.sfuClient?.sessionId;
     const callSessionId = this.state.session?.id;
     if (!callSessionId || !userSessionId) {
@@ -1935,12 +1938,13 @@ export class Call {
       CollectUserFeedbackResponse,
       CollectUserFeedbackRequest
     >(endpoint, {
-      ...feedback,
+      rating: rating,
+      reason: reason,
       user_session_id: userSessionId,
       sdk: sdkName,
       sdk_version: sdkVersion,
       custom: {
-        ...feedback.custom,
+        ...custom,
         'x-stream-platform-data': { ...platform },
       },
     });
