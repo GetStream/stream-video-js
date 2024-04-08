@@ -16,10 +16,6 @@ export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
    * Component to customize the leave stream button on the viewer's end live stream.
    */
   ViewerLeaveStreamButton?: React.ComponentType<ViewerLeaveStreamButtonProps> | null;
-  /**
-   * Component to add or customize the right side elements on the viewer's side of live stream.
-   */
-  ViewerLiveStreamControlsRightElement?: React.ComponentType | null;
 };
 
 /**
@@ -27,7 +23,6 @@ export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
  */
 export const ViewerLivestreamControls = ({
   ViewerLeaveStreamButton = DefaultViewerLeaveStreamButton,
-  ViewerLiveStreamControlsRightElement = null,
   onLeaveStreamHandler,
 }: ViewerLivestreamControlsProps) => {
   const {
@@ -53,11 +48,7 @@ export const ViewerLivestreamControls = ({
       </View>
       <View
         style={[styles.rightElement, viewerLivestreamControls.rightElement]}
-      >
-        {ViewerLiveStreamControlsRightElement && (
-          <ViewerLiveStreamControlsRightElement />
-        )}
-      </View>
+      ></View>
     </View>
   );
 };

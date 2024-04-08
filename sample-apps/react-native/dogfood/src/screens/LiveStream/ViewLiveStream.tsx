@@ -26,7 +26,6 @@ import { LiveStreamParamList } from '../../../types';
 import {
   ActivityIndicator,
   Dimensions,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -37,13 +36,13 @@ import { ViewerLobby } from './ViewerLobby';
 import { useSetCall } from '../../hooks/useSetCall';
 import { Button } from '../../components/Button';
 import { useAnonymousInitVideoClient } from '../../hooks/useAnonymousInitVideoClient';
-import { Chat } from '../../assets/Chat';
-import { LivestreamChat } from '../../components/LivestreamChat';
+import { LivestreamChat } from '../../components/LiveStream/LivestreamChat';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { ViewerLiveStreamControls } from '../../components/LiveStream/ViewerLivestreamControls';
 
 type ViewerLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -108,15 +107,6 @@ export const ViewLiveStreamWrapper = ({
       }
     };
     getCall();
-  }, [call]);
-
-  useEffect(() => {
-    call?.on('error', (e) => {
-      if (e.error && e.error.code !== 104) {
-        return;
-      }
-      console.log('Livestream Call Left');
-    });
   }, [call]);
 
   if (error) {
@@ -262,12 +252,12 @@ export const ViewLiveStreamChilden = ({
                   !headerFooterHidden ? ViewerLivestreamTopView : null
                 }
                 // eslint-disable-next-line react/no-unstable-nested-components
-                ViewerLiveStreamControlsRightElement={() => (
-                  <LivestreamChatButton
+                ViewerLivestreamControls={() => (
+                  <ViewerLiveStreamControls
                     handlePresentModalPress={handlePresentModalPress}
+                    handleLeaveCall={handleLeaveCall}
                   />
                 )}
-                onLeaveStreamHandler={handleLeaveCall}
               />
             </SafeAreaView>
           </Animated.View>
@@ -300,28 +290,6 @@ export const ViewLiveStreamScreen = ({
   );
 };
 
-export const LivestreamChatButton = ({
-  handlePresentModalPress,
-}: {
-  handlePresentModalPress: () => void;
-}) => {
-  return (
-    <Pressable
-      onPress={handlePresentModalPress}
-      style={[
-        styles.chatContainer,
-        {
-          backgroundColor: appTheme.colors.dark_gray,
-        },
-      ]}
-    >
-      <View style={[styles.icon]}>
-        <Chat color={appTheme.colors.static_white} />
-      </View>
-    </Pressable>
-  );
-};
-
 const styles = StyleSheet.create({
   animatedContainer: {
     position: 'absolute',
@@ -347,18 +315,6 @@ const styles = StyleSheet.create({
   },
   errorButton: {
     marginTop: 8,
-  },
-  chatContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-    borderRadius: 4,
-    height: 40,
-    width: 40,
-  },
-  icon: {
-    height: 20,
-    width: 20,
   },
   contentContainer: {
     flex: 1,

@@ -6,11 +6,11 @@ import {
   MessageList,
   useChatContext,
 } from 'stream-chat-react-native';
-import { AuthenticationProgress } from '../components/AuthenticatingProgress';
+import { AuthenticationProgress } from '../AuthenticatingProgress';
 import { Channel as ChannelType } from 'stream-chat';
-import { StreamChatGenerics } from '../../types';
+import { StreamChatGenerics } from '../../../types';
 import { useBottomSheetInternal } from '@gorhom/bottom-sheet';
-import { appTheme } from '../theme';
+import { appTheme } from '../../theme';
 
 export type LivestreamChatProps = {
   callId: string;
@@ -24,7 +24,11 @@ export const LivestreamChat = ({ callId, callType }: LivestreamChatProps) => {
   const { client } = useChatContext();
   const { shouldHandleKeyboardEvents } = useBottomSheetInternal();
 
-  // Done as per https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ to solve the issue around keyboard hiding the text input in the chat inside bottom sheet.
+  /**
+   * Done as per the text input behaviour from BottomSheetTextInput(https://github.com/gorhom/react-native-bottom-sheet/blob/master/src/components/bottomSheetTextInput/BottomSheetTextInput.tsx)
+   * to solve the issue around keyboard hiding the text input in the chat inside bottom sheet.
+   * The tip in https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ is followed.
+   */
   useEffect(() => {
     return () => {
       // Reset the flag on unmount

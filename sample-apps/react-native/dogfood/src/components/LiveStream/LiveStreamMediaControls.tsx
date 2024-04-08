@@ -3,9 +3,8 @@ import {
   LivestreamVideoControlButton,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { appTheme } from '../../theme';
-import { Chat } from '../../assets/Chat';
+import { StyleSheet, View } from 'react-native';
+import { LiveStreamChatControlButton } from './LivestreamChatComponent';
 
 /**
  * Props for the LivestreamMediaControls component.
@@ -24,19 +23,9 @@ export const LivestreamMediaControls = ({
     <View style={styles.container}>
       <LivestreamAudioControlButton />
       <LivestreamVideoControlButton />
-      <Pressable
-        onPress={handlePresentModalPress}
-        style={[
-          styles.chatContainer,
-          {
-            backgroundColor: appTheme.colors.dark_gray,
-          },
-        ]}
-      >
-        <View style={[styles.icon]}>
-          <Chat color={appTheme.colors.static_white} />
-        </View>
-      </Pressable>
+      <LiveStreamChatControlButton
+        handlePresentModalPress={handlePresentModalPress}
+      />
     </View>
   );
 };

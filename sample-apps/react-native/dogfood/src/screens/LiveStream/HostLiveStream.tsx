@@ -30,7 +30,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { LivestreamChat } from '../../components/LivestreamChat';
+import { LivestreamChat } from '../../components/LiveStream/LivestreamChat';
 import { LivestreamMediaControls } from '../../components/LiveStream/LiveStreamMediaControls';
 
 type HostLiveStreamScreenProps = NativeStackScreenProps<
