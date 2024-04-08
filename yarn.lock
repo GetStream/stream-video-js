@@ -7213,7 +7213,7 @@ __metadata:
     react-native-voip-push-notification: ~3.3.1
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
-    stream-chat-react-native: ^5.15.1
+    stream-chat-react-native: 5.27.0
     typescript: ^5.4.3
   languageName: unknown
   linkType: soft
@@ -24198,9 +24198,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:5.27.0-beta.7":
-  version: 5.27.0-beta.7
-  resolution: "stream-chat-react-native-core@npm:5.27.0-beta.7"
+"stream-chat-react-native-core@npm:5.27.0":
+  version: 5.27.0
+  resolution: "stream-chat-react-native-core@npm:5.27.0"
   dependencies:
     "@babel/runtime": ^7.12.5
     "@gorhom/bottom-sheet": 4.4.8
@@ -24222,16 +24222,16 @@ __metadata:
   peerDependenciesMeta:
     react-native-quick-sqlite:
       optional: true
-  checksum: 92d3de7e856f4c3cc7c7187e2f56bebbfaf066e4176296caef597777f11318437beb05d4955f63423d7bed8a364a3597aabf6e7dbd417becd1ca1659b05e520e
+  checksum: 6c9eeba800e5f2717630b97d4a3f16bd71d16dde7f86fa3c346dcc366d7c7ccf1ede8c7f401cca782e8eee353e53cfc50be98bc3c54697ad7cdc287c80769ddb
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:5.27.0-beta.7":
-  version: 5.27.0-beta.7
-  resolution: "stream-chat-react-native@npm:5.27.0-beta.7"
+"stream-chat-react-native@npm:5.27.0":
+  version: 5.27.0
+  resolution: "stream-chat-react-native@npm:5.27.0"
   dependencies:
     es6-symbol: ^3.1.3
-    stream-chat-react-native-core: 5.27.0-beta.7
+    stream-chat-react-native-core: 5.27.0
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=5.0.0"
     "@react-native-clipboard/clipboard": ^1.11.1
@@ -24256,7 +24256,7 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 5b080571e25efe243557206f569406dc8305a7610ed5944158e195c03d2b8c985371bbab17d3851fecb18dd8a845176ad915bb23be6e9be99fba240467466b28
+  checksum: 0e5e1158f60f6568019d978567f6dece427a98b0d1200e5c853f05cff5dabf9155017e42934af23d273d51ca78d33fde576d9a50f110573b4726512c662c51d0
   languageName: node
   linkType: hard
 
