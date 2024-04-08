@@ -7,11 +7,7 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import {
-  GoAwayReason,
-  SdkType,
-  TrackType,
-} from './gen/video/sfu/models/models';
+import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
