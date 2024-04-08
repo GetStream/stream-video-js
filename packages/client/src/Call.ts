@@ -1925,7 +1925,9 @@ export class Call {
     const userSessionId = this.sfuClient?.sessionId;
     const callSessionId = this.state.session?.id;
     if (!callSessionId || !userSessionId) {
-      return;
+      throw new Error(
+        'Feedback can be submitted only in the context of a call session',
+      );
     }
 
     const { sdkName, sdkVersion, ...platform } = getSdkSignature(
