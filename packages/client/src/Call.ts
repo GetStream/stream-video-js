@@ -1913,11 +1913,17 @@ export class Call {
   };
 
   /**
-   * Submit feedback on call experience
-   *
+   * Submit user feedback for the call
+   * @param rating Rating between 1 and 5 denoting the experience of the user in the call
+   * @param reason The reason/description for the rating
+   * @param custom Custom data
    * @returns
    */
-  submitFeedback = async (rating: number, reason?: string, custom?: object) => {
+  submitFeedback = async (
+    rating: number,
+    reason?: string,
+    custom?: Record<string, any>,
+  ) => {
     if (rating < 1 || rating > 5) {
       throw new Error('Rating must be between 1 and 5');
     }
@@ -1938,14 +1944,14 @@ export class Call {
       CollectUserFeedbackResponse,
       CollectUserFeedbackRequest
     >(endpoint, {
-      rating: rating,
-      reason: reason,
+      rating,
+      reason,
       user_session_id: userSessionId,
       sdk: sdkName,
       sdk_version: sdkVersion,
       custom: {
         ...custom,
-        'x-stream-platform-data': { ...platform },
+        'x-stream-platform-data': platform,
       },
     });
   };
