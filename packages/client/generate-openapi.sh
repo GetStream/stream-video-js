@@ -10,8 +10,10 @@ else
 fi
 if  [ "$FROM_REPO" == 'chat' ]; then
   SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi.yaml"
-else
+elif [ "$FROM_REPO" == 'protocol' ]; then
   SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi.yaml"
+else
+  SCHEMA_FILE=$FROM_REPO
 fi
 
 if  [ "$FROM_REPO" == 'chat' ]; then

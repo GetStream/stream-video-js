@@ -67,15 +67,13 @@ Here are some of the features we support:
 ### 0.5 milestone
 
 - [x] Fast-reconnects
-- [ ] Query call session endpoint
 - [x] Enhanced UI components and theming
 - [x] Enhanced SDK build system
 - [x] Typescript generics enhancements
-- [ ] Hardware-accelerated video encoding on supported platforms
 - [x] Performance and bundle-size optimizations
 - [x] Dynascale 2.0 (f resolution switches, resolution WebRTC handling)
-- [ ] Dynascale 2.0 (codec switching)
 - [x] Call analytics / stats
+- [x] Video Filters
 
 ### 0.6 milestone
 
@@ -83,8 +81,11 @@ Here are some of the features we support:
 - [ ] Waiting rooms
 - [ ] Transcriptions
 - [ ] Closed captions
-- [ ] Video and audio filters
+- [ ] Audio filters
+- [ ] Query call session endpoint
 - [ ] Logging 2.0
+- [ ] Hardware-accelerated video encoding on supported platforms
+- [ ] Dynascale 2.0 (codec switching)
 - [ ] E2E testing platform
 - [ ] Dynascale: turn off incoming video when the browser is in the background
 

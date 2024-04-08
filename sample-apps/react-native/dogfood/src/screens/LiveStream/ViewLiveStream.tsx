@@ -76,6 +76,7 @@ export const ViewLiveStreamWrapper = ({
   navigation,
   children,
 }: PropsWithChildren<ViewerLiveStreamScreenProps>) => {
+  // The `StreamVideo` wrapper for this client is defined in `App.tsx` of the app.
   const client = useStreamVideoClient();
   const callType = 'livestream';
   const {

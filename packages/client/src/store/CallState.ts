@@ -98,6 +98,15 @@ export enum CallingState {
 }
 
 /**
+ * Returns the default egress object - when no egress data is available.
+ */
+const defaultEgress: EgressResponse = {
+  broadcasting: false,
+  hls: { playlist_url: '' },
+  rtmps: [],
+};
+
+/**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
  */
@@ -396,9 +405,14 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'call.closed_caption': undefined,
       'call.permission_request': undefined,
       'call.recording_failed': undefined,
       'call.recording_ready': undefined,
+      'call.transcription_started': undefined,
+      'call.transcription_stopped': undefined,
+      'call.transcription_ready': undefined,
+      'call.transcription_failed': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
@@ -978,15 +992,15 @@ export class CallState {
   };
 
   private updateFromHLSBroadcastStopped = () => {
-    this.setCurrentValue(this.egressSubject, (egress) => ({
-      ...egress!,
+    this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
+      ...egress,
       broadcasting: false,
     }));
   };
 
   private updateFromHLSBroadcastingFailed = () => {
-    this.setCurrentValue(this.egressSubject, (egress) => ({
-      ...egress!,
+    this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
+      ...egress,
       broadcasting: false,
     }));
   };
@@ -994,11 +1008,11 @@ export class CallState {
   private updateFromHLSBroadcastStarted = (
     event: CallHLSBroadcastingStartedEvent,
   ) => {
-    this.setCurrentValue(this.egressSubject, (egress) => ({
-      ...egress!,
+    this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
+      ...egress,
       broadcasting: true,
       hls: {
-        ...egress!.hls,
+        ...egress.hls,
         playlist_url: event.hls_playlist_url,
       },
     }));

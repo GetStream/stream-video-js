@@ -23,10 +23,12 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
+import { VideoEffectsSettings } from './VideoEffects';
+import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
-
 import { useLanguage } from '../../hooks/useLanguage';
+import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -47,6 +49,7 @@ type TabWrapperProps = {
   icon: string;
   label: string;
   inMeeting?: boolean;
+  hidden?: boolean;
 };
 
 const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
@@ -89,7 +92,9 @@ const SettingsTabModal = ({
       <div className="rd__tabmodal-sidebar">
         <h2 className="rd__tabmodal-header">Settings</h2>
         {Children.map(children, (child, index) => {
-          if (!child.props.inMeeting) return null;
+          if (!child || !child.props.inMeeting || child.props.hidden) {
+            return null;
+          }
           return (
             <Tab
               key={index}
@@ -124,6 +129,7 @@ export const SettingsTabModalMenu = (props: {
   const { t } = useI18n();
 
   const { tabModalProps, layoutProps } = props;
+  const isPronto = useIsProntoEnvironment();
 
   return (
     <SettingsTabModal {...tabModalProps}>
@@ -143,6 +149,9 @@ export const SettingsTabModalMenu = (props: {
           />
         </>
       </TabWrapper>
+      <TabWrapper icon="video-effects" label="Effects" inMeeting>
+        <VideoEffectsSettings />
+      </TabWrapper>
       <TabWrapper icon="grid" label={t('Layout')} inMeeting>
         <LayoutSelector
           onMenuItemClick={layoutProps.onMenuItemClick}
@@ -155,6 +164,15 @@ export const SettingsTabModalMenu = (props: {
         inMeeting={tabModalProps.inMeeting}
       >
         <CallStats />
+      </TabWrapper>
+
+      <TabWrapper
+        icon="transcriptions"
+        label="Transcriptions"
+        inMeeting
+        hidden={!isPronto}
+      >
+        <TranscriptionSettings />
       </TabWrapper>
 
       <TabWrapper icon="language" label={t('Language')} inMeeting>

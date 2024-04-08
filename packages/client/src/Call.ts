@@ -30,6 +30,7 @@ import {
   GoLiveRequest,
   GoLiveResponse,
   ListRecordingsResponse,
+  ListTranscriptionsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
@@ -48,10 +49,13 @@ import {
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StartTranscriptionRequest,
+  StartTranscriptionResponse,
   StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
+  StopTranscriptionResponse,
   UnblockUserRequest,
   UnblockUserResponse,
   UnpinRequest,
@@ -372,7 +376,7 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
-          await this.leave();
+          await this.leave({ reason: 'user blocked' });
         }
       }),
     );
@@ -459,7 +463,10 @@ export class Call {
   /**
    * Leave the call and stop the media streams that were published by the call.
    */
-  leave = async ({ reject = false }: CallLeaveOptions = {}) => {
+  leave = async ({
+    reject = false,
+    reason = 'user is leaving the call',
+  }: CallLeaveOptions = {}) => {
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
@@ -494,7 +501,7 @@ export class Call {
     this.publisher?.close();
     this.publisher = undefined;
 
-    this.sfuClient?.close();
+    this.sfuClient?.close(StreamSfuClient.NORMAL_CLOSURE, reason);
     this.sfuClient = undefined;
 
     this.dispatcher.offAll();
@@ -506,10 +513,10 @@ export class Call {
 
     this.clientStore.unregisterCall(this);
 
-    this.camera.removeSubscriptions();
-    this.microphone.removeSubscriptions();
-    this.screenShare.removeSubscriptions();
-    this.speaker.removeSubscriptions();
+    this.camera.dispose();
+    this.microphone.dispose();
+    this.screenShare.dispose();
+    this.speaker.dispose();
 
     const stopOnLeavePromises: Promise<void>[] = [];
     if (this.camera.stopOnLeave) {
@@ -740,7 +747,8 @@ export class Call {
      * A closure which hides away the re-connection logic.
      */
     const reconnect = async (
-      strategy: 'full' | 'fast' | 'migrate' = 'full',
+      strategy: 'full' | 'fast' | 'migrate',
+      reason: string,
     ): Promise<void> => {
       const currentState = this.state.callingState;
       if (
@@ -777,7 +785,7 @@ export class Call {
       if (strategy === 'fast') {
         sfuClient.close(
           StreamSfuClient.ERROR_CONNECTION_BROKEN,
-          'js-client: attempting fast reconnect',
+          `attempting fast reconnect: ${reason}`,
         );
       } else if (strategy === 'full') {
         // in migration or recovery scenarios, we don't want to
@@ -797,7 +805,7 @@ export class Call {
         // clean up current connection
         sfuClient.close(
           StreamSfuClient.NORMAL_CLOSURE,
-          'js-client: attempting full reconnect',
+          `attempting full reconnect: ${reason}`,
         );
       }
       await this.join({
@@ -807,10 +815,7 @@ export class Call {
 
       // clean up previous connection
       if (strategy === 'migrate') {
-        sfuClient.close(
-          StreamSfuClient.NORMAL_CLOSURE,
-          'js-client: attempting migration',
-        );
+        sfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'attempting migration');
       }
 
       this.logger(
@@ -866,7 +871,7 @@ export class Call {
           'info',
           `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
         );
-        reconnect('migrate').catch((err) => {
+        reconnect('migrate', GoAwayReason[reason]).catch((err) => {
           this.logger(
             'warn',
             `[Migration]: Failed to migrate to another SFU.`,
@@ -901,14 +906,16 @@ export class Call {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           sfuClient.isFastReconnecting = this.reconnectAttempts === 0;
           const strategy = sfuClient.isFastReconnecting ? 'fast' : 'full';
-          reconnect(strategy).catch((err) => {
-            this.logger(
-              'error',
-              `[Rejoin]: ${strategy} rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
-              err,
-            );
-            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-          });
+          reconnect(strategy, `SFU closed the WS with code: ${e.code}`).catch(
+            (err) => {
+              this.logger(
+                'error',
+                `[Rejoin]: ${strategy} rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+                err,
+              );
+              this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+            },
+          );
         } else {
           this.logger(
             'error',
@@ -936,7 +943,10 @@ export class Call {
         do {
           try {
             sfuClient.isFastReconnecting = isFirstReconnectAttempt;
-            await reconnect(isFirstReconnectAttempt ? 'fast' : 'full');
+            await reconnect(
+              isFirstReconnectAttempt ? 'fast' : 'full',
+              'Network: online',
+            );
             return; // break the loop if rejoin is successful
           } catch (err) {
             this.logger(
@@ -1057,7 +1067,7 @@ export class Call {
           await this.publisher.restartIce();
         } else if (previousSfuClient?.isFastReconnecting) {
           // reconnection wasn't possible, so we need to do a full rejoin
-          return await reconnect('full').catch((err) => {
+          return await reconnect('full', 're-attempting').catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed forced full rejoin.`,
@@ -1125,7 +1135,7 @@ export class Call {
           `[Rejoin]: Rejoin ${this.reconnectAttempts} failed.`,
           err,
         );
-        await reconnect();
+        await reconnect('full', 'previous attempt failed');
         this.logger(
           'info',
           `[Rejoin]: Rejoin ${this.reconnectAttempts} successful!`,
@@ -1577,6 +1587,29 @@ export class Call {
   };
 
   /**
+   * Starts the transcription of the call.
+   *
+   * @param request the request data.
+   */
+  startTranscription = async (
+    request?: StartTranscriptionRequest,
+  ): Promise<StartTranscriptionResponse> => {
+    return this.streamClient.post<
+      StartTranscriptionResponse,
+      StartTranscriptionRequest
+    >(`${this.streamClientBasePath}/start_transcription`, request);
+  };
+
+  /**
+   * Stops the transcription of the call.
+   */
+  stopTranscription = async (): Promise<StopTranscriptionResponse> => {
+    return this.streamClient.post<StopTranscriptionResponse>(
+      `${this.streamClientBasePath}/stop_transcription`,
+    );
+  };
+
+  /**
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
@@ -1825,7 +1858,7 @@ export class Call {
 
         clearTimeout(this.dropTimeout);
         this.dropTimeout = setTimeout(() => {
-          this.leave().catch((err) => {
+          this.leave({ reason: 'ring: timeout' }).catch((err) => {
             this.logger('error', 'Failed to drop call', err);
           });
         }, timeoutInMs);
@@ -1850,6 +1883,17 @@ export class Call {
     }
     return this.streamClient.get<ListRecordingsResponse>(
       `${endpoint}/recordings`,
+    );
+  };
+
+  /**
+   * Retrieves the list of transcriptions for the current call.
+   *
+   * @returns the list of transcriptions.
+   */
+  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+    return this.streamClient.get<ListTranscriptionsResponse>(
+      `${this.streamClientBasePath}/transcriptions`,
     );
   };
 

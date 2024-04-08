@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "0.6.4",
+  "version": "0.6.10",
   "packageManager": "yarn@3.2.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -44,8 +44,8 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.7.0",
-    "@rollup/plugin-replace": "^5.0.4",
-    "@rollup/plugin-typescript": "^11.1.5",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/jsonwebtoken": "^9.0.3",
     "@types/sdp-transform": "^2.4.7",
     "@types/ua-parser-js": "^0.7.37",
@@ -55,7 +55,7 @@
     "prettier": "^2.8.8",
     "rimraf": "^5.0.5",
     "rollup": "^3.29.4",
-    "typescript": "^5.2.2",
+    "typescript": "^5.4.3",
     "vite": "^4.4.11",
     "vitest": "^0.34.4",
     "vitest-mock-extended": "^1.2.1"

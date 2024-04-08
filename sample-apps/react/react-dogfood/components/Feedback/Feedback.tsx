@@ -93,6 +93,9 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
       [],
     ),
     onSubmit: async (values: object) => {
+      const pageUrl = new URL(window.location.href);
+      pageUrl.searchParams.set('meeting', inMeeting ? 'true' : 'false');
+      pageUrl.searchParams.set('id', callId || '');
       const response = await fetch(`${endpointUrl}/api/crm/video_feedback/`, {
         method: 'POST',
         headers: {
@@ -102,9 +105,8 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         },
         body: JSON.stringify({
           ...values,
-          page_url: `${endpointUrl}?meeting=${inMeeting ? 'true' : 'false'}${
-            callId ? `&id=${callId}` : ''
-          }`,
+          rating: rating.current,
+          page_url: pageUrl.toString(),
         }),
       });
 
