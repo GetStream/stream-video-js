@@ -1077,7 +1077,7 @@ export interface CallRequest {
    * @type {object}
    * @memberof CallRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {Array<MemberRequest>}
@@ -1150,7 +1150,7 @@ export interface CallResponse {
    * @type {object}
    * @memberof CallResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {EgressResponse}
@@ -2095,7 +2095,7 @@ export interface ConnectUserDetailsRequest {
    * @type {object}
    * @memberof ConnectUserDetailsRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3072,7 +3072,7 @@ export interface MemberRequest {
    * @type {object}
    * @memberof MemberRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3103,7 +3103,7 @@ export interface MemberResponse {
    * @type {object}
    * @memberof MemberResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    * Date/time of deletion
    * @type {string}
@@ -3241,7 +3241,7 @@ export interface OwnUserResponse {
    * @type {object}
    * @memberof OwnUserResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3446,7 +3446,7 @@ export interface QueryCallsRequest {
    * @type {object}
    * @memberof QueryCallsRequest
    */
-  filter_conditions?: object;
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {number}
@@ -3520,7 +3520,7 @@ export interface QueryMembersRequest {
    * @type {object}
    * @memberof QueryMembersRequest
    */
-  filter_conditions?: object;
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3613,7 +3613,7 @@ export interface ReactionResponse {
    * @type {object}
    * @memberof ReactionResponse
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3903,7 +3903,7 @@ export interface SendEventRequest {
    * @type {object}
    * @memberof SendEventRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
 }
 /**
  *
@@ -3929,7 +3929,7 @@ export interface SendReactionRequest {
    * @type {object}
    * @memberof SendReactionRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -4444,7 +4444,7 @@ export interface UpdateCallRequest {
    * @type {object}
    * @memberof UpdateCallRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    *
    * @type {CallSettingsRequest}
@@ -4581,7 +4581,7 @@ export interface UserInfoResponse {
    * @type {object}
    * @memberof UserInfoResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -4612,7 +4612,7 @@ export interface UserRequest {
    * @type {object}
    * @memberof UserRequest
    */
-  custom?: object;
+  custom?: { [key: string]: any };
   /**
    * User ID
    * @type {string}
@@ -4655,7 +4655,7 @@ export interface UserResponse {
    * @type {object}
    * @memberof UserResponse
    */
-  custom: object;
+  custom: { [key: string]: any };
   /**
    * Date/time of deletion
    * @type {string}
