@@ -2084,6 +2084,64 @@ export interface ClosedCaptionEvent {
    */
   type: string;
 }
+
+/**
+ *
+ * @export
+ * @interface CollectUserFeedbackRequest
+ */
+export interface CollectUserFeedbackRequest {
+  /**
+   *
+   * @type {object}
+   * @memberof CollectUserFeedbackRequest
+   */
+  custom?: { [key:string]: any };
+  /**
+   *
+   * @type {number}
+   * @memberof CollectUserFeedbackRequest
+   */
+  rating?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CollectUserFeedbackRequest
+   */
+  reason?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CollectUserFeedbackRequest
+   */
+  sdk: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CollectUserFeedbackRequest
+   */
+  sdk_version: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CollectUserFeedbackRequest
+   */
+  user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CollectUserFeedbackResponse
+ */
+export interface CollectUserFeedbackResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof CollectUserFeedbackResponse
+   */
+  duration: string;
+}
+
 /**
  *
  * @export
