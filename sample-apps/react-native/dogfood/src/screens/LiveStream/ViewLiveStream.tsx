@@ -215,7 +215,7 @@ export const ViewLiveStreamChilden = ({
     }
   };
 
-  const handleLeaveCall = async () => {
+  const handleLeaveCall = useCallback(async () => {
     try {
       if (!call) {
         return;
@@ -226,7 +226,16 @@ export const ViewLiveStreamChilden = ({
     } catch (error) {
       console.log('Failed to leave call', error);
     }
-  };
+  }, [call, navigation]);
+
+  const CustomViewerLivestreamControls = useCallback(() => {
+    return (
+      <ViewerLiveStreamControls
+        handlePresentModalPress={handlePresentModalPress}
+        handleLeaveCall={handleLeaveCall}
+      />
+    );
+  }, [handlePresentModalPress, handleLeaveCall]);
 
   if (!call) {
     return null;
@@ -251,13 +260,7 @@ export const ViewLiveStreamChilden = ({
                 ViewerLivestreamTopView={
                   !headerFooterHidden ? ViewerLivestreamTopView : null
                 }
-                // eslint-disable-next-line react/no-unstable-nested-components
-                ViewerLivestreamControls={() => (
-                  <ViewerLiveStreamControls
-                    handlePresentModalPress={handlePresentModalPress}
-                    handleLeaveCall={handleLeaveCall}
-                  />
-                )}
+                ViewerLivestreamControls={CustomViewerLivestreamControls}
               />
             </SafeAreaView>
           </Animated.View>

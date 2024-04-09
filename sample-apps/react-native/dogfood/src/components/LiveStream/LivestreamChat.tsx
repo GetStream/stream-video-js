@@ -60,6 +60,7 @@ export const LivestreamChat = ({ callId, callType }: LivestreamChatProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <Channel
+        // On Android, the default behaviour is as expected so we do not need to apply the fix to the text input to work with keyboard.
         additionalTextInputProps={
           Platform.OS === 'ios'
             ? {

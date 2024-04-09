@@ -127,6 +127,14 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
     getOrCreateCall();
   }, [call, connectedUser]);
 
+  const CustomLiveStreamMediaControls = useCallback(() => {
+    return (
+      <LivestreamMediaControls
+        handlePresentModalPress={handlePresentModalPress}
+      />
+    );
+  }, [handlePresentModalPress]);
+
   if (!connectedUser || !call) {
     return <Text>Loading...</Text>;
   }
@@ -140,12 +148,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
               HostLivestreamTopView={
                 !headerFooterHidden ? HostLivestreamTopView : null
               }
-              // eslint-disable-next-line react/no-unstable-nested-components
-              LivestreamMediaControls={() => (
-                <LivestreamMediaControls
-                  handlePresentModalPress={handlePresentModalPress}
-                />
-              )}
+              LivestreamMediaControls={CustomLiveStreamMediaControls}
             />
           </SafeAreaView>
         </Animated.View>
