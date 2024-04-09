@@ -167,10 +167,6 @@ export const ViewLiveStreamChilden = ({
 
   const snapPoints = useMemo(() => ['25%', '50%'], []);
 
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
-
   const handleSheetChanges = useCallback(
     (index: number) => {
       if (index === -1) {
@@ -215,27 +211,31 @@ export const ViewLiveStreamChilden = ({
     }
   };
 
-  const handleLeaveCall = useCallback(async () => {
-    try {
-      if (!call) {
-        return;
-      }
-      await call.leave();
-      setCallJoined(false);
-      navigation.goBack();
-    } catch (error) {
-      console.log('Failed to leave call', error);
-    }
-  }, [call, navigation]);
-
   const CustomViewerLivestreamControls = useCallback(() => {
+    const handlePresentModalPress = () => {
+      bottomSheetModalRef.current?.present();
+    };
+
+    const handleLeaveCall = async () => {
+      try {
+        if (!call) {
+          return;
+        }
+        await call.leave();
+        setCallJoined(false);
+        navigation.goBack();
+      } catch (error) {
+        console.log('Failed to leave call', error);
+      }
+    };
+
     return (
       <ViewerLiveStreamControls
         handlePresentModalPress={handlePresentModalPress}
         handleLeaveCall={handleLeaveCall}
       />
     );
-  }, [handlePresentModalPress, handleLeaveCall]);
+  }, [call, navigation]);
 
   if (!call) {
     return null;

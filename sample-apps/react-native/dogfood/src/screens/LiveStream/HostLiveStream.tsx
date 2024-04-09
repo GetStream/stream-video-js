@@ -69,10 +69,6 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   const snapPoints = useMemo(() => ['10%', '50%'], []);
   const currentPosition = useSharedValue(height);
 
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
-
   const animatedStyles = useAnimatedStyle(() => {
     return {
       height: currentPosition.value,
@@ -128,12 +124,15 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   }, [call, connectedUser]);
 
   const CustomLiveStreamMediaControls = useCallback(() => {
+    const handlePresentModalPress = () => {
+      bottomSheetModalRef.current?.present();
+    };
     return (
       <LivestreamMediaControls
         handlePresentModalPress={handlePresentModalPress}
       />
     );
-  }, [handlePresentModalPress]);
+  }, []);
 
   if (!connectedUser || !call) {
     return <Text>Loading...</Text>;
