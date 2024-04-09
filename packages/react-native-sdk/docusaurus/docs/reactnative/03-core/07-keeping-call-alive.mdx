@@ -26,6 +26,7 @@ In Android, we use a [foreground service](https://developer.android.com/guide/co
 
 In `android/build.gradle` make sure that the following is inside the `buildscript` section:
 
+<!-- vale off -->
 ```java
 buildscript {
     ext {
@@ -37,6 +38,7 @@ buildscript {
     ...
 }
 ```
+<!-- vale on -->
 
 :::infoINFO
 We have to temporarily use targetSdkVersion 33 due to a lack of support for [dynamically setting foreground service types](https://github.com/invertase/notifee/issues/997#issuecomment-2036781216) in the notifee library. We are aware of the [August 31, 2024 deadline](https://apilevels.com/) for updating to targetSdkVersion 34 and we are actively working on adding support in the notifee library.
