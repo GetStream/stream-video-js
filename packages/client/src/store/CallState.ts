@@ -455,11 +455,6 @@ export class CallState {
       'call.unblocked_user': this.unblockUser,
       'call.updated': (e) => this.updateFromCallResponse(e.call),
       'call.deleted': undefined,
-      'call.closed_caption': undefined,
-      'call.transcription_failed': undefined,
-      'call.transcription_ready': undefined,
-      'call.transcription_started': undefined,
-      'call.transcription_stopped': undefined,
     };
   }
 
