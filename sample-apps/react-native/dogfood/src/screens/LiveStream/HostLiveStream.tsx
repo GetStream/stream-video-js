@@ -31,7 +31,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { LivestreamChat } from '../../components/LiveStream/LivestreamChat';
-import { LivestreamMediaControls } from '../../components/LiveStream/LiveStreamMediaControls';
+import { HostLivestreamMediaControls } from '../../components/LiveStream/HostLivestreamMediaControls';
 
 type HostLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -66,7 +66,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   const connectedUser = useConnectedUser();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const snapPoints = useMemo(() => ['10%', '50%'], []);
+  const snapPoints = useMemo(() => ['50%'], []);
   const currentPosition = useSharedValue(height);
 
   const animatedStyles = useAnimatedStyle(() => {
@@ -123,13 +123,13 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
     getOrCreateCall();
   }, [call, connectedUser]);
 
-  const CustomLiveStreamMediaControls = useCallback(() => {
-    const handlePresentModalPress = () => {
-      bottomSheetModalRef.current?.present();
-    };
+  const CustomHostLivestreamMediaControls = useCallback(() => {
     return (
-      <LivestreamMediaControls
-        handlePresentModalPress={handlePresentModalPress}
+      <HostLivestreamMediaControls
+        onChatButtonPress={() => {
+          // open the bottom sheet
+          bottomSheetModalRef.current?.present();
+        }}
       />
     );
   }, []);
@@ -142,12 +142,12 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
     <StreamCall call={call}>
       <BottomSheetModalProvider>
         <Animated.View style={[styles.animatedContainer, animatedStyles]}>
-          <SafeAreaView edges={['top']} style={styles.container}>
+          <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
             <HostLivestream
               HostLivestreamTopView={
                 !headerFooterHidden ? HostLivestreamTopView : null
               }
-              LivestreamMediaControls={CustomLiveStreamMediaControls}
+              LivestreamMediaControls={CustomHostLivestreamMediaControls}
             />
           </SafeAreaView>
         </Animated.View>

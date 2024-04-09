@@ -38,7 +38,8 @@ export const LivestreamChat = ({ callId, callType }: LivestreamChatProps) => {
 
   useEffect(() => {
     const createChannel = async () => {
-      const newChannel = await client.channel(callType, callId);
+      const newChannel = client.channel(callType, callId);
+      await newChannel.watch();
       setChannel(newChannel);
     };
     createChannel();

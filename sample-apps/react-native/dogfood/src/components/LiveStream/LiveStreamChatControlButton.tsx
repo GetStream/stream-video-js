@@ -5,15 +5,15 @@ import { Chat } from '../../assets/Chat';
 import { StyleSheet } from 'react-native';
 
 type LiveStreamChatControlButtonProps = {
-  handlePresentModalPress: () => void;
+  onPress: () => void;
 };
 
 export const LiveStreamChatControlButton = ({
-  handlePresentModalPress,
+  onPress,
 }: LiveStreamChatControlButtonProps) => {
   return (
     <Pressable
-      onPress={handlePresentModalPress}
+      onPress={onPress}
       style={[
         styles.container,
         {

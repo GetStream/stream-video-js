@@ -2,16 +2,16 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { appTheme } from '../../theme';
 import { ViewerLeaveStreamButton } from '@stream-io/video-react-native-sdk';
-import { LiveStreamChatControlButton } from './LivestreamChatComponent';
+import { LiveStreamChatControlButton } from './LiveStreamChatControlButton';
 
 type ViewerLiveStreamControlsProps = {
-  handlePresentModalPress: () => void;
+  onChatButtonPress: () => void;
   handleLeaveCall: () => void;
 };
 
 export const ViewerLiveStreamControls = ({
   handleLeaveCall,
-  handlePresentModalPress,
+  onChatButtonPress,
 }: ViewerLiveStreamControlsProps) => {
   return (
     <View
@@ -26,9 +26,7 @@ export const ViewerLiveStreamControls = ({
         <ViewerLeaveStreamButton onLeaveStreamHandler={handleLeaveCall} />
       </View>
       <View style={[styles.rightElement]}>
-        <LiveStreamChatControlButton
-          handlePresentModalPress={handlePresentModalPress}
-        />
+        <LiveStreamChatControlButton onPress={onChatButtonPress} />
       </View>
     </View>
   );

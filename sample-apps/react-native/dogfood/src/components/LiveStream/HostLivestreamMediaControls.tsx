@@ -5,29 +5,27 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { LiveStreamChatControlButton } from './LivestreamChatComponent';
+import { LiveStreamChatControlButton } from './LiveStreamChatControlButton';
 
 /**
  * Props for the LivestreamMediaControls component.
  */
 export type LivestreamMediaControlsProps = {
-  handlePresentModalPress: () => void;
+  onChatButtonPress: () => void;
 };
 
 /**
  * The LivestreamMediaControls component controls the media publish/unpublish for the host's live stream.
  */
-export const LivestreamMediaControls = ({
-  handlePresentModalPress,
+export const HostLivestreamMediaControls = ({
+  onChatButtonPress,
 }: LivestreamMediaControlsProps) => {
   return (
     <View style={styles.container}>
       <LivestreamAudioControlButton />
       <LivestreamVideoControlButton />
       <LivestreamScreenShareButton />
-      <LiveStreamChatControlButton
-        handlePresentModalPress={handlePresentModalPress}
-      />
+      <LiveStreamChatControlButton onPress={onChatButtonPress} />
     </View>
   );
 };
