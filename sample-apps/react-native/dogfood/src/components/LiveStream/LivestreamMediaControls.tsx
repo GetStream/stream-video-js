@@ -1,6 +1,7 @@
 import {
   LivestreamAudioControlButton,
   LivestreamVideoControlButton,
+  LivestreamScreenShareButton,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
