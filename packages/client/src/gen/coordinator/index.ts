@@ -2020,7 +2020,7 @@ export interface CollectUserFeedbackRequest {
    * @type {object}
    * @memberof CollectUserFeedbackRequest
    */
-  custom?: object;
+  custom?: { [key:string]: any };
   /**
    *
    * @type {number}
