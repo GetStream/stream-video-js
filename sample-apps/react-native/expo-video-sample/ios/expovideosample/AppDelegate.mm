@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import "StreamVideoReactNative.h"
 #import "RNVoipPushNotificationManager.h"
 #import <PushKit/PushKit.h>
 #import "RNCallKeep.h"
@@ -82,6 +83,11 @@
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
+  NSString *cid = stream[@"call_cid"];
+
+  [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
+
+  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
 
   // display the incoming call notification
   [RNCallKeep reportNewIncomingCall: uuid
@@ -95,7 +101,7 @@
                  supportsUngrouping: YES
                         fromPushKit: YES
                             payload: stream
-              withCompletionHandler: completion];
+              withCompletionHandler: nil];
 }
 
 @end

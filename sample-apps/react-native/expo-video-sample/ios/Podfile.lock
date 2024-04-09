@@ -7,9 +7,9 @@ PODS:
     - ExpoModulesCore
   - EXFont (11.10.2):
     - ExpoModulesCore
-  - EXNotifications (0.27.5):
+  - EXNotifications (0.27.6):
     - ExpoModulesCore
-  - Expo (50.0.3):
+  - Expo (50.0.4):
     - ExpoModulesCore
   - ExpoFileSystem (16.0.5):
     - ExpoModulesCore
@@ -29,7 +29,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - EXTaskManager (11.7.1):
+  - EXTaskManager (11.7.2):
     - ExpoModulesCore
     - UMAppLoader
   - FBLazyVector (0.73.2)
@@ -1104,7 +1104,7 @@ PODS:
     - RNNotifee/NotifeeCore (= 7.8.0)
   - RNNotifee/NotifeeCore (7.8.0):
     - React-Core
-  - RNReanimated (3.6.1):
+  - RNReanimated (3.6.2):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1121,7 +1121,7 @@ PODS:
   - stream-react-native-webrtc (118.0.1):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (0.3.11):
+  - stream-video-react-native (0.5.11):
     - React-Core
     - stream-react-native-webrtc
   - UMAppLoader (4.5.0)
@@ -1367,14 +1367,14 @@ SPEC CHECKSUMS:
   EXApplication: 137189a3f149b4e8e546884629392c3efc94cbd3
   EXConstants: 988aa430ca0f76b43cd46b66e7fae3287f9cc2fc
   EXFont: 21b9c760abd593ce8f0d5386b558ced76018506f
-  EXNotifications: ecd73833e55510edcb3fa30d59bfc536eeb4b9c6
-  Expo: 88b4aa68115bbb57c1a07cc30161c2352ab2fc25
+  EXNotifications: e11f0e9a5b657c064a481a5d522f3bc5a07bf7cd
+  Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoFileSystem: 04795dd4d47e76eaf12e38c92091f77d794f9e7f
   ExpoHead: e7c92c9c56a4364131593077240e6e177972b0d3
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
   ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
   EXSplashScreen: 39244885abfb1b12765aae89edb90f8c88db6bbd
-  EXTaskManager: f1a5747cf42f9304727bfe75aa86009c810e03e7
+  EXTaskManager: 3e446dbf75cd662aa6e7d6828be5bc26265241c3
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 86de768f89901ef6ed3207cd686362189d64ac88
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
@@ -1430,15 +1430,15 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 618d03a5f52fbccb3d7010076bc54712844c18ef
   RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
-  RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
+  RNReanimated: 5589be82dc26b3f94738eb7c6b1f942787532b25
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSVG: ba3e7232f45e34b7b47e74472386cf4e1a676d0a
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-react-native-webrtc: 31fe9ee69d5b4fc191380a78efa292377494b7ac
-  stream-video-react-native: 7d056b575d497ac9270dead735fa25005706ac0e
+  stream-video-react-native: 8bb87ac3a4eee30d39e9c507101f311f50fd3ab5
   UMAppLoader: 5df85360d65cabaef544be5424ac64672e648482
-  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
+  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 62944e30c04351c14d7dd2748771ca3367058e0a
 
