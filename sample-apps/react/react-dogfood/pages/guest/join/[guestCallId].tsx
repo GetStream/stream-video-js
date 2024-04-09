@@ -126,6 +126,7 @@ export const getServerSideProps = async (
     role: 'guest',
     teams: [],
     custom: {},
+    language: '',
   };
 
   // anonymous user tokens must have "!anon" as the user_id
