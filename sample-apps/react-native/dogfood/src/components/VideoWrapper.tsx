@@ -3,7 +3,10 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
 
@@ -14,6 +17,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
@@ -35,6 +39,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         { user_id: user.id },
         appEnvironment,
       );
+      setState({ apiKey: apiKey });
       _videoClient = new StreamVideoClient({
         apiKey,
         user,
@@ -49,7 +54,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [appEnvironment, user]);
+  }, [appEnvironment, setState, user]);
 
   if (!videoClient) {
     return null;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
+  BackgroundFiltersProvider,
   Call,
   CallingState,
   CallRequest,
@@ -209,7 +210,21 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       >
         <StreamCall call={call}>
           <TourProvider>
-            <MeetingUI chatClient={chatClient} />
+            <BackgroundFiltersProvider
+              basePath={`${basePath}/tf`}
+              isBlurringEnabled={true}
+              backgroundImages={[
+                `${basePath}/backgrounds/amsterdam-1.jpg`,
+                `${basePath}/backgrounds/amsterdam-2.jpg`,
+                `${basePath}/backgrounds/boulder-1.jpg`,
+                `${basePath}/backgrounds/boulder-2.jpg`,
+                `${basePath}/backgrounds/gradient-1.jpg`,
+                `${basePath}/backgrounds/gradient-2.jpg`,
+                `${basePath}/backgrounds/gradient-3.jpg`,
+              ]}
+            >
+              <MeetingUI chatClient={chatClient} />
+            </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>
       </StreamVideo>

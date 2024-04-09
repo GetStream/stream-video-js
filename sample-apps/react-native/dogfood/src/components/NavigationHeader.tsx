@@ -45,6 +45,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
               ]);
 
               appStoreSetState({
+                apiKey: '',
                 userId: '',
                 userName: '',
                 userImageUrl: '',
