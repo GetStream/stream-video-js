@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.0...@stream-io/video-react-native-sdk-0.6.1) (2024-04-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.12`
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.17...@stream-io/video-react-native-sdk-0.6.0) (2024-04-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.11`
+
+### ⚠ BREAKING CHANGES
+
+* remove server-side capabilities from JS client (#1282)
+
+### Features
+
+* remove server-side capabilities from JS client ([#1282](https://github.com/GetStream/stream-video-js/issues/1282)) ([362b6b5](https://github.com/GetStream/stream-video-js/commit/362b6b501e6aa1864eb8486e3129a1705a4d41fb))
+
 ### [0.5.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.5.16...@stream-io/video-react-native-sdk-0.5.17) (2024-04-05)
 
 ### Dependency Updates

@@ -22,6 +22,8 @@ import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
+  CollectUserFeedbackRequest,
+  CollectUserFeedbackResponse,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -123,6 +125,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { getSdkSignature } from './stats/utils';
 
 /**
  * An object representation of a `Call`.
@@ -1907,6 +1910,56 @@ export class Call {
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
+   * Submit user feedback for the call
+   *
+   * @param rating Rating between 1 and 5 denoting the experience of the user in the call
+   * @param reason The reason/description for the rating
+   * @param custom Custom data
+   * @returns
+   */
+  submitFeedback = async (
+    rating: number,
+    {
+      reason,
+      custom,
+    }: {
+      reason?: string;
+      custom?: Record<string, any>;
+    } = {},
+  ) => {
+    if (rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+    const userSessionId = this.sfuClient?.sessionId;
+    const callSessionId = this.state.session?.id;
+    if (!callSessionId || !userSessionId) {
+      throw new Error(
+        'Feedback can be submitted only in the context of a call session',
+      );
+    }
+
+    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
+      getClientDetails(),
+    );
+
+    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
+    return this.streamClient.post<
+      CollectUserFeedbackResponse,
+      CollectUserFeedbackRequest
+    >(endpoint, {
+      rating,
+      reason,
+      user_session_id: userSessionId,
+      sdk: sdkName,
+      sdk_version: sdkVersion,
+      custom: {
+        ...custom,
+        'x-stream-platform-data': platform,
+      },
+    });
   };
 
   /**

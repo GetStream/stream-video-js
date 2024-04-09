@@ -1,5 +1,4 @@
-import { Secret } from 'jsonwebtoken';
-import { JWTServerToken, JWTUserToken, UserFromToken } from './signing';
+import { UserFromToken } from './signing';
 import { isFunction } from './utils';
 import type { TokenOrProvider, UserWithId } from './types';
 
@@ -11,7 +10,7 @@ import type { TokenOrProvider, UserWithId } from './types';
 export class TokenManager {
   loadTokenPromise: Promise<string> | null;
   type: 'static' | 'provider';
-  secret?: Secret;
+  secret?: string;
   token?: string;
   tokenProvider?: TokenOrProvider;
   user?: UserWithId;
@@ -20,17 +19,13 @@ export class TokenManager {
    *
    * @param {Secret} secret
    */
-  constructor(secret?: Secret) {
+  constructor(secret?: string) {
     this.loadTokenPromise = null;
     if (secret) {
       this.secret = secret;
     }
 
     this.type = 'static';
-
-    if (this.secret) {
-      this.token = JWTServerToken(this.secret);
-    }
   }
 
   /**
@@ -56,11 +51,6 @@ export class TokenManager {
 
     if (typeof tokenOrProvider === 'string') {
       this.token = tokenOrProvider;
-      this.type = 'static';
-    }
-
-    if (!tokenOrProvider && this.user && this.secret) {
-      this.token = JWTUserToken(this.secret, user.id, {}, {});
       this.type = 'static';
     }
 
@@ -153,10 +143,6 @@ export class TokenManager {
 
     if (this.user && !this.token) {
       return this.token;
-    }
-
-    if (this.secret) {
-      return JWTServerToken(this.secret);
     }
 
     throw new Error(
