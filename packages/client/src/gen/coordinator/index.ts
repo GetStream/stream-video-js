@@ -1074,7 +1074,7 @@ export interface CallRejectedEvent {
 export interface CallRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof CallRequest
    */
   custom?: { [key: string]: any };
@@ -1147,7 +1147,7 @@ export interface CallResponse {
   current_session_id: string;
   /**
    * Custom data for this object
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof CallResponse
    */
   custom: { [key: string]: any };
@@ -2092,7 +2092,7 @@ export interface ClosedCaptionEvent {
 export interface ConnectUserDetailsRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof ConnectUserDetailsRequest
    */
   custom?: { [key: string]: any };
@@ -3069,7 +3069,7 @@ export interface Location {
 export interface MemberRequest {
   /**
    * Custom data for this object
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof MemberRequest
    */
   custom?: { [key: string]: any };
@@ -3100,7 +3100,7 @@ export interface MemberResponse {
   created_at: string;
   /**
    * Custom member response data
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof MemberResponse
    */
   custom: { [key: string]: any };
@@ -3238,7 +3238,7 @@ export interface OwnUserResponse {
   created_at: string;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof OwnUserResponse
    */
   custom: { [key: string]: any };
@@ -3443,7 +3443,7 @@ export interface QueryCallStatsResponse {
 export interface QueryCallsRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof QueryCallsRequest
    */
   filter_conditions?: { [key: string]: any };
@@ -3517,7 +3517,7 @@ export interface QueryCallsResponse {
 export interface QueryMembersRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof QueryMembersRequest
    */
   filter_conditions?: { [key: string]: any };
@@ -3610,7 +3610,7 @@ export interface RTMPIngress {
 export interface ReactionResponse {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof ReactionResponse
    */
   custom?: { [key: string]: any };
@@ -3900,7 +3900,7 @@ export interface ScreensharingSettingsRequest {
 export interface SendEventRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof SendEventRequest
    */
   custom?: { [key: string]: any };
@@ -3926,7 +3926,7 @@ export interface SendEventResponse {
 export interface SendReactionRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof SendReactionRequest
    */
   custom?: { [key: string]: any };
@@ -4441,7 +4441,7 @@ export interface UpdateCallMembersResponse {
 export interface UpdateCallRequest {
   /**
    * Custom data for this object
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UpdateCallRequest
    */
   custom?: { [key: string]: any };
@@ -4578,7 +4578,7 @@ export interface UpdatedCallPermissionsEvent {
 export interface UserInfoResponse {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserInfoResponse
    */
   custom: { [key: string]: any };
@@ -4609,7 +4609,7 @@ export interface UserInfoResponse {
 export interface UserRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserRequest
    */
   custom?: { [key: string]: any };
@@ -4652,7 +4652,7 @@ export interface UserResponse {
   created_at: string;
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof UserResponse
    */
   custom: { [key: string]: any };
