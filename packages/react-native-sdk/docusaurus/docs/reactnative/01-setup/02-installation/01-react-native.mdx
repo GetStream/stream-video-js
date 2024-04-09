@@ -39,6 +39,26 @@ So what did we install precisely?
 
 ### Android Specific installation
 
+#### Update the compileSdk, targetSdk and minSdk versions
+
+In `android/build.gradle` add the following inside the `buildscript` section:
+
+```java
+buildscript {
+    ext {
+        ...
+        minSdkVersion = 24
+        compileSdkVersion = 33
+        targetSdkVersion = 33
+    }
+    ...
+}
+```
+
+:::infoINFO
+We have to temporarily use targetSdkVersion 33 due to a lack of support for [dynamically setting foreground service types](https://github.com/invertase/notifee/issues/997#issuecomment-2036781216) in the notifee library. We are aware of the [August 31, 2024 deadline](https://apilevels.com/) for updating to targetSdkVersion 34 and we are actively working on adding support in the notifee library.
+:::
+
 #### Enable Java 8 Support
 
 In `android/app/build.gradle` add the following inside the `android` section:

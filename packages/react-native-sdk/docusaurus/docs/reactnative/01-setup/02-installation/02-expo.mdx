@@ -34,6 +34,36 @@ So what did we install precisely?
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
 - `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
+## Android Specific installation
+
+### Update the compileSdk, targetSdk and minSdk versions
+
+In your `app.json` file add the following to the `expo-build-properties` plugin:
+
+```js title=app.json
+{
+  "expo": {
+    ...
+    "plugins": [
+      // highlight-start
+      "expo-build-properties",
+      {
+        "android": {
+          "minSdkVersion": 24,
+          "compileSdkVersion": 33,
+          "targetSdkVersion": 33
+        }
+      }
+      // highlight-end
+    ]
+  }
+}
+```
+
+:::infoINFO
+We have to temporarily use targetSdkVersion 33 due to a lack of support for [dynamically setting foreground service types](https://github.com/invertase/notifee/issues/997#issuecomment-2036781216) in the notifee library. We are aware of the [August 31, 2024 deadline](https://apilevels.com/) for updating to targetSdkVersion 34 and we are actively working on adding support in the notifee library.
+:::
+
 ## Add config plugin
 
 Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk/expo-config-plugin/README.md) and [`react-native-webrtc`](https://www.npmjs.com/package/@config-plugins/react-native-webrtc) to your `app.json` file:
