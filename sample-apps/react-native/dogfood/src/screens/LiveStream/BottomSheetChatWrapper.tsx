@@ -35,6 +35,7 @@ import { Channel as ChannelType } from 'stream-chat';
 import { StreamChatGenerics } from '../../../types';
 import { Cross } from '../../assets/Cross';
 import { useChatContext } from 'stream-chat-react-native';
+import { FlatList as GestureHandlerFlatlist } from 'react-native-gesture-handler';
 
 /**
  * Patch the safe area insets to have a default bottom value if the bottom insets are not provided.
@@ -214,10 +215,17 @@ const LivestreamChat = ({ channel }: LivestreamChatProps) => {
               }
             : {}
         }
+        // Hides the sticky date header component on the top of the MessageList
+        hideStickyDateHeader={true}
         channel={channel}
         onLongPressMessage={() => null}
       >
-        <MessageList />
+        {/**
+         * GestureHandler FlatList needs to be passed for scrolling to work inside bottom sheet
+         * ref: https://ui.gorhom.dev/components/bottom-sheet/troubleshooting/#adding-horizontal-flatlist-or-scrollview-is-not-working-properly-on-android
+         */}
+        {/* @ts-expect-error typing error is expected and can be ignored */}
+        <MessageList FlatList={GestureHandlerFlatlist} />
         <MessageInput InputButtons={undefined} />
       </Channel>
     </View>
@@ -228,10 +236,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: appTheme.colors.static_grey,
-  },
-  mediaControlsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   chatBottomSheetContainer: {
     flex: 1,
@@ -254,7 +258,7 @@ const styles = StyleSheet.create({
     width: 16,
   },
   handleText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   liveContainer: {
