@@ -24,8 +24,20 @@
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
         "postTargets": [
+          "@stream-io/video-filters-web:update-version",
           "@stream-io/video-filters-web:github",
           "@stream-io/video-filters-web:publish"
+        ]
+      }
+    },
+    "update-version": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "yarn build:video-filters-web",
+            "forwardAllArgs": false
+          }
         ]
       }
     },
