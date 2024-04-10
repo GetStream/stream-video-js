@@ -14,10 +14,9 @@ import { appTheme } from '../../theme';
 
 export type LivestreamChatProps = {
   callId: string;
-  callType: string;
 };
 
-export const LivestreamChat = ({ callId, callType }: LivestreamChatProps) => {
+export const LivestreamChat = ({ callId }: LivestreamChatProps) => {
   const [channel, setChannel] = useState<
     ChannelType<StreamChatGenerics> | undefined
   >(undefined);
@@ -37,13 +36,13 @@ export const LivestreamChat = ({ callId, callType }: LivestreamChatProps) => {
   }, [shouldHandleKeyboardEvents]);
 
   useEffect(() => {
-    const createChannel = async () => {
-      const newChannel = client.channel(callType, callId);
+    const watchChatChannel = async () => {
+      const newChannel = client.channel('livestream', callId);
       await newChannel.watch();
       setChannel(newChannel);
     };
-    createChannel();
-  }, [client, callId, callType]);
+    watchChatChannel();
+  }, [client, callId]);
 
   if (!channel) {
     return (

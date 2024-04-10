@@ -143,7 +143,6 @@ export const ViewLiveStreamChilden = ({
   navigation,
   route,
 }: ViewerLiveStreamScreenProps) => {
-  const callType = 'livestream';
   const {
     params: { callId },
   } = route;
@@ -160,7 +159,7 @@ export const ViewLiveStreamChilden = ({
    * We create an anonymous client here to join the call anonymously.
    */
   const client = useAnonymousInitVideoClient();
-  const call = useSetCall(callId, callType, client);
+  const call = useSetCall(callId, 'livestream', client);
   const currentPosition = useSharedValue(height);
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -231,7 +230,7 @@ export const ViewLiveStreamChilden = ({
 
     return (
       <ViewerLiveStreamControls
-        handlePresentModalPress={handlePresentModalPress}
+        onChatButtonPress={handlePresentModalPress}
         handleLeaveCall={handleLeaveCall}
       />
     );
@@ -274,7 +273,7 @@ export const ViewLiveStreamChilden = ({
           onChange={handleSheetChanges}
         >
           <BottomSheetView style={styles.contentContainer}>
-            <LivestreamChat callId={callId} callType={callType} />
+            <LivestreamChat callId={callId} />
           </BottomSheetView>
         </BottomSheetModal>
       </BottomSheetModalProvider>

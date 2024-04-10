@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import { useTheme } from '../../../contexts';
@@ -38,7 +38,6 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      */
     hls?: boolean;
   };
-
 /**
  * The HostLivestream component displays the UI for the Host's live stream.
  */
@@ -72,7 +71,7 @@ export const HostLivestream = ({
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         {
@@ -92,7 +91,7 @@ export const HostLivestream = ({
           hls={hls}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

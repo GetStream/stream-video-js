@@ -22,8 +22,15 @@ import {
 } from '@gorhom/bottom-sheet';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Dimensions,
+  LogBox,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appTheme } from '../../theme';
 import Animated, {
   useAnimatedStyle,
@@ -32,13 +39,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LivestreamChat } from '../../components/LiveStream/LivestreamChat';
 import { HostLivestreamMediaControls } from '../../components/LiveStream/HostLivestreamMediaControls';
+import { Cross } from '../../assets/Cross';
 
 type HostLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
   'HostLiveStream'
 >;
 
-const HandleComponent = () => {
+LogBox.ignoreAllLogs();
+
+const BottomSheetHandleComponent = ({ onClose }: { onClose: () => void }) => {
   return (
     <View
       style={[
@@ -55,19 +65,37 @@ const HandleComponent = () => {
         <LiveIndicator />
         <FollowerCount />
       </View>
+      <TouchableOpacity onPress={onClose}>
+        <Cross
+          color={appTheme.colors.static_white}
+          style={styles.handleCloseButton}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
 
+/**
+ * Patch the safe area insets to have a default bottom value if the bottom insets are not provided.
+ */
+const patchSafeAreaInsets = (insets: { top: number; bottom: number }) => {
+  return {
+    top: insets.top,
+    bottom: insets.bottom ? insets.bottom : 16,
+  };
+};
+
 export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
-  const { height } = Dimensions.get('window');
+  const { height: windowHeight } = Dimensions.get('window');
+  const safeAreaInsets = patchSafeAreaInsets(useSafeAreaInsets());
   const [headerFooterHidden, setHeaderFooterHidden] = useState(false);
   const client = useStreamVideoClient();
   const connectedUser = useConnectedUser();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   const snapPoints = useMemo(() => ['50%'], []);
-  const currentPosition = useSharedValue(height);
+  const sheetHeight = windowHeight - safeAreaInsets.top - safeAreaInsets.bottom;
+  const currentPosition = useSharedValue(sheetHeight);
 
   const animatedStyles = useAnimatedStyle(() => {
     return {
@@ -80,17 +108,16 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
       if (index === -1) {
         // Sheet is closed
         setHeaderFooterHidden(false);
-        currentPosition.value = withTiming(height);
+        currentPosition.value = withTiming(sheetHeight);
       } else {
         // Sheet is open
         setHeaderFooterHidden(true);
-        currentPosition.value = withTiming((height * 50) / 100);
+        currentPosition.value = withTiming(sheetHeight * 0.5);
       }
     },
-    [currentPosition, height],
+    [currentPosition, sheetHeight],
   );
 
-  const callType = 'livestream';
   const {
     params: { callId },
   } = route;
@@ -99,8 +126,8 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
     if (!client) {
       return undefined;
     }
-    return client.call(callType, callId);
-  }, [callId, callType, client]);
+    return client.call('livestream', callId);
+  }, [callId, client]);
 
   useEffect(() => {
     const getOrCreateCall = async () => {
@@ -134,6 +161,17 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
     );
   }, []);
 
+  const CustomBottomSheetHandleComponent = useCallback(() => {
+    return (
+      <BottomSheetHandleComponent
+        onClose={() => {
+          // close the bottom sheet
+          bottomSheetModalRef.current?.close();
+        }}
+      />
+    );
+  }, []);
+
   if (!connectedUser || !call) {
     return <Text>Loading...</Text>;
   }
@@ -141,26 +179,38 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   return (
     <StreamCall call={call}>
       <BottomSheetModalProvider>
-        <Animated.View style={[styles.animatedContainer, animatedStyles]}>
-          <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
+        <View
+          style={[
+            styles.container,
+            {
+              paddingTop: safeAreaInsets.top,
+              paddingBottom: safeAreaInsets.bottom,
+            },
+          ]}
+        >
+          <Animated.View style={animatedStyles}>
             <HostLivestream
               HostLivestreamTopView={
                 !headerFooterHidden ? HostLivestreamTopView : null
               }
               LivestreamMediaControls={CustomHostLivestreamMediaControls}
             />
-          </SafeAreaView>
-        </Animated.View>
+          </Animated.View>
+        </View>
         <BottomSheetModal
           enablePanDownToClose={true}
-          handleComponent={HandleComponent}
+          handleComponent={CustomBottomSheetHandleComponent}
           ref={bottomSheetModalRef}
-          index={1}
           snapPoints={snapPoints}
           onChange={handleSheetChanges}
         >
-          <BottomSheetView style={styles.contentContainer}>
-            <LivestreamChat callId={callId} callType={callType} />
+          <BottomSheetView
+            style={[
+              styles.chatContainer,
+              { paddingBottom: safeAreaInsets.bottom },
+            ]}
+          >
+            <LivestreamChat callId={callId} />
           </BottomSheetView>
         </BottomSheetModal>
       </BottomSheetModalProvider>
@@ -169,24 +219,18 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  animatedContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '100%', // Adjust the height according to your design
-    elevation: 5,
-  },
   container: {
     flex: 1,
+    backgroundColor: appTheme.colors.static_grey,
   },
   mediaControlsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  contentContainer: {
+  chatContainer: {
     flex: 1,
     alignItems: 'center',
+    backgroundColor: appTheme.colors.static_grey,
   },
   handleContainer: {
     flexDirection: 'row',
@@ -195,6 +239,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  handleCloseButton: {
+    height: 16,
+    width: 16,
   },
   handleText: {
     fontSize: 15,
