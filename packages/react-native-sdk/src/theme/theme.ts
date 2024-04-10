@@ -57,7 +57,7 @@ export type Theme = {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
-  screenShareButton: {
+  screenShareToggleButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
@@ -273,7 +273,7 @@ export type Theme = {
     container: ViewStyle;
     icon: ViewStyle;
   };
-  livestreamScreenShareButton: {
+  livestreamScreenShareToggleButton: {
     container: ViewStyle;
     icon: ViewStyle;
   };
@@ -371,7 +371,7 @@ export const defaultTheme: Theme = {
     container: {},
     svgContainer: {},
   },
-  screenShareButton: {
+  screenShareToggleButton: {
     container: {},
     svgContainer: {},
   },
@@ -575,7 +575,7 @@ export const defaultTheme: Theme = {
     container: {},
     icon: {},
   },
-  livestreamScreenShareButton: {
+  livestreamScreenShareToggleButton: {
     container: {},
     icon: {},
   },

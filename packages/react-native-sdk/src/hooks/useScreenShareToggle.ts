@@ -36,7 +36,7 @@ type ReturnType = {
   CanDeviceScreenShare: boolean;
 };
 
-const useScreenShare = ({
+const useScreenShareToggle = ({
   onScreenShareStartedHandler,
   onScreenShareStoppedHandler,
 }: Callbacks = {}): ReturnType => {
@@ -119,4 +119,4 @@ const useScreenShare = ({
   };
 };
 
-export default useScreenShare;
+export default useScreenShareToggle;

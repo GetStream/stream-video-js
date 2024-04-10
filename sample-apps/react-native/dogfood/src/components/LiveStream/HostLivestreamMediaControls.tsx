@@ -1,7 +1,7 @@
 import {
   LivestreamAudioControlButton,
   LivestreamVideoControlButton,
-  LivestreamScreenShareButton,
+  LivestreamScreenShareToggleButton,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -24,7 +24,7 @@ export const HostLivestreamMediaControls = ({
     <View style={styles.container}>
       <LivestreamAudioControlButton />
       <LivestreamVideoControlButton />
-      <LivestreamScreenShareButton />
+      <LivestreamScreenShareToggleButton />
       <LiveStreamChatControlButton onPress={onChatButtonPress} />
     </View>
   );

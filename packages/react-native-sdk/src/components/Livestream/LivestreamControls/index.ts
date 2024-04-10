@@ -5,4 +5,4 @@ export * from './LivestreamMediaControls';
 export * from './LivestreamVideoControlButton';
 export * from './ViewerLeaveStreamButton';
 export * from './ViewerLivestreamControls';
-export * from './LivestreamScreenShareButton';
+export * from './LivestreamScreenShareToggleButton';

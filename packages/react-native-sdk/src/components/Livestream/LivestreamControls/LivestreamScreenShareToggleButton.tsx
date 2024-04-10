@@ -2,23 +2,23 @@ import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { ScreenShare } from '../../../icons';
-import useScreenShare from '../../../hooks/useScreenShare';
+import useScreenShareToggle from '../../../hooks/useScreenShareToggle';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
 
 /**
  * The LivestreamVideoControlButton controls the screenshare stream publish/unpublish while in the livestream for the host.
  */
-export const LivestreamScreenShareButton = () => {
+export const LivestreamScreenShareToggleButton = () => {
   const {
     onPress,
     isScreenSharingEnabledInCall,
     screenCapturePickerViewiOSRef,
-  } = useScreenShare();
+  } = useScreenShareToggle();
   const {
     theme: {
       colors,
       variants: { iconSizes, buttonSizes },
-      livestreamScreenShareButton,
+      livestreamScreenShareToggleButton,
     },
   } = useTheme();
 
@@ -36,7 +36,7 @@ export const LivestreamScreenShareButton = () => {
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
-        livestreamScreenShareButton.container,
+        livestreamScreenShareToggleButton.container,
       ]}
     >
       <View
@@ -46,7 +46,7 @@ export const LivestreamScreenShareButton = () => {
             height: iconSizes.sm,
             width: iconSizes.sm,
           },
-          livestreamScreenShareButton.icon,
+          livestreamScreenShareToggleButton.icon,
         ]}
       >
         <ScreenShare color={colors.static_white} />

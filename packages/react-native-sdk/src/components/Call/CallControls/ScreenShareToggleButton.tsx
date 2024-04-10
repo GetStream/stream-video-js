@@ -4,12 +4,12 @@ import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
 import { ScreenShare } from '../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { useTheme } from '../../../contexts';
-import useScreenShare from '../../../hooks/useScreenShare';
+import useScreenShare from '../../../hooks/useScreenShareToggle';
 
 /**
  * The props for the Screen Share button in the Call Controls.
  */
-export type ScreenShareButtonProps = {
+export type ScreenShareToggleButtonProps = {
   /**
    * Handler to be called when the screen-share has been started.
    *
@@ -26,12 +26,12 @@ export type ScreenShareButtonProps = {
  * Button to start/stop screen share.
  * Note: This button is enabled only on iOS >= 14.0 and any Android version.
  */
-export const ScreenShareButton = ({
+export const ScreenShareToggleButton = ({
   onScreenShareStartedHandler,
   onScreenShareStoppedHandler,
-}: ScreenShareButtonProps) => {
+}: ScreenShareToggleButtonProps) => {
   const {
-    theme: { colors, screenShareButton },
+    theme: { colors, screenShareToggleButton },
   } = useTheme();
 
   const {
@@ -55,8 +55,8 @@ export const ScreenShareButton = ({
       onPress={onPress}
       color={colors.static_white}
       style={{
-        container: screenShareButton.container,
-        svgContainer: screenShareButton.svgContainer,
+        container: screenShareToggleButton.container,
+        svgContainer: screenShareToggleButton.svgContainer,
       }}
     >
       <ScreenShare color={colors.static_black} />
