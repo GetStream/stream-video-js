@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { StyleSheet, SafeAreaView, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
 import {
@@ -81,7 +81,7 @@ export const ViewerLivestream = ({
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         { backgroundColor: colors.static_grey },
@@ -111,7 +111,7 @@ export const ViewerLivestream = ({
         )}
       </View>
       {LivestreamLayout && <LivestreamLayout />}
-    </SafeAreaView>
+    </View>
   );
 };
 
