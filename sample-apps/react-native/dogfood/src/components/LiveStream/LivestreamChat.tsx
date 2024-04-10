@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, SafeAreaView, StyleSheet } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Channel,
   MessageInput,
@@ -74,10 +75,14 @@ export const LivestreamChat = ({ callId }: LivestreamChatProps) => {
               }
             : {}
         }
+        // Hides the sticky date header component on the top of the MessageList
+        hideStickyDateHeader={true}
         channel={channel}
+        // Disables the long press on the message
         onLongPressMessage={() => null}
       >
-        <MessageList />
+        {/* @ts-expect-error we pass GestureHandler FlatList as a prop */}
+        <MessageList FlatList={FlatList} />
         <MessageInput InputButtons={undefined} />
       </Channel>
     </SafeAreaView>
