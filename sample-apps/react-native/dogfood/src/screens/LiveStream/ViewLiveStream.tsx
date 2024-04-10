@@ -5,70 +5,32 @@ import {
   useCallStateHooks,
   useStreamVideoClient,
   ViewerLivestreamTopView,
-  LiveIndicator,
-  FollowerCount,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   PropsWithChildren,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  BottomSheetModal,
-  BottomSheetView,
-  BottomSheetModalProvider,
-} from '@gorhom/bottom-sheet';
 import { LiveStreamParamList } from '../../../types';
-import {
-  ActivityIndicator,
-  Dimensions,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { appTheme } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ViewerLobby } from './ViewerLobby';
 import { useSetCall } from '../../hooks/useSetCall';
 import { Button } from '../../components/Button';
 import { useAnonymousInitVideoClient } from '../../hooks/useAnonymousInitVideoClient';
-import { LivestreamChat } from '../../components/LiveStream/LivestreamChat';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { ViewerLiveStreamControls } from '../../components/LiveStream/ViewerLivestreamControls';
+import BottomSheetChatWrapper, {
+  BottomSheetWrapperMethods,
+} from './BottomSheetChatWrapper';
 
 type ViewerLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
   'ViewerLiveStream'
 >;
-
-const HandleComponent = () => {
-  return (
-    <View
-      style={[
-        styles.handleContainer,
-        { backgroundColor: appTheme.colors.static_grey },
-      ]}
-    >
-      <Text
-        style={[styles.handleText, { color: appTheme.colors.static_white }]}
-      >
-        Live Chat
-      </Text>
-      <View style={styles.liveContainer}>
-        <LiveIndicator />
-        <FollowerCount />
-      </View>
-    </View>
-  );
-};
 
 export const ViewLiveStreamWrapper = ({
   route,
@@ -77,14 +39,13 @@ export const ViewLiveStreamWrapper = ({
 }: PropsWithChildren<ViewerLiveStreamScreenProps>) => {
   // The `StreamVideo` wrapper for this client is defined in `App.tsx` of the app.
   const client = useStreamVideoClient();
-  const callType = 'livestream';
   const {
     params: { callId },
   } = route;
   /**
    * We create a call using the logged in client in the app since we need to get the call live status.
    */
-  const call = useSetCall(callId, callType, client);
+  const call = useSetCall(callId, 'livestream', client);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
@@ -139,53 +100,35 @@ export const ViewLiveStreamWrapper = ({
   return <StreamCall call={call}>{children}</StreamCall>;
 };
 
-export const ViewLiveStreamChilden = ({
+export const ViewLiveStreamChildren = ({
   navigation,
   route,
 }: ViewerLiveStreamScreenProps) => {
   const {
     params: { callId },
   } = route;
-  const { height } = Dimensions.get('window');
+  const bottomSheetWrapperRef = useRef<BottomSheetWrapperMethods>(null);
   const [callJoined, setCallJoined] = useState<boolean>(false);
   const [headerFooterHidden, setHeaderFooterHidden] = useState(false);
-
   /**
    * The `useCallStateHooks` hooks would only work here in the children since we wrap the `StreamCall` component in the `ViewLiveStreamWrapper` above using the logged in client of the app.
    */
   const { useIsCallLive } = useCallStateHooks();
   const isCallLive = useIsCallLive();
+
+  const onBottomSheetClose = useCallback(() => {
+    setHeaderFooterHidden(false);
+  }, []);
+
+  const onBottomSheetOpen = useCallback(() => {
+    setHeaderFooterHidden(true);
+  }, []);
+
   /**
    * We create an anonymous client here to join the call anonymously.
    */
-  const client = useAnonymousInitVideoClient();
-  const call = useSetCall(callId, 'livestream', client);
-  const currentPosition = useSharedValue(height);
-
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-  const snapPoints = useMemo(() => ['25%', '50%'], []);
-
-  const handleSheetChanges = useCallback(
-    (index: number) => {
-      if (index === -1) {
-        // Sheet is closed
-        setHeaderFooterHidden(false);
-        currentPosition.value = withTiming(height);
-      } else {
-        // Sheet is open
-        setHeaderFooterHidden(true);
-        currentPosition.value = withTiming((height * 50) / 100);
-      }
-    },
-    [currentPosition, height],
-  );
-
-  const animatedStyles = useAnimatedStyle(() => {
-    return {
-      height: currentPosition.value,
-    };
-  });
+  const anonymousVideoClient = useAnonymousInitVideoClient();
+  const call = useSetCall(callId, 'livestream', anonymousVideoClient);
 
   /**
    * The call is joined using the anonymous user/client.
@@ -212,7 +155,7 @@ export const ViewLiveStreamChilden = ({
 
   const CustomViewerLivestreamControls = useCallback(() => {
     const handlePresentModalPress = () => {
-      bottomSheetModalRef.current?.present();
+      bottomSheetWrapperRef.current?.open();
     };
 
     const handleLeaveCall = async () => {
@@ -245,38 +188,27 @@ export const ViewLiveStreamChilden = ({
    */
   return (
     <StreamCall call={call}>
-      <BottomSheetModalProvider>
-        {!(isCallLive && callJoined) ? (
-          <ViewerLobby
-            isLive={isCallLive}
-            handleJoinCall={handleJoinCall}
-            setCallJoined={setCallJoined}
-          />
-        ) : (
-          <Animated.View style={[styles.animatedContainer, animatedStyles]}>
-            <SafeAreaView edges={['top']} style={styles.livestream}>
-              <ViewerLivestream
-                ViewerLivestreamTopView={
-                  !headerFooterHidden ? ViewerLivestreamTopView : null
-                }
-                ViewerLivestreamControls={CustomViewerLivestreamControls}
-              />
-            </SafeAreaView>
-          </Animated.View>
-        )}
-        <BottomSheetModal
-          enablePanDownToClose={true}
-          handleComponent={HandleComponent}
-          ref={bottomSheetModalRef}
-          index={1}
-          snapPoints={snapPoints}
-          onChange={handleSheetChanges}
+      {!(isCallLive && callJoined) ? (
+        <ViewerLobby
+          isLive={isCallLive}
+          handleJoinCall={handleJoinCall}
+          setCallJoined={setCallJoined}
+        />
+      ) : (
+        <BottomSheetChatWrapper
+          callId={callId}
+          onBottomSheetClose={onBottomSheetClose}
+          onBottomSheetOpen={onBottomSheetOpen}
+          ref={bottomSheetWrapperRef}
         >
-          <BottomSheetView style={styles.contentContainer}>
-            <LivestreamChat callId={callId} />
-          </BottomSheetView>
-        </BottomSheetModal>
-      </BottomSheetModalProvider>
+          <ViewerLivestream
+            ViewerLivestreamTopView={
+              !headerFooterHidden ? ViewerLivestreamTopView : null
+            }
+            ViewerLivestreamControls={CustomViewerLivestreamControls}
+          />
+        </BottomSheetChatWrapper>
+      )}
     </StreamCall>
   );
 };
@@ -287,23 +219,12 @@ export const ViewLiveStreamScreen = ({
 }: ViewerLiveStreamScreenProps) => {
   return (
     <ViewLiveStreamWrapper navigation={navigation} route={route}>
-      <ViewLiveStreamChilden navigation={navigation} route={route} />
+      <ViewLiveStreamChildren navigation={navigation} route={route} />
     </ViewLiveStreamWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  animatedContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '100%', // Adjust the height according to your design
-    elevation: 5,
-  },
-  livestream: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -317,24 +238,5 @@ const styles = StyleSheet.create({
   },
   errorButton: {
     marginTop: 8,
-  },
-  contentContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  handleContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  handleText: {
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  liveContainer: {
-    flexDirection: 'row',
   },
 });
