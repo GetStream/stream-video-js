@@ -113,6 +113,7 @@ export const CallParticipantsSpotlight = ({
                   callParticipantsSpotlight.spotlightContainer,
                 ]
           }
+          objectFit="contain"
           trackType={
             isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
           }
