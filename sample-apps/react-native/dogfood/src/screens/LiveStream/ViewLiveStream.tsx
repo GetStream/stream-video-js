@@ -4,7 +4,7 @@ import {
   ViewerLivestream,
   useCallStateHooks,
   useStreamVideoClient,
-  ViewerLivestreamTopView,
+  ViewerLivestreamControlsProps,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   PropsWithChildren,
@@ -153,31 +153,35 @@ export const ViewLiveStreamChildren = ({
     }
   };
 
-  const CustomViewerLivestreamControls = useCallback(() => {
-    const handlePresentModalPress = () => {
-      bottomSheetWrapperRef.current?.open();
-    };
+  const CustomViewerLivestreamControls = useCallback(
+    (props: ViewerLivestreamControlsProps) => {
+      const handlePresentModalPress = () => {
+        bottomSheetWrapperRef.current?.open();
+      };
 
-    const handleLeaveCall = async () => {
-      try {
-        if (!call) {
-          return;
+      const handleLeaveCall = async () => {
+        try {
+          if (!call) {
+            return;
+          }
+          await call.leave();
+          setCallJoined(false);
+          navigation.goBack();
+        } catch (error) {
+          console.log('Failed to leave call', error);
         }
-        await call.leave();
-        setCallJoined(false);
-        navigation.goBack();
-      } catch (error) {
-        console.log('Failed to leave call', error);
-      }
-    };
+      };
 
-    return (
-      <ViewerLiveStreamControls
-        onChatButtonPress={handlePresentModalPress}
-        handleLeaveCall={handleLeaveCall}
-      />
-    );
-  }, [call, navigation]);
+      return (
+        <ViewerLiveStreamControls
+          onChatButtonPress={handlePresentModalPress}
+          handleLeaveCall={handleLeaveCall}
+          {...props}
+        />
+      );
+    },
+    [call, navigation],
+  );
 
   if (!call) {
     return null;
@@ -202,9 +206,7 @@ export const ViewLiveStreamChildren = ({
           ref={bottomSheetWrapperRef}
         >
           <ViewerLivestream
-            ViewerLivestreamTopView={
-              !headerFooterHidden ? ViewerLivestreamTopView : null
-            }
+            ViewerLivestreamTopView={headerFooterHidden ? null : undefined}
             ViewerLivestreamControls={CustomViewerLivestreamControls}
           />
         </BottomSheetChatWrapper>

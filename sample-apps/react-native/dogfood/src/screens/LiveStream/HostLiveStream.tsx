@@ -4,7 +4,6 @@ import {
   HostLivestream,
   useConnectedUser,
   useStreamVideoClient,
-  HostLivestreamTopView,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -15,7 +14,7 @@ import React, {
 } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
-import { LogBox, Text } from 'react-native';
+import { Text } from 'react-native';
 import { HostLivestreamMediaControls } from '../../components/LiveStream/HostLivestreamMediaControls';
 import BottomSheetChatWrapper, {
   BottomSheetWrapperMethods,
@@ -25,8 +24,6 @@ type HostLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
   'HostLiveStream'
 >;
-
-LogBox.ignoreAllLogs();
 
 export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   const [headerFooterHidden, setHeaderFooterHidden] = useState(false);
@@ -99,9 +96,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
         ref={bottomSheetWrapperRef}
       >
         <HostLivestream
-          HostLivestreamTopView={
-            !headerFooterHidden ? HostLivestreamTopView : null
-          }
+          HostLivestreamTopView={headerFooterHidden ? null : undefined}
           LivestreamMediaControls={CustomHostLivestreamMediaControls}
         />
       </BottomSheetChatWrapper>

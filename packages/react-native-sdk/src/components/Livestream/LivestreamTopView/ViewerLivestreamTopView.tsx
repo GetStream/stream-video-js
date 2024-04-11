@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 import {
   DurationBadge as DefaultDurationBadge,
   DurationBadgeProps,
@@ -31,6 +31,7 @@ export type ViewerLivestreamTopViewProps = {
    * Component to customize the Follower count indicator on the viewer's live stream's top view.
    */
   FollowerCount?: React.ComponentType<FollowerCountProps> | null;
+  onLayout?: ViewProps['onLayout'];
 };
 
 /**
@@ -40,6 +41,7 @@ export const ViewerLivestreamTopView = ({
   DurationBadge = DefaultDurationBadge,
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
+  onLayout,
 }: ViewerLivestreamTopViewProps) => {
   const {
     theme: { colors, viewerLivestreamTopView },
@@ -52,6 +54,7 @@ export const ViewerLivestreamTopView = ({
         { backgroundColor: colors.static_overlay },
         viewerLivestreamTopView.container,
       ]}
+      onLayout={onLayout}
     >
       <View style={[styles.leftElement, viewerLivestreamTopView.leftElement]}>
         <View style={[styles.liveInfo, viewerLivestreamTopView.liveInfo]}>

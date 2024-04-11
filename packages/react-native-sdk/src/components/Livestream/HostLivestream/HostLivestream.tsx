@@ -15,6 +15,13 @@ import {
   LivestreamLayout as DefaultLivestreamLayout,
   LivestreamLayoutProps,
 } from '../LivestreamLayout';
+import { Z_INDEX } from '../../../constants';
+import {
+  FloatingParticipantView as DefaultFloatingParticipantView,
+  FloatingParticipantViewProps,
+} from '../../Participant/FloatingParticipantView';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props for the HostLivestream component.
@@ -34,10 +41,18 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      */
     HostLivestreamControls?: React.ComponentType<HostLivestreamControlsProps> | null;
     /**
+     * Component to customize the FloatingParticipantView when screen is shared.
+     */
+    FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
      * Enable HTTP live streaming
      */
     hls?: boolean;
   };
+
+const hasVideoTrack = (p?: StreamVideoParticipant) =>
+  p?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+
 /**
  * The HostLivestream component displays the UI for the Host's live stream.
  */
@@ -45,6 +60,7 @@ export const HostLivestream = ({
   HostLivestreamTopView = DefaultHostLivestreamTopView,
   HostLivestreamControls = DefaultHostLivestreamControls,
   LivestreamLayout = DefaultLivestreamLayout,
+  FloatingParticipantView = DefaultFloatingParticipantView,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
@@ -58,16 +74,28 @@ export const HostLivestream = ({
     theme: { colors, hostLivestream },
   } = useTheme();
 
+  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
+  const [currentSpeaker] = useParticipants();
+  const hasOngoingScreenShare = useHasOngoingScreenShare();
+  const floatingParticipant =
+    hasOngoingScreenShare && hasVideoTrack(currentSpeaker) && currentSpeaker;
+
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
     InCallManager.start({ media: 'video' });
     return () => InCallManager.stop();
   }, []);
 
+  const [topViewHeight, setTopViewHeight] = React.useState<number>();
+  const [controlsHeight, setControlsHeight] = React.useState<number>();
+
   const topViewProps: HostLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
     DurationBadge,
+    onLayout: (event) => {
+      setTopViewHeight(event.nativeEvent.layout.height);
+    },
   };
 
   return (
@@ -80,7 +108,31 @@ export const HostLivestream = ({
         hostLivestream.container,
       ]}
     >
-      {HostLivestreamTopView && <HostLivestreamTopView {...topViewProps} />}
+      {HostLivestreamTopView && (
+        <View
+          style={styles.topViewContainer}
+          onLayout={(event) => {
+            setTopViewHeight(event.nativeEvent.layout.height);
+          }}
+        >
+          <HostLivestreamTopView {...topViewProps} />
+        </View>
+      )}
+      {FloatingParticipantView &&
+        floatingParticipant &&
+        topViewHeight &&
+        controlsHeight && (
+          <FloatingParticipantView
+            participant={floatingParticipant}
+            draggableContainerStyle={[
+              StyleSheet.absoluteFill,
+              {
+                top: topViewHeight,
+                bottom: controlsHeight,
+              },
+            ]}
+          />
+        )}
       {LivestreamLayout && <LivestreamLayout />}
       {HostLivestreamControls && (
         <HostLivestreamControls
@@ -89,6 +141,9 @@ export const HostLivestream = ({
           HostStartStreamButton={HostStartStreamButton}
           LivestreamMediaControls={LivestreamMediaControls}
           hls={hls}
+          onLayout={(event) => {
+            setControlsHeight(event.nativeEvent.layout.height);
+          }}
         />
       )}
     </View>
@@ -98,5 +153,19 @@ export const HostLivestream = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  topViewContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  controlsViewContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });

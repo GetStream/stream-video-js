@@ -1,18 +1,22 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { appTheme } from '../../theme';
-import { ViewerLeaveStreamButton } from '@stream-io/video-react-native-sdk';
+import {
+  ViewerLeaveStreamButton,
+  ViewerLivestreamControlsProps,
+} from '@stream-io/video-react-native-sdk';
 import { LiveStreamChatControlButton } from './LiveStreamChatControlButton';
 
-type ViewerLiveStreamControlsProps = {
+type CustomViewerLiveStreamControlsProps = {
   onChatButtonPress: () => void;
   handleLeaveCall: () => void;
-};
+} & ViewerLivestreamControlsProps;
 
 export const ViewerLiveStreamControls = ({
   handleLeaveCall,
   onChatButtonPress,
-}: ViewerLiveStreamControlsProps) => {
+  onLayout,
+}: CustomViewerLiveStreamControlsProps) => {
   return (
     <View
       style={[
@@ -21,6 +25,7 @@ export const ViewerLiveStreamControls = ({
           backgroundColor: appTheme.colors.static_overlay,
         },
       ]}
+      onLayout={onLayout}
     >
       <View style={[styles.leftElement]}>
         <ViewerLeaveStreamButton onLeaveStreamHandler={handleLeaveCall} />
@@ -36,6 +41,9 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,

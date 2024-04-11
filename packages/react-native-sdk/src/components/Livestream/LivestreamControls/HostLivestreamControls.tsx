@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 import {
   HostStartStreamButton as DefaultHostStartStreamButton,
   HostStartStreamButtonProps,
@@ -27,6 +27,7 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
    * Enable HTTP live streaming
    */
   hls?: boolean;
+  onLayout?: ViewProps['onLayout'];
 };
 
 /**
@@ -38,6 +39,7 @@ export const HostLivestreamControls = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
+  onLayout,
 }: HostLivestreamControlsProps) => {
   const {
     theme: { colors, hostLivestreamControls },
@@ -49,6 +51,7 @@ export const HostLivestreamControls = ({
         { backgroundColor: colors.static_overlay },
         hostLivestreamControls.container,
       ]}
+      onLayout={onLayout}
     >
       <View style={[styles.leftElement, hostLivestreamControls.leftElement]}>
         {HostStartStreamButton && (

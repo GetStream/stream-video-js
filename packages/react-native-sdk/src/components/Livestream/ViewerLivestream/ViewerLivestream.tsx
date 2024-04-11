@@ -21,7 +21,10 @@ import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   FloatingParticipantViewProps,
 } from '../../Participant';
-import { Z_INDEX } from '../../../constants';
+import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+
+const hasVideoTrack = (p?: StreamVideoParticipant) =>
+  p?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
 /**
  * Props for the ViewerLivestream component.
@@ -62,11 +65,16 @@ export const ViewerLivestream = ({
   onLeaveStreamHandler,
 }: ViewerLivestreamProps) => {
   const {
-    theme: { colors, viewerLivestream },
+    theme: { viewerLivestream },
   } = useTheme();
   const { useHasOngoingScreenShare, useParticipants } = useCallStateHooks();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const [currentSpeaker] = useParticipants();
+  const floatingParticipant =
+    hasOngoingScreenShare && hasVideoTrack(currentSpeaker) && currentSpeaker;
+
+  const [topViewHeight, setTopViewHeight] = React.useState<number>();
+  const [controlsHeight, setControlsHeight] = React.useState<number>();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
@@ -78,39 +86,39 @@ export const ViewerLivestream = ({
     LiveIndicator,
     FollowerCount,
     DurationBadge,
+    onLayout: (event) => {
+      setTopViewHeight(event.nativeEvent.layout.height);
+    },
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.static_grey },
-        viewerLivestream.container,
-      ]}
-    >
-      <View style={[styles.view, viewerLivestream.view]}>
-        {ViewerLivestreamTopView && (
-          <ViewerLivestreamTopView {...topViewProps} />
-        )}
-        <View
-          style={[
-            styles.floatingParticipantView,
-            viewerLivestream.floatingParticipantView,
-          ]}
-        >
-          {hasOngoingScreenShare && FloatingParticipantView && (
-            <FloatingParticipantView participant={currentSpeaker} />
-          )}
-        </View>
-
-        {ViewerLivestreamControls && (
-          <ViewerLivestreamControls
-            ViewerLeaveStreamButton={ViewerLeaveStreamButton}
-            onLeaveStreamHandler={onLeaveStreamHandler}
+    <View style={[styles.container, viewerLivestream.container]}>
+      {ViewerLivestreamTopView && <ViewerLivestreamTopView {...topViewProps} />}
+      {FloatingParticipantView &&
+        floatingParticipant &&
+        topViewHeight &&
+        controlsHeight && (
+          <FloatingParticipantView
+            participant={floatingParticipant}
+            draggableContainerStyle={[
+              StyleSheet.absoluteFill,
+              {
+                top: topViewHeight,
+                bottom: controlsHeight,
+              },
+            ]}
           />
         )}
-      </View>
       {LivestreamLayout && <LivestreamLayout />}
+      {ViewerLivestreamControls && (
+        <ViewerLivestreamControls
+          ViewerLeaveStreamButton={ViewerLeaveStreamButton}
+          onLeaveStreamHandler={onLeaveStreamHandler}
+          onLayout={(event) => {
+            setControlsHeight(event.nativeEvent.layout.height);
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -118,12 +126,5 @@ export const ViewerLivestream = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  floatingParticipantView: {
-    flex: 1,
-  },
-  view: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: Z_INDEX.IN_FRONT,
   },
 });

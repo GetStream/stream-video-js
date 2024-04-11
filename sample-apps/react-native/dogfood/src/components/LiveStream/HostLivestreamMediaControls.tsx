@@ -16,12 +16,14 @@ export type LivestreamMediaControlsProps = {
 
 /**
  * The LivestreamMediaControls component controls the media publish/unpublish for the host's live stream.
+ * Note: this does not include the start/end livestream button.
  */
 export const HostLivestreamMediaControls = ({
   onChatButtonPress,
+  onLayout,
 }: LivestreamMediaControlsProps) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onLayout}>
       <LivestreamAudioControlButton />
       <LivestreamVideoControlButton />
       <LivestreamScreenShareToggleButton />

@@ -208,8 +208,6 @@ export type Theme = {
   };
   viewerLivestream: {
     container: ViewStyle;
-    floatingParticipantView: ViewStyle;
-    view: ViewStyle;
   };
   livestreamLayout: {
     container: ViewStyle;
@@ -517,8 +515,6 @@ export const defaultTheme: Theme = {
   },
   viewerLivestream: {
     container: {},
-    floatingParticipantView: {},
-    view: {},
   },
   livestreamLayout: {
     container: {},
