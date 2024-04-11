@@ -126,6 +126,11 @@ const BottomSheetChatWrapper = React.forwardRef<
     return chatClient.channel('livestream', callId);
   }, [callId, chatClient]);
 
+  // This function is to bring back the bottom sheet to the initial snap point for iOS when the focus is outside message input
+  const focusOutsideMessageInput = () => {
+    bottomSheetModalRef.current?.snapToPosition('50%');
+  };
+
   useImperativeHandle(ref, () => ({
     open: () => {
       bottomSheetModalRef.current?.present();
@@ -172,7 +177,10 @@ const BottomSheetChatWrapper = React.forwardRef<
             { paddingBottom: safeAreaInsets.bottom },
           ]}
         >
-          <LivestreamChat channel={chatChannel} />
+          <LivestreamChat
+            channel={chatChannel}
+            focusOutsideMessageInput={focusOutsideMessageInput}
+          />
         </BottomSheetView>
       </BottomSheetModal>
     </BottomSheetModalProvider>
@@ -181,9 +189,13 @@ const BottomSheetChatWrapper = React.forwardRef<
 
 type LivestreamChatProps = {
   channel: ChannelType<StreamChatGenerics>;
+  focusOutsideMessageInput: () => void;
 };
 
-const LivestreamChat = ({ channel }: LivestreamChatProps) => {
+const LivestreamChat = ({
+  channel,
+  focusOutsideMessageInput,
+}: LivestreamChatProps) => {
   const { shouldHandleKeyboardEvents } = useBottomSheetInternal();
 
   /**
@@ -208,6 +220,7 @@ const LivestreamChat = ({ channel }: LivestreamChatProps) => {
                 // Done as per https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ to solve keyboard hiding the text input in the chat inside bottom sheet.
                 onBlur: () => {
                   shouldHandleKeyboardEvents.value = false;
+                  focusOutsideMessageInput();
                 },
                 onFocus: () => {
                   shouldHandleKeyboardEvents.value = true;
