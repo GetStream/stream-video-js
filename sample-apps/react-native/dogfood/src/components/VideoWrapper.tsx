@@ -35,15 +35,16 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
     const run = async () => {
-      const { token, apiKey } = await createToken(
-        { user_id: user.id },
-        appEnvironment,
-      );
-      setState({ apiKey: apiKey });
+      const fetchAuthDetails = async () => {
+        return await createToken({ user_id: user.id }, appEnvironment);
+      };
+      const { apiKey } = await fetchAuthDetails();
+      const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
+      setState({ apiKey });
       _videoClient = new StreamVideoClient({
         apiKey,
         user,
-        token,
+        tokenProvider,
         options: { logLevel: 'warn' },
       });
       setVideoClient(_videoClient);
