@@ -80,6 +80,10 @@ export type CallContentProps = Pick<
      * This will apply the landscape mode styles to the component.
      */
     landscape?: boolean;
+    /**
+     * Boolean that decides whether the screen sharing overlay should be shown or not.
+     */
+    showScreenShareOverlay?: boolean;
   };
 
 export const CallContent = ({
@@ -100,6 +104,7 @@ export const CallContent = ({
   layout = 'grid',
   landscape = false,
   supportedReactions,
+  showScreenShareOverlay = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -214,7 +219,10 @@ export const CallContent = ({
           )}
         </View>
         {showSpotlightLayout ? (
-          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+          <CallParticipantsSpotlight
+            showScreenShareOverlay={showScreenShareOverlay}
+            {...callParticipantsSpotlightProps}
+          />
         ) : (
           <CallParticipantsGrid {...callParticipantsGridProps} />
         )}

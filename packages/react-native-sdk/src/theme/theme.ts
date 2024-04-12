@@ -275,6 +275,10 @@ export type Theme = {
     container: ViewStyle;
     icon: ViewStyle;
   };
+  screenshareOverlay: {
+    container: ViewStyle;
+    text: TextStyle;
+  };
 };
 
 export const defaultTheme: Theme = {
@@ -574,5 +578,9 @@ export const defaultTheme: Theme = {
   livestreamScreenShareToggleButton: {
     container: {},
     icon: {},
+  },
+  screenshareOverlay: {
+    container: {},
+    text: {},
   },
 };

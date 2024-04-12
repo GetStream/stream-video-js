@@ -54,7 +54,7 @@ export const ScreenShareToggleButton = ({
     <CallControlsButton
       disabled={!isScreenSharingAccessRequestEnabled}
       onPress={onPress}
-      color={colors.static_white}
+      color={hasPublishedScreenShare ? colors.error : colors.static_white}
       style={{
         container: screenShareToggleButton.container,
         svgContainer: screenShareToggleButton.svgContainer,
