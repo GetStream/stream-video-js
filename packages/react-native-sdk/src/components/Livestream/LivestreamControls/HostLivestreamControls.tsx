@@ -28,6 +28,10 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
    */
   hls?: boolean;
   onLayout?: ViewProps['onLayout'];
+  /**
+   * Should the published streams be stopped if the host end the livestream.
+   */
+  stopPublishedStreamsOnEndStream: boolean;
 };
 
 /**
@@ -39,6 +43,7 @@ export const HostLivestreamControls = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
+  stopPublishedStreamsOnEndStream,
   onLayout,
 }: HostLivestreamControlsProps) => {
   const {
@@ -59,6 +64,7 @@ export const HostLivestreamControls = ({
             onEndStreamHandler={onEndStreamHandler}
             onStartStreamHandler={onStartStreamHandler}
             hls={hls}
+            stopPublishedStreamsOnEndStream={stopPublishedStreamsOnEndStream}
           />
         )}
       </View>

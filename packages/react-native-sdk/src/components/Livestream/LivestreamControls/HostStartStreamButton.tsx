@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
+import { SfuModels } from '@stream-io/video-client';
 
 /**
  * Props for the HostStartStreamButton component.
@@ -32,6 +33,10 @@ export type HostStartStreamButtonProps = {
    * Enable HTTP live streaming
    */
   hls?: boolean;
+  /**
+   * Should the published streams be stopped if the host end the livestream.
+   */
+  stopPublishedStreamsOnEndStream: boolean;
 };
 
 /**
@@ -41,6 +46,7 @@ export const HostStartStreamButton = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls,
+  stopPublishedStreamsOnEndStream,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
@@ -85,6 +91,10 @@ export const HostStartStreamButton = ({
     }
     try {
       setIsAwaitingResponse(true);
+      if (stopPublishedStreamsOnEndStream) {
+        await call?.stopPublish(SfuModels.TrackType.VIDEO);
+        await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+      }
       if (hls) {
         await call?.stopHLS();
       } else {

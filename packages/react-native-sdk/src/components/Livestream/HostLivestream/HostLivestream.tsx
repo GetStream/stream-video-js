@@ -56,6 +56,11 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      * Enable HTTP live streaming
      */
     hls?: boolean;
+    /**
+     * Should the published streams be stopped if the host end the livestream.
+     * @default true
+     */
+    stopPublishedStreamsOnEndStream?: boolean;
   };
 
 const hasVideoTrack = (p?: StreamVideoParticipant) =>
@@ -78,6 +83,7 @@ export const HostLivestream = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
+  stopPublishedStreamsOnEndStream = true,
 }: HostLivestreamProps) => {
   const {
     theme: { colors, hostLivestream },
@@ -155,6 +161,7 @@ export const HostLivestream = ({
           onLayout={(event) => {
             setControlsHeight(event.nativeEvent.layout.height);
           }}
+          stopPublishedStreamsOnEndStream={stopPublishedStreamsOnEndStream}
         />
       )}
     </View>
