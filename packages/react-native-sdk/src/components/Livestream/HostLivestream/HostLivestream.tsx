@@ -48,6 +48,10 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      * Enable HTTP live streaming
      */
     hls?: boolean;
+    /**
+     * Boolean that decides whether the screen sharing overlay should be shown or not.
+     */
+    showScreenShareOverlay?: boolean;
   };
 
 const hasVideoTrack = (p?: StreamVideoParticipant) =>
@@ -69,6 +73,7 @@ export const HostLivestream = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
+  showScreenShareOverlay = true,
 }: HostLivestreamProps) => {
   const {
     theme: { colors, hostLivestream },
@@ -103,7 +108,7 @@ export const HostLivestream = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.static_grey,
+          backgroundColor: colors.dark_gray,
         },
         hostLivestream.container,
       ]}
@@ -133,7 +138,9 @@ export const HostLivestream = ({
             ]}
           />
         )}
-      {LivestreamLayout && <LivestreamLayout />}
+      {LivestreamLayout && (
+        <LivestreamLayout showScreenShareOverlay={showScreenShareOverlay} />
+      )}
       {HostLivestreamControls && (
         <HostLivestreamControls
           onEndStreamHandler={onEndStreamHandler}
