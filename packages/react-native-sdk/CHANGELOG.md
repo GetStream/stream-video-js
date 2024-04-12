@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.1...@stream-io/video-react-native-sdk-0.6.2) (2024-04-12)
+
+
+### Bug Fixes
+
+* **react-native:** change objectFit to contain for screensharing ParticipantView ([#1314](https://github.com/GetStream/stream-video-js/issues/1314)) ([c50245d](https://github.com/GetStream/stream-video-js/commit/c50245df92d994d66ae1640b8acd41e8b2ec71e1))
+
 ### [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.0...@stream-io/video-react-native-sdk-0.6.1) (2024-04-09)
 
 ### Dependency Updates
