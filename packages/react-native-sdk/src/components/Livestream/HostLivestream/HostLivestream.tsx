@@ -108,7 +108,7 @@ export const HostLivestream = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.static_grey,
+          backgroundColor: colors.dark_gray,
         },
         hostLivestream.container,
       ]}

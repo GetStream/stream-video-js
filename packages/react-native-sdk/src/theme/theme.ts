@@ -278,6 +278,9 @@ export type Theme = {
   screenshareOverlay: {
     container: ViewStyle;
     text: TextStyle;
+    button: ViewStyle;
+    buttonIcon: ViewStyle;
+    buttonText: TextStyle;
   };
 };
 
@@ -582,5 +585,8 @@ export const defaultTheme: Theme = {
   screenshareOverlay: {
     container: {},
     text: {},
+    button: {},
+    buttonIcon: {},
+    buttonText: {},
   },
 };
