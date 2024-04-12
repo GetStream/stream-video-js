@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StopScreenShare } from '../../icons';
 import { useTheme } from '../../contexts';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 
 /**
@@ -15,6 +15,7 @@ export type ScreenShareOverlayProps = {};
  */
 export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
   const call = useCall();
+  const { t } = useI18n();
   const {
     theme: {
       colors,
@@ -44,7 +45,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
           screenshareOverlay.text,
         ]}
       >
-        You are sharing your screen with everyone
+        {t('You are sharing your screen with everyone')}
       </Text>
       <Pressable
         onPress={onStopScreenshareHandler}
@@ -75,7 +76,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
             screenshareOverlay.buttonText,
           ]}
         >
-          Stop Screen Sharing
+          {t('Stop Screen Sharing')}
         </Text>
       </Pressable>
     </View>
