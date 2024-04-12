@@ -6,6 +6,7 @@ import {
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
+import { useScreenShareToggle } from '../../../hooks/useScreenShareToggle';
 
 /**
  * Props for the HostStartStreamButton component.
@@ -58,6 +60,7 @@ export const HostStartStreamButton = ({
   const isCallLive = useIsCallLive();
   const isCallBroadcasting = useIsCallHLSBroadcastingInProgress();
   const { t } = useI18n();
+  const { onPress, hasPublishedScreenShare } = useScreenShareToggle();
 
   const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
@@ -84,6 +87,11 @@ export const HostStartStreamButton = ({
       return;
     }
     try {
+      // If there is an active screen sharing, disable it.
+      if (Platform.OS === 'android' && hasPublishedScreenShare === true) {
+        await onPress();
+      }
+
       setIsAwaitingResponse(true);
       if (hls) {
         await call?.stopHLS();

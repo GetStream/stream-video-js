@@ -4,7 +4,7 @@ import {
   LivestreamScreenShareToggleButton,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { LiveStreamChatControlButton } from './LiveStreamChatControlButton';
 
 /**
@@ -12,6 +12,7 @@ import { LiveStreamChatControlButton } from './LiveStreamChatControlButton';
  */
 export type LivestreamMediaControlsProps = {
   onChatButtonPress: () => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 /**

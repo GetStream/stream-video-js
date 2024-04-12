@@ -26,6 +26,7 @@ type Callbacks = {
 };
 
 type ReturnType = {
+  hasPublishedScreenShare?: boolean;
   onPress: () => Promise<void>;
   /**
    *  The ref to be passed to ScreenCapturePickerView component
@@ -36,7 +37,7 @@ type ReturnType = {
   CanDeviceScreenShare: boolean;
 };
 
-const useScreenShareToggle = ({
+export const useScreenShareToggle = ({
   onScreenShareStartedHandler,
   onScreenShareStoppedHandler,
 }: Callbacks = {}): ReturnType => {
@@ -111,6 +112,7 @@ const useScreenShareToggle = ({
   };
 
   return {
+    hasPublishedScreenShare,
     screenCapturePickerViewiOSRef,
     onPress,
     isScreenSharingEnabledInCall,
@@ -118,5 +120,3 @@ const useScreenShareToggle = ({
     CanDeviceScreenShare,
   };
 };
-
-export default useScreenShareToggle;

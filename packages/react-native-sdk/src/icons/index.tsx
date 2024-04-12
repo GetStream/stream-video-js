@@ -18,5 +18,6 @@ export * from './TopViewBackground';
 export * from './Eye';
 export * from './ShieldBadge';
 export * from './StartStreamIcon';
+export * from './StopScreenShare';
 export * from './EndStreamIcon';
 export * from './LeaveStreamIcon';

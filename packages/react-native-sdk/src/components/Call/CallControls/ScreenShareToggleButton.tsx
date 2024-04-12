@@ -1,10 +1,10 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
-import { ScreenShare } from '../../../icons';
+import { ScreenShare, StopScreenShare } from '../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { useTheme } from '../../../contexts';
-import useScreenShare from '../../../hooks/useScreenShareToggle';
+import { useScreenShareToggle } from '../../../hooks/useScreenShareToggle';
 
 /**
  * The props for the Screen Share button in the Call Controls.
@@ -35,12 +35,13 @@ export const ScreenShareToggleButton = ({
   } = useTheme();
 
   const {
+    hasPublishedScreenShare,
     isScreenSharingEnabledInCall,
     isScreenSharingAccessRequestEnabled,
     CanDeviceScreenShare,
     onPress,
     screenCapturePickerViewiOSRef,
-  } = useScreenShare({
+  } = useScreenShareToggle({
     onScreenShareStartedHandler,
     onScreenShareStoppedHandler,
   });
@@ -59,7 +60,11 @@ export const ScreenShareToggleButton = ({
         svgContainer: screenShareToggleButton.svgContainer,
       }}
     >
-      <ScreenShare color={colors.static_black} />
+      {hasPublishedScreenShare ? (
+        <StopScreenShare color={colors.static_black} />
+      ) : (
+        <ScreenShare color={colors.static_black} />
+      )}
       {Platform.OS === 'ios' && (
         <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />
       )}

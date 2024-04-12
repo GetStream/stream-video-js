@@ -1,15 +1,18 @@
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
-import { ScreenShare } from '../../../icons';
-import useScreenShareToggle from '../../../hooks/useScreenShareToggle';
+import { ScreenShare, StopScreenShare } from '../../../icons';
+import { useScreenShareToggle } from '../../../hooks/useScreenShareToggle';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
+
+export type LivestreamScreenShareToggleButtonProps = {};
 
 /**
  * The LivestreamVideoControlButton controls the screenshare stream publish/unpublish while in the livestream for the host.
  */
 export const LivestreamScreenShareToggleButton = () => {
   const {
+    hasPublishedScreenShare,
     onPress,
     isScreenSharingEnabledInCall,
     screenCapturePickerViewiOSRef,
@@ -32,7 +35,9 @@ export const LivestreamScreenShareToggleButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.dark_gray,
+          backgroundColor: hasPublishedScreenShare
+            ? colors.error
+            : colors.dark_gray,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -49,7 +54,11 @@ export const LivestreamScreenShareToggleButton = () => {
           livestreamScreenShareToggleButton.icon,
         ]}
       >
-        <ScreenShare color={colors.static_white} />
+        {hasPublishedScreenShare ? (
+          <StopScreenShare color={colors.static_white} />
+        ) : (
+          <ScreenShare color={colors.static_white} />
+        )}
       </View>
       {Platform.OS === 'ios' && (
         <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />
