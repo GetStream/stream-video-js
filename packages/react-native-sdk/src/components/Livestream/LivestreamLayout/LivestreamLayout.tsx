@@ -8,7 +8,7 @@ import {
   VideoRenderer as DefaultVideoRenderer,
   VideoRendererProps,
 } from '../../Participant';
-import { ScreenShareOverlay } from '../../utility/ScreenShareOverlay';
+import { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
 
 /**
  * Props for the LivestreamLayout component.
@@ -24,9 +24,9 @@ export type LivestreamLayoutProps = {
    */
   VideoRenderer?: React.ComponentType<VideoRendererProps> | null;
   /**
-   * Boolean that decides whether the screen sharing overlay should be shown or not.
+   * Component to customize the ScreenShareOverlay.
    */
-  showScreenShareOverlay?: boolean;
+  ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
 };
 
 const hasScreenShare = (p?: StreamVideoParticipant) =>
@@ -38,7 +38,7 @@ const hasScreenShare = (p?: StreamVideoParticipant) =>
 export const LivestreamLayout = ({
   landscape,
   VideoRenderer = DefaultVideoRenderer,
-  showScreenShareOverlay,
+  ScreenShareOverlay,
 }: LivestreamLayoutProps) => {
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
@@ -69,7 +69,7 @@ export const LivestreamLayout = ({
       {VideoRenderer &&
         hasOngoingScreenShare &&
         presenter &&
-        (showScreenShareOverlay ? (
+        (ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <VideoRenderer trackType="screenShareTrack" participant={presenter} />

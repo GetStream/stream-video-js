@@ -22,6 +22,10 @@ import {
 } from '../../Participant/FloatingParticipantView';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  ScreenShareOverlay as DefaultScreenShaerOverlay,
+  ScreenShareOverlayProps,
+} from '../../utility/ScreenShareOverlay';
 
 /**
  * Props for the HostLivestream component.
@@ -45,13 +49,13 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      */
     FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
     /**
+     * Component to customize the ScreenShareOverlay.
+     */
+    ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
+    /**
      * Enable HTTP live streaming
      */
     hls?: boolean;
-    /**
-     * Boolean that decides whether the screen sharing overlay should be shown or not.
-     */
-    showScreenShareOverlay?: boolean;
   };
 
 const hasVideoTrack = (p?: StreamVideoParticipant) =>
@@ -65,6 +69,7 @@ export const HostLivestream = ({
   HostLivestreamControls = DefaultHostLivestreamControls,
   LivestreamLayout = DefaultLivestreamLayout,
   FloatingParticipantView = DefaultFloatingParticipantView,
+  ScreenShareOverlay = DefaultScreenShaerOverlay,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
@@ -73,7 +78,6 @@ export const HostLivestream = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
-  showScreenShareOverlay = true,
 }: HostLivestreamProps) => {
   const {
     theme: { colors, hostLivestream },
@@ -139,7 +143,7 @@ export const HostLivestream = ({
           />
         )}
       {LivestreamLayout && (
-        <LivestreamLayout showScreenShareOverlay={showScreenShareOverlay} />
+        <LivestreamLayout ScreenShareOverlay={ScreenShareOverlay} />
       )}
       {HostLivestreamControls && (
         <HostLivestreamControls

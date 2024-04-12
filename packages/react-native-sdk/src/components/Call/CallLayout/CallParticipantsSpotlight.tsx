@@ -19,23 +19,21 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks';
-import { ScreenShareOverlay } from '../../utility/ScreenShareOverlay';
 
 /**
  * Props for the CallParticipantsSpotlight component.
  */
 export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
-  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
+  Pick<
+    CallContentProps,
+    'supportedReactions' | 'CallParticipantsList' | 'ScreenShareOverlay'
+  > &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Check if device is in landscape mode.
      * This will apply the landscape mode styles to the component.
      */
     landscape?: boolean;
-    /**
-     * Boolean that decides whether the screen sharing overlay should be shown or not.
-     */
-    showScreenShareOverlay?: boolean;
   };
 
 const hasScreenShare = (p: StreamVideoParticipant | undefined) =>
@@ -52,10 +50,10 @@ export const CallParticipantsSpotlight = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
+  ScreenShareOverlay,
   VideoRenderer,
   supportedReactions,
   landscape,
-  showScreenShareOverlay,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { colors, callParticipantsSpotlight },
@@ -106,7 +104,7 @@ export const CallParticipantsSpotlight = ({
     >
       {participantInSpotlight &&
         ParticipantView &&
-        (showScreenShareOverlay ? (
+        (ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <ParticipantView

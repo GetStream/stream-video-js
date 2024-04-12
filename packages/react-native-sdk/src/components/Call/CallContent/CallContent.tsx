@@ -33,6 +33,10 @@ import {
   CallParticipantsListProps,
 } from '../CallParticipantsList';
 import { useIsInPiPMode, useAutoEnterPiPEffect } from '../../../hooks';
+import {
+  ScreenShareOverlay as DefaultScreenShareOverlay,
+  ScreenShareOverlayProps,
+} from '../../utility/ScreenShareOverlay';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -56,6 +60,10 @@ type CallContentComponentProps = ParticipantViewComponentProps &
      * Component to customize the CallParticipantsList.
      */
     CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+    /**
+     * Component to customize the ScreenShareOverlay.
+     */
+    ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
   };
 
 export type CallContentProps = Pick<
@@ -80,10 +88,6 @@ export type CallContentProps = Pick<
      * This will apply the landscape mode styles to the component.
      */
     landscape?: boolean;
-    /**
-     * Boolean that decides whether the screen sharing overlay should be shown or not.
-     */
-    showScreenShareOverlay?: boolean;
   };
 
 export const CallContent = ({
@@ -94,6 +98,7 @@ export const CallContent = ({
   CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
+  ScreenShareOverlay = DefaultScreenShareOverlay,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -104,7 +109,6 @@ export const CallContent = ({
   layout = 'grid',
   landscape = false,
   supportedReactions,
-  showScreenShareOverlay = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -182,6 +186,7 @@ export const CallContent = ({
     landscape,
     ParticipantView,
     CallParticipantsList,
+    ScreenShareOverlay,
     supportedReactions,
   };
 
@@ -219,10 +224,7 @@ export const CallContent = ({
           )}
         </View>
         {showSpotlightLayout ? (
-          <CallParticipantsSpotlight
-            showScreenShareOverlay={showScreenShareOverlay}
-            {...callParticipantsSpotlightProps}
-          />
+          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
         ) : (
           <CallParticipantsGrid {...callParticipantsGridProps} />
         )}
