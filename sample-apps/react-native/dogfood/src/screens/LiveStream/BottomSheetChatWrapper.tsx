@@ -16,12 +16,12 @@ import {
   useBottomSheetInternal,
 } from '@gorhom/bottom-sheet';
 import {
-  Dimensions,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appTheme } from '../../theme';
@@ -94,12 +94,18 @@ const BottomSheetChatWrapper = React.forwardRef<
   Props
 >((props, ref) => {
   const { onBottomSheetClose, onBottomSheetOpen, callId, children } = props;
-  const { height: windowHeight } = Dimensions.get('window');
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const safeAreaInsets = patchSafeAreaInsets(useSafeAreaInsets());
   const { client: chatClient } = useChatContext();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const snapPoints = useMemo(() => ['50%'], []);
+  const snapPoints = useMemo(() => {
+    if (windowHeight >= windowWidth) {
+      return ['50%'];
+    } else {
+      return ['75%'];
+    }
+  }, [windowHeight, windowWidth]);
   const sheetHeight = windowHeight - safeAreaInsets.top - safeAreaInsets.bottom;
   const currentPosition = useSharedValue(sheetHeight);
 
@@ -122,13 +128,22 @@ const BottomSheetChatWrapper = React.forwardRef<
     [currentPosition, sheetHeight, onBottomSheetClose, onBottomSheetOpen],
   );
 
+  // on portrait and landscape mode switch, close the bottom sheet if it was open
+  useEffect(() => {
+    bottomSheetModalRef.current?.forceClose();
+    setTimeout(() => {
+      // also reset the height, small delay added to wait for close to happen
+      currentPosition.value = withTiming(sheetHeight);
+    }, 1000);
+  }, [currentPosition, sheetHeight]);
+
   const chatChannel = useMemo(() => {
     return chatClient.channel('livestream', callId);
   }, [callId, chatClient]);
 
   // This function is to bring back the bottom sheet to the initial snap point for iOS when the focus is outside message input
   const focusOutsideMessageInput = () => {
-    bottomSheetModalRef.current?.snapToPosition('50%');
+    bottomSheetModalRef.current?.snapToIndex(0);
   };
 
   useImperativeHandle(ref, () => ({

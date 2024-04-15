@@ -58,7 +58,14 @@ export const HostLiveStreamScreen = ({
             members: [{ user_id: connectedUser.id, role: 'host' }],
           },
         });
-        await call?.getOrCreate();
+        const rtmp = call?.state.ingress?.rtmp;
+        const streamKey = call?.streamClient?._getToken();
+        console.log(
+          `For RTMP, Open OBS and go to settings -> stream
+        Select "custom" service, Fill the following values,
+        * Server: ${rtmp?.address},
+        * Stream key: ${streamKey}`,
+        );
       } catch (error) {
         console.error('Failed to get or create call', error);
       }

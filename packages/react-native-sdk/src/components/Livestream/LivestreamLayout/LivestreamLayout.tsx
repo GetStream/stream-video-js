@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, ViewStyle } from 'react-native';
@@ -9,6 +9,7 @@ import {
   VideoRendererProps,
 } from '../../Participant';
 import { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
+import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 /**
  * Props for the LivestreamLayout component.
@@ -53,6 +54,23 @@ export const LivestreamLayout = ({
 
   usePaginatedLayoutSortPreset(call);
 
+  const [objectFit, setObjectFit] =
+    useState<
+      React.ComponentProps<NonNullable<typeof VideoRenderer>>['objectFit']
+    >();
+
+  // no need to pass object fit for local participant as the dimensions are for remote tracks
+  const objectFitToBeSet = currentSpeaker?.isLocalParticipant
+    ? undefined
+    : objectFit;
+
+  const onDimensionsChange = useCallback((d: VideoDimension | undefined) => {
+    if (d) {
+      const isWidthWide = d.width > d.height;
+      setObjectFit(isWidthWide ? 'contain' : 'cover');
+    }
+  }, []);
+
   const landScapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
@@ -66,6 +84,9 @@ export const LivestreamLayout = ({
         livestreamLayout.container,
       ]}
     >
+      <RemoteVideoTrackDimensionsRenderLessComponent
+        onDimensionsChange={onDimensionsChange}
+      />
       {VideoRenderer &&
         hasOngoingScreenShare &&
         presenter &&
@@ -75,10 +96,38 @@ export const LivestreamLayout = ({
           <VideoRenderer trackType="screenShareTrack" participant={presenter} />
         ))}
       {VideoRenderer && !hasOngoingScreenShare && currentSpeaker && (
-        <VideoRenderer participant={currentSpeaker} trackType="videoTrack" />
+        <VideoRenderer
+          participant={currentSpeaker}
+          objectFit={objectFitToBeSet}
+          trackType="videoTrack"
+        />
       )}
     </View>
   );
+};
+
+const RemoteVideoTrackDimensionsRenderLessComponent = ({
+  onDimensionsChange,
+}: {
+  onDimensionsChange: (d: VideoDimension | undefined) => void;
+}) => {
+  const [dimension, setDimension] = useState<VideoDimension>();
+  const { useCallStatsReport } = useCallStateHooks();
+  const statsReport = useCallStatsReport();
+  const highestFrameHeight = statsReport?.subscriberStats?.highestFrameHeight;
+  const highestFrameWidth = statsReport?.subscriberStats?.highestFrameWidth;
+
+  useEffect(() => {
+    if (highestFrameHeight && highestFrameWidth) {
+      setDimension({ height: highestFrameHeight, width: highestFrameWidth });
+    }
+  }, [highestFrameHeight, highestFrameWidth]);
+
+  useEffect(() => {
+    onDimensionsChange(dimension);
+  }, [dimension, onDimensionsChange]);
+
+  return null;
 };
 
 const styles = StyleSheet.create({
