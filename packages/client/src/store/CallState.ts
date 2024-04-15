@@ -455,6 +455,14 @@ export class CallState {
       'call.unblocked_user': this.unblockUser,
       'call.updated': (e) => this.updateFromCallResponse(e.call),
       'call.deleted': undefined,
+      'user.banned': undefined,
+      'user.deactivated': undefined,
+      'user.deleted': undefined,
+      'user.muted': undefined,
+      'user.presence.changed': undefined,
+      'user.reactivated': undefined,
+      'user.unbanned': undefined,
+      'user.updated': undefined,
     };
   }
 

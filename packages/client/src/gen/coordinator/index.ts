@@ -199,6 +199,37 @@ export interface BackstageSettingsRequest {
 /**
  *
  * @export
+ * @interface BlockListOptions
+ */
+export interface BlockListOptions {
+  /**
+   *
+   * @type {string}
+   * @memberof BlockListOptions
+   */
+  behavior: BlockListOptionsBehaviorEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof BlockListOptions
+   */
+  blocklist: string;
+}
+
+/**
+ * @export
+ */
+export const BlockListOptionsBehaviorEnum = {
+  FLAG: 'flag',
+  BLOCK: 'block',
+  SHADOW_BLOCK: 'shadow_block',
+} as const;
+export type BlockListOptionsBehaviorEnum =
+  (typeof BlockListOptionsBehaviorEnum)[keyof typeof BlockListOptionsBehaviorEnum];
+
+/**
+ *
+ * @export
  * @interface BlockUserRequest
  */
 export interface BlockUserRequest {
@@ -473,6 +504,7 @@ export interface CallEndedEvent {
   user?: UserResponse;
 }
 /**
+ *
  * @export
  * @interface CallEvent
  */
@@ -1630,6 +1662,12 @@ export interface CallSettingsResponse {
 export interface CallStateResponseFields {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof CallStateResponseFields
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof CallStateResponseFields
    */
@@ -1654,17 +1692,11 @@ export interface CallStateResponseFields {
   own_capabilities: Array<OwnCapability>;
 }
 /**
- * CallTranscription represents a transcription of a call.
+ *
  * @export
  * @interface CallStatsReportSummaryResponse
  */
 export interface CallStatsReportSummaryResponse {
-  /**
-   *
-   * @type {number}
-   * @memberof CallStatsReportSummaryResponse
-   */
-  app_pk: number;
   /**
    *
    * @type {string}
@@ -1841,144 +1873,6 @@ export interface CallTranscriptionStoppedEvent {
   type: string;
 }
 /**
- *
- * @export
- * @interface CallTypeResponse
- * @interface CallTranscription
- */
-export interface CallTranscription {
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscription
-   */
-  end_time: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscription
-   */
-  filename: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscription
-   */
-  start_time: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscription
-   */
-  url: string;
-}
-/**
- * This event is sent when call transcription has failed
- * @export
- * @interface CallTranscriptionFailedEvent
- */
-export interface CallTranscriptionFailedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionFailedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionFailedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.transcription_failed" in this case
-   * @type {string}
-   * @memberof CallTranscriptionFailedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call transcription is ready
- * @export
- * @interface CallTranscriptionReadyEvent
- */
-export interface CallTranscriptionReadyEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionReadyEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {CallTranscription}
-   * @memberof CallTranscriptionReadyEvent
-   */
-  call_transcription: CallTranscription;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionReadyEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.transcription_ready" in this case
-   * @type {string}
-   * @memberof CallTranscriptionReadyEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call transcription has started
- * @export
- * @interface CallTranscriptionStartedEvent
- */
-export interface CallTranscriptionStartedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionStartedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionStartedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.transcription_started" in this case
-   * @type {string}
-   * @memberof CallTranscriptionStartedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call transcription has stopped
- * @export
- * @interface CallTranscriptionStoppedEvent
- */
-export interface CallTranscriptionStoppedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionStoppedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallTranscriptionStoppedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.transcription_stopped" in this case
-   * @type {string}
-   * @memberof CallTranscriptionStoppedEvent
-   */
-  type: string;
-}
-/**
  * This event is sent when a call is updated, clients should use this update the local state of the call.
  * This event also contains the capabilities by role for the call, clients should update the own_capability for the current.
  * @export
@@ -2019,39 +1913,533 @@ export interface CallUpdatedEvent {
 /**
  * This event is sent when a call member is muted
  * @export
- * @interface CallUserMuted
+ * @interface CallUserMutedEvent
  */
-export interface CallUserMuted {
+export interface CallUserMutedEvent {
   /**
    *
    * @type {string}
-   * @memberof CallUserMuted
+   * @memberof CallUserMutedEvent
    */
   call_cid: string;
   /**
    *
    * @type {string}
-   * @memberof CallUserMuted
+   * @memberof CallUserMutedEvent
    */
   created_at: string;
   /**
    *
    * @type {string}
-   * @memberof CallUserMuted
+   * @memberof CallUserMutedEvent
    */
   from_user_id: string;
   /**
    *
    * @type {Array<string>}
-   * @memberof CallUserMuted
+   * @memberof CallUserMutedEvent
    */
   muted_user_ids: Array<string>;
   /**
    * The type of event: "call.user_muted" in this case
    * @type {string}
-   * @memberof CallUserMuted
+   * @memberof CallUserMutedEvent
    */
   type: string;
+}
+/**
+ *
+ * @export
+ * @interface ChannelConfigWithInfo
+ */
+export interface ChannelConfigWithInfo {
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ChannelConfigWithInfo
+   */
+  allowed_flag_reasons?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  automod: ChannelConfigWithInfoAutomodEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  automod_behavior: ChannelConfigWithInfoAutomodBehaviorEnum;
+  /**
+   *
+   * @type {Thresholds}
+   * @memberof ChannelConfigWithInfo
+   */
+  automod_thresholds?: Thresholds;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  blocklist?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  blocklist_behavior?: ChannelConfigWithInfoBlocklistBehaviorEnum;
+  /**
+   *
+   * @type {Array<BlockListOptions>}
+   * @memberof ChannelConfigWithInfo
+   */
+  blocklists?: Array<BlockListOptions>;
+  /**
+   *
+   * @type {Array<Command>}
+   * @memberof ChannelConfigWithInfo
+   */
+  commands: Array<Command>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  connect_events: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  created_at: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  custom_events: boolean;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof ChannelConfigWithInfo
+   */
+  grants?: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  mark_messages_pending: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof ChannelConfigWithInfo
+   */
+  max_message_length: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  mutes: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  name: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  polls: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  push_notifications: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  quotes: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  reactions: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  read_events: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  reminders: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  replies: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  search: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  typing_events: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelConfigWithInfo
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  uploads: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelConfigWithInfo
+   */
+  url_enrichment: boolean;
+}
+
+/**
+ * @export
+ */
+export const ChannelConfigWithInfoAutomodEnum = {
+  DISABLED: 'disabled',
+  SIMPLE: 'simple',
+  AI: 'AI',
+} as const;
+export type ChannelConfigWithInfoAutomodEnum =
+  (typeof ChannelConfigWithInfoAutomodEnum)[keyof typeof ChannelConfigWithInfoAutomodEnum];
+
+/**
+ * @export
+ */
+export const ChannelConfigWithInfoAutomodBehaviorEnum = {
+  FLAG: 'flag',
+  BLOCK: 'block',
+  SHADOW_BLOCK: 'shadow_block',
+} as const;
+export type ChannelConfigWithInfoAutomodBehaviorEnum =
+  (typeof ChannelConfigWithInfoAutomodBehaviorEnum)[keyof typeof ChannelConfigWithInfoAutomodBehaviorEnum];
+
+/**
+ * @export
+ */
+export const ChannelConfigWithInfoBlocklistBehaviorEnum = {
+  FLAG: 'flag',
+  BLOCK: 'block',
+  SHADOW_BLOCK: 'shadow_block',
+} as const;
+export type ChannelConfigWithInfoBlocklistBehaviorEnum =
+  (typeof ChannelConfigWithInfoBlocklistBehaviorEnum)[keyof typeof ChannelConfigWithInfoBlocklistBehaviorEnum];
+
+/**
+ *
+ * @export
+ * @interface ChannelMember
+ */
+export interface ChannelMember {
+  /**
+   * Expiration date of the ban
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  ban_expires?: string;
+  /**
+   * Whether member is banned this channel or not
+   * @type {boolean}
+   * @memberof ChannelMember
+   */
+  banned: boolean;
+  /**
+   * Role of the member in the channel
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  channel_role: string;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  deleted_at?: string;
+  /**
+   * Date when invite was accepted
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  invite_accepted_at?: string;
+  /**
+   * Date when invite was rejected
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  invite_rejected_at?: string;
+  /**
+   * Whether member was invited or not
+   * @type {boolean}
+   * @memberof ChannelMember
+   */
+  invited?: boolean;
+  /**
+   * Whether member is channel moderator or not
+   * @type {boolean}
+   * @memberof ChannelMember
+   */
+  is_moderator?: boolean;
+  /**
+   * Whether member is shadow banned in this channel or not
+   * @type {boolean}
+   * @memberof ChannelMember
+   */
+  shadow_banned: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  status?: string;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof ChannelMember
+   */
+  user?: UserObject;
+  /**
+   *
+   * @type {string}
+   * @memberof ChannelMember
+   */
+  user_id?: string;
+}
+/**
+ *
+ * @export
+ * @interface ChannelMute
+ */
+export interface ChannelMute {
+  /**
+   *
+   * @type {ChannelResponse}
+   * @memberof ChannelMute
+   */
+  channel?: ChannelResponse;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof ChannelMute
+   */
+  created_at: string;
+  /**
+   * Date/time of mute expiration
+   * @type {string}
+   * @memberof ChannelMute
+   */
+  expires?: string;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof ChannelMute
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof ChannelMute
+   */
+  user?: UserObject;
+}
+/**
+ * Represents channel in chat
+ * @export
+ * @interface ChannelResponse
+ */
+export interface ChannelResponse {
+  /**
+   * Whether auto translation is enabled or not
+   * @type {boolean}
+   * @memberof ChannelResponse
+   */
+  auto_translation_enabled?: boolean;
+  /**
+   * Language to translate to when auto translation is active
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  auto_translation_language?: string;
+  /**
+   * Channel CID (<type>:<id>)
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  cid: string;
+  /**
+   *
+   * @type {ChannelConfigWithInfo}
+   * @memberof ChannelResponse
+   */
+  config?: ChannelConfigWithInfo;
+  /**
+   * Cooldown period after sending each message
+   * @type {number}
+   * @memberof ChannelResponse
+   */
+  cooldown?: number;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof ChannelResponse
+   */
+  created_by?: UserObject;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof ChannelResponse
+   */
+  custom: { [key: string]: any };
+  /**
+   * Date/time of deletion
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelResponse
+   */
+  disabled: boolean;
+  /**
+   * Whether channel is frozen or not
+   * @type {boolean}
+   * @memberof ChannelResponse
+   */
+  frozen: boolean;
+  /**
+   * Whether this channel is hidden by current user or not
+   * @type {boolean}
+   * @memberof ChannelResponse
+   */
+  hidden?: boolean;
+  /**
+   * Date since when the message history is accessible
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  hide_messages_before?: string;
+  /**
+   * Channel unique ID
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  id: string;
+  /**
+   * Date of the last message sent
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  last_message_at?: string;
+  /**
+   * Number of members in the channel
+   * @type {number}
+   * @memberof ChannelResponse
+   */
+  member_count?: number;
+  /**
+   * List of channel members (max 100)
+   * @type {Array<ChannelMember>}
+   * @memberof ChannelResponse
+   */
+  members?: Array<ChannelMember>;
+  /**
+   * Date of mute expiration
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  mute_expires_at?: string;
+  /**
+   * Whether this channel is muted or not
+   * @type {boolean}
+   * @memberof ChannelResponse
+   */
+  muted?: boolean;
+  /**
+   * List of channel capabilities of authenticated user
+   * @type {Array<string>}
+   * @memberof ChannelResponse
+   */
+  own_capabilities?: Array<string>;
+  /**
+   * Team the channel belongs to (multi-tenant only)
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  team?: string;
+  /**
+   * Date of the latest truncation of the channel
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  truncated_at?: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof ChannelResponse
+   */
+  truncated_by?: UserObject;
+  /**
+   * Type of the channel
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  type: string;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof ChannelResponse
+   */
+  updated_at: string;
 }
 /**
  * This event is sent when closed captions are being sent in a call, clients should use this to show the closed captions in the call screen
@@ -2084,7 +2472,6 @@ export interface ClosedCaptionEvent {
    */
   type: string;
 }
-
 /**
  *
  * @export
@@ -2093,16 +2480,16 @@ export interface ClosedCaptionEvent {
 export interface CollectUserFeedbackRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key: string]: any; }}
    * @memberof CollectUserFeedbackRequest
    */
-  custom?: { [key:string]: any };
+  custom?: { [key: string]: any };
   /**
    *
    * @type {number}
    * @memberof CollectUserFeedbackRequest
    */
-  rating?: number;
+  rating: number;
   /**
    *
    * @type {string}
@@ -2141,7 +2528,49 @@ export interface CollectUserFeedbackResponse {
    */
   duration: string;
 }
-
+/**
+ * Represents custom chat command
+ * @export
+ * @interface Command
+ */
+export interface Command {
+  /**
+   * Arguments help text, shown in commands auto-completion
+   * @type {string}
+   * @memberof Command
+   */
+  args: string;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof Command
+   */
+  readonly created_at?: string;
+  /**
+   * Description, shown in commands auto-completion
+   * @type {string}
+   * @memberof Command
+   */
+  description: string;
+  /**
+   * Unique command name
+   * @type {string}
+   * @memberof Command
+   */
+  name: string;
+  /**
+   * Set name used for grouping commands
+   * @type {string}
+   * @memberof Command
+   */
+  set: string;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof Command
+   */
+  readonly updated_at?: string;
+}
 /**
  *
  * @export
@@ -2166,6 +2595,12 @@ export interface ConnectUserDetailsRequest {
    * @memberof ConnectUserDetailsRequest
    */
   image?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ConnectUserDetailsRequest
+   */
+  invisible?: boolean;
   /**
    *
    * @type {string}
@@ -2260,7 +2695,6 @@ export interface Coordinates {
    */
   longitude: number;
 }
-
 /**
  *
  * @export
@@ -2272,13 +2706,13 @@ export interface CreateDeviceRequest {
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  push_provider?: CreateDeviceRequestPushProviderEnum;
+  push_provider: CreateDeviceRequestPushProviderEnum;
   /**
    *
    * @type {string}
@@ -2368,8 +2802,11 @@ export interface Credentials {
    */
   token: string;
 }
-
-// Manually added because API spec is faulty
+/**
+ * A custom event, this event is used to send custom events to other participants in the call.
+ * @export
+ * @interface CustomVideoEvent
+ */
 export interface CustomVideoEvent {
   /**
    *
@@ -2402,7 +2839,6 @@ export interface CustomVideoEvent {
    */
   user: UserResponse;
 }
-
 /**
  *
  * @export
@@ -2629,6 +3065,12 @@ export interface GeofenceSettingsRequest {
 export interface GetCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof GetCallResponse
    */
@@ -2743,7 +3185,6 @@ export interface GetCallStatsResponse {
    */
   total_quality_limitation_duration: number;
 }
-
 /**
  *
  * @export
@@ -2800,6 +3241,12 @@ export interface GetOrCreateCallRequest {
  * @interface GetOrCreateCallResponse
  */
 export interface GetOrCreateCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof GetOrCreateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -2893,34 +3340,6 @@ export interface GoLiveResponse {
    */
   duration: string;
 }
-
-// Manually added because API spec is faulty
-/**
- *
- * @export
- * @interface HealthCheckEvent
- */
-export interface HealthCheckEvent {
-  /**
-   * The connection_id for this client
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  connection_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "health.check" in this case
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  type: string;
-}
-
 /**
  *
  * @export
@@ -2944,7 +3363,7 @@ export interface HLSSettingsRequest {
    * @type {Array<string>}
    * @memberof HLSSettingsRequest
    */
-  quality_tracks?: Array<string>;
+  quality_tracks: Array<string>;
 }
 /**
  *
@@ -2970,6 +3389,43 @@ export interface HLSSettingsResponse {
    * @memberof HLSSettingsResponse
    */
   quality_tracks: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface HealthCheckEvent
+ */
+export interface HealthCheckEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {OwnUser}
+   * @memberof HealthCheckEvent
+   */
+  me?: OwnUser;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  type: string;
 }
 /**
  *
@@ -3053,6 +3509,12 @@ export interface JoinCallRequest {
 export interface JoinCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof JoinCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof JoinCallResponse
    */
@@ -3099,6 +3561,25 @@ export interface JoinCallResponse {
    * @memberof JoinCallResponse
    */
   stats_options: StatsOptions;
+}
+/**
+ *
+ * @export
+ * @interface LabelThresholds
+ */
+export interface LabelThresholds {
+  /**
+   * Threshold for automatic message block
+   * @type {number}
+   * @memberof LabelThresholds
+   */
+  block?: number;
+  /**
+   * Threshold for automatic message flag
+   * @type {number}
+   * @memberof LabelThresholds
+   */
+  flag?: number;
 }
 /**
  *
@@ -3348,9 +3829,160 @@ export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
 /**
  *
  * @export
+ * @interface OwnUser
+ */
+export interface OwnUser {
+  /**
+   *
+   * @type {boolean}
+   * @memberof OwnUser
+   */
+  banned: boolean;
+  /**
+   *
+   * @type {Array<ChannelMute>}
+   * @memberof OwnUser
+   */
+  channel_mutes: Array<ChannelMute>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof OwnUser
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  deactivated_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {Array<Device>}
+   * @memberof OwnUser
+   */
+  devices: Array<Device>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  id: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof OwnUser
+   */
+  invisible?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  language: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  last_active?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof OwnUser
+   */
+  latest_hidden_channels?: Array<string>;
+  /**
+   *
+   * @type {Array<UserMute>}
+   * @memberof OwnUser
+   */
+  mutes: Array<UserMute>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof OwnUser
+   */
+  online: boolean;
+  /**
+   *
+   * @type {PushNotificationSettings}
+   * @memberof OwnUser
+   */
+  push_notifications?: PushNotificationSettings;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  role: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof OwnUser
+   */
+  teams?: Array<string>;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUser
+   */
+  total_unread_count: number;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUser
+   */
+  unread_channels: number;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUser
+   */
+  unread_count: number;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUser
+   */
+  unread_threads: number;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUser
+   */
+  updated_at: string;
+}
+/**
+ *
+ * @export
  * @interface OwnUserResponse
  */
 export interface OwnUserResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof OwnUserResponse
+   */
+  banned: boolean;
+  /**
+   *
+   * @type {Array<ChannelMute>}
+   * @memberof OwnUserResponse
+   */
+  channel_mutes: Array<ChannelMute>;
   /**
    *
    * @type {string}
@@ -3363,6 +3995,12 @@ export interface OwnUserResponse {
    * @memberof OwnUserResponse
    */
   custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  deactivated_at?: string;
   /**
    *
    * @type {string}
@@ -3389,6 +4027,12 @@ export interface OwnUserResponse {
   image?: string;
   /**
    *
+   * @type {boolean}
+   * @memberof OwnUserResponse
+   */
+  invisible?: boolean;
+  /**
+   *
    * @type {string}
    * @memberof OwnUserResponse
    */
@@ -3398,7 +4042,43 @@ export interface OwnUserResponse {
    * @type {string}
    * @memberof OwnUserResponse
    */
+  last_active?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof OwnUserResponse
+   */
+  latest_hidden_channels?: Array<string>;
+  /**
+   *
+   * @type {Array<UserMute>}
+   * @memberof OwnUserResponse
+   */
+  mutes: Array<UserMute>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
   name?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof OwnUserResponse
+   */
+  online: boolean;
+  /**
+   *
+   * @type {PushNotificationSettings}
+   * @memberof OwnUserResponse
+   */
+  push_notifications?: PushNotificationSettings;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  revoke_tokens_issued_before?: string;
   /**
    *
    * @type {string}
@@ -3411,6 +4091,24 @@ export interface OwnUserResponse {
    * @memberof OwnUserResponse
    */
   teams: Array<string>;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUserResponse
+   */
+  total_unread_count: number;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUserResponse
+   */
+  unread_channels: number;
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUserResponse
+   */
+  unread_threads: number;
   /**
    *
    * @type {string}
@@ -3487,6 +4185,25 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface PushNotificationSettings
+ */
+export interface PushNotificationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PushNotificationSettings
+   */
+  disabled?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof PushNotificationSettings
+   */
+  disabled_until?: string;
 }
 /**
  *
@@ -3911,13 +4628,13 @@ export interface RingSettingsRequest {
    * @type {number}
    * @memberof RingSettingsRequest
    */
-  auto_cancel_timeout_ms?: number;
+  auto_cancel_timeout_ms: number;
   /**
    *
    * @type {number}
    * @memberof RingSettingsRequest
    */
-  incoming_call_timeout_ms?: number;
+  incoming_call_timeout_ms: number;
 }
 /**
  *
@@ -4305,13 +5022,38 @@ export interface TargetResolutionRequest {
    * @type {number}
    * @memberof TargetResolutionRequest
    */
-  height?: number;
+  height: number;
   /**
    *
    * @type {number}
    * @memberof TargetResolutionRequest
    */
-  width?: number;
+  width: number;
+}
+/**
+ * Sets thresholds for AI moderation
+ * @export
+ * @interface Thresholds
+ */
+export interface Thresholds {
+  /**
+   *
+   * @type {LabelThresholds}
+   * @memberof Thresholds
+   */
+  explicit?: LabelThresholds;
+  /**
+   *
+   * @type {LabelThresholds}
+   * @memberof Thresholds
+   */
+  spam?: LabelThresholds;
+  /**
+   *
+   * @type {LabelThresholds}
+   * @memberof Thresholds
+   */
+  toxic?: LabelThresholds;
 }
 /**
  *
@@ -4364,14 +5106,10 @@ export interface TranscriptionSettings {
    * @memberof TranscriptionSettings
    */
   closed_caption_mode: string;
-  /**
-   * omitempty,max=2,dive,oneof= en, fr, es, de, it, nl, pt, pl, ca, cs, da, el, fi, id, ja, ru, sv, ta, th, tr, hu, ro, zh, ar, tl, he, hi, hr, ko, ms, no, uk
-   * @type {Array<string>}
-   * @memberof TranscriptionSettings
-   */
+  // added manually
   languages: Array<string>;
   /**
-   * oneof=available disabled auto-on
+   *
    * @type {string}
    * @memberof TranscriptionSettings
    */
@@ -4401,18 +5139,14 @@ export interface TranscriptionSettingsRequest {
    * @memberof TranscriptionSettingsRequest
    */
   closed_caption_mode?: string;
+  // added manually
+  languages: Array<string>;
   /**
-   * omitempty,max=2,dive,oneof= en, fr, es, de, it, nl, pt, pl, ca, cs, da, el, fi, id, ja, ru, sv, ta, th, tr, hu, ro, zh, ar, tl, he, hi, hr, ko, ms, no, uk
-   * @type {Array<string>}
-   * @memberof TranscriptionSettingsRequest
-   */
-  languages?: Array<string>;
-  /**
-   * oneof=available disabled auto-on
+   *
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  mode?: TranscriptionSettingsRequestModeEnum;
+  mode: TranscriptionSettingsRequestModeEnum;
 }
 
 /**
@@ -4587,6 +5321,12 @@ export interface UpdateCallRequest {
 export interface UpdateCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof UpdateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof UpdateCallResponse
    */
@@ -4694,6 +5434,153 @@ export interface UpdatedCallPermissionsEvent {
 /**
  *
  * @export
+ * @interface UserBannedEvent
+ */
+export interface UserBannedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  channel_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  channel_type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserBannedEvent
+   */
+  created_by: UserObject;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  expiration?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  reason?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserBannedEvent
+   */
+  shadow: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  team?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserBannedEvent
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
+ * @interface UserDeactivatedEvent
+ */
+export interface UserDeactivatedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserDeactivatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserDeactivatedEvent
+   */
+  created_by: UserObject;
+  /**
+   *
+   * @type {string}
+   * @memberof UserDeactivatedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserDeactivatedEvent
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
+ * @interface UserDeletedEvent
+ */
+export interface UserDeletedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserDeletedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserDeletedEvent
+   */
+  delete_conversation_channels: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserDeletedEvent
+   */
+  hard_delete: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserDeletedEvent
+   */
+  mark_messages_deleted: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UserDeletedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserDeletedEvent
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
  * @interface UserInfoResponse
  */
 export interface UserInfoResponse {
@@ -4721,6 +5608,233 @@ export interface UserInfoResponse {
    * @memberof UserInfoResponse
    */
   roles: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface UserMute
+ */
+export interface UserMute {
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof UserMute
+   */
+  created_at: string;
+  /**
+   * Date/time of mute expiration
+   * @type {string}
+   * @memberof UserMute
+   */
+  expires?: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserMute
+   */
+  target?: UserObject;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof UserMute
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserMute
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
+ * @interface UserMutedEvent
+ */
+export interface UserMutedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserMutedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserMutedEvent
+   */
+  target_user?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof UserMutedEvent
+   */
+  target_users?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof UserMutedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserMutedEvent
+   */
+  user?: UserObject;
+}
+/**
+ * Represents chat user
+ * @export
+ * @interface UserObject
+ */
+export interface UserObject {
+  /**
+   * Expiration date of the ban
+   * @type {string}
+   * @memberof UserObject
+   */
+  ban_expires?: string;
+  /**
+   * Whether a user is banned or not
+   * @type {boolean}
+   * @memberof UserObject
+   */
+  banned: boolean;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly created_at?: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof UserObject
+   */
+  custom: { [key: string]: any };
+  /**
+   * Date of deactivation
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly deactivated_at?: string;
+  /**
+   * Date/time of deletion
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly deleted_at?: string;
+  /**
+   * Unique user identifier
+   * @type {string}
+   * @memberof UserObject
+   */
+  id: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserObject
+   */
+  invisible?: boolean;
+  /**
+   * Preferred language of a user
+   * @type {string}
+   * @memberof UserObject
+   */
+  language?: string;
+  /**
+   * Date of last activity
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly last_active?: string;
+  /**
+   * Whether a user online or not
+   * @type {boolean}
+   * @memberof UserObject
+   */
+  readonly online: boolean;
+  /**
+   *
+   * @type {PushNotificationSettings}
+   * @memberof UserObject
+   */
+  push_notifications?: PushNotificationSettings;
+  /**
+   * Revocation date for tokens
+   * @type {string}
+   * @memberof UserObject
+   */
+  revoke_tokens_issued_before?: string;
+  /**
+   * Determines the set of user permissions
+   * @type {string}
+   * @memberof UserObject
+   */
+  role: string;
+  /**
+   * List of teams user is a part of
+   * @type {Array<string>}
+   * @memberof UserObject
+   */
+  teams?: Array<string>;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly updated_at?: string;
+}
+/**
+ *
+ * @export
+ * @interface UserPresenceChangedEvent
+ */
+export interface UserPresenceChangedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserPresenceChangedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserPresenceChangedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserPresenceChangedEvent
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
+ * @interface UserReactivatedEvent
+ */
+export interface UserReactivatedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserReactivatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserReactivatedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserReactivatedEvent
+   */
+  user?: UserObject;
 }
 /**
  *
@@ -4766,6 +5880,12 @@ export interface UserRequest {
  */
 export interface UserResponse {
   /**
+   *
+   * @type {boolean}
+   * @memberof UserResponse
+   */
+  banned: boolean;
+  /**
    * Date/time of creation
    * @type {string}
    * @memberof UserResponse
@@ -4777,6 +5897,12 @@ export interface UserResponse {
    * @memberof UserResponse
    */
   custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof UserResponse
+   */
+  deactivated_at?: string;
   /**
    * Date/time of deletion
    * @type {string}
@@ -4806,7 +5932,25 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
+  last_active?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserResponse
+   */
   name?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserResponse
+   */
+  online: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UserResponse
+   */
+  revoke_tokens_issued_before?: string;
   /**
    *
    * @type {string}
@@ -4826,8 +5970,8 @@ export interface UserResponse {
    */
   updated_at: string;
 }
-
 /**
+ *
  * @export
  * @interface UserSessionStats
  */
@@ -4911,6 +6055,86 @@ export interface UserStats {
    * @memberof UserStats
    */
   session_stats: { [key: string]: UserSessionStats };
+}
+/**
+ *
+ * @export
+ * @interface UserUnbannedEvent
+ */
+export interface UserUnbannedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserUnbannedEvent
+   */
+  channel_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUnbannedEvent
+   */
+  channel_type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUnbannedEvent
+   */
+  cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUnbannedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserUnbannedEvent
+   */
+  shadow: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUnbannedEvent
+   */
+  team?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUnbannedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserUnbannedEvent
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
+ * @interface UserUpdatedEvent
+ */
+export interface UserUpdatedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserUpdatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUpdatedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserUpdatedEvent
+   */
+  user?: UserObject;
 }
 /**
  *
@@ -5018,6 +6242,12 @@ export type VideoSettingsRequestCameraFacingEnum =
 export interface WSAuthMessageRequest {
   /**
    *
+   * @type {Array<string>}
+   * @memberof WSAuthMessageRequest
+   */
+  products?: Array<string>;
+  /**
+   *
    * @type {string}
    * @memberof WSAuthMessageRequest
    */
@@ -5079,8 +6309,16 @@ export type WSEvent =
   | ({ type: 'call.transcription_stopped' } & CallTranscriptionStoppedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
-  | ({ type: 'call.user_muted' } & CallUserMuted)
+  | ({ type: 'call.user_muted' } & CallUserMutedEvent)
   | ({ type: 'connection.error' } & ConnectionErrorEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)
+  | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent)
-  | ({ type: 'custom' } & CustomVideoEvent);
+  | ({ type: 'user.banned' } & UserBannedEvent)
+  | ({ type: 'user.deactivated' } & UserDeactivatedEvent)
+  | ({ type: 'user.deleted' } & UserDeletedEvent)
+  | ({ type: 'user.muted' } & UserMutedEvent)
+  | ({ type: 'user.presence.changed' } & UserPresenceChangedEvent)
+  | ({ type: 'user.reactivated' } & UserReactivatedEvent)
+  | ({ type: 'user.unbanned' } & UserUnbannedEvent)
+  | ({ type: 'user.updated' } & UserUpdatedEvent);
