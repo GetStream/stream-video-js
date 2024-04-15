@@ -20,12 +20,12 @@ import { SfuModels } from '@stream-io/video-client';
  */
 export type HostStartStreamButtonProps = {
   /**
-   * Handler to be called when the Start Stream button is pressed.
+   * Handler to be called after the Start Stream button is pressed.
    * @returns void
    */
   onStartStreamHandler?: () => void;
   /**
-   * Handler to be called when the End Stream button is pressed.
+   * Handler to be called after the End Stream button is pressed.
    * @returns void
    */
   onEndStreamHandler?: () => void;
@@ -68,10 +68,6 @@ export const HostStartStreamButton = ({
   const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
   const onStartStreamButtonPress = async () => {
-    if (onStartStreamHandler) {
-      onStartStreamHandler();
-      return;
-    }
     try {
       setIsAwaitingResponse(true);
       await call?.goLive();
@@ -79,16 +75,15 @@ export const HostStartStreamButton = ({
         await call?.startHLS();
       }
       setIsAwaitingResponse(false);
+      if (onStartStreamHandler) {
+        onStartStreamHandler();
+      }
     } catch (error) {
       console.error('Error starting livestream', error);
     }
   };
 
   const onEndStreamButtonPress = async () => {
-    if (onEndStreamHandler) {
-      onEndStreamHandler();
-      return;
-    }
     try {
       setIsAwaitingResponse(true);
       if (stopPublishedStreamsOnEndStream) {
@@ -102,6 +97,9 @@ export const HostStartStreamButton = ({
       }
 
       setIsAwaitingResponse(false);
+      if (onEndStreamHandler) {
+        onEndStreamHandler();
+      }
     } catch (error) {
       console.error('Error stopping livestream', error);
     }

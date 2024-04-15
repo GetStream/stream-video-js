@@ -25,7 +25,10 @@ type HostLiveStreamScreenProps = NativeStackScreenProps<
   'HostLiveStream'
 >;
 
-export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
+export const HostLiveStreamScreen = ({
+  navigation,
+  route,
+}: HostLiveStreamScreenProps) => {
   const [headerFooterHidden, setHeaderFooterHidden] = useState(false);
   const videoClient = useStreamVideoClient();
 
@@ -62,7 +65,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
     };
 
     getOrCreateCall();
-  }, [call, connectedUser]);
+  }, [call, connectedUser, navigation]);
 
   const CustomHostLivestreamMediaControls = useCallback(() => {
     return (
@@ -98,6 +101,10 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
         <HostLivestream
           HostLivestreamTopView={headerFooterHidden ? null : undefined}
           LivestreamMediaControls={CustomHostLivestreamMediaControls}
+          onEndStreamHandler={() => {
+            call.leave();
+            navigation.goBack();
+          }}
         />
       </BottomSheetChatWrapper>
     </StreamCall>
