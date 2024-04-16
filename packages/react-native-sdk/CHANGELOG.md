@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.2...@stream-io/video-react-native-sdk-0.6.3) (2024-04-16)
+
+
+### Features
+
+* **react-native:** add screen share and chat to livestream sample ([#1302](https://github.com/GetStream/stream-video-js/issues/1302)) ([4e7dbe0](https://github.com/GetStream/stream-video-js/commit/4e7dbe0bcbf8ea0e36a05241f1caf3eb9747a760))
+
 ### [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.1...@stream-io/video-react-native-sdk-0.6.2) (2024-04-12)
 
 
