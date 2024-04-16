@@ -4,14 +4,12 @@ import mockParticipant from '../mocks/participant';
 import { ButtonTestIds, ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
-import {
-  CallControls,
-  ChatButton,
-  HangUpCallButton,
-  ReactionsButton,
-} from '../../src/components';
 import { OwnCapability } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../../src/constants';
+import { CallControls } from '../../src/components/Call/CallControls/CallControls';
+import { ChatButton } from '../../src/components/Call/CallControls/ChatButton';
+import { HangUpCallButton } from '../../src/components/Call/CallControls/HangupCallButton';
+import { ReactionsButton } from '../../src/components/Call/CallControls/ReactionsButton';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
