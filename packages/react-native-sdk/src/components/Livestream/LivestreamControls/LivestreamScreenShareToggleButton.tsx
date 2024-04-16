@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useTheme } from '../../../contexts';
+import { useTheme } from '../../../contexts/ThemeContext';
 import {
   NativeModules,
   Platform,
@@ -8,7 +8,8 @@ import {
   View,
   findNodeHandle,
 } from 'react-native';
-import { ScreenShare, StopScreenShare } from '../../../icons';
+import { ScreenShare } from '../../../icons/ScreenShare';
+import { StopScreenShare } from '../../../icons/StopScreenShare';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
 import { SfuModels } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
