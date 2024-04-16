@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.4...@stream-io/video-react-sdk-0.6.5) (2024-04-16)
+
+
+### Bug Fixes
+
+* **CallStats:** update wording in the call stats component ([536b740](https://github.com/GetStream/stream-video-js/commit/536b740f6aaba8d0b2be125d2185bc139831f917))
+
 ### [0.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.3...@stream-io/video-react-sdk-0.6.4) (2024-04-16)
 
 ### Dependency Updates
