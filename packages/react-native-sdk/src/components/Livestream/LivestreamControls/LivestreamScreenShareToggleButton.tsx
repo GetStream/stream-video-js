@@ -12,8 +12,8 @@ import { ScreenShare, StopScreenShare } from '../../../icons';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
 import { SfuModels } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useIsIosScreenshareBroadcastStarted } from '../../..';
-import { usePrevious } from '../../../utils/hooks';
+import { useIsIosScreenshareBroadcastStarted } from '../../../hooks/useIsIosScreenshareBroadcastStarted';
+import { usePrevious } from '../../../utils/hooks/usePrevious';
 
 export type LivestreamScreenShareToggleButtonProps = {};
 
