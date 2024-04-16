@@ -17,3 +17,5 @@ export const RTCView = (props: MockProps) => (
   // @ts-ignore
   <View testID={ComponentTestIds.PARTICIPANT_MEDIA_STREAM} {...props} />
 );
+
+export const registerGlobals = () => {};

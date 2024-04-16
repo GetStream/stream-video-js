@@ -1,18 +1,26 @@
 import React, { useEffect, useRef } from 'react';
 import { NativeModules, Platform, findNodeHandle } from 'react-native';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
-import { ScreenShare } from '../../../icons';
+import { ScreenShare } from '../../../icons/ScreenShare';
+import { StopScreenShare } from '../../../icons/StopScreenShare';
 import { CallControlsButton } from './CallControlsButton';
-import { SfuModels } from '@stream-io/video-client';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useTheme } from '../../../contexts';
-import { useIsIosScreenshareBroadcastStarted } from '../../../hooks';
-import { usePrevious } from '../../../utils/hooks';
+import { useIsIosScreenshareBroadcastStarted } from '../../../hooks/useIsIosScreenshareBroadcastStarted';
+import { SfuModels } from '@stream-io/video-client';
+import { usePrevious } from '../../../utils/hooks/usePrevious';
+
+// ios >= 14.0 or android - platform restrictions
+const CanDeviceScreenShare =
+  (Platform.OS === 'ios' &&
+    // @ts-ignore
+    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14) ||
+  Platform.OS === 'android';
 
 /**
  * The props for the Screen Share button in the Call Controls.
  */
-export type ScreenShareButtonProps = {
+export type ScreenShareToggleButtonProps = {
   /**
    * Handler to be called when the screen-share has been started.
    *
@@ -25,24 +33,18 @@ export type ScreenShareButtonProps = {
   onScreenShareStoppedHandler?: () => void;
 };
 
-// ios >= 14.0 or android
-const CanScreenShare =
-  (Platform.OS === 'ios' &&
-    // @ts-ignore
-    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14) ||
-  Platform.OS === 'android';
-
 /**
  * Button to start/stop screen share.
  * Note: This button is enabled only on iOS >= 14.0 and any Android version.
  */
-export const ScreenShareButton = ({
+export const ScreenShareToggleButton = ({
   onScreenShareStartedHandler,
   onScreenShareStoppedHandler,
-}: ScreenShareButtonProps) => {
+}: ScreenShareToggleButtonProps) => {
   const {
-    theme: { colors, screenShareButton },
+    theme: { colors, screenShareToggleButton },
   } = useTheme();
+
   const call = useCall();
   const { useLocalParticipant, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
@@ -55,21 +57,26 @@ export const ScreenShareButton = ({
   const onScreenShareStoppedHandlerRef = useRef(onScreenShareStoppedHandler);
   onScreenShareStoppedHandlerRef.current = onScreenShareStoppedHandler;
 
-  const iosScreenShareStarted = useIsIosScreenshareBroadcastStarted();
-  const prevIosScreenShareStarted = usePrevious(iosScreenShareStarted);
+  const iosScreenShareStartedFromSystem = useIsIosScreenshareBroadcastStarted();
+  const prevIosScreenShareStartedFromSystem = usePrevious(
+    iosScreenShareStartedFromSystem,
+  );
 
   const localParticipant = useLocalParticipant();
   const hasPublishedScreenShare = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  // listens to iOS screen share broadcast started event
+  // listens to iOS screen share broadcast started event from the system
   useEffect(() => {
     const run = async () => {
       if (Platform.OS !== 'ios') {
         return;
       }
-      if (iosScreenShareStarted && !prevIosScreenShareStarted) {
+      if (
+        iosScreenShareStartedFromSystem &&
+        !prevIosScreenShareStartedFromSystem
+      ) {
         onScreenShareStartedHandlerRef.current?.();
         const media = await navigator.mediaDevices.getDisplayMedia({
           // @ts-ignore
@@ -78,58 +85,69 @@ export const ScreenShareButton = ({
           audio: true,
         });
         await call?.publishScreenShareStream(media);
-      } else if (!iosScreenShareStarted && prevIosScreenShareStarted) {
+      } else if (
+        !iosScreenShareStartedFromSystem &&
+        prevIosScreenShareStartedFromSystem
+      ) {
         onScreenShareStoppedHandlerRef.current?.();
         await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
       }
     };
     run();
-  }, [call, iosScreenShareStarted, prevIosScreenShareStarted]);
+  }, [
+    call,
+    iosScreenShareStartedFromSystem,
+    prevIosScreenShareStartedFromSystem,
+  ]);
 
-  const screenCaptureRef = React.useRef(null);
+  const screenCapturePickerViewiOSRef = React.useRef(null);
 
   const onPress = async () => {
-    if (Platform.OS === 'ios') {
-      const reactTag = findNodeHandle(screenCaptureRef.current);
-      await NativeModules.ScreenCapturePickerViewManager.show(reactTag);
-      // After this the iOS screen share broadcast started/stopped event will be triggered
-      // and the useEffect listener will handle the rest
-    } else {
-      if (!hasPublishedScreenShare) {
+    if (!hasPublishedScreenShare) {
+      if (Platform.OS === 'ios') {
+        const reactTag = findNodeHandle(screenCapturePickerViewiOSRef.current);
+        await NativeModules.ScreenCapturePickerViewManager.show(reactTag);
+        // After this the iOS screen share broadcast started/stopped event will be triggered
+        // and the useEffect listener will handle the rest
+      } else {
         try {
           const media = await navigator.mediaDevices.getDisplayMedia({
             video: true,
             audio: true,
           });
-          onScreenShareStartedHandlerRef.current?.();
+          onScreenShareStartedHandler?.();
           await call?.publishScreenShareStream(media);
         } catch (e) {
           // ignored.. user didnt allow the screen share in the popup
         }
-      } else if (hasPublishedScreenShare) {
-        onScreenShareStoppedHandlerRef.current?.();
-        await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
       }
+    } else if (hasPublishedScreenShare) {
+      onScreenShareStoppedHandler?.();
+      await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
     }
   };
 
-  if (!isScreenSharingEnabledInCall || !CanScreenShare) {
-    return;
+  if (!isScreenSharingEnabledInCall || !CanDeviceScreenShare) {
+    return null;
   }
 
   return (
     <CallControlsButton
       disabled={!isScreenSharingAccessRequestEnabled}
       onPress={onPress}
-      color={colors.static_white}
+      color={hasPublishedScreenShare ? colors.error : colors.static_white}
       style={{
-        container: screenShareButton.container,
-        svgContainer: screenShareButton.svgContainer,
+        container: screenShareToggleButton.container,
+        svgContainer: screenShareToggleButton.svgContainer,
       }}
     >
-      <ScreenShare color={colors.static_black} />
+      {hasPublishedScreenShare ? (
+        <StopScreenShare color={colors.static_black} />
+      ) : (
+        <ScreenShare color={colors.static_black} />
+      )}
       {Platform.OS === 'ios' && (
-        <ScreenCapturePickerView ref={screenCaptureRef} />
+        <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />
       )}
     </CallControlsButton>
   );

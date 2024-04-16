@@ -56,10 +56,12 @@ export const useIosVoipPushEventsSetupEffect = () => {
         console.warn('Failed to send voip token to stream', err);
       });
       // set the logout callback
-      setPushLogoutCallback(() => {
-        client.removeDevice(token).catch((err) => {
+      setPushLogoutCallback(async () => {
+        try {
+          client.removeDevice(token);
+        } catch (err) {
           console.warn('Failed to remove voip token from stream', err);
-        });
+        }
       });
     };
     // fired when PushKit give us the latest token

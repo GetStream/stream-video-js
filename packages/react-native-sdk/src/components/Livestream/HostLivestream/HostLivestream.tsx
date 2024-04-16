@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import { useTheme } from '../../../contexts';
@@ -15,6 +15,17 @@ import {
   LivestreamLayout as DefaultLivestreamLayout,
   LivestreamLayoutProps,
 } from '../LivestreamLayout';
+import { Z_INDEX } from '../../../constants';
+import {
+  FloatingParticipantView as DefaultFloatingParticipantView,
+  FloatingParticipantViewProps,
+} from '../../Participant/FloatingParticipantView';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  ScreenShareOverlay as DefaultScreenShaerOverlay,
+  ScreenShareOverlayProps,
+} from '../../utility/ScreenShareOverlay';
 
 /**
  * Props for the HostLivestream component.
@@ -34,10 +45,26 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      */
     HostLivestreamControls?: React.ComponentType<HostLivestreamControlsProps> | null;
     /**
+     * Component to customize the FloatingParticipantView when screen is shared.
+     */
+    FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
+     * Component to customize the ScreenShareOverlay.
+     */
+    ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
+    /**
      * Enable HTTP live streaming
      */
     hls?: boolean;
+    /**
+     * Should the published streams be stopped if the host end the livestream.
+     * @default true
+     */
+    stopPublishedStreamsOnEndStream?: boolean;
   };
+
+const hasVideoTrack = (p?: StreamVideoParticipant) =>
+  p?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
 /**
  * The HostLivestream component displays the UI for the Host's live stream.
@@ -46,6 +73,8 @@ export const HostLivestream = ({
   HostLivestreamTopView = DefaultHostLivestreamTopView,
   HostLivestreamControls = DefaultHostLivestreamControls,
   LivestreamLayout = DefaultLivestreamLayout,
+  FloatingParticipantView = DefaultFloatingParticipantView,
+  ScreenShareOverlay = DefaultScreenShaerOverlay,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
@@ -54,10 +83,17 @@ export const HostLivestream = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
+  stopPublishedStreamsOnEndStream = true,
 }: HostLivestreamProps) => {
   const {
     theme: { colors, hostLivestream },
   } = useTheme();
+
+  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
+  const [currentSpeaker] = useParticipants();
+  const hasOngoingScreenShare = useHasOngoingScreenShare();
+  const floatingParticipant =
+    hasOngoingScreenShare && hasVideoTrack(currentSpeaker) && currentSpeaker;
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
@@ -65,24 +101,56 @@ export const HostLivestream = ({
     return () => InCallManager.stop();
   }, []);
 
+  const [topViewHeight, setTopViewHeight] = React.useState<number>();
+  const [controlsHeight, setControlsHeight] = React.useState<number>();
+
   const topViewProps: HostLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
     DurationBadge,
+    onLayout: (event) => {
+      setTopViewHeight(event.nativeEvent.layout.height);
+    },
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         {
-          backgroundColor: colors.static_grey,
+          backgroundColor: colors.dark_gray,
         },
         hostLivestream.container,
       ]}
     >
-      {HostLivestreamTopView && <HostLivestreamTopView {...topViewProps} />}
-      {LivestreamLayout && <LivestreamLayout />}
+      {HostLivestreamTopView && (
+        <View
+          style={styles.topViewContainer}
+          onLayout={(event) => {
+            setTopViewHeight(event.nativeEvent.layout.height);
+          }}
+        >
+          <HostLivestreamTopView {...topViewProps} />
+        </View>
+      )}
+      {FloatingParticipantView &&
+        floatingParticipant &&
+        topViewHeight &&
+        controlsHeight && (
+          <FloatingParticipantView
+            participant={floatingParticipant}
+            draggableContainerStyle={[
+              StyleSheet.absoluteFill,
+              {
+                top: topViewHeight,
+                bottom: controlsHeight,
+              },
+            ]}
+          />
+        )}
+      {LivestreamLayout && (
+        <LivestreamLayout ScreenShareOverlay={ScreenShareOverlay} />
+      )}
       {HostLivestreamControls && (
         <HostLivestreamControls
           onEndStreamHandler={onEndStreamHandler}
@@ -90,14 +158,32 @@ export const HostLivestream = ({
           HostStartStreamButton={HostStartStreamButton}
           LivestreamMediaControls={LivestreamMediaControls}
           hls={hls}
+          onLayout={(event) => {
+            setControlsHeight(event.nativeEvent.layout.height);
+          }}
+          stopPublishedStreamsOnEndStream={stopPublishedStreamsOnEndStream}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  topViewContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  controlsViewContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });

@@ -6,7 +6,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
-  ScreenShareButton,
+  ScreenShareToggleButton,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
@@ -54,7 +54,7 @@ export const CallControlsComponent = ({
           onPressHandler={onChatOpenHandler}
           unreadBadgeCount={unreadCountIndicator}
         />
-        <ScreenShareButton />
+        <ScreenShareToggleButton />
         <ToggleVideoPublishingButton />
         <ToggleAudioPublishingButton />
         <ToggleCameraFaceButton />

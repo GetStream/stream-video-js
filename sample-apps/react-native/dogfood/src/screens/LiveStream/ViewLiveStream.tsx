@@ -4,8 +4,15 @@ import {
   ViewerLivestream,
   useCallStateHooks,
   useStreamVideoClient,
+  ViewerLivestreamControlsProps,
 } from '@stream-io/video-react-native-sdk';
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
@@ -15,6 +22,10 @@ import { ViewerLobby } from './ViewerLobby';
 import { useSetCall } from '../../hooks/useSetCall';
 import { Button } from '../../components/Button';
 import { useAnonymousInitVideoClient } from '../../hooks/useAnonymousInitVideoClient';
+import { ViewerLiveStreamControls } from '../../components/LiveStream/ViewerLivestreamControls';
+import BottomSheetChatWrapper, {
+  BottomSheetWrapperMethods,
+} from './BottomSheetChatWrapper';
 
 type ViewerLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -26,15 +37,22 @@ export const ViewLiveStreamWrapper = ({
   navigation,
   children,
 }: PropsWithChildren<ViewerLiveStreamScreenProps>) => {
+  // The `StreamVideo` wrapper for this client is defined in `App.tsx` of the app.
   const client = useStreamVideoClient();
-  const callType = 'livestream';
   const {
     params: { callId },
   } = route;
-  const call = useSetCall(callId, callType, client);
+  /**
+   * We create a call using the logged in client in the app since we need to get the call live status.
+   */
+  const call = useSetCall(callId, 'livestream', client);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Getting the call details is done through `call.get()`.
+   * It is essential so that the call is watched and any changes in the call is intercepted.
+   */
   useEffect(() => {
     const getCall = async () => {
       if (!call) {
@@ -82,23 +100,39 @@ export const ViewLiveStreamWrapper = ({
   return <StreamCall call={call}>{children}</StreamCall>;
 };
 
-export const ViewLiveStreamChilden = ({
+export const ViewLiveStreamChildren = ({
   navigation,
   route,
 }: ViewerLiveStreamScreenProps) => {
-  const callType = 'livestream';
   const {
     params: { callId },
   } = route;
+  const bottomSheetWrapperRef = useRef<BottomSheetWrapperMethods>(null);
   const [callJoined, setCallJoined] = useState<boolean>(false);
+  const [headerFooterHidden, setHeaderFooterHidden] = useState(false);
+  /**
+   * The `useCallStateHooks` hooks would only work here in the children since we wrap the `StreamCall` component in the `ViewLiveStreamWrapper` above using the logged in client of the app.
+   */
   const { useIsCallLive } = useCallStateHooks();
   const isCallLive = useIsCallLive();
-  const client = useAnonymousInitVideoClient({
-    callId,
-    callType,
-  });
-  const call = useSetCall(callId, callType, client);
 
+  const onBottomSheetClose = useCallback(() => {
+    setHeaderFooterHidden(false);
+  }, []);
+
+  const onBottomSheetOpen = useCallback(() => {
+    setHeaderFooterHidden(true);
+  }, []);
+
+  /**
+   * We create an anonymous client here to join the call anonymously.
+   */
+  const anonymousVideoClient = useAnonymousInitVideoClient();
+  const call = useSetCall(callId, 'livestream', anonymousVideoClient);
+
+  /**
+   * The call is joined using the anonymous user/client.
+   */
   const handleJoinCall = async () => {
     try {
       if (!(call && isCallLive)) {
@@ -119,23 +153,43 @@ export const ViewLiveStreamChilden = ({
     }
   };
 
-  const handleLeaveCall = async () => {
-    try {
-      if (!call) {
-        return;
-      }
-      await call.leave();
-      setCallJoined(false);
-      navigation.goBack();
-    } catch (error) {
-      console.log('Failed to leave call', error);
-    }
-  };
+  const CustomViewerLivestreamControls = useCallback(
+    (props: ViewerLivestreamControlsProps) => {
+      const handlePresentModalPress = () => {
+        bottomSheetWrapperRef.current?.open();
+      };
+
+      const handleLeaveCall = async () => {
+        try {
+          if (!call) {
+            return;
+          }
+          await call.leave();
+          setCallJoined(false);
+          navigation.goBack();
+        } catch (error) {
+          console.log('Failed to leave call', error);
+        }
+      };
+
+      return (
+        <ViewerLiveStreamControls
+          onChatButtonPress={handlePresentModalPress}
+          handleLeaveCall={handleLeaveCall}
+          {...props}
+        />
+      );
+    },
+    [call, navigation],
+  );
 
   if (!call) {
     return null;
   }
 
+  /**
+   * Note: Here we provide the `StreamCall` component again. This is done, so that the call used, is created by the anonymous user.
+   */
   return (
     <StreamCall call={call}>
       {!(isCallLive && callJoined) ? (
@@ -145,9 +199,17 @@ export const ViewLiveStreamChilden = ({
           setCallJoined={setCallJoined}
         />
       ) : (
-        <SafeAreaView style={styles.livestream}>
-          <ViewerLivestream onLeaveStreamHandler={handleLeaveCall} />
-        </SafeAreaView>
+        <BottomSheetChatWrapper
+          callId={callId}
+          onBottomSheetClose={onBottomSheetClose}
+          onBottomSheetOpen={onBottomSheetOpen}
+          ref={bottomSheetWrapperRef}
+        >
+          <ViewerLivestream
+            ViewerLivestreamTopView={headerFooterHidden ? null : undefined}
+            ViewerLivestreamControls={CustomViewerLivestreamControls}
+          />
+        </BottomSheetChatWrapper>
       )}
     </StreamCall>
   );
@@ -159,15 +221,12 @@ export const ViewLiveStreamScreen = ({
 }: ViewerLiveStreamScreenProps) => {
   return (
     <ViewLiveStreamWrapper navigation={navigation} route={route}>
-      <ViewLiveStreamChilden navigation={navigation} route={route} />
+      <ViewLiveStreamChildren navigation={navigation} route={route} />
     </ViewLiveStreamWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  livestream: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     justifyContent: 'center',

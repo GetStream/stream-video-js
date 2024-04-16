@@ -38,18 +38,18 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           text: 'OK',
           onPress: async () => {
             try {
-              StreamVideoRN.onPushLogout();
-              await Promise.all([
-                GoogleSignin.signOut(),
-                videoClient?.disconnectUser(),
-              ]);
-
               appStoreSetState({
+                apiKey: '',
                 userId: '',
                 userName: '',
                 userImageUrl: '',
                 appMode: 'None',
               });
+              await StreamVideoRN.onPushLogout();
+              await Promise.all([
+                GoogleSignin.signOut(),
+                videoClient?.disconnectUser(),
+              ]);
             } catch (error) {
               console.error('Failed to disconnect', error);
             }

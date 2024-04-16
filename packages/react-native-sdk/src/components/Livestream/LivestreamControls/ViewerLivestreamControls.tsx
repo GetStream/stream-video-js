@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 
 import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
@@ -16,6 +16,7 @@ export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
    * Component to customize the leave stream button on the viewer's end live stream.
    */
   ViewerLeaveStreamButton?: React.ComponentType<ViewerLeaveStreamButtonProps> | null;
+  onLayout?: ViewProps['onLayout'];
 };
 
 /**
@@ -24,6 +25,7 @@ export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
 export const ViewerLivestreamControls = ({
   ViewerLeaveStreamButton = DefaultViewerLeaveStreamButton,
   onLeaveStreamHandler,
+  onLayout,
 }: ViewerLivestreamControlsProps) => {
   const {
     theme: { colors, viewerLivestreamControls },
@@ -38,6 +40,7 @@ export const ViewerLivestreamControls = ({
         },
         viewerLivestreamControls.container,
       ]}
+      onLayout={onLayout}
     >
       <View style={[styles.leftElement, viewerLivestreamControls.leftElement]}>
         {ViewerLeaveStreamButton && (
