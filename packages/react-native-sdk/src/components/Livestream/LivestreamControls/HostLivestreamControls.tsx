@@ -23,15 +23,7 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
    * Component to customize the host's media control(audio/video) buttons.
    */
   LivestreamMediaControls?: React.ComponentType<LivestreamMediaControlsProps> | null;
-  /**
-   * Enable HTTP live streaming
-   */
-  hls?: boolean;
   onLayout?: ViewProps['onLayout'];
-  /**
-   * Should the published streams be stopped if the host end the livestream.
-   */
-  stopPublishedStreamsOnEndStream: boolean;
 };
 
 /**
@@ -42,8 +34,8 @@ export const HostLivestreamControls = ({
   LivestreamMediaControls = DefaultLivestreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
-  hls = false,
-  stopPublishedStreamsOnEndStream,
+  hls,
+  disableStopPublishedStreamsOnEndStream,
   onLayout,
 }: HostLivestreamControlsProps) => {
   const {
@@ -64,7 +56,9 @@ export const HostLivestreamControls = ({
             onEndStreamHandler={onEndStreamHandler}
             onStartStreamHandler={onStartStreamHandler}
             hls={hls}
-            stopPublishedStreamsOnEndStream={stopPublishedStreamsOnEndStream}
+            disableStopPublishedStreamsOnEndStream={
+              disableStopPublishedStreamsOnEndStream
+            }
           />
         )}
       </View>

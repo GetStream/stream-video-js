@@ -30,8 +30,8 @@ import {
 /**
  * Props for the HostLivestream component.
  */
-export type HostLivestreamProps = HostLivestreamTopViewProps &
-  HostLivestreamControlsProps & {
+export type HostLivestreamProps = Omit<HostLivestreamTopViewProps, 'onLayout'> &
+  Omit<HostLivestreamControlsProps, 'onLayout'> & {
     /**
      * Component to customize the top view at the host's live stream.
      */
@@ -52,15 +52,6 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
      * Component to customize the ScreenShareOverlay.
      */
     ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
-    /**
-     * Enable HTTP live streaming
-     */
-    hls?: boolean;
-    /**
-     * Should the published streams be stopped if the host end the livestream.
-     * @default true
-     */
-    stopPublishedStreamsOnEndStream?: boolean;
   };
 
 const hasVideoTrack = (p?: StreamVideoParticipant) =>
@@ -82,8 +73,8 @@ export const HostLivestream = ({
   LivestreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
-  hls = false,
-  stopPublishedStreamsOnEndStream = true,
+  hls,
+  disableStopPublishedStreamsOnEndStream,
 }: HostLivestreamProps) => {
   const {
     theme: { colors, hostLivestream },
@@ -161,7 +152,9 @@ export const HostLivestream = ({
           onLayout={(event) => {
             setControlsHeight(event.nativeEvent.layout.height);
           }}
-          stopPublishedStreamsOnEndStream={stopPublishedStreamsOnEndStream}
+          disableStopPublishedStreamsOnEndStream={
+            disableStopPublishedStreamsOnEndStream
+          }
         />
       )}
     </View>

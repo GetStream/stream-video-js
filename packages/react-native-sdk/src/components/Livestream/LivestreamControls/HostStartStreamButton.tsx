@@ -34,9 +34,9 @@ export type HostStartStreamButtonProps = {
    */
   hls?: boolean;
   /**
-   * Should the published streams be stopped if the host end the livestream.
+   * Disable the published streams to not be stopped if the host ends the livestream.
    */
-  stopPublishedStreamsOnEndStream: boolean;
+  disableStopPublishedStreamsOnEndStream?: boolean;
 };
 
 /**
@@ -46,7 +46,7 @@ export const HostStartStreamButton = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls,
-  stopPublishedStreamsOnEndStream,
+  disableStopPublishedStreamsOnEndStream,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
@@ -86,7 +86,7 @@ export const HostStartStreamButton = ({
   const onEndStreamButtonPress = async () => {
     try {
       setIsAwaitingResponse(true);
-      if (stopPublishedStreamsOnEndStream) {
+      if (!disableStopPublishedStreamsOnEndStream) {
         await call?.stopPublish(SfuModels.TrackType.VIDEO);
         await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
       }
