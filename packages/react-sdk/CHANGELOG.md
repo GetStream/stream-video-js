@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.2...@stream-io/video-react-sdk-0.6.3) (2024-04-10)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.1.0`
+### [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.1...@stream-io/video-react-sdk-0.6.2) (2024-04-10)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.0.2`
 ### [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.0...@stream-io/video-react-sdk-0.6.1) (2024-04-09)
 
 ### Dependency Updates
