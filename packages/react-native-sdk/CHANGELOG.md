@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.4...@stream-io/video-react-native-sdk-0.6.5) (2024-04-16)
+
+
+### Bug Fixes
+
+* **react-native:** remove wrong required types in livestream buttons ([a357d6a](https://github.com/GetStream/stream-video-js/commit/a357d6ac24e3d15b068d152cc69403c471dff87c))
+
 ### [0.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.3...@stream-io/video-react-native-sdk-0.6.4) (2024-04-16)
 
 ### Dependency Updates
