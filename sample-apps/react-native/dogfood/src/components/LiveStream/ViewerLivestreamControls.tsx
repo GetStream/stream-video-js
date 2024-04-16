@@ -25,6 +25,7 @@ export const ViewerLiveStreamControls = ({
           backgroundColor: appTheme.colors.static_overlay,
         },
       ]}
+      // @ts-expect-error the RN layout change types mismatch between SDK and here
       onLayout={onLayout}
     >
       <View style={[styles.leftElement]}>
