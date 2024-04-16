@@ -128,9 +128,7 @@ export const CallStats = (props: {
               {t('Call performance')}
             </h3>
             <p className="str-video__call-stats__description">
-              {t(
-                'Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.',
-              )}
+              {t('Review the key data points below to assess call performance')}
             </p>
           </div>
 
