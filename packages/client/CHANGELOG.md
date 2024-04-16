@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.1...@stream-io/video-client-0.7.2) (2024-04-16)
+
+
+### Features
+
+* update coordinator models ([#1317](https://github.com/GetStream/stream-video-js/issues/1317)) ([cdbee74](https://github.com/GetStream/stream-video-js/commit/cdbee747f1730f6965315e7c9ea9426287ff0cfd))
+
 ### [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.0...@stream-io/video-client-0.7.1) (2024-04-09)
 
 
