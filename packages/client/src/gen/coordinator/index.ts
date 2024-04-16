@@ -472,7 +472,9 @@ export interface CallEndedEvent {
    */
   user?: UserResponse;
 }
+
 /**
+ *
  * @export
  * @interface CallEvent
  */
@@ -483,6 +485,12 @@ export interface CallEvent {
    * @memberof CallEvent
    */
   description: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallEvent
+   */
+  end_timestamp: number;
   /**
    *
    * @type {number}
@@ -502,6 +510,7 @@ export interface CallEvent {
    */
   type: string;
 }
+
 /**
  * This event is sent when HLS broadcasting has failed
  * @export
@@ -1654,17 +1663,11 @@ export interface CallStateResponseFields {
   own_capabilities: Array<OwnCapability>;
 }
 /**
- * CallTranscription represents a transcription of a call.
+ *
  * @export
  * @interface CallStatsReportSummaryResponse
  */
 export interface CallStatsReportSummaryResponse {
-  /**
-   *
-   * @type {number}
-   * @memberof CallStatsReportSummaryResponse
-   */
-  app_pk: number;
   /**
    *
    * @type {string}
@@ -1688,7 +1691,19 @@ export interface CallStatsReportSummaryResponse {
    * @type {string}
    * @memberof CallStatsReportSummaryResponse
    */
+  created_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportSummaryResponse
+   */
   first_stats_time: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsReportSummaryResponse
+   */
+  quality_score?: number;
 }
 /**
  *
@@ -2621,6 +2636,51 @@ export interface GeofenceSettingsRequest {
    */
   names?: Array<string>;
 }
+
+/**
+ *
+ * @export
+ * @interface GeolocationResult
+ */
+export interface GeolocationResult {
+  /**
+   *
+   * @type {number}
+   * @memberof GeolocationResult
+   */
+  accuracy_radius: number;
+  /**
+   *
+   * @type {string}
+   * @memberof GeolocationResult
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GeolocationResult
+   */
+  country_iso_code: string;
+  /**
+   *
+   * @type {number}
+   * @memberof GeolocationResult
+   */
+  latitude: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GeolocationResult
+   */
+  longitude: number;
+  /**
+   *
+   * @type {string}
+   * @memberof GeolocationResult
+   */
+  subdivision_iso_code: string;
+}
+
 /**
  *
  * @export
@@ -2694,6 +2754,18 @@ export interface GetCallStatsResponse {
    * @memberof GetCallStatsResponse
    */
   duration: string;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  max_jitter: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
+  max_latency: number;
   /**
    *
    * @type {number}
@@ -4263,6 +4335,33 @@ export interface StopTranscriptionResponse {
    */
   duration: string;
 }
+
+/**
+ *
+ * @export
+ * @interface Subsession
+ */
+export interface Subsession {
+  /**
+   *
+   * @type {number}
+   * @memberof Subsession
+   */
+  ended_at: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Subsession
+   */
+  joined_at: number;
+  /**
+   *
+   * @type {string}
+   * @memberof Subsession
+   */
+  sfu_id: string;
+}
+
 /**
  *
  * @export
@@ -4828,16 +4927,59 @@ export interface UserResponse {
 }
 
 /**
+ *
  * @export
  * @interface UserSessionStats
  */
 export interface UserSessionStats {
   /**
    *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  browser?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  browser_version?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  current_ip?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  current_sfu?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  device_model?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  device_version?: string;
+  /**
+   *
    * @type {number}
    * @memberof UserSessionStats
    */
   freeze_duration_seconds: number;
+  /**
+   *
+   * @type {GeolocationResult}
+   * @memberof UserSessionStats
+   */
+  geolocation?: GeolocationResult;
   /**
    *
    * @type {Stats}
@@ -4852,16 +4994,70 @@ export interface UserSessionStats {
   latency?: Stats;
   /**
    *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  max_fir_per_minute?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  max_freezes_per_minute?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  max_nack_per_minute?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  max_pli_per_minute?: number;
+  /**
+   *
+   * @type {VideoQuality}
+   * @memberof UserSessionStats
+   */
+  max_publishing_video_quality?: VideoQuality;
+  /**
+   *
+   * @type {VideoQuality}
+   * @memberof UserSessionStats
+   */
+  max_receiving_video_quality?: VideoQuality;
+  /**
+   *
    * @type {string}
    * @memberof UserSessionStats
    */
-  os: string;
+  os?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  os_version?: string;
   /**
    *
    * @type {number}
    * @memberof UserSessionStats
    */
   packet_loss_fraction: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  publishing_audio_codec?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  publishing_duration_seconds: number;
   /**
    *
    * @type {number}
@@ -4873,13 +5069,31 @@ export interface UserSessionStats {
    * @type {string}
    * @memberof UserSessionStats
    */
-  sdk: string;
+  receiving_audio_codec?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  receiving_duration_seconds: number;
   /**
    *
    * @type {string}
    * @memberof UserSessionStats
    */
-  sdk_version: string;
+  sdk?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  sdk_version?: string;
+  /**
+   *
+   * @type {Array<Subsession>}
+   * @memberof UserSessionStats
+   */
+  subsessions?: Array<Subsession>;
   /**
    *
    * @type {CallTimeline}
@@ -4888,10 +5102,22 @@ export interface UserSessionStats {
   timeline?: CallTimeline;
   /**
    *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  total_pixels_in: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  total_pixels_out: number;
+  /**
+   *
    * @type {string}
    * @memberof UserSessionStats
    */
-  webrtc_version: string;
+  webrtc_version?: string;
 }
 /**
  *
@@ -5009,6 +5235,40 @@ export const VideoSettingsRequestCameraFacingEnum = {
 } as const;
 export type VideoSettingsRequestCameraFacingEnum =
   (typeof VideoSettingsRequestCameraFacingEnum)[keyof typeof VideoSettingsRequestCameraFacingEnum];
+
+/**
+ *
+ * @export
+ * @interface VideoQuality
+ */
+export interface VideoQuality {
+  /**
+   *
+   * @type {VideoResolution}
+   * @memberof VideoQuality
+   */
+  resolution: VideoResolution;
+}
+
+/**
+ *
+ * @export
+ * @interface VideoResolution
+ */
+export interface VideoResolution {
+  /**
+   *
+   * @type {number}
+   * @memberof VideoResolution
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof VideoResolution
+   */
+  width: number;
+}
 
 /**
  *
