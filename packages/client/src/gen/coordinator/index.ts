@@ -2648,7 +2648,7 @@ export interface GeolocationResult {
    * @type {number}
    * @memberof GeolocationResult
    */
-  AccuracyRadius: number;
+  accuracy_radius: number;
   /**
    *
    * @type {string}
@@ -4344,22 +4344,22 @@ export interface StopTranscriptionResponse {
 export interface Subsession {
   /**
    *
+   * @type {number}
+   * @memberof Subsession
+   */
+  ended_at: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Subsession
+   */
+  joined_at: number;
+  /**
+   *
    * @type {string}
    * @memberof Subsession
    */
   sfu_id: string;
-  /**
-   *
-   * @type {number}
-   * @memberof Subsession
-   */
-  ts_ended_at: number;
-  /**
-   *
-   * @type {number}
-   * @memberof Subsession
-   */
-  ts_joined_at: number;
 }
 
 /**
