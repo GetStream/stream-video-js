@@ -6,8 +6,8 @@ export const getPreferredCodecs = (
   codecToRemove?: string,
 ): RTCRtpCodecCapability[] | undefined => {
   const logger = getLogger(['codecs']);
-  if (!('getCapabilities' in RTCRtpSender)) {
-    logger('warn', 'RTCRtpSender.getCapabilities is not supported');
+  if (!('getCapabilities' in RTCRtpReceiver)) {
+    logger('warn', 'RTCRtpReceiver.getCapabilities is not supported');
     return;
   }
   const cap = RTCRtpReceiver.getCapabilities(kind);
