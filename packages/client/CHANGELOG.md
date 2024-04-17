@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.2...@stream-io/video-client-0.7.3) (2024-04-17)
+
+
+### Bug Fixes
+
+* **codecs:** Set codec preferences based on receiving capabilities ([#1318](https://github.com/GetStream/stream-video-js/issues/1318)) ([43087fe](https://github.com/GetStream/stream-video-js/commit/43087fed8e844ad9c80a5b4849500eedc8301609))
+
 ### [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.1...@stream-io/video-client-0.7.2) (2024-04-16)
 
 
