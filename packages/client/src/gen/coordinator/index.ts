@@ -2729,18 +2729,6 @@ export interface GetCallStatsResponse {
    * @type {number}
    * @memberof GetCallStatsResponse
    */
-  average_jitter: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  average_latency: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
   call_duration_seconds: number;
   /**
    *
@@ -2756,16 +2744,22 @@ export interface GetCallStatsResponse {
   duration: string;
   /**
    *
-   * @type {number}
+   * @type {Stats}
    * @memberof GetCallStatsResponse
    */
-  max_jitter: number;
+  jitter?: Stats;
+  /**
+   *
+   * @type {Stats}
+   * @memberof GetCallStatsResponse
+   */
+  latency?: Stats;
   /**
    *
    * @type {number}
    * @memberof GetCallStatsResponse
    */
-  max_latency: number;
+  max_freezes_duration_seconds: number;
   /**
    *
    * @type {number}
@@ -2774,10 +2768,16 @@ export interface GetCallStatsResponse {
   max_participants: number;
   /**
    *
-   * @type {{ [key: string]: UserStats; }}
+   * @type {number}
    * @memberof GetCallStatsResponse
    */
-  participant_report: { [key: string]: UserStats };
+  max_total_quality_limitation_duration_seconds: number;
+  /**
+   *
+   * @type {Array<UserStats>}
+   * @memberof GetCallStatsResponse
+   */
+  participant_report: Array<UserStats>;
   /**
    *
    * @type {number}
@@ -2802,18 +2802,6 @@ export interface GetCallStatsResponse {
    * @memberof GetCallStatsResponse
    */
   sfus: Array<SFULocationResponse>;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  total_freezes_duration: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  total_quality_limitation_duration: number;
 }
 
 /**
@@ -4997,25 +4985,25 @@ export interface UserSessionStats {
    * @type {number}
    * @memberof UserSessionStats
    */
-  max_fir_per_minute?: number;
+  max_fir_per_second?: number;
   /**
    *
    * @type {number}
    * @memberof UserSessionStats
    */
-  max_freezes_per_minute?: number;
+  max_freezes_per_second?: number;
   /**
    *
    * @type {number}
    * @memberof UserSessionStats
    */
-  max_nack_per_minute?: number;
+  max_nack_per_second?: number;
   /**
    *
    * @type {number}
    * @memberof UserSessionStats
    */
-  max_pli_per_minute?: number;
+  max_pli_per_second?: number;
   /**
    *
    * @type {VideoQuality}
@@ -5090,6 +5078,12 @@ export interface UserSessionStats {
   sdk_version?: string;
   /**
    *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  session_id: string;
+  /**
+   *
    * @type {Array<Subsession>}
    * @memberof UserSessionStats
    */
@@ -5133,10 +5127,10 @@ export interface UserStats {
   info: UserInfoResponse;
   /**
    *
-   * @type {{ [key: string]: UserSessionStats; }}
+   * @type {Array<UserSessionStats>}
    * @memberof UserStats
    */
-  session_stats: { [key: string]: UserSessionStats };
+  session_stats: Array<UserSessionStats>;
 }
 /**
  *
