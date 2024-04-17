@@ -289,12 +289,16 @@ export class Publisher {
       this.publishOptionsPerTrackType.set(trackType, opts);
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
-        logger(
-          'info',
-          `Setting ${TrackType[trackType]} codec preferences`,
-          codecPreferences,
-        );
-        transceiver.setCodecPreferences(codecPreferences);
+        try {
+          logger(
+            'info',
+            `Setting ${TrackType[trackType]} codec preferences`,
+            codecPreferences,
+          );
+          transceiver.setCodecPreferences(codecPreferences);
+        } catch (err) {
+          logger('warn', `Couldn't set codec preferences`, err);
+        }
       }
     } else {
       const previousTrack = transceiver.sender.track;
