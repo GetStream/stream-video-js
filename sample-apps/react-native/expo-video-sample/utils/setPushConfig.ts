@@ -12,7 +12,6 @@ import { createToken } from './createToken';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
-    isExpo: true,
     ios: {
       pushProviderName: 'rn-expo-apn-video',
     },

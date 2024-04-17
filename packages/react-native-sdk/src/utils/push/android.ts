@@ -104,10 +104,12 @@ export async function initAndroidPushToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
-    setPushLogoutCallback(() => {
-      client.removeDevice(token).catch((err) => {
-        console.warn('Failed to remove voip token from stream', err);
-      });
+    setPushLogoutCallback(async () => {
+      try {
+        client.removeDevice(token);
+      } catch (err) {
+        console.warn('Failed to remove firebase token from stream', err);
+      }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
     await client.addDevice(token, 'firebase', push_provider_name);

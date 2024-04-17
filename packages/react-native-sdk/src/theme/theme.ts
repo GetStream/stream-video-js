@@ -57,7 +57,7 @@ export type Theme = {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
-  screenShareButton: {
+  screenShareToggleButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
@@ -208,8 +208,6 @@ export type Theme = {
   };
   viewerLivestream: {
     container: ViewStyle;
-    floatingParticipantView: ViewStyle;
-    view: ViewStyle;
   };
   livestreamLayout: {
     container: ViewStyle;
@@ -272,6 +270,17 @@ export type Theme = {
   livestreamVideoControlButton: {
     container: ViewStyle;
     icon: ViewStyle;
+  };
+  livestreamScreenShareToggleButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+  };
+  screenshareOverlay: {
+    container: ViewStyle;
+    text: TextStyle;
+    button: ViewStyle;
+    buttonIcon: ViewStyle;
+    buttonText: TextStyle;
   };
 };
 
@@ -367,7 +376,7 @@ export const defaultTheme: Theme = {
     container: {},
     svgContainer: {},
   },
-  screenShareButton: {
+  screenShareToggleButton: {
     container: {},
     svgContainer: {},
   },
@@ -513,8 +522,6 @@ export const defaultTheme: Theme = {
   },
   viewerLivestream: {
     container: {},
-    floatingParticipantView: {},
-    view: {},
   },
   livestreamLayout: {
     container: {},
@@ -570,5 +577,16 @@ export const defaultTheme: Theme = {
   livestreamVideoControlButton: {
     container: {},
     icon: {},
+  },
+  livestreamScreenShareToggleButton: {
+    container: {},
+    icon: {},
+  },
+  screenshareOverlay: {
+    container: {},
+    text: {},
+    button: {},
+    buttonIcon: {},
+    buttonText: {},
   },
 };

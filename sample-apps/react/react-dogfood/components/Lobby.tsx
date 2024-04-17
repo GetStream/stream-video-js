@@ -20,6 +20,7 @@ import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LatencyMap } from './LatencyMap/LatencyMap';
 import { MobileAppBanner } from './MobileAppBanner';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { ToggleEffectsButton } from './ToggleEffectsButton';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
@@ -135,7 +136,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
 
                     <div className="rd__lobby-settings">
                       <ToggleParticipantsPreviewButton onJoin={onJoin} />
-
+                      <ToggleEffectsButton inMeeting={false} />
                       <ToggleSettingsTabModal
                         layoutProps={{
                           selectedLayout: layout,

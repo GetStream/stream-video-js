@@ -22,6 +22,7 @@ const getChatStyle = (colorScheme: ColorSchemeName): DeepPartial<Theme> => ({
           grey: '#7A7A7A',
           grey_gainsboro: '#2D2F2F',
           grey_whisper: '#1C1E22',
+          grey_dark: '#F7F7F8',
           icon_background: '#FFFFFF',
           modal_shadow: '#000000',
           overlay: '#FFFFFFCC', // CC = 80% opacity
@@ -44,6 +45,7 @@ const getChatStyle = (colorScheme: ColorSchemeName): DeepPartial<Theme> => ({
           grey: '#7A7A7A',
           grey_gainsboro: '#DBDBDB',
           grey_whisper: '#ECEBEB',
+          grey_dark: '#17191C',
           icon_background: '#FFFFFF',
           modal_shadow: '#00000099', // 99 = 60% opacity; x=0, y= 1, radius=4
           overlay: '#00000099', // 99 = 60% opacity

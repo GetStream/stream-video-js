@@ -4,7 +4,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
-  ScreenShareButton,
+  ScreenShareToggleButton,
   CallControlProps,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
@@ -23,7 +23,7 @@ export const CallControlsComponent = ({ landscape }: CallControlProps) => {
   return (
     <View style={[styles.callControlsWrapper, landscapeStyles]}>
       <ReactionsButton />
-      <ScreenShareButton />
+      <ScreenShareToggleButton />
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />

@@ -17,6 +17,11 @@ export const logToConsole: Logger = (logLevel, message, ...args) => {
   let logMethod;
   switch (logLevel) {
     case 'error':
+      if (isReactNative()) {
+        message = `ERROR: ${message}`;
+        logMethod = console.info;
+        break;
+      }
       logMethod = console.error;
       break;
     case 'warn':

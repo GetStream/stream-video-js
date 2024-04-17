@@ -13,18 +13,19 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
+import { SfuModels } from '@stream-io/video-client';
 
 /**
  * Props for the HostStartStreamButton component.
  */
 export type HostStartStreamButtonProps = {
   /**
-   * Handler to be called when the Start Stream button is pressed.
+   * Handler to be called after the Start Stream button is pressed.
    * @returns void
    */
   onStartStreamHandler?: () => void;
   /**
-   * Handler to be called when the End Stream button is pressed.
+   * Handler to be called after the End Stream button is pressed.
    * @returns void
    */
   onEndStreamHandler?: () => void;
@@ -32,6 +33,10 @@ export type HostStartStreamButtonProps = {
    * Enable HTTP live streaming
    */
   hls?: boolean;
+  /**
+   * Disable the published streams to not be stopped if the host ends the livestream.
+   */
+  disableStopPublishedStreamsOnEndStream?: boolean;
 };
 
 /**
@@ -41,6 +46,7 @@ export const HostStartStreamButton = ({
   onEndStreamHandler,
   onStartStreamHandler,
   hls,
+  disableStopPublishedStreamsOnEndStream,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
@@ -62,10 +68,6 @@ export const HostStartStreamButton = ({
   const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
   const onStartStreamButtonPress = async () => {
-    if (onStartStreamHandler) {
-      onStartStreamHandler();
-      return;
-    }
     try {
       setIsAwaitingResponse(true);
       await call?.goLive();
@@ -73,18 +75,21 @@ export const HostStartStreamButton = ({
         await call?.startHLS();
       }
       setIsAwaitingResponse(false);
+      if (onStartStreamHandler) {
+        onStartStreamHandler();
+      }
     } catch (error) {
       console.error('Error starting livestream', error);
     }
   };
 
   const onEndStreamButtonPress = async () => {
-    if (onEndStreamHandler) {
-      onEndStreamHandler();
-      return;
-    }
     try {
       setIsAwaitingResponse(true);
+      if (!disableStopPublishedStreamsOnEndStream) {
+        await call?.stopPublish(SfuModels.TrackType.VIDEO);
+        await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+      }
       if (hls) {
         await call?.stopHLS();
       } else {
@@ -92,6 +97,9 @@ export const HostStartStreamButton = ({
       }
 
       setIsAwaitingResponse(false);
+      if (onEndStreamHandler) {
+        onEndStreamHandler();
+      }
     } catch (error) {
       console.error('Error stopping livestream', error);
     }

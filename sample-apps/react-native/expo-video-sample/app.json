@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "io.getstream.expovideosample"
     },
     "android": {
@@ -27,6 +28,7 @@
       "package": "io.getstream.expovideosample"
     },
     "plugins": [
+      "@react-native-firebase/app",
       [
         "@stream-io/video-react-native-sdk",
         {
@@ -60,6 +62,10 @@
             "extraMavenRepos": [
               "../../node_modules/@notifee/react-native/android/libs"
             ]
+          },
+          "ios": {
+            "flipper": false,
+            "useFrameworks": "static"
           }
         }
       ]

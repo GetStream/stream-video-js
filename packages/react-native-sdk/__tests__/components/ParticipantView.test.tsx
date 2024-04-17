@@ -3,14 +3,14 @@ import mockParticipant from '../mocks/participant';
 import { SfuModels } from '@stream-io/video-client';
 import { ComponentTestIds, IconTestIds } from '../../src/constants/TestIds';
 import { render, screen } from '../utils/RNTLTools';
+import { ParticipantView } from '../../src/components/Participant/ParticipantView/ParticipantView';
+import { VideoRenderer } from '../../src/components/Participant/ParticipantView/VideoRenderer';
 import {
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   ParticipantVideoFallback,
-  ParticipantView,
-  VideoRenderer,
-} from '../../src/components';
+} from '../../src/components/Participant/ParticipantView';
 import { defaultEmojiReactions } from '../../src/constants';
 
 console.warn = jest.fn();

@@ -4,6 +4,7 @@
   gap: 0.25rem;
 
   .str-video__call-controls--group {
+    flex: 1;
     display: flex;
     gap: 0.25rem;
     align-items: center;
@@ -18,7 +19,7 @@
     }
 
     &.str-video__call-controls--media {
-      margin-left: 0px;
+      margin-left: 0;
       .str-video__call-controls__mobile {
         display: flex;
       }
@@ -69,12 +70,12 @@
       }
 
       &.str-video__call-controls--media {
-        margin-left: -100px;
+        justify-content: center;
       }
 
       &.str-video__call-controls--sidebar {
         width: unset;
-        justify-content: flex-start;
+        justify-content: flex-end;
 
         .str-video__call-controls__desktop {
           display: flex;

@@ -13,6 +13,8 @@ import type {
   ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
+  QueryCallStatsRequest,
+  QueryCallStatsResponse,
 } from './gen/coordinator';
 import {
   AllClientEvents,
@@ -232,7 +234,7 @@ export class StreamVideoClient {
         // if `call.created` was received before `call.ring`.
         // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
-        await prevCall?.leave();
+        await prevCall?.leave({ reason: 'cleaning-up in call.ring' });
         // we create a new call
         const theCall = new Call({
           streamClient: this.streamClient,
@@ -364,6 +366,19 @@ export class StreamVideoClient {
       ...response,
       calls: calls,
     };
+  };
+
+  /**
+   * Retrieve the list of available call statistics reports matching a particular condition.
+   *
+   * @param data Filter and sort conditions for retrieving available call report summaries.
+   * @returns List with summary of available call reports matching the condition.
+   */
+  queryCallStats = async (data: QueryCallStatsRequest = {}) => {
+    return this.streamClient.post<
+      QueryCallStatsResponse,
+      QueryCallStatsRequest
+    >(`/call/stats`, data);
   };
 
   /**
