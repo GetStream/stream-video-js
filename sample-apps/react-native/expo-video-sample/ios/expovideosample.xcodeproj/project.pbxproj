@@ -7,44 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		117CEA8885984539AAA14486 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13D4D3994A414D918CCC86D8 /* ReplayKit.framework */; };
+		13305095FC2A4BE1AE9DFC32 /* SampleUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC25E12286634B25BB3974DC /* SampleUploader.swift */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		1947CE5D8F6044909EB279DE /* SampleUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D14BB4A5714A04AEF08151 /* SampleUploader.swift */; };
-		2589E4C0070B4F6682D7DA8A /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DDD13C58D7C408E9F467EF5 /* Intents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		3B27A874B2274D9886DCA056 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB5369654AD84F0399AB407D /* CallKit.framework */; };
+		290814EFFB5046948F8BF1FA /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B7B22D9413C8405F82206646 /* CallKit.framework */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		6D1DAB4FCD09FCF78C3C87E7 /* Pods_expovideosample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCD6EC60934DE0C97FD9AE6 /* Pods_expovideosample.framework */; };
-		8F04F1B0B6B6450FA7DDDFBE /* SocketConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFBC107772C4FDEBC2485D6 /* SocketConnection.swift */; };
-		9BDEF7B2EB1E4AAF8866BFEB /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C08AADE944774738BE16EF8B /* ReplayKit.framework */; };
-		A193D63757E64479969DA097 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90FF32BD6F24BB78B2191B0 /* noop-file.swift */; };
-		A6C9534AD67A46B39E3A8897 /* broadcast.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 09E1766669C34228B5DE6B96 /* broadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5A13D81B8B76193BCFD48A90 /* Pods_expovideosample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D2C023E7E49A6E6BC6F2FA7 /* Pods_expovideosample.framework */; };
+		7AC70C88C8064066BFD60BA5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA2F404E063841EB93075767 /* GoogleService-Info.plist */; };
+		7ED82B2DA4704325BDE72B13 /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3127278D462843EA81286CF9 /* DarwinNotificationCenter.swift */; };
+		A533365FDF424E6A84F8527B /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C5DC1020204CA095D99BD3 /* noop-file.swift */; };
+		A75676DD1AF64E399AE1A0A0 /* SocketConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BB5C79F2984EF6B5E86270 /* SocketConnection.swift */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		C9F86F6B45514635B33AE24E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 973EBD8857804F97A8A3150D /* GoogleService-Info.plist */; };
-		CF430FD80B4B4028B5FE217B /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DDBA9F48F774323B0D56A16 /* SampleHandler.swift */; };
-		EC90848705064D63909F7E0D /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C073231027614CF68292BD64 /* DarwinNotificationCenter.swift */; };
-		F7CB0809A5F44B49AAC24CF0 /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAAF440359F491E8D648EF1 /* Atomic.swift */; };
+		C1A0C58DC35743E382E0664C /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62153DA4E9934B0B8A79C68B /* Intents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		C3EBD21CF1CA431794452067 /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A69BD393C3742B3BA8E25FF /* Atomic.swift */; };
+		CF302540D3C34461B4A5823B /* broadcast.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BBF9D5B5A0294F938C26FA82 /* broadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FB33D8B02B8547CE9349D6FA /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0363C99B4E4D1EA746C3DE /* SampleHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		6F034068F6D74BA293F0E152 /* PBXContainerItemProxy */ = {
+		DC57ED76042D44108AED1F6A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 000371F94CC5440EB94354E5;
+			remoteGlobalIDString = 3D30FAE20C6248A495744A08;
 			remoteInfo = broadcast;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		307AB20D606942178C39D42A /* Embed App Extensions */ = {
+		70910EA7542443CAB7C38186 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				A6C9534AD67A46B39E3A8897 /* broadcast.appex in Embed App Extensions */,
+				CF302540D3C34461B4A5823B /* broadcast.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -52,31 +52,31 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		09E1766669C34228B5DE6B96 /* broadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = broadcast.appex; path = broadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0B0363C99B4E4D1EA746C3DE /* SampleHandler.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SampleHandler.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* expovideosample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = expovideosample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = expovideosample/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = expovideosample/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = expovideosample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = expovideosample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = expovideosample/main.m; sourceTree = "<group>"; };
-		1DAAF440359F491E8D648EF1 /* Atomic.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = Atomic.swift; path = Atomic.swift; sourceTree = "<group>"; };
-		2C0A6C9661464E7D9C9991CE /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
-		5DDD13C58D7C408E9F467EF5 /* Intents.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
+		13D4D3994A414D918CCC86D8 /* ReplayKit.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		26DAC082A1CF4F74A3CE6B94 /* broadcast.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = text.plist.entitlements; name = broadcast.entitlements; path = broadcast.entitlements; sourceTree = "<group>"; };
+		2A69BD393C3742B3BA8E25FF /* Atomic.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = Atomic.swift; path = Atomic.swift; sourceTree = "<group>"; };
+		3127278D462843EA81286CF9 /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = DarwinNotificationCenter.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
+		3BDEE957938B43AD9351095F /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
+		4F79CA725111425C9E3AD6BA /* expovideosample-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "expovideosample-Bridging-Header.h"; path = "expovideosample/expovideosample-Bridging-Header.h"; sourceTree = "<group>"; };
+		62153DA4E9934B0B8A79C68B /* Intents.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 		6C2E3173556A471DD304B334 /* Pods-expovideosample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-expovideosample.debug.xcconfig"; path = "Target Support Files/Pods-expovideosample/Pods-expovideosample.debug.xcconfig"; sourceTree = "<group>"; };
-		6DDBA9F48F774323B0D56A16 /* SampleHandler.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SampleHandler.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		7A4D352CD337FB3A3BF06240 /* Pods-expovideosample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-expovideosample.release.xcconfig"; path = "Target Support Files/Pods-expovideosample/Pods-expovideosample.release.xcconfig"; sourceTree = "<group>"; };
-		7DFBC107772C4FDEBC2485D6 /* SocketConnection.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SocketConnection.swift; path = SocketConnection.swift; sourceTree = "<group>"; };
-		8CCD6EC60934DE0C97FD9AE6 /* Pods_expovideosample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_expovideosample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		973EBD8857804F97A8A3150D /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "expovideosample/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		9E3AB207307F413D9F648F5F /* expovideosample-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "expovideosample-Bridging-Header.h"; path = "expovideosample/expovideosample-Bridging-Header.h"; sourceTree = "<group>"; };
-		A7D14BB4A5714A04AEF08151 /* SampleUploader.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SampleUploader.swift; path = SampleUploader.swift; sourceTree = "<group>"; };
-		A7DFDA3001D24D0491303788 /* broadcast.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = text.plist.entitlements; name = broadcast.entitlements; path = broadcast.entitlements; sourceTree = "<group>"; };
+		9D2C023E7E49A6E6BC6F2FA7 /* Pods_expovideosample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_expovideosample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6C5DC1020204CA095D99BD3 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "expovideosample/noop-file.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = expovideosample/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B7B22D9413C8405F82206646 /* CallKit.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C073231027614CF68292BD64 /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = DarwinNotificationCenter.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
-		C08AADE944774738BE16EF8B /* ReplayKit.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
-		D90FF32BD6F24BB78B2191B0 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "expovideosample/noop-file.swift"; sourceTree = "<group>"; };
-		DB5369654AD84F0399AB407D /* CallKit.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
+		BBF9D5B5A0294F938C26FA82 /* broadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = broadcast.appex; path = broadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC25E12286634B25BB3974DC /* SampleUploader.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SampleUploader.swift; path = SampleUploader.swift; sourceTree = "<group>"; };
+		CA2F404E063841EB93075767 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "expovideosample/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E1BB5C79F2984EF6B5E86270 /* SocketConnection.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SocketConnection.swift; path = SocketConnection.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-expovideosample/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -86,17 +86,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B27A874B2274D9886DCA056 /* CallKit.framework in Frameworks */,
-				2589E4C0070B4F6682D7DA8A /* Intents.framework in Frameworks */,
-				6D1DAB4FCD09FCF78C3C87E7 /* Pods_expovideosample.framework in Frameworks */,
+				290814EFFB5046948F8BF1FA /* CallKit.framework in Frameworks */,
+				C1A0C58DC35743E382E0664C /* Intents.framework in Frameworks */,
+				5A13D81B8B76193BCFD48A90 /* Pods_expovideosample.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		517750DCA5664C70A175627C /* Frameworks */ = {
+		1C0E40C54311452FB740463B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9BDEF7B2EB1E4AAF8866BFEB /* ReplayKit.framework in Frameworks */,
+				117CEA8885984539AAA14486 /* ReplayKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,36 +113,21 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				973EBD8857804F97A8A3150D /* GoogleService-Info.plist */,
-				D90FF32BD6F24BB78B2191B0 /* noop-file.swift */,
-				9E3AB207307F413D9F648F5F /* expovideosample-Bridging-Header.h */,
+				CA2F404E063841EB93075767 /* GoogleService-Info.plist */,
+				A6C5DC1020204CA095D99BD3 /* noop-file.swift */,
+				4F79CA725111425C9E3AD6BA /* expovideosample-Bridging-Header.h */,
 			);
 			name = expovideosample;
-			sourceTree = "<group>";
-		};
-		19C663F166314B5681966BA3 /* broadcast */ = {
-			isa = PBXGroup;
-			children = (
-				6DDBA9F48F774323B0D56A16 /* SampleHandler.swift */,
-				2C0A6C9661464E7D9C9991CE /* Info.plist */,
-				A7DFDA3001D24D0491303788 /* broadcast.entitlements */,
-				1DAAF440359F491E8D648EF1 /* Atomic.swift */,
-				C073231027614CF68292BD64 /* DarwinNotificationCenter.swift */,
-				A7D14BB4A5714A04AEF08151 /* SampleUploader.swift */,
-				7DFBC107772C4FDEBC2485D6 /* SocketConnection.swift */,
-			);
-			name = broadcast;
-			path = broadcast;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				DB5369654AD84F0399AB407D /* CallKit.framework */,
-				5DDD13C58D7C408E9F467EF5 /* Intents.framework */,
-				C08AADE944774738BE16EF8B /* ReplayKit.framework */,
-				8CCD6EC60934DE0C97FD9AE6 /* Pods_expovideosample.framework */,
+				B7B22D9413C8405F82206646 /* CallKit.framework */,
+				62153DA4E9934B0B8A79C68B /* Intents.framework */,
+				13D4D3994A414D918CCC86D8 /* ReplayKit.framework */,
+				9D2C023E7E49A6E6BC6F2FA7 /* Pods_expovideosample.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -163,7 +148,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				D65327D7A22EEC0BE12398D9 /* Pods */,
 				D7E4C46ADA2E9064B798F356 /* ExpoModulesProviders */,
-				19C663F166314B5681966BA3 /* broadcast */,
+				F9D8FF44E92D4692A855A910 /* broadcast */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -174,7 +159,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* expovideosample.app */,
-				09E1766669C34228B5DE6B96 /* broadcast.appex */,
+				BBF9D5B5A0294F938C26FA82 /* broadcast.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -213,16 +198,56 @@
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
+		F9D8FF44E92D4692A855A910 /* broadcast */ = {
+			isa = PBXGroup;
+			children = (
+				0B0363C99B4E4D1EA746C3DE /* SampleHandler.swift */,
+				3BDEE957938B43AD9351095F /* Info.plist */,
+				26DAC082A1CF4F74A3CE6B94 /* broadcast.entitlements */,
+				2A69BD393C3742B3BA8E25FF /* Atomic.swift */,
+				3127278D462843EA81286CF9 /* DarwinNotificationCenter.swift */,
+				BC25E12286634B25BB3974DC /* SampleUploader.swift */,
+				E1BB5C79F2984EF6B5E86270 /* SocketConnection.swift */,
+			);
+			name = broadcast;
+			path = broadcast;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		000371F94CC5440EB94354E5 /* broadcast */ = {
+		13B07F861A680F5B00A75B9A /* expovideosample */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1585E62437484ED59DBD98B0 /* Build configuration list for PBXNativeTarget "broadcast" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "expovideosample" */;
 			buildPhases = (
-				94D39F1EFA884B00853655EA /* Sources */,
-				517750DCA5664C70A175627C /* Frameworks */,
-				A059BE1438B94B34A0B56C92 /* Resources */,
+				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
+				9C92FA637B164BE79BFE1A84 /* [Expo] Configure project */,
+				13B07F871A680F5B00A75B9A /* Sources */,
+				13B07F8C1A680F5B00A75B9A /* Frameworks */,
+				13B07F8E1A680F5B00A75B9A /* Resources */,
+				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
+				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
+				70910EA7542443CAB7C38186 /* Embed App Extensions */,
+				92714E5E63931BA4A574D389 /* [CP] Embed Pods Frameworks */,
+				10447E3B76725D0A04F8D988 /* [CP-User] [RNFB] Core Configuration */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				61C16534D9064F50B9B3180C /* PBXTargetDependency */,
+			);
+			name = expovideosample;
+			productName = expovideosample;
+			productReference = 13B07F961A680F5B00A75B9A /* expovideosample.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3D30FAE20C6248A495744A08 /* broadcast */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E2DB1EC6841424FACC2F8DE /* Build configuration list for PBXNativeTarget "broadcast" */;
+			buildPhases = (
+				6E9B58397E474915B92C2391 /* Sources */,
+				1C0E40C54311452FB740463B /* Frameworks */,
+				2A17C9DFB2B446F68D586517 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -230,33 +255,8 @@
 			);
 			name = broadcast;
 			productName = broadcast;
-			productReference = 09E1766669C34228B5DE6B96 /* broadcast.appex */;
+			productReference = BBF9D5B5A0294F938C26FA82 /* broadcast.appex */;
 			productType = "com.apple.product-type.app-extension";
-		};
-		13B07F861A680F5B00A75B9A /* expovideosample */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "expovideosample" */;
-			buildPhases = (
-				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				523B3F5D756F59E39EEAF8FF /* [Expo] Configure project */,
-				13B07F871A680F5B00A75B9A /* Sources */,
-				13B07F8C1A680F5B00A75B9A /* Frameworks */,
-				13B07F8E1A680F5B00A75B9A /* Resources */,
-				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				307AB20D606942178C39D42A /* Embed App Extensions */,
-				FF0A07376E91BA668E9CF914 /* [CP] Embed Pods Frameworks */,
-				6305C183A801183D3B57C5A6 /* [CP-User] [RNFB] Core Configuration */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				C48A07166A01442F8EC2C6A8 /* PBXTargetDependency */,
-			);
-			name = expovideosample;
-			productName = expovideosample;
-			productReference = 13B07F961A680F5B00A75B9A /* expovideosample.app */;
-			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -267,14 +267,14 @@
 				LastSwiftUpdateCheck = 1340;
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
-					000371F94CC5440EB94354E5 = {
-						CreatedOnToolsVersion = 13.4.1;
-						DevelopmentTeam = EHV7XZLAHA;
+					13B07F861A680F5B00A75B9A = {
+						LastSwiftMigration = 1250;
+						DevelopmentTeam = "EHV7XZLAHA";
 						ProvisioningStyle = Automatic;
 					};
-					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = EHV7XZLAHA;
-						LastSwiftMigration = 1250;
+					3D30FAE20C6248A495744A08 = {
+						CreatedOnToolsVersion = 13.4.1;
+						DevelopmentTeam = "EHV7XZLAHA";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -293,7 +293,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* expovideosample */,
-				000371F94CC5440EB94354E5 /* broadcast */,
+				3D30FAE20C6248A495744A08 /* broadcast */,
 			);
 		};
 /* End PBXProject section */
@@ -306,11 +306,11 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				C9F86F6B45514635B33AE24E /* GoogleService-Info.plist in Resources */,
+				7AC70C88C8064066BFD60BA5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A059BE1438B94B34A0B56C92 /* Resources */ = {
+		2A17C9DFB2B446F68D586517 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -357,26 +357,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		523B3F5D756F59E39EEAF8FF /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-expovideosample/expo-configure-project.sh\"\n";
-		};
-		6305C183A801183D3B57C5A6 /* [CP-User] [RNFB] Core Configuration */ = {
+		10447E3B76725D0A04F8D988 /* [CP-User] [RNFB] Core Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -427,7 +408,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-expovideosample/Pods-expovideosample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		FF0A07376E91BA668E9CF914 /* [CP] Embed Pods Frameworks */ = {
+		92714E5E63931BA4A574D389 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -447,6 +428,25 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-expovideosample/Pods-expovideosample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		9C92FA637B164BE79BFE1A84 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-expovideosample/expo-configure-project.sh\"\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -457,29 +457,29 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				A193D63757E64479969DA097 /* noop-file.swift in Sources */,
+				A533365FDF424E6A84F8527B /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		94D39F1EFA884B00853655EA /* Sources */ = {
+		6E9B58397E474915B92C2391 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF430FD80B4B4028B5FE217B /* SampleHandler.swift in Sources */,
-				F7CB0809A5F44B49AAC24CF0 /* Atomic.swift in Sources */,
-				EC90848705064D63909F7E0D /* DarwinNotificationCenter.swift in Sources */,
-				1947CE5D8F6044909EB279DE /* SampleUploader.swift in Sources */,
-				8F04F1B0B6B6450FA7DDDFBE /* SocketConnection.swift in Sources */,
+				FB33D8B02B8547CE9349D6FA /* SampleHandler.swift in Sources */,
+				C3EBD21CF1CA431794452067 /* Atomic.swift in Sources */,
+				7ED82B2DA4704325BDE72B13 /* DarwinNotificationCenter.swift in Sources */,
+				13305095FC2A4BE1AE9DFC32 /* SampleUploader.swift in Sources */,
+				A75676DD1AF64E399AE1A0A0 /* SocketConnection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C48A07166A01442F8EC2C6A8 /* PBXTargetDependency */ = {
+		61C16534D9064F50B9B3180C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 000371F94CC5440EB94354E5 /* broadcast */;
-			targetProxy = 6F034068F6D74BA293F0E152 /* PBXContainerItemProxy */;
+			target = 3D30FAE20C6248A495744A08 /* broadcast */;
+			targetProxy = DC57ED76042D44108AED1F6A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -492,10 +492,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = expovideosample/expovideosample.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -522,6 +519,9 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "EHV7XZLAHA";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Debug;
 		};
@@ -533,10 +533,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = expovideosample/expovideosample.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -558,10 +555,13 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "EHV7XZLAHA";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Release;
 		};
-		82E2F3F245EC45B2B8B794EA /* Debug */ = {
+		3E5D10B961EF4C3893C1DD4E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
@@ -572,12 +572,10 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = broadcast/broadcast.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = EHV7XZLAHA;
-				ENABLE_BITCODE = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = broadcast/Info.plist;
@@ -586,19 +584,20 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = 1.0.0;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getstream.expovideosample.broadcast;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEVELOPMENT_TEAM = "EHV7XZLAHA";
+				CODE_SIGN_IDENTITY = "Apple Development";
 			};
-			name = Debug;
+			name = Release;
 		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -749,7 +748,7 @@
 			};
 			name = Release;
 		};
-		DB538153D52B47F6A5C053A4 /* Release */ = {
+		FA811D179D7141E9A53C7C18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
@@ -760,13 +759,9 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = broadcast/broadcast.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = EHV7XZLAHA;
-				ENABLE_BITCODE = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = broadcast/Info.plist;
@@ -775,36 +770,39 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getstream.expovideosample.broadcast;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEVELOPMENT_TEAM = "EHV7XZLAHA";
+				CODE_SIGN_IDENTITY = "Apple Development";
 			};
-			name = Release;
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0E2DB1EC6841424FACC2F8DE /* Build configuration list for PBXNativeTarget "broadcast" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA811D179D7141E9A53C7C18 /* Debug */,
+				3E5D10B961EF4C3893C1DD4E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "expovideosample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		1585E62437484ED59DBD98B0 /* Build configuration list for PBXNativeTarget "broadcast" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				82E2F3F245EC45B2B8B794EA /* Debug */,
-				DB538153D52B47F6A5C053A4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

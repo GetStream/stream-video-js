@@ -13,7 +13,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (16.0.5):
     - ExpoModulesCore
-  - ExpoHead (3.3.1):
+  - ExpoHead (3.4.8):
     - ExpoModulesCore
   - ExpoKeepAwake (12.8.2):
     - ExpoModulesCore
@@ -1456,7 +1456,7 @@ SPEC CHECKSUMS:
   EXNotifications: e11f0e9a5b657c064a481a5d522f3bc5a07bf7cd
   Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoFileSystem: 04795dd4d47e76eaf12e38c92091f77d794f9e7f
-  ExpoHead: e7c92c9c56a4364131593077240e6e177972b0d3
+  ExpoHead: 8224345e80abcf4c97b31c99805dd5a3c8d3404d
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
   ExpoModulesCore: 2346e83abf90c2b2c16a54c3fc4a1169ae12816c
   EXSplashScreen: e12df5ed7e7880913a3e4bad91ba252596993b90

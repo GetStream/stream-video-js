@@ -145,6 +145,9 @@ export async function initIosNonVoipToken(
   };
   if (pushConfig.isExpo) {
     const expoNotificationsLib = getExpoNotificationsLib();
+    expoNotificationsLib.getDevicePushTokenAsync().then((devicePushToken) => {
+      setDeviceToken(devicePushToken.data);
+    });
     const subscription = expoNotificationsLib.addPushTokenListener(
       (devicePushToken) => {
         setDeviceToken(devicePushToken.data);
