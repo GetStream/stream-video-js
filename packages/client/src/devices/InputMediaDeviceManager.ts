@@ -28,7 +28,8 @@ export abstract class InputMediaDeviceManager<
    */
   stopOnLeave = true;
   logger: Logger;
-  private subscriptions: Function[] = [];
+
+  protected subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilter[] = [];
 

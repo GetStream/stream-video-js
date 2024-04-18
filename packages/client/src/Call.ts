@@ -1303,6 +1303,28 @@ export class Call {
   };
 
   /**
+   * Notifies the SFU that a noise cancellation process has started.
+   *
+   * @internal
+   */
+  notifyNoiseCancellationStarting = async () => {
+    return this.sfuClient?.startNoiseCancellation().catch((err) => {
+      this.logger('warn', 'Failed to notify start of noise cancellation', err);
+    });
+  };
+
+  /**
+   * Notifies the SFU that a noise cancellation process has stopped.
+   *
+   * @internal
+   */
+  notifyNoiseCancellationStopped = async () => {
+    return this.sfuClient?.stopNoiseCancellation().catch((err) => {
+      this.logger('warn', 'Failed to notify stop of noise cancellation', err);
+    });
+  };
+
+  /**
    * Update track subscription configuration for one or more participants.
    * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
    * You can only subscribe for tracks after the participant started publishing the given kind of track.

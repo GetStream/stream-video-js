@@ -310,6 +310,26 @@ export class StreamSfuClient {
     );
   };
 
+  startNoiseCancellation = async () => {
+    return retryable(
+      () =>
+        this.rpc.startNoiseCancellation({
+          sessionId: this.sessionId,
+        }),
+      this.logger,
+    );
+  };
+
+  stopNoiseCancellation = async () => {
+    return retryable(
+      () =>
+        this.rpc.stopNoiseCancellation({
+          sessionId: this.sessionId,
+        }),
+      this.logger,
+    );
+  };
+
   join = async (data: Omit<JoinRequest, 'sessionId' | 'token'>) => {
     const joinRequest = JoinRequest.create({
       ...data,

@@ -88,6 +88,12 @@ export interface AudioSettings {
   mic_default_on: boolean;
   /**
    *
+   * @type {NoiseCancellationSettings}
+   * @memberof AudioSettings
+   */
+  noise_cancellation?: NoiseCancellationSettings;
+  /**
+   *
    * @type {boolean}
    * @memberof AudioSettings
    */
@@ -140,6 +146,12 @@ export interface AudioSettingsRequest {
    * @memberof AudioSettingsRequest
    */
   mic_default_on?: boolean;
+  /**
+   *
+   * @type {NoiseCancellationSettingsRequest}
+   * @memberof AudioSettingsRequest
+   */
+  noise_cancellation?: NoiseCancellationSettingsRequest;
   /**
    *
    * @type {boolean}
@@ -472,9 +484,7 @@ export interface CallEndedEvent {
    */
   user?: UserResponse;
 }
-
 /**
- *
  * @export
  * @interface CallEvent
  */
@@ -510,7 +520,6 @@ export interface CallEvent {
    */
   type: string;
 }
-
 /**
  * This event is sent when HLS broadcasting has failed
  * @export
@@ -2099,7 +2108,6 @@ export interface ClosedCaptionEvent {
    */
   type: string;
 }
-
 /**
  *
  * @export
@@ -2108,10 +2116,10 @@ export interface ClosedCaptionEvent {
 export interface CollectUserFeedbackRequest {
   /**
    *
-   * @type {object}
+   * @type {{ [key:string]: any }}
    * @memberof CollectUserFeedbackRequest
    */
-  custom?: { [key:string]: any };
+  custom?: { [key: string]: any };
   /**
    *
    * @type {number}
@@ -2156,7 +2164,6 @@ export interface CollectUserFeedbackResponse {
    */
   duration: string;
 }
-
 /**
  *
  * @export
@@ -2275,7 +2282,6 @@ export interface Coordinates {
    */
   longitude: number;
 }
-
 /**
  *
  * @export
@@ -2636,7 +2642,6 @@ export interface GeofenceSettingsRequest {
    */
   names?: Array<string>;
 }
-
 /**
  *
  * @export
@@ -2980,7 +2985,6 @@ export interface HealthCheckEvent {
    */
   type: string;
 }
-
 /**
  *
  * @export
@@ -3372,6 +3376,53 @@ export interface MuteUsersResponse {
    */
   duration: string;
 }
+/**
+ *
+ * @export
+ * @interface NoiseCancellationSettings
+ */
+export interface NoiseCancellationSettings {
+  /**
+   *
+   * @type {string}
+   * @memberof NoiseCancellationSettings
+   */
+  mode: NoiseCancellationSettingsModeEnum;
+}
+
+/**
+ * @export
+ */
+export const NoiseCancellationSettingsModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+} as const;
+export type NoiseCancellationSettingsModeEnum =
+  (typeof NoiseCancellationSettingsModeEnum)[keyof typeof NoiseCancellationSettingsModeEnum];
+
+/**
+ *
+ * @export
+ * @interface NoiseCancellationSettingsRequest
+ */
+export interface NoiseCancellationSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof NoiseCancellationSettingsRequest
+   */
+  mode?: NoiseCancellationSettingsRequestModeEnum;
+}
+
+/**
+ * @export
+ */
+export const NoiseCancellationSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+} as const;
+export type NoiseCancellationSettingsRequestModeEnum =
+  (typeof NoiseCancellationSettingsRequestModeEnum)[keyof typeof NoiseCancellationSettingsRequestModeEnum];
 
 /**
  * All possibility of string to use
@@ -3381,6 +3432,7 @@ export const OwnCapability = {
   BLOCK_USERS: 'block-users',
   CREATE_CALL: 'create-call',
   CREATE_REACTION: 'create-reaction',
+  ENABLE_NOISE_CANCELLATION: 'enable-noise-cancellation',
   END_CALL: 'end-call',
   JOIN_BACKSTAGE: 'join-backstage',
   JOIN_CALL: 'join-call',
@@ -4913,9 +4965,7 @@ export interface UserResponse {
    */
   updated_at: string;
 }
-
 /**
- *
  * @export
  * @interface UserSessionStats
  */

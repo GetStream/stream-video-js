@@ -1,6 +1,9 @@
 import { vi } from 'vitest';
 import { CallingState, CallState } from '../../store';
-import { OwnCapability } from '../../gen/coordinator';
+import {
+  NoiseCancellationSettingsModeEnum,
+  OwnCapability,
+} from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { Subject } from 'rxjs';
 
@@ -71,13 +74,26 @@ export const mockCall = (): Partial<Call> => {
   callState.setOwnCapabilities([
     OwnCapability.SEND_AUDIO,
     OwnCapability.SEND_VIDEO,
+    OwnCapability.ENABLE_NOISE_CANCELLATION,
   ]);
+  callState.updateFromCallResponse({
+    settings: {
+      // @ts-expect-error partial data
+      audio: {
+        noise_cancellation: {
+          mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
+        },
+      },
+    },
+  });
   return {
     state: callState,
     publishVideoStream: vi.fn(),
     publishAudioStream: vi.fn(),
     publishScreenShareStream: vi.fn(),
     stopPublish: vi.fn(),
+    notifyNoiseCancellationStarting: vi.fn(),
+    notifyNoiseCancellationStopped: vi.fn(),
   };
 };
 

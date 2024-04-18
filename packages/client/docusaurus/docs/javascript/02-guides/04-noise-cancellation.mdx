@@ -1,0 +1,47 @@
+---
+id: noise-cancellation
+title: Noise Cancellation
+description: Noise Cancellation with Krisp.ai
+---
+
+Noise Cancellation capabilities of our [Plain-JS Video SDK](https://getstream.io/video/sdk/javascript/) can be enabled by
+installing our `@stream-io/audio-filters-web` plugin. Under the hood, this package uses the technology developed
+by [krisp.ai](https://krisp.ai/).
+
+## Install package
+
+```bash
+yarn add @stream-io/audio-filters-web
+# or
+npm install @stream-io/audio-filters-web
+```
+
+## Integration
+
+```typescript
+import { NoiseCancellation } from '@stream-io/audio-filters-web';
+import { Call } from '@stream-io/video-client';
+
+let call: Call; // grab a reference to the call instance
+
+// create a new NoiseCancellation instance and initialize it
+const noiseCancellation = new NoiseCancellation();
+await noiseCancellation.init();
+
+// provide the NoiseCancellation instance to the call and register the plugin
+await call.microphone.enableNoiseCancellation(noiseCancellation);
+
+// disable it and unregister the plugin
+await call.microphone.disableNoiseCancellation();
+
+// convenience methods
+noiseCancellation.isSupported(); // returns true for supported platforms
+
+noiseCancellation.disable(); // will temporarily disable NC (doesn't unregister the plugin)
+noiseCancellation.enable(); // will enable NC (requires the plugin to be registered first)
+
+// listen for state updates
+const off = noiseCancellation.on('change', (v) => {
+  console.log(`Noise Cancellation is ${v ? 'enabled' : 'disabled'}`);
+});
+```

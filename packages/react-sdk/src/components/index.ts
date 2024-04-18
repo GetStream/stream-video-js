@@ -12,6 +12,7 @@ export * from './DropdownSelect';
 export * from './Icon';
 export * from './LoadingIndicator';
 export * from './Menu';
+export * from './NoiseCancellation';
 export * from './Notification';
 export * from './RingingCall';
 export * from './Permissions';
