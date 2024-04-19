@@ -15,6 +15,12 @@ const defaultTargetResolution: TargetResolution = {
   height: 720,
 };
 
+const defaultBitratePerRid: Record<string, number> = {
+  q: 300000,
+  h: 750000,
+  f: DEFAULT_BITRATE,
+};
+
 /**
  * Determines the most optimal video layers for simulcasting
  * for the given track.
@@ -43,7 +49,8 @@ export const findOptimalVideoLayers = (
       rid,
       width: Math.round(w / downscaleFactor),
       height: Math.round(h / downscaleFactor),
-      maxBitrate: Math.round(maxBitrate / downscaleFactor),
+      maxBitrate:
+        Math.round(maxBitrate / downscaleFactor) || defaultBitratePerRid[rid],
       scaleResolutionDownBy: downscaleFactor,
       // Simulcast on iOS React-Native requires all encodings to share the same framerate
       maxFramerate: {
