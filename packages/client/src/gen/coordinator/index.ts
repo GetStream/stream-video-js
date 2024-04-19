@@ -2685,7 +2685,6 @@ export interface GeolocationResult {
    */
   subdivision_iso_code: string;
 }
-
 /**
  *
  * @export
@@ -2808,7 +2807,6 @@ export interface GetCallStatsResponse {
    */
   sfus: Array<SFULocationResponse>;
 }
-
 /**
  *
  * @export
@@ -2958,7 +2956,6 @@ export interface GoLiveResponse {
    */
   duration: string;
 }
-
 // Manually added because API spec is faulty
 /**
  *
@@ -3396,6 +3393,7 @@ export interface NoiseCancellationSettings {
 export const NoiseCancellationSettingsModeEnum = {
   AVAILABLE: 'available',
   DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
 } as const;
 export type NoiseCancellationSettingsModeEnum =
   (typeof NoiseCancellationSettingsModeEnum)[keyof typeof NoiseCancellationSettingsModeEnum];
@@ -3420,6 +3418,7 @@ export interface NoiseCancellationSettingsRequest {
 export const NoiseCancellationSettingsRequestModeEnum = {
   AVAILABLE: 'available',
   DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
 } as const;
 export type NoiseCancellationSettingsRequestModeEnum =
   (typeof NoiseCancellationSettingsRequestModeEnum)[keyof typeof NoiseCancellationSettingsRequestModeEnum];
@@ -4401,7 +4400,6 @@ export interface Subsession {
    */
   sfu_id: string;
 }
-
 /**
  *
  * @export
@@ -4966,6 +4964,7 @@ export interface UserResponse {
   updated_at: string;
 }
 /**
+ *
  * @export
  * @interface UserSessionStats
  */
@@ -5185,6 +5184,44 @@ export interface UserStats {
 /**
  *
  * @export
+ * @interface VideoQuality
+ */
+export interface VideoQuality {
+  /**
+   *
+   * @type {VideoResolution}
+   * @memberof VideoQuality
+   */
+  resolution?: VideoResolution;
+  /**
+   *
+   * @type {string}
+   * @memberof VideoQuality
+   */
+  usage_type?: string;
+}
+/**
+ *
+ * @export
+ * @interface VideoResolution
+ */
+export interface VideoResolution {
+  /**
+   *
+   * @type {number}
+   * @memberof VideoResolution
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof VideoResolution
+   */
+  width: number;
+}
+/**
+ *
+ * @export
  * @interface VideoSettings
  */
 export interface VideoSettings {
@@ -5279,40 +5316,6 @@ export const VideoSettingsRequestCameraFacingEnum = {
 } as const;
 export type VideoSettingsRequestCameraFacingEnum =
   (typeof VideoSettingsRequestCameraFacingEnum)[keyof typeof VideoSettingsRequestCameraFacingEnum];
-
-/**
- *
- * @export
- * @interface VideoQuality
- */
-export interface VideoQuality {
-  /**
-   *
-   * @type {VideoResolution}
-   * @memberof VideoQuality
-   */
-  resolution: VideoResolution;
-}
-
-/**
- *
- * @export
- * @interface VideoResolution
- */
-export interface VideoResolution {
-  /**
-   *
-   * @type {number}
-   * @memberof VideoResolution
-   */
-  height: number;
-  /**
-   *
-   * @type {number}
-   * @memberof VideoResolution
-   */
-  width: number;
-}
 
 /**
  *

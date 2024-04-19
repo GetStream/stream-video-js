@@ -3,11 +3,14 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
-import { useCall } from '@stream-io/video-react-bindings';
+import {
+  NoiseCancellationSettingsModeEnum,
+  OwnCapability,
+} from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 export type NoiseCancellationProviderProps = {
@@ -42,11 +45,24 @@ export const NoiseCancellationProvider = (
 ) => {
   const { children, noiseCancellation } = props;
   const call = useCall();
-  const [isEnabled, setIsEnabled] = useState(false);
-  const isSupported = useMemo(
-    () => noiseCancellation.isSupported(),
-    [noiseCancellation],
+  const { useCallSettings, useHasPermissions } = useCallStateHooks();
+  const settings = useCallSettings();
+  const noiseCancellationAllowed = !!(
+    settings &&
+    settings.audio.noise_cancellation &&
+    settings.audio.noise_cancellation.mode !==
+      NoiseCancellationSettingsModeEnum.DISABLED
   );
+
+  const hasCapability = useHasPermissions(
+    OwnCapability.ENABLE_NOISE_CANCELLATION,
+  );
+  const isSupported =
+    hasCapability &&
+    noiseCancellationAllowed &&
+    noiseCancellation.isSupported();
+
+  const [isEnabled, setIsEnabled] = useState(false);
   const deinit = useRef<Promise<void>>();
   useEffect(() => {
     if (!call || !isSupported) return;

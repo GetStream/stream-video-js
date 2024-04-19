@@ -50,11 +50,14 @@ vi.mock('../../Call.ts', () => {
 });
 
 class NoiseCancellationStub implements INoiseCancellation {
+  isSupported = () => true;
+  init = () => Promise.resolve(undefined);
+  enable = () => {};
   disable = () => {};
   dispose = () => Promise.resolve(undefined);
-  enable = () => {};
-  init = () => Promise.resolve(undefined);
   toFilter = () => async (ms: MediaStream) => ms;
+  on = () => () => {};
+  off = () => {};
 }
 
 describe('MicrophoneManager', () => {
@@ -249,6 +252,16 @@ describe('MicrophoneManager', () => {
     it('should automatically enable noise noise suppression after joining a call', async () => {
       const call = manager['call'];
       call.state.setCallingState(CallingState.IDLE); // reset state
+      call.state.updateFromCallResponse({
+        settings: {
+          // @ts-expect-error - partial data
+          audio: {
+            noise_cancellation: {
+              mode: NoiseCancellationSettingsModeEnum.AUTO_ON,
+            },
+          },
+        },
+      });
 
       const noiseCancellation = new NoiseCancellationStub();
       const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');

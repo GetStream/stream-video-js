@@ -125,11 +125,14 @@ describe('MicrophoneManager React Native', () => {
       await expect(() => {
         return manager.enableNoiseCancellation(
           new (class implements INoiseCancellation {
+            isSupported = () => true;
+            init = () => Promise.resolve(undefined);
+            enable = () => {};
             disable = () => {};
             dispose = () => Promise.resolve(undefined);
-            enable = () => {};
-            init = () => Promise.resolve(undefined);
             toFilter = () => async (ms: MediaStream) => ms;
+            on = () => () => {};
+            off = () => {};
           })(),
         );
       }).rejects.toThrow();

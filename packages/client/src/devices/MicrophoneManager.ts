@@ -52,7 +52,12 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         // do nothing when noise filtering isn't turned on
         if (!this.noiseCancellationRegistration || !this.noiseCancellation)
           return;
-        if (callingState === CallingState.JOINED) {
+
+        const autoOn =
+          this.call.state.settings?.audio.noise_cancellation?.mode ===
+          NoiseCancellationSettingsModeEnum.AUTO_ON;
+
+        if (autoOn && callingState === CallingState.JOINED) {
           this.noiseCancellationRegistration
             .then(() => this.call.notifyNoiseCancellationStarting())
             .then(() => this.noiseCancellation?.enable())
@@ -107,7 +112,11 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
       // handles an edge case where a noise cancellation is enabled after
       // the participant as joined the call -> we immediately enable NC
-      if (this.call.state.callingState === CallingState.JOINED) {
+      if (
+        noiseCancellationSettings.mode ===
+          NoiseCancellationSettingsModeEnum.AUTO_ON &&
+        this.call.state.callingState === CallingState.JOINED
+      ) {
         noiseCancellation.enable();
       }
     } catch (e) {
