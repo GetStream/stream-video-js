@@ -3063,12 +3063,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/metro-runtime@npm:3.1.0":
-  version: 3.1.0
-  resolution: "@expo/metro-runtime@npm:3.1.0"
+"@expo/metro-runtime@npm:3.1.3":
+  version: 3.1.3
+  resolution: "@expo/metro-runtime@npm:3.1.3"
   peerDependencies:
     react-native: "*"
-  checksum: d13d6df9d8c6ebe012bb0268764119697c4938fb63015a466a63d1e3025babd0ff87d7300b548ffaa2d7dfb629968aae661ffd3f09f10829a5ccfa8bfc9b4be2
+  checksum: 58f959c05c0c70cee45e7792354ef0c1a5c81c9ea02a3a05e4e3db47633503de304fe911a342877d67ae0a78fc39f6c61a0b3c03f33197eb23bd35382d366f8d
   languageName: node
   linkType: hard
 
@@ -3160,27 +3160,6 @@ __metadata:
   peerDependencies:
     expo-modules-autolinking: ">=0.8.1"
   checksum: ebb83bfba2c7bf6f386f64448213415ce893af69b6a56311dc88400bee24183d934a3c515e6156aad71877def942b6ef608211fdede6a8503eadddc8022e5921
-  languageName: node
-  linkType: hard
-
-"@expo/prebuild-config@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@expo/prebuild-config@npm:6.7.0"
-  dependencies:
-    "@expo/config": ~8.5.0
-    "@expo/config-plugins": ~7.8.0
-    "@expo/config-types": ^50.0.0-alpha.1
-    "@expo/image-utils": ^0.4.0
-    "@expo/json-file": ^8.2.37
-    debug: ^4.3.1
-    fs-extra: ^9.0.0
-    resolve-from: ^5.0.0
-    semver: 7.5.3
-    xml2js: 0.6.0
-  peerDependencies:
-    expo-module-scripts: ^3.3.0
-    expo-modules-autolinking: ">=0.8.1"
-  checksum: ead4e15cbd43874f7811585252517235cdeda1d92b84ebe751067e1cba9c48987338220dbd585bf35bc60ef80b4d7cbb2de53493a90b0af5e5d463cde6458e25
   languageName: node
   linkType: hard
 
@@ -5585,6 +5564,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-firebase/app@npm:19.2.2":
+  version: 19.2.2
+  resolution: "@react-native-firebase/app@npm:19.2.2"
+  dependencies:
+    opencollective-postinstall: ^2.0.3
+    superstruct: ^0.6.2
+  peerDependencies:
+    expo: ">=47.0.0"
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 6bab63a70a92f8576a40ea5181ee37c3f07b1b9b3954574a6f1eb6aa9ddd807a5508ac6a775b48da4a04126fd43e228c018b428cf29f3bbc66cb0bc0febcb300
+  languageName: node
+  linkType: hard
+
 "@react-native-firebase/messaging@npm:17.5.0":
   version: 17.5.0
   resolution: "@react-native-firebase/messaging@npm:17.5.0"
@@ -5604,6 +5600,19 @@ __metadata:
     expo:
       optional: true
   checksum: 4a6e744579954310557a56c843049283e8478185609d78409ad3949dbfe0e01007b6fb724496308dec9131266a55d068a0828587476df54ddfc3adc8a1013d29
+  languageName: node
+  linkType: hard
+
+"@react-native-firebase/messaging@npm:19.2.2":
+  version: 19.2.2
+  resolution: "@react-native-firebase/messaging@npm:19.2.2"
+  peerDependencies:
+    "@react-native-firebase/app": 19.2.2
+    expo: ">=47.0.0"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 295ae5f2179a715df50b7f4ac90a1583299a7799ee7df81840fd3401e361589c2fe96edf3523b2bc276ff281affe7771d4f697b940a54d685d0701b7bf92b403
   languageName: node
   linkType: hard
 
@@ -6883,6 +6892,8 @@ __metadata:
     "@notifee/react-native": ^7.8.0
     "@react-native-async-storage/async-storage": 1.21.0
     "@react-native-community/netinfo": 11.1.0
+    "@react-native-firebase/app": 19.2.2
+    "@react-native-firebase/messaging": 19.2.2
     "@rnx-kit/metro-config": ^1.3.14
     "@rnx-kit/metro-resolver-symlinks": ^0.1.34
     "@stream-io/react-native-webrtc": 118.0.1
@@ -6893,7 +6904,7 @@ __metadata:
     expo-constants: ~15.4.5
     expo-linking: ~6.2.2
     expo-notifications: ~0.27.5
-    expo-router: ~3.3.1
+    expo-router: ~3.4.8
     expo-splash-screen: ~0.26.4
     expo-status-bar: ~1.11.1
     expo-task-manager: ~11.7.1
@@ -13609,17 +13620,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-router@npm:~3.3.1":
-  version: 3.3.1
-  resolution: "expo-router@npm:3.3.1"
+"expo-router@npm:~3.4.8":
+  version: 3.4.8
+  resolution: "expo-router@npm:3.4.8"
   dependencies:
-    "@expo/metro-runtime": 3.1.0
+    "@expo/metro-runtime": 3.1.3
     "@expo/server": ^0.3.0
     "@radix-ui/react-slot": 1.0.1
     "@react-navigation/bottom-tabs": ~6.5.7
     "@react-navigation/native": ~6.1.6
     "@react-navigation/native-stack": ~6.9.12
-    expo-splash-screen: 0.26.0
+    expo-splash-screen: 0.26.4
     react-helmet-async: ^1.3.0
     schema-utils: ^4.0.1
   peerDependencies:
@@ -13638,22 +13649,11 @@ __metadata:
       optional: true
     react-native-reanimated:
       optional: true
-  checksum: 89af00ed9ff4acbfa759d91b0726d7a652c98dffdfdfc1faaa1f19741588bf7819323677028867a8d44e608c9ca119da0642ee84efa9e82430b74019bfa88e2c
+  checksum: f36b108aa3d65ca1b4f69dfa68ff76b3070fa53bbac6b47378db845904943aaae06314805db771599e5e2af5b35521339e44a7a47c7e3ef601f0dbfa4432953a
   languageName: node
   linkType: hard
 
-"expo-splash-screen@npm:0.26.0":
-  version: 0.26.0
-  resolution: "expo-splash-screen@npm:0.26.0"
-  dependencies:
-    "@expo/prebuild-config": 6.7.0
-  peerDependencies:
-    expo: "*"
-  checksum: 2ae20df5f535c7c8e5f34472255b0a874f8126108e42089d55f1947037a014b8b8cd5d509ced5b6e58032b1042b2d2f5aa92ff95cc24f4757f10f0c0081f9039
-  languageName: node
-  linkType: hard
-
-"expo-splash-screen@npm:~0.26.4":
+"expo-splash-screen@npm:0.26.4, expo-splash-screen@npm:~0.26.4":
   version: 0.26.4
   resolution: "expo-splash-screen@npm:0.26.4"
   dependencies:
