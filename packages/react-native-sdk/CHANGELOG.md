@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.7...@stream-io/video-react-native-sdk-0.6.8) (2024-04-19)
+
+
+### Bug Fixes
+
+* move expo ringing setup to react-native firebase ([#1319](https://github.com/GetStream/stream-video-js/issues/1319)) ([bb57300](https://github.com/GetStream/stream-video-js/commit/bb57300028d67917269f8eee9ca33e129b2c7e9d))
+
 ### [0.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.6...@stream-io/video-react-native-sdk-0.6.7) (2024-04-17)
 
 ### Dependency Updates
