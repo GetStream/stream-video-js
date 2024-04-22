@@ -1,10 +1,7 @@
 import { HTMLInputTypeAttribute, useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
-
 import { useField, useForm } from 'react-form';
-
-import { Icon, useI18n, useMenuContext } from '@stream-io/video-react-sdk';
-
+import { Icon, useCall, useMenuContext } from '@stream-io/video-react-sdk';
 import { getCookie } from '../../helpers/getCookie';
 
 export type Props = {
@@ -67,48 +64,54 @@ const TextArea = (props: {
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
+type FeedbackFormType = {
+  email: string;
+  message: string;
+};
+
 export const Feedback = ({ callId, inMeeting = true }: Props) => {
-  const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
-    current: 0,
-    maxAmount: 5,
-  });
-  const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
+  const [rating, setRating] = useState({ current: 0, maxAmount: 5 });
+  const [feedbackSent, setFeedbackSent] = useState(false);
   const [errorMessage, setError] = useState<string | null>(null);
-
-  const { t } = useI18n();
-
-  const endpointUrl =
-    process.env.MODE === 'staging' || process.env.MODE === 'development'
-      ? 'https://staging.getstream.io'
-      : 'https://getstream.io';
+  const call = useCall();
+  const defaultValues = useMemo<FeedbackFormType>(
+    () => ({ email: '', message: '' }),
+    [],
+  );
   const {
     Form,
     meta: { isSubmitting },
   } = useForm({
-    defaultValues: useMemo(
-      () => ({
-        email: '',
-        message: '',
-      }),
-      [],
-    ),
-    onSubmit: async (values: object) => {
+    defaultValues,
+    onSubmit: async (values: FeedbackFormType) => {
+      await call
+        ?.submitFeedback(Math.min(Math.max(1, rating.current), 5), {
+          reason: values.message,
+          custom: {
+            ...values,
+          },
+        })
+        .catch((err) => console.warn(`Failed to submit call feedback`, err));
+
       const pageUrl = new URL(window.location.href);
       pageUrl.searchParams.set('meeting', inMeeting ? 'true' : 'false');
       pageUrl.searchParams.set('id', callId || '');
-      const response = await fetch(`${endpointUrl}/api/crm/video_feedback/`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken') || '',
+      const response = await fetch(
+        `https://getstream.io/api/crm/video_feedback/`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || '',
+          },
+          body: JSON.stringify({
+            ...values,
+            rating: rating.current,
+            page_url: pageUrl.toString(),
+          }),
         },
-        body: JSON.stringify({
-          ...values,
-          rating: rating.current,
-          page_url: pageUrl.toString(),
-        }),
-      });
+      );
 
       if (response.status >= 400) {
         setError('Something went wrong, please try again.');
@@ -129,10 +132,6 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
     [rating],
   );
 
-  const descriptionClassName = clsx('rd__feedback-description', {
-    'rd__feedback-error': errorMessage,
-  });
-
   const { close } = useMenuContext();
 
   if (feedbackSent) {
@@ -144,11 +143,9 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           alt="Feedback"
         />
 
-        <h2 className="rd__feedback-heading">
-          {t('Thanks for your feedback!')}
-        </h2>
+        <h2 className="rd__feedback-heading">Thanks for your feedback!</h2>
         <p className="rd__feedback-description">
-          {t('We’ll use it to help better your call experience 😀')}
+          We’ll use it to help better your call experience 😀
         </p>
 
         <button
@@ -161,8 +158,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
             })
           }
         >
-          {' '}
-          {t('Close')}
+          Close
         </button>
       </div>
     );
@@ -177,48 +173,54 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           alt="Feedback"
         />
         <h4 className="rd__feedback-heading">
-          {inMeeting ? t('How was your call?') : t('You left the call.')}
+          {inMeeting ? 'How was your call?' : 'You left the call.'}
         </h4>
-        <p className={descriptionClassName}>
+        <p
+          className={clsx(
+            'rd__feedback-description',
+            errorMessage && 'rd__feedback-error',
+          )}
+        >
           {errorMessage && errorMessage}
           {inMeeting && !errorMessage && 'How is your calling experience?'}
           {!inMeeting && !errorMessage && 'How was your calling experience?'}
         </p>
         <Form className="rd__feedback-form">
+          <div className="rd__feedback-rating">
+            <p className="rd__feedback-rating-description">Rate quality:</p>
+            <div className="rd__feedback-rating-stars">
+              {[...new Array(rating.maxAmount)].map((_, index) => {
+                const active = index + 1 <= rating.current;
+                return (
+                  <div
+                    key={`star-${index}`}
+                    onClick={() => handleSetRating(index + 1)}
+                  >
+                    <Icon
+                      icon="star"
+                      className={clsx(
+                        'rd__feedback-star',
+                        active && 'rd__feedback-star--active',
+                      )}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
           <Input
             className="rd__feedback-input"
             name="email"
             type="email"
-            placeholder={t('Email')}
+            placeholder="Email"
             required
           />
           <TextArea
             className="rd__feedback-textarea"
             name="message"
-            placeholder={t('Message')}
+            placeholder="Message"
           />
           <div className="rd__feedback-footer">
-            <div className="rd__feedback-rating">
-              <p className="rd__feedback-rating-description">Rate quality:</p>
-              <div className="rd__feedback-rating-stars">
-                {[...new Array(rating.maxAmount)].map((_, index: number) => {
-                  const active = index + 1 <= rating.current;
-                  const starClassName = clsx('rd__feedback-star', {
-                    'rd__feedback-star--active': active,
-                  });
-
-                  return (
-                    <div
-                      key={`star-${index}`}
-                      onClick={() => handleSetRating(index + 1)}
-                    >
-                      <Icon icon="star" className={starClassName} />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             <div className="rd__feedback-actions">
               {inMeeting ? (
                 <button
@@ -226,20 +228,19 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                   disabled={isSubmitting}
                   onClick={close}
                 >
-                  {' '}
-                  {t('Cancel')}
+                  Cancel
                 </button>
               ) : (
                 <button
                   className="rd__button rd__button--secondary rd__feedback-button--cancel"
                   disabled={isSubmitting}
-                  onClick={() =>
+                  onClick={() => {
                     window.location.assign(
                       'https://getstream.io/video/#contact',
-                    )
-                  }
+                    );
+                  }}
                 >
-                  {t('Contact an expert')}
+                  Contact an expert
                 </button>
               )}
 
@@ -247,10 +248,8 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                 className="rd__button rd__button--primary rd__feedback-button--submit"
                 type="submit"
                 disabled={isSubmitting}
-                onClick={() => {}}
               >
-                {' '}
-                {t('Submit')}
+                Submit
               </button>
             </div>
           </div>
