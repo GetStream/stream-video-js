@@ -11,7 +11,7 @@ It is a good practice to ask your end users about their overall experience after
 Here is a preview of the component we are going to build:
 ![Preview of the UI](../assets/06-ui-cookbook/16-call-quality-rating/rating-form.png)
 
-## SendFeedback API
+## Submit Feedback API
 
 Our React Video SDK provides an API for collecting this feedback which later can be seen in the call stats section of our dashboard.
 
@@ -37,8 +37,8 @@ import { useCall, Icon } from '@stream-io/video-react-sdk';
 export const MyFeedbackForm = () => {
   const call = useCall();
   const [rating, setRating] = useState<number>(0);
-  const [email, setEmail] = useState<string>();
-  const [message, setMessage] = useState<string>();
+  const [email, setEmail] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
   const handleSubmitFeedback = useCallback(() => {
     call?.submitFeedback(Math.min(Math.max(1, rating), 5), {
@@ -88,3 +88,7 @@ export const MyFeedbackForm = () => {
   );
 };
 ```
+
+:::note
+For simplicity, the CSS style sheets are not included in this guide.
+:::
