@@ -21,7 +21,7 @@ The `console.log` method will be called each time there is a change to the list 
 
 This approach makes it possible to access the state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
 
-Alternatively you can also access the current value of each state variable:
+Alternatively, you can also access the current value of each state variable:
 
 ```typescript
 const { participants } = call.state;
@@ -36,7 +36,14 @@ The call state can be accessed through `call.state` object as in the examples ab
 In this object, you'll find properties that are reactive and static as well.
 The reactive/observable properties are suffixed with `$` and the static ones are without the suffix.
 
-Here are is an excerpt of the call state properties:
+:::note
+For the best experience, please make sure that the `call` instance is loaded
+and connected to our backend: [Load Call](../../joining-and-creating-calls/#load-call).
+
+Otherwise, `call.state` observables will emit empty values and you won't get real time updates.
+:::
+
+Here is an excerpt of the call state properties:
 
 | Reactive value           | Static value            | Description                                                                                                  |
 | ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
