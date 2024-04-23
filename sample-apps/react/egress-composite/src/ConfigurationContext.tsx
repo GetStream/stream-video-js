@@ -81,16 +81,16 @@ export type ConfigurationValue = {
     'participant.placeholder_background_color'?: string;
 
     // ✅
-    'participant_label.display'?: boolean;
-    'participant_label.text_color'?: string;
-    'participant_label.background_color'?: string;
-    'participant_label.border_width'?: string;
-    'participant_label.border_radius'?: string;
-    'participant_label.border_color'?: string;
-    'participant_label.horizontal_position'?: HorizontalPosition;
-    'participant_label.vertical_position'?: VerticalPosition;
-    'participant_label.margin_inline'?: string;
-    'participant_label.margin_block'?: string;
+    'participant.label_display'?: boolean;
+    'participant.label_text_color'?: string;
+    'participant.label_background_color'?: string;
+    'participant.label_border_width'?: string;
+    'participant.label_border_radius'?: string;
+    'participant.label_border_color'?: string;
+    'participant.label_horizontal_position'?: HorizontalPosition;
+    'participant.label_vertical_position'?: VerticalPosition;
+    'participant.label_margin_inline'?: string;
+    'participant.label_margin_block'?: string;
 
     // used with any layout
     'layout.size_percentage'?: number; // ❌
