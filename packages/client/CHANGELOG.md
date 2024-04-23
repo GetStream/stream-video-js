@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.5...@stream-io/video-client-0.7.6) (2024-04-23)
+
+
+### Bug Fixes
+
+* **client:** ignore SFU WS status code when the user initiates leaving a call ([#1323](https://github.com/GetStream/stream-video-js/issues/1323)) ([774882b](https://github.com/GetStream/stream-video-js/commit/774882b9e2bb3f3dc72401278c174e1a0f597ce1))
+
 ### [0.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.4...@stream-io/video-client-0.7.5) (2024-04-23)
 
 
