@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.4...@stream-io/video-client-0.7.5) (2024-04-23)
+
+
+### Bug Fixes
+
+* **publisher:** ensure initial bitrate is set ([#1322](https://github.com/GetStream/stream-video-js/issues/1322)) ([d7e8e4e](https://github.com/GetStream/stream-video-js/commit/d7e8e4e5cb3ff9859c1eb580162ed88bbe54b096))
+
 ### [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.3...@stream-io/video-client-0.7.4) (2024-04-17)
 
 
