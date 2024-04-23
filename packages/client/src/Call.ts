@@ -1939,9 +1939,8 @@ export class Call {
     if (rating < 1 || rating > 5) {
       throw new Error('Rating must be between 1 and 5');
     }
-    const userSessionId = this.sfuClient?.sessionId;
     const callSessionId = this.state.session?.id;
-    if (!callSessionId || !userSessionId) {
+    if (!callSessionId) {
       throw new Error(
         'Feedback can be submitted only in the context of a call session',
       );
@@ -1951,6 +1950,9 @@ export class Call {
       getClientDetails(),
     );
 
+    // user sessionId is not available once the call has been left
+    // until we relax the backend validation, we'll send N/A
+    const userSessionId = this.sfuClient?.sessionId ?? 'N/A';
     const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
     return this.streamClient.post<
       CollectUserFeedbackResponse,

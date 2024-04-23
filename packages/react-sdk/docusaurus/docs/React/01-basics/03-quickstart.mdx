@@ -9,7 +9,7 @@ This quickstart gives you a quick overview of how Stream's video SDKs work.
 
 Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user.
 
-Next you create a call object and join the call.
+Next, you create a call object and join the call.
 We'll specify `create: true` to create the call if it doesn't exist.
 
 ```tsx
@@ -29,10 +29,12 @@ const client = new StreamVideoClient({ apiKey, user, token });
 const call = client.call('default', 'my-first-call');
 call.join({ create: true });
 
-export const App = () => {
+export const MyApp = () => {
   return (
     <StreamVideo client={client}>
-      <StreamCall call={call}>/* My Video UI */</StreamCall>
+      <StreamCall call={call}>
+        /* <MyVideoUI /> */
+      </StreamCall>
     </StreamVideo>
   );
 };
@@ -41,6 +43,13 @@ export const App = () => {
 `default` is a call type. There are 4 built-in [call types](../../guides/configuring-call-types/) and you can also create your own. The call type controls the permissions and which features are enabled.
 
 The second argument is the call id. Call IDs can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+You can load an existing call from our servers like this:
+
+```typescript
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('default', 'my-first-call');
+await call.getOrCreate();
+```
 
 ## Rendering video
 

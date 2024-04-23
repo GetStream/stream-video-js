@@ -14,7 +14,8 @@ import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
 const user: User = {
   id: 'sara',
 };
-
+const apiKey = 'my-stream-api-key';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 const client = new StreamVideoClient({ apiKey, token, user });
 ```
 
@@ -49,7 +50,7 @@ const user: User = {
   id: 'jack-guest',
   type: 'guest',
 };
-
+const apiKey = 'my-stream-api-key';
 const client = new StreamVideoClient({ apiKey, user });
 ```
 
@@ -62,6 +63,7 @@ const user: User = {
   type: 'anonymous',
 };
 
+const apiKey = 'my-stream-api-key';
 const client = new StreamVideoClient({ apiKey, user });
 ```
 
@@ -69,7 +71,24 @@ const client = new StreamVideoClient({ apiKey, user });
 
 ### `token` or `tokenProvider`
 
-To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`. If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
+To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`.
+If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
+
+```typescript
+import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+
+const tokenProvider = async () => {
+  const response = await fetch('/api/token');
+  const data = await response.json();
+  return data.token;
+};
+
+const user: User = {
+  id: 'sara',
+};
+const apiKey = 'my-stream-api-key';
+const client = new StreamVideoClient({ apiKey, tokenProvider, user });
+```
 
 ### Logging
 
@@ -96,6 +115,8 @@ const client = new StreamVideoClient({
   },
 });
 ```
+
+### Sentry
 
 Here is an example showing a basic [Sentry](https://sentry.io/welcome/) integration:
 
@@ -131,21 +152,29 @@ export const customSentryLogger: Logger = (
 You can use the `StreamVideo` context provider to make the SDK client available to the rest of the application. We also use the `tokenProvider` to show how to perform auth server-side.
 
 ```tsx
-import { useState } from 'react';
-import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
-export const App = () => {
-  const [client] = useState(() => {
-    const user = {
-      id: '<id>',
-      name: '<name>',
-    };
+import { useEffect, useState } from 'react';
+import {
+  StreamVideo,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
+
+const apiKey = 'my-stream-api-key';
+const user: User = {
+  id: 'sara',
+};
+
+export const MyApp = () => {
+  const [client, setClient] = useState<StreamVideoClient>();
+  useEffect(() => {
     const tokenProvider = () => Promise.resolve('<token>');
-    return new StreamVideoClient({
-      apiKey,
-      tokenProvider,
-      user,
-    });
-  });
+    const myClient = new StreamVideoClient({ apiKey, user, tokenProvider });
+    setClient(myClient);
+    return () => {
+      myClient.disconnectUser();
+      setClient(undefined);
+    };
+  }, []);
 
   return (
     <StreamVideo client={client}>

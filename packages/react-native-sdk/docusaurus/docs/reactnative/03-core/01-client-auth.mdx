@@ -15,11 +15,12 @@ const user: User = {
   id: 'sara';
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
+const user: User = {
+  id: 'sara',
+};
+const apiKey = 'my-stream-api-key';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const client = new StreamVideoClient({ apiKey, token, user });
 ```
 
 - The API Key can be found in your dashboard.
@@ -54,10 +55,8 @@ const user: User = {
   type: 'guest',
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  user,
-});
+const apiKey = 'my-stream-api-key';
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 And here's an example for an anonymous user
@@ -69,17 +68,32 @@ const user: User = {
   type: 'anonymous',
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  user,
-});
+const apiKey = 'my-stream-api-key';
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 ## Client options
 
 ### `token` or `tokenProvider`
 
-To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`. If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
+To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`.
+If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
+
+```typescript
+import { StreamVideoClient, User } from '@stream-io/video-react-native-sdk';
+
+const tokenProvider = async () => {
+  const response = await fetch('/api/token');
+  const data = await response.json();
+  return data.token;
+};
+
+const user: User = {
+  id: 'sara',
+};
+const apiKey = 'my-stream-api-key';
+const client = new StreamVideoClient({ apiKey, tokenProvider, user });
+```
 
 ### Logging
 
@@ -105,63 +119,32 @@ const client = new StreamVideoClient({
 });
 ```
 
-Here is an example showing a basic [Sentry](https://sentry.io/welcome/) integration:
-
-```ts
-import {
-  LogLevel,
-  Logger,
-  logToConsole,
-} from '@stream-io/video-react-native-sdk';
-import * as Sentry from '@sentry/nextjs';
-
-const logLevelMapping = new Map<LogLevel, Sentry.SeverityLevel>();
-logLevelMapping.set('debug', 'debug');
-logLevelMapping.set('info', 'info');
-logLevelMapping.set('warn', 'warning');
-logLevelMapping.set('error', 'error');
-
-export const customSentryLogger: Logger = (
-  logLevel: LogLevel,
-  message: string,
-  extraData?: any,
-  tags?: string[],
-) => {
-  if (logLevel === 'warn' || logLevel === 'error') {
-    Sentry.captureEvent({
-      level: logLevelMapping.get(logLevel),
-      extra: extraData,
-    });
-  }
-
-  // Call the SDK's default log method
-  logToConsole(logLevel, message, extraData, tags);
-};
-```
-
 ## StreamVideo context provider
 
 You can use the `StreamVideo` context provider to make the SDK client available to the rest of the application. We also use the `tokenProvider` to show how to perform auth server-side.
 
 ```tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-export const App = () => {
-  const [client] = useState(() => {
-    const user = {
-      id: '<id>',
-      name: '<name>',
-    };
+const apiKey = 'my-stream-api-key';
+const user: User = {
+  id: 'sara',
+};
+
+export const MyApp = () => {
+  const [client, setClient] = useState<StreamVideoClient>();
+  useEffect(() => {
     const tokenProvider = () => Promise.resolve('<token>');
-    return new StreamVideoClient({
-      apiKey,
-      tokenProvider,
-      user,
-    });
-  });
+    const myClient = new StreamVideoClient({ apiKey, user, tokenProvider });
+    setClient(myClient);
+    return () => {
+      myClient.disconnectUser();
+      setClient(undefined);
+    };
+  }, []);
 
   return (
     <StreamVideo client={client}>
