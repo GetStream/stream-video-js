@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.10...@stream-io/video-react-native-sdk-0.6.11) (2024-04-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.7`
+* `@stream-io/video-react-bindings` updated to version `0.4.18`
+
+### Features
+
+* **feedback:** Collect user feedback ([#1324](https://github.com/GetStream/stream-video-js/issues/1324)) ([b415de0](https://github.com/GetStream/stream-video-js/commit/b415de0828e402f8d3b854553351843aad2e8473))
+
+### [0.6.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.9...@stream-io/video-react-native-sdk-0.6.10) (2024-04-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.6`
+* `@stream-io/video-react-bindings` updated to version `0.4.17`
+### [0.6.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.8...@stream-io/video-react-native-sdk-0.6.9) (2024-04-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.16`
+### [0.6.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.7...@stream-io/video-react-native-sdk-0.6.8) (2024-04-19)
+
+
+### Bug Fixes
+
+* move expo ringing setup to react-native firebase ([#1319](https://github.com/GetStream/stream-video-js/issues/1319)) ([bb57300](https://github.com/GetStream/stream-video-js/commit/bb57300028d67917269f8eee9ca33e129b2c7e9d))
+
 ### [0.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.6...@stream-io/video-react-native-sdk-0.6.7) (2024-04-17)
 
 ### Dependency Updates

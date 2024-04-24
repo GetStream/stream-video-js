@@ -216,6 +216,7 @@ export class Call {
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private isLeaving = false;
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -478,6 +479,8 @@ export class Call {
     if (callingState === CallingState.JOINING) {
       await this.assertCallJoined();
     }
+
+    this.isLeaving = true;
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
@@ -887,6 +890,9 @@ export class Call {
         // unregister the "goAway" handler, as we won't need it anymore for this connection.
         // the upcoming re-join will register a new handler anyway
         unregisterGoAway();
+        // when the user has initiated "call.leave()" operation, we shouldn't
+        // care for the WS close code and we shouldn't ever attempt to reconnect
+        if (this.isLeaving) return;
         // do nothing if the connection was closed on purpose
         if (e.code === StreamSfuClient.NORMAL_CLOSURE) return;
         // do nothing if the connection was closed because of a policy violation
@@ -1955,9 +1961,8 @@ export class Call {
     if (rating < 1 || rating > 5) {
       throw new Error('Rating must be between 1 and 5');
     }
-    const userSessionId = this.sfuClient?.sessionId;
     const callSessionId = this.state.session?.id;
-    if (!callSessionId || !userSessionId) {
+    if (!callSessionId) {
       throw new Error(
         'Feedback can be submitted only in the context of a call session',
       );
@@ -1967,6 +1972,9 @@ export class Call {
       getClientDetails(),
     );
 
+    // user sessionId is not available once the call has been left
+    // until we relax the backend validation, we'll send N/A
+    const userSessionId = this.sfuClient?.sessionId ?? 'N/A';
     const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
     return this.streamClient.post<
       CollectUserFeedbackResponse,

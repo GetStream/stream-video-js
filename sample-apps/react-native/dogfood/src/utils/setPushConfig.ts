@@ -73,9 +73,12 @@ const createStreamVideoClient = async () => {
   const userId = JSON.parse(mmkvStorage.getString('userId') ?? '');
   const userName = JSON.parse(mmkvStorage.getString('userName') ?? '');
   const userImageUrl = JSON.parse(mmkvStorage.getString('userImageUrl') ?? '');
-  const appEnvironment = JSON.parse(
+  let appEnvironment = JSON.parse(
     mmkvStorage.getString('appEnvironment') ?? '',
   );
+  if (appEnvironment !== 'pronto' || appEnvironment !== 'demo') {
+    appEnvironment = 'pronto';
+  }
   if (!userId || !userImageUrl) {
     return undefined;
   }
@@ -88,6 +91,7 @@ const createStreamVideoClient = async () => {
     { user_id: user.id },
     appEnvironment,
   );
+
   const client = new StreamVideoClient({
     apiKey,
     user,

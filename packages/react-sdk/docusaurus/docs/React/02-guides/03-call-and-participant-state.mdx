@@ -5,9 +5,16 @@ description: How the state is exposed
 
 You can access call, participant and client state using hooks. These hooks are reactive (their value is updated on WebSocket events and API calls).
 
-## Call state
+## Call State
 
 To observe call state, you need to provide a `Call` instance to the [`StreamCall` component](../../ui-components/core/stream-call).
+
+:::note
+For the best experience, please make sure that the provided `Call` instance is loaded
+and connected to our backend: [Load Call](../../joining-and-creating-calls/#load-call).
+
+Otherwise, `call.state` and the call state hooks will provide empty values.
+:::
 
 Let's see an example where we use the `useCall`, `useCallCallingState` and `useParticipants` hooks to display some basic information about the call:
 
@@ -19,7 +26,7 @@ import {
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
-export default function App() {
+export default function MyApp() {
   let call: Call;
 
   return (
@@ -49,6 +56,8 @@ const MyCallUI = () => {
 This approach makes it possible to access the call state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
 
 The `StreamCall` component uses the `StreamCallProvider` under the hood.
+
+## Call State Hooks
 
 Here is an excerpt of the available call state hooks:
 

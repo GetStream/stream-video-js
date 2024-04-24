@@ -71,6 +71,26 @@ describe('videoLayers', () => {
     ]);
   });
 
+  it('should use predefined bitrate values when track dimensions cant be determined', () => {
+    const width = 0;
+    const height = 0;
+    const bitrate = 3000000;
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
+    const layers = findOptimalVideoLayers(track, { width, height, bitrate });
+    expect(layers).toEqual([
+      {
+        active: true,
+        rid: 'q',
+        width: 0,
+        height: 0,
+        maxBitrate: bitrate,
+        scaleResolutionDownBy: 1,
+        maxFramerate: 30,
+      },
+    ]);
+  });
+
   it('should announce one simulcast layer for resolutions less than 320px wide', () => {
     const track = new MediaStreamTrack();
     const width = 320;
