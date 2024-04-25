@@ -92,8 +92,8 @@ export const mockCall = (): Partial<Call> => {
     publishAudioStream: vi.fn(),
     publishScreenShareStream: vi.fn(),
     stopPublish: vi.fn(),
-    notifyNoiseCancellationStarting: vi.fn(),
-    notifyNoiseCancellationStopped: vi.fn(),
+    notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
+    notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
   };
 };
 

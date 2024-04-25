@@ -50,13 +50,18 @@ vi.mock('../../Call.ts', () => {
 });
 
 class NoiseCancellationStub implements INoiseCancellation {
+  private listeners: { [event: string]: Array<() => void> } = {};
+
   isSupported = () => true;
   init = () => Promise.resolve(undefined);
-  enable = () => {};
-  disable = () => {};
+  enable = () => this.listeners['change']?.forEach((l) => l(true));
+  disable = () => this.listeners['change']?.forEach((l) => l(false));
   dispose = () => Promise.resolve(undefined);
   toFilter = () => async (ms: MediaStream) => ms;
-  on = () => () => {};
+  on = (event, callback) => {
+    (this.listeners[event] ??= []).push(callback);
+    return () => {};
+  };
   off = () => {};
 }
 

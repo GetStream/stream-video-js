@@ -19,6 +19,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   private soundDetectorCleanup?: Function;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
+  private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<() => Promise<void>>;
 
   constructor(call: Call) {
@@ -59,7 +60,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
         if (autoOn && callingState === CallingState.JOINED) {
           this.noiseCancellationRegistration
-            .then(() => this.call.notifyNoiseCancellationStarting())
             .then(() => this.noiseCancellation?.enable())
             .catch((err) => {
               this.logger('warn', `Failed to enable noise cancellation`, err);
@@ -68,7 +68,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         } else if (callingState === CallingState.LEFT) {
           this.noiseCancellationRegistration
             .then(() => this.noiseCancellation?.disable())
-            .then(() => this.call.notifyNoiseCancellationStopped())
             .catch((err) => {
               this.logger('warn', `Failed to disable noise cancellation`, err);
             });
@@ -105,6 +104,23 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     }
     try {
       this.noiseCancellation = noiseCancellation;
+
+      // listen for change events and notify the SFU
+      this.noiseCancellationChangeUnsubscribe = this.noiseCancellation.on(
+        'change',
+        (enabled: boolean) => {
+          if (enabled) {
+            this.call.notifyNoiseCancellationStarting().catch((err) => {
+              this.logger('warn', `notifyNoiseCancellationStart failed`, err);
+            });
+          } else {
+            this.call.notifyNoiseCancellationStopped().catch((err) => {
+              this.logger('warn', `notifyNoiseCancellationStop failed`, err);
+            });
+          }
+        },
+      );
+
       this.noiseCancellationRegistration = this.registerFilter(
         noiseCancellation.toFilter(),
       );
@@ -139,11 +155,12 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     await this.noiseCancellationRegistration
       ?.then((unregister) => unregister())
       .then(() => this.noiseCancellation?.disable())
+      .then(() => this.noiseCancellationChangeUnsubscribe?.())
       .catch((err) => {
         this.logger('warn', 'Failed to unregister noise cancellation', err);
       });
 
-    return this.call.notifyNoiseCancellationStopped();
+    await this.call.notifyNoiseCancellationStopped();
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
