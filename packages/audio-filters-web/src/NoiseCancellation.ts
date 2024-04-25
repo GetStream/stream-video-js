@@ -66,7 +66,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly basePath: string;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
-  private readonly listners: Partial<Record<keyof Events, Array<any>>> = {};
+  private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
 
   /**
    * Constructs a new instance.
@@ -204,7 +204,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * @param callback the callback to call.
    */
   on = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
-    (this.listners[event] ??= [] as T[]).push(callback);
+    (this.listeners[event] ??= [] as T[]).push(callback);
     return () => {
       this.off(event, callback);
     };
@@ -217,8 +217,8 @@ export class NoiseCancellation implements INoiseCancellation {
    * @param callback the callback to unregister.
    */
   off = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
-    const listeners = this.listners[event] || [];
-    this.listners[event] = listeners.filter((cb) => cb !== callback);
+    const listeners = this.listeners[event] || [];
+    this.listeners[event] = listeners.filter((cb) => cb !== callback);
   };
 
   /**
@@ -231,7 +231,7 @@ export class NoiseCancellation implements INoiseCancellation {
     event: E,
     payload: P,
   ) => {
-    const listeners = this.listners[event] || [];
+    const listeners = this.listeners[event] || [];
     for (const listener of listeners) {
       listener(payload);
     }
