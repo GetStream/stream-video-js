@@ -148,18 +148,31 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           We’ll use it to help better your call experience 😀
         </p>
 
-        <button
-          className="rd__button rd__button--primaryrd__feedback-button rd__feedback-button--close"
-          disabled={isSubmitting}
-          onClick={
-            close ||
-            (() => {
-              window.location.href = '/';
-            })
-          }
-        >
-          Close
-        </button>
+        <div className="rd__feedback-footer">
+          <div className="rd__feedback-actions">
+            <button
+              className="rd__button"
+              type="button"
+              disabled={isSubmitting}
+            >
+              Learn More
+            </button>
+
+            <button
+              className="rd__button rd__button--primary"
+              type="button"
+              disabled={isSubmitting}
+              onClick={
+                close ||
+                (() => {
+                  window.location.href = 'https://getstream.io/video/';
+                })
+              }
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -222,7 +235,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           <div className="rd__feedback-actions">
             {inMeeting ? (
               <button
-                className="rd__button rd__button--secondary rd__feedback-button--cancel"
+                className="rd__button rd__button--secondary"
                 disabled={isSubmitting}
                 onClick={close}
               >
@@ -230,7 +243,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
               </button>
             ) : (
               <button
-                className="rd__button rd__button--secondary rd__feedback-button--cancel"
+                className="rd__button rd__button--secondary"
                 disabled={isSubmitting}
                 onClick={() => {
                   window.location.assign('https://getstream.io/video/#contact');
@@ -241,7 +254,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
             )}
 
             <button
-              className="rd__button rd__button--primary rd__feedback-button--submit"
+              className="rd__button rd__button--primary"
               type="submit"
               disabled={rating.current === 0 || isSubmitting}
             >
