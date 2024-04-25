@@ -2,6 +2,11 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.12...@stream-io/video-react-sdk-0.6.13) (2024-04-25)
+
+### Dependency Updates
+
+* `@stream-io/audio-filters-web` updated to version `0.1.0`
 ### [0.6.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.11...@stream-io/video-react-sdk-0.6.12) (2024-04-25)
 
 ### Dependency Updates
