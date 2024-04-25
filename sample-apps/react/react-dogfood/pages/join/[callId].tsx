@@ -206,8 +206,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation }) => {
-        const modelsPath = `${basePath}/krispai/models`;
-        const nc = new NoiseCancellation({ basePath: modelsPath });
+        // const modelsPath = `${basePath}/krispai/models`;
+        // const nc = new NoiseCancellation({ basePath: modelsPath });
+        const nc = new NoiseCancellation();
         setNoiseCancellation(nc);
       });
     return () => {
