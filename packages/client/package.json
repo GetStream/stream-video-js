@@ -42,7 +42,7 @@
     "ws": "^8.14.2"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.13.2",
+    "@openapitools/openapi-generator-cli": "^2.13.4",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-typescript": "^11.1.6",
     "@stream-io/audio-filters-web": "workspace:^",

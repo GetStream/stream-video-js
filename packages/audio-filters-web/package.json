@@ -18,7 +18,6 @@
   },
   "files": [
     "dist",
-    "models",
     "src",
     "index.ts",
     "package.json",

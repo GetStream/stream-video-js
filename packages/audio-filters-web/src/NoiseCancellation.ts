@@ -8,11 +8,14 @@ import type {
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 
-export type NoiseSuppressionOptions = {
+/**
+ * Options to pass to the NoiseCancellation instance.
+ */
+export type NoiseCancellationOptions = {
   /**
    * The base path to load the models from.
    * You can override this if you want to host the models yourself.
-   * @default `https://unpkg.com/@stream-io/audio-filters-web@${packageVersion}/models`.
+   * @default `https://unpkg.com/@stream-io/audio-filters-web@${packageVersion}/src/krispai/models`.
    */
   basePath?: string;
 
@@ -23,7 +26,7 @@ export type NoiseSuppressionOptions = {
 };
 
 /**
- * An interface for the NoiseSuppression implementation.
+ * An interface for the NoiseCancellation implementation.
  * Provided for easier unit testing.
  */
 export interface INoiseCancellation {
@@ -40,6 +43,9 @@ export interface INoiseCancellation {
   off: <E extends keyof Events, T = Events[E]>(event: E, callback: T) => void;
 }
 
+/**
+ * A list of events one can subscribe to.
+ */
 export type Events = {
   /**
    * Fires when Noise Cancellation state changes.
@@ -66,9 +72,9 @@ export class NoiseCancellation implements INoiseCancellation {
    * Constructs a new instance.
    */
   constructor({
-    basePath = `https://unpkg.com/${packageName}@${packageVersion}/models`,
+    basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
     krispSDKParams,
-  }: NoiseSuppressionOptions = {}) {
+  }: NoiseCancellationOptions = {}) {
     this.basePath = basePath;
     this.krispSDKParams = krispSDKParams;
   }

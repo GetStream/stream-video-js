@@ -4348,15 +4348,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/axios@npm:3.0.1":
-  version: 3.0.1
-  resolution: "@nestjs/axios@npm:3.0.1"
+"@nestjs/axios@npm:3.0.2":
+  version: 3.0.2
+  resolution: "@nestjs/axios@npm:3.0.2"
   peerDependencies:
     "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
     axios: ^1.3.1
-    reflect-metadata: ^0.1.12
     rxjs: ^6.0.0 || ^7.0.0
-  checksum: 01cebc64efa7a1d9df7a9053fbc5124986a95078789a0f280a2a61c31601a70a35745e07fc385497b4f85c7bdb6216a3575728646f1e6e684c038ac31900129c
+  checksum: 285a735fb5db602b63aa4a37e161f609b2cec05b69f4bffe983617c2136ac29c0a33bb96e6276d22a656907bed5d53460e740310bc05c043dcd39c37db7cda29
   languageName: node
   linkType: hard
 
@@ -4409,85 +4408,85 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/env@npm:14.2.2"
-  checksum: d722dfbb4e6b5572b5b16c823843dfec625c74bd263cd4c1ffaedc578805e16b818c7d27414c7e77c51a5a5fc83019513db29d310f5e14fd2fa71e555fdecc53
+"@next/env@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/env@npm:14.2.3"
+  checksum: 47ddb64ec6cdc13dfcf560ba42cce71d7948174bf800162738e20ba0147cc46a5f6fdde1eb7957a3676a9eca6dccf6603836ed7c755eab238d9f5c73614d9880
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-arm64@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-darwin-arm64@npm:14.2.2"
+"@next/swc-darwin-arm64@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-darwin-arm64@npm:14.2.3"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-x64@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-darwin-x64@npm:14.2.2"
+"@next/swc-darwin-x64@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-darwin-x64@npm:14.2.3"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-gnu@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-linux-arm64-gnu@npm:14.2.2"
+"@next/swc-linux-arm64-gnu@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-linux-arm64-gnu@npm:14.2.3"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-musl@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-linux-arm64-musl@npm:14.2.2"
+"@next/swc-linux-arm64-musl@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-linux-arm64-musl@npm:14.2.3"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-gnu@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-linux-x64-gnu@npm:14.2.2"
+"@next/swc-linux-x64-gnu@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-linux-x64-gnu@npm:14.2.3"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-musl@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-linux-x64-musl@npm:14.2.2"
+"@next/swc-linux-x64-musl@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-linux-x64-musl@npm:14.2.3"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-win32-arm64-msvc@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-win32-arm64-msvc@npm:14.2.2"
+"@next/swc-win32-arm64-msvc@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-win32-arm64-msvc@npm:14.2.3"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-win32-ia32-msvc@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-win32-ia32-msvc@npm:14.2.2"
+"@next/swc-win32-ia32-msvc@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-win32-ia32-msvc@npm:14.2.3"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
-"@next/swc-win32-x64-msvc@npm:14.2.2":
-  version: 14.2.2
-  resolution: "@next/swc-win32-x64-msvc@npm:14.2.2"
+"@next/swc-win32-x64-msvc@npm:14.2.3":
+  version: 14.2.3
+  resolution: "@next/swc-win32-x64-msvc@npm:14.2.3"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@next/third-parties@npm:^14.2.2":
-  version: 14.2.2
-  resolution: "@next/third-parties@npm:14.2.2"
+"@next/third-parties@npm:^14.2.3":
+  version: 14.2.3
+  resolution: "@next/third-parties@npm:14.2.3"
   dependencies:
     third-party-capital: 1.0.20
   peerDependencies:
     next: ^13.0.0 || ^14.0.0
     react: ^18.2.0
-  checksum: 2cda98b1cd6a40d6755c015140db271ebf65fc39eae529287d347e2b7d8c9c4fc0262462a1e142f62ea36df9a4171a143ad163ed27b7afa22e1d1c073eff58ce
+  checksum: d866a3c5ae18733e2b5cecf5fab61bf63e5f002f4927299222cd23089539be89ae58b5275b083decd97a8f1ed1d906ee603f59d481ccbbd9504553706586d248
   languageName: node
   linkType: hard
 
@@ -4688,15 +4687,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openapitools/openapi-generator-cli@npm:^2.13.2":
-  version: 2.13.2
-  resolution: "@openapitools/openapi-generator-cli@npm:2.13.2"
+"@openapitools/openapi-generator-cli@npm:^2.13.4":
+  version: 2.13.4
+  resolution: "@openapitools/openapi-generator-cli@npm:2.13.4"
   dependencies:
-    "@nestjs/axios": 3.0.1
+    "@nestjs/axios": 3.0.2
     "@nestjs/common": 10.3.0
     "@nestjs/core": 10.3.0
     "@nuxtjs/opencollective": 0.3.2
-    axios: 1.6.5
+    axios: 1.6.8
     chalk: 4.1.2
     commander: 8.3.0
     compare-versions: 4.1.4
@@ -4712,7 +4711,7 @@ __metadata:
     tslib: 2.6.2
   bin:
     openapi-generator-cli: main.js
-  checksum: 553458ffface4090f117ec488352f664bb4656b645ef51faf5be35f27e739ac5c8931adf401309dfa0aad7ceefa39fb267d452b72d7a22f0fdb26d988d73b642
+  checksum: 825a49ff86632767d318fa860d9d251984b9b3e8f386cf8298430005f20611d7b535c6e87e370edd19ff824a5c68cf65efc93cbb64d7a2f1649e46a8887cf5d2
   languageName: node
   linkType: hard
 
@@ -7054,7 +7053,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
-    "@openapitools/openapi-generator-cli": ^2.13.2
+    "@openapitools/openapi-generator-cli": ^2.13.4
     "@protobuf-ts/runtime": ^2.9.4
     "@protobuf-ts/runtime-rpc": ^2.9.4
     "@protobuf-ts/twirp-transport": ^2.9.4
@@ -7121,7 +7120,7 @@ __metadata:
     nx: 16.0.1
     prettier: ^2.8.8
     typescript: ^5.4.3
-    vercel: ^34.0.0
+    vercel: ^34.1.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -7151,7 +7150,7 @@ __metadata:
   dependencies:
     "@floating-ui/dom": ^1.5.4
     "@floating-ui/react": ^0.26.5
-    "@next/third-parties": ^14.2.2
+    "@next/third-parties": ^14.2.3
     "@sentry/nextjs": ^7.91.0
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/video-filters-web": "workspace:^"
@@ -7172,7 +7171,7 @@ __metadata:
     mapbox-gl: ^2.15.0
     mobile-device-detect: ^0.4.3
     nanoid: ^5.0.4
-    next: ^14.2.2
+    next: ^14.2.3
     next-auth: ^4.24.7
     qrcode.react: ^3.1.0
     react: ^18.2.0
@@ -8524,10 +8523,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/build-utils@npm:7.11.0":
-  version: 7.11.0
-  resolution: "@vercel/build-utils@npm:7.11.0"
-  checksum: 3892f5718e15991dcafda79091a1d2883656665c1fffd4466cf90b0df2c65ca1bfa9de37614aa395ed9c737e289528f2f1e1ec71a13e642ae00757193d40441e
+"@vercel/build-utils@npm:7.12.0":
+  version: 7.12.0
+  resolution: "@vercel/build-utils@npm:7.12.0"
+  checksum: cfd03f52bdb274f6a01bcb38ee6e5b4ef52486c5b49da7f7b439b520de2baab41d9c70fa3460ebfda19659d1c917b6770ea44415e46a9af8be7d81ed1426c062
   languageName: node
   linkType: hard
 
@@ -8575,17 +8574,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/gatsby-plugin-vercel-builder@npm:2.0.24":
-  version: 2.0.24
-  resolution: "@vercel/gatsby-plugin-vercel-builder@npm:2.0.24"
+"@vercel/gatsby-plugin-vercel-builder@npm:2.0.25":
+  version: 2.0.25
+  resolution: "@vercel/gatsby-plugin-vercel-builder@npm:2.0.25"
   dependencies:
     "@sinclair/typebox": 0.25.24
-    "@vercel/build-utils": 7.11.0
+    "@vercel/build-utils": 7.12.0
     "@vercel/routing-utils": 3.1.0
     esbuild: 0.14.47
     etag: 1.8.1
     fs-extra: 11.1.0
-  checksum: 8334e1368212c53eeceed9c941e2c3aeff77990c284601d04d1c235b7cbe0c13664fc5c06018e8ec1284484942da981ecf3cc2d75255551d040f7c4df8308a95
+  checksum: 2596cc91e286a375c0ba60a9acbcd486550b1257c31991d471ab015bd944ea73086d945dc25e6befecfdb6613c4b7078b1dd0aa0368aeab902d1115cbd343b4e
   languageName: node
   linkType: hard
 
@@ -8606,12 +8605,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/next@npm:4.2.0":
-  version: 4.2.0
-  resolution: "@vercel/next@npm:4.2.0"
+"@vercel/next@npm:4.2.2":
+  version: 4.2.2
+  resolution: "@vercel/next@npm:4.2.2"
   dependencies:
     "@vercel/nft": 0.26.4
-  checksum: b37fc0fd29d7dd6d64a4370ef4c01201938d1ab83046cc91bfc4c0aae8b01b3dd9d6d253a68ce71545a36862b1344ef45ef5fe91ffdf4f00bff734ba255dfa35
+  checksum: 371a819e0174da7d20623950db9b691e3915b9eaac739c272489c2e525dd0c2cc72e1f2c43c09bacb88507d6dc3f2e616d71b7b0953c5ea20063b0b9f2a8f8b7
   languageName: node
   linkType: hard
 
@@ -8637,15 +8636,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/node@npm:3.0.26":
-  version: 3.0.26
-  resolution: "@vercel/node@npm:3.0.26"
+"@vercel/node@npm:3.0.27":
+  version: 3.0.27
+  resolution: "@vercel/node@npm:3.0.27"
   dependencies:
     "@edge-runtime/node-utils": 2.3.0
     "@edge-runtime/primitives": 4.1.0
     "@edge-runtime/vm": 3.2.0
     "@types/node": 14.18.33
-    "@vercel/build-utils": 7.11.0
+    "@vercel/build-utils": 7.12.0
     "@vercel/error-utils": 2.0.2
     "@vercel/nft": 0.26.4
     "@vercel/static-config": 3.0.0
@@ -8661,14 +8660,14 @@ __metadata:
     ts-node: 10.9.1
     typescript: 4.9.5
     undici: 5.26.5
-  checksum: 638a49464a445ad3fb2a18db8d8264965e87868bbe6f1e08ccde87351194e8e7c7ac5ce2f522a2192e26efdf8b5add30bf0ffa404b9a22dcc4bb7f63fd8b09e3
+  checksum: e6fec03670ce0d22a2c2666336744f8d0605aab02d53e1681762abf367b71221c230d3b6c6ce268e2b62104c1de2c46a143343dae9dc8c6d39afcc4e04e958e0
   languageName: node
   linkType: hard
 
-"@vercel/python@npm:4.1.1":
-  version: 4.1.1
-  resolution: "@vercel/python@npm:4.1.1"
-  checksum: e9a27a0a5408cee50318321dc9093f64ec8a954fee0430cc3094999a0fac7eff9d62df975a43dc92f02e72b6aa3f3f9a24aa35b06f580a18d1e6d180857118e6
+"@vercel/python@npm:4.2.0":
+  version: 4.2.0
+  resolution: "@vercel/python@npm:4.2.0"
+  checksum: 380b3b357776941a711ae20d875c9ce8d2d5dfec3f7c347ee5310dc893ce9b1664d8d3351007fb7215ba7999a9344f5f435ba1f5c5a599a760c90bbe56a4751d
   languageName: node
   linkType: hard
 
@@ -8715,15 +8714,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/static-build@npm:2.4.6":
-  version: 2.4.6
-  resolution: "@vercel/static-build@npm:2.4.6"
+"@vercel/static-build@npm:2.5.0":
+  version: 2.5.0
+  resolution: "@vercel/static-build@npm:2.5.0"
   dependencies:
     "@vercel/gatsby-plugin-vercel-analytics": 1.0.11
-    "@vercel/gatsby-plugin-vercel-builder": 2.0.24
+    "@vercel/gatsby-plugin-vercel-builder": 2.0.25
     "@vercel/static-config": 3.0.0
     ts-morph: 12.0.0
-  checksum: 65a1c1e766799d2b8ac6c208f02149e114d145daf9cc0ec4b2ab6877d9c1f1c7ff5dedcffd6f8f121a7f8713e7cfc2a46495e1f902546dc482421146a8f5fdc5
+  checksum: b15eb89195a5759e7db1ad427ed839e93975ea7099d0a592d0026d75ec61a40e5c6190e876eb2a3eea841c144dd594793b5d269dce38f1b5eb04ebcf2b770922
   languageName: node
   linkType: hard
 
@@ -9571,14 +9570,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.6.5":
-  version: 1.6.5
-  resolution: "axios@npm:1.6.5"
+"axios@npm:1.6.8":
+  version: 1.6.8
+  resolution: "axios@npm:1.6.8"
   dependencies:
-    follow-redirects: ^1.15.4
+    follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: e28d67b2d9134cb4608c44d8068b0678cfdccc652742e619006f27264a30c7aba13b2cd19c6f1f52ae195b5232734925928fb192d5c85feea7edd2f273df206d
+  checksum: bf007fa4b207d102459300698620b3b0873503c6d47bf5a8f6e43c0c64c90035a4f698b55027ca1958f61ab43723df2781c38a99711848d232cad7accbcdfcdd
   languageName: node
   linkType: hard
 
@@ -14226,7 +14225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.15.4":
+"follow-redirects@npm:^1.15.6":
   version: 1.15.6
   resolution: "follow-redirects@npm:1.15.6"
   peerDependenciesMeta:
@@ -20364,20 +20363,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^14.2.2":
-  version: 14.2.2
-  resolution: "next@npm:14.2.2"
+"next@npm:^14.2.3":
+  version: 14.2.3
+  resolution: "next@npm:14.2.3"
   dependencies:
-    "@next/env": 14.2.2
-    "@next/swc-darwin-arm64": 14.2.2
-    "@next/swc-darwin-x64": 14.2.2
-    "@next/swc-linux-arm64-gnu": 14.2.2
-    "@next/swc-linux-arm64-musl": 14.2.2
-    "@next/swc-linux-x64-gnu": 14.2.2
-    "@next/swc-linux-x64-musl": 14.2.2
-    "@next/swc-win32-arm64-msvc": 14.2.2
-    "@next/swc-win32-ia32-msvc": 14.2.2
-    "@next/swc-win32-x64-msvc": 14.2.2
+    "@next/env": 14.2.3
+    "@next/swc-darwin-arm64": 14.2.3
+    "@next/swc-darwin-x64": 14.2.3
+    "@next/swc-linux-arm64-gnu": 14.2.3
+    "@next/swc-linux-arm64-musl": 14.2.3
+    "@next/swc-linux-x64-gnu": 14.2.3
+    "@next/swc-linux-x64-musl": 14.2.3
+    "@next/swc-win32-arm64-msvc": 14.2.3
+    "@next/swc-win32-ia32-msvc": 14.2.3
+    "@next/swc-win32-x64-msvc": 14.2.3
     "@swc/helpers": 0.5.5
     busboy: 1.6.0
     caniuse-lite: ^1.0.30001579
@@ -20418,7 +20417,7 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: fc3d8286aec6379edfa9ef7fe593ef0f2362205de4d545325b0d595b1edc9568f9c26b19fbc9ee9ca61fd46fcc0d5389fa7391730da34de4985bf5e40fd1f507
+  checksum: d34ea63adf23fe46efebe2a9c536c9127c0ee006d74c60d6d23aecbef650798c976b27c17910ca585f3bb1223b10924cb429b9ce930f3074aee1170d1519dccc
   languageName: node
   linkType: hard
 
@@ -26299,26 +26298,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vercel@npm:^34.0.0":
-  version: 34.0.0
-  resolution: "vercel@npm:34.0.0"
+"vercel@npm:^34.1.2":
+  version: 34.1.2
+  resolution: "vercel@npm:34.1.2"
   dependencies:
-    "@vercel/build-utils": 7.11.0
+    "@vercel/build-utils": 7.12.0
     "@vercel/fun": 1.1.0
     "@vercel/go": 3.1.1
     "@vercel/hydrogen": 1.0.2
-    "@vercel/next": 4.2.0
-    "@vercel/node": 3.0.26
-    "@vercel/python": 4.1.1
+    "@vercel/next": 4.2.2
+    "@vercel/node": 3.0.27
+    "@vercel/python": 4.2.0
     "@vercel/redwood": 2.0.8
     "@vercel/remix-builder": 2.1.5
     "@vercel/ruby": 2.0.5
-    "@vercel/static-build": 2.4.6
+    "@vercel/static-build": 2.5.0
     chokidar: 3.3.1
   bin:
     vc: dist/index.js
     vercel: dist/index.js
-  checksum: 79a665c9b1358faae33b8a951dd0462459beeca618f66e875ad1670e680e07b7f8ed8fe6f03e9cf672a5dcd5a1dd5e2573a9c885c3e386cfcc20934219fb1f9e
+  checksum: a4a61121ce83c402040ad497792f6abb76e4bd00cf2e3e68f2ad778a6076cf506c0dc0e77e56165aa7805e88c4206537db10518b7eb2f1962ca0f2e40ff2a24a
   languageName: node
   linkType: hard
 
