@@ -5,7 +5,8 @@ import {
 } from '@stream-io/video-react-sdk';
 
 export const ToggleNoiseCancellationButton = () => {
-  const { isEnabled, setEnabled } = useNoiseCancellation();
+  const { isSupported, isEnabled, setEnabled } = useNoiseCancellation();
+  if (!isSupported) return null;
   return (
     <CompositeButton
       active={isEnabled}

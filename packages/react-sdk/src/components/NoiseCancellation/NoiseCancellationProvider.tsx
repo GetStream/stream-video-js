@@ -20,9 +20,24 @@ export type NoiseCancellationProviderProps = {
   noiseCancellation: INoiseCancellation;
 };
 
+/**
+ * The Noise Cancellation API.
+ */
 export type NoiseCancellationAPI = {
+  /**
+   * A boolean providing information whether Noise Cancelling functionalities
+   * are supported on this platform and for the current user.
+   */
   isSupported: boolean;
+  /**
+   * Provides information whether Noise Cancellation is active or not.
+   */
   isEnabled: boolean;
+  /**
+   * Allows you to temporary enable or disable the Noise Cancellation filters.
+   *
+   * @param enabled a boolean or a setter.
+   */
   setEnabled: (enabled: boolean | ((value: boolean) => boolean)) => void;
 };
 
@@ -30,6 +45,10 @@ const NoiseCancellationContext = createContext<NoiseCancellationAPI | null>(
   null,
 );
 
+/**
+ * Exposes the NoiseCancellation API.
+ * Throws an error if used outside <NoiseCancellationProvider />.
+ */
 export const useNoiseCancellation = (): NoiseCancellationAPI => {
   const context = useContext(NoiseCancellationContext);
   if (!context) {
