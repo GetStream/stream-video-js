@@ -173,6 +173,29 @@ export const CustomScreenShareButton = () => {
 };
 ```
 
+### Toggling Noise Cancellation
+
+Before we start working on a toggle button, Noise Cancellation should be integrated and enabled in your application.
+Check our [Noise Cancellation](../../guides/noise-cancellation) guide.
+
+```tsx
+import { useNoiseCancellation } from '@stream-io/video-react-sdk';
+
+export const ToggleNoiseCancellationButton = () => {
+  const { isSupported, isEnabled, setEnabled } = useNoiseCancellation();
+  if (!isSupported) return null;
+  return (
+    <button
+      className={isEnabled ? 'btn-toggle-nc-active' : 'btn-toggle-nc'}
+      type="button"
+      onClick={() => setEnabled((enabled) => !enabled)}
+    >
+      Toggle Noise Cancellation
+    </button>
+  );
+};
+```
+
 ### Recording calls
 
 To start recording a call, we invoke `call.startRecording()` and to stop it `call.stopRecording()`. To determine, whether the recording already began, use the hook `useIsCallRecordingInProgress()`.
