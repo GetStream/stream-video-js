@@ -219,25 +219,28 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const [width, setWidth] = useState(1920);
   const [height, setHeight] = useState(1080);
 
-  const resolveFilterRef =
+  // Holds a ref to the `resolve` function of the returned Promise as part
+  // of the `camera.registerFilter()` API. Once the filter is initialized,
+  // it should be called with the filtered MediaStream as an argument.
+  const signalFilterReadyRef =
     useRef<(value: MediaStream | PromiseLike<MediaStream>) => void>();
 
   const [mediaStream, setMediaStream] = useState<MediaStream>();
-  const registerFilterRef = useRef(Promise.resolve(async () => {}));
+  const unregister = useRef<Promise<void>>();
   useEffect(() => {
     if (!call || !backgroundFilter) return;
-    registerFilterRef.current = registerFilterRef.current.then(() =>
+    const register = (unregister.current || Promise.resolve()).then(() =>
       call.camera.registerFilter(async (ms) => {
         return new Promise<MediaStream>((resolve) => {
           setMediaStream(ms);
-          resolveFilterRef.current = resolve;
+          signalFilterReadyRef.current = resolve;
         });
       }),
     );
 
     return () => {
-      registerFilterRef.current
-        .then((unregister) => unregister())
+      unregister.current = register
+        .then((unregisterFilter) => unregisterFilter())
         .then(() => setMediaStream(undefined))
         .catch((err) => console.error('Failed to unregister filter', err));
     };
@@ -254,7 +257,7 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
         setHeight(h);
       }
 
-      const resolveFilter = resolveFilterRef.current;
+      const resolveFilter = signalFilterReadyRef.current;
       if (!resolveFilter) return;
       const filter = canvasRef.captureStream();
       resolveFilter(filter);
