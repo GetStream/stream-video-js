@@ -25,6 +25,8 @@ import { ChatUI } from './ChatUI';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ClosedCaptions, ClosedCaptionsSidebar } from './ClosedCaptions';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { ToggleEffectsButton } from './ToggleEffectsButton';
+import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { ToggleFeedbackButton } from './ToggleFeedbackButton';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
@@ -43,7 +45,6 @@ import {
 } from '../context/AppEnvironmentContext';
 
 import { StepNames, useTourContext } from '../context/TourContext';
-import { ToggleEffectsButton } from './ToggleEffectsButton';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -226,6 +227,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
             <div className="str-video__call-controls__desktop">
               <ToggleEffectsButton />
+            </div>
+
+            <div className="str-video__call-controls__desktop">
+              <ToggleNoiseCancellationButton />
             </div>
 
             <div className="str-video__call-controls__desktop">

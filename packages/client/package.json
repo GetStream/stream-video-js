@@ -28,9 +28,9 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@protobuf-ts/runtime": "^2.9.3",
-    "@protobuf-ts/runtime-rpc": "^2.9.3",
-    "@protobuf-ts/twirp-transport": "^2.9.3",
+    "@protobuf-ts/runtime": "^2.9.4",
+    "@protobuf-ts/runtime-rpc": "^2.9.4",
+    "@protobuf-ts/twirp-transport": "^2.9.4",
     "@types/ws": "^8.5.7",
     "axios": "^1.6.0",
     "base64-js": "^1.5.1",
@@ -42,9 +42,10 @@
     "ws": "^8.14.2"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.7.0",
+    "@openapitools/openapi-generator-cli": "^2.13.4",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/node-sdk": "^0.1.12",
     "@types/sdp-transform": "^2.4.7",
     "@types/ua-parser-js": "^0.7.37",

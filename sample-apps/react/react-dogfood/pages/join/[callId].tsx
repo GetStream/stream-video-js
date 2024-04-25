@@ -1,16 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import {
   BackgroundFiltersProvider,
   Call,
   CallingState,
   CallRequest,
+  NoiseCancellationProvider,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
-import Head from 'next/head';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import { TranslationLanguages } from 'stream-chat';
 import { useCreateStreamChatClient } from '../../hooks';
 import { MeetingUI } from '../../components';
 import {
@@ -34,7 +37,6 @@ import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../api/auth/create-token';
-import { TranslationLanguages } from 'stream-chat';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -197,6 +199,22 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   useGleap(gleapApiKey, client, call, user);
+  const [noiseCancellation, setNoiseCancellation] =
+    useState<INoiseCancellation>();
+  const ncLoader = useRef<Promise<void>>();
+  useEffect(() => {
+    const load = (ncLoader.current || Promise.resolve())
+      .then(() => import('@stream-io/audio-filters-web'))
+      .then(({ NoiseCancellation }) => {
+        // const modelsPath = `${basePath}/krispai/models`;
+        // const nc = new NoiseCancellation({ basePath: modelsPath });
+        const nc = new NoiseCancellation();
+        setNoiseCancellation(nc);
+      });
+    return () => {
+      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
+    };
+  }, []);
 
   if (!client || !call) return null;
 
@@ -228,7 +246,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 `${basePath}/backgrounds/gradient-3.jpg`,
               ]}
             >
-              <MeetingUI chatClient={chatClient} />
+              {noiseCancellation && (
+                <NoiseCancellationProvider
+                  noiseCancellation={noiseCancellation}
+                >
+                  <MeetingUI chatClient={chatClient} />
+                </NoiseCancellationProvider>
+              )}
             </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>

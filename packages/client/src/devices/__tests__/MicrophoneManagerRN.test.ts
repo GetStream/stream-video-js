@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -117,6 +118,29 @@ describe('MicrophoneManager React Native', () => {
     manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
     expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+  });
+
+  describe('Noise Suppression', () => {
+    it('enable: should throw an error in React Native', async () => {
+      await expect(() => {
+        return manager.enableNoiseCancellation(
+          new (class implements INoiseCancellation {
+            isSupported = () => true;
+            init = () => Promise.resolve(undefined);
+            enable = () => {};
+            disable = () => {};
+            dispose = () => Promise.resolve(undefined);
+            toFilter = () => async (ms: MediaStream) => ms;
+            on = () => () => {};
+            off = () => {};
+          })(),
+        );
+      }).rejects.toThrow();
+    });
+
+    it('disable: should throw an error in React Native', async () => {
+      await expect(() => manager.disableNoiseCancellation()).rejects.toThrow();
+    });
   });
 
   afterEach(() => {

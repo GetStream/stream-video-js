@@ -1,8 +1,14 @@
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { sleep } from '../../coordinator/connection/utils';
+import {
+  NoiseCancellationSettingsModeEnum,
+  OwnCapability,
+} from '../../gen/coordinator';
+import { TrackType } from '../../gen/video/sfu/models/models';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
-
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import {
   mockAudioDevices,
   mockAudioStream,
@@ -10,14 +16,12 @@ import {
   mockDeviceIds$,
 } from './mocks';
 import { getAudioStream } from '../devices';
-import { TrackType } from '../../gen/video/sfu/models/models';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { of } from 'rxjs';
 import {
   createSoundDetector,
   SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
-import { OwnCapability } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -44,6 +48,22 @@ vi.mock('../../Call.ts', () => {
     Call: vi.fn(() => mockCall()),
   };
 });
+
+class NoiseCancellationStub implements INoiseCancellation {
+  private listeners: { [event: string]: Array<() => void> } = {};
+
+  isSupported = () => true;
+  init = () => Promise.resolve(undefined);
+  enable = () => this.listeners['change']?.forEach((l) => l(true));
+  disable = () => this.listeners['change']?.forEach((l) => l(false));
+  dispose = () => Promise.resolve(undefined);
+  toFilter = () => async (ms: MediaStream) => ms;
+  on = (event, callback) => {
+    (this.listeners[event] ??= []).push(callback);
+    return () => {};
+  };
+  off = () => {};
+}
 
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;
@@ -186,6 +206,103 @@ describe('MicrophoneManager', () => {
     manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
     expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+  });
+
+  describe('Noise Cancellation', () => {
+    it('should register filter if all preconditions are met', async () => {
+      const call = manager['call'];
+      call.state.setCallingState(CallingState.IDLE);
+      const registerFilter = vi.spyOn(manager, 'registerFilter');
+      const noiseCancellation = new NoiseCancellationStub();
+      const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      expect(registerFilter).toBeCalled();
+      expect(noiseCancellationEnable).not.toBeCalled();
+    });
+
+    it('should unregister filter when disabling noise cancellation', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      await manager.enableNoiseCancellation(noiseCancellation);
+      await manager.disableNoiseCancellation();
+      const call = manager['call'];
+      expect(call.notifyNoiseCancellationStopped).toBeCalled();
+    });
+
+    it('should throw when own capabilities are missing', async () => {
+      const call = manager['call'];
+      call.state.setOwnCapabilities([]);
+
+      await expect(() =>
+        manager.enableNoiseCancellation(new NoiseCancellationStub()),
+      ).rejects.toThrow();
+    });
+
+    it('should throw when noise cancellation is disabled in call settings', async () => {
+      const call = manager['call'];
+      call.state.setOwnCapabilities([OwnCapability.ENABLE_NOISE_CANCELLATION]);
+      call.state.updateFromCallResponse({
+        // @ts-expect-error partial data
+        audio: {
+          noise_cancellation: {
+            mode: NoiseCancellationSettingsModeEnum.DISABLED,
+          },
+        },
+      });
+      await expect(() =>
+        manager.enableNoiseCancellation(new NoiseCancellationStub()),
+      ).rejects.toThrow();
+    });
+
+    it('should automatically enable noise noise suppression after joining a call', async () => {
+      const call = manager['call'];
+      call.state.setCallingState(CallingState.IDLE); // reset state
+      call.state.updateFromCallResponse({
+        settings: {
+          // @ts-expect-error - partial data
+          audio: {
+            noise_cancellation: {
+              mode: NoiseCancellationSettingsModeEnum.AUTO_ON,
+            },
+          },
+        },
+      });
+
+      const noiseCancellation = new NoiseCancellationStub();
+      const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      expect(noiseCancellationEnable).not.toBeCalled();
+
+      call.state.setCallingState(CallingState.JOINED);
+
+      // it is quite hard to test the "detached" callingState$ subscription
+      // with the current tools and architecture.
+      // that is why we go with the good old sleep
+      await sleep(25);
+
+      expect(noiseCancellationEnable).toBeCalled();
+      expect(call.notifyNoiseCancellationStarting).toBeCalled();
+    });
+
+    it('should automatically disable noise suppression after leaving the call', async () => {
+      const call = manager['call'];
+      const noiseCancellation = new NoiseCancellationStub();
+      const noiseSuppressionDisable = vi.spyOn(noiseCancellation, 'disable');
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      expect(noiseSuppressionDisable).not.toBeCalled();
+
+      call.state.setCallingState(CallingState.LEFT);
+
+      // it is quite hard to test the "detached" callingState$ subscription
+      // with the current tools and architecture.
+      // that is why we go with the good old sleep
+      await sleep(25);
+
+      expect(noiseSuppressionDisable).toBeCalled();
+      expect(call.notifyNoiseCancellationStopped).toBeCalled();
+    });
   });
 
   afterEach(() => {
