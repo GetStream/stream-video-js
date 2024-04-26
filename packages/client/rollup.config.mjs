@@ -1,7 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 
-import pkg from './package.json' assert { type: 'json' };
+import pkg from './package.json' with { type: 'json' };
 
 // these modules are used only in nodejs and are not needed in the browser
 const browserIgnoredModules = ['https', 'util', 'stream'];
