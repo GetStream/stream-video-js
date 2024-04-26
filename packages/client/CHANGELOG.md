@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.8...@stream-io/video-client-0.7.9) (2024-04-26)
+
+
+### Bug Fixes
+
+* update call state with transcription events ([ab933ae](https://github.com/GetStream/stream-video-js/commit/ab933aee820fae199935380c7bab6edc7790f0ca))
+
 ### [0.7.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.7...@stream-io/video-client-0.7.8) (2024-04-25)
 
 
