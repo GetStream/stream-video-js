@@ -450,12 +450,15 @@ export class CallState {
         this.updateFromSessionParticipantJoined,
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
       'call.session_started': (e) => this.updateFromCallResponse(e.call),
-      'call.transcription_started': () =>
-        this.setCurrentValue(this.transcribingSubject, true),
-      'call.transcription_stopped': () =>
-        this.setCurrentValue(this.transcribingSubject, false),
-      'call.transcription_failed': () =>
-        this.setCurrentValue(this.transcribingSubject, false),
+      'call.transcription_started': () => {
+        this.setCurrentValue(this.transcribingSubject, true);
+      },
+      'call.transcription_stopped': () => {
+        this.setCurrentValue(this.transcribingSubject, false);
+      },
+      'call.transcription_failed': () => {
+        this.setCurrentValue(this.transcribingSubject, false);
+      },
       'call.unblocked_user': this.unblockUser,
       'call.updated': (e) => this.updateFromCallResponse(e.call),
     };
