@@ -406,13 +406,11 @@ export class CallState {
     this.eventHandlers = {
       // these events are not updating the call state:
       'call.closed_caption': undefined,
+      'call.deleted': undefined,
       'call.permission_request': undefined,
       'call.recording_failed': undefined,
       'call.recording_ready': undefined,
-      'call.transcription_started': undefined,
-      'call.transcription_stopped': undefined,
       'call.transcription_ready': undefined,
-      'call.transcription_failed': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
@@ -452,9 +450,14 @@ export class CallState {
         this.updateFromSessionParticipantJoined,
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
       'call.session_started': (e) => this.updateFromCallResponse(e.call),
+      'call.transcription_started': () =>
+        this.setCurrentValue(this.transcribingSubject, true),
+      'call.transcription_stopped': () =>
+        this.setCurrentValue(this.transcribingSubject, false),
+      'call.transcription_failed': () =>
+        this.setCurrentValue(this.transcribingSubject, false),
       'call.unblocked_user': this.unblockUser,
       'call.updated': (e) => this.updateFromCallResponse(e.call),
-      'call.deleted': undefined,
     };
   }
 

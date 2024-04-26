@@ -79,7 +79,7 @@ Here are some of the features we support:
 
 - [ ] Break-out rooms
 - [ ] Waiting rooms
-- [ ] Transcriptions
+- [x] Transcriptions
 - [ ] Closed captions
 - [ ] Audio filters
 - [ ] Query call session endpoint
