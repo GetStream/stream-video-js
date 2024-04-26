@@ -62,7 +62,8 @@ jobs:
       VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
       VITE_EGRESS_SENTRY_DNS: ${{ secrets.EGRESS_SENTRY_DNS }}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
-      PRONTO_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN_PRONTO }}
+      PRONTO_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN_PRONTO }}
       EGRESS_SENTRY_AUTH_TOKEN: ${{ secrets.EGRESS_SENTRY_AUTH_TOKEN }}
       MODE: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
 
