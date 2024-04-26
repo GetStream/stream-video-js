@@ -58,7 +58,7 @@ jobs:
         run: yarn workspace @stream-io/egress-composite test:e2e
 
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
