@@ -291,13 +291,14 @@ export function setPushConfig() {
       // you can call your server to get the user data or token or retrieve from offline storage.
       const userId = await AsyncStorage.getItem('@userId');
       const userName = await AsyncStorage.getItem('@userName');
-      const token = await AsyncStorage.getItem('@userToken');
-      if (!username || !userToken) return undefined;
-      const user = { id: userId, name: userName, token };
+      if (!userId) return undefined;
+      // an example promise to fetch token from your server
+      const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
+      const user = { id: userId, name: userName };
       return new StreamVideoClient({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
-        token,
+        tokenProvider,
       });
     },
   });
@@ -336,7 +337,7 @@ In some cases you would want to disable push from happening. For example, if use
 ```js
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
-StreamVideoRN.onPushLogout();
+await StreamVideoRN.onPushLogout();
 ```
 
 ## Troubleshooting

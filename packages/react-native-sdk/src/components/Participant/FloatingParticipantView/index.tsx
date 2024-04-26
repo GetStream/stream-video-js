@@ -45,9 +45,14 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
      */
     participant?: StreamVideoParticipant;
     /**
-     * Custom style to be merged with the floating participant view.
+     * Custom style to be merged with the container of the participant view.
      */
-    style?: StyleProp<ViewStyle>;
+    participantViewStyle?: StyleProp<ViewStyle>;
+    /**
+     * Custom style to be merged with the absolute container of the floating participant view.
+     * This is the container that holds the participant view and the whole of its draggable area.
+     */
+    draggableContainerStyle?: StyleProp<ViewStyle>;
     /**
      * Handler used to handle actions on click of the participant view in FloatingParticipantView.
      * Eg: Can be used to handle participant switch on click.
@@ -86,7 +91,8 @@ export const FloatingParticipantView = ({
   alignment = 'top-right',
   onPressHandler,
   participant,
-  style,
+  participantViewStyle,
+  draggableContainerStyle,
   ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -129,7 +135,11 @@ export const FloatingParticipantView = ({
   return (
     <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={[styles.container, floatingParticipantsView.container]}
+      style={[
+        styles.container,
+        draggableContainerStyle,
+        floatingParticipantsView.container,
+      ]}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
       pointerEvents="box-none"
@@ -159,7 +169,7 @@ export const FloatingParticipantView = ({
                 trackType="videoTrack"
                 style={[
                   styles.participantViewContainer,
-                  style,
+                  participantViewStyle,
                   {
                     shadowColor: colors.static_black,
                   },

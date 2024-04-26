@@ -15,6 +15,8 @@ import { Lobby, UserMode } from './Lobby';
 import { StreamChat } from 'stream-chat';
 import { useKeyboardShortcuts, useWakeLock } from '../hooks';
 import { ActiveCall } from './ActiveCall';
+import { Feedback } from './Feedback/Feedback';
+import { DefaultAppHeader } from './DefaultAppHeader';
 
 const contents = {
   'error-join': {
@@ -31,7 +33,7 @@ type MeetingUIProps = {
 };
 export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
-    'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
+    'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
   >('lobby');
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
@@ -61,16 +63,15 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const onLeave = useCallback(
     async ({ withFeedback = true }: { withFeedback?: boolean } = {}) => {
       if (!withFeedback) return;
-      setShow('loading');
       try {
-        await router.push(`/leave/${activeCall?.id}`);
+        setShow('left');
       } catch (e) {
         console.error(e);
         setLastError(e as Error);
         setShow('error-leave');
       }
     },
-    [router, activeCall?.id],
+    [],
   );
 
   useEffect(() => {
@@ -120,6 +121,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   useKeyboardShortcuts();
   useWakeLock();
   usePersistedDevicePreferences('@pronto/device-preferences');
+  // TODO OL: fix race conditions and enable this
+  // usePersistedVideoFilter('@pronto/video-filter');
 
   let ComponentToRender: JSX.Element;
   if (show === 'error-join' || show === 'error-leave') {
@@ -135,6 +138,17 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     ComponentToRender = <Lobby onJoin={onJoin} mode={mode} />;
   } else if (show === 'loading') {
     ComponentToRender = <LoadingScreen />;
+  } else if (show === 'left') {
+    ComponentToRender = (
+      <>
+        <DefaultAppHeader />
+        <div className="rd__leave">
+          <div className="rd__leave-content">
+            <Feedback inMeeting={false} callId={activeCall?.id} />
+          </div>
+        </div>
+      </>
+    );
   } else if (!activeCall) {
     ComponentToRender = (
       <ErrorPage

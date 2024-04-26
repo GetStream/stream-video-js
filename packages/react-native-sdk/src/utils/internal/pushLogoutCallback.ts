@@ -1,4 +1,4 @@
-type Callback = () => void;
+type Callback = () => Promise<void>;
 
 type PushLogoutCallbacks = {
   current?: Callback[];
@@ -6,7 +6,7 @@ type PushLogoutCallbacks = {
 
 let pushLogoutCallbacks: PushLogoutCallbacks = {};
 
-export const setPushLogoutCallback = (callback: () => void) => {
+export const setPushLogoutCallback = (callback: Callback) => {
   if (!pushLogoutCallbacks.current) {
     pushLogoutCallbacks.current = [callback];
   } else {

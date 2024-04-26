@@ -33,6 +33,10 @@ import {
   CallParticipantsListProps,
 } from '../CallParticipantsList';
 import { useIsInPiPMode, useAutoEnterPiPEffect } from '../../../hooks';
+import {
+  ScreenShareOverlay as DefaultScreenShareOverlay,
+  ScreenShareOverlayProps,
+} from '../../utility/ScreenShareOverlay';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -56,6 +60,10 @@ type CallContentComponentProps = ParticipantViewComponentProps &
      * Component to customize the CallParticipantsList.
      */
     CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+    /**
+     * Component to customize the ScreenShareOverlay.
+     */
+    ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
   };
 
 export type CallContentProps = Pick<
@@ -90,6 +98,7 @@ export const CallContent = ({
   CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
+  ScreenShareOverlay = DefaultScreenShareOverlay,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -177,6 +186,7 @@ export const CallContent = ({
     landscape,
     ParticipantView,
     CallParticipantsList,
+    ScreenShareOverlay,
     supportedReactions,
   };
 

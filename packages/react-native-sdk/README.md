@@ -28,7 +28,7 @@ Stream provides UI components and state handling that make it easy to build vide
 
 Stream is free for most side and hobby projects. To qualify, your project/company needs to have < 5 team members and < $10k in monthly revenue. Makers get $100 in monthly credit for [video](https://getstream.io/video/) for free.
 
-## 💡Supported Features💡
+## 💡 Supported Features 💡
 
 Here are some of the features we support:
 
@@ -126,6 +126,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Expo Support
 
 ### 0.5 Milestones
+
 - [x] Regular Push Notification for Vanilla React Native
 - [x] Ringing and Regular Push Notification for Expo
 - [x] Landscape Support

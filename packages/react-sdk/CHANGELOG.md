@@ -2,6 +2,140 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.12...@stream-io/video-react-sdk-0.6.13) (2024-04-25)
+
+### Dependency Updates
+
+* `@stream-io/audio-filters-web` updated to version `0.1.0`
+### [0.6.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.11...@stream-io/video-react-sdk-0.6.12) (2024-04-25)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.8`
+* `@stream-io/video-react-bindings` updated to version `0.4.19`
+* `@stream-io/audio-filters-web` updated to version `0.0.1`
+
+### Features
+
+* Noise Cancellation ([#1321](https://github.com/GetStream/stream-video-js/issues/1321)) ([9144385](https://github.com/GetStream/stream-video-js/commit/91443852986ad7453d82efb900626266d8df0e96))
+
+### [0.6.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.10...@stream-io/video-react-sdk-0.6.11) (2024-04-25)
+
+
+### Bug Fixes
+
+* **filters:** Synchronize filter loading and unloading ([#1326](https://github.com/GetStream/stream-video-js/issues/1326)) ([cfab745](https://github.com/GetStream/stream-video-js/commit/cfab7455cfde6d7161ac823dc338e51bea00bcce))
+
+### [0.6.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.9...@stream-io/video-react-sdk-0.6.10) (2024-04-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.7`
+* `@stream-io/video-react-bindings` updated to version `0.4.18`
+
+### Features
+
+* **feedback:** Collect user feedback ([#1324](https://github.com/GetStream/stream-video-js/issues/1324)) ([b415de0](https://github.com/GetStream/stream-video-js/commit/b415de0828e402f8d3b854553351843aad2e8473))
+
+### [0.6.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.8...@stream-io/video-react-sdk-0.6.9) (2024-04-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.6`
+* `@stream-io/video-react-bindings` updated to version `0.4.17`
+### [0.6.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.7...@stream-io/video-react-sdk-0.6.8) (2024-04-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.16`
+### [0.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.6...@stream-io/video-react-sdk-0.6.7) (2024-04-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.4`
+* `@stream-io/video-react-bindings` updated to version `0.4.15`
+### [0.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.5...@stream-io/video-react-sdk-0.6.6) (2024-04-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.14`
+### [0.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.4...@stream-io/video-react-sdk-0.6.5) (2024-04-16)
+
+
+### Bug Fixes
+
+* **CallStats:** update wording in the call stats component ([536b740](https://github.com/GetStream/stream-video-js/commit/536b740f6aaba8d0b2be125d2185bc139831f917))
+
+### [0.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.3...@stream-io/video-react-sdk-0.6.4) (2024-04-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.13`
+### [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.2...@stream-io/video-react-sdk-0.6.3) (2024-04-10)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.1.0`
+### [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.1...@stream-io/video-react-sdk-0.6.2) (2024-04-10)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.0.2`
+### [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.0...@stream-io/video-react-sdk-0.6.1) (2024-04-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.12`
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.12...@stream-io/video-react-sdk-0.6.0) (2024-04-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.11`
+
+### ⚠ BREAKING CHANGES
+
+* remove server-side capabilities from JS client (#1282)
+
+### Features
+
+* remove server-side capabilities from JS client ([#1282](https://github.com/GetStream/stream-video-js/issues/1282)) ([362b6b5](https://github.com/GetStream/stream-video-js/commit/362b6b501e6aa1864eb8486e3129a1705a4d41fb))
+
+### [0.5.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.11...@stream-io/video-react-sdk-0.5.12) (2024-04-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.10`
+* `@stream-io/video-react-bindings` updated to version `0.4.10`
+### [0.5.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.10...@stream-io/video-react-sdk-0.5.11) (2024-04-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.9`
+* `@stream-io/video-react-bindings` updated to version `0.4.9`
+### [0.5.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.9...@stream-io/video-react-sdk-0.5.10) (2024-04-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.8`
+* `@stream-io/video-filters-web` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.8`
+* `@stream-io/video-styling` updated to version `1.0.2`
+
+### Features
+
+* **react:** Support for Background Filters and Background Blurring ([#1283](https://github.com/GetStream/stream-video-js/issues/1283)) ([f790ee7](https://github.com/GetStream/stream-video-js/commit/f790ee78c20fb0f5266e429a777d8bb7ef158c83)), closes [#1271](https://github.com/GetStream/stream-video-js/issues/1271) [#1276](https://github.com/GetStream/stream-video-js/issues/1276)
+
+### [0.5.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.8...@stream-io/video-react-sdk-0.5.9) (2024-04-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.7`
+* `@stream-io/video-react-bindings` updated to version `0.4.7`
 ### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.5.7...@stream-io/video-react-sdk-0.5.8) (2024-03-29)
 
 ### Dependency Updates

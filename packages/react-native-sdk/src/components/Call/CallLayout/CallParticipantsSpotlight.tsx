@@ -24,7 +24,10 @@ import { useIsInPiPMode } from '../../../hooks';
  * Props for the CallParticipantsSpotlight component.
  */
 export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
-  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
+  Pick<
+    CallContentProps,
+    'supportedReactions' | 'CallParticipantsList' | 'ScreenShareOverlay'
+  > &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Check if device is in landscape mode.
@@ -47,6 +50,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
+  ScreenShareOverlay,
   VideoRenderer,
   supportedReactions,
   landscape,
@@ -98,28 +102,33 @@ export const CallParticipantsSpotlight = ({
         callParticipantsSpotlight.container,
       ]}
     >
-      {participantInSpotlight && ParticipantView && (
-        <ParticipantView
-          participant={participantInSpotlight}
-          style={
-            isUserAloneInCall
-              ? [
-                  styles.fullScreenSpotlightContainer,
-                  callParticipantsSpotlight.fullScreenSpotlightContainer,
-                ]
-              : [
-                  styles.spotlightContainer,
-                  spotlightContainerLandscapeStyles,
-                  callParticipantsSpotlight.spotlightContainer,
-                ]
-          }
-          trackType={
-            isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
-          }
-          supportedReactions={supportedReactions}
-          {...participantViewProps}
-        />
-      )}
+      {participantInSpotlight &&
+        ParticipantView &&
+        (ScreenShareOverlay ? (
+          <ScreenShareOverlay />
+        ) : (
+          <ParticipantView
+            participant={participantInSpotlight}
+            style={
+              isUserAloneInCall
+                ? [
+                    styles.fullScreenSpotlightContainer,
+                    callParticipantsSpotlight.fullScreenSpotlightContainer,
+                  ]
+                : [
+                    styles.spotlightContainer,
+                    spotlightContainerLandscapeStyles,
+                    callParticipantsSpotlight.spotlightContainer,
+                  ]
+            }
+            objectFit={isScreenShareOnSpotlight ? 'contain' : 'cover'}
+            trackType={
+              isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
+            }
+            supportedReactions={supportedReactions}
+            {...participantViewProps}
+          />
+        ))}
       {!isInPiP && !isUserAloneInCall && (
         <View
           style={[

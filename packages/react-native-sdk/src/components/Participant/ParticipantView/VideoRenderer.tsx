@@ -72,10 +72,12 @@ export const VideoRenderer = ({
       : SfuModels.TrackType.VIDEO,
   );
   const hasJoinedCall = callingState === CallingState.JOINED;
-  const canShowVideo = !!videoStream && isVisible && isPublishingVideoTrack;
   const videoStreamToRender = (isScreenSharing
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
+
+  const canShowVideo =
+    !!videoStreamToRender && isVisible && isPublishingVideoTrack;
 
   const mirror =
     isLocalParticipant && !isScreenSharing && direction === 'front';
@@ -85,11 +87,14 @@ export const VideoRenderer = ({
    * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
    */
   useEffect(() => {
-    if (!call) {
+    if (!call || isLocalParticipant) {
       return;
     }
-    if (!isVisible) {
-      if (viewportVisibilityState?.videoTrack !== VisibilityState.VISIBLE) {
+    if (isVisible) {
+      if (
+        trackType === 'videoTrack' &&
+        viewportVisibilityState?.videoTrack !== VisibilityState.VISIBLE
+      ) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
           viewportVisibilityState: {
@@ -98,13 +103,40 @@ export const VideoRenderer = ({
           },
         }));
       }
+      if (
+        trackType === 'screenShareTrack' &&
+        viewportVisibilityState?.screenShareTrack !== VisibilityState.VISIBLE
+      ) {
+        call.state.updateParticipant(sessionId, (p) => ({
+          ...p,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            screenShareTrack: VisibilityState.VISIBLE,
+          },
+        }));
+      }
     } else {
-      if (viewportVisibilityState?.videoTrack !== VisibilityState.INVISIBLE) {
+      if (
+        trackType === 'videoTrack' &&
+        viewportVisibilityState?.videoTrack !== VisibilityState.INVISIBLE
+      ) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
           viewportVisibilityState: {
             ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
             videoTrack: VisibilityState.INVISIBLE,
+          },
+        }));
+      }
+      if (
+        trackType === 'screenShareTrack' &&
+        viewportVisibilityState?.screenShareTrack !== VisibilityState.INVISIBLE
+      ) {
+        call.state.updateParticipant(sessionId, (p) => ({
+          ...p,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            screenShareTrack: VisibilityState.INVISIBLE,
           },
         }));
       }
@@ -114,7 +146,14 @@ export const VideoRenderer = ({
         subscribedVideoLayoutRef.current = undefined;
       }
     }
-  }, [sessionId, viewportVisibilityState, isVisible, call]);
+  }, [
+    sessionId,
+    viewportVisibilityState,
+    isVisible,
+    call,
+    trackType,
+    isLocalParticipant,
+  ]);
 
   useEffect(() => {
     if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
@@ -131,10 +170,13 @@ export const VideoRenderer = ({
    * 3. when call was rejoined
    */
   useEffect(() => {
+    if (!call || isLocalParticipant) {
+      return;
+    }
     // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
     const updateIsNeeded = pendingVideoLayoutRef.current;
 
-    if (!updateIsNeeded || !call || !isPublishingVideoTrack || !hasJoinedCall) {
+    if (!updateIsNeeded || !isPublishingVideoTrack || !hasJoinedCall) {
       return;
     }
 
@@ -157,6 +199,7 @@ export const VideoRenderer = ({
     isVisible,
     sessionId,
     hasJoinedCall,
+    isLocalParticipant,
   ]);
 
   useEffect(() => {
@@ -169,6 +212,9 @@ export const VideoRenderer = ({
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
     event,
   ) => {
+    if (!call || isLocalParticipant) {
+      return;
+    }
     const dimension = {
       width: Math.trunc(event.nativeEvent.layout.width),
       height: Math.trunc(event.nativeEvent.layout.height),
@@ -177,7 +223,7 @@ export const VideoRenderer = ({
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
+    if (!isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }

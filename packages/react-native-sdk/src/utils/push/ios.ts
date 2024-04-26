@@ -133,16 +133,21 @@ export async function initIosNonVoipToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
-    setPushLogoutCallback(() => {
-      client.removeDevice(token).catch((err) => {
-        console.warn('Failed to remove voip token from stream', err);
-      });
+    setPushLogoutCallback(async () => {
+      try {
+        client.removeDevice(token);
+      } catch (err) {
+        console.warn('Failed to remove apn token from stream', err);
+      }
     });
     const push_provider_name = pushConfig.ios.pushProviderName;
     await client.addDevice(token, 'apn', push_provider_name);
   };
   if (pushConfig.isExpo) {
     const expoNotificationsLib = getExpoNotificationsLib();
+    expoNotificationsLib.getDevicePushTokenAsync().then((devicePushToken) => {
+      setDeviceToken(devicePushToken.data);
+    });
     const subscription = expoNotificationsLib.addPushTokenListener(
       (devicePushToken) => {
         setDeviceToken(devicePushToken.data);

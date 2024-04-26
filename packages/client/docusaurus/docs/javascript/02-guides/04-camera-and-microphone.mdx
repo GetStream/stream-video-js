@@ -248,6 +248,53 @@ call.microphone.state.speakingWhileMuted$.subscribe((isSpeaking) => {
 
 The notification is automatically disabled if the user doesn't have the permission to send audio.
 
+### Noise Cancellation
+
+Check our [Noise Cancellation](../../guides/noise-cancellation) guide.
+
+## Camera and Microphone Filters
+
+Both the Camera and the Microphone allow you to apply filters to the media stream.
+This can be useful for various use-cases, such as:
+
+- applying a video effects such as background blurring, or background replacement
+- applying a custom video filter (e.g. color correction, or face detection)
+- applying a custom audio filter (e.g. noise reduction)
+
+```typescript
+import { Call } from '@stream-io/video-client';
+
+let call: Call;
+
+// apply a custom video filter
+const unregisterMyVideoFilter = await camera.registerFilter(
+  async function myVideoFilter(inputMediaStream: MediaStream) {
+    // initialize the video filter, do some magic and
+    // return the modified media stream
+    return mediaStreamWithFilterApplied;
+  },
+);
+
+// apply a custom audio filter
+const unregisterMyAudioFilter = await microphone.registerFilter(
+  async function myAudioFilter(inputMediaStream: MediaStream) {
+    // initialize the audio filter, do some magic and
+    // return the modified media stream
+    return mediaStreamWithFilterApplied;
+  },
+);
+
+// unregister the filters
+unregisterMyVideoFilter();
+unregisterMyAudioFilter();
+```
+
+Filters can be registered and unregistered at any time, and the SDK will take care of the rest.
+Filters can be chained, and the order of registration matters.
+The first registered filter will be the first to modify the raw `MediaStream`.
+
+Once a filter(s) is registered, the SDK will send the last returned `MediaStream` to the remote participants.
+
 ## Speaker management
 
 ### List and select devices

@@ -23,15 +23,15 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ## Install Dependencies
 
 ```bash title=Terminal
-npx expo install expo-notifications
-npx expo install expo-task-manager
+npx expo install @react-native-firebase/app
+npx expo install @react-native-firebase/messaging
 npx expo install react-native-voip-push-notification
 npx expo install react-native-callkeep
 ```
 
 So what did we install precisely?
 
-- `expo-notifications` and `expo-task-manager` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
 - `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
 - `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
 
@@ -53,9 +53,29 @@ So what did we install precisely?
 }
 ```
 
+5. Similarly, for iOS, in the console, click the setting icon next to **Project overview** and open **Project settings**. Then, under **Your apps**, click the iOS icon to open **Add Firebase to your Apple app** and follow the steps. **Make sure that the Apple bundle ID you enter is the same as the value of** `ios.bundleIdentifier` **from your app.json.**
+
+6. After registering the app, download the **GoogleService-Info.plist** file and place it in your project's root directory.
+
+7. In **app.json**, add an `ios.googleServicesFile` field with the relative path to the downloaded **GoogleService-Info.plist** file. If you placed it in the root directory, the path is:
+
+```js title="app.json"
+{
+    "ios": {
+      "googleServicesFile": "./GoogleService-Info.plist",
+    },
+}
+```
+
+:::infoINFO
+
+The **google-services.json** and **GoogleService-Info.plist** files contain unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
+
+:::
+
 :::note
 
-The **google-services.json** file contains unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
+We will not be using firebase for iOS. But it is necessary for the setup for react-native-firebase to have the **GoogleService-Info.plist** file.
 
 :::
 
@@ -79,6 +99,17 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
       ],
       // highlight-next-line
       "@config-plugins/react-native-callkeep",
+      // highlight-next-line
+      "@react-native-firebase/app",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            // highlight-next-line
+            "useFrameworks": "static"
+          }
+        }
+      ]
       // your other plugins
   ]
 }
@@ -88,8 +119,20 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
 
 - The `disableVideoIos` field is used for apps with audio only calls. Pass true to this property to disable video in iOS [CallKit](https://developer.apple.com/documentation/callkit).
 - The `includesCallsInRecentsIos` field is used to show call history. Pass true to show the history of calls made in the iOS native dialer
-
+- For iOS only, since `firebase-ios-sdk` requires `use_frameworks` then you want to configure `expo-build-properties` by adding `"useFrameworks": "static"`.
 :::
+
+## Optional: Disable Firebase initialisation on iOS
+
+React Native Firebase Messaging automatically registers the device with APNs to receive remote messages. But since we do not use Firebase on iOS, we can disable it via the `firebase.json` file that we can newly create:
+
+```js title="<projectRoot>/firebase.json"
+{
+  "react-native": {
+    "messaging_ios_auto_register_for_remote_messages": false
+  }
+}
+```
 
 ## Setup the push config for the SDK
 
@@ -180,13 +223,14 @@ export function setPushConfig() {
       // you can call your server to get the user data or token or retrieve from offline storage.
       const userId = await AsyncStorage.getItem('@userId');
       const userName = await AsyncStorage.getItem('@userName');
-      const token = await AsyncStorage.getItem('@userToken');
-      if (!username || !userToken) return undefined;
-      const user = { id: userId, name: userName, token };
+      if (!userId) return undefined;
+      // an example promise to fetch token from your server
+      const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
+      const user = { id: userId, name: userName };
       return new StreamVideoClient({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
-        token,
+        tokenProvider,
       });
     },
   });
@@ -207,8 +251,8 @@ setPushConfig();
 At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions in Expo:
 
 ```js
-import * as Notifications from 'expo-notifications';
-await Notifications.requestPermissionsAsync();
+import {PermissionsAndroid} from 'react-native';
+PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
 ```
 
 ## Disabling push - usually on logout
@@ -218,7 +262,7 @@ In some cases you would want to disable push from happening. For example, if use
 ```js
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
-StreamVideoRN.onPushLogout();
+await StreamVideoRN.onPushLogout();
 ```
 
 ## Troubleshooting

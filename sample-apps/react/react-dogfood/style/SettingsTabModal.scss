@@ -19,6 +19,12 @@
     display: none;
   }
 
+  &__tab-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
   &__tabmodal-sidebar {
     display: flex;
     flex-direction: column;
@@ -69,6 +75,73 @@
 
     -ms-overflow-style: none;
     scrollbar-width: none;
+
+    .rd__video-effects {
+      padding: var(--str-video__spacing-lg);
+
+      .rd__video-effects__list {
+        padding-top: var(--str-video__spacing-md);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .str-video__composite-button__button-group {
+          width: 48px;
+          height: 48px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
+          .str-video__icon {
+            width: 2rem;
+            height: 2rem;
+          }
+        }
+
+        .rd__video-effects__blur--medium {
+          .str-video__icon {
+            width: 1.7rem;
+            height: 1.7rem;
+          }
+        }
+
+        .rd__video-effects__blur--low {
+          .str-video__icon {
+            width: 1.25rem;
+            height: 1.25rem;
+          }
+        }
+      }
+
+      .rd__video-effects__preview-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+        max-width: 480px;
+
+        .str-video__video-preview-container {
+          width: 100%;
+        }
+      }
+
+      .rd__video-effects__image {
+        width: 180px;
+        height: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border: 1px solid var(--str-video__base-color6);
+        border-radius: var(--str-video__border-radius-xs);
+        display: inline-block;
+
+        &:hover {
+          border-color: var(--str-video__brand-color1);
+        }
+
+        &--active {
+          border-color: var(--str-video__brand-color1);
+        }
+      }
+    }
   }
 
   &__tab {
@@ -142,6 +215,11 @@
         display: none;
       }
     }
+
+    &__tab-panel__content {
+      .rd__video-effects {
+      }
+    }
   }
 }
 
@@ -149,6 +227,14 @@
   .rd {
     &__tabmodal-container {
       width: 55vw;
+    }
+  }
+}
+
+@include respond-above(xlg) {
+  .rd {
+    &__tabmodal-container {
+      width: 45vw;
     }
   }
 }

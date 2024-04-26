@@ -22,6 +22,8 @@ import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
+  CollectUserFeedbackRequest,
+  CollectUserFeedbackResponse,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -30,6 +32,7 @@ import {
   GoLiveRequest,
   GoLiveResponse,
   ListRecordingsResponse,
+  ListTranscriptionsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
@@ -48,10 +51,13 @@ import {
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StartTranscriptionRequest,
+  StartTranscriptionResponse,
   StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
+  StopTranscriptionResponse,
   UnblockUserRequest,
   UnblockUserResponse,
   UnpinRequest,
@@ -119,6 +125,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { getSdkSignature } from './stats/utils';
 
 /**
  * An object representation of a `Call`.
@@ -209,6 +216,7 @@ export class Call {
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private isLeaving = false;
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -472,6 +480,8 @@ export class Call {
       await this.assertCallJoined();
     }
 
+    this.isLeaving = true;
+
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
       const hasOtherParticipants = this.state.remoteParticipants.length > 0;
@@ -509,10 +519,10 @@ export class Call {
 
     this.clientStore.unregisterCall(this);
 
-    this.camera.removeSubscriptions();
-    this.microphone.removeSubscriptions();
-    this.screenShare.removeSubscriptions();
-    this.speaker.removeSubscriptions();
+    this.camera.dispose();
+    this.microphone.dispose();
+    this.screenShare.dispose();
+    this.speaker.dispose();
 
     const stopOnLeavePromises: Promise<void>[] = [];
     if (this.camera.stopOnLeave) {
@@ -880,6 +890,9 @@ export class Call {
         // unregister the "goAway" handler, as we won't need it anymore for this connection.
         // the upcoming re-join will register a new handler anyway
         unregisterGoAway();
+        // when the user has initiated "call.leave()" operation, we shouldn't
+        // care for the WS close code and we shouldn't ever attempt to reconnect
+        if (this.isLeaving) return;
         // do nothing if the connection was closed on purpose
         if (e.code === StreamSfuClient.NORMAL_CLOSURE) return;
         // do nothing if the connection was closed because of a policy violation
@@ -1296,6 +1309,28 @@ export class Call {
   };
 
   /**
+   * Notifies the SFU that a noise cancellation process has started.
+   *
+   * @internal
+   */
+  notifyNoiseCancellationStarting = async () => {
+    return this.sfuClient?.startNoiseCancellation().catch((err) => {
+      this.logger('warn', 'Failed to notify start of noise cancellation', err);
+    });
+  };
+
+  /**
+   * Notifies the SFU that a noise cancellation process has stopped.
+   *
+   * @internal
+   */
+  notifyNoiseCancellationStopped = async () => {
+    return this.sfuClient?.stopNoiseCancellation().catch((err) => {
+      this.logger('warn', 'Failed to notify stop of noise cancellation', err);
+    });
+  };
+
+  /**
    * Update track subscription configuration for one or more participants.
    * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
    * You can only subscribe for tracks after the participant started publishing the given kind of track.
@@ -1583,6 +1618,29 @@ export class Call {
   };
 
   /**
+   * Starts the transcription of the call.
+   *
+   * @param request the request data.
+   */
+  startTranscription = async (
+    request?: StartTranscriptionRequest,
+  ): Promise<StartTranscriptionResponse> => {
+    return this.streamClient.post<
+      StartTranscriptionResponse,
+      StartTranscriptionRequest
+    >(`${this.streamClientBasePath}/start_transcription`, request);
+  };
+
+  /**
+   * Stops the transcription of the call.
+   */
+  stopTranscription = async (): Promise<StopTranscriptionResponse> => {
+    return this.streamClient.post<StopTranscriptionResponse>(
+      `${this.streamClientBasePath}/stop_transcription`,
+    );
+  };
+
+  /**
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
@@ -1860,6 +1918,17 @@ export class Call {
   };
 
   /**
+   * Retrieves the list of transcriptions for the current call.
+   *
+   * @returns the list of transcriptions.
+   */
+  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+    return this.streamClient.get<ListTranscriptionsResponse>(
+      `${this.streamClientBasePath}/transcriptions`,
+    );
+  };
+
+  /**
    * Retrieve call statistics for a particular call session (historical).
    * Here `callSessionID` is mandatory.
    *
@@ -1869,6 +1938,58 @@ export class Call {
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
+   * Submit user feedback for the call
+   *
+   * @param rating Rating between 1 and 5 denoting the experience of the user in the call
+   * @param reason The reason/description for the rating
+   * @param custom Custom data
+   * @returns
+   */
+  submitFeedback = async (
+    rating: number,
+    {
+      reason,
+      custom,
+    }: {
+      reason?: string;
+      custom?: Record<string, any>;
+    } = {},
+  ) => {
+    if (rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+    const callSessionId = this.state.session?.id;
+    if (!callSessionId) {
+      throw new Error(
+        'Feedback can be submitted only in the context of a call session',
+      );
+    }
+
+    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
+      getClientDetails(),
+    );
+
+    // user sessionId is not available once the call has been left
+    // until we relax the backend validation, we'll send N/A
+    const userSessionId = this.sfuClient?.sessionId ?? 'N/A';
+    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
+    return this.streamClient.post<
+      CollectUserFeedbackResponse,
+      CollectUserFeedbackRequest
+    >(endpoint, {
+      rating,
+      reason,
+      user_session_id: userSessionId,
+      sdk: sdkName,
+      sdk_version: sdkVersion,
+      custom: {
+        ...custom,
+        'x-stream-platform-data': platform,
+      },
+    });
   };
 
   /**

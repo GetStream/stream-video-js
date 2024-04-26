@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.1...@stream-io/video-styling-1.0.2) (2024-04-05)
+
+
+### Features
+
+* **react:** Support for Background Filters and Background Blurring ([#1283](https://github.com/GetStream/stream-video-js/issues/1283)) ([f790ee7](https://github.com/GetStream/stream-video-js/commit/f790ee78c20fb0f5266e429a777d8bb7ef158c83)), closes [#1271](https://github.com/GetStream/stream-video-js/issues/1271) [#1276](https://github.com/GetStream/stream-video-js/issues/1276)
+
 ### [1.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.2.0...@stream-io/video-styling-1.0.1) (2024-03-15)
 
 ## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.14...@stream-io/video-styling-0.2.0) (2024-02-26)

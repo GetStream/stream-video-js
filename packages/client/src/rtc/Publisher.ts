@@ -294,7 +294,11 @@ export class Publisher {
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
         );
-        transceiver.setCodecPreferences(codecPreferences);
+        try {
+          transceiver.setCodecPreferences(codecPreferences);
+        } catch (err) {
+          logger('warn', `Couldn't set codec preferences`, err);
+        }
       }
     } else {
       const previousTrack = transceiver.sender.track;

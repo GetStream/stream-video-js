@@ -8,6 +8,7 @@ import type {
 } from '../StreamVideoRN/types';
 import {
   getFirebaseMessagingLib,
+  getFirebaseMessagingLibNoThrow,
   getExpoNotificationsLib,
   getExpoTaskManagerLib,
 } from './libs';
@@ -40,42 +41,58 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
   if (pushConfig.isExpo) {
     const Notifications = getExpoNotificationsLib();
     const TaskManager = getExpoTaskManagerLib();
-    const BACKGROUND_NOTIFICATION_TASK =
-      'STREAM-VIDEO-SDK-INTERNAL-BACKGROUND-NOTIFICATION-TASK';
 
-    TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error }) => {
-      if (error) {
-        return;
-      }
-      // @ts-ignore
-      const dataToProcess = data.notification?.data;
-      firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
-    });
-    // background handler
-    Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
-    // foreground handler
-    Notifications.setNotificationHandler({
-      handleNotification: async (notification) => {
-        // @ts-ignore
-        const trigger = notification?.request?.trigger;
-        if (trigger.type === 'push') {
-          const data = trigger?.remoteMessage?.data;
-          if (data?.sender === 'stream.video') {
-            await firebaseMessagingOnMessageHandler(data, pushConfig);
-            return {
-              shouldShowAlert: false,
-              shouldPlaySound: false,
-              shouldSetBadge: false,
-            };
+    const messaging = getFirebaseMessagingLibNoThrow(true);
+    if (messaging) {
+      // handles on app killed state in expo, expo-notifications cannot handle that
+      messaging().setBackgroundMessageHandler(
+        async (msg) =>
+          await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+      );
+      messaging().onMessage((msg) =>
+        firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+      ); // this is to listen to foreground messages, which we dont need for now
+    } else {
+      const BACKGROUND_NOTIFICATION_TASK =
+        'STREAM-VIDEO-SDK-INTERNAL-BACKGROUND-NOTIFICATION-TASK';
+
+      TaskManager.defineTask(
+        BACKGROUND_NOTIFICATION_TASK,
+        ({ data, error }) => {
+          if (error) {
+            return;
           }
-        }
-        return {
-          shouldShowAlert: true,
-          shouldPlaySound: false,
-          shouldSetBadge: false,
-        };
-      },
-    });
+          // @ts-ignore
+          const dataToProcess = data.notification?.data;
+          firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
+        },
+      );
+      // background handler (does not handle on app killed state)
+      Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+      // foreground handler
+      Notifications.setNotificationHandler({
+        handleNotification: async (notification) => {
+          // @ts-ignore
+          const trigger = notification?.request?.trigger;
+          if (trigger.type === 'push') {
+            const data = trigger?.remoteMessage?.data;
+            if (data?.sender === 'stream.video') {
+              await firebaseMessagingOnMessageHandler(data, pushConfig);
+              return {
+                shouldShowAlert: false,
+                shouldPlaySound: false,
+                shouldSetBadge: false,
+              };
+            }
+          }
+          return {
+            shouldShowAlert: true,
+            shouldPlaySound: false,
+            shouldSetBadge: false,
+          };
+        },
+      });
+    }
   } else {
     const messaging = getFirebaseMessagingLib();
     messaging().setBackgroundMessageHandler(
@@ -104,10 +121,12 @@ export async function initAndroidPushToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
-    setPushLogoutCallback(() => {
-      client.removeDevice(token).catch((err) => {
-        console.warn('Failed to remove voip token from stream', err);
-      });
+    setPushLogoutCallback(async () => {
+      try {
+        client.removeDevice(token);
+      } catch (err) {
+        console.warn('Failed to remove firebase token from stream', err);
+      }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
     await client.addDevice(token, 'firebase', push_provider_name);

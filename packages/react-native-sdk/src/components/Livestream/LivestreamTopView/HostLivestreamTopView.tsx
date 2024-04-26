@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 import {
   DurationBadge as DefaultDurationBadge,
   DurationBadgeProps,
@@ -32,6 +32,7 @@ export type HostLivestreamTopViewProps = {
    * Component to customize the Follower count indicator on the host's live stream's top view.
    */
   FollowerCount?: React.ComponentType<FollowerCountProps> | null;
+  onLayout?: ViewProps['onLayout'];
 };
 
 /**
@@ -41,6 +42,7 @@ export const HostLivestreamTopView = ({
   DurationBadge = DefaultDurationBadge,
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
+  onLayout,
 }: HostLivestreamTopViewProps) => {
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
     useCallStateHooks();
@@ -58,6 +60,7 @@ export const HostLivestreamTopView = ({
         { backgroundColor: colors.static_overlay },
         hostLivestreamTopView.container,
       ]}
+      onLayout={onLayout}
     >
       <View style={[styles.leftElement, hostLivestreamTopView.leftElement]}>
         {DurationBadge && <DurationBadge mode="host" />}

@@ -2,6 +2,101 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.7...@stream-io/video-client-0.7.8) (2024-04-25)
+
+
+### Features
+
+* Noise Cancellation ([#1321](https://github.com/GetStream/stream-video-js/issues/1321)) ([9144385](https://github.com/GetStream/stream-video-js/commit/91443852986ad7453d82efb900626266d8df0e96))
+
+### [0.7.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.6...@stream-io/video-client-0.7.7) (2024-04-23)
+
+
+### Features
+
+* **feedback:** Collect user feedback ([#1324](https://github.com/GetStream/stream-video-js/issues/1324)) ([b415de0](https://github.com/GetStream/stream-video-js/commit/b415de0828e402f8d3b854553351843aad2e8473))
+
+### [0.7.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.5...@stream-io/video-client-0.7.6) (2024-04-23)
+
+
+### Bug Fixes
+
+* **client:** ignore SFU WS status code when the user initiates leaving a call ([#1323](https://github.com/GetStream/stream-video-js/issues/1323)) ([774882b](https://github.com/GetStream/stream-video-js/commit/774882b9e2bb3f3dc72401278c174e1a0f597ce1))
+
+### [0.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.4...@stream-io/video-client-0.7.5) (2024-04-23)
+
+
+### Bug Fixes
+
+* **publisher:** ensure initial bitrate is set ([#1322](https://github.com/GetStream/stream-video-js/issues/1322)) ([d7e8e4e](https://github.com/GetStream/stream-video-js/commit/d7e8e4e5cb3ff9859c1eb580162ed88bbe54b096))
+
+### [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.3...@stream-io/video-client-0.7.4) (2024-04-17)
+
+
+### Features
+
+* update from OpenAPI ([#1320](https://github.com/GetStream/stream-video-js/issues/1320)) ([391c030](https://github.com/GetStream/stream-video-js/commit/391c030ba71a2e12001eaa195226dcece44f3922))
+
+### [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.2...@stream-io/video-client-0.7.3) (2024-04-17)
+
+
+### Bug Fixes
+
+* **codecs:** Set codec preferences based on receiving capabilities ([#1318](https://github.com/GetStream/stream-video-js/issues/1318)) ([43087fe](https://github.com/GetStream/stream-video-js/commit/43087fed8e844ad9c80a5b4849500eedc8301609))
+
+### [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.1...@stream-io/video-client-0.7.2) (2024-04-16)
+
+
+### Features
+
+* update coordinator models ([#1317](https://github.com/GetStream/stream-video-js/issues/1317)) ([cdbee74](https://github.com/GetStream/stream-video-js/commit/cdbee747f1730f6965315e7c9ea9426287ff0cfd))
+
+### [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.0...@stream-io/video-client-0.7.1) (2024-04-09)
+
+
+### Features
+
+* user feedback ([#1310](https://github.com/GetStream/stream-video-js/issues/1310)) ([256b775](https://github.com/GetStream/stream-video-js/commit/256b7756e89b261e0efa37952611139bf94a641e))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.10...@stream-io/video-client-0.7.0) (2024-04-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove server-side capabilities from JS client (#1282)
+
+### Features
+
+* remove server-side capabilities from JS client ([#1282](https://github.com/GetStream/stream-video-js/issues/1282)) ([362b6b5](https://github.com/GetStream/stream-video-js/commit/362b6b501e6aa1864eb8486e3129a1705a4d41fb))
+
+### [0.6.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.9...@stream-io/video-client-0.6.10) (2024-04-05)
+
+
+### Features
+
+* revert add submit feedback method to Call ([#1307](https://github.com/GetStream/stream-video-js/issues/1307)) ([#1308](https://github.com/GetStream/stream-video-js/issues/1308)) ([df9a74d](https://github.com/GetStream/stream-video-js/commit/df9a74dddf0287812b723d134d92941ac939bb9f))
+
+### [0.6.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.8...@stream-io/video-client-0.6.9) (2024-04-05)
+
+
+### Features
+
+* add submit feedback method to Call ([#1307](https://github.com/GetStream/stream-video-js/issues/1307)) ([45fb9da](https://github.com/GetStream/stream-video-js/commit/45fb9da6eb52e4509c7b45b53cd62b0af6f7ec74))
+
+### [0.6.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.7...@stream-io/video-client-0.6.8) (2024-04-05)
+
+
+### Features
+
+* **react:** Support for Background Filters and Background Blurring ([#1283](https://github.com/GetStream/stream-video-js/issues/1283)) ([f790ee7](https://github.com/GetStream/stream-video-js/commit/f790ee78c20fb0f5266e429a777d8bb7ef158c83)), closes [#1271](https://github.com/GetStream/stream-video-js/issues/1271) [#1276](https://github.com/GetStream/stream-video-js/issues/1276)
+
+### [0.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.6...@stream-io/video-client-0.6.7) (2024-04-02)
+
+
+### Features
+
+* [PBE-1611] Query call reports endpoint ([#1306](https://github.com/GetStream/stream-video-js/issues/1306)) ([0861a5d](https://github.com/GetStream/stream-video-js/commit/0861a5dd6e6e56c4ae286c44f174a319e8f308c4))
+
 ### [0.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.6.5...@stream-io/video-client-0.6.6) (2024-03-29)
 
 

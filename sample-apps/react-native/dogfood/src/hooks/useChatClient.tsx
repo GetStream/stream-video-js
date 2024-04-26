@@ -21,15 +21,17 @@ export const useChatClient = <
     let connectPromise: Promise<void> | undefined;
     let client: StreamChat<SCG> | undefined;
     const run = async () => {
-      const { token, apiKey } = await createToken(
-        { user_id: userData.id },
-        appEnvironment,
-      );
+      const fetchAuthDetails = async () => {
+        return await createToken({ user_id: userData.id }, appEnvironment);
+      };
+      const { apiKey } = await fetchAuthDetails();
+      const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
+
       client = new StreamChat<SCG>(apiKey);
       const connectUser = async () => {
         await disconnectRef.current;
         try {
-          await client?.connectUser(userData, token);
+          await client?.connectUser(userData, tokenProvider);
           console.log(`[Chat client]: Connected user: ${userData.id}`);
         } catch (e) {
           console.error('[Chat client]: Failed to establish connection', e);

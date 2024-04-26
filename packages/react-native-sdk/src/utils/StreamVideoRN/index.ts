@@ -91,8 +91,11 @@ export class StreamVideoRN {
    */
   static onPushLogout() {
     if (pushLogoutCallbacks.current) {
-      pushLogoutCallbacks.current.forEach((callback) => callback());
+      return Promise.all(
+        pushLogoutCallbacks.current.map((callback) => callback()),
+      ).then(() => {});
     }
+    return Promise.resolve();
   }
 
   /**

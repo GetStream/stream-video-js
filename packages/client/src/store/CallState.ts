@@ -34,7 +34,7 @@ import {
   UnblockedUserEvent,
   UpdatedCallPermissionsEvent,
   UserResponse,
-  VideoEvent,
+  WSEvent,
 } from '../gen/coordinator';
 import { Pin, TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
@@ -328,8 +328,8 @@ export class CallState {
     SortingPreset.defaultSortPreset;
 
   private readonly eventHandlers: {
-    [EventType in VideoEvent['type']]:
-      | ((event: Extract<VideoEvent, { type: EventType }>) => void)
+    [EventType in WSEvent['type']]:
+      | ((event: Extract<WSEvent, { type: EventType }>) => void)
       | undefined;
   };
 
@@ -405,9 +405,14 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'call.closed_caption': undefined,
       'call.permission_request': undefined,
       'call.recording_failed': undefined,
       'call.recording_ready': undefined,
+      'call.transcription_started': undefined,
+      'call.transcription_stopped': undefined,
+      'call.transcription_ready': undefined,
+      'call.transcription_failed': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
@@ -449,6 +454,7 @@ export class CallState {
       'call.session_started': (e) => this.updateFromCallResponse(e.call),
       'call.unblocked_user': this.unblockUser,
       'call.updated': (e) => this.updateFromCallResponse(e.call),
+      'call.deleted': undefined,
     };
   }
 
@@ -894,7 +900,7 @@ export class CallState {
    *
    * @param event the video event that our backend sent us.
    */
-  updateFromEvent = (event: VideoEvent) => {
+  updateFromEvent = (event: WSEvent) => {
     const update = this.eventHandlers[event.type];
     if (update) {
       update(event as any);

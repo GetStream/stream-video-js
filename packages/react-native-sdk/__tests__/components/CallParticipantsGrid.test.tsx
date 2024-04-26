@@ -5,13 +5,11 @@ import mockParticipant from '../mocks/participant';
 import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { act, render, screen, within } from '../utils/RNTLTools';
-import {
-  CallParticipantsGrid,
-  CallParticipantsList,
-  ParticipantView,
-  VideoRenderer,
-} from '../../src/components';
+import { CallParticipantsList } from '../../src/components/Call/CallParticipantsList/CallParticipantsList';
+import { ParticipantView } from '../../src/components/Participant/ParticipantView/ParticipantView';
+import { VideoRenderer } from '../../src/components/Participant/ParticipantView/VideoRenderer';
 import { ViewToken } from 'react-native';
+import { CallParticipantsGrid } from '../../src/components/Call/CallLayout/CallParticipantsGrid';
 
 console.warn = jest.fn();
 jest.useFakeTimers();

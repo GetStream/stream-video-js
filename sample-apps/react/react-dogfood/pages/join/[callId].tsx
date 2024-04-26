@@ -1,15 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import {
+  BackgroundFiltersProvider,
   Call,
   CallingState,
   CallRequest,
+  NoiseCancellationProvider,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
-import Head from 'next/head';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import { TranslationLanguages } from 'stream-chat';
 import { useCreateStreamChatClient } from '../../hooks';
 import { MeetingUI } from '../../components';
 import {
@@ -137,7 +141,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const chatClient = useCreateStreamChatClient({
     apiKey: credentials?.apiKey,
     tokenOrProvider: tokenProvider,
-    userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
+    userData: {
+      id: '!anon',
+      ...(user as Omit<User, 'type'>),
+      language: user.language as TranslationLanguages | undefined,
+    },
   });
 
   const [call, setCall] = useState<Call>();
@@ -191,6 +199,22 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   useGleap(gleapApiKey, client, call, user);
+  const [noiseCancellation, setNoiseCancellation] =
+    useState<INoiseCancellation>();
+  const ncLoader = useRef<Promise<void>>();
+  useEffect(() => {
+    const load = (ncLoader.current || Promise.resolve())
+      .then(() => import('@stream-io/audio-filters-web'))
+      .then(({ NoiseCancellation }) => {
+        // const modelsPath = `${basePath}/krispai/models`;
+        // const nc = new NoiseCancellation({ basePath: modelsPath });
+        const nc = new NoiseCancellation();
+        setNoiseCancellation(nc);
+      });
+    return () => {
+      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
+    };
+  }, []);
 
   if (!client || !call) return null;
 
@@ -209,7 +233,27 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       >
         <StreamCall call={call}>
           <TourProvider>
-            <MeetingUI chatClient={chatClient} />
+            <BackgroundFiltersProvider
+              basePath={`${basePath}/tf`}
+              isBlurringEnabled={true}
+              backgroundImages={[
+                `${basePath}/backgrounds/amsterdam-1.jpg`,
+                `${basePath}/backgrounds/amsterdam-2.jpg`,
+                `${basePath}/backgrounds/boulder-1.jpg`,
+                `${basePath}/backgrounds/boulder-2.jpg`,
+                `${basePath}/backgrounds/gradient-1.jpg`,
+                `${basePath}/backgrounds/gradient-2.jpg`,
+                `${basePath}/backgrounds/gradient-3.jpg`,
+              ]}
+            >
+              {noiseCancellation && (
+                <NoiseCancellationProvider
+                  noiseCancellation={noiseCancellation}
+                >
+                  <MeetingUI chatClient={chatClient} />
+                </NoiseCancellationProvider>
+              )}
+            </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>
       </StreamVideo>

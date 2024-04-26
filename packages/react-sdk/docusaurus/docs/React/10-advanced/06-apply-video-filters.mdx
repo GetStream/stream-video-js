@@ -1,8 +1,114 @@
 ---
+id: apply-video-filters
 title: Video & Audio filters
 description: How to build video or audio filters
 ---
 
-## Apply Custom Video Filters
+## Video Filters
 
-This feature is coming soon...
+In this guide, we will show you how to apply custom video filters to a video stream.
+We are going to use the [Stream React Video SDK](https://getstream.io/video/sdk/react/) provided components that enable background blur and background replacement filters.
+
+These components use the [`camera.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API under the hood to register custom filters.
+
+:::note
+We currently support video filters only on modern desktop browsers.
+Support for mobile devices is coming soon.
+
+As not all of your users will have the latest and greatest hardware,
+it's important to check if the filters are supported on the user's device before enabling them.
+:::
+
+### Step 1 - Enable and initialize the filters
+
+Background filters are provided through the following APIs and components:
+
+- `<BackgroundFiltersProvider />` - a React context provider that will allow you to use the filters API in your application
+- `useBackgroundFilters()` - a React hook that will allow you to access the filters API in your application
+
+A basic integration looks like this:
+
+```tsx
+import {
+  BackgroundFiltersProvider,
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
+export default function App() {
+  let client: StreamVideoClient; /* = ... */
+  let call: Call; /* = ... */
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <BackgroundFiltersProvider
+          isBlurringEnabled={true} // enables blurring
+          backgroundFilter="blur" // initial filter
+          backgroundImages={[
+            'https://my-domain.com/bg/random-bg-1.jpg',
+            'https://my-domain.com/bg/random-bg-2.jpg',
+          ]}
+        >
+          <MyUILayout />
+          <MyBackgroundFilterSettings /> {/* your settings UI */}
+        </BackgroundFiltersProvider>
+      </StreamCall>
+    </StreamVideo>
+  );
+}
+```
+
+### Step 2 - Use the API to control the filters
+
+Once you have the `BackgroundFiltersProvider` rendered in your application,
+you can use the `useBackgroundFilters()` hook to access the filters API and control the behavior of the filters.
+
+```tsx
+import { useBackgroundFilters } from '@stream-io/video-react-sdk';
+
+export const MyBackgroundFilterSettings = () => {
+  const {
+    isSupported, // checks if these filters can run on this device
+    isReady, // checks if the filters are ready to be enabled
+    disableBackgroundFilter, // disables the filter
+    applyBackgroundBlurFilter, // applies the blur filter
+    applyBackgroundImageFilter, // applies the image filter
+    backgroundImages, // list of available images
+  } = useBackgroundFilters();
+
+  if (!isSupported) {
+    return <div>Background filters are not supported on this device</div>;
+  }
+
+  if (!isReady) {
+    return <div className="my-loading-indicator" />;
+  }
+
+  return (
+    <div className="my-video-filters">
+      <button onClick={disableBackgroundFilter}>Disable</button>
+      <button onClick={() => applyBackgroundBlurFilter('high')}>Blur</button>
+      <button onClick={() => applyBackgroundBlurFilter('medium')}>Blur</button>
+      <button onClick={() => applyBackgroundBlurFilter('low')}>Blur</button>
+      <ul>
+        {backgroundImages.map((image) => (
+          <li key={image}>
+            <img src={image} alt="background" />
+            <button onClick={() => applyBackgroundImageFilter(image)}>
+              Apply background
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+```
+
+## Audio Filters
+
+An example is coming soon...
+
+In the meantime, you can use the [`microphone.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API to register custom audio filters.

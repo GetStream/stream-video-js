@@ -5,13 +5,11 @@ import mockParticipant from '../mocks/participant';
 import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { render, screen } from '../utils/RNTLTools';
-import {
-  CallParticipantsList,
-  CallParticipantsSpotlight,
-  ParticipantLabel,
-  ParticipantView,
-  VideoRenderer,
-} from '../../src/components';
+import { CallParticipantsSpotlight } from '../../src/components/Call/CallLayout/CallParticipantsSpotlight';
+import { CallParticipantsList } from '../../src/components/Call/CallParticipantsList/CallParticipantsList';
+import { ParticipantView } from '../../src/components/Participant/ParticipantView/ParticipantView';
+import { VideoRenderer } from '../../src/components/Participant/ParticipantView/VideoRenderer';
+import { ParticipantLabel } from '../../src/components/Participant/ParticipantView';
 
 console.warn = jest.fn();
 jest.useFakeTimers();

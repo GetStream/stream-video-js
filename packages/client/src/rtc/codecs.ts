@@ -6,18 +6,18 @@ export const getPreferredCodecs = (
   codecToRemove?: string,
 ): RTCRtpCodecCapability[] | undefined => {
   const logger = getLogger(['codecs']);
-  if (!('getCapabilities' in RTCRtpSender)) {
-    logger?.('warn', 'RTCRtpSender.getCapabilities is not supported');
+  if (!('getCapabilities' in RTCRtpReceiver)) {
+    logger('warn', 'RTCRtpReceiver.getCapabilities is not supported');
     return;
   }
-  const cap = RTCRtpSender.getCapabilities(kind);
+  const cap = RTCRtpReceiver.getCapabilities(kind);
   if (!cap) return;
   const matched: RTCRtpCodecCapability[] = [];
   const partialMatched: RTCRtpCodecCapability[] = [];
   const unmatched: RTCRtpCodecCapability[] = [];
   cap.codecs.forEach((c) => {
     const codec = c.mimeType.toLowerCase();
-    logger?.('debug', `Found supported codec: ${codec}`);
+    logger('debug', `Found supported codec: ${codec}`);
     const shouldRemoveCodec =
       codecToRemove && codec === `${kind}/${codecToRemove.toLowerCase()}`;
     if (shouldRemoveCodec) return;
@@ -39,9 +39,7 @@ export const getPreferredCodecs = (
     matched.push(c);
   });
 
-  const result = [...matched, ...partialMatched, ...unmatched];
-  logger?.('info', `Preffered codecs: `, result);
-  return result;
+  return [...matched, ...partialMatched, ...unmatched];
 };
 
 export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
