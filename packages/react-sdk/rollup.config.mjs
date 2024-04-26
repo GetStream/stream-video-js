@@ -2,7 +2,7 @@ import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
 
-import pkg from './package.json' assert { type: 'json' };
+import pkg from './package.json' with { type: 'json' };
 
 /**
  * @type {import('rollup').RollupOptions}
