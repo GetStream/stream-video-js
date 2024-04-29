@@ -1,0 +1,131 @@
+---
+id: calling-state-and-lifecycle
+title: Calling State and Lifecycle
+description: Calling State machine and Call Lifecycle.
+---
+
+The `call` object instance manages everything related to a particular call instance, such as:
+
+- creating and joining a call
+- performing actions (mute, unmute, send reaction, etc...)
+- manage event subscriptions (`call.on('call.session_started', callback)`, etc...)
+- and many more
+
+Every `call` instance should be created through the `client.call(type, id)` helper.
+
+Our `StreamVideoClient` is responsible for maintaining a WebSocket connection to our servers and also takes care about the API calls that are proxied from the `call` instance.
+
+As we learned in [Joining and Creating Calls](../../guides/joining-and-creating-calls/) guide, a call instance is managed like this:
+
+```ts
+import { Call, StreamVideoClient } from '@stream-io/video-react-sdk';
+
+let client: StreamVideoClient; // ...
+
+const call: Call = client.call(type, id);
+
+// load existing call information from our servers
+await call.get();
+
+// Creates the call on our servers in case it doesn't exist. Otherwise,
+// loads the call information from our servers.
+await call.getOrCreate();
+
+// join the call
+await call.join();
+
+// leave the call and dispose all allocated resources
+await call.leave();
+```
+
+Every `call` instance has a local state, exposed to integrators through:
+
+- `call.state.callingState` - a getter that returns the current value
+- `call.state.callingState$` - an observable that an integrator can subscribe to and be notified everytime the value changes
+- `useCallCallingState()` - a [call state hook](../../guides/call-and-participant-state/#call-state-hooks) that makes it easy to read and update the UI based on calling state values in React components.
+
+## Calling State
+
+Every `call` instance has its own local state managed by the SDK.
+
+These values are exposed through the `CallingState` enum:
+
+```ts
+import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCallCallingState } = useCallStateHooks();
+const callingState = useCallCallingState();
+
+switch (callingState) {
+  case CallingState.JOINED:
+    // ...
+    break;
+  default:
+    const exhaustiveCheck: never = callingState;
+    throw new Error(`Unknown calling state: ${exhaustiveCheck}`);
+}
+```
+
+:::note
+As `CallingState` is an enum that can be extended at any time by us, it would be good to make sure you
+use it exhaustively. This way, if you use TypeScript, you can get a compile time error and be notified that
+there are few more states that you should handle.
+:::
+
+### Calling States
+
+| State                              | Description                                                                                                                                                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CallingState.UNKNOWN`             | The state is unknown. This value is set when Calling State isn't initialized properly.                                                                                           |
+| `CallingState.IDLE`                | A call instance is created on the client side but a WebRTC session isn't established yet.                                                                                        |
+| `CallingState.RINGING`             | This is an incoming (ring) call. You are the callee.                                                                                                                             |
+| `CallingState.JOINING`             | The call join flow is executing (typically right after `call.join()`). Our systems are preparing to accept the new call participant.                                             |
+| `CallingState.JOINED`              | The join flow has finished successfully and the current participant is part of the call. The participant can receive and publish audio and video.                                |
+| `CallingState.LEFT`                | The call has been left (`call.leave()`) and all allocated resources are released. Please create a new `call` instance if you want to re-join.                                    |
+| `CallingState.RECONNECTING`        | A network connection has been lost (due to various factors) and the `call` instance attempts to re-establish a connection and resume the call.                                   |
+| `CallingState.RECONNECTING_FAILED` | The SDK failed to recover the connection after a couple of consecutive attempts. You need to inform the user that he needs to go online and manually attempt to rejoin the call. |
+| `CallingState.MIGRATING`           | The SFU node that is hosting the current participant is shutting down or tries to rebalance the load. This `call` instance is being migrated to another SFU node.                |
+| `CallingState.OFFLINE`             | No network connection can be detected. Once the connection restores, the SDK will automatically attempt to recover the connection (signalled with `RECONNECTING` state).         |
+
+### Example handling
+
+To understand these values better, here is a hypothetical example of how these values can be mapped:
+
+```tsx
+import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCallCallingState } = useCallStateHooks();
+const callingState = useCallCallingState();
+
+switch (callingState) {
+  case CallingState.UNKNOWN:
+  case CallingState.IDLE:
+    return <LobbyScreen />;
+
+  case CallingState.RINGING:
+    return <IncomingCallScreen />;
+
+  case CallingState.JOINING:
+    return <LoadingCallScreen />;
+
+  case CallingState.JOINED:
+    return <ActiveCallScreen />;
+
+  case CallingState.LEFT:
+    return <HaveANiceDayScreen />;
+
+  case CallingState.RECONNECTING:
+  case CallingState.MIGRATING:
+    return <RestoringConnectionScreen />;
+
+  case CallingState.RECONNECTING_FAILED:
+    return <GeneralConnectionErrorScreen />;
+
+  case CallingState.OFFLINE:
+    return <NoConnectionScreen />;
+
+  default:
+    const exhaustiveCheck: never = callingState;
+    throw new Error(`Unknown calling state: ${exhaustiveCheck}`);
+}
+```
