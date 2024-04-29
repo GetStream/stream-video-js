@@ -133,6 +133,37 @@ describe('CallState', () => {
       expect(subscriber).toBeCalledTimes(4);
       subscription.unsubscribe();
     });
+
+    it(`shouldn't emit when string arrays (blockedUserIds) value didn't change`, () => {
+      const state = new CallState();
+      const updateWith = (value: string[]) => {
+        // @ts-expect-error incomplete data
+        state.updateFromCallResponse({ blocked_user_ids: value });
+      };
+
+      updateWith(['a', 'b']);
+
+      const subscriber = vi.fn();
+      const subscription = state.blockedUserIds$.subscribe(subscriber);
+      expect(subscriber).toBeCalledTimes(1);
+
+      updateWith(['a', 'b', 'b']);
+      expect(subscriber).toBeCalledTimes(2);
+
+      updateWith(['a', 'b', 'c']);
+      expect(subscriber).toBeCalledTimes(3);
+
+      updateWith(['a', 'b']);
+      expect(subscriber).toBeCalledTimes(4);
+
+      updateWith(['a', 'b', 'c']);
+      expect(subscriber).toBeCalledTimes(5);
+
+      updateWith(['b', 'c', 'a']);
+      expect(subscriber).toBeCalledTimes(5);
+
+      subscription.unsubscribe();
+    });
   });
 
   describe('updateOrAddParticipant', () => {

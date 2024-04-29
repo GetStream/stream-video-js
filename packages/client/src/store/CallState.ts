@@ -398,9 +398,8 @@ export class CallState {
      */
     const isShallowEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
       if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (b.indexOf(a[i]) === -1) return false;
-      }
+      for (const item of a) if (!b.includes(item)) return false;
+      for (const item of b) if (!a.includes(item)) return false;
       return true;
     };
 
