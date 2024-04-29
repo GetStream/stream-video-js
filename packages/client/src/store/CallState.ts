@@ -37,10 +37,8 @@ import {
   WSEvent,
 } from '../gen/coordinator';
 import { Pin, TrackType } from '../gen/video/sfu/models/models';
-import { Comparator } from '../sorting';
-import * as SortingPreset from '../sorting/presets';
+import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
-import { Logger } from '../coordinator/connection/types';
 
 /**
  * Represents the state of the current call.
@@ -317,15 +315,14 @@ export class CallState {
    */
   thumbnails$: Observable<ThumbnailResponse | undefined>;
 
-  readonly logger: Logger;
+  readonly logger = getLogger(['CallState']);
 
   /**
    * A list of comparators that are used to sort the participants.
    *
    * @private
    */
-  private sortParticipantsBy: Comparator<StreamVideoParticipant> =
-    SortingPreset.defaultSortPreset;
+  private sortParticipantsBy = defaultSortPreset;
 
   private readonly eventHandlers: {
     [EventType in WSEvent['type']]:
@@ -338,7 +335,6 @@ export class CallState {
    *
    */
   constructor() {
-    this.logger = getLogger(['CallState']);
     this.participants$ = this.participantsSubject.asObservable().pipe(
       // maintain stable-sort by mutating the participants stored
       // in the original subject
@@ -376,32 +372,59 @@ export class CallState {
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
-    this.startedAt$ = this.startedAtSubject.asObservable();
-    this.participantCount$ = this.participantCountSubject.asObservable();
-    this.anonymousParticipantCount$ =
-      this.anonymousParticipantCountSubject.asObservable();
-
-    this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.members$ = this.membersSubject.asObservable();
-    this.ownCapabilities$ = this.ownCapabilitiesSubject.asObservable();
-    this.callingState$ = this.callingStateSubject.asObservable();
-
-    this.backstage$ = this.backstageSubject.asObservable();
-    this.blockedUserIds$ = this.blockedUserIdsSubject.asObservable();
+    // dates
     this.createdAt$ = this.createdAtSubject.asObservable();
     this.endedAt$ = this.endedAtSubject.asObservable();
     this.startsAt$ = this.startsAtSubject.asObservable();
+    this.startedAt$ = this.startedAtSubject.asObservable();
     this.updatedAt$ = this.updatedAtSubject.asObservable();
+
+    this.callStatsReport$ = this.callStatsReportSubject.asObservable();
+    this.members$ = this.membersSubject.asObservable();
+
+    // complex objects should work as streams of data
     this.createdBy$ = this.createdBySubject.asObservable();
     this.custom$ = this.customSubject.asObservable();
     this.egress$ = this.egressSubject.asObservable();
     this.ingress$ = this.ingressSubject.asObservable();
-    this.recording$ = this.recordingSubject.asObservable();
     this.session$ = this.sessionSubject.asObservable();
     this.settings$ = this.settingsSubject.asObservable();
-    this.transcribing$ = this.transcribingSubject.asObservable();
     this.endedBy$ = this.endedBySubject.asObservable();
     this.thumbnails$ = this.thumbnailsSubject.asObservable();
+
+    /**
+     * Performs shallow comparison of two arrays.
+     * Expects primitive values: [1, 2, 3] is equal to [2, 1, 3].
+     */
+    const isShallowEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (b.indexOf(a[i]) === -1) return false;
+      }
+      return true;
+    };
+
+    /**
+     * Creates an Observable from the given subject by piping to the
+     * `distinctUntilChanged()` operator.
+     */
+    const duc = <T>(
+      subject: BehaviorSubject<T>,
+      comparator?: (a: T, b: T) => boolean,
+    ): Observable<T> =>
+      subject.asObservable().pipe(distinctUntilChanged(comparator));
+
+    // primitive values should only emit once the value they hold changes
+    this.anonymousParticipantCount$ = duc(
+      this.anonymousParticipantCountSubject,
+    );
+    this.blockedUserIds$ = duc(this.blockedUserIdsSubject, isShallowEqual);
+    this.backstage$ = duc(this.backstageSubject);
+    this.callingState$ = duc(this.callingStateSubject);
+    this.ownCapabilities$ = duc(this.ownCapabilitiesSubject, isShallowEqual);
+    this.participantCount$ = duc(this.participantCountSubject);
+    this.recording$ = duc(this.recordingSubject);
+    this.transcribing$ = duc(this.transcribingSubject);
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -855,23 +878,21 @@ export class CallState {
     sessionId: string,
     participant: StreamVideoParticipant,
   ) => {
-    if (!this.findParticipantBySessionId(sessionId)) {
-      return this.setParticipants((participants) => [
-        ...participants,
-        participant,
-      ]);
-    }
-    return this.setParticipants((participants) =>
-      participants.map((p) => {
+    return this.setParticipants((participants) => {
+      let add = true;
+      const nextParticipants = participants.map((p) => {
         if (p.sessionId === sessionId) {
+          add = false;
           return {
             ...p,
             ...participant,
           };
         }
         return p;
-      }),
-    );
+      });
+      if (add) nextParticipants.push(participant);
+      return nextParticipants;
+    });
   };
 
   /**

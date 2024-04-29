@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
-import { CallState } from '../CallState';
+import { CallingState, CallState } from '../CallState';
 import { ConnectionQuality } from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
@@ -24,7 +24,173 @@ import {
 import * as TestData from '../../sorting/__tests__/participant-data';
 
 describe('CallState', () => {
-  // TODO OL add API verification test -> observable$ should have a getter!
+  describe('API assertions', () => {
+    it('every exposed observable$ should have a getter', () => {
+      // Object.getOwnPropertyDescriptors(call.state.__proto__)['backstage'].get.call(call.state)
+      const state = new CallState();
+      const observables = Object.keys(
+        Object.getOwnPropertyDescriptors(state),
+      ).filter((key) => key.endsWith('$'));
+
+      // @ts-ignore - __proto__
+      const getters = Object.getOwnPropertyDescriptors(state.__proto__);
+
+      for (const observable of observables) {
+        const key = observable.slice(0, -1); // remove $
+        const getter = getters[key];
+        expect(
+          getter,
+          `A getter for ${observable} is missing. Please define it like this:
+          get ${key}() {
+            return this.getCurrentValue(this.${observable});
+          }
+          `,
+        ).toBeDefined();
+        expect(typeof getter.get).toEqual('function');
+      }
+    });
+  });
+
+  describe('distinctUntilChanged', () => {
+    it(`shouldn't emit when primitive (backstage) values didn't change`, () => {
+      const state = new CallState();
+      const updateWith = (value: boolean) => {
+        // @ts-expect-error incomplete data
+        state.updateFromCallResponse({ backstage: value });
+      };
+
+      updateWith(false);
+
+      const subscriber = vi.fn();
+      const subscription = state.backstage$.subscribe(subscriber);
+
+      expect(subscriber).toBeCalledTimes(1); // initial
+
+      updateWith(false);
+      updateWith(false);
+      expect(subscriber).toBeCalledTimes(1); // still initial
+
+      updateWith(true);
+      expect(subscriber).toBeCalledTimes(2); // false -> true
+
+      updateWith(true);
+      expect(subscriber).toBeCalledTimes(2); // true -> true
+
+      updateWith(false);
+      expect(subscriber).toBeCalledTimes(3); // true -> false
+      subscription.unsubscribe();
+    });
+
+    it(`shouldn't emit when primitive arrays (ownCapabilities) values didn't change`, () => {
+      const state = new CallState();
+      state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
+
+      const subscriber = vi.fn();
+      const subscription = state.ownCapabilities$.subscribe(subscriber);
+
+      expect(subscriber).toBeCalledTimes(1); // initial
+      state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
+      state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
+      expect(subscriber).toBeCalledTimes(1); // initial
+
+      state.setOwnCapabilities([
+        OwnCapability.SEND_AUDIO,
+        OwnCapability.SEND_VIDEO,
+      ]);
+      expect(subscriber).toBeCalledTimes(2); // AUDIO, VIDEO
+
+      state.setOwnCapabilities([
+        OwnCapability.SEND_VIDEO,
+        OwnCapability.SEND_AUDIO,
+      ]);
+      expect(subscriber).toBeCalledTimes(2); // VIDEO, AUDIO (order changed)
+
+      state.setOwnCapabilities([OwnCapability.SEND_VIDEO]);
+      expect(subscriber).toBeCalledTimes(3); // VIDEO
+      subscription.unsubscribe();
+    });
+
+    it(`shouldn't emit when enums (callingState) value didn't change`, () => {
+      const state = new CallState();
+
+      const subscriber = vi.fn();
+      const subscription = state.callingState$.subscribe(subscriber);
+
+      state.setCallingState(CallingState.JOINING);
+      expect(subscriber).toBeCalledTimes(2);
+
+      state.setCallingState(CallingState.JOINING);
+      state.setCallingState(CallingState.JOINING);
+      expect(subscriber).toBeCalledTimes(2);
+
+      state.setCallingState(CallingState.JOINED);
+      expect(subscriber).toBeCalledTimes(3);
+
+      state.setCallingState(CallingState.JOINED);
+      expect(subscriber).toBeCalledTimes(3);
+
+      state.setCallingState(CallingState.LEFT);
+      expect(subscriber).toBeCalledTimes(4);
+      subscription.unsubscribe();
+    });
+  });
+
+  describe('updateOrAddParticipant', () => {
+    it('updates an existing participant if session_id matches', () => {
+      const state = new CallState();
+      // @ts-expect-error - incomplete data
+      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+
+      // @ts-expect-error - incomplete data
+      state.updateOrAddParticipant('123', { userId: 'bob' });
+      const lookupBySessionId = state.getParticipantLookupBySessionId();
+      expect(lookupBySessionId['123']?.userId).toEqual('bob');
+    });
+
+    it('appends the participant to the participants array if the session_id is unknown', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+      // @ts-expect-error - incomplete data
+      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+
+      // @ts-expect-error - incomplete data
+      state.updateOrAddParticipant('12345', { userId: 'bob' });
+      expect(state.participants.length).toBe(2);
+      expect(state.participants[0].userId).toBe('alice');
+      expect(state.participants[1].userId).toBe('bob');
+    });
+  });
+
+  describe('updateParticipants', () => {
+    it('does nothing when the patch is empty', () => {
+      const state = new CallState();
+      // @ts-expect-error - incomplete data
+      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+
+      const p1Ref = state.participants;
+      state.updateParticipants({});
+      const p2Ref = state.participants;
+      expect(p1Ref === p2Ref).toBeTruthy();
+    });
+
+    it('applies participant patches', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+      state.setParticipants([
+        // @ts-expect-error - incomplete data
+        { sessionId: '123', userId: 'alice' },
+        // @ts-expect-error - incomplete data
+        { sessionId: '1234', userId: 'charlie ' },
+      ]);
+
+      const p1Ref = state.participants;
+      state.updateParticipants({ '123': { userId: 'bob' } });
+      const p2Ref = state.participants;
+      expect(p1Ref === p2Ref).toBeFalsy();
+      expect(p1Ref[0].userId).toBe('alice');
+      expect(p2Ref[0].userId).toBe('bob');
+    });
+  });
 
   describe('sorting', () => {
     it('should emit sorted participants', () => {
@@ -299,6 +465,7 @@ describe('CallState', () => {
             updated_at: '',
             custom: {},
             teams: [],
+            language: 'en',
           },
         });
 
@@ -319,6 +486,7 @@ describe('CallState', () => {
             updated_at: '',
             custom: {},
             teams: [],
+            language: 'en',
           },
         });
         expect(state.ownCapabilities).toEqual([OwnCapability.SEND_VIDEO]);
