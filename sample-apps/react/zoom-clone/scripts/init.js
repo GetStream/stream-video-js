@@ -63,7 +63,7 @@ const applyGrants = async (client, channelType = 'videocall', retries = 4) => {
 };
 
 (async () => {
-  const key = process.env.VITE_STREAM_KEY;
+  const key = process.env.VITE_STREAM_API_KEY;
   const secret = process.env.VITE_STREAM_SECRET;
 
   const client = new StreamChat(key, secret);
