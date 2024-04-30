@@ -16,7 +16,7 @@ import type { StreamChat } from 'stream-chat';
 import type { User } from '../types/';
 
 const tokenProviderURL: string = import.meta.env.VITE_TOKEN_PROVIDER_URL;
-const envApiKey = import.meta.env.VITE_STREAM_KEY;
+const envApiKey = import.meta.env.VITE_STREAM_API_KEY;
 
 type UserContextValue = {
   apiKey: string;
