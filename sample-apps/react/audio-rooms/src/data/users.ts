@@ -2,7 +2,7 @@ import { User } from '../types';
 
 const users: User[] = [
   {
-    id: 'oliver.lazoroski@getstream.io',
+    id: 'tommaso',
     name: 'Tommaso',
     imageUrl:
       'https://getstream.io/static/712bb5c0bd5ed8d3fa6e5842f6cfbeed/c59de/tommaso.webp',
