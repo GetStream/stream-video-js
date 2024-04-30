@@ -26,7 +26,6 @@ import * as TestData from '../../sorting/__tests__/participant-data';
 describe('CallState', () => {
   describe('API assertions', () => {
     it('every exposed observable$ should have a getter', () => {
-      // Object.getOwnPropertyDescriptors(call.state.__proto__)['backstage'].get.call(call.state)
       const state = new CallState();
       const observables = Object.keys(
         Object.getOwnPropertyDescriptors(state),
