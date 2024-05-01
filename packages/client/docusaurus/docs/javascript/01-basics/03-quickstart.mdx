@@ -57,7 +57,7 @@ our SDK will respect the [Call Type Settings](../../guides/configuring-call-type
 
 More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
 
-## Render video
+## Render video and play audio
 
 The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates. To render the audio and video of participants, you can watch for changes on `call.state.participants$`, here is the full example:
 
@@ -279,3 +279,17 @@ More information about this topic can be found in the [Camera & Microphone guide
 
 We have prepared a [CodeSandbox example](https://codesandbox.io/s/javascript-quickstart-99th3v)
 that demonstrates the above steps in action.
+
+<iframe
+  src="https://codesandbox.io/s/javascript-quickstart-99th3v?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '500px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="stream-video-quickstart"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>

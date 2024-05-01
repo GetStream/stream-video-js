@@ -8,10 +8,15 @@ This guide shows how to create, join, leave, and end calls and ring calls.
 
 ## Call
 
+`Call` represents the main building block of our SDK. This object abstracts away the user actions, join flows and exposes the call state.
+
 ### Create call
 
-You create a call by specifying a call type and a call id.
-The [call type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
+You can create a call by specifying its `callType` and `callId`:
+
+The [Call Type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
+You can reuse the same call multiple times. As an example, if you're building a telemedicine app calls will be connected to an appointment.
+Using your own appointment id as the call id makes it easy to find the call later.
 
 ```typescript
 const callType = 'default';
@@ -105,121 +110,6 @@ await call.update({
     },
   },
 });
-```
-
-## Ring call
-
-### Create call
-
-To create a ring call, we need to set the `ring` flag to `true` and provide the list of members we want to call.
-It is important to note that the caller should also be included in the list of members.
-
-```typescript
-client.call('default', 'test-outgoing-call').getOrCreate({
-  // highlight-next-line
-  ring: true,
-  data: {
-    members: [
-      // highlight-next-line
-      { user_id: 'myself' },
-      { user_id: 'my friend' },
-    ],
-  },
-});
-```
-
-See all possible options at the [Call creation options section](#call-creation-options)
-
-This step will start the signaling flow.
-The caller will automatically join the call once the first callee accepts the call.
-The call will automatically stop if every callee rejects the call.
-
-:::note
-When ring is true, a push notification will be sent to the members, provided their app have the required setup. For more details around push notifications, please check [this page](../../advanced/push-notifications/overview).
-:::
-
-### Watch for incoming and outgoing calls
-
-The easiest way to watch for incoming and outgoing calls is to use the `useCalls` hook.
-
-```tsx
-import { useCalls, CallingState } from '@stream-io/video-react-native-sdk';
-
-export const MyCallUI = () => {
-  const calls = useCalls();
-
-  // handle incoming ring calls
-  const incomingCalls = calls.filter(
-    (call) =>
-      call.isCreatedByMe === false &&
-      call.state.callingState === CallingState.RINGING,
-  );
-
-  const [incomingCall] = incomingCalls;
-  if (incomingCall) {
-    // render the incoming call UI
-    return <MyIncomingCallUI call={incomingCall} />;
-  }
-
-  // handle outgoing ring calls
-  const outgoingCalls = calls.filter(
-    (call) =>
-      call.isCreatedByMe === true &&
-      call.state.callingState === CallingState.RINGING,
-  );
-
-  const [outgoingCall] = outgoingCalls;
-  if (outgoingCall) {
-    // render the outgoing call UI
-    return <MyOutgoingCallUI call={outgoingCall} />;
-  }
-
-  return null;
-};
-```
-
-### Canceling a call
-
-A caller can cancel an outgoing call until the first callee accepts the call. Canceling a call will stop the signaling flow.
-
-```typescript
-call.leave();
-```
-
-Please note that calling `call.leave()` after joining the call won't stop the signaling flow.
-
-### Accepting a call
-
-A callee can accept or reject an incoming call. To accept and join the call:
-
-```typescript
-call.join();
-```
-
-Please note that it's possible to join multiple calls. If you only want to allow one active call, you must leave joined calls before accepting an incoming call.
-
-### Rejecting a call
-
-A callee can accept or reject an incoming call. To reject the call:
-
-```typescript
-call.leave({ reject: true });
-```
-
-### Leave call
-
-To leave a joined call, you can use the `leave` method:
-
-```typescript
-call.leave();
-```
-
-### End call
-
-Ending a call requires a [special permission](../../core/permissions-and-moderation). This action terminates the call for everyone.
-
-```typescript
-call.endCall();
 ```
 
 ## Call creation options

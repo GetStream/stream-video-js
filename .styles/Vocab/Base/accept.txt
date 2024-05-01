@@ -90,3 +90,4 @@ Screenshare
 proxied
 enum
 everytime
+telemedicine

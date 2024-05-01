@@ -9,10 +9,16 @@ The following guide gives a conceptual overview about how you can integrate Stre
 
 ## Install dependencies
 
-Stream provides separate packages for chat and video integration, so you'll have install two packages.
+Stream provides separate packages for chat and video integration, so you'll have to install two packages.
 
-- For video, follow this [installation guide](../../basics/installation).
 - For chat, you can choose [any of the chat SDK](https://getstream.io/chat/sdk/) that fits your needs.
+- For video, depending on your package manager of choice run one of these commands:
+
+```bash
+yarn add @stream-io/video-client
+# or
+npm install @stream-io/video-client
+```
 
 ## Create clients
 
@@ -35,8 +41,9 @@ Example code:
 
 ```typescript
 const call = videoClient.call('default', 'all-hands-meeting');
+await call.getOrCreate();
+
 const channel = chatClient.channel('messaging', 'all-hands-meeting');
-await call.create();
 await channel.create();
 ```
 
@@ -81,7 +88,9 @@ If you're building a messaging tool where users can call each other, you can con
 Example code:
 
 ```typescript
-videoClient?.call('default', 'call-id').create({
+import { MemberRequest } from '@stream-io/video-client';
+
+await videoClient.call('default', 'call-id').getOrCreate({
   ring: true,
   data: {
     custom: {

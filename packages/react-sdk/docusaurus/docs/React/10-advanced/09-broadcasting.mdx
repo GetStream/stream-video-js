@@ -1,7 +1,7 @@
 ---
 id: broadcasting
 title: Broadcasting
-description: Approaches to broadcasting
+description: Approaches to broadcasting & RTMP
 ---
 
 Broadcasting serves as a means of transmitting live or pre-recorded content to a wide audience.
@@ -54,3 +54,36 @@ const YourComponent = () => {
 ```
 
 To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).
+
+## Broadcasting via RTMP
+
+Our systems provide first-class support for streaming from RTMP clients as [OBS](https://obsproject.com/).
+To connect your OBS project in a Stream Call, please follow the next steps:
+
+### RTMP URL and stream key
+
+Our `call` instance exposes its RTMP address through `call.state.ingress` and `useCallIngress()` call state hook.
+`Stream Key` in our case is a standard [user token](../../guides/client-auth/#generating-a-token).
+
+You can take this information and use it to configure OBS:
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCallIngress } = useCallStateHooks();
+const ingress = useCallIngress();
+
+const rtmpURL = ingress?.rtmp.address;
+const streamKey = myUserAuthService.getUserToken(rtmpUserId);
+
+console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
+```
+
+### Configure OBS
+
+- Go to Settings > Stream
+- Select `custom` service
+- Server: enter the `rtmpURL` logged in the console
+- Stream Key: enter the `streamKey` logged in the console
+
+Press `Start Streaming` in OBS and the RTMP stream will now show up in your call just like a regular video participant.
