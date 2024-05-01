@@ -4,15 +4,13 @@ title: Video & Audio filters
 description: How to build video or audio filters
 ---
 
-## Video Filters
-
 In this guide, we will show you how to apply custom video filters to a video stream.
 We are going to use the [Stream React Video SDK](https://getstream.io/video/sdk/react/) provided components that enable background blur and background replacement filters.
 
 These components use the [`camera.registerFilter()`](../02-guides/04-camera-and-microphone.mdx#camera-and-microphone-filters) API under the hood to register custom filters.
 
 :::note
-We currently support video filters only on modern desktop browsers.
+We currently support video filters only on modern desktop browsers (Chrome 91+, Firefox 89+, Edge 91+, Safari 16.4+).
 Support for mobile devices is coming soon.
 
 As not all of your users will have the latest and greatest hardware,

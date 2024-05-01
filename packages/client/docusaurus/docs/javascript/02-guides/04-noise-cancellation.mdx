@@ -8,7 +8,16 @@ Noise Cancellation capabilities of our [Plain-JS Video SDK](https://getstream.io
 installing our `@stream-io/audio-filters-web` plugin. Under the hood, this package uses the technology developed
 by [krisp.ai](https://krisp.ai/).
 
-## Install package
+## Compatibility
+
+This plugin currently supports only modern desktop browsers:
+
+- Chrome, Firefox and Edge
+- Safari 17.4.1+
+
+## Install the plugin
+
+With your favourite package manager, run the following command:
 
 ```bash
 yarn add @stream-io/audio-filters-web
@@ -18,14 +27,21 @@ npm install @stream-io/audio-filters-web
 
 ## Integration
 
+In the following code snippet, we show how to check if platform is supported, initialize the plugin and enable/disable it.
+
 ```typescript
 import { NoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '@stream-io/video-client';
 
 let call: Call; // grab a reference to the call instance
 
-// create a new NoiseCancellation instance and initialize it
+// create a new NoiseCancellation instance
 const noiseCancellation = new NoiseCancellation();
+
+// check if the current platform is supported
+const isSupported = noiseCancellation.isSupported();
+
+// and initialize it
 await noiseCancellation.init();
 
 // provide the NoiseCancellation instance to the call and register the plugin

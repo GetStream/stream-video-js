@@ -4,59 +4,35 @@ title: Querying Calls
 description: How to query calls
 ---
 
-For many video calling, live stream, or audio rooms apps, you'll want to show:
+The Stream Video SDK allows you to query calls and watch them.
+This allows you to build apps that display feeds of calls with real-time updates (without joining them).
+
+You can query calls based on built-in fields as well as any custom field you add to the calls.
+Multiple filters can be combined using AND, OR logical operators,
+each filter can use its comparison (equality, inequality, greater than, greater or equal, etc.).
+
+You can use the `StreamVideoClient` to query for:
 
 - Upcoming calls
 - Calls that are currently live
 - Popular live streams / audio rooms with a link to the recording
 
-The client makes it easy to query calls.
+## Client API
 
-## Sorting
+You can query calls by using the client directly by using the following API:
 
-Sorting is supported on these fields below:
-
-| Field        | Description                                             |
-| ------------ | ------------------------------------------------------- |
-| `starts_at`  | When the call starts at                                 |
-| `created_at` | When the call was created                               |
-| `updated_at` | When the call was updated                               |
-| `ended_at`   | When the call ended                                     |
-| `type`       | The call type. Typically `default`, `livestream` etc... |
-| `id`         | The id for this call                                    |
-| `cid`        | The cid for this call. IE: `default:123`                |
-
-```typescript
-import { StreamVideoClient } from '@stream-io/video-client';
-
-let client: StreamVideoClient;
-
-await client.queryCalls({
-  sort: [{ field: 'starts_at', direction: -1 }],
-  limit: 10,
-  watch: true,
-});
-```
-
-It's possible to provide multiple sort parameters:
-
-```typescript
-import { StreamVideoClient } from '@stream-io/video-client';
-
-let client: StreamVideoClient;
-
-await client.queryCalls({
-  sort: [
-    { field: 'starts_at', direction: -1 },
-    { field: 'created_at', direction: 1 },
-  ],
-  limit: 10,
+```ts
+const { calls } = await client.queryCalls({
+  filter_conditions: { ...filters },
+  sort: [...sortOptions],
+  limit: 25,
   watch: true,
 });
 ```
 
 ## Filters
 
+Filter expressions support multiple match criteria, and it's also possible to combine filters.
 You can filter on the following fields:
 
 | Field                | Description                                                   |
@@ -75,24 +51,23 @@ You can filter on the following fields:
 | `ongoing`            | Check if the call is ongoing or not                           |
 | `custom`             | You can query custom data using the `"custom.myfield"` syntax |
 
-Filter expressions support multiple match criteria, and it's also possible to combine filters.
-For more information, visit the [filter operators guide](https://getstream.io/chat/docs/react/query_syntax_operators/?language=javascript).
-
-Here are some example filters:
+For more information, visit the [filter operators guide](https://getstream.io/chat/docs/react/query_syntax_operators/?language=javascript). Or check the examples:
 
 ### Calls that are about to start
+
+In this snippet, you can see how you can query for calls that have `livestream` type and are about to start 30 minutes from now:
 
 ```typescript
 import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-const inNext30mins = 1000 * 60 * 60 * 30;
-await client.queryCalls({
+const inNext30mins = new Date(Date.now() + 1000 * 60 * 60 * 30);
+
+const { calls } = await client.queryCalls({
   filter_conditions: {
-    starts_at: {
-      $gt: new Date(Date.now() + inNext30mins).toISOString(),
-    },
+    type: { $eq: 'livestream' },
+    starts_at: { $gt: inNext30mins.toISOString() },
   },
   sort: [{ field: 'starts_at', direction: -1 }],
   limit: 10,
@@ -107,7 +82,7 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-await client.queryCalls({
+const { calls } = await client.queryCalls({
   filter_conditions: { 'custom.color': 'red' },
   limit: 10,
   watch: true,
@@ -121,7 +96,7 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-await client.queryCalls({
+const { calls } = await client.queryCalls({
   filter_conditions: { ongoing: true },
 });
 ```
@@ -133,13 +108,58 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-await client.queryCalls({
+const { calls } = await client.queryCalls({
   filter_conditions: {
     $or: [
       { created_by_user_id: '<user id>' },
       { members: { $in: ['<user id>'] } },
     ],
   },
+  limit: 10,
+  watch: true,
+});
+```
+
+## Sorting
+
+The `SortParamRequest` model contains two properties: `field` and `direction`.
+
+The `direction` can be `1` for ascending and `-1` for descending, while the field can be one of the following values:
+
+| Field        | Description                                             |
+| ------------ | ------------------------------------------------------- |
+| `starts_at`  | When the call starts at                                 |
+| `created_at` | When the call was created                               |
+| `updated_at` | When the call was updated                               |
+| `ended_at`   | When the call ended                                     |
+| `type`       | The call type. Typically `default`, `livestream` etc... |
+| `id`         | The id for this call                                    |
+| `cid`        | The cid for this call. IE: `default:123`                |
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-client';
+
+let client: StreamVideoClient;
+
+const { calls } = await client.queryCalls({
+  sort: [{ field: 'starts_at', direction: -1 }],
+  limit: 10,
+  watch: true,
+});
+```
+
+It's possible to provide multiple sort parameters:
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-client';
+
+let client: StreamVideoClient;
+
+const { calls } = await client.queryCalls({
+  sort: [
+    { field: 'starts_at', direction: -1 },
+    { field: 'created_at', direction: 1 },
+  ],
   limit: 10,
   watch: true,
 });
@@ -162,22 +182,22 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-const inNext30mins = 1000 * 60 * 60 * 30;
+const inNext30mins = new Date(Date.now() + 1000 * 60 * 60 * 30);
 const callQuery = {
   filter_conditions: {
-    starts_at: {
-      $gt: new Date(Date.now() + inNext30mins).toISOString(),
-    },
+    type: { $eq: 'livestream' },
+    starts_at: { $gt: inNext30mins.toISOString() },
   },
   sort: [{ field: 'starts_at', direction: -1 }],
   limit: 10,
   watch: true,
 };
-const response = await client.queryCalls(callQuery);
 
-// Go to next page
-await client.queryCalls({ ...callQuery, next: response.next });
+let { calls, prev, next } = await client.queryCalls(callQuery);
 
-// Go to prev page
-await client.queryCalls({ ...callQuery, prev: response.prev });
+// Go to the next page
+({ calls, prev, next } = await client.queryCalls({ ...callQuery, next }));
+
+// Go to the previous page
+({ calls, prev, next } = await client.queryCalls({ ...callQuery, prev }));
 ```
