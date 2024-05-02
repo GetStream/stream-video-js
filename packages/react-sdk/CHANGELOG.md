@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.15...@stream-io/video-react-sdk-0.6.16) (2024-05-02)
+
+
+### Bug Fixes
+
+* synchronize background filter canvas capturing ([#1334](https://github.com/GetStream/stream-video-js/issues/1334)) ([eaead81](https://github.com/GetStream/stream-video-js/commit/eaead818f9f404cf647efdbc11707fc3b58b2459))
+
 ### [0.6.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.14...@stream-io/video-react-sdk-0.6.15) (2024-04-30)
 
 ### Dependency Updates
