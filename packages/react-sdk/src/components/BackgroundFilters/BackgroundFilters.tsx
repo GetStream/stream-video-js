@@ -9,6 +9,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
+import { disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
   BackgroundFilter,
@@ -232,8 +233,8 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
     const register = (unregister.current || Promise.resolve()).then(() =>
       call.camera.registerFilter(async (ms) => {
         return new Promise<MediaStream>((resolve) => {
-          setMediaStream(ms);
           signalFilterReadyRef.current = resolve;
+          setMediaStream(ms);
         });
       }),
     );
@@ -241,36 +242,45 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
     return () => {
       unregister.current = register
         .then((unregisterFilter) => unregisterFilter())
+        .then(() => (signalFilterReadyRef.current = undefined))
         .then(() => setMediaStream(undefined))
         .catch((err) => console.error('Failed to unregister filter', err));
     };
   }, [backgroundFilter, call]);
 
+  const [isPlaying, setIsPlaying] = useState(false);
   useEffect(() => {
-    if (!mediaStream || !videoRef || !canvasRef) return;
-
+    if (!mediaStream || !videoRef) return;
     const handleOnPlay = () => {
       const [track] = mediaStream.getVideoTracks();
-      if (track) {
-        const { width: w = 0, height: h = 0 } = track.getSettings();
-        setWidth(w);
-        setHeight(h);
-      }
-
-      const resolveFilter = signalFilterReadyRef.current;
-      if (!resolveFilter) return;
-      const filter = canvasRef.captureStream();
-      resolveFilter(filter);
+      if (!track) return;
+      const { width: w = 0, height: h = 0 } = track.getSettings();
+      setWidth(w);
+      setHeight(h);
+      setIsPlaying(true);
     };
     videoRef.addEventListener('play', handleOnPlay);
-
     videoRef.srcObject = mediaStream;
-    videoRef.play().catch((err) => console.error('Failed to play video', err));
+    videoRef.play().catch((err) => {
+      console.error('Failed to play video', err);
+    });
     return () => {
       videoRef.removeEventListener('play', handleOnPlay);
       videoRef.srcObject = null;
+      setIsPlaying(false);
     };
-  }, [canvasRef, mediaStream, videoRef]);
+  }, [mediaStream, videoRef]);
+
+  useEffect(() => {
+    const resolveFilter = signalFilterReadyRef.current;
+    if (!canvasRef || !resolveFilter) return;
+
+    const filter = canvasRef.captureStream();
+    resolveFilter(filter);
+    return () => {
+      disposeOfMediaStream(filter);
+    };
+  }, [canvasRef]);
 
   return (
     <div
@@ -280,7 +290,7 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
         height: `${height}px`,
       }}
     >
-      {mediaStream && (
+      {mediaStream && isPlaying && (
         <RenderPipeline
           tfLite={tfLite}
           videoRef={videoRef}
@@ -313,13 +323,14 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
           height={height}
         />
       )}
-      <canvas
-        className="str-video__background-filters__target-canvas"
-        key={`key-${width}${height}`}
-        width={width}
-        height={height}
-        ref={setCanvasRef}
-      />
+      {isPlaying && (
+        <canvas
+          className="str-video__background-filters__target-canvas"
+          width={width}
+          height={height}
+          ref={setCanvasRef}
+        />
+      )}
     </div>
   );
 };
