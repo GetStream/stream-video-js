@@ -76,6 +76,7 @@ const useApplyDevicePreferences = (key: string) => {
   const settings = useCallSettings();
   useEffect(() => {
     if (!call || !settings) return;
+    if (call.state.callingState === CallingState.LEFT) return;
 
     const apply = async () => {
       const initMic = async (setting: LocalDevicePreference) => {

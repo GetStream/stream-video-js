@@ -238,6 +238,7 @@ call.microphone.state.mediaStream$.subscribe(async (mediaStream) => {
 ### Speaking while muted notification
 
 When the microphone is disabled, the client will automatically start monitoring audio levels, to detect if the user is speaking.
+This feature is enabled by default unless the user doesn't have the permission to send audio or explicitly disabled.
 
 This is how you can subscribe to these notifications:
 
@@ -248,9 +249,13 @@ call.microphone.state.speakingWhileMuted$.subscribe((isSpeaking) => {
     console.log(`You're muted, unmute yourself to speak`);
   }
 }); // Reactive value
-```
 
-The notification is automatically disabled if the user doesn't have the permission to send audio.
+// to disable this feature completely:
+await call.microphone.setSpeakingWhileMutedNotificationEnabled(false);
+
+// to enable it back:
+await call.microphone.setSpeakingWhileMutedNotificationEnabled(true);
+```
 
 ### Noise Cancellation
 

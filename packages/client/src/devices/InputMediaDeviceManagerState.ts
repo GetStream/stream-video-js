@@ -9,6 +9,7 @@ import { RxUtils } from '../store';
 import { getLogger } from '../logger';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
+export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
 
 export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
@@ -102,9 +103,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * `undefined` means no permission is required.
    */
   constructor(
-    public readonly disableMode:
-      | 'stop-tracks'
-      | 'disable-tracks' = 'stop-tracks',
+    public readonly disableMode: TrackDisableMode = 'stop-tracks',
     private readonly permissionName: PermissionName | undefined = undefined,
   ) {}
 
@@ -146,13 +145,20 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
+   * Updates the `mediaStream` state variable.
+   *
    * @internal
    * @param stream the stream to set.
+   * @param rootStream the root stream, applicable when filters are used
+   * as this is the stream that holds the actual deviceId information.
    */
-  setMediaStream(stream: MediaStream | undefined) {
+  setMediaStream(
+    stream: MediaStream | undefined,
+    rootStream: MediaStream | undefined,
+  ) {
     this.setCurrentValue(this.mediaStreamSubject, stream);
-    if (stream) {
-      this.setDevice(this.getDeviceIdFromStream(stream));
+    if (rootStream) {
+      this.setDevice(this.getDeviceIdFromStream(rootStream));
     }
   }
 

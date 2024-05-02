@@ -141,6 +141,31 @@ const { useMicrophoneState } = useCallStateHooks();
 const { status } = useMicrophoneState(); // status returns enabled, disabled or undefined
 ```
 
+### Speaking while muted detection
+
+Our SDK provides a mechanism that can detect whether the user started to speak while being muted.
+Through this mechanism, you can display a notification to the user, or apply any custom logic.
+
+This feature is enabled by default unless the user doesn't have the permission to send audio or explicitly disabled.
+
+```tsx
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
+const { useMicrophoneState } = useCallStateHooks();
+const { isSpeakingWhileMuted, microphone } = useMicrophoneState();
+
+if (isSpeakingWhileMuted) {
+  // your custom logic comes here
+  console.log('You are speaking while muted!');
+}
+
+// to disable this feature completely:
+await microphone.setSpeakingWhileMutedNotificationEnabled(false);
+
+// to enable it back:
+await microphone.setSpeakingWhileMutedNotificationEnabled(true);
+```
+
 ## Speaker management
 
 :::warning
