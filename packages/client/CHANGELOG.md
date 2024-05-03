@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.10...@stream-io/video-client-0.7.11) (2024-05-03)
+
+
+### Bug Fixes
+
+* **devices:** API to disable speaking while muted notifications ([#1335](https://github.com/GetStream/stream-video-js/issues/1335)) ([cdff0e0](https://github.com/GetStream/stream-video-js/commit/cdff0e036bf4afca763e4f7a1563c23e806be190)), closes [#1329](https://github.com/GetStream/stream-video-js/issues/1329)
+
 ### [0.7.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.9...@stream-io/video-client-0.7.10) (2024-04-30)
 
 
