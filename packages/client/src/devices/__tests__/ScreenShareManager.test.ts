@@ -82,7 +82,7 @@ describe('ScreenShareManager', () => {
     expect(manager.state.selectedDevice).toEqual('screen');
   });
 
-  it.only('should use call settings to set up constraints', async () => {
+  it('should use call settings to set up constraints', async () => {
     const call = manager['call'];
     call.state.setCurrentValue(call.state['settingsSubject'], {
       screensharing: {
