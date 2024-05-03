@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.16...@stream-io/video-react-sdk-0.6.17) (2024-05-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.7.11`
+* `@stream-io/video-react-bindings` updated to version `0.4.22`
+
+### Bug Fixes
+
+* **devices:** API to disable speaking while muted notifications ([#1335](https://github.com/GetStream/stream-video-js/issues/1335)) ([cdff0e0](https://github.com/GetStream/stream-video-js/commit/cdff0e036bf4afca763e4f7a1563c23e806be190)), closes [#1329](https://github.com/GetStream/stream-video-js/issues/1329)
+
 ### [0.6.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.6.15...@stream-io/video-react-sdk-0.6.16) (2024-05-02)
 
 
