@@ -58,9 +58,11 @@ describe('ScreenShareManager', () => {
     await manager.enable();
     expect(manager.state.status).toEqual('enabled');
 
-    expect(getScreenShareStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-    });
+    expect(getScreenShareStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deviceId: undefined,
+      }),
+    );
   });
 
   it('get stream with no audio', async () => {
@@ -68,10 +70,12 @@ describe('ScreenShareManager', () => {
     await manager.enable();
     expect(manager.state.status).toEqual('enabled');
 
-    expect(getScreenShareStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      audio: false,
-    });
+    expect(getScreenShareStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deviceId: undefined,
+        audio: false,
+      }),
+    );
   });
 
   it('should get device id from stream', async () => {
@@ -79,6 +83,30 @@ describe('ScreenShareManager', () => {
     await manager.enable();
     expect(manager.state.selectedDevice).toBeDefined();
     expect(manager.state.selectedDevice).toEqual('screen');
+  });
+
+  it('should use call settings to set up constraints', async () => {
+    const call = manager['call'];
+    call.state.setCurrentValue(call.state['settingsSubject'], {
+      // @ts-expect-error partial data
+      screensharing: {
+        target_resolution: {
+          width: 800,
+          height: 600,
+          bitrate: 192000,
+        },
+      },
+    });
+
+    await manager.enable();
+    expect(getScreenShareStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        video: {
+          width: 800,
+          height: 600,
+        },
+      }),
+    );
   });
 
   it('publishes screen share stream', async () => {

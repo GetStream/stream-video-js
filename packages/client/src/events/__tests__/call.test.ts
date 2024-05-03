@@ -305,6 +305,10 @@ const fakeMetadata = (): CallResponse => {
         auto_cancel_timeout_ms: 30000,
         incoming_call_timeout_ms: 30000,
       },
+      // @ts-ignore
+      screensharing: {
+        target_resolution: undefined,
+      },
     },
   };
 };

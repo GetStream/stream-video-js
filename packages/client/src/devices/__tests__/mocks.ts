@@ -84,6 +84,10 @@ export const mockCall = (): Partial<Call> => {
           mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
         },
       },
+      // @ts-expect-error partial data
+      screensharing: {
+        target_resolution: undefined,
+      },
     },
   });
   return {

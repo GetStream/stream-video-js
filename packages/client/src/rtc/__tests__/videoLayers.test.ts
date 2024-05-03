@@ -28,6 +28,17 @@ describe('videoLayers', () => {
     ]);
   });
 
+  it('should use default max bitrate if none is provided in preferences', () => {
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({
+      width: 1920,
+      height: 1080,
+    });
+
+    const layers = findOptimalScreenSharingLayers(track, undefined, 192000);
+    expect(layers).toMatchObject([{ maxBitrate: 192000 }]);
+  });
+
   it('should find optimal video layers', () => {
     const track = new MediaStreamTrack();
     const width = 1920;

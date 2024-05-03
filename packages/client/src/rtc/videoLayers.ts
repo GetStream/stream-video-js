@@ -131,6 +131,7 @@ const withSimulcastConstraints = (
 export const findOptimalScreenSharingLayers = (
   videoTrack: MediaStreamTrack,
   preferences?: ScreenShareSettings,
+  defaultMaxBitrate = 3000000,
 ): OptimalVideoLayer[] => {
   const settings = videoTrack.getSettings();
   return [
@@ -140,7 +141,7 @@ export const findOptimalScreenSharingLayers = (
       width: settings.width || 0,
       height: settings.height || 0,
       scaleResolutionDownBy: 1,
-      maxBitrate: preferences?.maxBitrate ?? 3000000,
+      maxBitrate: preferences?.maxBitrate ?? defaultMaxBitrate,
       maxFramerate: preferences?.maxFramerate ?? 30,
     },
   ];

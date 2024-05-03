@@ -4104,6 +4104,12 @@ export interface ScreensharingSettings {
    * @memberof ScreensharingSettings
    */
   enabled: boolean;
+  /**
+   *
+   * @type {TargetResolution}
+   * @memberof ScreensharingSettings
+   */
+  target_resolution?: TargetResolution;
 }
 /**
  *
@@ -4123,6 +4129,12 @@ export interface ScreensharingSettingsRequest {
    * @memberof ScreensharingSettingsRequest
    */
   enabled?: boolean;
+  /**
+   *
+   * @type {TargetResolution}
+   * @memberof ScreensharingSettingsRequest
+   */
+  target_resolution?: TargetResolution;
 }
 /**
  *
