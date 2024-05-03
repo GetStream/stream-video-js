@@ -176,17 +176,21 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   /**
-   * Enables or disables the speaking-while-muted notification.
-   *
-   * @param enabled the value to set.
+   * Enables speaking while muted notification.
    */
-  async setSpeakingWhileMutedNotificationEnabled(enabled: boolean) {
-    this.speakingWhileMutedNotificationEnabled = enabled;
-    if (!enabled) {
-      await this.stopSpeakingWhileMutedDetection();
-    } else if (enabled && this.state.status === 'disabled') {
+  async enableSpeakingWhileMutedNotification() {
+    this.speakingWhileMutedNotificationEnabled = true;
+    if (this.state.status === 'disabled') {
       await this.startSpeakingWhileMutedDetection(this.state.selectedDevice);
     }
+  }
+
+  /**
+   * Disables speaking while muted notification.
+   */
+  async disableSpeakingWhileMutedNotification() {
+    this.speakingWhileMutedNotificationEnabled = false;
+    await this.stopSpeakingWhileMutedDetection();
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {

@@ -34,9 +34,9 @@ We can use the functions `camera.enable()` and `camera.disable()` to control the
 Alternatively, you can use `camera.toggle()`.
 
 ```ts
-const call = useCall();
+import { useCall, useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
-import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+const call = useCall();
 
 const { useCameraState } = useCallStateHooks();
 const { camera, isMute } = useCameraState();
@@ -54,6 +54,8 @@ await camera.disable();
 We can toggle the camera face from front to back and vice-versa using `camera.flip()`.
 
 ```ts
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
 const { useCameraState } = useCallStateHooks();
 const { camera } = useCameraState();
 
@@ -64,6 +66,8 @@ camera.flip();
 We can get the facing mode state of the camera by:
 
 ```ts
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
 const { useCameraState } = useCallStateHooks();
 const { direction } = useCameraState(); // direction returns 'front' or 'back'.
 ```
@@ -73,6 +77,8 @@ const { direction } = useCameraState(); // direction returns 'front' or 'back'.
 We can get the mute state of our video stream by checking the `status` value returned from the `useCameraState` hook:
 
 ```ts
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
 const { useCameraState } = useCallStateHooks();
 const { status } = useCameraState(); // status returns enabled, disabled or undefined
 ```
@@ -82,6 +88,7 @@ const { status } = useCameraState(); // status returns enabled, disabled or unde
 We can get the video stream from the camera using the media stream from the `call.camera` object and show it using the `RTCView` component from `@stream-io/react-native-webrtc` library:
 
 ```tsx
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 import { RTCView } from '@stream-io/react-native-webrtc';
 const { useCameraState } = useCallStateHooks();
 const { camera } = useCameraState();
@@ -89,6 +96,20 @@ const { camera } = useCameraState();
 const localVideoStream = camera.state.mediaStream;
 
 return <RTCView streamURL={localVideoStream?.toURL()} />;
+```
+
+### Access to the Camera's MediaStream
+
+Our SDK exposes the current `mediaStream` instance that you can use for your needs (e.g., local recording, etc...):
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
+const { useCameraState } = useCallStateHooks();
+const { mediaStream } = useCameraState();
+
+const [videoTrack] = mediaStream.getVideoTracks();
+console.log('Video track', videoTrack);
 ```
 
 ## Microphone management
@@ -137,6 +158,8 @@ await microphone.disable();
 We can get the mute state of our audio stream by checking the `status` value returned from the `useMicrophoneState` hook:
 
 ```ts
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
 const { useMicrophoneState } = useCallStateHooks();
 const { status } = useMicrophoneState(); // status returns enabled, disabled or undefined
 ```
@@ -160,10 +183,24 @@ if (isSpeakingWhileMuted) {
 }
 
 // to disable this feature completely:
-await microphone.setSpeakingWhileMutedNotificationEnabled(false);
+await microphone.disableSpeakingWhileMutedNotification();
 
 // to enable it back:
-await microphone.setSpeakingWhileMutedNotificationEnabled(true);
+await microphone.enableSpeakingWhileMutedNotification();
+```
+
+### Access to the Microphone's MediaStream
+
+Our SDK exposes the current `mediaStream` instance that you can use for your needs (e.g., local recording, etc...):
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
+const { useMicrophoneState } = useCallStateHooks();
+const { mediaStream } = useMicrophoneState();
+
+const [audioTrack] = mediaStream.getAudioTracks();
+console.log('Audio track', audioTrack);
 ```
 
 ## Speaker management

@@ -215,8 +215,7 @@ describe('MicrophoneManager', () => {
       vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       // @ts-expect-error - private api
       vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
-
-      await manager.setSpeakingWhileMutedNotificationEnabled(false);
+      await manager.disableSpeakingWhileMutedNotification();
       await manager.disable();
       expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
       expect(
@@ -227,7 +226,7 @@ describe('MicrophoneManager', () => {
     it(`enables speaking while muted notifications`, async () => {
       // @ts-expect-error - private api
       vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
-      await manager.setSpeakingWhileMutedNotificationEnabled(true);
+      await manager.enableSpeakingWhileMutedNotification();
       await manager.disable();
       expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
     });

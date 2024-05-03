@@ -108,7 +108,7 @@ call.camera.selectDirection(defaultDirection);
 
 #### In call
 
-Follow our [Playing Video and Audio guide](../../guides/playing-video-and-audio/).
+Follow our [Rendering Video and Audio guide](../../guides/playing-video-and-audio/).
 
 #### Lobby preview
 
@@ -129,6 +129,20 @@ if (videoEl.srcObject !== call.camera.state.mediaStream) {
     videoEl.play();
   }
 }
+```
+
+### Access to the Camera's MediaStream
+
+Our SDK exposes the current `mediaStream` instance that you can use for your needs (e.g., local recording, etc...):
+
+```typescript
+// current mediaStream instance
+call.camera.state.mediaStream;
+// Reactive value for mediaStream, you can subscribe to changes
+call.camera.state.mediaStream$.subscribe((mediaStream) => {
+  const [videoTrack] = mediaStream.getVideoTracks();
+  console.log('Video track', videoTrack);
+});
 ```
 
 ## Microphone management
@@ -251,10 +265,24 @@ call.microphone.state.speakingWhileMuted$.subscribe((isSpeaking) => {
 }); // Reactive value
 
 // to disable this feature completely:
-await call.microphone.setSpeakingWhileMutedNotificationEnabled(false);
+await call.microphone.disableSpeakingWhileMutedNotification();
 
 // to enable it back:
-await call.microphone.setSpeakingWhileMutedNotificationEnabled(true);
+await call.microphone.enableSpeakingWhileMutedNotification();
+```
+
+### Access to the Microphone's MediaStream
+
+Our SDK exposes the current `mediaStream` instance that you can use for your needs (e.g., local recording, etc...):
+
+```typescript
+// current mediaStream instance
+call.microphone.state.mediaStream;
+// Reactive value for mediaStream, you can subscribe to changes
+call.microphone.state.mediaStream$.subscribe((mediaStream) => {
+  const [audioTrack] = mediaStream.getAudioTracks();
+  console.log('Audio track', audioTrack);
+});
 ```
 
 ### Noise Cancellation

@@ -90,6 +90,20 @@ await camera.enable();
 
 Alternatively, you can use the SDK-provided [`VideoPreview`](../../ui-components/participants/video-preview) component.
 
+### Access to the Camera's MediaStream
+
+Our SDK exposes the current `mediaStream` instance that you can use for your needs (e.g., local recording, etc...):
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCameraState } = useCallStateHooks();
+const { mediaStream } = useCameraState();
+
+const [videoTrack] = mediaStream.getVideoTracks();
+console.log('Video track', videoTrack);
+```
+
 ## Microphone management
 
 The SDK does its best to make working with the microphone easy. We expose the following objects on the call:
@@ -172,10 +186,24 @@ if (isSpeakingWhileMuted) {
 }
 
 // to disable this feature completely:
-await microphone.setSpeakingWhileMutedNotificationEnabled(false);
+await microphone.disableSpeakingWhileMutedNotification();
 
 // to enable it back:
-await microphone.setSpeakingWhileMutedNotificationEnabled(true);
+await microphone.enableSpeakingWhileMutedNotification();
+```
+
+### Access to the Microphone's MediaStream
+
+Our SDK exposes the current `mediaStream` instance that you can use for your needs (e.g., local recording, etc...):
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useMicrophoneState } = useCallStateHooks();
+const { mediaStream } = useMicrophoneState();
+
+const [audioTrack] = mediaStream.getAudioTracks();
+console.log('Audio track', audioTrack);
 ```
 
 ### Noise Cancellation
