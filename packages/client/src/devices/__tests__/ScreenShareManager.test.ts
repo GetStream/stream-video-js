@@ -7,6 +7,7 @@ import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { CallSettingsResponse } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -79,6 +80,26 @@ describe('ScreenShareManager', () => {
     await manager.enable();
     expect(manager.state.selectedDevice).toBeDefined();
     expect(manager.state.selectedDevice).toEqual('screen');
+  });
+
+  it.only('should use call settings to set up constraints', async () => {
+    const call = manager['call'];
+    call.state.setCurrentValue(call.state['settingsSubject'], {
+      screensharing: {
+        target_resolution: {
+          width: 800,
+          height: 600,
+          bitrate: 192000,
+        },
+      },
+    } as CallSettingsResponse);
+
+    expect(manager.state.defaultConstraints).toMatchObject({
+      video: {
+        width: 800,
+        height: 600,
+      },
+    });
   });
 
   it('publishes screen share stream', async () => {

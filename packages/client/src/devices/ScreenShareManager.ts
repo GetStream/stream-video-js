@@ -5,6 +5,7 @@ import { Call } from '../Call';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
+import { createSubscription } from '../store/rxUtils';
 
 export class ScreenShareManager extends InputMediaDeviceManager<
   ScreenShareState,
@@ -12,6 +13,21 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 > {
   constructor(call: Call) {
     super(call, new ScreenShareState(), TrackType.SCREEN_SHARE);
+
+    this.subscriptions.push(
+      createSubscription(call.state.settings$, (settings) => {
+        const maybeTargetResolution = settings?.screensharing.target_resolution;
+
+        if (maybeTargetResolution) {
+          this.setDefaultConstraints({
+            video: {
+              width: maybeTargetResolution.width,
+              height: maybeTargetResolution.height,
+            },
+          });
+        }
+      }),
+    );
   }
 
   /**

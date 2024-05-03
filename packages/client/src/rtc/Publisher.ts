@@ -240,11 +240,18 @@ export class Publisher {
     if (!transceiver) {
       const { settings } = this.state;
       const targetResolution = settings?.video.target_resolution;
+      const screenShareBitrate =
+        settings?.screensharing.target_resolution?.bitrate;
+
       const videoEncodings =
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution)
           : trackType === TrackType.SCREEN_SHARE
-          ? findOptimalScreenSharingLayers(track, opts.screenShareSettings)
+          ? findOptimalScreenSharingLayers(
+              track,
+              opts.screenShareSettings,
+              screenShareBitrate,
+            )
           : undefined;
 
       let preferredCodec = opts.preferredCodec;
