@@ -86,11 +86,7 @@ export const mockCall = (): Partial<Call> => {
       },
       // @ts-expect-error partial data
       screensharing: {
-        target_resolution: {
-          width: 1920,
-          height: 1080,
-          bitrate: 3000000,
-        },
+        target_resolution: undefined,
       },
     },
   });
