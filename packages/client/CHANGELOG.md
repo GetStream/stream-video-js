@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.11...@stream-io/video-client-0.7.12) (2024-05-03)
+
+
+### Features
+
+* support target_resolution backend setting for screensharing ([#1336](https://github.com/GetStream/stream-video-js/issues/1336)) ([1e9f796](https://github.com/GetStream/stream-video-js/commit/1e9f7963009ac7fc27ee24abc00eb68749cc19d8))
+
 ### [0.7.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.10...@stream-io/video-client-0.7.11) (2024-05-03)
 
 
