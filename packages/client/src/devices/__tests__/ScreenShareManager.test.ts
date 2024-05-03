@@ -7,7 +7,6 @@ import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
-import { CallSettingsResponse } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
