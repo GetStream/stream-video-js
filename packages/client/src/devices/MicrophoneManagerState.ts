@@ -44,8 +44,7 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   }
 
   protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
-    return stream.getAudioTracks()[0]?.getSettings().deviceId as
-      | string
-      | undefined;
+    const [track] = stream.getAudioTracks();
+    return track?.getSettings().deviceId;
   }
 }
