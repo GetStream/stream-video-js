@@ -45,8 +45,11 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   /**
    * @internal
    */
-  setMediaStream(stream: MediaStream | undefined): void {
-    super.setMediaStream(stream);
+  setMediaStream(
+    stream: MediaStream | undefined,
+    rootStream: MediaStream | undefined,
+  ): void {
+    super.setMediaStream(stream, rootStream);
     if (stream) {
       // RN getSettings() doesn't return facingMode, so we don't verify camera direction
       const direction = isReactNative()
@@ -59,8 +62,7 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   }
 
   protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
-    return stream.getVideoTracks()[0]?.getSettings().deviceId as
-      | string
-      | undefined;
+    const [track] = stream.getVideoTracks();
+    return track?.getSettings().deviceId;
   }
 }

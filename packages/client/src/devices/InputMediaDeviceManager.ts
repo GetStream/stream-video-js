@@ -209,7 +209,7 @@ export abstract class InputMediaDeviceManager<
         // @ts-expect-error called to dispose the stream in RN
         this.state.mediaStream.release();
       }
-      this.state.setMediaStream(undefined);
+      this.state.setMediaStream(undefined, undefined);
     }
   }
 
@@ -245,6 +245,7 @@ export abstract class InputMediaDeviceManager<
   protected async unmuteStream() {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
+    let rootStream: Promise<MediaStream> | undefined;
     if (
       this.state.mediaStream &&
       this.getTracks().every((t) => t.readyState === 'live')
@@ -315,17 +316,20 @@ export abstract class InputMediaDeviceManager<
           return filterStream;
         };
 
+      // the rootStream represents the stream coming from the actual device
+      // e.g. camera or microphone stream
+      rootStream = this.getStream(constraints as C);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, filter) => parent.then(filter).then(chainWith(parent)),
-        this.getStream(constraints as C),
+        rootStream,
       );
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
     if (this.state.mediaStream !== stream) {
-      this.state.setMediaStream(stream);
+      this.state.setMediaStream(stream, await rootStream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
           if (this.enablePromise) {

@@ -1,18 +1,6 @@
 import { BaseStats } from '../stats';
 import { SoundStateChangeHandler } from './sound-detector';
-
-/**
- * Flatten the stats report into an array of stats objects.
- *
- * @param report the report to flatten.
- */
-const flatten = (report: RTCStatsReport) => {
-  const stats: RTCStats[] = [];
-  report.forEach((s) => {
-    stats.push(s);
-  });
-  return stats;
-};
+import { flatten } from '../stats/utils';
 
 const AUDIO_LEVEL_THRESHOLD = 0.2;
 

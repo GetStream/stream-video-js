@@ -3,6 +3,7 @@ import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
+import { TrackDisableMode } from './InputMediaDeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
@@ -16,37 +17,48 @@ import { createSubscription } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
+  private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorCleanup?: Function;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<() => Promise<void>>;
 
-  constructor(call: Call) {
-    super(call, new MicrophoneManagerState(), TrackType.AUDIO);
+  constructor(
+    call: Call,
+    disableMode: TrackDisableMode = isReactNative()
+      ? 'disable-tracks'
+      : 'stop-tracks',
+  ) {
+    super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
 
-    combineLatest([
-      this.call.state.callingState$,
-      this.call.state.ownCapabilities$,
-      this.state.selectedDevice$,
-      this.state.status$,
-    ]).subscribe(async ([callingState, ownCapabilities, deviceId, status]) => {
-      if (callingState !== CallingState.JOINED) {
-        if (callingState === CallingState.LEFT) {
-          await this.stopSpeakingWhileMutedDetection();
-        }
-        return;
-      }
-      if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
-        if (status === 'disabled') {
-          await this.startSpeakingWhileMutedDetection(deviceId);
-        } else {
-          await this.stopSpeakingWhileMutedDetection();
-        }
-      } else {
-        await this.stopSpeakingWhileMutedDetection();
-      }
-    });
+    this.subscriptions.push(
+      createSubscription(
+        combineLatest([
+          this.call.state.callingState$,
+          this.call.state.ownCapabilities$,
+          this.state.selectedDevice$,
+          this.state.status$,
+        ]),
+        async ([callingState, ownCapabilities, deviceId, status]) => {
+          if (callingState === CallingState.LEFT) {
+            await this.stopSpeakingWhileMutedDetection();
+          }
+          if (callingState !== CallingState.JOINED) return;
+          if (!this.speakingWhileMutedNotificationEnabled) return;
+
+          if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
+            if (status === 'disabled') {
+              await this.startSpeakingWhileMutedDetection(deviceId);
+            } else {
+              await this.stopSpeakingWhileMutedDetection();
+            }
+          } else {
+            await this.stopSpeakingWhileMutedDetection();
+          }
+        },
+      ),
+    );
 
     this.subscriptions.push(
       createSubscription(this.call.state.callingState$, (callingState) => {
@@ -163,6 +175,24 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     await this.call.notifyNoiseCancellationStopped();
   }
 
+  /**
+   * Enables speaking while muted notification.
+   */
+  async enableSpeakingWhileMutedNotification() {
+    this.speakingWhileMutedNotificationEnabled = true;
+    if (this.state.status === 'disabled') {
+      await this.startSpeakingWhileMutedDetection(this.state.selectedDevice);
+    }
+  }
+
+  /**
+   * Disables speaking while muted notification.
+   */
+  async disableSpeakingWhileMutedNotification() {
+    this.speakingWhileMutedNotificationEnabled = false;
+    await this.stopSpeakingWhileMutedDetection();
+  }
+
   protected getDevices(): Observable<MediaDeviceInfo[]> {
     return getAudioDevices();
   }
@@ -208,9 +238,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async stopSpeakingWhileMutedDetection() {
-    if (!this.soundDetectorCleanup) {
-      return;
-    }
+    if (!this.soundDetectorCleanup) return;
     this.state.setSpeakingWhileMuted(false);
     try {
       await this.soundDetectorCleanup();

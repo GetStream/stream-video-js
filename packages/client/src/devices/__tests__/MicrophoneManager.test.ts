@@ -76,6 +76,7 @@ describe('MicrophoneManager', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
+      'disable-tracks',
     );
   });
   it('list devices', () => {
@@ -147,65 +148,88 @@ describe('MicrophoneManager', () => {
     expect(manager.state.mediaStream).toBeUndefined();
   });
 
-  it(`should start sound detection if mic is disabled`, async () => {
-    await manager.enable();
-    // @ts-expect-error
-    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
-    await manager.disable();
+  describe('Speaking While Muted', () => {
+    it(`should start sound detection if mic is disabled`, async () => {
+      await manager.enable();
+      // @ts-expect-error
+      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      await manager.disable();
 
-    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
-  });
-
-  it(`should stop sound detection if mic is enabled`, async () => {
-    manager.state.setSpeakingWhileMuted(true);
-    manager['soundDetectorCleanup'] = () => {};
-
-    await manager.enable();
-
-    expect(manager.state.speakingWhileMuted).toBe(false);
-  });
-
-  it('should update speaking while muted state', async () => {
-    const mock = createSoundDetector as Mock;
-    let handler: SoundStateChangeHandler;
-    mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
-      handler = h;
+      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
     });
-    await manager['startSpeakingWhileMutedDetection']();
 
-    expect(manager.state.speakingWhileMuted).toBe(false);
+    it(`should stop sound detection if mic is enabled`, async () => {
+      manager.state.setSpeakingWhileMuted(true);
+      manager['soundDetectorCleanup'] = () => {};
 
-    handler!({ isSoundDetected: true, audioLevel: 2 });
+      await manager.enable();
 
-    expect(manager.state.speakingWhileMuted).toBe(true);
+      expect(manager.state.speakingWhileMuted).toBe(false);
+    });
 
-    handler!({ isSoundDetected: false, audioLevel: 0 });
+    it('should update speaking while muted state', async () => {
+      const mock = createSoundDetector as Mock;
+      let handler: SoundStateChangeHandler;
+      mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
+        handler = h;
+      });
+      await manager['startSpeakingWhileMutedDetection']();
 
-    expect(manager.state.speakingWhileMuted).toBe(false);
-  });
+      expect(manager.state.speakingWhileMuted).toBe(false);
 
-  it('should stop speaking while muted notifications if user loses permission to send audio', async () => {
-    await manager.enable();
-    await manager.disable();
+      handler!({ isSoundDetected: true, audioLevel: 2 });
 
-    // @ts-expect-error
-    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
-    manager['call'].state.setOwnCapabilities([]);
+      expect(manager.state.speakingWhileMuted).toBe(true);
 
-    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
-  });
+      handler!({ isSoundDetected: false, audioLevel: 0 });
 
-  it('should start speaking while muted notifications if user gains permission to send audio', async () => {
-    await manager.enable();
-    await manager.disable();
+      expect(manager.state.speakingWhileMuted).toBe(false);
+    });
 
-    manager['call'].state.setOwnCapabilities([]);
+    it('should stop speaking while muted notifications if user loses permission to send audio', async () => {
+      await manager.enable();
+      await manager.disable();
 
-    // @ts-expect-error
-    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
-    manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
+      // @ts-expect-error
+      vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+      manager['call'].state.setOwnCapabilities([]);
 
-    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    });
+
+    it('should start speaking while muted notifications if user gains permission to send audio', async () => {
+      await manager.enable();
+      await manager.disable();
+
+      manager['call'].state.setOwnCapabilities([]);
+
+      // @ts-expect-error
+      vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+      manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
+
+      expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    });
+
+    it(`disables speaking while muted notifications`, async () => {
+      // @ts-expect-error - private api
+      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      // @ts-expect-error - private api
+      vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+      await manager.disableSpeakingWhileMutedNotification();
+      await manager.disable();
+      expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      expect(
+        manager['startSpeakingWhileMutedDetection'],
+      ).not.toHaveBeenCalled();
+    });
+
+    it(`enables speaking while muted notifications`, async () => {
+      // @ts-expect-error - private api
+      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      await manager.enableSpeakingWhileMutedNotification();
+      await manager.disable();
+      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    });
   });
 
   describe('Noise Cancellation', () => {
