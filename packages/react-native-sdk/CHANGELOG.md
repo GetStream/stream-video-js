@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.6.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.19...@stream-io/video-react-native-sdk-0.6.20) (2024-05-07)
+
+
+### Bug Fixes
+
+* do not check for expo notifications lib dependency unnecessarily ([#1339](https://github.com/GetStream/stream-video-js/issues/1339)) ([0c5566f](https://github.com/GetStream/stream-video-js/commit/0c5566f311cb8377b4c1031387ba6be95165f234))
+
 ### [0.6.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.18...@stream-io/video-react-native-sdk-0.6.19) (2024-05-07)
 
 ### Dependency Updates
