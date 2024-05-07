@@ -33,6 +33,7 @@ Here are some of the features we support:
 - Chat: Stored chat, reactions, threads, typing indicators, URL previews etc
 - Security & Privacy: Based in USA and EU, Soc2 certified, GDPR compliant
 - Dynascale: Automatically switch resolutions, fps, bitrate, codecs and paginate video on large calls
+- Video Filters and Noise Cancellation
 - Screen sharing
 - Picture in picture support
 - Active speaker

@@ -8,7 +8,7 @@
         "dryRun": false,
         "preset": {
           "name": "conventionalcommits",
-          "preMajor": true,
+          "preMajor": false,
           "types": [
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
@@ -22,7 +22,11 @@
         },
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
-        "postTargets": ["@stream-io/video-client:update-version", "@stream-io/video-client:github", "@stream-io/video-client:npm"]
+        "postTargets": [
+          "@stream-io/video-client:update-version",
+          "@stream-io/video-client:github",
+          "@stream-io/video-client:npm"
+        ]
       }
     },
     "update-version": {
