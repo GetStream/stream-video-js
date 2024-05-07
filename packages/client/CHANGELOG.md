@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.12...@stream-io/video-client-0.7.13) (2024-05-07)
+
+
+### Bug Fixes
+
+* change log level of send stats SFU API to type debug ([#1338](https://github.com/GetStream/stream-video-js/issues/1338)) ([76e43ad](https://github.com/GetStream/stream-video-js/commit/76e43adbff1d54e1b0b5548dabf550cd9044d9dc))
+
 ### [0.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.11...@stream-io/video-client-0.7.12) (2024-05-03)
 
 
