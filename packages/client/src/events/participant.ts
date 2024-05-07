@@ -1,6 +1,7 @@
 import type {
   ParticipantJoined,
   ParticipantLeft,
+  ParticipantUpdated,
   TrackPublished,
   TrackUnpublished,
 } from '../gen/video/sfu/event/events';
@@ -48,6 +49,17 @@ export const watchParticipantLeft = (state: CallState) => {
     state.setParticipants((participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),
     );
+  };
+};
+
+/**
+ * An event responder which handles the `participantUpdated` event.
+ */
+export const watchParticipantUpdated = (state: CallState) => {
+  return function onParticipantUpdated(e: ParticipantUpdated) {
+    const { participant } = e;
+    if (!participant) return;
+    state.updateParticipant(participant.sessionId, participant);
   };
 };
 

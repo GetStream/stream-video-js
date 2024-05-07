@@ -39,6 +39,8 @@ const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   goAway: undefined,
   iceRestart: undefined,
   pinsUpdated: undefined,
+  callEnded: undefined,
+  participantUpdated: undefined,
 };
 
 export const isSfuEvent = (
