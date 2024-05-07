@@ -8,7 +8,7 @@ import clsx from 'clsx';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { useRequestPermission } from '../../hooks';
+import { useRequestPermission, useOptimisticDeviceStatus } from '../../hooks';
 import { Icon } from '../Icon';
 
 export type ToggleAudioPreviewButtonProps = Pick<
@@ -23,10 +23,14 @@ export const ToggleAudioPreviewButton = (
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
+  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
+    isMute,
+    microphone,
+  );
 
   return (
     <CompositeButton
-      active={isMute}
+      active={optimisticIsMute}
       caption={caption}
       className={clsx(!hasBrowserPermission && 'str-video__device-unavailable')}
       variant="secondary"
@@ -37,14 +41,16 @@ export const ToggleAudioPreviewButton = (
       }
       disabled={!hasBrowserPermission}
       data-testid={
-        isMute ? 'preview-audio-unmute-button' : 'preview-audio-mute-button'
+        optimisticIsMute
+          ? 'preview-audio-unmute-button'
+          : 'preview-audio-mute-button'
       }
-      onClick={() => microphone.toggle()}
+      onClick={() => toggle()}
       Menu={Menu}
       menuPlacement={menuPlacement}
       {...restCompositeButtonProps}
     >
-      <Icon icon={!isMute ? 'mic' : 'mic-off'} />
+      <Icon icon={!optimisticIsMute ? 'mic' : 'mic-off'} />
       {!hasBrowserPermission && (
         <span
           className="str-video__no-media-permission"
@@ -77,6 +83,10 @@ export const ToggleAudioPublishingButton = (
 
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
+  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
+    isMute,
+    microphone,
+  );
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
@@ -88,7 +98,7 @@ export const ToggleAudioPublishingButton = (
         messageRevoked={t('You can no longer speak.')}
       >
         <CompositeButton
-          active={isMute}
+          active={optimisticIsMute}
           caption={caption}
           title={
             !hasPermission
@@ -99,12 +109,14 @@ export const ToggleAudioPublishingButton = (
           }
           variant="secondary"
           disabled={!hasBrowserPermission || !hasPermission}
-          data-testid={isMute ? 'audio-unmute-button' : 'audio-mute-button'}
+          data-testid={
+            optimisticIsMute ? 'audio-unmute-button' : 'audio-mute-button'
+          }
           onClick={async () => {
             if (!hasPermission) {
               await requestPermission();
             } else {
-              await microphone.toggle();
+              toggle();
             }
           }}
           Menu={Menu}
@@ -112,7 +124,7 @@ export const ToggleAudioPublishingButton = (
           menuOffset={16}
           {...restCompositeButtonProps}
         >
-          <Icon icon={isMute ? 'mic-off' : 'mic'} />
+          <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
           {(!hasBrowserPermission || !hasPermission) && (
             <span className="str-video__no-media-permission">!</span>
           )}

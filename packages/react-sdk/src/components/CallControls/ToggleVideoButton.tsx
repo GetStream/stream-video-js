@@ -8,7 +8,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { useRequestPermission } from '../../hooks';
+import { useRequestPermission, useOptimisticDeviceStatus } from '../../hooks';
 import { Icon } from '../Icon';
 
 export type ToggleVideoPreviewButtonProps = Pick<
@@ -28,10 +28,14 @@ export const ToggleVideoPreviewButton = (
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
   const { camera, isMute, hasBrowserPermission } = useCameraState();
+  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
+    isMute,
+    camera,
+  );
 
   return (
     <CompositeButton
-      active={isMute}
+      active={optimisticIsMute}
       caption={caption}
       className={clsx(!hasBrowserPermission && 'str-video__device-unavailable')}
       title={
@@ -41,15 +45,17 @@ export const ToggleVideoPreviewButton = (
       }
       variant="secondary"
       data-testid={
-        isMute ? 'preview-video-unmute-button' : 'preview-video-mute-button'
+        optimisticIsMute
+          ? 'preview-video-unmute-button'
+          : 'preview-video-mute-button'
       }
-      onClick={() => camera.toggle()}
+      onClick={() => toggle()}
       disabled={!hasBrowserPermission}
       Menu={Menu}
       menuPlacement={menuPlacement}
       {...restCompositeButtonProps}
     >
-      <Icon icon={!isMute ? 'camera' : 'camera-off'} />
+      <Icon icon={!optimisticIsMute ? 'camera' : 'camera-off'} />
       {!hasBrowserPermission && (
         <span
           className="str-video__no-media-permission"
@@ -82,6 +88,10 @@ export const ToggleVideoPublishingButton = (
 
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, isMute, hasBrowserPermission } = useCameraState();
+  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
+    isMute,
+    camera,
+  );
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
 
@@ -97,7 +107,7 @@ export const ToggleVideoPublishingButton = (
         messageRevoked={t('You can no longer share your video.')}
       >
         <CompositeButton
-          active={isMute}
+          active={optimisticIsMute}
           caption={caption}
           variant="secondary"
           title={
@@ -112,12 +122,14 @@ export const ToggleVideoPublishingButton = (
           disabled={
             !hasBrowserPermission || !hasPermission || !isPublishingVideoAllowed
           }
-          data-testid={isMute ? 'video-unmute-button' : 'video-mute-button'}
+          data-testid={
+            optimisticIsMute ? 'video-unmute-button' : 'video-mute-button'
+          }
           onClick={async () => {
             if (!hasPermission) {
               await requestPermission();
             } else {
-              await camera.toggle();
+              toggle();
             }
           }}
           Menu={Menu}
@@ -125,7 +137,7 @@ export const ToggleVideoPublishingButton = (
           menuOffset={16}
           {...restCompositeButtonProps}
         >
-          <Icon icon={isMute ? 'camera-off' : 'camera'} />
+          <Icon icon={optimisticIsMute ? 'camera-off' : 'camera'} />
           {(!hasBrowserPermission ||
             !hasPermission ||
             !isPublishingVideoAllowed) && (
