@@ -534,8 +534,10 @@ describe('CallState', () => {
         state.setMembers(initialMembers);
         state.updateFromEvent({
           type: 'call.member_added',
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           members: [{ user_id: 'user1' }, { user_id: 'user2' }],
+          // @ts-expect-error incomplete data
+          call: {},
         });
 
         const updatedMembers = state.members;
@@ -560,6 +562,8 @@ describe('CallState', () => {
         state.updateFromEvent({
           type: 'call.member_removed',
           members: removedMembers,
+          // @ts-expect-error incomplete data
+          call: {},
         });
 
         const updatedMembers = state.members;
@@ -609,6 +613,8 @@ describe('CallState', () => {
               role: 'host',
             },
           ],
+          // @ts-expect-error incomplete data
+          call: {},
         });
 
         const updatedMembers = state.members;
@@ -643,6 +649,8 @@ describe('CallState', () => {
           type: 'call.member_updated',
           // @ts-ignore
           members: [{ ...user1, user: { name: 'John' } }],
+          // @ts-expect-error incomplete data
+          call: {},
         });
 
         const updatedMembers = state.members;

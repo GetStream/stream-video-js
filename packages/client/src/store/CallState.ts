@@ -1006,12 +1006,14 @@ export class CallState {
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {
+    this.updateFromCallResponse(event.call);
     this.setCurrentValue(this.membersSubject, (members) =>
       members.filter((m) => event.members.indexOf(m.user_id) === -1),
     );
   };
 
   private updateFromMemberAdded = (event: CallMemberAddedEvent) => {
+    this.updateFromCallResponse(event.call);
     this.setCurrentValue(this.membersSubject, (members) => [
       ...members,
       ...event.members,
@@ -1123,6 +1125,7 @@ export class CallState {
   private updateMembers = (
     event: CallMemberUpdatedEvent | CallMemberUpdatedPermissionEvent,
   ) => {
+    this.updateFromCallResponse(event.call);
     this.setCurrentValue(this.membersSubject, (members) =>
       members.map((member) => {
         const memberUpdate = event.members.find(
