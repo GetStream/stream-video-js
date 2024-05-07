@@ -39,9 +39,6 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     return;
   }
   if (pushConfig.isExpo) {
-    const Notifications = getExpoNotificationsLib();
-    const TaskManager = getExpoTaskManagerLib();
-
     const messaging = getFirebaseMessagingLibNoThrow(true);
     if (messaging) {
       // handles on app killed state in expo, expo-notifications cannot handle that
@@ -53,6 +50,8 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
         firebaseMessagingOnMessageHandler(msg.data, pushConfig),
       ); // this is to listen to foreground messages, which we dont need for now
     } else {
+      const Notifications = getExpoNotificationsLib();
+      const TaskManager = getExpoTaskManagerLib();
       const BACKGROUND_NOTIFICATION_TASK =
         'STREAM-VIDEO-SDK-INTERNAL-BACKGROUND-NOTIFICATION-TASK';
 
@@ -103,6 +102,8 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
       firebaseMessagingOnMessageHandler(msg.data, pushConfig),
     ); // this is to listen to foreground messages, which we dont need for now
   }
+
+  // the notification tap handlers are always registered with notifee for both platforms
   notifee.onBackgroundEvent(async (event) => {
     await onNotifeeEvent(event, pushConfig);
   });
