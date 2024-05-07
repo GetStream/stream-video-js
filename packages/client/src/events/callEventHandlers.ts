@@ -15,6 +15,7 @@ import {
   watchParticipantCountChanged,
   watchParticipantJoined,
   watchParticipantLeft,
+  watchParticipantUpdated,
   watchPinsUpdated,
   watchSfuErrorReports,
   watchTrackPublished,
@@ -54,6 +55,7 @@ export const registerEventHandlers = (
 
     call.on('participantJoined', watchParticipantJoined(state)),
     call.on('participantLeft', watchParticipantLeft(state)),
+    call.on('participantUpdated', watchParticipantUpdated(state)),
 
     call.on('trackPublished', watchTrackPublished(state)),
     call.on('trackUnpublished', watchTrackUnpublished(state)),

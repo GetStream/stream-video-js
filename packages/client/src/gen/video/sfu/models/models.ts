@@ -692,6 +692,9 @@ export enum TrackUnpublishReason {
   MODERATION = 3,
 }
 /**
+ * GoAwayReason represents the reason for the SFU to
+ * disconnect the client.
+ *
  * @generated from protobuf enum stream.video.sfu.models.GoAwayReason
  */
 export enum GoAwayReason {
@@ -707,6 +710,73 @@ export enum GoAwayReason {
    * @generated from protobuf enum value: GO_AWAY_REASON_REBALANCE = 2;
    */
   REBALANCE = 2,
+}
+/**
+ * CallEndedReason represents the reason for the call to end.
+ *
+ * @generated from protobuf enum stream.video.sfu.models.CallEndedReason
+ */
+export enum CallEndedReason {
+  /**
+   * @generated from protobuf enum value: CALL_ENDED_REASON_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: CALL_ENDED_REASON_ENDED = 1;
+   */
+  ENDED = 1,
+  /**
+   * @generated from protobuf enum value: CALL_ENDED_REASON_LIVE_ENDED = 2;
+   */
+  LIVE_ENDED = 2,
+  /**
+   * @generated from protobuf enum value: CALL_ENDED_REASON_KICKED = 3;
+   */
+  KICKED = 3,
+}
+/**
+ * WebsocketReconnectStrategy defines the ws strategies available for handling reconnections.
+ *
+ * @generated from protobuf enum stream.video.sfu.models.WebsocketReconnectStrategy
+ */
+export enum WebsocketReconnectStrategy {
+  /**
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * Sent after reaching the maximum reconnection attempts, leading to permanent disconnect.
+   *
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_DISCONNECT = 1;
+   */
+  DISCONNECT = 1,
+  /**
+   * SDK should maintaining existing publisher/subscriber pc instances
+   * and establish a new WebSocket connection.
+   *
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_FAST = 2;
+   */
+  FAST = 2,
+  /**
+   * SDK should drop existing pc instances and creates a fresh WebSocket connection,
+   * ensuring a clean state for the reconnection.
+   *
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_CLEAN = 3;
+   */
+  CLEAN = 3,
+  /**
+   * SDK should obtain new credentials from the coordinator, drops existing pc instances, and initializes
+   * a completely new WebSocket connection, ensuring a comprehensive reset.
+   *
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_FULL = 4;
+   */
+  FULL = 4,
+  /**
+   * SDK should migrate to a new SFU instance
+   *
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_MIGRATE = 5;
+   */
+  MIGRATE = 5,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {

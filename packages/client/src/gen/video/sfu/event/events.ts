@@ -16,6 +16,7 @@ import {
   WireType,
 } from '@protobuf-ts/runtime';
 import {
+  CallEndedReason,
   CallGrants,
   CallState,
   ClientDetails,
@@ -31,6 +32,7 @@ import {
   TrackInfo,
   TrackType,
   TrackUnpublishReason,
+  WebsocketReconnectStrategy,
 } from '../models/models';
 import { TrackSubscriptionDetails } from '../signal_rpc/signal';
 
@@ -228,6 +230,25 @@ export interface SfuEvent {
         pinsUpdated: PinsChanged;
       }
     | {
+        oneofKind: 'callEnded';
+        /**
+         * CallEnded is sent by the SFU to the client to signal that the call has ended.
+         * The reason may specify why the call has ended.
+         *
+         * @generated from protobuf field: stream.video.sfu.event.CallEnded call_ended = 23;
+         */
+        callEnded: CallEnded;
+      }
+    | {
+        oneofKind: 'participantUpdated';
+        /**
+         * ParticipantUpdated is sent when user data is updated
+         *
+         * @generated from protobuf field: stream.video.sfu.event.ParticipantUpdated participant_updated = 24;
+         */
+        participantUpdated: ParticipantUpdated;
+      }
+    | {
         oneofKind: undefined;
       };
 }
@@ -251,6 +272,12 @@ export interface Error {
    * @generated from protobuf field: stream.video.sfu.models.Error error = 4;
    */
   error?: Error$;
+  /**
+   * returns the reconnect strategy to be used by the client
+   *
+   * @generated from protobuf field: stream.video.sfu.models.WebsocketReconnectStrategy reconnect_strategy = 5;
+   */
+  reconnectStrategy: WebsocketReconnectStrategy;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ICETrickle
@@ -468,6 +495,21 @@ export interface ParticipantJoined {
  * @generated from protobuf message stream.video.sfu.event.ParticipantLeft
  */
 export interface ParticipantLeft {
+  /**
+   * @generated from protobuf field: string call_cid = 1;
+   */
+  callCid: string;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Participant participant = 2;
+   */
+  participant?: Participant;
+}
+/**
+ * ParticipantUpdated is fired when user data is updated
+ *
+ * @generated from protobuf message stream.video.sfu.event.ParticipantUpdated
+ */
+export interface ParticipantUpdated {
   /**
    * @generated from protobuf field: string call_cid = 1;
    */
@@ -750,6 +792,18 @@ export interface GoAway {
    */
   reason: GoAwayReason;
 }
+/**
+ * CallEnded is sent by the SFU to the client to signal that the call has ended.
+ * The reason may specify why the call has ended.
+ *
+ * @generated from protobuf message stream.video.sfu.event.CallEnded
+ */
+export interface CallEnded {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.CallEndedReason reason = 1;
+   */
+  reason: CallEndedReason;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class SfuEvent$Type extends MessageType<SfuEvent> {
   constructor() {
@@ -879,6 +933,20 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         kind: 'message',
         oneof: 'eventPayload',
         T: () => PinsChanged,
+      },
+      {
+        no: 23,
+        name: 'call_ended',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => CallEnded,
+      },
+      {
+        no: 24,
+        name: 'participant_updated',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => ParticipantUpdated,
       },
     ]);
   }
@@ -1099,6 +1167,28 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             ),
           };
           break;
+        case /* stream.video.sfu.event.CallEnded call_ended */ 23:
+          message.eventPayload = {
+            oneofKind: 'callEnded',
+            callEnded: CallEnded.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+              (message.eventPayload as any).callEnded,
+            ),
+          };
+          break;
+        case /* stream.video.sfu.event.ParticipantUpdated participant_updated */ 24:
+          message.eventPayload = {
+            oneofKind: 'participantUpdated',
+            participantUpdated: ParticipantUpdated.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+              (message.eventPayload as any).participantUpdated,
+            ),
+          };
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -1249,6 +1339,20 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         writer.tag(22, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* stream.video.sfu.event.CallEnded call_ended = 23; */
+    if (message.eventPayload.oneofKind === 'callEnded')
+      CallEnded.internalBinaryWrite(
+        message.eventPayload.callEnded,
+        writer.tag(23, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* stream.video.sfu.event.ParticipantUpdated participant_updated = 24; */
+    if (message.eventPayload.oneofKind === 'participantUpdated')
+      ParticipantUpdated.internalBinaryWrite(
+        message.eventPayload.participantUpdated,
+        writer.tag(24, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1349,10 +1453,21 @@ class Error$Type extends MessageType<Error> {
   constructor() {
     super('stream.video.sfu.event.Error', [
       { no: 4, name: 'error', kind: 'message', T: () => Error$ },
+      {
+        no: 5,
+        name: 'reconnect_strategy',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.WebsocketReconnectStrategy',
+          WebsocketReconnectStrategy,
+          'WEBSOCKET_RECONNECT_STRATEGY_',
+        ],
+      },
     ]);
   }
   create(value?: PartialMessage<Error>): Error {
     const message = globalThis.Object.create(this.messagePrototype!);
+    message.reconnectStrategy = 0;
     if (value !== undefined)
       reflectionMergePartial<Error>(this, message, value);
     return message;
@@ -1375,6 +1490,9 @@ class Error$Type extends MessageType<Error> {
             options,
             message.error,
           );
+          break;
+        case /* stream.video.sfu.models.WebsocketReconnectStrategy reconnect_strategy */ 5:
+          message.reconnectStrategy = reader.int32();
           break;
         default:
           let u = options.readUnknownField;
@@ -1407,6 +1525,9 @@ class Error$Type extends MessageType<Error> {
         writer.tag(4, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* stream.video.sfu.models.WebsocketReconnectStrategy reconnect_strategy = 5; */
+    if (message.reconnectStrategy !== 0)
+      writer.tag(5, WireType.Varint).int32(message.reconnectStrategy);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -2562,6 +2683,91 @@ class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
  * @generated MessageType for protobuf message stream.video.sfu.event.ParticipantLeft
  */
 export const ParticipantLeft = new ParticipantLeft$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ParticipantUpdated$Type extends MessageType<ParticipantUpdated> {
+  constructor() {
+    super('stream.video.sfu.event.ParticipantUpdated', [
+      { no: 1, name: 'call_cid', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'participant', kind: 'message', T: () => Participant },
+    ]);
+  }
+  create(value?: PartialMessage<ParticipantUpdated>): ParticipantUpdated {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.callCid = '';
+    if (value !== undefined)
+      reflectionMergePartial<ParticipantUpdated>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ParticipantUpdated,
+  ): ParticipantUpdated {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string call_cid */ 1:
+          message.callCid = reader.string();
+          break;
+        case /* stream.video.sfu.models.Participant participant */ 2:
+          message.participant = Participant.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.participant,
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ParticipantUpdated,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* string call_cid = 1; */
+    if (message.callCid !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+    /* stream.video.sfu.models.Participant participant = 2; */
+    if (message.participant)
+      Participant.internalBinaryWrite(
+        message.participant,
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.ParticipantUpdated
+ */
+export const ParticipantUpdated = new ParticipantUpdated$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
   constructor() {
@@ -3938,3 +4144,81 @@ class GoAway$Type extends MessageType<GoAway> {
  * @generated MessageType for protobuf message stream.video.sfu.event.GoAway
  */
 export const GoAway = new GoAway$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallEnded$Type extends MessageType<CallEnded> {
+  constructor() {
+    super('stream.video.sfu.event.CallEnded', [
+      {
+        no: 1,
+        name: 'reason',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.CallEndedReason',
+          CallEndedReason,
+          'CALL_ENDED_REASON_',
+        ],
+      },
+    ]);
+  }
+  create(value?: PartialMessage<CallEnded>): CallEnded {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.reason = 0;
+    if (value !== undefined)
+      reflectionMergePartial<CallEnded>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: CallEnded,
+  ): CallEnded {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* stream.video.sfu.models.CallEndedReason reason */ 1:
+          message.reason = reader.int32();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: CallEnded,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* stream.video.sfu.models.CallEndedReason reason = 1; */
+    if (message.reason !== 0)
+      writer.tag(1, WireType.Varint).int32(message.reason);
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.CallEnded
+ */
+export const CallEnded = new CallEnded$Type();
