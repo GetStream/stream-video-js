@@ -129,7 +129,11 @@ export async function initIosNonVoipToken(
   pushConfig: PushConfig,
   setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
-  if (Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
+  if (
+    Platform.OS !== 'ios' ||
+    !pushConfig.ios.pushProviderName ||
+    !pushConfig.onTapNonRingingCallNotification
+  ) {
     return;
   }
   const setDeviceToken = async (token: string) => {
