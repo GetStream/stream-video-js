@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.8.0...@stream-io/video-client-1.0.0) (2024-05-07)
+
+
+### Features
+
+* **v1:** release v1.0.0 ([06174cd](https://github.com/GetStream/stream-video-js/commit/06174cdfb4168a7401f56b03d0302f82c97b93ff))
+
 ## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.7.13...@stream-io/video-client-0.8.0) (2024-05-07)
 
 
