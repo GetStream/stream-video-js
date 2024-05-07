@@ -34,7 +34,7 @@ import {
   sleep,
 } from './coordinator/connection/utils';
 import { SFUResponse } from './gen/coordinator';
-import { Logger } from './coordinator/connection/types';
+import { LogLevel, Logger } from './coordinator/connection/types';
 import { getLogger } from './logger';
 
 export type StreamSfuClientConstructor = {
@@ -307,6 +307,7 @@ export class StreamSfuClient {
           sessionId: this.sessionId,
         }),
       this.logger,
+      'debug',
     );
   };
 
@@ -421,6 +422,7 @@ const MAX_RETRIES = 5;
 const retryable = async <I extends object, O extends SfuResponseWithError>(
   rpc: () => UnaryCall<I, O>,
   logger: Logger,
+  level: LogLevel = 'error',
 ) => {
   let retryAttempt = 0;
   let rpcCallResult: FinishedUnaryCall<I, O>;
@@ -431,16 +433,11 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
     }
 
     rpcCallResult = await rpc();
-    logger(
-      'trace',
-      `SFU RPC response received for ${rpcCallResult.method.name}`,
-      rpcCallResult,
-    );
 
     // if the RPC call failed, log the error and retry
     if (rpcCallResult.response.error) {
       logger(
-        'error',
+        level,
         `SFU RPC Error (${rpcCallResult.method.name}):`,
         rpcCallResult.response.error,
       );
