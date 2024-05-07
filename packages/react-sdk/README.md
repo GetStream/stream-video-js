@@ -33,6 +33,7 @@ Here are some of the features we support:
 - Chat: Stored chat, reactions, threads, typing indicators, URL previews etc
 - Security & Privacy: Based in USA and EU, Soc2 certified, GDPR compliant
 - Dynascale: Automatically switch resolutions, fps, bitrate, codecs and paginate video on large calls
+- Video Filters and Noise Cancellation
 - Screen sharing
 - Picture in picture support
 - Active speaker
@@ -75,13 +76,17 @@ Here are some of the features we support:
 - [x] Call analytics / stats
 - [x] Video Filters
 
-### 0.6 milestone
+### 1.0 milestone
+
+- [x] Transcriptions
+- [x] Audio filters
+- [x] Noise Cancellation
+
+### 1.1 milestone
 
 - [ ] Break-out rooms
 - [ ] Waiting rooms
-- [x] Transcriptions
 - [ ] Closed captions
-- [ ] Audio filters
 - [ ] Query call session endpoint
 - [ ] Logging 2.0
 - [ ] Hardware-accelerated video encoding on supported platforms

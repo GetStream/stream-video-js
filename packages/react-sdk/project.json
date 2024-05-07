@@ -8,7 +8,7 @@
         "dryRun": false,
         "preset": {
           "name": "conventionalcommits",
-          "preMajor": true,
+          "preMajor": false,
           "types": [
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
@@ -23,7 +23,12 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
-        "postTargets": ["@stream-io/video-react-sdk:update-version", "@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish", "@stream-io/video-react-sdk:deploy-sample-apps"]
+        "postTargets": [
+          "@stream-io/video-react-sdk:update-version",
+          "@stream-io/video-react-sdk:github",
+          "@stream-io/video-react-sdk:publish",
+          "@stream-io/video-react-sdk:deploy-sample-apps"
+        ]
       }
     },
     "update-version": {
