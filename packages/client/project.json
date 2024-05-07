@@ -6,7 +6,6 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "releaseAs": "major",
         "preset": {
           "name": "conventionalcommits",
           "preMajor": false,
