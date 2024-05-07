@@ -6,6 +6,7 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "releaseAs": "major",
         "preset": {
           "name": "conventionalcommits",
           "preMajor": false,
@@ -18,7 +19,7 @@
             {"type": "refactor", "hidden": true},
             {"type": "perf", "section": "Features"},
             {"type": "test", "hidden": true}
-        ]
+          ]
         },
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
