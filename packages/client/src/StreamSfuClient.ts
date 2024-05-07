@@ -228,6 +228,7 @@ export class StreamSfuClient {
           tracks: subscriptions,
         }),
       this.logger,
+      'debug',
     );
   };
 
