@@ -119,12 +119,8 @@ export const getServerSideProps = async (
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
   const gleapApiKey = (process.env.GLEAP_API_KEY as string | undefined) || null;
-  const user: UserResponse = {
+  const user: User = {
     id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    role: 'guest',
-    teams: [],
     custom: {},
     language: '',
   };
