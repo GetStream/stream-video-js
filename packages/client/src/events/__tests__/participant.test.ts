@@ -2,26 +2,31 @@ import { describe, expect, it } from 'vitest';
 import { CallState } from '../../store';
 import { VisibilityState } from '../../types';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { noopComparator } from '../../sorting';
 import {
   watchParticipantJoined,
   watchParticipantLeft,
+  watchParticipantUpdated,
   watchTrackPublished,
   watchTrackUnpublished,
 } from '../participant';
 
 describe('Participant events', () => {
-  describe('participantJoined / participantLeft', () => {
+  describe('participantJoined / participantLeft / participantUpdated', () => {
     it('adds and removes the participant to the list of participants', () => {
       const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
 
       const onParticipantJoined = watchParticipantJoined(state);
       const onParticipantLeft = watchParticipantLeft(state);
+      const onParticipantUpdated = watchParticipantUpdated(state);
 
       onParticipantJoined({
         // @ts-ignore
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',
+          roles: ['user'],
         },
       });
 
@@ -29,6 +34,28 @@ describe('Participant events', () => {
         {
           userId: 'user-id',
           sessionId: 'session-id',
+          roles: ['user'],
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.UNKNOWN,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
+        },
+      ]);
+
+      onParticipantUpdated({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          roles: ['host'],
+        },
+      });
+
+      expect(state.participants).toEqual([
+        {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          roles: ['host'],
           viewportVisibilityState: {
             videoTrack: VisibilityState.UNKNOWN,
             screenShareTrack: VisibilityState.UNKNOWN,
