@@ -8,7 +8,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { useRequestPermission, useOptimisticDeviceStatus } from '../../hooks';
+import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 
 export type ToggleVideoPreviewButtonProps = Pick<

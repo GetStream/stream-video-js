@@ -8,7 +8,7 @@ import clsx from 'clsx';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { useRequestPermission, useOptimisticDeviceStatus } from '../../hooks';
+import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 
 export type ToggleAudioPreviewButtonProps = Pick<

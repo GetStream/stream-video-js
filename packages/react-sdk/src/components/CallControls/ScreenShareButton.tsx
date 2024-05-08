@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
-import { useOptimisticDeviceStatus, useRequestPermission } from '../../hooks';
+import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 
 export type ScreenShareButtonProps = {
