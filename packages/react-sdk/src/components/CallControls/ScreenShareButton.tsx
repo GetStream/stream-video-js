@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
-import { useRequestPermission } from '../../hooks';
+import { useOptimisticDeviceStatus, useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 
 export type ScreenShareButtonProps = {
@@ -26,7 +26,9 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const callSettings = useCallSettings();
   const isScreenSharingAllowed = callSettings?.screensharing.enabled;
 
-  const { screenShare, isMute: amIScreenSharing } = useScreenShareState();
+  const { screenShare, isMute } = useScreenShareState();
+  const { optimisticIsMute: amIScreenSharing, toggle } =
+    useOptimisticDeviceStatus(isMute, screenShare);
   const disableScreenShareButton = amIScreenSharing
     ? isSomeoneScreenSharing || isScreenSharingAllowed === false
     : false;
@@ -54,7 +56,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
             if (!hasPermission) {
               await requestPermission();
             } else {
-              await screenShare.toggle();
+              toggle();
             }
           }}
         >
