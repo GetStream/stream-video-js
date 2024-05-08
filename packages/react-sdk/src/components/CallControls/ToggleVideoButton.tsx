@@ -27,11 +27,7 @@ export const ToggleVideoPreviewButton = (
   } = props;
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
-  const { camera, isMute, hasBrowserPermission } = useCameraState();
-  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
-    isMute,
-    camera,
-  );
+  const { camera, optimisticIsMute, hasBrowserPermission } = useCameraState();
 
   return (
     <CompositeButton
@@ -49,7 +45,7 @@ export const ToggleVideoPreviewButton = (
           ? 'preview-video-unmute-button'
           : 'preview-video-mute-button'
       }
-      onClick={() => toggle()}
+      onClick={() => camera.toggle()}
       disabled={!hasBrowserPermission}
       Menu={Menu}
       menuPlacement={menuPlacement}
@@ -87,11 +83,7 @@ export const ToggleVideoPublishingButton = (
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { camera, isMute, hasBrowserPermission } = useCameraState();
-  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
-    isMute,
-    camera,
-  );
+  const { camera, optimisticIsMute, hasBrowserPermission } = useCameraState();
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
 
@@ -129,7 +121,7 @@ export const ToggleVideoPublishingButton = (
             if (!hasPermission) {
               await requestPermission();
             } else {
-              toggle();
+              await camera.toggle();
             }
           }}
           Menu={Menu}

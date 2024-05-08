@@ -13,6 +13,9 @@ export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
 
 export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
+  protected pendingStatusSubject = new BehaviorSubject<InputDeviceStatus>(
+    undefined,
+  );
   protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
@@ -45,6 +48,13 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * An Observable that emits the device status
    */
   status$ = this.statusSubject.asObservable().pipe(distinctUntilChanged());
+
+  /**
+   * An Observable the reflects the requested device status. Useful for optimistic UIs
+   */
+  pendingStatus$ = this.pendingStatusSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   /**
    * The default constraints for the device.
@@ -115,6 +125,13 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
+   * The requested device status. Useful for optimistic UIs
+   */
+  get pendingStatus() {
+    return this.getCurrentValue(this.pendingStatus$);
+  }
+
+  /**
    * The currently selected device
    */
   get selectedDevice() {
@@ -142,6 +159,14 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    */
   setStatus(status: InputDeviceStatus) {
     this.setCurrentValue(this.statusSubject, status);
+  }
+
+  /**
+   * @internal
+   * @param pendingStatus
+   */
+  setPendingStatus(pendingStatus: InputDeviceStatus) {
+    this.setCurrentValue(this.pendingStatusSubject, pendingStatus);
   }
 
   /**

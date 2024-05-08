@@ -22,11 +22,8 @@ export const ToggleAudioPreviewButton = (
   const { caption, Menu, menuPlacement, ...restCompositeButtonProps } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
-  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
-    isMute,
-    microphone,
-  );
+  const { microphone, optimisticIsMute, hasBrowserPermission } =
+    useMicrophoneState();
 
   return (
     <CompositeButton
@@ -45,7 +42,7 @@ export const ToggleAudioPreviewButton = (
           ? 'preview-audio-unmute-button'
           : 'preview-audio-mute-button'
       }
-      onClick={() => toggle()}
+      onClick={() => microphone.toggle()}
       Menu={Menu}
       menuPlacement={menuPlacement}
       {...restCompositeButtonProps}
@@ -82,11 +79,8 @@ export const ToggleAudioPublishingButton = (
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
-  const { optimisticIsMute, toggle } = useOptimisticDeviceStatus(
-    isMute,
-    microphone,
-  );
+  const { microphone, optimisticIsMute, hasBrowserPermission } =
+    useMicrophoneState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
@@ -116,7 +110,7 @@ export const ToggleAudioPublishingButton = (
             if (!hasPermission) {
               await requestPermission();
             } else {
-              toggle();
+              await microphone.toggle();
             }
           }}
           Menu={Menu}
