@@ -14,7 +14,7 @@ export function useOptimisticDeviceStatus(
   useEffect(() => {
     console.log({ optimisticIsMute, isMute });
     if (optimisticIsMute !== isMute && requestPromise.current === null) {
-      requestPromise.current = manager.toggle().then(() => {
+      requestPromise.current = manager.toggle().finally(() => {
         requestPromise.current = null;
       });
     }
