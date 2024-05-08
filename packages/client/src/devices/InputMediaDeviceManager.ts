@@ -71,9 +71,7 @@ export abstract class InputMediaDeviceManager<
         await this.unmuteStream();
         this.state.setStatus('enabled');
       } finally {
-        if (!signal.aborted) {
-          if (!signal.aborted) this.resetStatusChangeRequest();
-        }
+        if (!signal.aborted) this.resetStatusChangeRequest();
       }
     };
     this.statusChangePromise = this.statusChangePromise
