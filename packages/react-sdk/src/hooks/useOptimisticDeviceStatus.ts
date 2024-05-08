@@ -13,9 +13,12 @@ export function useOptimisticDeviceStatus(
 
   useEffect(() => {
     if (optimisticIsMute !== isMute && requestPromise.current === null) {
-      requestPromise.current = manager.toggle().finally(() => {
-        requestPromise.current = null;
-      });
+      requestPromise.current = manager
+        .toggle()
+        .catch(() => setOptimisticIsMute(isMute))
+        .finally(() => {
+          requestPromise.current = null;
+        });
     }
   }, [manager, optimisticIsMute, isMute]);
 
