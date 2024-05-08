@@ -20,10 +20,7 @@ import type {
   StreamVideoEvent,
   UR,
 } from './types';
-import type {
-  ConnectedEvent,
-  WSAuthMessageRequest,
-} from '../../gen/coordinator';
+import type { ConnectedEvent, WSAuthMessage } from '../../gen/coordinator';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -511,7 +508,7 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage: WSAuthMessageRequest = {
+    const authMessage: WSAuthMessage = {
       token,
       user_details: {
         id: user.id,

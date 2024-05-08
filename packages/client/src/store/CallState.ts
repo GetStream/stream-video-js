@@ -437,6 +437,14 @@ export class CallState {
       'connection.error': undefined,
       'connection.ok': undefined,
       'health.check': undefined,
+      'user.banned': undefined,
+      'user.deactivated': undefined,
+      'user.deleted': undefined,
+      'user.muted': undefined,
+      'user.presence.changed': undefined,
+      'user.reactivated': undefined,
+      'user.unbanned': undefined,
+      'user.updated': undefined,
       custom: undefined,
 
       // events that update call state:

@@ -38,8 +38,8 @@ import {
   OwnCapability,
   PinRequest,
   PinResponse,
-  QueryMembersRequest,
-  QueryMembersResponse,
+  QueryCallMembersRequest,
+  QueryCallMembersResponse,
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
@@ -1846,15 +1846,15 @@ export class Call {
    * @param request
    * @returns
    */
-  queryMembers = (request?: Omit<QueryMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
-      '/call/members',
-      {
-        ...(request || {}),
-        id: this.id,
-        type: this.type,
-      },
-    );
+  queryMembers = (request?: Omit<QueryCallMembersRequest, 'type' | 'id'>) => {
+    return this.streamClient.post<
+      QueryCallMembersResponse,
+      QueryCallMembersRequest
+    >('/call/members', {
+      ...(request || {}),
+      id: this.id,
+      type: this.type,
+    });
   };
 
   /**
