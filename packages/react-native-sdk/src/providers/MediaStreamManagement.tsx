@@ -58,22 +58,22 @@ export const MediaStreamManagement = ({
   // Resume/Disable video stream tracks when app goes to background/foreground
   // To save on CPU resources
   useAppStateListener(
-    () => {
-      call?.camera?.resume();
+    async () => {
+      await call?.camera?.resume();
     },
-    () => {
+    async () => {
       if (Platform.OS === 'android') {
         // in Android, we need to check if we are in PiP mode
         // in PiP mode, we don't want to disable the camera
         NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
-          (isInPiP: boolean) => {
+          async (isInPiP: boolean) => {
             if (!isInPiP) {
-              call?.camera?.disable();
+              await call?.camera?.disable();
             }
           },
         );
       } else {
-        call?.camera?.disable();
+        await call?.camera?.disable();
       }
     },
   );
@@ -102,30 +102,35 @@ export const MediaStreamManagement = ({
   // The main logic
   // Enable or Disable the audio/video stream based on the initial state
   useEffect(() => {
-    if (!call) {
-      return;
-    }
-
-    if (initialAudioEnabled !== undefined) {
-      if (initialAudioEnabled) {
-        call.microphone.enable();
-      } else {
-        call.microphone.disable();
+    const applyMediaStreamInitialState = async () => {
+      if (!call) {
+        return;
       }
-    }
 
-    // we wait until we receive the resolution settings from the backend
-    if (!targetResolutionSetting) {
-      return;
-    }
-    call.camera.selectTargetResolution(targetResolutionSetting);
-    if (initialVideoEnabled !== undefined) {
-      if (initialVideoEnabled) {
-        call.camera.enable();
-      } else {
-        call.camera.disable();
+      if (initialAudioEnabled !== undefined) {
+        if (initialAudioEnabled) {
+          await call.microphone.enable();
+        } else {
+          await call.microphone.disable();
+        }
       }
-    }
+      // we wait until we receive the resolution settings from the backend
+      if (!targetResolutionSetting) {
+        return;
+      }
+
+      await call.camera.selectTargetResolution(targetResolutionSetting);
+
+      if (initialVideoEnabled !== undefined) {
+        if (initialVideoEnabled) {
+          await call.camera.enable();
+        } else {
+          await call.camera.disable();
+        }
+      }
+    };
+
+    applyMediaStreamInitialState();
   }, [call, initialAudioEnabled, initialVideoEnabled, targetResolutionSetting]);
 
   return <>{children}</>;
