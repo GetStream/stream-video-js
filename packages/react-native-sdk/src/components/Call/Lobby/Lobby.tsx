@@ -22,6 +22,7 @@ import {
   LobbyFooter as DefaultLobbyFooter,
   LobbyFooterProps,
 } from './LobbyFooter';
+import { useApplyDefaultMediaStreamSettings } from '../../../hooks/internal/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the Lobby Component.
@@ -67,10 +68,11 @@ export const Lobby = ({
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
-  const { status: cameraStatus, mediaStream } = useCameraState();
+  const { isMute: cameraIsMuted, mediaStream } = useCameraState();
   const { t } = useI18n();
   const localVideoStream = mediaStream as unknown as MediaStream | undefined;
 
+  useApplyDefaultMediaStreamSettings();
   useCallMediaStreamCleanup();
 
   const connectedUserAsParticipant = {
@@ -124,7 +126,7 @@ export const Lobby = ({
               ]}
             >
               <View style={styles.topView} />
-              {cameraStatus === 'enabled' && localVideoStream ? (
+              {!cameraIsMuted && localVideoStream ? (
                 <RTCView
                   mirror={true}
                   streamURL={localVideoStream.toURL()}
