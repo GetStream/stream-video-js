@@ -2,11 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { MediaStream, RTCView } from '@stream-io/react-native-webrtc';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
@@ -104,16 +100,15 @@ const Background = () => {
   const {
     theme: { colors, outgoingCall },
   } = useTheme();
-  const call = useCall();
   const { useCameraState } = useCallStateHooks();
-  const { status } = useCameraState();
-  const localVideoStream = call?.camera.state.mediaStream as unknown as
+  const { isMute, camera } = useCameraState();
+  const localVideoStream = camera.state.mediaStream as unknown as
     | MediaStream
     | undefined;
 
   useCallMediaStreamCleanup();
 
-  if (status === 'disabled' || !localVideoStream) {
+  if (isMute || !localVideoStream) {
     return (
       <View
         style={[

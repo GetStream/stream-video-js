@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -8,9 +8,8 @@ import { Mic, MicOff } from '../../../icons';
  * The LivestreamAudioControlButton controls the audio stream publish/unpublish while in the livestream for the host.
  */
 export const LivestreamAudioControlButton = () => {
-  const call = useCall();
   const { useMicrophoneState } = useCallStateHooks();
-  const { status } = useMicrophoneState();
+  const { isMute, microphone } = useMicrophoneState();
   const {
     theme: {
       colors,
@@ -20,7 +19,7 @@ export const LivestreamAudioControlButton = () => {
   } = useTheme();
 
   const onPress = async () => {
-    await call?.microphone.toggle();
+    await microphone.toggle();
   };
 
   return (
@@ -36,33 +35,22 @@ export const LivestreamAudioControlButton = () => {
         livestreamAudioControlButton.container,
       ]}
     >
-      {status === 'enabled' ? (
-        <View
-          style={[
-            styles.icon,
-            {
-              height: iconSizes.sm,
-              width: iconSizes.sm,
-            },
-            livestreamAudioControlButton.icon,
-          ]}
-        >
+      <View
+        style={[
+          styles.icon,
+          {
+            height: iconSizes.sm,
+            width: iconSizes.sm,
+          },
+          livestreamAudioControlButton.icon,
+        ]}
+      >
+        {!isMute ? (
           <Mic color={colors.static_white} />
-        </View>
-      ) : (
-        <View
-          style={[
-            styles.icon,
-            {
-              height: iconSizes.sm,
-              width: iconSizes.sm,
-            },
-            livestreamAudioControlButton.icon,
-          ]}
-        >
+        ) : (
           <MicOff color={colors.static_white} />
-        </View>
-      )}
+        )}
+      </View>
     </Pressable>
   );
 };

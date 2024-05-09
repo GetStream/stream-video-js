@@ -28,14 +28,35 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const { t } = useI18n();
   const unreadCountIndicator = useUnreadCount();
 
-  const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
+  const { useCallCallingState, useCallSettings } = useCallStateHooks();
   const callingState = useCallCallingState();
+
+  const call = useCall();
+  const settings = useCallSettings();
+
+  useEffect(() => {
+    if (!call || !settings) {
+      return;
+    }
+    if (call.state.callingState === CallingState.LEFT) {
+      return;
+    }
+    const applyMediaStreamState = async () => {
+      const { audio, video } = settings;
+      if (audio.mic_default_on) {
+        await call.microphone.enable();
+      }
+      if (video.camera_default_on) {
+        await call.camera.enable();
+      }
+    };
+    applyMediaStreamState();
+  }, [call, settings]);
 
   // Leave the call if the call is not left and the component is unmounted.
   useEffect(() => {
     return () => {
-      if (call && call.state.callingState !== CallingState.LEFT) {
+      if (call && callingState !== CallingState.LEFT) {
         call.leave();
       }
     };

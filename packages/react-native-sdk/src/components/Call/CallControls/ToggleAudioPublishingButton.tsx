@@ -1,10 +1,6 @@
 import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCall,
-  useCallStateHooks,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -26,9 +22,8 @@ export type ToggleAudioPublishingButtonProps = {
 export const ToggleAudioPublishingButton = ({
   onPressHandler,
 }: ToggleAudioPublishingButtonProps) => {
-  const call = useCall();
   const { useMicrophoneState } = useCallStateHooks();
-  const { status } = useMicrophoneState();
+  const { isMute, microphone } = useMicrophoneState();
 
   const {
     theme: { colors, toggleAudioPublishingButton },
@@ -39,17 +34,17 @@ export const ToggleAudioPublishingButton = ({
       return;
     }
 
-    await call?.microphone.toggle();
+    await microphone.toggle();
   };
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
-        color={status === 'enabled' ? colors.static_white : colors.overlay_dark}
+        color={!isMute ? colors.static_white : colors.overlay_dark}
         style={toggleAudioPublishingButton}
       >
-        {status === 'enabled' ? (
+        {!isMute ? (
           <Mic color={colors.static_black} />
         ) : (
           <MicOff color={colors.static_white} />

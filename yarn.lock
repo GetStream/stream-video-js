@@ -7006,7 +7006,7 @@ __metadata:
     expo: ~50.0.3
     expo-constants: ~15.4.5
     expo-linking: ~6.2.2
-    expo-notifications: ~0.27.5
+    expo-notifications: ~0.27.7
     expo-router: ~3.4.8
     expo-splash-screen: ~0.26.4
     expo-status-bar: ~1.11.1
@@ -13726,9 +13726,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-notifications@npm:~0.27.5":
-  version: 0.27.6
-  resolution: "expo-notifications@npm:0.27.6"
+"expo-notifications@npm:~0.27.7":
+  version: 0.27.7
+  resolution: "expo-notifications@npm:0.27.7"
   dependencies:
     "@expo/image-utils": ^0.4.0
     "@ide/backoff": ^1.0.0
@@ -13740,7 +13740,7 @@ __metadata:
     fs-extra: ^9.1.0
   peerDependencies:
     expo: "*"
-  checksum: b491d15495a3f2f9fdee6c63e0dadc9b4a5a45875c4b093e69d9f65a26974b7a0bf2d6402f6b1d4635031a33f3f41757f09a5572cc028c4423ca1dc2be86f466
+  checksum: c5be3b71fc6abe7d974c5c0e63ae9bd90a79414a977a7f4a2caba80df0651ada0dda8625aa7ea1e50cfc865bbb733a3f59d8d5e247e7e6233e931d1cd788ad0a
   languageName: node
   linkType: hard
 
