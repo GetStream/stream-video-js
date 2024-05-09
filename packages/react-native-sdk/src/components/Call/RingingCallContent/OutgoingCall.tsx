@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
@@ -14,6 +14,7 @@ import {
   CallTopViewProps,
 } from '../CallTopView';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
+import { useApplyDefaultMediaStreamSettings } from '../../../hooks/internal/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the OutgoingCall Component.
@@ -47,6 +48,9 @@ export const OutgoingCall = ({
     theme: { colors, typefaces, outgoingCall },
   } = useTheme();
   const { t } = useI18n();
+
+  useApplyDefaultMediaStreamSettings();
+  useCallMediaStreamCleanup();
 
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
@@ -106,7 +110,12 @@ const Background = () => {
     | MediaStream
     | undefined;
 
-  useCallMediaStreamCleanup();
+  // Disable Camera when component unmounted
+  useEffect(() => {
+    return () => {
+      camera.disable();
+    };
+  }, [camera]);
 
   if (isMute || !localVideoStream) {
     return (
