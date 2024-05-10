@@ -1,19 +1,22 @@
 import { GetServerSidePropsContext } from 'next';
 import {
+  BackgroundFiltersProvider,
   Call,
   CallingState,
+  NoiseCancellationProvider,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
   User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { MeetingUI } from '../../../components';
 import { type UserMode } from '../../../components/Lobby';
 import { createToken } from '../../../helpers/jwt';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
 import { customSentryLogger } from '../../../helpers/logger';
 import {
@@ -27,6 +30,8 @@ type GuestCallRoomProps = {
   token: string;
   gleapApiKey?: string;
 };
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export default function GuestCallRoom(props: GuestCallRoomProps) {
   const { apiKey, user, token, gleapApiKey } = props;
@@ -92,6 +97,23 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
 
   useGleap(gleapApiKey, client, call, user);
 
+  const [noiseCancellation, setNoiseCancellation] =
+    useState<INoiseCancellation>();
+  const ncLoader = useRef<Promise<void>>();
+  useEffect(() => {
+    const load = (ncLoader.current || Promise.resolve())
+      .then(() => import('@stream-io/audio-filters-web'))
+      .then(({ NoiseCancellation }) => {
+        // const modelsPath = `${basePath}/krispai/models`;
+        // const nc = new NoiseCancellation({ basePath: modelsPath });
+        const nc = new NoiseCancellation();
+        setNoiseCancellation(nc);
+      });
+    return () => {
+      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
+    };
+  }, []);
+
   if (!client || !call) {
     return null;
   }
@@ -103,7 +125,25 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       </Head>
       <StreamVideo client={client}>
         <StreamCall call={call}>
-          <MeetingUI mode={mode} />
+          <BackgroundFiltersProvider
+            basePath={`${basePath}/tf`}
+            isBlurringEnabled={true}
+            backgroundImages={[
+              `${basePath}/backgrounds/amsterdam-1.jpg`,
+              `${basePath}/backgrounds/amsterdam-2.jpg`,
+              `${basePath}/backgrounds/boulder-1.jpg`,
+              `${basePath}/backgrounds/boulder-2.jpg`,
+              `${basePath}/backgrounds/gradient-1.jpg`,
+              `${basePath}/backgrounds/gradient-2.jpg`,
+              `${basePath}/backgrounds/gradient-3.jpg`,
+            ]}
+          >
+            {noiseCancellation && (
+              <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
+                <MeetingUI mode={mode} />
+              </NoiseCancellationProvider>
+            )}
+          </BackgroundFiltersProvider>
         </StreamCall>
       </StreamVideo>
     </>
