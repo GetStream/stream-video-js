@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
@@ -109,13 +109,6 @@ const Background = () => {
   const localVideoStream = camera.state.mediaStream as unknown as
     | MediaStream
     | undefined;
-
-  // Disable Camera when component unmounted
-  useEffect(() => {
-    return () => {
-      camera.disable();
-    };
-  }, [camera]);
 
   if (isMute || !localVideoStream) {
     return (
