@@ -1680,12 +1680,6 @@ export interface CallSettingsResponse {
 export interface CallStateResponseFields {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof CallStateResponseFields
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof CallStateResponseFields
    */
@@ -3180,12 +3174,6 @@ export interface GeolocationResult {
 export interface GetCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof GetCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof GetCallResponse
    */
@@ -3356,12 +3344,6 @@ export interface GetOrCreateCallRequest {
  * @interface GetOrCreateCallResponse
  */
 export interface GetOrCreateCallResponse {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof GetOrCreateCallResponse
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -3622,12 +3604,6 @@ export interface JoinCallRequest {
  * @interface JoinCallResponse
  */
 export interface JoinCallResponse {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof JoinCallResponse
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -4271,7 +4247,7 @@ export interface OwnUserResponse {
    * @type {string}
    * @memberof OwnUserResponse
    */
-  image: string;
+  image?: string;
   /**
    *
    * @type {boolean}
@@ -4307,7 +4283,7 @@ export interface OwnUserResponse {
    * @type {string}
    * @memberof OwnUserResponse
    */
-  name: string;
+  name?: string;
   /**
    *
    * @type {boolean}
@@ -5664,12 +5640,6 @@ export interface UpdateCallRequest {
 export interface UpdateCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof UpdateCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof UpdateCallResponse
    */
@@ -6287,7 +6257,7 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
-  image: string;
+  image?: string;
   /**
    *
    * @type {string}
@@ -6305,7 +6275,7 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
-  name: string;
+  name?: string;
   /**
    *
    * @type {boolean}
