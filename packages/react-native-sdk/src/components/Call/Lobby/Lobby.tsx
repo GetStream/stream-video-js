@@ -22,7 +22,7 @@ import {
   LobbyFooter as DefaultLobbyFooter,
   LobbyFooterProps,
 } from './LobbyFooter';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/internal/useApplyDefaultMediaStreamSettings';
+import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the Lobby Component.

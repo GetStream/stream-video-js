@@ -14,7 +14,7 @@ import {
   CallTopViewProps,
 } from '../CallTopView';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/internal/useApplyDefaultMediaStreamSettings';
+import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the OutgoingCall Component.

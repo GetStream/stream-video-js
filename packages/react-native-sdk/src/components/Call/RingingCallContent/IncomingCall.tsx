@@ -21,7 +21,7 @@ import {
   IncomingCallControlsProps,
 } from '../CallControls';
 import { useTheme } from '../../../contexts';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/internal/useApplyDefaultMediaStreamSettings';
+import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the IncomingCall Component.

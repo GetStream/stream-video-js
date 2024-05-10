@@ -260,9 +260,7 @@ const styles = StyleSheet.create({
 
 ### Button to toggle Camera Face
 
-Toggling camera face for mobile devices is an important feature. So, to built it from scratch you can use `isCameraOnFrontFacingMode` and `toggleCameraFacingMode` from `useMediaStreamManagement`.
-
-The `isCameraOnFrontFacingMode` is a boolean that tracks if the camera is `front` facing. The `toggleCameraFacingMode` is used to toggle camera between `front` and `back`/`environment` facing modes.
+Toggling camera face for mobile devices is an important feature. You can do it using `call.camera.flip()` function.
 
 ```tsx
 import { useCall, useCallStateHooks } from '@stream-io/video-react-native-sdk';
@@ -270,7 +268,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-native-sdk';
 export const ToggleCameraFaceButton = () => {
   const call = useCall();
   const { useCameraState } = useCallStateHooks();
-  const { status, direction } = useCameraState();
+  const { direction } = useCameraState();
 
   const toggleCameraFacingMode = async () => {
     onPressHandler?.();
