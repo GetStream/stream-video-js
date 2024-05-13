@@ -22,7 +22,7 @@ const useVideoStateMocks = ({
     if (!enabled) return;
 
     const { participants = [] } = testEnvironment ?? {};
-    // @ts-ignore
+    // @ts-expect-error private api
     client.writeableStateStore.registerCall(call);
     call.state.setParticipants(participants as StreamVideoParticipant[]);
     console.log({ client, call });
@@ -59,10 +59,13 @@ const useJoinCall = ({
     if (!client || !enabled) return;
 
     // the recorder system doesn't have any device attached
-    // call.camera.disable();
-    // call.microphone.disable();
+    const deviceSetup = Promise.all([
+      call.camera.disable(),
+      call.microphone.disableSpeakingWhileMutedNotification(),
+      call.microphone.disable(),
+    ]);
 
-    const callJoinPromise = call.join();
+    const callJoinPromise = deviceSetup.then(() => call.join());
     return () => {
       callJoinPromise.then(() => {
         call.leave();

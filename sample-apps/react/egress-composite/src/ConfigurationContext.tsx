@@ -71,13 +71,13 @@ export type ConfigurationValue = {
     'title.color'?: string;
     'title.horizontal_position'?: HorizontalPosition;
     'title.vertical_position'?: VerticalPosition;
-    'title.margin_block'?: string;
-    'title.margin_inline'?: string;
+    'title.margin_block'?: string | number;
+    'title.margin_inline'?: string | number;
 
     // ✅
     'participant.outline_color'?: string;
     'participant.outline_width'?: string;
-    'participant.border_radius'?: string;
+    'participant.border_radius'?: string | number;
     'participant.placeholder_background_color'?: string;
 
     // ✅
@@ -85,7 +85,7 @@ export type ConfigurationValue = {
     'participant_label.text_color'?: string;
     'participant_label.background_color'?: string;
     'participant_label.border_width'?: string;
-    'participant_label.border_radius'?: string;
+    'participant_label.border_radius'?: string | number;
     'participant_label.border_color'?: string;
     'participant_label.horizontal_position'?: HorizontalPosition;
     'participant_label.vertical_position'?: VerticalPosition;
@@ -101,13 +101,13 @@ export type ConfigurationValue = {
     'layout.background_repeat'?: string; // ✅
 
     // grid-specific
-    'layout.grid.gap'?: string; // ❌
+    'layout.grid.gap'?: string | number; // ❌
     'layout.grid.page_size'?: number; // ✅
     // dominant_speaker-specific (single-participant)
     'layout.single-participant.mode'?: 'shuffle' | 'default'; // ✅
     'layout.single-participant.shuffle_delay'?: number; // ✅
     'layout.single-participant.padding_inline'?: string; // ✅
-    'layout.single-participant.padding_block'?: string; // ✅
+    'layout.single-participant.padding_block'?: string | number; // ✅
     // spotlight-specific
     'layout.spotlight.participants_bar_position'?: Exclude<
       VerticalPosition | HorizontalPosition,
