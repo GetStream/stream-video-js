@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts';
 import { CallControlsButton } from './CallControlsButton';
 import { Video, VideoSlash } from '../../../icons';
@@ -28,17 +28,16 @@ export const ToggleVideoPreviewButton = ({
       variants: { buttonSizes },
     },
   } = useTheme();
-  const call = useCall();
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
-  const { status } = useCameraState();
+  const { isMute, camera } = useCameraState();
   const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
     }
-    await call?.camera.toggle();
+    await camera.toggle();
   };
 
   if (!isVideoEnabledInCall) {
@@ -48,18 +47,17 @@ export const ToggleVideoPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={status === 'enabled' ? colors.static_white : colors.static_black}
+      color={!isMute ? colors.static_white : colors.static_black}
       size={buttonSizes.md}
       style={{
         container: {
-          shadowColor:
-            status === 'enabled' ? colors.static_white : colors.static_black,
+          shadowColor: !isMute ? colors.static_white : colors.static_black,
           ...toggleVideoPreviewButton.container,
         },
         svgContainer: toggleVideoPreviewButton.svgContainer,
       }}
     >
-      {status === 'enabled' ? (
+      {!isMute ? (
         <Video color={colors.static_black} />
       ) : (
         <VideoSlash color={colors.static_white} />

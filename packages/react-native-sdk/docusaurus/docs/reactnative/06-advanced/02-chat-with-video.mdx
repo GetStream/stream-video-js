@@ -1048,17 +1048,7 @@ export const Calls = () => {
     return null;
   }
 
-  return (
-    <StreamCall
-      call={firstCall}
-      mediaDeviceInitialState={{
-        initialAudioEnabled: false,
-        initialVideoEnabled: false,
-      }}
-    >
-      {/* Rest of the code */}
-    </StreamCall>
-  );
+  return <StreamCall call={firstCall}>{/* Rest of the code */}</StreamCall>;
 };
 ```
 
@@ -1092,13 +1082,7 @@ export const Calls = () => {
   }
 
   return (
-    <StreamCall
-      call={firstCall}
-      mediaDeviceInitialState={{
-        initialAudioEnabled: false,
-        initialVideoEnabled: false,
-      }}
-    >
+    <StreamCall call={firstCall}>
       <View style={styles.container}>
         <RingingCallContent />
       </View>

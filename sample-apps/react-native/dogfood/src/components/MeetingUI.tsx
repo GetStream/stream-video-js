@@ -28,15 +28,17 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const { t } = useI18n();
   const unreadCountIndicator = useUnreadCount();
 
-  const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+
+  const call = useCall();
 
   // Leave the call if the call is not left and the component is unmounted.
   useEffect(() => {
     return () => {
-      if (call && call.state.callingState !== CallingState.LEFT) {
-        call.leave();
+      const leaveCall = async () => await call?.leave();
+      if (callingState !== CallingState.LEFT) {
+        leaveCall();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
