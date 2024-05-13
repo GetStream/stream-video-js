@@ -196,7 +196,7 @@ export abstract class InputMediaDeviceManager<
     }
   }
 
-  protected abstract getDevices(): Observable<MediaDeviceInfo[] | undefined>;
+  protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 

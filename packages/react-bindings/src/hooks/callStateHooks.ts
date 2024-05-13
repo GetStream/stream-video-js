@@ -17,6 +17,9 @@ import { useCall } from '../contexts';
 import { useObservableValue } from './useObservableValue';
 import { isReactNative } from '../helpers/platforms';
 
+// kind-of memoized, used as a default value
+const EMPTY_DEVICES_ARRAY = Object.freeze([]) as unknown as MediaDeviceInfo[];
+
 /**
  * Utility hook, which provides the current call's state.
  *
@@ -358,7 +361,7 @@ export const useCameraState = () => {
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
-  const devices = useObservableValue(devices$);
+  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isMute = status !== 'enabled';
   const optimisticIsMute = optimisticStatus !== 'enabled';
@@ -394,7 +397,7 @@ export const useMicrophoneState = () => {
   const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
-  const devices = useObservableValue(devices$);
+  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const isMute = status !== 'enabled';
@@ -430,7 +433,7 @@ export const useSpeakerState = () => {
   const { speaker } = call as Call;
 
   const devices$ = useMemo(() => speaker.listDevices(), [speaker]);
-  const devices = useObservableValue(devices$);
+  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
   const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
 
   return {

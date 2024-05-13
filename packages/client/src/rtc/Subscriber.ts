@@ -69,18 +69,19 @@ export class Subscriber {
 
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
-      async (subscriberOffer) => {
-        await this.negotiate(subscriberOffer);
+      (subscriberOffer) => {
+        this.negotiate(subscriberOffer).catch((err) => {
+          logger('warn', `Negotiation failed.`, err);
+        });
       },
     );
 
-    this.unregisterOnIceRestart = dispatcher.on(
-      'iceRestart',
-      async (iceRestart) => {
-        if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
-        await this.restartIce();
-      },
-    );
+    this.unregisterOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
+      if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
+      this.restartIce().catch((err) => {
+        logger('warn', `ICERestart failed`, err);
+      });
+    });
   }
 
   /**
@@ -307,17 +308,21 @@ export class Subscriber {
     });
   };
 
-  private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
+  private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
       logger('debug', 'null ice candidate');
       return;
     }
 
-    await this.sfuClient.iceTrickle({
-      iceCandidate: getIceCandidate(candidate),
-      peerType: PeerType.SUBSCRIBER,
-    });
+    this.sfuClient
+      .iceTrickle({
+        iceCandidate: getIceCandidate(candidate),
+        peerType: PeerType.SUBSCRIBER,
+      })
+      .catch((err) => {
+        logger('warn', `ICETrickle failed`, err);
+      });
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
