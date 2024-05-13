@@ -354,16 +354,19 @@ export const useCameraState = () => {
 
   const { state } = camera;
   const status = useObservableValue(state.status$);
+  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isMute = status !== 'enabled';
+  const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
     camera,
     status,
+    optimisticStatus,
     isEnabled: status === 'enabled',
     direction,
     mediaStream,
@@ -371,6 +374,7 @@ export const useCameraState = () => {
     hasBrowserPermission,
     selectedDevice,
     isMute,
+    optimisticIsMute,
   };
 };
 
@@ -387,16 +391,19 @@ export const useMicrophoneState = () => {
 
   const { state } = microphone;
   const status = useObservableValue(state.status$);
+  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const isMute = status !== 'enabled';
+  const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
     microphone,
     status,
+    optimisticStatus,
     isEnabled: status === 'enabled',
     mediaStream,
     devices,
@@ -404,6 +411,7 @@ export const useMicrophoneState = () => {
     hasBrowserPermission,
     isSpeakingWhileMuted,
     isMute,
+    optimisticIsMute,
   };
 };
 
@@ -441,13 +449,18 @@ export const useScreenShareState = () => {
   const { screenShare } = call as Call;
 
   const status = useObservableValue(screenShare.state.status$);
+  const pendingStatus = useObservableValue(screenShare.state.optimisticStatus$);
   const mediaStream = useObservableValue(screenShare.state.mediaStream$);
   const isMute = status !== 'enabled';
+  const optimisticStatus = pendingStatus ?? status;
+  const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
     screenShare,
     mediaStream,
     status,
+    optimisticStatus,
     isMute,
+    optimisticIsMute,
   };
 };

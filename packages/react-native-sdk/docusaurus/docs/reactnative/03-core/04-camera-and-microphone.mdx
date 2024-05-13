@@ -49,6 +49,10 @@ await camera.enable();
 await camera.disable();
 ```
 
+It's always best to await calls to `enable()`, `disable()`, and `toggle()`, however the SDK does its best to resolve potential race conditions: the last call always wins, so it's safe to make these calls in an event handler.
+
+Status is updated once the camera is actually enabled or disabled. Use `isOptimisticMute` for the "optimistic" status that is updated immediately after toggling the camera.
+
 ### Manage Camera Facing Mode
 
 We can toggle the camera face from front to back and vice-versa using `camera.flip()`.
@@ -152,6 +156,10 @@ await microphone.toggle();
 await microphone.enable();
 await microphone.disable();
 ```
+
+It's always best to await calls to `enable()`, `disable()`, and `toggle()`, however the SDK does its best to resolve potential race conditions: the last call always wins, so it's safe to make these calls in an event handler.
+
+Status is updated once the microphone is actually enabled or disabled. Use `isOptimisticMute` for the "optimistic" status that is updated immediately after toggling the microphone.
 
 ### Audio mute status
 
