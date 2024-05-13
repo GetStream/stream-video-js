@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.0...@stream-io/video-react-native-sdk-0.7.1) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.28`
+
+### Bug Fixes
+
+* optimistically toggle device status ([#1342](https://github.com/GetStream/stream-video-js/issues/1342)) ([2e4e470](https://github.com/GetStream/stream-video-js/commit/2e4e470347fce7c7499dd21a931e5dec74bf9618))
+
 ## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.21...@stream-io/video-react-native-sdk-0.7.0) (2024-05-13)
 
 
