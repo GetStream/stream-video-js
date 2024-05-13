@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.1...@stream-io/video-client-1.0.2) (2024-05-13)
+
+
+### Bug Fixes
+
+* optimistically toggle device status ([#1342](https://github.com/GetStream/stream-video-js/issues/1342)) ([2e4e470](https://github.com/GetStream/stream-video-js/commit/2e4e470347fce7c7499dd21a931e5dec74bf9618))
+
 ### [1.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.0...@stream-io/video-client-1.0.1) (2024-05-07)
 
 
