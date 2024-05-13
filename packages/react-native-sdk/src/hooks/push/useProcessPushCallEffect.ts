@@ -60,7 +60,7 @@ export const useProcessPushCallEffect = () => {
       pushAndroidBackgroundDeliveredIncomingCallCId$,
       client,
       pushConfig,
-      'pressed',
+      'backgroundDelivered',
     );
 
     return () => {

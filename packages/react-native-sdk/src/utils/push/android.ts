@@ -110,11 +110,9 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
 
   // the notification tap handlers are always registered with notifee for both expo and non-expo in android
   notifee.onBackgroundEvent(async (event) => {
-    console.log('onBackgroundEvent', { event });
     await onNotifeeEvent(event, pushConfig, true);
   });
   notifee.onForegroundEvent((event) => {
-    console.log('onForegroundEvent', { event });
     onNotifeeEvent(event, pushConfig, false);
   });
 }
@@ -349,11 +347,6 @@ const onNotifeeEvent = async (
 ) => {
   const { type, detail } = event;
   const { notification, pressAction } = detail;
-
-  console.log({
-    fullscreenaction: notification?.android?.fullScreenAction,
-    pressAction,
-  });
   const notificationId = notification?.id;
   const data = notification?.data;
   if (!data || !notificationId || data.sender !== 'stream.video') {
@@ -401,6 +394,7 @@ const onNotifeeEvent = async (
         // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
       } else if (isBackground && type === EventType.DELIVERED) {
         pushAndroidBackgroundDeliveredIncomingCallCId$.next(call_cid);
+        // background delivered state will be handled by the app with rxjs observers as processing needs to happen only when app is opened
       }
     }
   } else {
