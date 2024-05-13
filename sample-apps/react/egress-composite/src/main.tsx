@@ -16,7 +16,10 @@ if (import.meta.env.MODE === 'production') {
   Sentry.init({
     dsn: import.meta.env.VITE_EGRESS_SENTRY_DNS,
     tracePropagationTargets: ['video-layout.getstream.io'],
-    integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
     tracesSampleRate: 0.9,
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
