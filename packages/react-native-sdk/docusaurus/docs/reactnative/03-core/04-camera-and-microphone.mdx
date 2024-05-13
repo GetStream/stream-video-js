@@ -157,7 +157,7 @@ await microphone.enable();
 await microphone.disable();
 ```
 
-It's always best to await calls to `enable()`, `disable()`, and `toggle()`, however the SDK does its best to resolve potential race conditions: the last call always "wins", so it's safe to make these calls in an event handler.
+It's always best to await calls to `enable()`, `disable()`, and `toggle()`, however the SDK does its best to resolve potential race conditions: the last call always wins, so it's safe to make these calls in an event handler.
 
 Status is updated once the microphone is actually enabled or disabled. Use `isOptimisticMute` for the "optimistic" status that is updated immediately after toggling the microphone.
 
