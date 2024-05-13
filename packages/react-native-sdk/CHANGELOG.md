@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.21...@stream-io/video-react-native-sdk-0.7.0) (2024-05-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** apply media stream management initial state asyncronously (#1345)
+
+### Bug Fixes
+
+* **react-native:** apply media stream management initial state asyncronously ([#1345](https://github.com/GetStream/stream-video-js/issues/1345)) ([40b5a4e](https://github.com/GetStream/stream-video-js/commit/40b5a4e955f1bcf39755aa3848bc11c3436c14c9)), closes [#1236](https://github.com/GetStream/stream-video-js/issues/1236)
+
 ### [0.6.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.20...@stream-io/video-react-native-sdk-0.6.21) (2024-05-07)
 
 ### Dependency Updates
