@@ -1,4 +1,8 @@
-import notifee, { EventType, Event } from '@notifee/react-native';
+import notifee, {
+  EventType,
+  Event,
+  AndroidCategory,
+} from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
@@ -18,6 +22,7 @@ import {
   pushTappedIncomingCallCId$,
   pushNonRingingCallData$,
   pushUnsubscriptionCallbacks$,
+  pushAndroidBackgroundDeliveredIncomingCallCId$,
 } from './rxSubjects';
 import {
   canAddPushWSSubscriptionsRef,
@@ -103,12 +108,14 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     ); // this is to listen to foreground messages, which we dont need for now
   }
 
-  // the notification tap handlers are always registered with notifee for both platforms
+  // the notification tap handlers are always registered with notifee for both expo and non-expo in android
   notifee.onBackgroundEvent(async (event) => {
-    await onNotifeeEvent(event, pushConfig);
+    console.log('onBackgroundEvent', { event });
+    await onNotifeeEvent(event, pushConfig, true);
   });
   notifee.onForegroundEvent((event) => {
-    onNotifeeEvent(event, pushConfig);
+    console.log('onForegroundEvent', { event });
+    onNotifeeEvent(event, pushConfig, false);
   });
 }
 
@@ -274,6 +281,10 @@ const firebaseMessagingOnMessageHandler = async (
             },
           },
         ],
+        category: AndroidCategory.CALL,
+        fullScreenAction: {
+          id: 'stream_ringing_incoming_call',
+        },
         timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
       },
     });
@@ -331,17 +342,21 @@ const firebaseMessagingOnMessageHandler = async (
   }
 };
 
-const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
+const onNotifeeEvent = async (
+  event: Event,
+  pushConfig: PushConfig,
+  isBackground: boolean,
+) => {
   const { type, detail } = event;
   const { notification, pressAction } = detail;
+
+  console.log({
+    fullscreenaction: notification?.android?.fullScreenAction,
+    pressAction,
+  });
   const notificationId = notification?.id;
   const data = notification?.data;
-  if (
-    !data ||
-    !pressAction ||
-    !notificationId ||
-    data.sender !== 'stream.video'
-  ) {
+  if (!data || !notificationId || data.sender !== 'stream.video') {
     return;
   }
 
@@ -357,13 +372,13 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
     // Check if we need to decline the call
     const didPressDecline =
       type === EventType.ACTION_PRESS &&
-      pressAction.id === DECLINE_CALL_ACTION_ID;
+      pressAction?.id === DECLINE_CALL_ACTION_ID;
     const didDismiss = type === EventType.DISMISSED;
     const mustDecline = didPressDecline || didDismiss;
     // Check if we need to accept the call
     const mustAccept =
       type === EventType.ACTION_PRESS &&
-      pressAction.id === ACCEPT_CALL_ACTION_ID;
+      pressAction?.id === ACCEPT_CALL_ACTION_ID;
 
     if (mustAccept || mustDecline || type === EventType.ACTION_PRESS) {
       clearPushWSEventSubscriptions();
@@ -380,9 +395,13 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
         return;
       }
       await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
-    } else if (type === EventType.PRESS) {
-      pushTappedIncomingCallCId$.next(call_cid);
-      // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
+    } else {
+      if (type === EventType.PRESS) {
+        pushTappedIncomingCallCId$.next(call_cid);
+        // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
+      } else if (isBackground && type === EventType.DELIVERED) {
+        pushAndroidBackgroundDeliveredIncomingCallCId$.next(call_cid);
+      }
     }
   } else {
     if (type === EventType.PRESS) {

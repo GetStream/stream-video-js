@@ -364,6 +364,18 @@ import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 await StreamVideoRN.onPushLogout();
 ```
 
+## Optional: On Android show full-screen incoming call view when phone is locked
+
+If you want to display a full-screen notification for the incoming call when the phone is locked, please add the following to your main activity:
+
+```xml
+  <activity
+    ...
+    android:showWhenLocked="true"
+    android:turnScreenOn="true"
+  />
+```
+
 ## Troubleshooting
 
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.

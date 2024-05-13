@@ -36,7 +36,8 @@
           "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
             "disableVideoIos": false,
-            "includesCallsInRecentsIos": false
+            "includesCallsInRecentsIos": false,
+            "showWhenLockedAndroid": true
           },
           "enableNonRingingPushNotifications": true,
           "androidPictureInPicture": {

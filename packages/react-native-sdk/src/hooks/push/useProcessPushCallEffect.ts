@@ -2,6 +2,7 @@ import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
+  pushAndroidBackgroundDeliveredIncomingCallCId$,
 } from '../../utils/push/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
@@ -55,10 +56,18 @@ export const useProcessPushCallEffect = () => {
       'pressed',
     );
 
+    const backgroundIncomingDeliveredCallSubscription = createCallSubscription(
+      pushAndroidBackgroundDeliveredIncomingCallCId$,
+      client,
+      pushConfig,
+      'pressed',
+    );
+
     return () => {
       acceptedCallSubscription.unsubscribe();
       declinedCallSubscription.unsubscribe();
       pressedCallSubscription.unsubscribe();
+      backgroundIncomingDeliveredCallSubscription.unsubscribe();
     };
   }, [client, connectedUserId]);
 };
@@ -77,7 +86,7 @@ const createCallSubscription = (
   behaviourSubjectWithCallCid: BehaviorSubject<string | undefined>,
   client: StreamVideoClient,
   pushConfig: NonNullable<StreamVideoConfig['push']>,
-  action: 'accept' | 'decline' | 'pressed',
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
 ) => {
   return behaviourSubjectWithCallCid
     .pipe(filter(cidIsNotUndefined))
@@ -85,7 +94,7 @@ const createCallSubscription = (
       await processCallFromPush(client, callCId, action);
       if (action === 'accept') {
         pushConfig.navigateAcceptCall();
-      } else if (action === 'pressed') {
+      } else if (action === 'pressed' || action === 'backgroundDelivered') {
         pushConfig.navigateToIncomingCall();
       }
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
