@@ -285,7 +285,10 @@ export class Call {
           debounce((v) => timer(v.type)),
           map((v) => v.data),
         ),
-        (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
+        (subscriptions) =>
+          this.sfuClient?.updateSubscriptions(subscriptions).catch((err) => {
+            this.logger('debug', `Failed to update track subscriptions`, err);
+          }),
       ),
     );
 
