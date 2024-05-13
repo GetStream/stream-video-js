@@ -354,14 +354,13 @@ export const useCameraState = () => {
 
   const { state } = camera;
   const status = useObservableValue(state.status$);
-  const pendingStatus = useObservableValue(state.pendingStatus$);
+  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isMute = status !== 'enabled';
-  const optimisticStatus = pendingStatus ?? status;
   const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
@@ -392,14 +391,13 @@ export const useMicrophoneState = () => {
 
   const { state } = microphone;
   const status = useObservableValue(state.status$);
-  const pendingStatus = useObservableValue(state.pendingStatus$);
+  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const isMute = status !== 'enabled';
-  const optimisticStatus = pendingStatus ?? status;
   const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
@@ -451,7 +449,7 @@ export const useScreenShareState = () => {
   const { screenShare } = call as Call;
 
   const status = useObservableValue(screenShare.state.status$);
-  const pendingStatus = useObservableValue(screenShare.state.pendingStatus$);
+  const pendingStatus = useObservableValue(screenShare.state.optimisticStatus$);
   const mediaStream = useObservableValue(screenShare.state.mediaStream$);
   const isMute = status !== 'enabled';
   const optimisticStatus = pendingStatus ?? status;

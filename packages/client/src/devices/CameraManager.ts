@@ -53,7 +53,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   async selectTargetResolution(resolution: { width: number; height: number }) {
     this.targetResolution.height = resolution.height;
     this.targetResolution.width = resolution.width;
-    if (this.statusChangePromise && this.state.pendingStatus === 'enabled') {
+    if (this.statusChangePromise && this.state.optimisticStatus === 'enabled') {
       try {
         await this.statusChangePromise;
       } catch (error) {

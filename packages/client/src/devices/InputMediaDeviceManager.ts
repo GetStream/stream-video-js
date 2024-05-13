@@ -63,7 +63,10 @@ export abstract class InputMediaDeviceManager<
    * Starts stream.
    */
   async enable() {
-    if ((this.state.pendingStatus ?? this.state.status) === 'enabled') return;
+    if (this.state.optimisticStatus === 'enabled') {
+      await this.statusChangePromise;
+      return;
+    }
     const signal = this.nextAbortableStatusChangeRequest('enabled');
     const doEnable = async () => {
       if (signal.aborted) return;
@@ -86,11 +89,10 @@ export abstract class InputMediaDeviceManager<
    */
   async disable(forceStop: boolean = false) {
     this.state.prevStatus = this.state.status;
-    if (
-      !forceStop &&
-      (this.state.pendingStatus ?? this.state.status) === 'disabled'
-    )
+    if (!forceStop && this.state.optimisticStatus === 'disabled') {
+      await this.statusChangePromise;
       return;
+    }
     const stopTracks = forceStop || this.state.disableMode === 'stop-tracks';
     const signal = this.nextAbortableStatusChangeRequest('disabled');
     const doDisable = async () => {
@@ -125,7 +127,7 @@ export abstract class InputMediaDeviceManager<
    * else it will disable it.
    */
   async toggle() {
-    if ((this.state.pendingStatus ?? this.state.status) === 'enabled') {
+    if (this.state.optimisticStatus === 'enabled') {
       return this.disable();
     } else {
       return this.enable();
@@ -437,6 +439,5 @@ export abstract class InputMediaDeviceManager<
   private resetStatusChangeRequest() {
     this.statusChangePromise = undefined;
     this.statusChangeAbortController = undefined;
-    this.state.setPendingStatus(undefined);
   }
 }

@@ -13,7 +13,7 @@ export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
 
 export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
-  protected pendingStatusSubject = new BehaviorSubject<InputDeviceStatus>(
+  protected optimisticStatusSubject = new BehaviorSubject<InputDeviceStatus>(
     undefined,
   );
   protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
@@ -52,7 +52,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   /**
    * An Observable the reflects the requested device status. Useful for optimistic UIs
    */
-  pendingStatus$ = this.pendingStatusSubject
+  optimisticStatus$ = this.optimisticStatusSubject
     .asObservable()
     .pipe(distinctUntilChanged());
 
@@ -127,8 +127,8 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   /**
    * The requested device status. Useful for optimistic UIs
    */
-  get pendingStatus() {
-    return this.getCurrentValue(this.pendingStatus$);
+  get optimisticStatus() {
+    return this.getCurrentValue(this.optimisticStatus$);
   }
 
   /**
@@ -166,7 +166,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * @param pendingStatus
    */
   setPendingStatus(pendingStatus: InputDeviceStatus) {
-    this.setCurrentValue(this.pendingStatusSubject, pendingStatus);
+    this.setCurrentValue(this.optimisticStatusSubject, pendingStatus);
   }
 
   /**
