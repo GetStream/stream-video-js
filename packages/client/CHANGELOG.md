@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.3...@stream-io/video-client-1.0.4) (2024-05-14)
+
+
+### Bug Fixes
+
+* don't create publisher PC for anonymous users ([#1353](https://github.com/GetStream/stream-video-js/issues/1353)) ([7331767](https://github.com/GetStream/stream-video-js/commit/7331767bd9254082517b1f36895796032b7af149))
+
 ### [1.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.2...@stream-io/video-client-1.0.3) (2024-05-13)
 
 
