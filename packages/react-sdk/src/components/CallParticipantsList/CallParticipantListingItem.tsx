@@ -1,7 +1,11 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
 import { useConnectedUser, useI18n } from '@stream-io/video-react-bindings';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  hasAudio,
+  hasVideo,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { IconButton } from '../Button';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 import { WithTooltip } from '../Tooltip';
@@ -21,12 +25,8 @@ export const CallParticipantListingItem = ({
   participant,
   DisplayName = DefaultDisplayName,
 }: CallParticipantListingItemProps) => {
-  const isAudioOn = participant.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const isVideoOn = participant.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
+  const isAudioOn = hasAudio(participant);
+  const isVideoOn = hasVideo(participant);
   const isPinned = !!participant.pin;
 
   const { t } = useI18n();

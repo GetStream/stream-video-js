@@ -6,6 +6,7 @@ import {
   conditional,
   DefaultParticipantViewUI,
   dominantSpeaker,
+  hasScreenShare,
   ParticipantView,
   pinned,
   publishingAudio,
@@ -13,7 +14,6 @@ import {
   reactionType,
   ScreenShareButton,
   screenSharing,
-  SfuModels,
   speaking,
   SpeakingWhileMutedNotification,
   StreamVideoParticipant,
@@ -89,9 +89,6 @@ export const SpeakerView = () => {
 const CustomCallControls = ({ children }: PropsWithChildren<{}>) => {
   return <div className="str-video__call-controls">{children}</div>;
 };
-
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 /**
  * Creates a custom sorting preset for the participants list.

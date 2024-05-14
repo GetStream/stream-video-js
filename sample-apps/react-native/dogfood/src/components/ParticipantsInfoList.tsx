@@ -1,15 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
+  Avatar,
+  colorPallet,
+  hasAudio,
+  hasScreenShare,
+  hasVideo,
   OwnCapability,
-  SfuModels,
-  StreamVideoParticipant,
   Restricted,
+  StreamVideoParticipant,
   useCall,
   useCallStateHooks,
   useConnectedUser,
   useI18n,
-  Avatar,
-  colorPallet,
 } from '@stream-io/video-react-native-sdk';
 import {
   Alert,
@@ -190,12 +192,9 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
   if (!participant) {
     return null;
   }
-  const { publishedTracks } = participant;
-  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const isScreenSharing = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
+  const isAudioMuted = !hasAudio(participant);
+  const isVideoMuted = !hasVideo(participant);
+  const isScreenSharing = hasScreenShare(participant);
 
   return (
     <Pressable style={styles.participant} onPress={optionsOpenHandler}>

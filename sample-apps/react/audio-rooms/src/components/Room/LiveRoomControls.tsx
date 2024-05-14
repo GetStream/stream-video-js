@@ -1,8 +1,8 @@
 import {
   CallingState,
+  hasAudio,
   OwnCapability,
   Restricted,
-  SfuModels,
   useCall,
   useCallStateHooks,
   useConnectedUser,
@@ -45,9 +45,7 @@ export const LiveRoomControls = ({
   const isSpeaker = (customData as CustomCallData).speakerIds?.some(
     (id) => id === connectedUser?.id,
   );
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
+  const isAudioMute = localParticipant && hasAudio(localParticipant);
 
   const toggleAudio = useCallback(async () => {
     if (!call) return;

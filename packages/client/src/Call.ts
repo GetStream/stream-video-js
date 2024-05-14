@@ -7,6 +7,11 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
+import {
+  hasScreenShare,
+  hasScreenShareAudio,
+  hasVideo,
+} from './helpers/participantUtils';
 import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
@@ -1411,8 +1416,7 @@ export class Call {
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
       // once they become available.
-
-      if (p.videoDimension && p.publishedTracks.includes(TrackType.VIDEO)) {
+      if (p.videoDimension && hasVideo(p)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
@@ -1420,10 +1424,7 @@ export class Call {
           dimension: p.videoDimension,
         });
       }
-      if (
-        p.screenShareDimension &&
-        p.publishedTracks.includes(TrackType.SCREEN_SHARE)
-      ) {
+      if (p.screenShareDimension && hasScreenShare(p)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
@@ -1431,7 +1432,7 @@ export class Call {
           dimension: p.screenShareDimension,
         });
       }
-      if (p.publishedTracks.includes(TrackType.SCREEN_SHARE_AUDIO)) {
+      if (hasScreenShareAudio(p)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,

@@ -54,7 +54,8 @@ const MyCallUI = () => {
 
 This approach makes it possible to access the call state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
 
-The `StreamCall` component uses the `StreamCallProvider` under the hood.
+The `StreamCall` component is a context provider that makes the call state available to all child components.
+The `useCall` hook returns the `Call` instance that is registered with `StreamCall`. You need the `Call` instance to initiate API calls.
 
 ## Call State Hooks
 
@@ -141,41 +142,61 @@ const MyCallUI = () => {
   const localParticipant = useLocalParticipant();
 
   return (
-    <div>
-      <div>Number of participants: {participantCount}</div>
-      <div>Session ID: {localParticipant.sessionId}</div>
-    </div>
+    <View>
+      <Text>Number of participants: {participantCount}</Text>
+      <Text>Session ID: {localParticipant.sessionId}</Text>
+    </View>
   );
 };
 ```
 
 The `StreamVideoParticipant` object contains the following information:
 
-| Name                      | Description                                                                 |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `user`                    | The user object for this participant.                                       |
-| `publishedTracks`         | The track types the participant is currently publishing                     |
-| `joinedAt`                | The time the participant joined the call.                                   |
-| `connectionQuality`       | The participant's connection quality.                                       |
-| `isSpeaking`              | It's `true` if the participant is currently speaking.                       |
-| `isDominantSpeaker`       | It's `true` if the participant is the current dominant speaker in the call. |
-| `audioLevel`              | The audio level of the participant.                                         |
-| `audioStream`             | The published audio `MediaStream`.                                          |
-| `videoStream`             | The published video `MediaStream`.                                          |
-| `screenShareStream`       | The published screen share `MediaStream`.                                   |
-| `screenShareAudioStream`  | The published screen share audio `MediaStream`.                             |
-| `isLocalParticipant`      | It's `true` if the participant is the local participant.                    |
-| `pin`                     | Holds pinning information.                                                  |
-| `reaction`                | The last reaction this user has sent to this call.                          |
-| `viewportVisibilityState` | The viewport visibility state of the participant.                           |
+| Name                      | Description                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `audioLevel`              | The audio level of the participant (determined on the server).                   |
+| `audioStream`             | The published audio `MediaStream`.                                               |
+| `audioVolume`             | The audio volume level of the participant (overridable local audioVolume level). |
+| `connectionQuality`       | The participant's connection quality.                                            |
+| `custom`                  | The participant's custom data. Comes from the `custom` field of the user object. |
+| `image`                   | The image of the participant.                                                    |
+| `isDominantSpeaker`       | It's `true` if the participant is the current dominant speaker in the call.      |
+| `isLocalParticipant`      | It's `true` if the participant is the local participant.                         |
+| `isSpeaking`              | It's `true` if the participant is currently speaking.                            |
+| `joinedAt`                | The time the participant joined the call.                                        |
+| `name`                    | The name of the participant.                                                     |
+| `pin`                     | Holds pinning information.                                                       |
+| `publishedTracks`         | The track types the participant is currently publishing                          |
+| `reaction`                | The last reaction this user has sent to this call.                               |
+| `roles`                   | The roles of the participant in this call.                                       |
+| `sessionId`               | The identifier of the participant within the existing call session               |
+| `screenShareAudioStream`  | The published screen share audio `MediaStream`.                                  |
+| `screenShareStream`       | The published screen share `MediaStream`.                                        |
+| `userId`                  | The user ID of the participant.                                                  |
+| `videoStream`             | The published video `MediaStream`.                                               |
+| `viewportVisibilityState` | The viewport visibility state of the participant.                                |
 
-The `StreamVideoLocalParticipant` has these additional properties:
+The SDK also provides a few utility functions that help you to work with participants:
 
-| Name                  | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| `audioDeviceId`       | The device ID of the currently selected audio input device.  |
-| `videoDeviceId`       | The device ID of the currently selected video input device.  |
-| `audioOutputDeviceId` | The device ID of the currently selected audio output device. |
+```ts
+import {
+  hasAudio,
+  hasVideo,
+  hasScreenShare,
+  hasScreenShareAudio,
+  useCallStateHooks,
+} from '@stream-io/video-react-native-sdk';
+
+// example usage
+const { useParticipants } = useCallStateHooks();
+const [participant] = useParticipants();
+
+// check if the participant has audio, video, screen share or screen share audio
+const hasAudioOn = hasAudio(participant);
+const hasVideoOn = hasVideo(participant);
+const hasScreenShareOn = hasScreenShare(participant);
+const hasScreenShareAudioOn = hasScreenShareAudio(participant);
+```
 
 ## Client state
 
@@ -187,6 +208,7 @@ Let's see an example:
 ```tsx
 import {
   useConnectedUser,
+  StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 
@@ -202,21 +224,21 @@ export default function App() {
 
 const MyHeader = () => {
   const user = useConnectedUser();
-  return <div>{user ? `Logged in: ${user.name}` : 'Logged out'}</div>;
+  return <Text>{user ? `Logged in: ${user.name}` : 'Logged out'}</Text>;
 };
 ```
 
 This approach makes it possible to access the client state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
 
-Here are the list of client-state hooks:
+Here is the list of client-state hooks:
 
-| Name                   | Description                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useStreamVideoClient` | The `StreamVideoClient` instance.                                                                                                           |
-| `useConnectedUser`     | Returns the connected user.                                                                                                                 |
-| `useCalls`             | A list of all notifications about created calls. These calls can be outgoing (I have called somebody) or incoming (somebody has called me). |
+| Name                   | Description                                                                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useStreamVideoClient` | The `StreamVideoClient` instance.                                                                                                                                               |
+| `useConnectedUser`     | Returns the connected user. Holds the server-side data of the connected user.                                                                                                   |
+| `useCalls`             | A list of all tracked calls. These calls can be outgoing (I have called somebody) or incoming (somebody has called me). Loaded calls (`call.get()`) are also part of this list. |
 
-The `UserResponse` contains the following properties:
+The `connectedUser` object contains the following properties:
 
 | Name         | Description                                           |
 | ------------ | ----------------------------------------------------- |

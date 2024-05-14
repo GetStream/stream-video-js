@@ -5,7 +5,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
 import { usePaginatedLayoutSortPreset } from './hooks';
@@ -59,12 +59,13 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
   const { useParticipants, useRemoteParticipants, useHasOngoingScreenShare } =
     useCallStateHooks();
   const call = useCall();
-  const [currentSpeaker, ...otherParticipants] = useParticipants();
+  const participants = useParticipants();
+  const [currentSpeaker] = participants;
   const remoteParticipants = useRemoteParticipants();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const presenter = hasOngoingScreenShare
-    ? hasScreenShare(currentSpeaker) && currentSpeaker
-    : otherParticipants.find(hasScreenShare);
+    ? participants.find(hasScreenShare)
+    : undefined;
 
   usePaginatedLayoutSortPreset(call);
 
@@ -121,9 +122,6 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
     </div>
   );
 };
-
-const hasScreenShare = (p?: StreamVideoParticipant) =>
-  !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 const ParticipantOverlay = (props: {
   enableFullScreen?: boolean;
