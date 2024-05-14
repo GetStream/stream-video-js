@@ -99,7 +99,7 @@ export const RecordCallConfirmationButton = ({
       <CompositeButton
         active={isCallRecordingInProgress}
         caption={caption}
-        title={caption || t('Record call')}
+        title={caption ?? t('Record call')}
         variant="secondary"
         data-testid="recording-start-button"
         onClick={isAwaitingResponse ? undefined : toggleCallRecording}
@@ -119,7 +119,7 @@ export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
-  let title = caption || t('Record call');
+  let title = caption ?? t('Record call');
 
   if (isAwaitingResponse) {
     title = isCallRecordingInProgress

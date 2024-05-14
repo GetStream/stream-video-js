@@ -24,5 +24,14 @@ export const useEnterLeaveHandlers = <T extends HTMLElement>({
     [onMouseLeave],
   );
 
-  return { handleMouseEnter, handleMouseLeave, tooltipVisible };
+  const forceShow = useCallback(() => setTooltipVisible(true), []);
+  const forceHide = useCallback(() => setTooltipVisible(false), []);
+
+  return {
+    handleMouseEnter,
+    handleMouseLeave,
+    tooltipVisible,
+    forceShow,
+    forceHide,
+  };
 };

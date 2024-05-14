@@ -65,7 +65,7 @@ export const ToggleVideoPreviewButton = (
 
 type ToggleVideoPublishingButtonProps = Pick<
   IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement'
+  'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
 >;
 
 export const ToggleVideoPublishingButton = (

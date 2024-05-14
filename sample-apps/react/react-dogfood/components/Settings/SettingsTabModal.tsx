@@ -20,6 +20,7 @@ import {
   ToggleMenuButtonProps,
   useI18n,
   useMenuContext,
+  useTooltipContext,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
@@ -205,11 +206,13 @@ export const ToggleSettingsTabModal = (props: {
   tabModalProps: ToggleSettingsTabModalProps;
   layoutProps: LayoutSelectorProps;
 }) => {
+  const { hideTooltip } = useTooltipContext();
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleSettingsMenuButton}
       visualType={MenuVisualType.PORTAL}
+      onToggle={(menuShown) => menuShown && hideTooltip?.()}
     >
       <SettingsTabModalMenu {...props} />
     </MenuToggle>

@@ -6,6 +6,7 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
+  useTooltipContext,
 } from '@stream-io/video-react-sdk';
 
 import { DevMenu } from './DevMenu';
@@ -22,11 +23,13 @@ export const ToggleMenuButton = forwardRef<
 });
 
 export const ToggleDeveloperButton = () => {
+  const { hideTooltip } = useTooltipContext();
   return (
     <MenuToggle
       placement="top-end"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
+      onToggle={(menuShown) => menuShown && hideTooltip?.()}
     >
       <DevMenu />
     </MenuToggle>

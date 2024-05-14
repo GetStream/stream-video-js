@@ -13,6 +13,7 @@ import {
 import { CompositeButton } from '../Button';
 import { defaultEmojiReactionMap } from '../Reaction';
 import { Icon } from '../Icon';
+import { useTooltipContext } from '../Tooltip';
 
 export const defaultReactions: StreamReaction[] = [
   {
@@ -49,12 +50,14 @@ export interface ReactionsButtonProps {
 export const ReactionsButton = ({
   reactions = defaultReactions,
 }: ReactionsButtonProps) => {
+  const { hideTooltip } = useTooltipContext();
   return (
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <MenuToggle
         placement="top"
         ToggleButton={ToggleReactionsMenuButton}
         visualType={MenuVisualType.MENU}
+        onToggle={(menuShown) => menuShown && hideTooltip?.()}
       >
         <DefaultReactionsMenu reactions={reactions} />
       </MenuToggle>
@@ -66,14 +69,8 @@ const ToggleReactionsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleReactionsMenuButton({ menuShown }, ref) {
-  const { t } = useI18n();
   return (
-    <CompositeButton
-      ref={ref}
-      active={menuShown}
-      variant="primary"
-      title={t('Reactions')}
-    >
+    <CompositeButton ref={ref} active={menuShown} variant="primary">
       <Icon icon="reactions" />
     </CompositeButton>
   );

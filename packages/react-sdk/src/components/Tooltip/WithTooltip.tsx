@@ -1,9 +1,13 @@
-import { ComponentProps, useState } from 'react';
+import { ComponentProps, createContext, useContext, useState } from 'react';
 import { Tooltip, TooltipProps } from './Tooltip';
 import { useEnterLeaveHandlers } from './hooks';
 
 type WithPopupProps = ComponentProps<'div'> &
   Omit<TooltipProps<HTMLDivElement>, 'referenceElement'>;
+
+export const TooltipContext = createContext<{
+  hideTooltip?: () => void;
+}>({});
 
 // todo: duplicate of CallParticipantList.tsx#MediaIndicator - refactor to a single component
 export const WithTooltip = ({
@@ -12,14 +16,14 @@ export const WithTooltip = ({
   tooltipPlacement,
   ...props
 }: WithPopupProps) => {
-  const { handleMouseEnter, handleMouseLeave, tooltipVisible } =
+  const { handleMouseEnter, handleMouseLeave, tooltipVisible, forceHide } =
     useEnterLeaveHandlers<HTMLDivElement>();
   const [tooltipAnchor, setTooltipAnchor] = useState<HTMLDivElement | null>(
     null,
   );
 
   return (
-    <>
+    <TooltipContext.Provider value={{ hideTooltip: forceHide }}>
       <Tooltip
         referenceElement={tooltipAnchor}
         visible={tooltipVisible}
@@ -34,6 +38,10 @@ export const WithTooltip = ({
         onMouseLeave={handleMouseLeave}
         {...props}
       />
-    </>
+    </TooltipContext.Provider>
   );
 };
+
+export function useTooltipContext() {
+  return useContext(TooltipContext);
+}

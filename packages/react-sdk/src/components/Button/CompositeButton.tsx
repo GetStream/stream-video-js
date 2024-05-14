@@ -22,6 +22,7 @@ export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
     menuOffset?: number;
     ToggleMenuButton?: ComponentType<ToggleMenuButtonProps<E>>;
     variant?: 'primary' | 'secondary';
+    onMenuToggle?: (menuShown: boolean) => void;
   }> &
     ComponentProps<'button'>;
 
@@ -41,6 +42,7 @@ export const CompositeButton = forwardRef<
     ToggleMenuButton = DefaultToggleMenuButton,
     variant,
     onClick,
+    onMenuToggle,
     ...restButtonProps
   },
   ref,
@@ -79,6 +81,7 @@ export const CompositeButton = forwardRef<
             offset={menuOffset}
             placement={menuPlacement}
             ToggleButton={ToggleMenuButton}
+            onToggle={onMenuToggle}
           >
             {isComponentType(Menu) ? <Menu /> : Menu}
           </MenuToggle>

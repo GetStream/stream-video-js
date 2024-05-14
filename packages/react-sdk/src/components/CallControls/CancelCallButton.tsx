@@ -63,6 +63,7 @@ const CancelCallToggleMenuButton = forwardRef<
 
 export type CancelCallButtonProps = {
   disabled?: boolean;
+  caption?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   onLeave?: () => void;
 };
@@ -106,6 +107,7 @@ export const CancelCallConfirmButton = ({
 
 export const CancelCallButton = ({
   disabled,
+  caption,
   onClick,
   onLeave,
 }: CancelCallButtonProps) => {
@@ -127,7 +129,7 @@ export const CancelCallButton = ({
       disabled={disabled}
       icon="call-end"
       variant="danger"
-      title={t('Leave call')}
+      title={caption ?? t('Leave call')}
       data-testid="cancel-call-button"
       onClick={handleClick}
     />

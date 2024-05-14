@@ -61,7 +61,7 @@ export const ToggleAudioPreviewButton = (
 
 export type ToggleAudioPublishingButtonProps = Pick<
   IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement'
+  'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
 >;
 
 export const ToggleAudioPublishingButton = (
@@ -99,7 +99,7 @@ export const ToggleAudioPublishingButton = (
               ? t('You have no permission to share your audio')
               : !hasBrowserPermission
               ? t('Check your browser mic permissions')
-              : caption || t('Mic')
+              : caption ?? t('Mic')
           }
           variant="secondary"
           disabled={!hasBrowserPermission || !hasPermission}
