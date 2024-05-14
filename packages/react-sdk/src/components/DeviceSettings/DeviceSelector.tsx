@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
+import { useMenuContext } from '../Menu';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -64,6 +65,8 @@ const DeviceSelectorList = (props: {
     onChange,
   } = props;
 
+  const { close } = useMenuContext();
+
   // sometimes the browser (Chrome) will report the system-default device
   // with an id of 'default'. In case when it doesn't, we'll select the first
   // available device.
@@ -100,6 +103,7 @@ const DeviceSelectorList = (props: {
               key={device.deviceId}
               onChange={(e) => {
                 onChange?.(e.target.value);
+                close?.();
               }}
               name={type}
               selected={
