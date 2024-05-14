@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import clsx from 'clsx';
 
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
-import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
 
 import {
   MenuToggle,
