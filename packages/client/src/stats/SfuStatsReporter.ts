@@ -2,15 +2,14 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
-import { SdkType } from '../gen/video/sfu/models/models';
-import { flatten } from './utils';
+import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getWebRTCInfo, LocalClientDetailsType } from '../client-details';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
   clientDetails: LocalClientDetailsType;
   subscriber: Subscriber;
-  publisher: Publisher;
+  publisher?: Publisher;
 };
 
 export class SfuStatsReporter {
@@ -20,7 +19,7 @@ export class SfuStatsReporter {
 
   private readonly sfuClient: StreamSfuClient;
   private readonly subscriber: Subscriber;
-  private readonly publisher: Publisher;
+  private readonly publisher?: Publisher;
 
   private intervalId: NodeJS.Timeout | undefined;
   private readonly sdkName: string;
@@ -39,16 +38,8 @@ export class SfuStatsReporter {
 
     const { sdk, browser } = clientDetails;
 
-    this.sdkName =
-      sdk && sdk.type === SdkType.REACT
-        ? 'stream-react'
-        : sdk && sdk.type === SdkType.REACT_NATIVE
-        ? 'stream-react-native'
-        : 'stream-js';
-
-    this.sdkVersion = sdk
-      ? `${sdk.major}.${sdk.minor}.${sdk.patch}`
-      : '0.0.0-development';
+    this.sdkName = getSdkName(sdk);
+    this.sdkVersion = getSdkVersion(sdk);
 
     // The WebRTC version if passed from the SDK, it is taken else the browser info is sent.
     this.webRTCVersion =
@@ -60,7 +51,7 @@ export class SfuStatsReporter {
   private run = async () => {
     const [subscriberStats, publisherStats] = await Promise.all([
       this.subscriber.getStats().then(flatten).then(JSON.stringify),
-      this.publisher.getStats().then(flatten).then(JSON.stringify),
+      this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
     ]);
 
     await this.sfuClient.sendStats({

@@ -1001,7 +1001,10 @@ export class Call {
       });
     }
 
-    if (!this.publisher) {
+    // anonymous users can't publish anything hence, there is no need
+    // to create Publisher Peer Connection for them
+    const isAnonymous = this.streamClient.user?.type === 'anonymous';
+    if (!this.publisher && !isAnonymous) {
       const audioSettings = this.state.settings?.audio;
       const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
       const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
@@ -1020,6 +1023,7 @@ export class Call {
         subscriber: this.subscriber,
         publisher: this.publisher,
         state: this.state,
+        datacenter: this.sfuClient.edgeName,
       });
     }
 
@@ -1069,14 +1073,17 @@ export class Call {
       }
       if (isMigrating) {
         await this.subscriber.migrateTo(sfuClient, connectionConfig);
-        await this.publisher.migrateTo(sfuClient, connectionConfig);
+        await this.publisher?.migrateTo(sfuClient, connectionConfig);
       } else if (isReconnecting) {
         if (reconnected) {
           // update the SFU client instance on the subscriber and publisher
           this.subscriber.setSfuClient(sfuClient);
-          this.publisher.setSfuClient(sfuClient);
-          // and perform a full ICE restart on the publisher
-          await this.publisher.restartIce();
+          // publisher might not be there (anonymous users)
+          if (this.publisher) {
+            this.publisher.setSfuClient(sfuClient);
+            // and perform a full ICE restart on the publisher
+            await this.publisher.restartIce();
+          }
         } else if (previousSfuClient?.isFastReconnecting) {
           // reconnection wasn't possible, so we need to do a full rejoin
           return await reconnect('full', 're-attempting').catch((err) => {

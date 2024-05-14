@@ -1,5 +1,5 @@
 import { LocalClientDetailsType } from '../client-details';
-import { SdkType } from '../gen/video/sfu/models/models';
+import { Sdk, SdkType } from '../gen/video/sfu/models/models';
 
 /**
  * Flatten the stats report into an array of stats objects.
@@ -16,20 +16,24 @@ export const flatten = (report: RTCStatsReport) => {
 
 export const getSdkSignature = (clientDetails: LocalClientDetailsType) => {
   const { sdk, ...platform } = clientDetails;
-  const sdkName =
-    sdk && sdk.type === SdkType.REACT
-      ? 'stream-react'
-      : sdk && sdk.type === SdkType.REACT_NATIVE
-      ? 'stream-react-native'
-      : 'stream-js';
-
-  const sdkVersion = sdk
-    ? `${sdk.major}.${sdk.minor}.${sdk.patch}`
-    : '0.0.0-development';
+  const sdkName = getSdkName(sdk);
+  const sdkVersion = getSdkVersion(sdk);
 
   return {
     sdkName,
     sdkVersion,
     ...platform,
   };
+};
+
+export const getSdkName = (sdk: Sdk | undefined) => {
+  return sdk && sdk.type === SdkType.REACT
+    ? 'stream-react'
+    : sdk && sdk.type === SdkType.REACT_NATIVE
+    ? 'stream-react-native'
+    : 'stream-js';
+};
+
+export const getSdkVersion = (sdk: Sdk | undefined) => {
+  return sdk ? `${sdk.major}.${sdk.minor}.${sdk.patch}` : '0.0.0-development';
 };
