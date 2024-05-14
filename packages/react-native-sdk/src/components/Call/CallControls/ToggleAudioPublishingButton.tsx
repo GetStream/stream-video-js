@@ -23,7 +23,7 @@ export const ToggleAudioPublishingButton = ({
   onPressHandler,
 }: ToggleAudioPublishingButtonProps) => {
   const { useMicrophoneState } = useCallStateHooks();
-  const { isMute, microphone } = useMicrophoneState();
+  const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const {
     theme: { colors, toggleAudioPublishingButton },
@@ -41,10 +41,10 @@ export const ToggleAudioPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
-        color={!isMute ? colors.static_white : colors.overlay_dark}
+        color={!optimisticIsMute ? colors.static_white : colors.overlay_dark}
         style={toggleAudioPublishingButton}
       >
-        {!isMute ? (
+        {!optimisticIsMute ? (
           <Mic color={colors.static_black} />
         ) : (
           <MicOff color={colors.static_white} />

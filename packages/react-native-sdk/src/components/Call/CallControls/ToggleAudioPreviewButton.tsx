@@ -29,7 +29,7 @@ export const ToggleAudioPreviewButton = ({
     },
   } = useTheme();
   const { useMicrophoneState } = useCallStateHooks();
-  const { isMute, microphone } = useMicrophoneState();
+  const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const onPress = async () => {
     if (onPressHandler) {
@@ -42,17 +42,19 @@ export const ToggleAudioPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={!isMute ? colors.static_white : colors.static_black}
+      color={!optimisticIsMute ? colors.static_white : colors.static_black}
       size={buttonSizes.md}
       style={{
         container: {
-          shadowColor: !isMute ? colors.static_white : colors.static_black,
+          shadowColor: !optimisticIsMute
+            ? colors.static_white
+            : colors.static_black,
           ...toggleAudioPreviewButton.container,
         },
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >
-      {!isMute ? (
+      {!optimisticIsMute ? (
         <Mic color={colors.static_black} />
       ) : (
         <MicOff color={colors.static_white} />

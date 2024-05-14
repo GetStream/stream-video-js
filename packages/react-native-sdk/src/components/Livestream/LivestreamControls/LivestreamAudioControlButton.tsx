@@ -9,7 +9,7 @@ import { Mic, MicOff } from '../../../icons';
  */
 export const LivestreamAudioControlButton = () => {
   const { useMicrophoneState } = useCallStateHooks();
-  const { isMute, microphone } = useMicrophoneState();
+  const { optimisticIsMute, microphone } = useMicrophoneState();
   const {
     theme: {
       colors,
@@ -45,7 +45,7 @@ export const LivestreamAudioControlButton = () => {
           livestreamAudioControlButton.icon,
         ]}
       >
-        {!isMute ? (
+        {!optimisticIsMute ? (
           <Mic color={colors.static_white} />
         ) : (
           <MicOff color={colors.static_white} />

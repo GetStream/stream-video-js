@@ -23,7 +23,7 @@ export const ToggleVideoPublishingButton = ({
   onPressHandler,
 }: ToggleVideoPublishingButtonProps) => {
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { camera, isMute } = useCameraState();
+  const { camera, optimisticIsMute } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
@@ -45,9 +45,9 @@ export const ToggleVideoPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={!isMute ? colors.static_white : colors.overlay_dark}
+        color={!optimisticIsMute ? colors.static_white : colors.overlay_dark}
       >
-        {!isMute ? (
+        {!optimisticIsMute ? (
           <Video color={colors.static_black} />
         ) : (
           <VideoSlash color={colors.static_white} />
