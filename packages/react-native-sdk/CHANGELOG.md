@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.3...@stream-io/video-react-native-sdk-0.7.4) (2024-05-14)
+
+
+### Bug Fixes
+
+* **react-native:** mute and unmute device media stream optimistically ([#1354](https://github.com/GetStream/stream-video-js/issues/1354)) ([72f5df4](https://github.com/GetStream/stream-video-js/commit/72f5df4abc63b8824b4c0a9f00b7ee5848ab83da))
+
 ### [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.2...@stream-io/video-react-native-sdk-0.7.3) (2024-05-14)
 
 ### Dependency Updates
