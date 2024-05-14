@@ -9,6 +9,7 @@ import {
   useConnectedUser,
   useI18n,
   VideoPreview,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 import Link from 'next/link';
@@ -129,9 +130,13 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                       }
                     />
                     <div className="rd__lobby-media-toggle">
-                      <ToggleAudioPreviewButton />
-                      {/* @ts-expect-error disable Menu */}
-                      <ToggleVideoPreviewButton Menu={null} />
+                      <WithTooltip title={t('Microphone')}>
+                        <ToggleAudioPreviewButton caption="" />
+                      </WithTooltip>
+                      <WithTooltip title={t('Camera')}>
+                        {/* @ts-expect-error disable Menu */}
+                        <ToggleVideoPreviewButton Menu={null} caption="" />
+                      </WithTooltip>
                     </div>
                   </div>
                   <div className="rd__lobby-controls">
