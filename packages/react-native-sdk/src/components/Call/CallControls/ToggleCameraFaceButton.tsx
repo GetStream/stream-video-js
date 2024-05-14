@@ -23,7 +23,7 @@ export const ToggleCameraFaceButton = ({
   onPressHandler,
 }: ToggleCameraFaceButtonProps) => {
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { camera, isMute, direction } = useCameraState();
+  const { camera, optimisticIsMute, direction } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
 
@@ -48,7 +48,7 @@ export const ToggleCameraFaceButton = ({
       <CallControlsButton
         onPress={onPress}
         color={direction === 'back' ? colors.overlay_dark : colors.static_white}
-        disabled={isMute}
+        disabled={optimisticIsMute}
         style={toggleCameraFaceButton}
       >
         <CameraSwitch

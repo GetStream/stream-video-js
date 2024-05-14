@@ -9,7 +9,7 @@ import { Video, VideoSlash } from '../../../icons';
  */
 export const LivestreamVideoControlButton = () => {
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { isMute, camera } = useCameraState();
+  const { optimisticIsMute, camera } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
@@ -41,33 +41,22 @@ export const LivestreamVideoControlButton = () => {
         livestreamVideoControlButton.container,
       ]}
     >
-      {!isMute ? (
-        <View
-          style={[
-            styles.icon,
-            {
-              height: iconSizes.sm,
-              width: iconSizes.sm,
-            },
-            livestreamVideoControlButton.icon,
-          ]}
-        >
+      <View
+        style={[
+          styles.icon,
+          {
+            height: iconSizes.sm,
+            width: iconSizes.sm,
+          },
+          livestreamVideoControlButton.icon,
+        ]}
+      >
+        {!optimisticIsMute ? (
           <Video color={colors.static_white} />
-        </View>
-      ) : (
-        <View
-          style={[
-            styles.icon,
-            {
-              height: iconSizes.sm,
-              width: iconSizes.sm,
-            },
-            livestreamVideoControlButton.icon,
-          ]}
-        >
+        ) : (
           <VideoSlash color={colors.static_white} />
-        </View>
-      )}
+        )}
+      </View>
     </Pressable>
   );
 };

@@ -31,7 +31,7 @@ export const ToggleVideoPreviewButton = ({
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
-  const { isMute, camera } = useCameraState();
+  const { optimisticIsMute, camera } = useCameraState();
   const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
@@ -47,17 +47,19 @@ export const ToggleVideoPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={!isMute ? colors.static_white : colors.static_black}
+      color={!optimisticIsMute ? colors.static_white : colors.static_black}
       size={buttonSizes.md}
       style={{
         container: {
-          shadowColor: !isMute ? colors.static_white : colors.static_black,
+          shadowColor: !optimisticIsMute
+            ? colors.static_white
+            : colors.static_black,
           ...toggleVideoPreviewButton.container,
         },
         svgContainer: toggleVideoPreviewButton.svgContainer,
       }}
     >
-      {!isMute ? (
+      {!optimisticIsMute ? (
         <Video color={colors.static_black} />
       ) : (
         <VideoSlash color={colors.static_white} />
