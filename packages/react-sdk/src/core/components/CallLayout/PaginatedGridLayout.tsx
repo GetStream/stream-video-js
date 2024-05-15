@@ -68,13 +68,16 @@ export type PaginatedGridLayoutProps = {
   pageArrowsVisible?: boolean;
 } & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
 
-export const PaginatedGridLayout = ({
-  groupSize = GROUP_SIZE,
-  excludeLocalParticipant = false,
-  pageArrowsVisible = true,
-  VideoPlaceholder,
-  ParticipantViewUI = DefaultParticipantViewUI,
-}: PaginatedGridLayoutProps) => {
+export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
+  const {
+    groupSize = (props.groupSize || 0) > 0
+      ? props.groupSize || GROUP_SIZE
+      : GROUP_SIZE,
+    excludeLocalParticipant = false,
+    pageArrowsVisible = true,
+    VideoPlaceholder,
+    ParticipantViewUI = DefaultParticipantViewUI,
+  } = props;
   const [page, setPage] = useState(0);
   const [
     paginatedGridLayoutWrapperElement,
