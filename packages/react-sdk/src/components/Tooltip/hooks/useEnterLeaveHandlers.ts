@@ -24,9 +24,5 @@ export const useEnterLeaveHandlers = <T extends HTMLElement>({
     [onMouseLeave],
   );
 
-  return {
-    handleMouseEnter,
-    handleMouseLeave,
-    tooltipVisible,
-  };
+  return { handleMouseEnter, handleMouseLeave, tooltipVisible };
 };

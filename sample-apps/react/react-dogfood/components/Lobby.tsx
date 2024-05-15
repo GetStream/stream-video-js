@@ -9,7 +9,6 @@ import {
   useConnectedUser,
   useI18n,
   VideoPreview,
-  WithTooltip,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 import Link from 'next/link';
