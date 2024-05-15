@@ -16,7 +16,7 @@ function setForegroundService() {
   });
 }
 
-async function startForegroundService() {
+async function startForegroundService(call_cid: string) {
   if (Platform.OS !== 'android') {
     return;
   }
@@ -34,6 +34,7 @@ async function startForegroundService() {
   }
   await notifee.createChannel(foregroundServiceConfig.android.channel);
   await notifee.displayNotification({
+    id: call_cid,
     title,
     body,
     android: {
@@ -77,7 +78,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   const callingState = useCallCallingState();
 
   useEffect((): (() => void) | undefined => {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' || !activeCallCid) {
       return;
     }
 
@@ -88,27 +89,35 @@ export const useAndroidKeepCallAliveEffect = () => {
           return;
         }
         // request for notification permission and then start the foreground service
-        await startForegroundService();
+        await startForegroundService(activeCallCid);
         foregroundServiceStartedRef.current = true;
       };
       run();
     } else if (callingState === CallingState.RINGING) {
       // cancel any notifee displayed notification when the call has transitioned out of ringing
       return () => {
-        if (activeCallCid) {
-          notifee.cancelDisplayedNotification(activeCallCid);
-        }
+        // cancels the non fg service notifications
+        notifee.cancelDisplayedNotification(activeCallCid);
       };
     } else if (
       callingState === CallingState.IDLE ||
       callingState === CallingState.LEFT
     ) {
-      if (!foregroundServiceStartedRef.current) {
-        return;
+      if (foregroundServiceStartedRef.current) {
+        // stop foreground service when the call is not active
+        stopForegroundService();
+        foregroundServiceStartedRef.current = false;
+      } else {
+        notifee.getDisplayedNotifications().then((displayedNotifications) => {
+          const activeCallNotification = displayedNotifications.find(
+            (notification) => notification.id === activeCallCid,
+          );
+          if (activeCallNotification) {
+            // this means that we have a incoming call notification shown as foreground service and we must stop it
+            notifee.stopForegroundService();
+          }
+        });
       }
-      // stop foreground service when the call is not active
-      stopForegroundService();
-      foregroundServiceStartedRef.current = false;
     }
   }, [activeCallCid, callingState]);
 
