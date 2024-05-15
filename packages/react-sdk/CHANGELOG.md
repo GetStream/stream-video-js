@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.4...@stream-io/video-react-sdk-1.0.5) (2024-05-15)
+
+
+### Bug Fixes
+
+* **grid:** guard against zero or negative group size ([#1355](https://github.com/GetStream/stream-video-js/issues/1355)) ([fd6d142](https://github.com/GetStream/stream-video-js/commit/fd6d1421b54d46cebd3ffbaf3d57afb0166133d2)), closes [#1293](https://github.com/GetStream/stream-video-js/issues/1293)
+
 ### [1.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.3...@stream-io/video-react-sdk-1.0.4) (2024-05-14)
 
 ### Dependency Updates
