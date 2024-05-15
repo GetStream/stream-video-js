@@ -34,7 +34,7 @@ export const ToggleAudioPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser audio permissions')
-          : caption || t('Mic')
+          : caption ?? t('Mic')
       }
       disabled={!hasBrowserPermission}
       data-testid={
