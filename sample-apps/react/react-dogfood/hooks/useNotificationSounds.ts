@@ -6,7 +6,7 @@ export function useNotificationSounds() {
   const call = useCall();
   // We don't want to play the sound when the user joins themself
   const isSelf = useCallback(
-    (userId: string) => userId !== call?.streamClient.userID,
+    (userId: string) => userId !== call?.currentUserId,
     [call],
   );
 
