@@ -143,6 +143,7 @@ export const MenuToggle = <E extends HTMLElement>({
                 left: x ?? 0,
                 overflowY: 'auto',
               }}
+              role="menu"
               children={children}
             />
           ) : null}

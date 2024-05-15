@@ -96,21 +96,12 @@ export const ToggleParticipantListButton = (
         </div>
       )}
       <WithTooltip title={t('Participants')}>
-        {({ hideTooltip }) => (
-          <CompositeButton
-            title="Participants"
-            {...props}
-            onClick={(event) => {
-              props.onClick?.(event);
-              hideTooltip();
-            }}
-          >
-            <Icon icon="participants" />
-            {participantCount > 1 && (
-              <span className="rd__participant-count">{participantCount}</span>
-            )}
-          </CompositeButton>
-        )}
+        <CompositeButton title="Participants" {...props}>
+          <Icon icon="participants" />
+          {participantCount > 1 && (
+            <span className="rd__participant-count">{participantCount}</span>
+          )}
+        </CompositeButton>
       </WithTooltip>
     </div>
   );

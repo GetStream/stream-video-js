@@ -25,17 +25,17 @@ export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
         function ToggleMenuButton(buttonProps, ref) {
           const { t } = useI18n();
           return (
-            <WithTooltip title={t('Layout')}>
-              {({ hideTooltip }) => (
-                <CompositeButton
-                  ref={ref}
-                  active={buttonProps.menuShown}
-                  variant="primary"
-                  onClick={hideTooltip}
-                >
-                  <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
-                </CompositeButton>
-              )}
+            <WithTooltip
+              title={t('Layout')}
+              tooltipDisabled={buttonProps.menuShown}
+            >
+              <CompositeButton
+                ref={ref}
+                active={buttonProps.menuShown}
+                variant="primary"
+              >
+                <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
+              </CompositeButton>
             </WithTooltip>
           );
         },

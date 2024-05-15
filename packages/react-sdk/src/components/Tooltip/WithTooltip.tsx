@@ -1,50 +1,33 @@
-import {
-  ComponentProps,
-  ReactNode,
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
+import { ComponentProps, useState } from 'react';
 import { Tooltip, TooltipProps } from './Tooltip';
 import { useEnterLeaveHandlers } from './hooks';
 
-type WithPopupProps = Omit<ComponentProps<'div'>, 'children'> &
+type WithPopupProps = ComponentProps<'div'> &
   Omit<TooltipProps<HTMLDivElement>, 'referenceElement' | 'children'> & {
-    children?: ReactNode | ((context: TooltipContextValue) => ReactNode);
+    tooltipDisabled?: boolean;
   };
-
-interface TooltipContextValue {
-  hideTooltip: () => void;
-}
-
-export const TooltipContext = createContext<TooltipContextValue>({
-  hideTooltip: () => {},
-});
 
 // todo: duplicate of CallParticipantList.tsx#MediaIndicator - refactor to a single component
 export const WithTooltip = ({
   title,
   tooltipClassName,
   tooltipPlacement,
-  children,
+  tooltipDisabled,
   ...props
 }: WithPopupProps) => {
-  const { handleMouseEnter, handleMouseLeave, tooltipVisible, forceHide } =
+  const { handleMouseEnter, handleMouseLeave, tooltipVisible } =
     useEnterLeaveHandlers<HTMLDivElement>();
   const [tooltipAnchor, setTooltipAnchor] = useState<HTMLDivElement | null>(
     null,
   );
-  const contextValue = useMemo<TooltipContextValue>(
-    () => ({ hideTooltip: forceHide }),
-    [forceHide],
-  );
+  const tooltipActuallyVisible =
+    !tooltipDisabled && Boolean(title) && tooltipVisible;
 
   return (
-    <TooltipContext.Provider value={contextValue}>
+    <>
       <Tooltip
         referenceElement={tooltipAnchor}
-        visible={Boolean(title) && tooltipVisible}
+        visible={tooltipActuallyVisible}
         tooltipClassName={tooltipClassName}
         tooltipPlacement={tooltipPlacement}
       >
@@ -55,13 +38,7 @@ export const WithTooltip = ({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}
-      >
-        {typeof children === 'function' ? children(contextValue) : children}
-      </div>
-    </TooltipContext.Provider>
+      />
+    </>
   );
 };
-
-export function useTooltipContext() {
-  return useContext(TooltipContext);
-}

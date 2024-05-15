@@ -238,20 +238,17 @@ export const ActiveCall = (props: ActiveCallProps) => {
             {isPronto && (
               <div className="str-video__call-controls__desktop">
                 <WithTooltip title={t('Closed Captions')}>
-                  {({ hideTooltip }) => (
-                    <CompositeButton
-                      active={showClosedCaptions}
-                      variant="primary"
-                      onClick={() => {
-                        setSidebarContent(
-                          showClosedCaptions ? null : 'closed-captions',
-                        );
-                        hideTooltip();
-                      }}
-                    >
-                      <Icon icon="closed-captions" />
-                    </CompositeButton>
-                  )}
+                  <CompositeButton
+                    active={showClosedCaptions}
+                    variant="primary"
+                    onClick={() => {
+                      setSidebarContent(
+                        showClosedCaptions ? null : 'closed-captions',
+                      );
+                    }}
+                  >
+                    <Icon icon="closed-captions" />
+                  </CompositeButton>
                 </WithTooltip>
               </div>
             )}
@@ -287,24 +284,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
             >
               <div className="str-chat__chat-button__wrapper">
                 <WithTooltip title={t('Chat')}>
-                  {({ hideTooltip }) => (
-                    <CompositeButton
-                      active={showChat}
-                      disabled={!chatClient}
-                      onClick={() => {
-                        if (
-                          isTourActive &&
-                          currentTourStep === StepNames.Chat
-                        ) {
-                          nextTourStep();
-                        }
-                        setSidebarContent(showChat ? null : 'chat');
-                        hideTooltip();
-                      }}
-                    >
-                      <Icon icon="chat" />
-                    </CompositeButton>
-                  )}
+                  <CompositeButton
+                    active={showChat}
+                    disabled={!chatClient}
+                    onClick={() => {
+                      if (isTourActive && currentTourStep === StepNames.Chat) {
+                        nextTourStep();
+                      }
+                      setSidebarContent(showChat ? null : 'chat');
+                    }}
+                  >
+                    <Icon icon="chat" />
+                  </CompositeButton>
                 </WithTooltip>
                 {!showChat && (
                   <UnreadCountBadge
