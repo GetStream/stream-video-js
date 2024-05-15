@@ -1,29 +1,35 @@
 import { useCall } from '@stream-io/video-react-sdk';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { beep } from '../lib/beeper';
 
 export function useNotificationSounds() {
   const call = useCall();
+  // We don't want to play the sound when the user joins themself
+  const isSelf = useCallback(
+    (userId: string) => userId !== call?.streamClient.userID,
+    [call],
+  );
 
   useEffect(() => {
     if (!call) {
       return;
     }
 
-    const usubscribers: Array<() => void> = [];
-    usubscribers.push(
-      call.on('call.session_participant_joined', (event) => {
-        if (event.participant.user.id !== call.streamClient.userID) {
-          beep('/beeps/joined.mp3');
-        }
-      }),
-      call.on('call.session_participant_left', (event) => {
-        if (event.participant.user.id !== call.streamClient.userID) {
-          beep('/beeps/left.mp3');
-        }
-      }),
-    );
+    const unlistenJoin = call.on('call.session_participant_joined', (event) => {
+      if (!isSelf(event.participant.user.id)) {
+        beep('/beeps/joined.mp3');
+      }
+    });
 
-    return () => usubscribers.forEach((unsubscribe) => unsubscribe());
-  });
+    const unlistenLeft = call.on('call.session_participant_left', (event) => {
+      if (!isSelf(event.participant.user.id)) {
+        beep('/beeps/left.mp3');
+      }
+    });
+
+    return () => {
+      unlistenJoin();
+      unlistenLeft();
+    };
+  }, [call, isSelf]);
 }
