@@ -1,0 +1,74 @@
+---
+id: participant-notification-sound
+title: Participant Notification Sound
+---
+
+It's a common practice to give users a sound indication that a participant has joined or left their call. Fortunately it's very easy to do this since the SDK will fire [events](../../advanced/events/#call-events) indicating that someone has joined or left a call. All we need to do is subscribe to these events.
+
+But first, let's implement a helper function that will play a sound for us. We'll use the [`Audio` constructor](https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement/Audio) to create an off-screen `HTMLAudioElement` for each sound we want to play. We'll cache these audio elements so they don't have to be recreated each time we play a sound.
+
+```ts
+const audioCache = new Map<string, () => Promise<void>>();
+
+async function playSoundFromUrl(url: string) {
+  let doPlay = audioCache.get(url);
+
+  if (!doPlay) {
+    // Wait for an audio file to load
+    const canPlayPromise = new Promise<HTMLAudioElement>((resolve) => {
+      const audio = new Audio(url);
+      audio.addEventListener('canplaythrough', () => resolve(audio), {
+        once: true,
+      });
+    });
+
+    doPlay = async () => {
+      const audio = await canPlayPromise;
+      await audio.play();
+    };
+
+    // Save to cache
+    audioCache.set(url, doPlay);
+  }
+
+  await doPlay();
+}
+```
+
+Now it's just a matter of subscribing to the `call.session_participant_joined` and `call.session_participant_left` events. We can do this from a custom hook:
+
+```ts
+function useNotificationSounds() {
+  const call = useCall();
+  // We don't want to play the sound when the user joins themself
+  const isSelf = useCallback(
+    (userId: string) => userId !== call?.currentUserId,
+    [call],
+  );
+
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+
+    const unlistenJoin = call.on('call.session_participant_joined', (event) => {
+      if (!isSelf(event.participant.user.id)) {
+        playSoundFromUrl('joined.mp3');
+      }
+    });
+
+    const unlistenLeft = call.on('call.session_participant_left', (event) => {
+      if (!isSelf(event.participant.user.id)) {
+        playSoundFromUrl('left.mp3');
+      }
+    });
+
+    return () => {
+      unlistenJoin();
+      unlistenLeft();
+    };
+  }, [call, isSelf]);
+}
+```
+
+And that's all there is to it! Add this custom hook anywhere in a call UI (inside `<StreamCall>`), and you'll get notification sounds when participants join and leave.
