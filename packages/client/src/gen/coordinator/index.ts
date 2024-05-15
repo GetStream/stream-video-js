@@ -2736,6 +2736,12 @@ export interface GetCallStatsResponse {
   call_duration_seconds: number;
   /**
    *
+   * @type {string}
+   * @memberof GetCallStatsResponse
+   */
+  call_status: string;
+  /**
+   *
    * @type {CallTimeline}
    * @memberof GetCallStatsResponse
    */
@@ -3246,6 +3252,37 @@ export interface Location {
 /**
  *
  * @export
+ * @interface MediaPubSubHint
+ */
+export interface MediaPubSubHint {
+  /**
+   *
+   * @type {boolean}
+   * @memberof MediaPubSubHint
+   */
+  audio_published: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof MediaPubSubHint
+   */
+  audio_subscribed: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof MediaPubSubHint
+   */
+  video_published: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof MediaPubSubHint
+   */
+  video_subscribed: boolean;
+}
+/**
+ *
+ * @export
  * @interface MemberRequest
  */
 export interface MemberRequest {
@@ -3316,6 +3353,37 @@ export interface MemberResponse {
    * @memberof MemberResponse
    */
   user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface MOSStats
+ */
+export interface MOSStats {
+  /**
+   *
+   * @type {number}
+   * @memberof MOSStats
+   */
+  average_score: number;
+  /**
+   *
+   * @type {Array<number>}
+   * @memberof MOSStats
+   */
+  histogram_duration_seconds: Array<number>;
+  /**
+   *
+   * @type {number}
+   * @memberof MOSStats
+   */
+  max_score: number;
+  /**
+   *
+   * @type {number}
+   * @memberof MOSStats
+   */
+  min_score: number;
 }
 /**
  *
@@ -3598,6 +3666,31 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface PublishedTrackInfo
+ */
+export interface PublishedTrackInfo {
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackInfo
+   */
+  codec_mime_type?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof PublishedTrackInfo
+   */
+  duration_seconds?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackInfo
+   */
+  track_type?: string;
 }
 /**
  *
@@ -5022,6 +5115,12 @@ export interface UserSessionStats {
    * @type {number}
    * @memberof UserSessionStats
    */
+  distance_to_sfu_kilometers?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
   freeze_duration_seconds: number;
   /**
    *
@@ -5047,6 +5146,18 @@ export interface UserSessionStats {
    * @memberof UserSessionStats
    */
   max_fir_per_second?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  max_freeze_fraction: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  max_freezes_duration_seconds: number;
   /**
    *
    * @type {number}
@@ -5097,6 +5208,62 @@ export interface UserSessionStats {
   packet_loss_fraction: number;
   /**
    *
+   * @type {MediaPubSubHint}
+   * @memberof UserSessionStats
+   */
+  pub_sub_hints?: MediaPubSubHint;
+  /**
+   *
+   * @type {Array<PublishedTrackInfo>}
+   * @memberof UserSessionStats
+   */
+  published_tracks?: Array<PublishedTrackInfo>;
+  /**
+   *
+   * @type {MOSStats}
+   * @memberof UserSessionStats
+   */
+  publisher_audio_mos?: MOSStats;
+  /**
+   *
+   * @type {Stats}
+   * @memberof UserSessionStats
+   */
+  publisher_jitter?: Stats;
+  /**
+   *
+   * @type {Stats}
+   * @memberof UserSessionStats
+   */
+  publisher_latency?: Stats;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  publisher_noise_cancellation_seconds?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  publisher_packet_loss_fraction: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  publisher_quality_limitation_fraction?: number;
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof UserSessionStats
+   */
+  publisher_video_quality_limitation_duration_seconds?: {
+    [key: string]: number;
+  };
+  /**
+   *
    * @type {string}
    * @memberof UserSessionStats
    */
@@ -5107,6 +5274,12 @@ export interface UserSessionStats {
    * @memberof UserSessionStats
    */
   publishing_duration_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  publishing_video_codec?: string;
   /**
    *
    * @type {number}
@@ -5130,6 +5303,12 @@ export interface UserSessionStats {
    * @type {string}
    * @memberof UserSessionStats
    */
+  receiving_video_codec?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
   sdk?: string;
   /**
    *
@@ -5143,6 +5322,30 @@ export interface UserSessionStats {
    * @memberof UserSessionStats
    */
   session_id: string;
+  /**
+   *
+   * @type {MOSStats}
+   * @memberof UserSessionStats
+   */
+  subscriber_audio_mos?: MOSStats;
+  /**
+   *
+   * @type {Stats}
+   * @memberof UserSessionStats
+   */
+  subscriber_jitter?: Stats;
+  /**
+   *
+   * @type {Stats}
+   * @memberof UserSessionStats
+   */
+  subscriber_latency?: Stats;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  subscriber_video_quality_throttled_duration_seconds?: number;
   /**
    *
    * @type {Array<Subsession>}
@@ -5179,6 +5382,11 @@ export interface UserSessionStats {
  * @export
  * @interface UserStats
  */
+/**
+ *
+ * @export
+ * @interface UserStats
+ */
 export interface UserStats {
   /**
    *
@@ -5186,6 +5394,12 @@ export interface UserStats {
    * @memberof UserStats
    */
   info: UserInfoResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof UserStats
+   */
+  rating?: number;
   /**
    *
    * @type {Array<UserSessionStats>}
