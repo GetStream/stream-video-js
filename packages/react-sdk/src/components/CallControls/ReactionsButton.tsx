@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import clsx from 'clsx';
 
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
-import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
 import {
   MenuToggle,
@@ -13,7 +13,7 @@ import {
 import { CompositeButton } from '../Button';
 import { defaultEmojiReactionMap } from '../Reaction';
 import { Icon } from '../Icon';
-import { useTooltipContext } from '../Tooltip';
+import { WithTooltip } from '../Tooltip';
 
 export const defaultReactions: StreamReaction[] = [
   {
@@ -50,14 +50,12 @@ export interface ReactionsButtonProps {
 export const ReactionsButton = ({
   reactions = defaultReactions,
 }: ReactionsButtonProps) => {
-  const { hideTooltip } = useTooltipContext();
   return (
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <MenuToggle
         placement="top"
         ToggleButton={ToggleReactionsMenuButton}
         visualType={MenuVisualType.MENU}
-        onToggle={(menuShown) => menuShown && hideTooltip?.()}
       >
         <DefaultReactionsMenu reactions={reactions} />
       </MenuToggle>
@@ -69,10 +67,20 @@ const ToggleReactionsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleReactionsMenuButton({ menuShown }, ref) {
+  const { t } = useI18n();
   return (
-    <CompositeButton ref={ref} active={menuShown} variant="primary">
-      <Icon icon="reactions" />
-    </CompositeButton>
+    <WithTooltip title={t('Reactions')}>
+      {({ hideTooltip }) => (
+        <CompositeButton
+          ref={ref}
+          active={menuShown}
+          variant="primary"
+          onClick={hideTooltip}
+        >
+          <Icon icon="reactions" />
+        </CompositeButton>
+      )}
+    </WithTooltip>
   );
 });
 

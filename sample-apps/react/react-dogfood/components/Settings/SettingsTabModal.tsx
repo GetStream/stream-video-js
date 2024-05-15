@@ -20,7 +20,7 @@ import {
   ToggleMenuButtonProps,
   useI18n,
   useMenuContext,
-  useTooltipContext,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
@@ -195,10 +195,13 @@ const ToggleSettingsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleSettingsMenuButton(props, ref) {
+  const { t } = useI18n();
   return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <Icon icon="device-settings" />
-    </CompositeButton>
+    <WithTooltip title={t('Settings')}>
+      <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+        <Icon icon="device-settings" />
+      </CompositeButton>
+    </WithTooltip>
   );
 });
 
@@ -206,13 +209,11 @@ export const ToggleSettingsTabModal = (props: {
   tabModalProps: ToggleSettingsTabModalProps;
   layoutProps: LayoutSelectorProps;
 }) => {
-  const { hideTooltip } = useTooltipContext();
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleSettingsMenuButton}
       visualType={MenuVisualType.PORTAL}
-      onToggle={(menuShown) => menuShown && hideTooltip?.()}
     >
       <SettingsTabModalMenu {...props} />
     </MenuToggle>

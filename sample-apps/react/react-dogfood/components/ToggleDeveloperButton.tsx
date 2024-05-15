@@ -6,7 +6,8 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useTooltipContext,
+  WithTooltip,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { DevMenu } from './DevMenu';
@@ -15,21 +16,29 @@ export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleMenuButton(props, ref) {
+  const { t } = useI18n();
   return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <Icon icon="developer" />
-    </CompositeButton>
+    <WithTooltip title={t('Dev Settings')}>
+      {({ hideTooltip }) => (
+        <CompositeButton
+          ref={ref}
+          active={props.menuShown}
+          variant="primary"
+          onClick={hideTooltip}
+        >
+          <Icon icon="developer" />
+        </CompositeButton>
+      )}
+    </WithTooltip>
   );
 });
 
 export const ToggleDeveloperButton = () => {
-  const { hideTooltip } = useTooltipContext();
   return (
     <MenuToggle
-      placement="top-end"
+      placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
-      onToggle={(menuShown) => menuShown && hideTooltip?.()}
     >
       <DevMenu />
     </MenuToggle>

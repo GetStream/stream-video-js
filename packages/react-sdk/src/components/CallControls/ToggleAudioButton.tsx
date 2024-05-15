@@ -10,6 +10,7 @@ import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
+import { WithTooltip } from '../Tooltip';
 
 export type ToggleAudioPreviewButtonProps = Pick<
   IconButtonWithMenuProps,
@@ -26,36 +27,44 @@ export const ToggleAudioPreviewButton = (
     useMicrophoneState();
 
   return (
-    <CompositeButton
-      active={optimisticIsMute}
-      caption={caption}
-      className={clsx(!hasBrowserPermission && 'str-video__device-unavailable')}
-      variant="secondary"
+    <WithTooltip
       title={
         !hasBrowserPermission
           ? t('Check your browser audio permissions')
           : caption ?? t('Mic')
       }
-      disabled={!hasBrowserPermission}
-      data-testid={
-        optimisticIsMute
-          ? 'preview-audio-unmute-button'
-          : 'preview-audio-mute-button'
-      }
-      onClick={() => microphone.toggle()}
-      Menu={Menu}
-      menuPlacement={menuPlacement}
-      {...restCompositeButtonProps}
     >
-      <Icon icon={!optimisticIsMute ? 'mic' : 'mic-off'} />
-      {!hasBrowserPermission && (
-        <span
-          className="str-video__no-media-permission"
-          title={t('Check your browser audio permissions')}
-          children="!"
-        />
+      {({ hideTooltip }) => (
+        <CompositeButton
+          active={optimisticIsMute}
+          caption={caption}
+          className={clsx(
+            !hasBrowserPermission && 'str-video__device-unavailable',
+          )}
+          variant="secondary"
+          disabled={!hasBrowserPermission}
+          data-testid={
+            optimisticIsMute
+              ? 'preview-audio-unmute-button'
+              : 'preview-audio-mute-button'
+          }
+          onClick={() => microphone.toggle()}
+          Menu={Menu}
+          menuPlacement={menuPlacement}
+          onMenuToggle={(shown) => shown && hideTooltip()}
+          {...restCompositeButtonProps}
+        >
+          <Icon icon={!optimisticIsMute ? 'mic' : 'mic-off'} />
+          {!hasBrowserPermission && (
+            <span
+              className="str-video__no-media-permission"
+              title={t('Check your browser audio permissions')}
+              children="!"
+            />
+          )}
+        </CompositeButton>
       )}
-    </CompositeButton>
+    </WithTooltip>
   );
 };
 
@@ -91,9 +100,7 @@ export const ToggleAudioPublishingButton = (
         messageAwaitingApproval={t('Awaiting for an approval to speak.')}
         messageRevoked={t('You can no longer speak.')}
       >
-        <CompositeButton
-          active={optimisticIsMute}
-          caption={caption}
+        <WithTooltip
           title={
             !hasPermission
               ? t('You have no permission to share your audio')
@@ -101,28 +108,36 @@ export const ToggleAudioPublishingButton = (
               ? t('Check your browser mic permissions')
               : caption ?? t('Mic')
           }
-          variant="secondary"
-          disabled={!hasBrowserPermission || !hasPermission}
-          data-testid={
-            optimisticIsMute ? 'audio-unmute-button' : 'audio-mute-button'
-          }
-          onClick={async () => {
-            if (!hasPermission) {
-              await requestPermission();
-            } else {
-              await microphone.toggle();
-            }
-          }}
-          Menu={Menu}
-          menuPlacement={menuPlacement}
-          menuOffset={16}
-          {...restCompositeButtonProps}
         >
-          <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
-          {(!hasBrowserPermission || !hasPermission) && (
-            <span className="str-video__no-media-permission">!</span>
+          {({ hideTooltip }) => (
+            <CompositeButton
+              active={optimisticIsMute}
+              caption={caption}
+              variant="secondary"
+              disabled={!hasBrowserPermission || !hasPermission}
+              data-testid={
+                optimisticIsMute ? 'audio-unmute-button' : 'audio-mute-button'
+              }
+              onClick={async () => {
+                if (!hasPermission) {
+                  await requestPermission();
+                } else {
+                  await microphone.toggle();
+                }
+              }}
+              Menu={Menu}
+              menuPlacement={menuPlacement}
+              menuOffset={16}
+              onMenuToggle={(shown) => shown && hideTooltip()}
+              {...restCompositeButtonProps}
+            >
+              <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
+              {(!hasBrowserPermission || !hasPermission) && (
+                <span className="str-video__no-media-permission">!</span>
+              )}
+            </CompositeButton>
           )}
-        </CompositeButton>
+        </WithTooltip>
       </PermissionNotification>
     </Restricted>
   );

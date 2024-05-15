@@ -6,7 +6,8 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useTooltipContext,
+  WithTooltip,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -18,19 +19,24 @@ import { LayoutMap } from '../hooks';
 
 export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
   const { onMenuItemClick, selectedLayout } = props;
-  const { hideTooltip } = useTooltipContext();
   const ToggleMenuButtonComponent = useMemo(
     () =>
       forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
         function ToggleMenuButton(buttonProps, ref) {
+          const { t } = useI18n();
           return (
-            <CompositeButton
-              ref={ref}
-              active={buttonProps.menuShown}
-              variant="primary"
-            >
-              <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
-            </CompositeButton>
+            <WithTooltip title={t('Layout')}>
+              {({ hideTooltip }) => (
+                <CompositeButton
+                  ref={ref}
+                  active={buttonProps.menuShown}
+                  variant="primary"
+                  onClick={hideTooltip}
+                >
+                  <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
+                </CompositeButton>
+              )}
+            </WithTooltip>
           );
         },
       ),
@@ -39,10 +45,9 @@ export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
 
   return (
     <MenuToggle
-      placement="top-end"
+      placement="top-start"
       ToggleButton={ToggleMenuButtonComponent}
       visualType={MenuVisualType.MENU}
-      onToggle={(menuShown) => menuShown && hideTooltip?.()}
     >
       <LayoutSelector
         visualType={LayoutSelectorType.LIST}

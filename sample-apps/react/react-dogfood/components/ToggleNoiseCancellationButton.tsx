@@ -1,6 +1,7 @@
 import {
   CompositeButton,
   Icon,
+  WithTooltip,
   useNoiseCancellation,
 } from '@stream-io/video-react-sdk';
 
@@ -8,13 +9,16 @@ export const ToggleNoiseCancellationButton = () => {
   const { isSupported, isEnabled, setEnabled } = useNoiseCancellation();
   if (!isSupported) return null;
   return (
-    <CompositeButton
-      active={isEnabled}
-      onClick={() => setEnabled((v) => !v)}
-      variant="primary"
+    <WithTooltip
       title={`Noise cancellation is ${isEnabled ? 'active' : 'inactive'}`}
     >
-      <Icon icon="anc" />
-    </CompositeButton>
+      <CompositeButton
+        active={isEnabled}
+        onClick={() => setEnabled((v) => !v)}
+        variant="primary"
+      >
+        <Icon icon="anc" />
+      </CompositeButton>
+    </WithTooltip>
   );
 };

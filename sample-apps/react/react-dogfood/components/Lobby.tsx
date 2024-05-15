@@ -130,13 +130,9 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                       }
                     />
                     <div className="rd__lobby-media-toggle">
-                      <WithTooltip title={t('Microphone')}>
-                        <ToggleAudioPreviewButton caption="" />
-                      </WithTooltip>
-                      <WithTooltip title={t('Camera')}>
-                        {/* @ts-expect-error disable Menu */}
-                        <ToggleVideoPreviewButton Menu={null} caption="" />
-                      </WithTooltip>
+                      <ToggleAudioPreviewButton />
+                      {/* @ts-expect-error disable Menu */}
+                      <ToggleVideoPreviewButton Menu={null} />
                     </div>
                   </div>
                   <div className="rd__lobby-controls">

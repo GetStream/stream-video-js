@@ -10,6 +10,7 @@ import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
+import { WithTooltip } from '../Tooltip';
 
 export type ToggleVideoPreviewButtonProps = Pick<
   IconButtonWithMenuProps,
@@ -30,36 +31,44 @@ export const ToggleVideoPreviewButton = (
   const { camera, optimisticIsMute, hasBrowserPermission } = useCameraState();
 
   return (
-    <CompositeButton
-      active={optimisticIsMute}
-      caption={caption}
-      className={clsx(!hasBrowserPermission && 'str-video__device-unavailable')}
+    <WithTooltip
       title={
         !hasBrowserPermission
           ? t('Check your browser video permissions')
           : caption ?? t('Video')
       }
-      variant="secondary"
-      data-testid={
-        optimisticIsMute
-          ? 'preview-video-unmute-button'
-          : 'preview-video-mute-button'
-      }
-      onClick={() => camera.toggle()}
-      disabled={!hasBrowserPermission}
-      Menu={Menu}
-      menuPlacement={menuPlacement}
-      {...restCompositeButtonProps}
     >
-      <Icon icon={!optimisticIsMute ? 'camera' : 'camera-off'} />
-      {!hasBrowserPermission && (
-        <span
-          className="str-video__no-media-permission"
-          title={t('Check your browser video permissions')}
-          children="!"
-        />
+      {({ hideTooltip }) => (
+        <CompositeButton
+          active={optimisticIsMute}
+          caption={caption}
+          className={clsx(
+            !hasBrowserPermission && 'str-video__device-unavailable',
+          )}
+          variant="secondary"
+          data-testid={
+            optimisticIsMute
+              ? 'preview-video-unmute-button'
+              : 'preview-video-mute-button'
+          }
+          onClick={() => camera.toggle()}
+          disabled={!hasBrowserPermission}
+          Menu={Menu}
+          menuPlacement={menuPlacement}
+          onMenuToggle={(shown) => shown && hideTooltip()}
+          {...restCompositeButtonProps}
+        >
+          <Icon icon={!optimisticIsMute ? 'camera' : 'camera-off'} />
+          {!hasBrowserPermission && (
+            <span
+              className="str-video__no-media-permission"
+              title={t('Check your browser video permissions')}
+              children="!"
+            />
+          )}
+        </CompositeButton>
       )}
-    </CompositeButton>
+    </WithTooltip>
   );
 };
 
@@ -98,10 +107,7 @@ export const ToggleVideoPublishingButton = (
         )}
         messageRevoked={t('You can no longer share your video.')}
       >
-        <CompositeButton
-          active={optimisticIsMute}
-          caption={caption}
-          variant="secondary"
+        <WithTooltip
           title={
             !hasPermission
               ? t('You have no permission to share your video')
@@ -111,31 +117,42 @@ export const ToggleVideoPublishingButton = (
               ? t('Video publishing is disabled by the system')
               : caption || t('Video')
           }
-          disabled={
-            !hasBrowserPermission || !hasPermission || !isPublishingVideoAllowed
-          }
-          data-testid={
-            optimisticIsMute ? 'video-unmute-button' : 'video-mute-button'
-          }
-          onClick={async () => {
-            if (!hasPermission) {
-              await requestPermission();
-            } else {
-              await camera.toggle();
-            }
-          }}
-          Menu={Menu}
-          menuPlacement={menuPlacement}
-          menuOffset={16}
-          {...restCompositeButtonProps}
         >
-          <Icon icon={optimisticIsMute ? 'camera-off' : 'camera'} />
-          {(!hasBrowserPermission ||
-            !hasPermission ||
-            !isPublishingVideoAllowed) && (
-            <span className="str-video__no-media-permission">!</span>
+          {({ hideTooltip }) => (
+            <CompositeButton
+              active={optimisticIsMute}
+              caption={caption}
+              variant="secondary"
+              disabled={
+                !hasBrowserPermission ||
+                !hasPermission ||
+                !isPublishingVideoAllowed
+              }
+              data-testid={
+                optimisticIsMute ? 'video-unmute-button' : 'video-mute-button'
+              }
+              onClick={async () => {
+                if (!hasPermission) {
+                  await requestPermission();
+                } else {
+                  await camera.toggle();
+                }
+              }}
+              Menu={Menu}
+              menuPlacement={menuPlacement}
+              menuOffset={16}
+              onMenuToggle={(shown) => shown && hideTooltip()}
+              {...restCompositeButtonProps}
+            >
+              <Icon icon={optimisticIsMute ? 'camera-off' : 'camera'} />
+              {(!hasBrowserPermission ||
+                !hasPermission ||
+                !isPublishingVideoAllowed) && (
+                <span className="str-video__no-media-permission">!</span>
+              )}
+            </CompositeButton>
           )}
-        </CompositeButton>
+        </WithTooltip>
       </PermissionNotification>
     </Restricted>
   );

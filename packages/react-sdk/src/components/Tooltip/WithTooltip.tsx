@@ -1,19 +1,33 @@
-import { ComponentProps, createContext, useContext, useState } from 'react';
+import {
+  ComponentProps,
+  ReactNode,
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { Tooltip, TooltipProps } from './Tooltip';
 import { useEnterLeaveHandlers } from './hooks';
 
-type WithPopupProps = ComponentProps<'div'> &
-  Omit<TooltipProps<HTMLDivElement>, 'referenceElement'>;
+type WithPopupProps = Omit<ComponentProps<'div'>, 'children'> &
+  Omit<TooltipProps<HTMLDivElement>, 'referenceElement' | 'children'> & {
+    children?: ReactNode | ((context: TooltipContextValue) => ReactNode);
+  };
 
-export const TooltipContext = createContext<{
-  hideTooltip?: () => void;
-}>({});
+interface TooltipContextValue {
+  hideTooltip: () => void;
+}
+
+export const TooltipContext = createContext<TooltipContextValue>({
+  hideTooltip: () => {},
+});
 
 // todo: duplicate of CallParticipantList.tsx#MediaIndicator - refactor to a single component
 export const WithTooltip = ({
   title,
   tooltipClassName,
   tooltipPlacement,
+  children,
   ...props
 }: WithPopupProps) => {
   const { handleMouseEnter, handleMouseLeave, tooltipVisible, forceHide } =
@@ -21,12 +35,16 @@ export const WithTooltip = ({
   const [tooltipAnchor, setTooltipAnchor] = useState<HTMLDivElement | null>(
     null,
   );
+  const contextValue = useMemo<TooltipContextValue>(
+    () => ({ hideTooltip: forceHide }),
+    [forceHide],
+  );
 
   return (
-    <TooltipContext.Provider value={{ hideTooltip: forceHide }}>
+    <TooltipContext.Provider value={contextValue}>
       <Tooltip
         referenceElement={tooltipAnchor}
-        visible={tooltipVisible}
+        visible={Boolean(title) && tooltipVisible}
         tooltipClassName={tooltipClassName}
         tooltipPlacement={tooltipPlacement}
       >
@@ -37,7 +55,9 @@ export const WithTooltip = ({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}
-      />
+      >
+        {typeof children === 'function' ? children(contextValue) : children}
+      </div>
     </TooltipContext.Provider>
   );
 };

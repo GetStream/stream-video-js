@@ -6,6 +6,7 @@ import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 
 import { IconButton } from '../Button';
 import { Icon } from '../Icon';
+import { WithTooltip } from '../Tooltip';
 
 const EndCallMenu = (props: {
   onLeave: MouseEventHandler<HTMLButtonElement>;
@@ -51,13 +52,14 @@ const CancelCallToggleMenuButton = forwardRef<
 >(function CancelCallToggleMenuButton(props, ref) {
   const { t } = useI18n();
   return (
-    <IconButton
-      icon="call-end"
-      variant="danger"
-      title={t('Leave call')}
-      data-testid="leave-call-button"
-      ref={ref}
-    />
+    <WithTooltip title={t('Leave call')}>
+      <IconButton
+        icon="call-end"
+        variant="danger"
+        data-testid="leave-call-button"
+        ref={ref}
+      />
+    </WithTooltip>
   );
 });
 

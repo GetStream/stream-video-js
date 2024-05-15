@@ -197,147 +197,123 @@ export const ActiveCall = (props: ActiveCallProps) => {
           data-testid="str-video__call-controls"
         >
           <div className="str-video__call-controls--group str-video__call-controls--options">
-            <WithTooltip title={t('Settings')}>
-              <div className="str-video__call-controls__desktop">
-                <ToggleSettingsTabModal
-                  layoutProps={{
-                    selectedLayout: layout,
-                    onMenuItemClick: setLayout,
-                  }}
-                  tabModalProps={{
-                    inMeeting: true,
-                  }}
-                />
-              </div>
-            </WithTooltip>
-            <WithTooltip title={t('Feedback')}>
-              <div className="str-video__call-controls__desktop">
-                <ToggleFeedbackButton />
-              </div>
-            </WithTooltip>
+            <div className="str-video__call-controls__desktop">
+              <ToggleSettingsTabModal
+                layoutProps={{
+                  selectedLayout: layout,
+                  onMenuItemClick: setLayout,
+                }}
+                tabModalProps={{
+                  inMeeting: true,
+                }}
+              />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleFeedbackButton />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleLayoutButton
+                selectedLayout={layout}
+                onMenuItemClick={setLayout}
+              />
+            </div>
             {isPronto && (
-              <WithTooltip title="Dev Settings">
-                <div className="str-video__call-controls__desktop">
-                  <ToggleDeveloperButton />
-                </div>
-              </WithTooltip>
+              <div className="str-video__call-controls__desktop">
+                <ToggleDeveloperButton />
+              </div>
             )}
             <div className="str-video__call-controls__mobile">
               <ToggleMoreOptionsListButton />
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--media">
-            <WithTooltip title="Record Call">
-              <RecordCallConfirmationButton caption="" />
-            </WithTooltip>
-
-            <WithTooltip title="Share Screen">
+            <ToggleDualMicButton />
+            <ToggleDualCameraButton />
+            <div className="str-video__call-controls__desktop">
+              <ToggleEffectsButton />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleNoiseCancellationButton />
+            </div>
+            {isPronto && (
               <div className="str-video__call-controls__desktop">
-                <ScreenShareButton caption="" />
+                <WithTooltip title={t('Closed Captions')}>
+                  {({ hideTooltip }) => (
+                    <CompositeButton
+                      active={showClosedCaptions}
+                      variant="primary"
+                      onClick={() => {
+                        setSidebarContent(
+                          showClosedCaptions ? null : 'closed-captions',
+                        );
+                        hideTooltip();
+                      }}
+                    >
+                      <Icon icon="closed-captions" />
+                    </CompositeButton>
+                  )}
+                </WithTooltip>
               </div>
-            </WithTooltip>
-            <WithTooltip title={t('Effects')}>
-              <div className="str-video__call-controls__desktop">
-                <ToggleEffectsButton />
-              </div>
-            </WithTooltip>
-
-            <WithTooltip title="Noise Cancellation">
-              <div className="str-video__call-controls__desktop">
-                <ToggleNoiseCancellationButton />
-              </div>
-            </WithTooltip>
-
-            <WithTooltip title={t('Reactions')}>
-              <div className="str-video__call-controls__desktop">
-                <ReactionsButton />
-              </div>
-            </WithTooltip>
-
-            <WithTooltip title={t('Microphone')}>
-              <ToggleDualMicButton />
-            </WithTooltip>
-            <WithTooltip title={t('Camera')}>
-              <ToggleDualCameraButton />
-            </WithTooltip>
-            <WithTooltip title="End call">
-              <div className="str-video__call-controls__desktop">
-                <CancelCallConfirmButton caption="" onLeave={onLeave} />
-              </div>
-            </WithTooltip>
+            )}
+            <div className="str-video__call-controls__desktop">
+              <ReactionsButton />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ScreenShareButton />
+            </div>
+            <RecordCallConfirmationButton />
+            <div className="str-video__call-controls__desktop">
+              <CancelCallConfirmButton onLeave={onLeave} />
+            </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-            <WithTooltip title={t('Layout')}>
-              <div className="str-video__call-controls__desktop">
-                <ToggleLayoutButton
-                  selectedLayout={layout}
-                  onMenuItemClick={setLayout}
-                />
-              </div>
-            </WithTooltip>
-            {isPronto && (
-              <WithTooltip title="Closed Captions">
-                <div className="str-video__call-controls__desktop">
-                  <CompositeButton
-                    active={showClosedCaptions}
-                    variant="primary"
-                    onClick={() =>
-                      setSidebarContent(
-                        showClosedCaptions ? null : 'closed-captions',
-                      )
-                    }
-                  >
-                    <Icon icon="closed-captions" />
-                  </CompositeButton>
-                </div>
-              </WithTooltip>
-            )}
-            <WithTooltip title={t('Stats')}>
-              <div className="str-video__call-controls__desktop">
-                <ToggleStatsButton
-                  active={showStats}
-                  onClick={() => setSidebarContent(showStats ? null : 'stats')}
-                />
-              </div>
-            </WithTooltip>
-
-            <WithTooltip title={t('Participants')}>
-              <ToggleParticipantListButton
-                active={showParticipants}
-                caption=""
-                onClick={() => {
-                  setSidebarContent(showParticipants ? null : 'participants');
-                }}
+            <div className="str-video__call-controls__desktop">
+              <ToggleStatsButton
+                active={showStats}
+                onClick={() => setSidebarContent(showStats ? null : 'stats')}
               />
-            </WithTooltip>
+            </div>
+            <ToggleParticipantListButton
+              active={showParticipants}
+              caption=""
+              onClick={() => {
+                setSidebarContent(showParticipants ? null : 'participants');
+              }}
+            />
             <NewMessageNotification
               chatClient={chatClient}
               channelWatched={channelWatched}
               disableOnChatOpen={showChat}
             >
-              <WithTooltip title={t('Chat')}>
-                <div className="str-chat__chat-button__wrapper">
-                  <CompositeButton
-                    active={showChat}
-                    disabled={!chatClient}
-                    onClick={() => {
-                      if (isTourActive && currentTourStep === StepNames.Chat) {
-                        nextTourStep();
-                      }
-                      setSidebarContent(showChat ? null : 'chat');
-                    }}
-                  >
-                    <Icon icon="chat" />
-                  </CompositeButton>
-                  {!showChat && (
-                    <UnreadCountBadge
-                      channelWatched={channelWatched}
-                      chatClient={chatClient}
-                      channelId={activeCall.id}
-                    />
+              <div className="str-chat__chat-button__wrapper">
+                <WithTooltip title={t('Chat')}>
+                  {({ hideTooltip }) => (
+                    <CompositeButton
+                      active={showChat}
+                      disabled={!chatClient}
+                      onClick={() => {
+                        if (
+                          isTourActive &&
+                          currentTourStep === StepNames.Chat
+                        ) {
+                          nextTourStep();
+                        }
+                        setSidebarContent(showChat ? null : 'chat');
+                        hideTooltip();
+                      }}
+                    >
+                      <Icon icon="chat" />
+                    </CompositeButton>
                   )}
-                </div>
-              </WithTooltip>
+                </WithTooltip>
+                {!showChat && (
+                  <UnreadCountBadge
+                    channelWatched={channelWatched}
+                    chatClient={chatClient}
+                    channelId={activeCall.id}
+                  />
+                )}
+              </div>
             </NewMessageNotification>
           </div>
         </div>

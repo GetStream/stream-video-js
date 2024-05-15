@@ -6,29 +6,31 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useTooltipContext,
+  WithTooltip,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
+    const { t } = useI18n();
     return (
-      <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-        <Icon icon="feedback" />
-      </CompositeButton>
+      <WithTooltip title={t('Feedback')}>
+        <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+          <Icon icon="feedback" />
+        </CompositeButton>
+      </WithTooltip>
     );
   },
 );
 
 export const ToggleFeedbackButton = () => {
-  const { hideTooltip } = useTooltipContext();
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.PORTAL}
-      onToggle={(menuShown) => menuShown && hideTooltip?.()}
     >
       <Feedback />
     </MenuToggle>

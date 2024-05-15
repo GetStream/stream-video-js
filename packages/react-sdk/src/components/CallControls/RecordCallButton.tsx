@@ -12,6 +12,7 @@ import {
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { useToggleCallRecording } from '../../hooks';
+import { WithTooltip } from '../Tooltip';
 
 export type RecordCallButtonProps = {
   caption?: string;
@@ -89,6 +90,10 @@ export const RecordCallConfirmationButton = ({
     );
   }
 
+  const title = isAwaitingResponse
+    ? t('Waiting for recording to start...')
+    : caption ?? t('Record call');
+
   return (
     <Restricted
       requiredGrants={[
@@ -96,20 +101,21 @@ export const RecordCallConfirmationButton = ({
         OwnCapability.STOP_RECORD_CALL,
       ]}
     >
-      <CompositeButton
-        active={isCallRecordingInProgress}
-        caption={caption}
-        title={caption ?? t('Record call')}
-        variant="secondary"
-        data-testid="recording-start-button"
-        onClick={isAwaitingResponse ? undefined : toggleCallRecording}
-      >
-        {isAwaitingResponse ? (
-          <LoadingIndicator tooltip={t('Waiting for recording to start...')} />
-        ) : (
-          <Icon icon="recording-off" />
-        )}
-      </CompositeButton>
+      <WithTooltip title={title}>
+        <CompositeButton
+          active={isCallRecordingInProgress}
+          caption={caption}
+          variant="secondary"
+          data-testid="recording-start-button"
+          onClick={isAwaitingResponse ? undefined : toggleCallRecording}
+        >
+          {isAwaitingResponse ? (
+            <LoadingIndicator />
+          ) : (
+            <Icon icon="recording-off" />
+          )}
+        </CompositeButton>
+      </WithTooltip>
     </Restricted>
   );
 };
