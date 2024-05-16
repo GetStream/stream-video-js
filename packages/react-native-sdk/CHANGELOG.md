@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.4...@stream-io/video-react-native-sdk-0.7.5) (2024-05-16)
+
+
+### Features
+
+* add full screen incoming call view when phone is locked for android ([#1351](https://github.com/GetStream/stream-video-js/issues/1351)) ([54c9e0f](https://github.com/GetStream/stream-video-js/commit/54c9e0fb178a7ad37bb2db0c01f5bd507ef46ddf))
+
 ### [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.3...@stream-io/video-react-native-sdk-0.7.4) (2024-05-14)
 
 
