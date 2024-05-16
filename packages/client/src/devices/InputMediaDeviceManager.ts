@@ -439,5 +439,6 @@ export abstract class InputMediaDeviceManager<
   private resetStatusChangeRequest() {
     this.statusChangePromise = undefined;
     this.statusChangeAbortController = undefined;
+    this.state.setPendingStatus(this.state.status);
   }
 }
