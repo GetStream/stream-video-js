@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,
+  hasScreenShare,
+  hasVideo,
   SfuModels,
   VideoTrackType,
   VisibilityState,
@@ -11,7 +14,6 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { MediaStream } from '@stream-io/react-native-webrtc';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -59,18 +61,16 @@ export const VideoRenderer = ({
   const {
     isLocalParticipant,
     sessionId,
-    publishedTracks,
     viewportVisibilityState,
     videoStream,
     screenShareStream,
   } = participant;
 
   const isScreenSharing = trackType === 'screenShareTrack';
-  const isPublishingVideoTrack = publishedTracks.includes(
-    isScreenSharing
-      ? SfuModels.TrackType.SCREEN_SHARE
-      : SfuModels.TrackType.VIDEO,
-  );
+  const isPublishingVideoTrack = isScreenSharing
+    ? hasScreenShare(participant)
+    : hasVideo(participant);
+
   const hasJoinedCall = callingState === CallingState.JOINED;
   const videoStreamToRender = (isScreenSharing
     ? screenShareStream

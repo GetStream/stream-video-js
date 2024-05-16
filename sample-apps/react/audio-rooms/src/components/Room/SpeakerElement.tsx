@@ -1,8 +1,8 @@
 import {
   Audio,
   Avatar,
+  hasAudio,
   OwnCapability,
-  SfuModels,
   StreamVideoParticipant,
   useCall,
   useCallStateHooks,
@@ -23,9 +23,7 @@ export const SpeakerElement = ({
   if (!call) return null;
 
   const { hosts = [] } = (customData || {}) as CustomCallData;
-  const isAudioEnabled = speaker.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
+  const isAudioEnabled = hasAudio(speaker);
   const isSpeakerHost = hosts.find((host) => host.id === speaker.userId);
   const displayName = speaker.name || speaker.userId;
   return (

@@ -1,6 +1,7 @@
 import {
   Call,
-  SfuModels,
+  hasScreenShare,
+  hasScreenShareAudio,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 
@@ -82,9 +83,7 @@ const renderScreenShare = (
   participant: StreamVideoParticipant,
   screenShareContainer: HTMLElement,
 ) => {
-  const { publishedTracks } = participant;
-
-  if (publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE)) {
+  if (hasScreenShare(participant)) {
     const videoId = `screen-${participant.sessionId}`;
     let screenEl = document.getElementById(videoId) as HTMLVideoElement | null;
     if (!screenEl) {
@@ -118,7 +117,7 @@ const renderScreenShare = (
     }
   }
 
-  if (publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE_AUDIO)) {
+  if (hasScreenShareAudio(participant)) {
     const audioId = `screen-audio-${participant.sessionId}`;
     let audioEl = document.getElementById(audioId) as HTMLAudioElement | null;
     if (!audioEl) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
@@ -56,7 +56,8 @@ export const SpeakerLayout = ({
   const [buttonsWrapperElement, setButtonsWrapperElement] =
     useState<HTMLDivElement | null>(null);
 
-  const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
+  const isSpeakerScreenSharing =
+    participantInSpotlight && hasScreenShare(participantInSpotlight);
   const hardLimit = useCalculateHardLimit(
     buttonsWrapperElement,
     participantsBarElement,
@@ -247,6 +248,3 @@ const VerticalScrollButtons = <T extends HTMLElement>({
     </>
   );
 };
-
-const hasScreenShare = (p?: StreamVideoParticipant) =>
-  !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);

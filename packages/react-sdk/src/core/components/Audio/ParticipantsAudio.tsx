@@ -1,5 +1,9 @@
 import { ComponentProps, Fragment } from 'react';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  hasAudio,
+  hasScreenShareAudio,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { Audio } from './Audio';
 
 export type ParticipantsAudioProps = {
@@ -20,15 +24,10 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
     <>
       {participants.map((participant) => {
         if (participant.isLocalParticipant) return null;
-        const {
-          publishedTracks,
-          audioStream,
-          screenShareAudioStream,
-          sessionId,
-        } = participant;
+        const { audioStream, screenShareAudioStream, sessionId } = participant;
 
-        const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-        const audioTrackElement = hasAudio && audioStream && (
+        const hasAudioTrack = hasAudio(participant);
+        const audioTrackElement = hasAudioTrack && audioStream && (
           <Audio
             {...audioProps}
             trackType="audioTrack"
@@ -36,10 +35,8 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
           />
         );
 
-        const hasScreenShareAudio = publishedTracks.includes(
-          SfuModels.TrackType.SCREEN_SHARE_AUDIO,
-        );
-        const screenShareAudioTrackElement = hasScreenShareAudio &&
+        const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
+        const screenShareAudioTrackElement = hasScreenShareAudioTrack &&
           screenShareAudioStream && (
             <Audio
               {...audioProps}

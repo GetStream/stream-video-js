@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import { hasScreenShare, SfuModels } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
@@ -9,7 +9,6 @@ import {
   VideoRendererProps,
 } from '../../Participant';
 import { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
-import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 /**
  * Props for the LivestreamLayout component.
@@ -30,9 +29,6 @@ export type LivestreamLayoutProps = {
   ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
 };
 
-const hasScreenShare = (p?: StreamVideoParticipant) =>
-  p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
-
 /**
  * The LivestreamLayout component presents the live stream video layout.
  */
@@ -46,11 +42,12 @@ export const LivestreamLayout = ({
   const {
     theme: { colors, livestreamLayout },
   } = useTheme();
-  const [currentSpeaker, ...otherParticipants] = useParticipants();
+  const participants = useParticipants();
+  const [currentSpeaker] = participants;
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const presenter = hasOngoingScreenShare
-    ? hasScreenShare(currentSpeaker) && currentSpeaker
-    : otherParticipants.find(hasScreenShare);
+    ? participants.find(hasScreenShare)
+    : undefined;
 
   usePaginatedLayoutSortPreset(call);
 
@@ -64,12 +61,15 @@ export const LivestreamLayout = ({
     ? undefined
     : objectFit;
 
-  const onDimensionsChange = useCallback((d: VideoDimension | undefined) => {
-    if (d) {
-      const isWidthWide = d.width > d.height;
-      setObjectFit(isWidthWide ? 'contain' : 'cover');
-    }
-  }, []);
+  const onDimensionsChange = useCallback(
+    (d: SfuModels.VideoDimension | undefined) => {
+      if (d) {
+        const isWidthWide = d.width > d.height;
+        setObjectFit(isWidthWide ? 'contain' : 'cover');
+      }
+    },
+    [],
+  );
 
   const landScapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
@@ -109,9 +109,9 @@ export const LivestreamLayout = ({
 const RemoteVideoTrackDimensionsRenderLessComponent = ({
   onDimensionsChange,
 }: {
-  onDimensionsChange: (d: VideoDimension | undefined) => void;
+  onDimensionsChange: (d: SfuModels.VideoDimension | undefined) => void;
 }) => {
-  const [dimension, setDimension] = useState<VideoDimension>();
+  const [dimension, setDimension] = useState<SfuModels.VideoDimension>();
   const { useCallStatsReport } = useCallStateHooks();
   const statsReport = useCallStatsReport();
   const highestFrameHeight = statsReport?.subscriberStats?.highestFrameHeight;

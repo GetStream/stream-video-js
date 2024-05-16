@@ -7,7 +7,9 @@ import {
 } from 'react';
 import clsx from 'clsx';
 import {
-  SfuModels,
+  hasAudio,
+  hasScreenShareAudio,
+  hasVideo,
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
@@ -74,19 +76,12 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     },
     ref,
   ) {
-    const {
-      isLocalParticipant,
-      isSpeaking,
-      isDominantSpeaker,
-      publishedTracks,
-      sessionId,
-    } = participant;
+    const { isLocalParticipant, isSpeaking, isDominantSpeaker, sessionId } =
+      participant;
 
-    const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-    const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-    const hasScreenShareAudio = publishedTracks.includes(
-      SfuModels.TrackType.SCREEN_SHARE_AUDIO,
-    );
+    const hasAudioTrack = hasAudio(participant);
+    const hasVideoTrack = hasVideo(participant);
+    const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
     const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
       null,
@@ -147,8 +142,8 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           'str-video__participant-view',
           isDominantSpeaker && 'str-video__participant-view--dominant-speaker',
           isSpeaking && 'str-video__participant-view--speaking',
-          !hasVideo && 'str-video__participant-view--no-video',
-          !hasAudio && 'str-video__participant-view--no-audio',
+          !hasVideoTrack && 'str-video__participant-view--no-video',
+          !hasAudioTrack && 'str-video__participant-view--no-audio',
           className,
         )}
       >
@@ -156,10 +151,10 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           {/* mute the local participant, as we don't want to hear ourselves */}
           {!isLocalParticipant && !muteAudio && (
             <>
-              {hasAudio && (
+              {hasAudioTrack && (
                 <Audio participant={participant} trackType="audioTrack" />
               )}
-              {hasScreenShareAudio && (
+              {hasScreenShareAudioTrack && (
                 <Audio
                   participant={participant}
                   trackType="screenShareAudioTrack"

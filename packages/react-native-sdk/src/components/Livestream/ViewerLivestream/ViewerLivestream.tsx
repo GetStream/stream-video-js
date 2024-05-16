@@ -21,10 +21,7 @@ import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   FloatingParticipantViewProps,
 } from '../../Participant';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
-
-const hasVideoTrack = (p?: StreamVideoParticipant) =>
-  p?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+import { hasVideo } from '@stream-io/video-client';
 
 /**
  * Props for the ViewerLivestream component.
@@ -71,7 +68,10 @@ export const ViewerLivestream = ({
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const [currentSpeaker] = useParticipants();
   const floatingParticipant =
-    hasOngoingScreenShare && hasVideoTrack(currentSpeaker) && currentSpeaker;
+    hasOngoingScreenShare &&
+    currentSpeaker &&
+    hasVideo(currentSpeaker) &&
+    currentSpeaker;
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();

@@ -10,7 +10,7 @@ import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
-import { SfuModels } from '@stream-io/video-client';
+import { hasAudio, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -43,16 +43,15 @@ export const ParticipantLabel = ({
       },
     },
   } = useTheme();
-  const { name, userId, pin, publishedTracks, sessionId, isLocalParticipant } =
-    participant;
+  const { name, userId, pin, sessionId, isLocalParticipant } = participant;
   const call = useCall();
   const { t } = useI18n();
   const participantName = name ?? userId;
 
   const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
-  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isAudioMuted = !hasAudio(participant);
+  const isVideoMuted = !hasVideo(participant);
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);

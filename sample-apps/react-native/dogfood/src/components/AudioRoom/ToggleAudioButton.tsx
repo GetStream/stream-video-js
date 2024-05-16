@@ -1,6 +1,6 @@
 import {
+  hasAudio,
   OwnCapability,
-  SfuModels,
   useCall,
   useCallStateHooks,
   useConnectedUser,
@@ -14,9 +14,7 @@ export default function ToggleAudioButton() {
 
   const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
-  const isMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
+  const isMuted = localParticipant && !hasAudio(localParticipant);
   const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
     OwnCapability.SEND_AUDIO,

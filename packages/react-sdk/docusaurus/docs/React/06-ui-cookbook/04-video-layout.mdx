@@ -62,6 +62,13 @@ const { useParticipants } = useCallStateHooks();
 ```
 
 ```tsx
+import {
+  hasScreenShare,
+  useCall,
+  useCallStateHooks,
+  ParticipantView,
+} from '@stream-io/video-react-sdk';
+
 export const SpeakerView = () => {
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
@@ -95,10 +102,6 @@ export const SpeakerView = () => {
     </div>
   );
 };
-
-// utility to determine whether the participant in spotlight is sharing their screen
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 ```
 
 ### Sorting the participants
@@ -175,6 +178,13 @@ We can do that by calling the `call.setSortParticipantsBy()` method
 in a `useEffect` hook (see full code [here](https://github.com/GetStream/stream-video-js/blob/main/sample-apps/react/cookbook-participant-list/src/SpeakerView.tsx)):
 
 ```tsx
+import {
+  hasScreenShare,
+  useCall,
+  useCallStateHooks,
+  ParticipantView,
+} from '@stream-io/video-react-sdk';
+
 export const SpeakerView = () => {
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
@@ -218,10 +228,6 @@ export const SpeakerView = () => {
   );
 };
 
-// utility to determine whether the participant in spotlight is sharing their screen
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
-
 // the sorting code goes here
 ```
 
@@ -234,6 +240,13 @@ To mitigate this issue each `Call` instance utilizes one `ViewportTracker` insta
 The `ParticipantView` component already utilizes this functionality under the hood (`observe`) so all we need to do is to call `setViewport` with your horizontal list element as an argument and we're set.
 
 ```tsx
+import {
+  hasScreenShare,
+  useCall,
+  useCallStateHooks,
+  ParticipantView,
+} from '@stream-io/video-react-sdk';
+
 export const SpeakerView = () => {
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
@@ -290,10 +303,6 @@ export const SpeakerView = () => {
     </div>
   );
 };
-
-// utility to determine whether the participant in spotlight is sharing their screen
-const hasScreenShare = (p?: StreamVideoParticipant) =>
-  p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 ```
 
 Now these changes will ensure that we only subscribe to the video streams users actually see on their screens.

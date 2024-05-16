@@ -21,7 +21,7 @@ import {
   FloatingParticipantViewProps,
 } from '../../Participant/FloatingParticipantView';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import { hasVideo } from '@stream-io/video-client';
 import {
   ScreenShareOverlay as DefaultScreenShaerOverlay,
   ScreenShareOverlayProps,
@@ -54,9 +54,6 @@ export type HostLivestreamProps = Omit<HostLivestreamTopViewProps, 'onLayout'> &
     ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
   };
 
-const hasVideoTrack = (p?: StreamVideoParticipant) =>
-  p?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
-
 /**
  * The HostLivestream component displays the UI for the Host's live stream.
  */
@@ -84,7 +81,10 @@ export const HostLivestream = ({
   const [currentSpeaker] = useParticipants();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const floatingParticipant =
-    hasOngoingScreenShare && hasVideoTrack(currentSpeaker) && currentSpeaker;
+    hasOngoingScreenShare &&
+    currentSpeaker &&
+    hasVideo(currentSpeaker) &&
+    currentSpeaker;
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {

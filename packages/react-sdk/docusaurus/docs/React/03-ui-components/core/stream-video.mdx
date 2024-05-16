@@ -8,10 +8,19 @@ The `<StreamVideo />` provider makes the [client and its state](../../../guides/
 ## General usage
 
 ```tsx
+import { useEffect, useState } from 'react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 
 export const App = () => {
-  const client = new StreamVideoClient(/* ... */);
+  const [client, setClient] = useState<StreamVideoClient>();
+  useEffect(() => {
+    const myClient = new StreamVideoClient({ apiKey, user, tokenProvider });
+    setClient(myClient);
+    return () => {
+      myClient.disconnectUser();
+      setClient(undefined);
+    };
+  }, [apiKey, user, tokenProvider]);
 
   return (
     // highlight-next-line
@@ -27,16 +36,15 @@ export const App = () => {
 ### `client`
 
 | Type                |
-|---------------------|
+| ------------------- |
 | `StreamVideoClient` |
-
 
 `StreamVideoClient` instance propagated to the component's children as a part of `StreamVideoContext`. Children can access it with `useStreamVideoClient()` hook.
 
 ### `i18nInstance`
 
 | Type                        |
-|-----------------------------|
+| --------------------------- |
 | `StreamI18n` \| `undefined` |
 
 The `StreamI18n` instance to use, if `undefined` is provided, a new instance will be created. For more information, see our [Internationalization guide](../../../advanced/i18n/).

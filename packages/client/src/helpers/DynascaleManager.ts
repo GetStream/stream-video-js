@@ -6,7 +6,7 @@ import {
   VideoTrackType,
   VisibilityState,
 } from '../types';
-import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
+import { VideoDimension } from '../gen/video/sfu/models/models';
 import {
   combineLatest,
   distinctUntilChanged,
@@ -18,6 +18,7 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
 import { isFirefox, isSafari } from './browsers';
+import { hasScreenShare, hasVideo } from './participantUtils';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -249,11 +250,7 @@ export class DynascaleManager {
           .pipe(
             distinctUntilKeyChanged('publishedTracks'),
             map((p) =>
-              p.publishedTracks.includes(
-                trackType === 'videoTrack'
-                  ? TrackType.VIDEO
-                  : TrackType.SCREEN_SHARE,
-              ),
+              trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
             ),
             distinctUntilChanged(),
           )

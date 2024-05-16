@@ -1,8 +1,7 @@
 import React from 'react';
 import {
-  SfuModels,
+  hasScreenShare,
   speakerLayoutSortPreset,
-  StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, ViewStyle } from 'react-native';
@@ -36,9 +35,6 @@ export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
     landscape?: boolean;
   };
 
-const hasScreenShare = (p: StreamVideoParticipant | undefined) =>
-  !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
-
 /**
  * Component used to display the list of participants in a spotlight mode.
  * This can be used when you want to render the screen sharing stream.
@@ -64,7 +60,8 @@ export const CallParticipantsSpotlight = ({
   });
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
-  const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
+  const isScreenShareOnSpotlight =
+    participantInSpotlight && hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
 
   const isInPiP = useIsInPiPMode();
