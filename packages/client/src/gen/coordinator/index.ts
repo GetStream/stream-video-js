@@ -1,5 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
+
+import { TargetResolutionRequest, TargetResolutionResponse } from './shims';
+
 /**
  *
  * @export
@@ -5049,10 +5052,10 @@ export interface ScreensharingSettingsRequest {
   enabled?: boolean;
   /**
    *
-   * @type {TargetResolution}
+   * @type {TargetResolutionRequest}
    * @memberof ScreensharingSettingsRequest
    */
-  target_resolution?: TargetResolution;
+  target_resolution?: TargetResolutionRequest;
 }
 /**
  *
@@ -5074,10 +5077,10 @@ export interface ScreensharingSettingsResponse {
   enabled: boolean;
   /**
    *
-   * @type {TargetResolution}
+   * @type {TargetResolutionResponse}
    * @memberof ScreensharingSettingsResponse
    */
-  target_resolution?: TargetResolution;
+  target_resolution?: TargetResolutionResponse;
 }
 /**
  *
@@ -6848,10 +6851,10 @@ export interface VideoSettingsRequest {
   enabled?: boolean;
   /**
    *
-   * @type {TargetResolution}
+   * @type {TargetResolutionRequest}
    * @memberof VideoSettingsRequest
    */
-  target_resolution?: TargetResolution;
+  target_resolution?: TargetResolutionRequest;
 }
 
 /**
@@ -6897,10 +6900,10 @@ export interface VideoSettingsResponse {
   enabled: boolean;
   /**
    *
-   * @type {TargetResolution}
+   * @type {TargetResolutionResponse}
    * @memberof VideoSettingsResponse
    */
-  target_resolution: TargetResolution;
+  target_resolution: TargetResolutionResponse;
 }
 
 /**
