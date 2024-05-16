@@ -4,6 +4,7 @@ import { useConnectedUser, useI18n } from '@stream-io/video-react-bindings';
 import {
   hasAudio,
   hasVideo,
+  isPinned,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { IconButton } from '../Button';
@@ -27,7 +28,7 @@ export const CallParticipantListingItem = ({
 }: CallParticipantListingItemProps) => {
   const isAudioOn = hasAudio(participant);
   const isVideoOn = hasVideo(participant);
-  const isPinned = !!participant.pin;
+  const isPinnedOn = isPinned(participant);
 
   const { t } = useI18n();
 
@@ -54,7 +55,7 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
-        {isPinned && (
+        {isPinnedOn && (
           <MediaIndicator
             title={t('Pinned')}
             className={clsx(

@@ -184,6 +184,7 @@ import {
   hasVideo,
   hasScreenShare,
   hasScreenShareAudio,
+  isPinned,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
@@ -196,6 +197,7 @@ const hasAudioOn = hasAudio(participant);
 const hasVideoOn = hasVideo(participant);
 const hasScreenShareOn = hasScreenShare(participant);
 const hasScreenShareAudioOn = hasScreenShareAudio(participant);
+const isPinnedOn = isPinned(participant);
 ```
 
 ## Client state

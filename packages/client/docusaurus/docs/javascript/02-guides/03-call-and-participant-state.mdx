@@ -123,6 +123,7 @@ import {
   hasScreenShare,
   hasScreenShareAudio,
   hasVideo,
+  isPinned,
 } from '@stream-io/video-client';
 
 let call: Call;
@@ -135,6 +136,7 @@ const subscription = call.state.participants$.subscribe((participants) => {
     const hasVideoOn = hasVideo(participant);
     const hasScreenShareOn = hasScreenShare(participant);
     const hasScreenShareAudioOn = hasScreenShareAudio(participant);
+    const isPinnedOn = isPinned(participant);
   }
 });
 
