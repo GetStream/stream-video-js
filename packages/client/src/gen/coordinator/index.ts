@@ -3928,37 +3928,6 @@ export interface MemberResponse {
 /**
  *
  * @export
- * @interface MOSStats
- */
-export interface MOSStats {
-  /**
-   *
-   * @type {number}
-   * @memberof MOSStats
-   */
-  average_score: number;
-  /**
-   *
-   * @type {Array<number>}
-   * @memberof MOSStats
-   */
-  histogram_duration_seconds: Array<number>;
-  /**
-   *
-   * @type {number}
-   * @memberof MOSStats
-   */
-  max_score: number;
-  /**
-   *
-   * @type {number}
-   * @memberof MOSStats
-   */
-  min_score: number;
-}
-/**
- *
- * @export
  * @interface MuteUsersRequest
  */
 export interface MuteUsersRequest {
@@ -6707,11 +6676,6 @@ export interface UserSessionStats {
    */
   webrtc_version?: string;
 }
-/**
- *
- * @export
- * @interface UserStats
- */
 /**
  *
  * @export
