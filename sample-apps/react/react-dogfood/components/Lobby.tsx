@@ -13,6 +13,7 @@ import {
 import clsx from 'clsx';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 
 import { isAndroid, isIOS, isSafari } from 'mobile-device-detect';
 
@@ -57,6 +58,11 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const { t } = useI18n();
   const { edges } = useEdges();
 
+  const router = useRouter();
+  const skipLobby =
+    !!router.query['skip_lobby'] ||
+    process.env.NEXT_PUBLIC_SKIP_LOBBY === 'true';
+
   const { layout, setLayout } = useLayoutSwitcher();
 
   useEffect(() => {
@@ -66,14 +72,14 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   }, [status]);
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_SKIP_LOBBY !== 'true') return;
+    if (!skipLobby) return;
     const id = setTimeout(() => {
       onJoin();
     }, 500);
     return () => {
       clearTimeout(id);
     };
-  }, [onJoin]);
+  }, [onJoin, skipLobby]);
 
   const isProntoEnvironment = useIsProntoEnvironment();
   const isDemoEnvironment = useIsDemoEnvironment();

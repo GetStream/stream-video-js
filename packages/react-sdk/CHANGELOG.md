@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.5...@stream-io/video-react-sdk-1.0.6) (2024-05-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.31`
+### [1.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.4...@stream-io/video-react-sdk-1.0.5) (2024-05-15)
+
+
+### Bug Fixes
+
+* **grid:** guard against zero or negative group size ([#1355](https://github.com/GetStream/stream-video-js/issues/1355)) ([fd6d142](https://github.com/GetStream/stream-video-js/commit/fd6d1421b54d46cebd3ffbaf3d57afb0166133d2)), closes [#1293](https://github.com/GetStream/stream-video-js/issues/1293)
+
+### [1.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.3...@stream-io/video-react-sdk-1.0.4) (2024-05-14)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.4`
+* `@stream-io/video-react-bindings` updated to version `0.4.30`
+### [1.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.2...@stream-io/video-react-sdk-1.0.3) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.29`
+### [1.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.1...@stream-io/video-react-sdk-1.0.2) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.28`
+
+### Bug Fixes
+
+* optimistically toggle device status ([#1342](https://github.com/GetStream/stream-video-js/issues/1342)) ([2e4e470](https://github.com/GetStream/stream-video-js/commit/2e4e470347fce7c7499dd21a931e5dec74bf9618))
+
 ### [1.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.0...@stream-io/video-react-sdk-1.0.1) (2024-05-07)
 
 ### Dependency Updates

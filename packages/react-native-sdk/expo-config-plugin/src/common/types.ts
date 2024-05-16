@@ -1,6 +1,7 @@
 export type RingingPushNotifications = {
   disableVideoIos?: boolean;
   includesCallsInRecentsIos?: boolean;
+  showWhenLockedAndroid?: boolean;
 };
 
 export type AndroidPictureInPicture = {

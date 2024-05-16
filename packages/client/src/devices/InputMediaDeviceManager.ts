@@ -2,7 +2,10 @@ import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import {
+  InputDeviceStatus,
+  InputMediaDeviceManagerState,
+} from './InputMediaDeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
@@ -18,11 +21,7 @@ export abstract class InputMediaDeviceManager<
   /**
    * @internal
    */
-  enablePromise?: Promise<void>;
-  /**
-   * @internal
-   */
-  disablePromise?: Promise<void>;
+  statusChangePromise?: Promise<void>;
   /**
    * if true, stops the media stream when call is left
    */
@@ -32,6 +31,7 @@ export abstract class InputMediaDeviceManager<
   protected subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilter[] = [];
+  private statusChangeAbortController?: AbortController;
 
   protected constructor(
     protected readonly call: Call,
@@ -63,16 +63,24 @@ export abstract class InputMediaDeviceManager<
    * Starts stream.
    */
   async enable() {
-    if (this.state.status === 'enabled') return;
-    this.enablePromise = this.unmuteStream();
-    try {
-      await this.enablePromise;
-      this.state.setStatus('enabled');
-      this.enablePromise = undefined;
-    } catch (error) {
-      this.enablePromise = undefined;
-      throw error;
+    if (this.state.optimisticStatus === 'enabled') {
+      await this.statusChangePromise;
+      return;
     }
+    const signal = this.nextAbortableStatusChangeRequest('enabled');
+    const doEnable = async () => {
+      if (signal.aborted) return;
+      try {
+        await this.unmuteStream();
+        this.state.setStatus('enabled');
+      } finally {
+        if (!signal.aborted) this.resetStatusChangeRequest();
+      }
+    };
+    this.statusChangePromise = this.statusChangePromise
+      ? this.statusChangePromise.then(doEnable)
+      : doEnable();
+    await this.statusChangePromise;
   }
 
   /**
@@ -81,17 +89,25 @@ export abstract class InputMediaDeviceManager<
    */
   async disable(forceStop: boolean = false) {
     this.state.prevStatus = this.state.status;
-    if (!forceStop && this.state.status === 'disabled') return;
-    const stopTracks = forceStop || this.state.disableMode === 'stop-tracks';
-    this.disablePromise = this.muteStream(stopTracks);
-    try {
-      await this.disablePromise;
-      this.state.setStatus('disabled');
-      this.disablePromise = undefined;
-    } catch (error) {
-      this.disablePromise = undefined;
-      throw error;
+    if (!forceStop && this.state.optimisticStatus === 'disabled') {
+      await this.statusChangePromise;
+      return;
     }
+    const stopTracks = forceStop || this.state.disableMode === 'stop-tracks';
+    const signal = this.nextAbortableStatusChangeRequest('disabled');
+    const doDisable = async () => {
+      if (signal.aborted) return;
+      try {
+        await this.muteStream(stopTracks);
+        this.state.setStatus('disabled');
+      } finally {
+        if (!signal.aborted) this.resetStatusChangeRequest();
+      }
+    };
+    this.statusChangePromise = this.statusChangePromise
+      ? this.statusChangePromise.then(doDisable)
+      : doDisable();
+    await this.statusChangePromise;
   }
 
   /**
@@ -111,7 +127,7 @@ export abstract class InputMediaDeviceManager<
    * else it will disable it.
    */
   async toggle() {
-    if (this.state.status === 'enabled') {
+    if (this.state.optimisticStatus === 'enabled') {
       return this.disable();
     } else {
       return this.enable();
@@ -180,7 +196,7 @@ export abstract class InputMediaDeviceManager<
     }
   }
 
-  protected abstract getDevices(): Observable<MediaDeviceInfo[] | undefined>;
+  protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
@@ -332,11 +348,8 @@ export abstract class InputMediaDeviceManager<
       this.state.setMediaStream(stream, await rootStream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
-          if (this.enablePromise) {
-            await this.enablePromise;
-          }
-          if (this.disablePromise) {
-            await this.disablePromise;
+          if (this.statusChangePromise) {
+            await this.statusChangePromise;
           }
           if (this.state.status === 'enabled') {
             this.isTrackStoppedDueToTrackEnd = true;
@@ -371,11 +384,8 @@ export abstract class InputMediaDeviceManager<
           if (!deviceId) {
             return;
           }
-          if (this.enablePromise) {
-            await this.enablePromise;
-          }
-          if (this.disablePromise) {
-            await this.disablePromise;
+          if (this.statusChangePromise) {
+            await this.statusChangePromise;
           }
 
           let isDeviceDisconnected = false;
@@ -417,5 +427,18 @@ export abstract class InputMediaDeviceManager<
     return devices.find(
       (d) => d.deviceId === deviceId && d.kind === this.mediaDeviceKind,
     );
+  }
+
+  private nextAbortableStatusChangeRequest(status: InputDeviceStatus) {
+    this.statusChangeAbortController?.abort();
+    this.statusChangeAbortController = new AbortController();
+    this.state.setPendingStatus(status);
+    return this.statusChangeAbortController.signal;
+  }
+
+  private resetStatusChangeRequest() {
+    this.statusChangePromise = undefined;
+    this.statusChangeAbortController = undefined;
+    this.state.setPendingStatus(this.state.status);
   }
 }

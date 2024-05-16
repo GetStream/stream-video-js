@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Mic, MicOff } from '../../../icons';
@@ -28,33 +28,33 @@ export const ToggleAudioPreviewButton = ({
       variants: { buttonSizes },
     },
   } = useTheme();
-  const call = useCall();
   const { useMicrophoneState } = useCallStateHooks();
-  const { status } = useMicrophoneState();
+  const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
     }
-    await call?.microphone.toggle();
+    await microphone.toggle();
   };
 
   return (
     <CallControlsButton
       onPress={onPress}
-      color={status === 'enabled' ? colors.static_white : colors.static_black}
+      color={!optimisticIsMute ? colors.static_white : colors.static_black}
       size={buttonSizes.md}
       style={{
         container: {
-          shadowColor:
-            status === 'enabled' ? colors.static_white : colors.static_black,
+          shadowColor: !optimisticIsMute
+            ? colors.static_white
+            : colors.static_black,
           ...toggleAudioPreviewButton.container,
         },
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >
-      {status === 'enabled' ? (
+      {!optimisticIsMute ? (
         <Mic color={colors.static_black} />
       ) : (
         <MicOff color={colors.static_white} />

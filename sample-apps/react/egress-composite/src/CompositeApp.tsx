@@ -1,8 +1,8 @@
 import { PropsWithChildren } from 'react';
 import {
-  StreamCallProvider,
+  StreamCall,
   StreamTheme,
-  StreamVideoProvider,
+  StreamVideo,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -15,7 +15,7 @@ import {
   useParticipantLabelStyles,
   useVideoStyles,
 } from './hooks';
-import { UIDispatcher, LogoAndTitleOverlay } from './components';
+import { LogoAndTitleOverlay, UIDispatcher } from './components';
 
 import './CompositeApp.scss';
 import { useParticipantStyles } from './hooks/options/useParticipantStyles';
@@ -24,8 +24,8 @@ export const CompositeApp = () => {
   const { client, call } = useInitializeClientAndCall();
 
   return (
-    <StreamVideoProvider client={client}>
-      <StreamCallProvider call={call}>
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
         <StreamThemeWrapper>
           <EgressReadyNotificationProvider>
             <UIDispatcher />
@@ -33,8 +33,8 @@ export const CompositeApp = () => {
           </EgressReadyNotificationProvider>
           {/* <StyleComponent /> */}
         </StreamThemeWrapper>
-      </StreamCallProvider>
-    </StreamVideoProvider>
+      </StreamCall>
+    </StreamVideo>
   );
 };
 

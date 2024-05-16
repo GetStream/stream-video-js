@@ -45,6 +45,7 @@ import {
 } from '../context/AppEnvironmentContext';
 
 import { StepNames, useTourContext } from '../context/TourContext';
+import { useNotificationSounds } from '../hooks/useNotificationSounds';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -121,6 +122,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
       setShowInvitePopup(true);
     }
   }, [isDemoEnvironment, isTourActive]);
+
+  useNotificationSounds();
 
   return (
     <div className="rd__call">

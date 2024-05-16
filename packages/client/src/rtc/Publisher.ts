@@ -143,13 +143,12 @@ export class Publisher {
     this.isRedEnabled = isRedEnabled;
     this.iceRestartDelay = iceRestartDelay;
 
-    this.unsubscribeOnIceRestart = dispatcher.on(
-      'iceRestart',
-      async (iceRestart) => {
-        if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
-        await this.restartIce();
-      },
-    );
+    this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
+      if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
+      this.restartIce().catch((err) => {
+        logger('warn', `ICERestart failed`, err);
+      });
+    });
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
@@ -542,16 +541,20 @@ export class Publisher {
     }
   };
 
-  private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
+  private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
       logger('debug', 'null ice candidate');
       return;
     }
-    await this.sfuClient.iceTrickle({
-      iceCandidate: getIceCandidate(candidate),
-      peerType: PeerType.PUBLISHER_UNSPECIFIED,
-    });
+    this.sfuClient
+      .iceTrickle({
+        iceCandidate: getIceCandidate(candidate),
+        peerType: PeerType.PUBLISHER_UNSPECIFIED,
+      })
+      .catch((err) => {
+        logger('warn', `ICETrickle failed`, err);
+      });
   };
 
   /**
@@ -599,8 +602,8 @@ export class Publisher {
     await this.negotiate({ iceRestart: true });
   };
 
-  private onNegotiationNeeded = async () => {
-    await this.negotiate();
+  private onNegotiationNeeded = () => {
+    this.negotiate().catch((err) => logger('warn', `Negotiation failed.`, err));
   };
 
   /**

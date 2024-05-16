@@ -13,12 +13,14 @@ The SDK does its best to make working with the camera easy. We expose the follow
 ### Start-stop camera
 
 ```typescript
-call.camera.toggle();
+await call.camera.toggle();
 
 // or
-call.camera.enable();
-call.camera.disable();
+await call.camera.enable();
+await call.camera.disable();
 ```
+
+It's always best to await these calls, however the SDK does its best to resolve potential race conditions: the last call always "wins".
 
 Here is how you can access the status:
 
@@ -26,6 +28,8 @@ Here is how you can access the status:
 call.camera.state.status; // enabled, disabled or undefined
 call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 ```
+
+Status is updated once the camera is actually enabled or disabled. Use `call.camera.state.optimisticStatus` (and the corresponding observable) for the "optimistic" status that is updated immediately after toggling the camera.
 
 The initial status of the camera is `undefined`. If you don't change the initial status, the default backend settings will be applied once the participant joins the call.
 
@@ -152,12 +156,14 @@ The SDK does its best to make working with the microphone easy. We expose the fo
 ### Start-stop microphone
 
 ```typescript
-call.microphone.toggle();
+await call.microphone.toggle();
 
 // or
-call.microphone.enable();
-call.microphone.disable();
+await call.microphone.enable();
+await call.microphone.disable();
 ```
+
+It's always best to await these calls, however the SDK does its best to resolve potential race conditions: the last call always "wins".
 
 This is how you can access the microphone status:
 
@@ -165,6 +171,8 @@ This is how you can access the microphone status:
 call.microphone.state.status; // enabled, disabled or undefined
 call.microphone.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 ```
+
+Status is updated once the microphone is actually enabled or disabled. Use `call.microphone.state.optimisticStatus` (and the corresponding observable) for the "optimistic" status that is updated immediately after toggling the microphone.
 
 The initial status of the microphone is `undefined`. If you don't change the initial status, the default backend settings will be applied once the participant joins the call.
 

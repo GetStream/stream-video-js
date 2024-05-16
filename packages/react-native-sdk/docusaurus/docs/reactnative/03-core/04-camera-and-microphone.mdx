@@ -49,6 +49,10 @@ await camera.enable();
 await camera.disable();
 ```
 
+It's always best to await calls to `enable()`, `disable()`, and `toggle()`, however the SDK does its best to resolve potential race conditions: the last call always wins, so it's safe to make these calls in an event handler.
+
+Status is updated once the camera is actually enabled or disabled. Use `isOptimisticMute` for the "optimistic" status that is updated immediately after toggling the camera.
+
 ### Manage Camera Facing Mode
 
 We can toggle the camera face from front to back and vice-versa using `camera.flip()`.
@@ -152,6 +156,10 @@ await microphone.toggle();
 await microphone.enable();
 await microphone.disable();
 ```
+
+It's always best to await calls to `enable()`, `disable()`, and `toggle()`, however the SDK does its best to resolve potential race conditions: the last call always wins, so it's safe to make these calls in an event handler.
+
+Status is updated once the microphone is actually enabled or disabled. Use `isOptimisticMute` for the "optimistic" status that is updated immediately after toggling the microphone.
 
 ### Audio mute status
 
@@ -257,33 +265,16 @@ For more information and customization please visit the official docs of [InCall
 
 ## Client-side settings
 
-Before joining a call, user may need to preview their streams and decide their mute status. We provide utility functions in the hook `useMediaStreamManagement` for this.
+Before joining a call, user may need to preview their streams and decide their mute status.
 
-### Initial mute status
+You can set the same on the dashboard for your app. This can be done under the `Call Types` and then selecting your call type.
 
-The initial status of the camera and mic can be pre-selected by the following:
+![Dashboard settings](../assets/03-core/04-camera-and-microphone/camera-and-microphone.png).
 
-```tsx {7-10}
-export const App = () => {
-  const call = /* ... */;
+We use the `useApplyDefaultMediaStreamSettings` hook to apply the backend settings. You can use the same, if needed.
 
-  return (
-    <StreamCall
-      call={call}
-      mediaDeviceInitialState={{
-        initialVideoEnabled: true, // This will override the camera initial mute status from call settings
-        initialAudioEnabled: false, // This will override the microphone initial mute status from call settings
-      }}
-    >
-      <MyUI />
-    </StreamCall>
-  );
-};
-```
+:::note
+Generally, the backend settings are applied by default when you join the call(`call.join()`). To apply the backend settings somewhere else like custom Lobby, OutgoingCall components, etc., you can use the hook `useApplyDefaultMediaStreamSettings` above.
+:::
 
-Also, The following toggle functions can be used to toggle the mute/unmute status of the streams before joining a call:
-
-```ts
-const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
-  useMediaStreamManagement();
-```
+If you have use-cases, where you want to voluntarily have a different behaviour, you can design your own hook and apply your logic on top of the default one.

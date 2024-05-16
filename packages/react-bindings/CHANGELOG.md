@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.30...@stream-io/video-react-bindings-0.4.31) (2024-05-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.5`
+### [0.4.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.29...@stream-io/video-react-bindings-0.4.30) (2024-05-14)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.4`
+### [0.4.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.28...@stream-io/video-react-bindings-0.4.29) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.3`
+
+### Bug Fixes
+
+* improve error handling across the SDK ([#1350](https://github.com/GetStream/stream-video-js/issues/1350)) ([ac0ae3b](https://github.com/GetStream/stream-video-js/commit/ac0ae3b7d5da91152d0f41a203b73e6c99c42ff9))
+
+### [0.4.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.27...@stream-io/video-react-bindings-0.4.28) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.2`
+
+### Bug Fixes
+
+* optimistically toggle device status ([#1342](https://github.com/GetStream/stream-video-js/issues/1342)) ([2e4e470](https://github.com/GetStream/stream-video-js/commit/2e4e470347fce7c7499dd21a931e5dec74bf9618))
+
 ### [0.4.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.26...@stream-io/video-react-bindings-0.4.27) (2024-05-07)
 
 ### Dependency Updates

@@ -1,16 +1,14 @@
-import { StreamCallProvider } from '@stream-io/video-react-bindings';
+import { StreamCallProvider, useCall } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
-import {
-  MediaDevicesInitialState,
-  MediaStreamManagement,
-} from './MediaStreamManagement';
 import {
   canAddPushWSSubscriptionsRef,
   clearPushWSEventSubscriptions,
 } from '../utils/push/utils';
 import { useAndroidKeepCallAliveEffect } from '../hooks/useAndroidKeepCallAliveEffect';
+import { useAppStateListener } from '../utils/hooks';
+import { NativeModules, Platform } from 'react-native';
 
 export type StreamCallProps = {
   /**
@@ -18,12 +16,6 @@ export type StreamCallProps = {
    * Children can access it with useCall() hook.
    */
   call: Call;
-  /**
-   * Optionally provide the initial status of the media devices(audio/video) to the `MediaStreamManagement`.
-   * Note: It will override the default state of the media devices set from the server side.
-   * It is used to control the initial state of the media devices(audio/video) in a custom lobby component.
-   */
-  mediaDeviceInitialState?: MediaDevicesInitialState;
 };
 /**
  * StreamCall is a wrapper component that orchestrates the call life cycle logic and
@@ -34,19 +26,46 @@ export type StreamCallProps = {
  */
 export const StreamCall = ({
   call,
-  mediaDeviceInitialState = {},
   children,
 }: PropsWithChildren<StreamCallProps>) => {
   return (
     <StreamCallProvider call={call}>
-      <MediaStreamManagement {...mediaDeviceInitialState}>
-        <AndroidKeepCallAlive />
-        <IosInformCallkeepCallEnd />
-        <ClearPushWSSubscriptions />
-        {children}
-      </MediaStreamManagement>
+      <AppStateListener />
+      <AndroidKeepCallAlive />
+      <IosInformCallkeepCallEnd />
+      <ClearPushWSSubscriptions />
+      {children}
     </StreamCallProvider>
   );
+};
+
+const AppStateListener = () => {
+  const call = useCall();
+
+  // Resume/Disable video stream tracks when app goes to background/foreground
+  // To save on CPU resources
+  useAppStateListener(
+    async () => {
+      await call?.camera?.resume();
+    },
+    async () => {
+      if (Platform.OS === 'android') {
+        // in Android, we need to check if we are in PiP mode
+        // in PiP mode, we don't want to disable the camera
+        NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
+          async (isInPiP: boolean) => {
+            if (!isInPiP) {
+              await call?.camera?.disable();
+            }
+          },
+        );
+      } else {
+        await call?.camera?.disable();
+      }
+    },
+  );
+
+  return null;
 };
 
 /**

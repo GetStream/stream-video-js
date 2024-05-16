@@ -87,7 +87,7 @@ export const processCallFromPushInBackground = async (
 export const processCallFromPush = async (
   client: StreamVideoClient,
   call_cid: string,
-  action: 'accept' | 'decline' | 'pressed',
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
 ) => {
   let callFromPush: Call;
   try {
@@ -96,7 +96,7 @@ export const processCallFromPush = async (
     console.log('failed to fetch call from push notification', e);
     return;
   }
-  // note: when action was pressed, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
+  // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {
     if (action === 'accept') {
       await callFromPush.join();

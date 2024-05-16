@@ -11,8 +11,9 @@ import { flatten } from './utils';
 
 export type StatsReporterOpts = {
   subscriber: Subscriber;
-  publisher: Publisher;
+  publisher?: Publisher;
   state: CallState;
+  datacenter: string;
   pollingIntervalInMs?: number;
 };
 
@@ -67,6 +68,7 @@ export const createStatsReporter = ({
   subscriber,
   publisher,
   state,
+  datacenter,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
   const logger = getLogger(['stats']);
@@ -79,7 +81,6 @@ export const createStatsReporter = ({
     } else if (kind === 'publisher' && publisher) {
       return publisher.getStats(selector);
     } else {
-      logger('warn', `Can't retrieve RTC stats for ${kind}`);
       return undefined;
     }
   };
@@ -89,6 +90,7 @@ export const createStatsReporter = ({
     mediaStream: MediaStream,
   ) => {
     const pc = kind === 'subscriber' ? subscriber : publisher;
+    if (!pc) return [];
     const statsForStream: StatsReport[] = [];
     for (let track of mediaStream.getTracks()) {
       const report = await pc.getStats(track);
@@ -141,7 +143,7 @@ export const createStatsReporter = ({
         } catch (e) {
           logger(
             'error',
-            `Failed to collect stats for ${kind} if ${participant.userId}`,
+            `Failed to collect stats for ${kind} of ${participant.userId}`,
             e,
           );
         }
@@ -159,23 +161,25 @@ export const createStatsReporter = ({
         )
         .then(aggregate),
       publisher
-        .getStats()
-        .then((report) =>
-          transform(report, {
-            kind: 'publisher',
-            trackKind: 'video',
-          }),
-        )
-        .then(aggregate),
+        ? publisher
+            .getStats()
+            .then((report) =>
+              transform(report, {
+                kind: 'publisher',
+                trackKind: 'video',
+              }),
+            )
+            .then(aggregate)
+        : getEmptyStats(),
     ]);
 
     const [subscriberRawStats, publisherRawStats] = await Promise.all([
       getRawStatsForTrack('subscriber'),
-      getRawStatsForTrack('publisher'),
+      publisher ? getRawStatsForTrack('publisher') : undefined,
     ]);
 
     state.setCallStatsReport({
-      datacenter: publisher.sfuClient.edgeName,
+      datacenter,
       publisherStats,
       subscriberStats,
       subscriberRawStats,
@@ -288,14 +292,9 @@ const transform = (
   };
 };
 
-/**
- * Aggregates generic stats.
- *
- * @param stats the stats to aggregate.
- */
-const aggregate = (stats: StatsReport): AggregatedStatsReport => {
-  const aggregatedStats: AggregatedStatsReport = {
-    rawReport: stats,
+const getEmptyStats = (stats?: StatsReport): AggregatedStatsReport => {
+  return {
+    rawReport: stats ?? { streams: [], timestamp: Date.now() },
     totalBytesSent: 0,
     totalBytesReceived: 0,
     averageJitterInMs: 0,
@@ -306,6 +305,15 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     highestFramesPerSecond: 0,
     timestamp: Date.now(),
   };
+};
+
+/**
+ * Aggregates generic stats.
+ *
+ * @param stats the stats to aggregate.
+ */
+const aggregate = (stats: StatsReport): AggregatedStatsReport => {
+  const aggregatedStats = getEmptyStats(stats);
 
   let maxArea = -1;
   const area = (w: number, h: number) => w * h;

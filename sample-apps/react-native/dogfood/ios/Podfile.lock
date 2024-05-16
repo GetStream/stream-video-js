@@ -1205,7 +1205,7 @@ PODS:
   - stream-react-native-webrtc (118.0.1):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (0.6.1):
+  - stream-video-react-native (0.6.20):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
@@ -1572,7 +1572,7 @@ SPEC CHECKSUMS:
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-react-native-webrtc: 31fe9ee69d5b4fc191380a78efa292377494b7ac
-  stream-video-react-native: 768fac98fb047fa12ad0c94f3177d692c295fb91
+  stream-video-react-native: 0744097b49fa347928650d93265df9f75630e7e5
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 

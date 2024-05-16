@@ -9,7 +9,6 @@ import {
 import { RenderResult } from '@testing-library/react-native/build/render';
 import { mockClientWithUser } from '../mocks/client';
 import { mockCall } from '../mocks/call';
-import { MediaStreamManagement } from '../../src/providers/MediaStreamManagement';
 
 export interface RenderProps {
   component: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
@@ -32,9 +31,7 @@ const Wrapper = ({
   call,
 }: PropsWithChildren<WrapperProps>) => (
   <StreamVideo client={client} language={'en'}>
-    <StreamCallProvider call={call}>
-      <MediaStreamManagement>{children}</MediaStreamManagement>
-    </StreamCallProvider>
+    <StreamCallProvider call={call}>{children}</StreamCallProvider>
   </StreamVideo>
 );
 // override React Testing Library's render with our own

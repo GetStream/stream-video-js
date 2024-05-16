@@ -26,10 +26,11 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const callSettings = useCallSettings();
   const isScreenSharingAllowed = callSettings?.screensharing.enabled;
 
-  const { screenShare, isMute: amIScreenSharing } = useScreenShareState();
-  const disableScreenShareButton = amIScreenSharing
-    ? isSomeoneScreenSharing || isScreenSharingAllowed === false
-    : false;
+  const { screenShare, optimisticIsMute } = useScreenShareState();
+  const amIScreenSharing = !optimisticIsMute;
+  const disableScreenShareButton =
+    !amIScreenSharing &&
+    (isSomeoneScreenSharing || isScreenSharingAllowed === false);
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
       <PermissionNotification
@@ -40,7 +41,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         messageRevoked={t('You can no longer share your screen.')}
       >
         <CompositeButton
-          active={isSomeoneScreenSharing}
+          active={isSomeoneScreenSharing || amIScreenSharing}
           caption={caption}
           title={caption || t('Share screen')}
           variant="primary"

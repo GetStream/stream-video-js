@@ -136,17 +136,12 @@ We can go through the usage through the following example:
 ```tsx title="MediaStreamButtonGroup.tsx"
 import React from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
-import {
-  useCallStateHooks,
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 export const MediaStreamButtonGroup = () => {
-  const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
-    useMediaStreamManagement();
   const { useMicrophoneState, useCameraState } = useCallStateHooks();
-  const { status: microphoneStatus } = useMicrophoneState();
-  const { status: cameraStatus } = useCameraState();
+  const { isMute: microphoneMuted } = useMicrophoneState();
+  const { isMute: cameraMuted } = useCameraState();
 
   const audioButtonStyles = [
     styles.button,
@@ -176,23 +171,25 @@ export const MediaStreamButtonGroup = () => {
     },
   ];
 
+  const toggleAudioMuted = async () => {
+    await call?.microphone.toggle();
+  };
+
+  const toggleVideoMuted = async () => {
+    await call?.camera.toggle();
+  };
+
   return (
     <View style={styles.buttonGroup}>
-      <Pressable
-        onPress={toggleInitialAudioMuteState}
-        style={audioButtonStyles}
-      >
-        {microphoneStatus === 'enabled' ? (
+      <Pressable onPress={toggleAudioMuted} style={audioButtonStyles}>
+        {!microphoneMuted ? (
           <Text style={audioButtonTextStyles}>Audio on</Text>
         ) : (
           <Text style={audioButtonTextStyles}>Audio off</Text>
         )}
       </Pressable>
-      <Pressable
-        onPress={toggleInitialVideoMuteState}
-        style={videoButtonStyles}
-      >
-        {cameraStatus === 'enabled' ? (
+      <Pressable onPress={toggleVideoMuted} style={videoButtonStyles}>
+        {!cameraMuted ? (
           <Text style={videoButtonTextStyles}>Video on</Text>
         ) : (
           <Text style={videoButtonTextStyles}>Video off</Text>

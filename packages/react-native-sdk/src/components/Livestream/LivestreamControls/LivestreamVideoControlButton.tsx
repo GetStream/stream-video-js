@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -8,9 +8,8 @@ import { Video, VideoSlash } from '../../../icons';
  * The LivestreamVideoControlButton controls the video stream publish/unpublish while in the livestream for the host.
  */
 export const LivestreamVideoControlButton = () => {
-  const call = useCall();
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { status } = useCameraState();
+  const { optimisticIsMute, camera } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
@@ -22,7 +21,7 @@ export const LivestreamVideoControlButton = () => {
   } = useTheme();
 
   const onPress = async () => {
-    await call?.camera.toggle();
+    await camera.toggle();
   };
 
   if (!isVideoEnabledInCall) {
@@ -42,33 +41,22 @@ export const LivestreamVideoControlButton = () => {
         livestreamVideoControlButton.container,
       ]}
     >
-      {status === 'enabled' ? (
-        <View
-          style={[
-            styles.icon,
-            {
-              height: iconSizes.sm,
-              width: iconSizes.sm,
-            },
-            livestreamVideoControlButton.icon,
-          ]}
-        >
+      <View
+        style={[
+          styles.icon,
+          {
+            height: iconSizes.sm,
+            width: iconSizes.sm,
+          },
+          livestreamVideoControlButton.icon,
+        ]}
+      >
+        {!optimisticIsMute ? (
           <Video color={colors.static_white} />
-        </View>
-      ) : (
-        <View
-          style={[
-            styles.icon,
-            {
-              height: iconSizes.sm,
-              width: iconSizes.sm,
-            },
-            livestreamVideoControlButton.icon,
-          ]}
-        >
+        ) : (
           <VideoSlash color={colors.static_white} />
-        </View>
-      )}
+        )}
+      </View>
     </Pressable>
   );
 };

@@ -14,10 +14,13 @@ export const CallRecordings = () => {
 
   const fetchCallRecordings = useCallback(() => {
     if (!call) return;
-    call.queryRecordings().then(({ recordings }) => {
-      setCallRecordings(recordings);
-      setLoadingCallRecordings(false);
-    });
+    call
+      .queryRecordings()
+      .then(({ recordings }) => {
+        setCallRecordings(recordings);
+        setLoadingCallRecordings(false);
+      })
+      .catch((err) => console.error(`Failed to query recordings`, err));
   }, [call]);
 
   useEffect(() => {
@@ -39,7 +42,6 @@ export const CallRecordings = () => {
     );
 
     const unsubscribeRecordingReady = call.on('call.recording_ready', (e) => {
-      if (e.type !== 'call.recording_ready') return;
       const { call_recording: recording } = e;
       setCallRecordings((prev) => [...prev, recording]);
       setLoadingCallRecordings(false);

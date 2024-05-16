@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.4...@stream-io/video-client-1.0.5) (2024-05-16)
+
+
+### Bug Fixes
+
+* correctly handle pending state reset ([4ea47da](https://github.com/GetStream/stream-video-js/commit/4ea47da969f00925e1df144ec2f33cd07ac2f63f))
+
+### [1.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.3...@stream-io/video-client-1.0.4) (2024-05-14)
+
+
+### Bug Fixes
+
+* don't create publisher PC for anonymous users ([#1353](https://github.com/GetStream/stream-video-js/issues/1353)) ([7331767](https://github.com/GetStream/stream-video-js/commit/7331767bd9254082517b1f36895796032b7af149))
+
+### [1.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.2...@stream-io/video-client-1.0.3) (2024-05-13)
+
+
+### Bug Fixes
+
+* improve error handling across the SDK ([#1350](https://github.com/GetStream/stream-video-js/issues/1350)) ([ac0ae3b](https://github.com/GetStream/stream-video-js/commit/ac0ae3b7d5da91152d0f41a203b73e6c99c42ff9))
+
+### [1.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.1...@stream-io/video-client-1.0.2) (2024-05-13)
+
+
+### Bug Fixes
+
+* optimistically toggle device status ([#1342](https://github.com/GetStream/stream-video-js/issues/1342)) ([2e4e470](https://github.com/GetStream/stream-video-js/commit/2e4e470347fce7c7499dd21a931e5dec74bf9618))
+
 ### [1.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.0...@stream-io/video-client-1.0.1) (2024-05-07)
 
 

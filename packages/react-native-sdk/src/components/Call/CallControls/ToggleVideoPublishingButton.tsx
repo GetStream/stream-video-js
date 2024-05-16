@@ -1,10 +1,6 @@
 import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCall,
-  useCallStateHooks,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Video, VideoSlash } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -26,9 +22,8 @@ export type ToggleVideoPublishingButtonProps = {
 export const ToggleVideoPublishingButton = ({
   onPressHandler,
 }: ToggleVideoPublishingButtonProps) => {
-  const call = useCall();
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { status } = useCameraState();
+  const { camera, optimisticIsMute } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
@@ -39,7 +34,7 @@ export const ToggleVideoPublishingButton = ({
       onPressHandler();
       return;
     }
-    await call?.camera.toggle();
+    await camera.toggle();
   };
 
   if (!isVideoEnabledInCall) {
@@ -50,9 +45,9 @@ export const ToggleVideoPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={status === 'enabled' ? colors.static_white : colors.overlay_dark}
+        color={!optimisticIsMute ? colors.static_white : colors.overlay_dark}
       >
-        {status === 'enabled' ? (
+        {!optimisticIsMute ? (
           <Video color={colors.static_black} />
         ) : (
           <VideoSlash color={colors.static_white} />

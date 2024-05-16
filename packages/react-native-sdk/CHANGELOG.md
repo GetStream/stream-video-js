@@ -2,6 +2,60 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.5...@stream-io/video-react-native-sdk-0.7.6) (2024-05-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.31`
+### [0.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.4...@stream-io/video-react-native-sdk-0.7.5) (2024-05-16)
+
+
+### Features
+
+* add full screen incoming call view when phone is locked for android ([#1351](https://github.com/GetStream/stream-video-js/issues/1351)) ([54c9e0f](https://github.com/GetStream/stream-video-js/commit/54c9e0fb178a7ad37bb2db0c01f5bd507ef46ddf))
+
+### [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.3...@stream-io/video-react-native-sdk-0.7.4) (2024-05-14)
+
+
+### Bug Fixes
+
+* **react-native:** mute and unmute device media stream optimistically ([#1354](https://github.com/GetStream/stream-video-js/issues/1354)) ([72f5df4](https://github.com/GetStream/stream-video-js/commit/72f5df4abc63b8824b4c0a9f00b7ee5848ab83da))
+
+### [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.2...@stream-io/video-react-native-sdk-0.7.3) (2024-05-14)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.4`
+* `@stream-io/video-react-bindings` updated to version `0.4.30`
+### [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.1...@stream-io/video-react-native-sdk-0.7.2) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.29`
+### [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.0...@stream-io/video-react-native-sdk-0.7.1) (2024-05-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.28`
+
+### Bug Fixes
+
+* optimistically toggle device status ([#1342](https://github.com/GetStream/stream-video-js/issues/1342)) ([2e4e470](https://github.com/GetStream/stream-video-js/commit/2e4e470347fce7c7499dd21a931e5dec74bf9618))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.21...@stream-io/video-react-native-sdk-0.7.0) (2024-05-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** apply media stream management initial state asyncronously (#1345)
+
+### Bug Fixes
+
+* **react-native:** apply media stream management initial state asyncronously ([#1345](https://github.com/GetStream/stream-video-js/issues/1345)) ([40b5a4e](https://github.com/GetStream/stream-video-js/commit/40b5a4e955f1bcf39755aa3848bc11c3436c14c9)), closes [#1236](https://github.com/GetStream/stream-video-js/issues/1236)
+
 ### [0.6.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.6.20...@stream-io/video-react-native-sdk-0.6.21) (2024-05-07)
 
 ### Dependency Updates
