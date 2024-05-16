@@ -90,11 +90,9 @@ export const getComputedMaxBitrate = (
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;
     const reductionFactor = currentPixels / targetPixels;
-    // TODO: bitrate is optional
-    return Math.round(targetResolution.bitrate! * reductionFactor);
+    return Math.round(targetResolution.bitrate * reductionFactor);
   }
-  // TODO: bitrate is optional
-  return targetResolution.bitrate!;
+  return targetResolution.bitrate;
 };
 
 /**
