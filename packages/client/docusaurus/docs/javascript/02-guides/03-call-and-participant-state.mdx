@@ -138,6 +138,14 @@ const subscription = call.state.participants$.subscribe((participants) => {
     const hasScreenShareAudioOn = hasScreenShareAudio(participant);
     const isPinnedOn = isPinned(participant);
   }
+
+  // participants with a specific role
+  const hosts = participants.filter((p) => p.roles.includes('host'));
+
+  // participants that publish video and audio
+  const videoParticipants = participants.filter(
+    (p) => hasVideo(p) && hasAudio(p),
+  );
 });
 
 subscription.unsubscribe();

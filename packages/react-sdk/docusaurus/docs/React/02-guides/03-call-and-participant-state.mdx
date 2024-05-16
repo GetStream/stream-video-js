@@ -188,14 +188,23 @@ import {
 
 // example usage
 const { useParticipants } = useCallStateHooks();
-const [participant] = useParticipants();
+const participants = useParticipants();
 
 // check if the participant has audio, video, screen share or screen share audio
+const [participant] = participants;
 const hasAudioOn = hasAudio(participant);
 const hasVideoOn = hasVideo(participant);
 const hasScreenShareOn = hasScreenShare(participant);
 const hasScreenShareAudioOn = hasScreenShareAudio(participant);
 const isPinnedOn = isPinned(participant);
+
+// participants with a specific role
+const hosts = participants.filter((p) => p.roles.includes('host'));
+
+// participants that publish video and audio
+const videoParticipants = participants.filter(
+  (p) => hasVideo(p) && hasAudio(p),
+);
 ```
 
 ## Client state
