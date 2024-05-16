@@ -1,6 +1,6 @@
 import { getOSInfo } from '../client-details';
 import { ScreenShareSettings } from '../types';
-import { TargetResolutionResponse } from '../gen/coordinator/shims';
+import { TargetResolutionResponse } from '../gen/shims';
 import { isReactNative } from '../helpers/platforms';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
