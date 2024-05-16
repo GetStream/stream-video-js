@@ -2884,6 +2884,32 @@ export interface CustomVideoEvent {
 /**
  *
  * @export
+ * @interface DeleteRecordingResponse
+ */
+export interface DeleteRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof DeleteRecordingResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface DeleteTranscriptionResponse
+ */
+export interface DeleteTranscriptionResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof DeleteTranscriptionResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface Device
  */
 export interface Device {
@@ -3215,6 +3241,12 @@ export interface GetCallStatsResponse {
    * @memberof GetCallStatsResponse
    */
   call_duration_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallStatsResponse
+   */
+  call_status: string;
   /**
    *
    * @type {CallTimeline}
@@ -4437,6 +4469,31 @@ export interface PrivacySettings {
 /**
  *
  * @export
+ * @interface PublishedTrackInfo
+ */
+export interface PublishedTrackInfo {
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackInfo
+   */
+  codec_mime_type?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof PublishedTrackInfo
+   */
+  duration_seconds?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackInfo
+   */
+  track_type?: string;
+}
+/**
+ *
+ * @export
  * @interface PushNotificationSettings
  */
 export interface PushNotificationSettings {
@@ -5025,26 +5082,26 @@ export interface ScreensharingSettingsResponse {
 /**
  *
  * @export
- * @interface SendEventRequest
+ * @interface SendCallEventRequest
  */
-export interface SendEventRequest {
+export interface SendCallEventRequest {
   /**
    *
    * @type {{ [key: string]: any; }}
-   * @memberof SendEventRequest
+   * @memberof SendCallEventRequest
    */
   custom?: { [key: string]: any };
 }
 /**
  *
  * @export
- * @interface SendEventResponse
+ * @interface SendCallEventResponse
  */
-export interface SendEventResponse {
+export interface SendCallEventResponse {
   /**
    *
    * @type {string}
-   * @memberof SendEventResponse
+   * @memberof SendCallEventResponse
    */
   duration: string;
 }
@@ -6453,6 +6510,12 @@ export interface UserSessionStats {
   pub_sub_hints?: MediaPubSubHint;
   /**
    *
+   * @type {Array<PublishedTrackInfo>}
+   * @memberof UserSessionStats
+   */
+  published_tracks?: Array<PublishedTrackInfo>;
+  /**
+   *
    * @type {MOSStats}
    * @memberof UserSessionStats
    */
@@ -6474,7 +6537,19 @@ export interface UserSessionStats {
    * @type {number}
    * @memberof UserSessionStats
    */
+  publisher_noise_cancellation_seconds?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
   publisher_packet_loss_fraction: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  publisher_quality_limitation_fraction?: number;
   /**
    *
    * @type {{ [key: string]: number; }}
@@ -6497,6 +6572,12 @@ export interface UserSessionStats {
   publishing_duration_seconds: number;
   /**
    *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  publishing_video_codec?: string;
+  /**
+   *
    * @type {number}
    * @memberof UserSessionStats
    */
@@ -6513,6 +6594,12 @@ export interface UserSessionStats {
    * @memberof UserSessionStats
    */
   receiving_duration_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UserSessionStats
+   */
+  receiving_video_codec?: string;
   /**
    *
    * @type {string}
@@ -6549,6 +6636,12 @@ export interface UserSessionStats {
    * @memberof UserSessionStats
    */
   subscriber_latency?: Stats;
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  subscriber_video_quality_throttled_duration_seconds?: number;
   /**
    *
    * @type {Array<Subsession>}
@@ -6592,6 +6685,12 @@ export interface UserStats {
    * @memberof UserStats
    */
   info: UserInfoResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof UserStats
+   */
+  rating?: number;
   /**
    *
    * @type {Array<UserSessionStats>}

@@ -43,8 +43,8 @@ import {
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
-  SendEventRequest,
-  SendEventResponse,
+  SendCallEventRequest,
+  SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
   SFUResponse,
@@ -1998,7 +1998,7 @@ export class Call {
    * @param payload the payload to send.
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
-    return this.streamClient.post<SendEventResponse, SendEventRequest>(
+    return this.streamClient.post<SendCallEventResponse, SendCallEventRequest>(
       `${this.streamClientBasePath}/event`,
       { custom: payload },
     );
