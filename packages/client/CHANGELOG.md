@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.4...@stream-io/video-client-1.0.5) (2024-05-16)
+
+
+### Bug Fixes
+
+* correctly handle pending state reset ([4ea47da](https://github.com/GetStream/stream-video-js/commit/4ea47da969f00925e1df144ec2f33cd07ac2f63f))
+
 ### [1.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.3...@stream-io/video-client-1.0.4) (2024-05-14)
 
 
