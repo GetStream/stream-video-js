@@ -18,19 +18,11 @@ export const Backstage = () => {
 
   useEffect(() => {
     if (!(call && connectedUser)) return;
-
     call
-      .getOrCreate({
+      .join({
+        create: true,
         data: { members: [{ user_id: connectedUser.id, role: 'host' }] },
       })
-      .then(() => {
-        if (call.state.members.find((m) => m.user_id !== connectedUser.id)) {
-          return call.updateCallMembers({
-            update_members: [{ user_id: connectedUser.id, role: 'host' }],
-          });
-        }
-      })
-      .then(() => call.join())
       .catch((error) => console.error('Error joining call', error));
   }, [call, connectedUser]);
 
