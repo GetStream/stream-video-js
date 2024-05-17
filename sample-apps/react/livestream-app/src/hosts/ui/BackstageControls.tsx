@@ -25,7 +25,9 @@ export const BackstageControls = () => {
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
-  const { useIsCallHLSBroadcastingInProgress } = useCallStateHooks();
+  const { useIsCallHLSBroadcastingInProgress, useCallIngress } =
+    useCallStateHooks();
+  const ingress = useCallIngress();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
@@ -34,6 +36,10 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
       return isAwaiting;
     });
   }, [isBroadcasting]);
+  useEffect(() => {
+    if (!ingress) return;
+    console.log(`RTMP address: ${ingress.rtmp.address}`);
+  }, [ingress]);
   return (
     <button
       type="button"
@@ -42,12 +48,11 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
       }`}
       onClick={async () => {
         if (isBroadcasting) {
-          call.stopHLS().catch((err) => {
+          call.stopLive().catch((err) => {
             console.error('Error stopping livestream', err);
           });
         } else {
-          call.goLive();
-          call.startHLS().catch((err) => {
+          call.goLive({ start_hls: true }).catch((err) => {
             console.error('Error starting livestream', err);
           });
         }

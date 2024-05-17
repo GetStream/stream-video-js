@@ -16,6 +16,11 @@ export const characters = [
   'Finn',
 ];
 
+type UserType = {
+  id: string;
+  name: string;
+};
+
 export const getUser = () => {
   const { user_id, user_name } = getURLCredentials();
   if (user_id) {
@@ -26,8 +31,14 @@ export const getUser = () => {
   }
   const index = Math.floor(Math.random() * characters.length);
   const characterName = characters[index];
-  return {
-    id: characterName,
-    name: characterName,
-  };
+  if (!window.sessionStorage.getItem('user')) {
+    window.sessionStorage.setItem(
+      'user',
+      JSON.stringify({
+        id: characterName.replace(/[^_\-0-9a-zA-Z@]/g, '_'),
+        name: characterName,
+      }),
+    );
+  }
+  return JSON.parse(window.sessionStorage.getItem('user') || '{}') as UserType;
 };

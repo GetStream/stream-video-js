@@ -24,7 +24,7 @@ export const WebRTCLivestream = () => {
     if (!(call && autoJoin)) {
       return;
     }
-    call.join();
+    call.join().catch((error) => console.error('Error joining call', error));
   }, [call, autoJoin]);
 
   if (!client) {
