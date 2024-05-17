@@ -12,10 +12,16 @@ import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
+import {
+  PropsWithErrorHandler,
+  createCallControlHandler,
+} from '../../utilities/callControlHandler';
 
-export type ToggleAudioPreviewButtonProps = Pick<
-  IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement'
+export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
+  Pick<
+    IconButtonWithMenuProps,
+    'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
+  >
 >;
 
 export const ToggleAudioPreviewButton = (
@@ -27,6 +33,9 @@ export const ToggleAudioPreviewButton = (
   const { microphone, optimisticIsMute, hasBrowserPermission } =
     useMicrophoneState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
+  const handleClick = createCallControlHandler(props, () =>
+    microphone.toggle(),
+  );
 
   return (
     <WithTooltip
@@ -50,7 +59,7 @@ export const ToggleAudioPreviewButton = (
             ? 'preview-audio-unmute-button'
             : 'preview-audio-mute-button'
         }
-        onClick={() => microphone.toggle()}
+        onClick={handleClick}
         Menu={Menu}
         menuPlacement={menuPlacement}
         onMenuToggle={(shown) => setTooltipDisabled(shown)}
@@ -69,9 +78,11 @@ export const ToggleAudioPreviewButton = (
   );
 };
 
-export type ToggleAudioPublishingButtonProps = Pick<
-  IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
+export type ToggleAudioPublishingButtonProps = PropsWithErrorHandler<
+  Pick<
+    IconButtonWithMenuProps,
+    'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
+  >
 >;
 
 export const ToggleAudioPublishingButton = (
@@ -92,6 +103,13 @@ export const ToggleAudioPublishingButton = (
   const { microphone, optimisticIsMute, hasBrowserPermission } =
     useMicrophoneState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
+  const handleClick = createCallControlHandler(props, async () => {
+    if (!hasPermission) {
+      await requestPermission();
+    } else {
+      await microphone.toggle();
+    }
+  });
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
@@ -120,13 +138,7 @@ export const ToggleAudioPublishingButton = (
             data-testid={
               optimisticIsMute ? 'audio-unmute-button' : 'audio-mute-button'
             }
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await microphone.toggle();
-              }
-            }}
+            onClick={handleClick}
             Menu={Menu}
             menuPlacement={menuPlacement}
             menuOffset={16}

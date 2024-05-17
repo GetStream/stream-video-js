@@ -9,10 +9,14 @@ import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
+import {
+  PropsWithErrorHandler,
+  createCallControlHandler,
+} from '../../utilities/callControlHandler';
 
-export type ScreenShareButtonProps = {
+export type ScreenShareButtonProps = PropsWithErrorHandler<{
   caption?: string;
-};
+}>;
 
 export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
@@ -32,6 +36,14 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const disableScreenShareButton =
     !amIScreenSharing &&
     (isSomeoneScreenSharing || isScreenSharingAllowed === false);
+  const handleClick = createCallControlHandler(props, async () => {
+    if (!hasPermission) {
+      await requestPermission();
+    } else {
+      await screenShare.toggle();
+    }
+  });
+
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
       <PermissionNotification
@@ -52,13 +64,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
                 : 'screen-share-start-button'
             }
             disabled={disableScreenShareButton}
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await screenShare.toggle();
-              }
-            }}
+            onClick={handleClick}
           >
             <Icon
               icon={

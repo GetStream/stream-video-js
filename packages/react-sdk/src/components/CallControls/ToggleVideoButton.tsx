@@ -12,10 +12,16 @@ import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
+import {
+  PropsWithErrorHandler,
+  createCallControlHandler,
+} from '../../utilities/callControlHandler';
 
-export type ToggleVideoPreviewButtonProps = Pick<
-  IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement'
+export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
+  Pick<
+    IconButtonWithMenuProps,
+    'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
+  >
 >;
 
 export const ToggleVideoPreviewButton = (
@@ -31,6 +37,7 @@ export const ToggleVideoPreviewButton = (
   const { useCameraState } = useCallStateHooks();
   const { camera, optimisticIsMute, hasBrowserPermission } = useCameraState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
+  const handleClick = createCallControlHandler(props, () => camera.toggle());
 
   return (
     <WithTooltip
@@ -53,7 +60,7 @@ export const ToggleVideoPreviewButton = (
             ? 'preview-video-unmute-button'
             : 'preview-video-mute-button'
         }
-        onClick={() => camera.toggle()}
+        onClick={handleClick}
         disabled={!hasBrowserPermission}
         Menu={Menu}
         menuPlacement={menuPlacement}
@@ -73,9 +80,11 @@ export const ToggleVideoPreviewButton = (
   );
 };
 
-type ToggleVideoPublishingButtonProps = Pick<
-  IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
+type ToggleVideoPublishingButtonProps = PropsWithErrorHandler<
+  Pick<
+    IconButtonWithMenuProps,
+    'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
+  >
 >;
 
 export const ToggleVideoPublishingButton = (
@@ -97,6 +106,13 @@ export const ToggleVideoPublishingButton = (
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
+  const handleClick = createCallControlHandler(props, async () => {
+    if (!hasPermission) {
+      await requestPermission();
+    } else {
+      await camera.toggle();
+    }
+  });
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
@@ -133,13 +149,7 @@ export const ToggleVideoPublishingButton = (
             data-testid={
               optimisticIsMute ? 'video-unmute-button' : 'video-mute-button'
             }
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await camera.toggle();
-              }
-            }}
+            onClick={handleClick}
             Menu={Menu}
             menuPlacement={menuPlacement}
             menuOffset={16}
