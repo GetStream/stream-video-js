@@ -5,6 +5,7 @@ import {
   DropDownSelectOption,
   Icon,
   useCallStateHooks,
+  useMenuContext,
 } from '@stream-io/video-react-sdk';
 import { LayoutMap } from '../hooks';
 
@@ -41,6 +42,7 @@ const ListMenu = ({
   handleSelect: (index: number) => void;
   canScreenshare: (key: string) => boolean;
 }) => {
+  const { close } = useMenuContext();
   return (
     <ul className="rd__layout-selector__list">
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
@@ -51,9 +53,12 @@ const ListMenu = ({
               className={clsx('rd__button rd__button--align-left', {
                 'rd__button--primary': key === selectedLayout,
               })}
-              onClick={() =>
-                handleSelect(Object.keys(LayoutMap).findIndex((k) => k === key))
-              }
+              onClick={() => {
+                handleSelect(
+                  Object.keys(LayoutMap).findIndex((k) => k === key),
+                );
+                close?.();
+              }}
             >
               <Icon className="rd__button__icon" icon={LayoutMap[key].icon} />
               {LayoutMap[key].title}

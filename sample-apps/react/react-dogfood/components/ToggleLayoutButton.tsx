@@ -6,6 +6,8 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
+  WithTooltip,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -21,15 +23,20 @@ export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
     () =>
       forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
         function ToggleMenuButton(buttonProps, ref) {
+          const { t } = useI18n();
           return (
-            <CompositeButton
-              ref={ref}
-              active={buttonProps.menuShown}
-              variant="primary"
-              title="Layout"
+            <WithTooltip
+              title={t('Layout')}
+              tooltipDisabled={buttonProps.menuShown}
             >
-              <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
-            </CompositeButton>
+              <CompositeButton
+                ref={ref}
+                active={buttonProps.menuShown}
+                variant="primary"
+              >
+                <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
+              </CompositeButton>
+            </WithTooltip>
           );
         },
       ),
@@ -38,7 +45,7 @@ export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
 
   return (
     <MenuToggle
-      placement="top-end"
+      placement="top-start"
       ToggleButton={ToggleMenuButtonComponent}
       visualType={MenuVisualType.MENU}
     >

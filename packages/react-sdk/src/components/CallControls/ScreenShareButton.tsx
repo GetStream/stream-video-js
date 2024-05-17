@@ -8,10 +8,15 @@ import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
+import { WithTooltip } from '../Tooltip';
+import {
+  PropsWithErrorHandler,
+  createCallControlHandler,
+} from '../../utilities/callControlHandler';
 
-export type ScreenShareButtonProps = {
+export type ScreenShareButtonProps = PropsWithErrorHandler<{
   caption?: string;
-};
+}>;
 
 export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
@@ -31,6 +36,14 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const disableScreenShareButton =
     !amIScreenSharing &&
     (isSomeoneScreenSharing || isScreenSharingAllowed === false);
+  const handleClick = createCallControlHandler(props, async () => {
+    if (!hasPermission) {
+      await requestPermission();
+    } else {
+      await screenShare.toggle();
+    }
+  });
+
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
       <PermissionNotification
@@ -40,31 +53,26 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         messageAwaitingApproval={t('Awaiting for an approval to share screen.')}
         messageRevoked={t('You can no longer share your screen.')}
       >
-        <CompositeButton
-          active={isSomeoneScreenSharing || amIScreenSharing}
-          caption={caption}
-          title={caption || t('Share screen')}
-          variant="primary"
-          data-testid={
-            isSomeoneScreenSharing
-              ? 'screen-share-stop-button'
-              : 'screen-share-start-button'
-          }
-          disabled={disableScreenShareButton}
-          onClick={async () => {
-            if (!hasPermission) {
-              await requestPermission();
-            } else {
-              await screenShare.toggle();
+        <WithTooltip title={caption ?? t('Share screen')}>
+          <CompositeButton
+            active={isSomeoneScreenSharing || amIScreenSharing}
+            caption={caption}
+            variant="primary"
+            data-testid={
+              isSomeoneScreenSharing
+                ? 'screen-share-stop-button'
+                : 'screen-share-start-button'
             }
-          }}
-        >
-          <Icon
-            icon={
-              isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
-            }
-          />
-        </CompositeButton>
+            disabled={disableScreenShareButton}
+            onClick={handleClick}
+          >
+            <Icon
+              icon={
+                isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
+              }
+            />
+          </CompositeButton>
+        </WithTooltip>
       </PermissionNotification>
     </Restricted>
   );

@@ -12,13 +12,13 @@ export type CallControlsProps = {
 
 export const CallControls = ({ onLeave }: CallControlsProps) => (
   <div className="str-video__call-controls">
-    <RecordCallButton />
-    <ReactionsButton />
-    <ScreenShareButton />
     <SpeakingWhileMutedNotification>
       <ToggleAudioPublishingButton />
     </SpeakingWhileMutedNotification>
     <ToggleVideoPublishingButton />
+    <ReactionsButton />
+    <ScreenShareButton />
+    <RecordCallButton />
     <CancelCallButton onLeave={onLeave} />
   </div>
 );
