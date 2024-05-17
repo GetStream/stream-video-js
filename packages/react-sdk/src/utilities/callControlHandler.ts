@@ -1,6 +1,11 @@
 import { getLogger } from '@stream-io/video-client';
 
 export type PropsWithErrorHandler<T = unknown> = T & {
+  /**
+   * Will be called if the call control action failed with an error (e.g. user didn't grant a
+   * browser permission to enable a media device). If no callback is provided, just logs the error.
+   * @param error Exception which caused call control action to fail
+   */
   onError?: (error: unknown) => void;
 };
 
