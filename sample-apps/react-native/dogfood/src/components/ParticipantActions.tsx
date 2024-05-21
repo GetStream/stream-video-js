@@ -1,8 +1,14 @@
 import {
+  Avatar,
+  colorPallet,
+  hasAudio,
+  hasVideo,
   OwnCapability,
-  SfuModels,
   StreamVideoParticipant,
-} from '@stream-io/video-client';
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-native-sdk';
 import { Cross } from '../assets/Cross';
 import { Mic } from '../assets/Mic';
 import { MicOff } from '../assets/MicOff';
@@ -13,13 +19,6 @@ import { VideoDisabled } from '../assets/VideoDisabled';
 import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useCallback } from 'react';
-import {
-  Avatar,
-  colorPallet,
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-native-sdk';
 import { generateParticipantTitle } from '../utils';
 
 type CallParticipantOptionType = {
@@ -95,12 +94,8 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     }
   };
 
-  const participantPublishesVideo = participant.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-  const participantPublishesAudio = participant.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
+  const participantPublishesVideo = hasVideo(participant);
+  const participantPublishesAudio = hasAudio(participant);
 
   const muteUserVideoOption = participantPublishesVideo
     ? {

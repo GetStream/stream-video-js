@@ -1,6 +1,11 @@
 import { ComponentType, forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
-import { SfuModels } from '@stream-io/video-client';
+import {
+  hasAudio,
+  hasScreenShare,
+  hasVideo,
+  SfuModels,
+} from '@stream-io/video-client';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
@@ -71,15 +76,11 @@ export const DefaultParticipantViewUI = ({
   ParticipantActionsContextMenu = DefaultParticipantActionsContextMenu,
 }: DefaultParticipantViewUIProps) => {
   const { participant, trackType } = useParticipantViewContext();
-  const { publishedTracks } = participant;
-
-  const hasScreenShare = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
+  const isScreenSharing = hasScreenShare(participant);
 
   if (
     participant.isLocalParticipant &&
-    hasScreenShare &&
+    isScreenSharing &&
     trackType === 'screenShareTrack'
   ) {
     return (
@@ -114,7 +115,6 @@ export const ParticipantDetails = ({
   const {
     isLocalParticipant,
     connectionQuality,
-    publishedTracks,
     pin,
     sessionId,
     name,
@@ -127,8 +127,8 @@ export const ParticipantDetails = ({
     !!connectionQuality &&
     SfuModels.ConnectionQuality[connectionQuality].toLowerCase();
 
-  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const hasAudioTrack = hasAudio(participant);
+  const hasVideoTrack = hasVideo(participant);
   const canUnpin = !!pin && pin.isLocalPin;
 
   return (
@@ -137,10 +137,10 @@ export const ParticipantDetails = ({
         <span className="str-video__participant-details__name">
           {name || userId}
 
-          {indicatorsVisible && !hasAudio && (
+          {indicatorsVisible && !hasAudioTrack && (
             <span className="str-video__participant-details__name--audio-muted" />
           )}
-          {indicatorsVisible && !hasVideo && (
+          {indicatorsVisible && !hasVideoTrack && (
             <span className="str-video__participant-details__name--video-muted" />
           )}
           {indicatorsVisible && canUnpin && (

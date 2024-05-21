@@ -2,9 +2,9 @@ import { ComponentType, useEffect, useState } from 'react';
 
 import {
   DefaultParticipantViewUI,
+  hasScreenShare,
   IconButton,
   ParticipantView,
-  SfuModels,
   useCall,
   useCallStateHooks,
   useVerticalScrollPosition,
@@ -20,7 +20,7 @@ export const CallParticipantsScreenView = (props: {
   const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>
-    p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
+    hasScreenShare(p),
   );
 
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(

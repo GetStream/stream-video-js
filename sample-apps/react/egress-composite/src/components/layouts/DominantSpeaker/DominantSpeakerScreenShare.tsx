@@ -1,5 +1,6 @@
 import {
   DefaultParticipantViewUI,
+  hasScreenShare,
   ParticipantsAudio,
   ParticipantView,
   SfuModels,
@@ -14,9 +15,7 @@ export const DominantSpeakerScreenShare = () => {
   const { useRemoteParticipants } = useCallStateHooks();
   const participants = useRemoteParticipants();
 
-  const screensharingParticipant = participants.find((p) =>
-    p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
-  )!;
+  const screensharingParticipant = participants.find((p) => hasScreenShare(p))!;
 
   const { setVideoElement, setVideoPlaceholderElement } =
     useEgressReadyWhenAnyParticipantMounts(

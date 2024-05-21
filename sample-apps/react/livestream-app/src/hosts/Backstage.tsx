@@ -18,18 +18,12 @@ export const Backstage = () => {
 
   useEffect(() => {
     if (!(call && connectedUser)) return;
-
-    call.join({
-      create: true,
-      data: {
-        members: [
-          {
-            user_id: connectedUser.id,
-            role: 'host',
-          },
-        ],
-      },
-    });
+    call
+      .join({
+        create: true,
+        data: { members: [{ user_id: connectedUser.id, role: 'host' }] },
+      })
+      .catch((error) => console.error('Error joining call', error));
   }, [call, connectedUser]);
 
   if (!callId) return <h3>No Call ID is provided</h3>;

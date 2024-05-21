@@ -6,6 +6,7 @@ import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 
 import { IconButton } from '../Button';
 import { Icon } from '../Icon';
+import { WithTooltip } from '../Tooltip';
 
 const EndCallMenu = (props: {
   onLeave: MouseEventHandler<HTMLButtonElement>;
@@ -51,18 +52,20 @@ const CancelCallToggleMenuButton = forwardRef<
 >(function CancelCallToggleMenuButton(props, ref) {
   const { t } = useI18n();
   return (
-    <IconButton
-      icon="call-end"
-      variant="danger"
-      title={t('Leave call')}
-      data-testid="leave-call-button"
-      ref={ref}
-    />
+    <WithTooltip title={t('Leave call')}>
+      <IconButton
+        icon="call-end"
+        variant="danger"
+        data-testid="leave-call-button"
+        ref={ref}
+      />
+    </WithTooltip>
   );
 });
 
 export type CancelCallButtonProps = {
   disabled?: boolean;
+  caption?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   onLeave?: () => void;
 };
@@ -106,6 +109,7 @@ export const CancelCallConfirmButton = ({
 
 export const CancelCallButton = ({
   disabled,
+  caption,
   onClick,
   onLeave,
 }: CancelCallButtonProps) => {
@@ -127,7 +131,7 @@ export const CancelCallButton = ({
       disabled={disabled}
       icon="call-end"
       variant="danger"
-      title={t('Leave call')}
+      title={caption ?? t('Leave call')}
       data-testid="cancel-call-button"
       onClick={handleClick}
     />

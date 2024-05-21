@@ -19,12 +19,16 @@ export const useSetCall = (client?: StreamVideoClient) => {
     }
     const _call = client.call(type ?? DEFAULT_CALL_TYPE, callId);
     setCall(_call);
+    // @ts-expect-error exposed for debugging
+    window.call = _call;
 
     return () => {
       if (_call?.state.callingState !== CallingState.LEFT) {
         _call?.leave();
       }
       setCall(undefined);
+      // @ts-expect-error exposed for debugging
+      window.call = undefined;
     };
   }, [client, callId, type]);
 

@@ -1,6 +1,10 @@
 import { Comparator } from './';
-import { TrackType } from '../gen/video/sfu/models/models';
 import { StreamVideoParticipant } from '../types';
+import {
+  hasAudio,
+  hasScreenShare,
+  hasVideo,
+} from '../helpers/participantUtils';
 
 /**
  * A comparator which sorts participants by the fact that they are the dominant speaker or not.
@@ -126,12 +130,3 @@ export const name: Comparator<StreamVideoParticipant> = (a, b) => {
 
 const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
   (p.roles || []).some((r) => roles.includes(r));
-
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(TrackType.SCREEN_SHARE);
-
-const hasVideo = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(TrackType.VIDEO);
-
-const hasAudio = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(TrackType.AUDIO);

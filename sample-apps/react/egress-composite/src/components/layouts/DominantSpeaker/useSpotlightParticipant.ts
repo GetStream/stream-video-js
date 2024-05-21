@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  SfuModels,
+  hasVideo,
   StreamVideoParticipant,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -27,9 +27,7 @@ export const useSpotlightParticipant = () => {
     } else {
       const spotlightSpeaker =
         dominantSpeaker ||
-        allParticipants.find((p) =>
-          p.publishedTracks.includes(SfuModels.TrackType.VIDEO),
-        ) ||
+        allParticipants.find((p) => hasVideo(p)) ||
         allParticipants[0];
 
       setSpeakerInSpotlight(spotlightSpeaker);

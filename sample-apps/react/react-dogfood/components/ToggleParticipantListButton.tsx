@@ -6,7 +6,9 @@ import {
   IconButtonWithMenuProps,
   useCall,
   useCallStateHooks,
+  useI18n,
   UserResponse,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 import { useFloatingUIPreset } from '../hooks/useFloatingUIPreset';
 
@@ -46,6 +48,7 @@ export const ToggleParticipantListButton = (
     });
     setWaitingRoom((queue) => queue.filter((u) => u.id !== user.id));
   };
+  const { t } = useI18n();
 
   return (
     <div className="rd__toggle-participants" ref={refs.setReference}>
@@ -92,12 +95,14 @@ export const ToggleParticipantListButton = (
           </div>
         </div>
       )}
-      <CompositeButton title="Participants" {...props}>
-        <Icon icon="participants" />
-        {participantCount > 1 && (
-          <span className="rd__participant-count">{participantCount}</span>
-        )}
-      </CompositeButton>
+      <WithTooltip title={t('Participants')}>
+        <CompositeButton title="Participants" {...props}>
+          <Icon icon="participants" />
+          {participantCount > 1 && (
+            <span className="rd__participant-count">{participantCount}</span>
+          )}
+        </CompositeButton>
+      </WithTooltip>
     </div>
   );
 };

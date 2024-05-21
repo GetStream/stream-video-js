@@ -3,11 +3,14 @@ import {
   DefaultParticipantViewUI,
   GenericMenu,
   GenericMenuButtonItem,
+  hasAudio,
+  hasScreenShare,
+  hasScreenShareAudio,
+  hasVideo,
   Icon,
   OwnCapability,
   ParticipantActionsContextMenu,
   Restricted,
-  SfuModels,
   useCall,
   useI18n,
   useMenuContext,
@@ -58,16 +61,12 @@ const CustomParticipantActionsContextMenu = () => {
 
   const { participant, participantViewElement, videoElement } =
     useParticipantViewContext();
-  const { pin, publishedTracks, sessionId, userId } = participant;
+  const { pin, sessionId, userId } = participant;
 
-  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const hasScreenShare = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-  const hasScreenShareAudio = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE_AUDIO,
-  );
+  const hasAudioTrack = hasAudio(participant);
+  const hasVideoTrack = hasVideo(participant);
+  const hasScreenShareTrack = hasScreenShare(participant);
+  const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
   const [fullscreenModeOn, setFullscreenModeOn] = useState(
     !!document.fullscreenElement,
@@ -198,25 +197,25 @@ const CustomParticipantActionsContextMenu = () => {
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-        {hasVideo && (
+        {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>
             <Icon icon="camera-off-outline" />
             {t('Turn off video')}
           </GenericMenuButtonItem>
         )}
-        {hasScreenShare && (
+        {hasScreenShareTrack && (
           <GenericMenuButtonItem onClick={muteScreenShare}>
             <Icon icon="screen-share-off" />
             {t('Turn off screen share')}
           </GenericMenuButtonItem>
         )}
-        {hasAudio && (
+        {hasAudioTrack && (
           <GenericMenuButtonItem onClick={muteAudio}>
             <Icon icon="no-audio" />
             {t('Mute audio')}
           </GenericMenuButtonItem>
         )}
-        {hasScreenShareAudio && (
+        {hasScreenShareAudioTrack && (
           <GenericMenuButtonItem onClick={muteScreenShareAudio}>
             <Icon icon="no-audio" />
             {t('Mute screen share audio')}

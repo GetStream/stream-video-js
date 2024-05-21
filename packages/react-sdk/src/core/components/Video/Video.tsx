@@ -6,7 +6,8 @@ import {
   useState,
 } from 'react';
 import {
-  SfuModels,
+  hasScreenShare,
+  hasVideo,
   StreamVideoParticipant,
   VideoTrackType,
   VisibilityState,
@@ -64,7 +65,6 @@ export const Video = ({
     sessionId,
     videoStream,
     screenShareStream,
-    publishedTracks,
     viewportVisibilityState,
     isLocalParticipant,
     userId,
@@ -130,9 +130,9 @@ export const Video = ({
 
   const isPublishingTrack =
     trackType === 'videoTrack'
-      ? publishedTracks.includes(SfuModels.TrackType.VIDEO)
+      ? hasVideo(participant)
       : trackType === 'screenShareTrack'
-      ? publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE)
+      ? hasScreenShare(participant)
       : false;
 
   const isInvisible =

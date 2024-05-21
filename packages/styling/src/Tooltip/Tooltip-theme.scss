@@ -2,7 +2,7 @@
 
 .str-video {
   /* The border radius used for the borders of the component */
-  --str-video__tooltip--border-radius: var(--str-video__border-radius-xxxs);
+  --str-video__tooltip--border-radius: var(--str-video__border-radius-xs);
 
   /* The text/icon color of the component */
   --str-video__tooltip--color: var(--str-video__text-color3);
@@ -23,7 +23,7 @@
   --str-video__tooltip--border-inline-end: none;
 
   /* Box shadow applied to the component */
-  --str-video__tooltip--box-shadow: 0 0 20px var(--str-video__background-color2);
+  --str-video__tooltip--box-shadow: none;
 }
 
 .str-video__tooltip {

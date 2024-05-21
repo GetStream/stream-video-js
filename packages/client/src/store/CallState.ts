@@ -36,9 +36,10 @@ import {
   UserResponse,
   WSEvent,
 } from '../gen/coordinator';
-import { Pin, TrackType } from '../gen/video/sfu/models/models';
+import { Pin } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
+import { hasScreenShare } from '../helpers/participantUtils';
 
 /**
  * Represents the state of the current call.
@@ -363,11 +364,7 @@ export class CallState {
     );
 
     this.hasOngoingScreenShare$ = this.participants$.pipe(
-      map((participants) =>
-        participants.some((p) =>
-          p.publishedTracks.includes(TrackType.SCREEN_SHARE),
-        ),
-      ),
+      map((participants) => participants.some((p) => hasScreenShare(p))),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),
     );

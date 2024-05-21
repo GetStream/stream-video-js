@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
-import { OwnCapability, SfuModels } from '@stream-io/video-client';
+import {
+  hasAudio,
+  hasScreenShare,
+  hasScreenShareAudio,
+  hasVideo,
+  OwnCapability,
+} from '@stream-io/video-client';
 import { useParticipantViewContext } from './ParticipantViewContext';
 import {
   GenericMenu,
@@ -21,16 +27,12 @@ export const ParticipantActionsContextMenu = () => {
   const call = useCall();
   const { t } = useI18n();
 
-  const { pin, publishedTracks, sessionId, userId } = participant;
+  const { pin, sessionId, userId } = participant;
 
-  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const hasScreenShare = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-  const hasScreenShareAudio = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE_AUDIO,
-  );
+  const hasAudioTrack = hasAudio(participant);
+  const hasVideoTrack = hasVideo(participant);
+  const hasScreenShareTrack = hasScreenShare(participant);
+  const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
   const blockUser = () => call?.blockUser(userId);
   const muteAudio = () => call?.muteUser(userId, 'audio');
@@ -161,25 +163,25 @@ export const ParticipantActionsContextMenu = () => {
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-        {hasVideo && (
+        {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>
             <Icon icon="camera-off-outline" />
             {t('Turn off video')}
           </GenericMenuButtonItem>
         )}
-        {hasScreenShare && (
+        {hasScreenShareTrack && (
           <GenericMenuButtonItem onClick={muteScreenShare}>
             <Icon icon="screen-share-off" />
             {t('Turn off screen share')}
           </GenericMenuButtonItem>
         )}
-        {hasAudio && (
+        {hasAudioTrack && (
           <GenericMenuButtonItem onClick={muteAudio}>
             <Icon icon="no-audio" />
             {t('Mute audio')}
           </GenericMenuButtonItem>
         )}
-        {hasScreenShareAudio && (
+        {hasScreenShareAudioTrack && (
           <GenericMenuButtonItem onClick={muteScreenShareAudio}>
             <Icon icon="no-audio" />
             {t('Mute screen share audio')}

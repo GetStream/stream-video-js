@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
+  findNodeHandle,
   NativeModules,
   Platform,
   Pressable,
   StyleSheet,
   View,
-  findNodeHandle,
 } from 'react-native';
 import { ScreenShare } from '../../../icons/ScreenShare';
 import { StopScreenShare } from '../../../icons/StopScreenShare';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
-import { SfuModels } from '@stream-io/video-client';
+import { hasScreenShare, SfuModels } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useIsIosScreenshareBroadcastStarted } from '../../../hooks/useIsIosScreenshareBroadcastStarted';
 import { usePrevious } from '../../../utils/hooks/usePrevious';
@@ -48,9 +48,8 @@ export const LivestreamScreenShareToggleButton = () => {
   );
 
   const localParticipant = useLocalParticipant();
-  const hasPublishedScreenShare = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
+  const hasPublishedScreenShare =
+    localParticipant && hasScreenShare(localParticipant);
 
   // listens to iOS screen share broadcast started event from the system
   useEffect(() => {

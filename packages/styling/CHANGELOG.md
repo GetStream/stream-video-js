@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.2...@stream-io/video-styling-1.0.3) (2024-05-17)
+
+
+### Bug Fixes
+
+* popup-related UI updates ([#1356](https://github.com/GetStream/stream-video-js/issues/1356)) ([a1a3238](https://github.com/GetStream/stream-video-js/commit/a1a3238370b1ed5b7877f744bebea9f51a843256))
+
 ### [1.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.1...@stream-io/video-styling-1.0.2) (2024-04-05)
 
 

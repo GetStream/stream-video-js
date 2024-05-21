@@ -14,6 +14,8 @@ import {
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   useCallStateHooks,
+  useI18n,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 
@@ -101,6 +103,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
     chatClient,
     channelId: activeCall?.id,
   });
+
+  const { t } = useI18n();
 
   useEffect(() => {
     // helps with Fast-Refresh
@@ -196,7 +200,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
           data-testid="str-video__call-controls"
         >
           <div className="str-video__call-controls--group str-video__call-controls--options">
-            <div className="str-video__call-controls__desktop" title="Settings">
+            <div className="str-video__call-controls__desktop">
               <ToggleSettingsTabModal
                 layoutProps={{
                   selectedLayout: layout,
@@ -207,46 +211,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 }}
               />
             </div>
-            <div className="str-video__call-controls__desktop" title="Feedback">
+            <div className="str-video__call-controls__desktop">
               <ToggleFeedbackButton />
             </div>
-            {isPronto && (
-              <div
-                className="str-video__call-controls__desktop"
-                title="Dev Settings"
-              >
-                <ToggleDeveloperButton />
-              </div>
-            )}
-            <div className="str-video__call-controls__mobile">
-              <ToggleMoreOptionsListButton />
-            </div>
-          </div>
-          <div className="str-video__call-controls--group str-video__call-controls--media">
-            <RecordCallConfirmationButton />
-
-            <div className="str-video__call-controls__desktop">
-              <ScreenShareButton />
-            </div>
-            <div className="str-video__call-controls__desktop">
-              <ToggleEffectsButton />
-            </div>
-
-            <div className="str-video__call-controls__desktop">
-              <ToggleNoiseCancellationButton />
-            </div>
-
-            <div className="str-video__call-controls__desktop">
-              <ReactionsButton />
-            </div>
-
-            <ToggleDualMicButton />
-            <ToggleDualCameraButton />
-            <div className="str-video__call-controls__desktop">
-              <CancelCallConfirmButton onLeave={onLeave} />
-            </div>
-          </div>
-          <div className="str-video__call-controls--group str-video__call-controls--sidebar">
             <div className="str-video__call-controls__desktop">
               <ToggleLayoutButton
                 selectedLayout={layout}
@@ -255,29 +222,60 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
             {isPronto && (
               <div className="str-video__call-controls__desktop">
-                <CompositeButton
-                  active={showClosedCaptions}
-                  title="Closed Captions"
-                  variant="primary"
-                  onClick={() =>
-                    setSidebarContent(
-                      showClosedCaptions ? null : 'closed-captions',
-                    )
-                  }
-                >
-                  <Icon icon="closed-captions" />
-                </CompositeButton>
+                <ToggleDeveloperButton />
               </div>
             )}
+            <div className="str-video__call-controls__mobile">
+              <ToggleMoreOptionsListButton />
+            </div>
+          </div>
+          <div className="str-video__call-controls--group str-video__call-controls--media">
+            <ToggleDualMicButton />
+            <ToggleDualCameraButton />
+            <div className="str-video__call-controls__desktop">
+              <ToggleEffectsButton />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleNoiseCancellationButton />
+            </div>
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <WithTooltip title={t('Closed Captions')}>
+                  <CompositeButton
+                    active={showClosedCaptions}
+                    variant="primary"
+                    onClick={() => {
+                      setSidebarContent(
+                        showClosedCaptions ? null : 'closed-captions',
+                      );
+                    }}
+                  >
+                    <Icon icon="closed-captions" />
+                  </CompositeButton>
+                </WithTooltip>
+              </div>
+            )}
+            <div className="str-video__call-controls__desktop">
+              <ReactionsButton />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ScreenShareButton />
+            </div>
+            <RecordCallConfirmationButton />
+            <div className="str-video__call-controls__desktop">
+              <CancelCallConfirmButton onLeave={onLeave} />
+            </div>
+          </div>
+          <div className="str-video__call-controls--group str-video__call-controls--sidebar">
             <div className="str-video__call-controls__desktop">
               <ToggleStatsButton
                 active={showStats}
                 onClick={() => setSidebarContent(showStats ? null : 'stats')}
               />
             </div>
-
             <ToggleParticipantListButton
               active={showParticipants}
+              caption=""
               onClick={() => {
                 setSidebarContent(showParticipants ? null : 'participants');
               }}
@@ -288,19 +286,20 @@ export const ActiveCall = (props: ActiveCallProps) => {
               disableOnChatOpen={showChat}
             >
               <div className="str-chat__chat-button__wrapper">
-                <CompositeButton
-                  active={showChat}
-                  disabled={!chatClient}
-                  title="Chat"
-                  onClick={() => {
-                    if (isTourActive && currentTourStep === StepNames.Chat) {
-                      nextTourStep();
-                    }
-                    setSidebarContent(showChat ? null : 'chat');
-                  }}
-                >
-                  <Icon icon="chat" />
-                </CompositeButton>
+                <WithTooltip title={t('Chat')}>
+                  <CompositeButton
+                    active={showChat}
+                    disabled={!chatClient}
+                    onClick={() => {
+                      if (isTourActive && currentTourStep === StepNames.Chat) {
+                        nextTourStep();
+                      }
+                      setSidebarContent(showChat ? null : 'chat');
+                    }}
+                  >
+                    <Icon icon="chat" />
+                  </CompositeButton>
+                </WithTooltip>
                 {!showChat && (
                   <UnreadCountBadge
                     channelWatched={channelWatched}

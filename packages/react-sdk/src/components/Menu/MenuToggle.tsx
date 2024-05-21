@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -34,6 +35,7 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   strategy?: Strategy;
   offset?: number;
   visualType?: MenuVisualType;
+  onToggle?: (menuShown: boolean) => void;
 }>;
 
 export type MenuContextValue = {
@@ -84,8 +86,11 @@ export const MenuToggle = <E extends HTMLElement>({
   offset,
   visualType = MenuVisualType.MENU,
   children,
+  onToggle,
 }: MenuToggleProps<E>) => {
   const [menuShown, setMenuShown] = useState(false);
+  const toggleHandler = useRef(onToggle);
+  toggleHandler.current = onToggle;
 
   const { floating, domReference, refs, x, y } = useFloatingUIPreset({
     placement,
@@ -97,8 +102,10 @@ export const MenuToggle = <E extends HTMLElement>({
     const handleClick = (event: MouseEvent) => {
       if (!floating && domReference?.contains(event.target as Node)) {
         setMenuShown(true);
+        toggleHandler.current?.(true);
       } else if (floating && !floating?.contains(event.target as Node)) {
         setMenuShown(false);
+        toggleHandler.current?.(false);
       }
     };
 
@@ -109,6 +116,7 @@ export const MenuToggle = <E extends HTMLElement>({
         !event.ctrlKey
       ) {
         setMenuShown(false);
+        toggleHandler.current?.(false);
       }
     };
     document?.addEventListener('click', handleClick, { capture: true });
@@ -135,6 +143,7 @@ export const MenuToggle = <E extends HTMLElement>({
                 left: x ?? 0,
                 overflowY: 'auto',
               }}
+              role="menu"
               children={children}
             />
           ) : null}
