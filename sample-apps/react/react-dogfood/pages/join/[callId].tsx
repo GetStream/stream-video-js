@@ -143,7 +143,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     tokenOrProvider: tokenProvider,
     userData: {
       id: '!anon',
-      ...(user as Omit<User, 'type'>),
+      ...(user as Omit<User, 'type' | 'push_notifications'>),
       language: user.language as TranslationLanguages | undefined,
     },
   });

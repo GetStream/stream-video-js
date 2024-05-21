@@ -43,13 +43,13 @@ import {
   OwnCapability,
   PinRequest,
   PinResponse,
-  QueryMembersRequest,
-  QueryMembersResponse,
+  QueryCallMembersRequest,
+  QueryCallMembersResponse,
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
-  SendEventRequest,
-  SendEventResponse,
+  SendCallEventRequest,
+  SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
   SFUResponse,
@@ -1857,15 +1857,15 @@ export class Call {
    * @param request
    * @returns
    */
-  queryMembers = (request?: Omit<QueryMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
-      '/call/members',
-      {
-        ...(request || {}),
-        id: this.id,
-        type: this.type,
-      },
-    );
+  queryMembers = (request?: Omit<QueryCallMembersRequest, 'type' | 'id'>) => {
+    return this.streamClient.post<
+      QueryCallMembersResponse,
+      QueryCallMembersRequest
+    >('/call/members', {
+      ...(request || {}),
+      id: this.id,
+      type: this.type,
+    });
   };
 
   /**
@@ -2009,7 +2009,7 @@ export class Call {
    * @param payload the payload to send.
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
-    return this.streamClient.post<SendEventResponse, SendEventRequest>(
+    return this.streamClient.post<SendCallEventResponse, SendCallEventRequest>(
       `${this.streamClientBasePath}/event`,
       { custom: payload },
     );

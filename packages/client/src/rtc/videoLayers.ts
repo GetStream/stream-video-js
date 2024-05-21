@@ -1,6 +1,6 @@
 import { getOSInfo } from '../client-details';
 import { ScreenShareSettings } from '../types';
-import { TargetResolution } from '../gen/coordinator';
+import { TargetResolutionResponse } from '../gen/shims';
 import { isReactNative } from '../helpers/platforms';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
@@ -9,7 +9,7 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
 };
 
 const DEFAULT_BITRATE = 1250000;
-const defaultTargetResolution: TargetResolution = {
+const defaultTargetResolution: TargetResolutionResponse = {
   bitrate: DEFAULT_BITRATE,
   width: 1280,
   height: 720,
@@ -30,7 +30,7 @@ const defaultBitratePerRid: Record<string, number> = {
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
-  targetResolution: TargetResolution = defaultTargetResolution,
+  targetResolution: TargetResolutionResponse = defaultTargetResolution,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
@@ -79,7 +79,7 @@ export const findOptimalVideoLayers = (
  * @param currentHeight the current height of the track.
  */
 export const getComputedMaxBitrate = (
-  targetResolution: TargetResolution,
+  targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
 ): number => {
