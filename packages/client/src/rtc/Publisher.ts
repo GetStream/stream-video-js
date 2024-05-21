@@ -24,6 +24,7 @@ import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 import { getOSInfo } from '../client-details';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
+import { TargetResolutionResponse } from '../gen/shims';
 
 const logger: Logger = getLogger(['Publisher']);
 
@@ -238,7 +239,8 @@ export class Publisher {
 
     if (!transceiver) {
       const { settings } = this.state;
-      const targetResolution = settings?.video.target_resolution;
+      const targetResolution = settings?.video
+        .target_resolution as TargetResolutionResponse;
       const screenShareBitrate =
         settings?.screensharing.target_resolution?.bitrate;
 
@@ -725,7 +727,8 @@ export class Publisher {
     sdp = sdp || this.pc.localDescription?.sdp;
 
     const { settings } = this.state;
-    const targetResolution = settings?.video.target_resolution;
+    const targetResolution = settings?.video
+      .target_resolution as TargetResolutionResponse;
     return this.pc
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)

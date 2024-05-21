@@ -5371,7 +5371,7 @@ export interface TargetResolution {
    * @type {number}
    * @memberof TargetResolution
    */
-  bitrate: number;
+  bitrate?: number;
   /**
    *
    * @type {number}
@@ -6685,6 +6685,12 @@ export interface UserStats {
    * @memberof UserStats
    */
   info: UserInfoResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof UserStats
+   */
+  min_event_ts: number;
   /**
    *
    * @type {number}
