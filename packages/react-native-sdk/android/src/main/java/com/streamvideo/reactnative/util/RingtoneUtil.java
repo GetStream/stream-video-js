@@ -47,7 +47,7 @@ public final class RingtoneUtil {
 
         Log.i(TAG, "Attempting to get default ringtone directly via reflection");
         String uriString   = getStringForUser(context.getContentResolver(), getUserId(context));
-        Uri    ringtoneUri = uriString != null ? Uri.parse(uriString) : null;
+        Uri ringtoneUri = uriString != null ? Uri.parse(uriString) : null;
 
         if (ringtoneUri != null && getUserIdFromAuthority(ringtoneUri.getAuthority(), getUserId(context)) == getUserId(context)) {
             ringtoneUri = getUriWithoutUserId(ringtoneUri);
