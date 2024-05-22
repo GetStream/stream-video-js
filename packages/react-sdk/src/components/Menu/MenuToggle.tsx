@@ -3,6 +3,7 @@ import {
   createContext,
   ForwardedRef,
   PropsWithChildren,
+  RefAttributes,
   useContext,
   useEffect,
   useMemo,
@@ -21,8 +22,7 @@ import { useFloatingUIPreset } from '../../hooks';
 
 export type ToggleMenuButtonProps<E extends HTMLElement = HTMLButtonElement> = {
   menuShown: boolean;
-  ref: ForwardedRef<E>;
-};
+} & RefAttributes<E>;
 
 export enum MenuVisualType {
   PORTAL = 'portal',

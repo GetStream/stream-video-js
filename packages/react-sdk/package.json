@@ -46,8 +46,8 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rimraf": "^5.0.5",
     "rollup": "^3.29.4",
     "typescript": "^5.4.3"
