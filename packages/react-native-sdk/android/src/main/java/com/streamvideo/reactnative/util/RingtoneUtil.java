@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
  */
 public final class RingtoneUtil {
 
-    private static final String TAG = "com.streamvideo.reactnative.util.RingtoneUtil";
+    private static final String TAG = "RingtoneUtil";
 
     private RingtoneUtil() {}
 
