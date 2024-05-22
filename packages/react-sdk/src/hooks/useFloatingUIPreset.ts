@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { UseFloatingData } from '@floating-ui/react';
+import type { UseFloatingOptions } from '@floating-ui/react';
 import {
   autoUpdate,
   flip,
@@ -10,16 +10,20 @@ import {
 } from '@floating-ui/react';
 
 export const useFloatingUIPreset = ({
+  middleware = [],
   placement,
   strategy,
   offset: offsetInPx = 10,
-}: Pick<UseFloatingData, 'placement' | 'strategy'> & { offset?: number }) => {
+}: Pick<UseFloatingOptions, 'placement' | 'strategy' | 'middleware'> & {
+  offset?: number;
+}) => {
   const {
     refs,
     x,
     y,
     update,
     elements: { domReference, floating },
+    context,
   } = useFloating({
     placement,
     strategy,
@@ -35,6 +39,7 @@ export const useFloatingUIPreset = ({
           });
         },
       }),
+      ...middleware,
     ],
   });
 
@@ -47,5 +52,5 @@ export const useFloatingUIPreset = ({
     return () => cleanup();
   }, [domReference, floating, update]);
 
-  return { refs, x, y, domReference, floating, strategy };
+  return { refs, x, y, domReference, floating, strategy, context };
 };

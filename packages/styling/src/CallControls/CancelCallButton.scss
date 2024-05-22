@@ -1,11 +1,7 @@
 .str-video__end-call {
   &__confirmation {
-    background-color: var(--str-video__base-color7);
-
-    border-radius: var(--str-video__border-radius-xl);
-
-    padding: var(--str-video__spacing-sm);
-    gap: var(--str-video__spacing-md);
+    padding: var(--str-video__spacing-lg);
+    gap: var(--str-video__spacing-xs);
 
     display: flex;
     flex-direction: column;
