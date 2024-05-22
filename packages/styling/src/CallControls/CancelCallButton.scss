@@ -1,7 +1,7 @@
 .str-video__end-call {
   &__confirmation {
     padding: var(--str-video__spacing-lg);
-    gap: var(--str-video__spacing-xs);
+    gap: var(--str-video__spacing-md);
 
     display: flex;
     flex-direction: column;
@@ -9,8 +9,11 @@
 
   &__leave,
   &__end {
-    min-width: 211px;
+    min-width: 196px;
     color: var(--str-video__text-color1);
+    border: 2px solid transparent;
+    padding: calc(var(--str-video__spacing-sm) - 2px)
+      var(--str-video__spacing-lg);
 
     &-icon {
       background-color: var(--str-video__text-color1);
@@ -19,18 +22,19 @@
 
   &__leave {
     background-color: var(--str-video__button-tertiary-base);
-    border: 1px solid transparent;
 
     &:hover {
-      background-color: var(--str-video__button-primary-hover);
+      background-color: var(--str-video__button-tertiary-hover);
     }
   }
 
   &__end {
     background-color: var(--str-video__button-primary-base);
+    border-color: var(--str-video__button-default-hover);
 
     &:hover {
       background-color: var(--str-video__button-tertiary-hover);
+      border-color: transparent;
     }
   }
 }
