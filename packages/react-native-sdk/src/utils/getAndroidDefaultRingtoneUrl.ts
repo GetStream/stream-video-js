@@ -6,7 +6,13 @@ export async function getAndroidDefaultRingtoneUrl(): Promise<
   if (Platform.OS !== 'android') {
     return undefined;
   }
-  const url =
-    await NativeModules.StreamVideoReactNative?.getDefaultRingtoneUrl();
-  return url;
+  try {
+    const url =
+      await NativeModules.StreamVideoReactNative?.getDefaultRingtoneUrl();
+    return url;
+  } catch (e) {
+    console.info(e);
+  }
+
+  return undefined;
 }

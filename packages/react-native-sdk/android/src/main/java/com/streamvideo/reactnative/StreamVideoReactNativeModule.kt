@@ -4,6 +4,7 @@ import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.util.Rational
@@ -13,8 +14,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.bridge.Promise;
-import android.media.RingtoneManager;
-
+import com.streamvideo.reactnative.util.RingtoneUtil
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -36,7 +36,13 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     @ReactMethod
     fun getDefaultRingtoneUrl(promise: Promise) {
-        promise.resolve(RingtoneManager.getActualDefaultRingtoneUri(reactApplicationContext, RingtoneManager.TYPE_RINGTONE).toString());
+        val defaultRingtoneUri: Uri? =
+            RingtoneUtil.getActualDefaultRingtoneUri(reactApplicationContext);
+        if (defaultRingtoneUri != null) {
+            promise.resolve(defaultRingtoneUri.toString());
+        } else {
+            promise.reject(NAME, "Cannot get default ringtone in Android - check native logs for more info");
+        }
     }
 
     @ReactMethod
