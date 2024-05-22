@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.8...@stream-io/video-react-native-sdk-0.7.9) (2024-05-22)
+
+
+### Bug Fixes
+
+* workaround for samsung device ringtone quirks ([#1362](https://github.com/GetStream/stream-video-js/issues/1362)) ([d15380a](https://github.com/GetStream/stream-video-js/commit/d15380a4aac2bd9b7b6dc6b9de337739710c97b8))
+
 ### [0.7.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.7...@stream-io/video-react-native-sdk-0.7.8) (2024-05-21)
 
 ### Dependency Updates
