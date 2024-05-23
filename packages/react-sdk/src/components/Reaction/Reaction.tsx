@@ -13,7 +13,7 @@ export const defaultEmojiReactionMap: Record<string, string> = {
   ':raise-hand:': '✋',
   ':fireworks:': '🎉',
   ':dislike:': '👎',
-  ':heart:': '❤️\ufe0f', // https://codepoints.net/U+FE0F
+  ':heart:': '❤️',
   ':smile:': '😀',
 };
 
