@@ -493,7 +493,11 @@ export class Call {
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
       const hasOtherParticipants = this.state.remoteParticipants.length > 0;
-      if (this.isCreatedByMe && !hasOtherParticipants) {
+      if (
+        this.isCreatedByMe &&
+        !hasOtherParticipants &&
+        callingState === CallingState.RINGING
+      ) {
         // Signals other users that I have cancelled my call to them
         // before they accepted it.
         await this.reject();
