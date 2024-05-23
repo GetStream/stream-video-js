@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.11...@stream-io/video-react-sdk-1.0.12) (2024-05-23)
+
+
+### Bug Fixes
+
+* participant sounds and cookbook ([#1367](https://github.com/GetStream/stream-video-js/issues/1367)) ([d5e774c](https://github.com/GetStream/stream-video-js/commit/d5e774c14568c98a819cb282d3453a0136a84d84))
+
 ### [1.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.10...@stream-io/video-react-sdk-1.0.11) (2024-05-23)
 
 ### Dependency Updates
