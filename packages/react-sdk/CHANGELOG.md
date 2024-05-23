@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.9...@stream-io/video-react-sdk-1.0.10) (2024-05-23)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `1.0.4`
+
+### Bug Fixes
+
+* popup styling ([#1363](https://github.com/GetStream/stream-video-js/issues/1363)) ([6549d4b](https://github.com/GetStream/stream-video-js/commit/6549d4bd80e198169e8d09920c46dcb487eb071b))
+
 ### [1.0.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.8...@stream-io/video-react-sdk-1.0.9) (2024-05-21)
 
 ### Dependency Updates
