@@ -32,7 +32,7 @@
     "@stream-io/flat-list-mvcp": "^0.10.3",
     "@stream-io/react-native-webrtc": "118.0.1",
     "@stream-io/video-react-native-sdk": "workspace:^",
-    "react": "18.3.1",
+    "react": "18.2.0",
     "react-native": "0.73.4",
     "react-native-callkeep": "4.3.11",
     "react-native-dotenv": "^3.4.11",

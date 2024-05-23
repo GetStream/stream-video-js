@@ -7001,7 +7001,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": ^0.1.34
     "@stream-io/react-native-webrtc": 118.0.1
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": ~18.3.2
+    "@types/react": ^18.3.2
     "@types/react-native-incall-manager": ^4
     expo: ~50.0.3
     expo-constants: ~15.4.5
@@ -7011,7 +7011,7 @@ __metadata:
     expo-splash-screen: ~0.26.4
     expo-status-bar: ~1.11.1
     expo-task-manager: ~11.7.1
-    react: 18.3.1
+    react: 18.2.0
     react-native: 0.73.2
     react-native-callkeep: 4.3.12
     react-native-gesture-handler: ~2.14.0
@@ -7320,7 +7320,7 @@ __metadata:
     jest: ^29.6.3
     patch-package: ^6.4.7
     prettier: 2.8.8
-    react: 18.3.1
+    react: 18.2.0
     react-native: 0.73.4
     react-native-callkeep: 4.3.11
     react-native-dotenv: ^3.4.11
@@ -7365,7 +7365,7 @@ __metadata:
     "@tsconfig/node14": 14.1.0
     "@types/jest": ^29.5.1
     "@types/lodash.merge": ^4
-    "@types/react": 18.3.2
+    "@types/react": ^18.3.2
     "@types/react-native": ^0.70.4
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18
@@ -8107,7 +8107,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.3.2, @types/react@npm:^18.3.2, @types/react@npm:~18.3.2":
+"@types/react@npm:^18.3.2":
   version: 18.3.2
   resolution: "@types/react@npm:18.3.2"
   dependencies:
@@ -23017,7 +23017,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1, react@npm:^18.3.1":
+"react@npm:18.2.0":
+  version: 18.2.0
+  resolution: "react@npm:18.2.0"
+  dependencies:
+    loose-envify: ^1.1.0
+  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
+  languageName: node
+  linkType: hard
+
+"react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
