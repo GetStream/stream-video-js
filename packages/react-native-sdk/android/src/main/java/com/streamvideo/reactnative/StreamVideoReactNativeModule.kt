@@ -26,7 +26,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     override fun initialize() {
         super.initialize()
-        StreamVideoReactNative.pipListeners.add {isInPictureInPictureMode ->
+        StreamVideoReactNative.pipListeners.add { isInPictureInPictureMode ->
             reactApplicationContext.getJSModule(
                 RCTDeviceEventEmitter::class.java
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
@@ -71,9 +71,9 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         }
     }
 
-    override fun onCatalystInstanceDestroy() {
-        StreamVideoReactNative.pipListeners.clear()
-        super.onCatalystInstanceDestroy()
+    override fun invalidate() {
+        StreamVideoReactNative.pipListeners.clear();
+        super.invalidate()
     }
 
     @ReactMethod
