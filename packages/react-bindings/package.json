@@ -26,7 +26,7 @@
   },
   "peerDependencies": {
     "@stream-io/video-client": "workspace:^",
-    "react": ">=17.0.0"
+    "react": "^17 || ^18 || ^19"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.6",

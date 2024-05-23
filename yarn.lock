@@ -7234,7 +7234,7 @@ __metadata:
     typescript: ^5.4.3
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
-    react: ">=17.0.0"
+    react: ^17 || ^18 || ^19
   languageName: unknown
   linkType: soft
 
@@ -7450,17 +7450,16 @@ __metadata:
     "@stream-io/video-filters-web": "workspace:*"
     "@stream-io/video-react-bindings": "workspace:*"
     "@stream-io/video-styling": "workspace:^"
+    "@types/react": ^18.3.2
     chart.js: ^4.4.1
     clsx: ^2.0.0
     react: ^18.3.1
     react-chartjs-2: ^5.2.0
-    react-dom: ^18.3.1
     rimraf: ^5.0.5
     rollup: ^3.29.4
     typescript: ^5.4.3
   peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^18 || ^19
   languageName: unknown
   linkType: soft
 
