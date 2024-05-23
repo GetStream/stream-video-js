@@ -4,13 +4,13 @@ button.rd__button,
   align-items: center;
   justify-content: center;
   border-radius: var(--str-video__border-radius-md);
-  padding: calc(var(--str-video__spacing-xs) - 2px) var(--str-video__spacing-lg);
+  padding: calc(var(--str-video__spacing-xs) - 1px) var(--str-video__spacing-lg);
   text-align: center;
   width: 100%;
   font-size: var(--str-video__font-size-sm);
   line-height: var(--str-video__spacing-lg);
   font-weight: 500;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   color: var(--str-video__text-color1);
   background: none;
 
@@ -60,11 +60,10 @@ button.rd__button,
 
   &--secondary {
     background-color: transparent;
-    border: 1px solid var(--str-video__base-color3);
+    border-color: var(--str-video__button-default-hover);
 
     &:disabled {
       background-color: transparent;
-      border: 1px solid var(--str-video__base-color3);
       cursor: not-allowed;
     }
   }

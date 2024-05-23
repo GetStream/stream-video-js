@@ -11,8 +11,8 @@
   &__end {
     min-width: 196px;
     color: var(--str-video__text-color1);
-    border: 2px solid transparent;
-    padding: calc(var(--str-video__spacing-sm) - 2px)
+    border: 1px solid transparent;
+    padding: calc(var(--str-video__spacing-sm) - 1px)
       var(--str-video__spacing-lg);
 
     &-icon {

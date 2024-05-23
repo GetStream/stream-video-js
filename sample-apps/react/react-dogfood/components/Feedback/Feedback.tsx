@@ -151,7 +151,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <div className="rd__feedback-footer">
           <div className="rd__feedback-actions">
             <button
-              className="rd__button"
+              className="rd__button rd__button--secondary"
               type="button"
               disabled={isSubmitting}
             >
