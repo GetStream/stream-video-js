@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.7...@stream-io/video-client-1.0.8) (2024-05-23)
+
+
+### Bug Fixes
+
+* call.reject when there is no participant and call is in joined state ([#1366](https://github.com/GetStream/stream-video-js/issues/1366)) ([308d045](https://github.com/GetStream/stream-video-js/commit/308d0452303743922ca1e982bd271b42857d96b3))
+
 ### [1.0.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.6...@stream-io/video-client-1.0.7) (2024-05-21)
 
 
