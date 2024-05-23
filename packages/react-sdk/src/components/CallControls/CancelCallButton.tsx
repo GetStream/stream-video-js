@@ -49,13 +49,13 @@ const EndCallMenu = (props: {
 const CancelCallToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->(function CancelCallToggleMenuButton(props, ref) {
+>(function CancelCallToggleMenuButton({ menuShown }, ref) {
   const { t } = useI18n();
   return (
-    <WithTooltip title={t('Leave call')}>
+    <WithTooltip title={t('Leave call')} tooltipDisabled={menuShown}>
       <IconButton
-        icon="call-end"
-        variant="danger"
+        icon={menuShown ? 'close' : 'call-end'}
+        variant={menuShown ? 'active' : 'danger'}
         data-testid="leave-call-button"
         ref={ref}
       />

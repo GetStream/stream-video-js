@@ -12,12 +12,8 @@ export const ToggleNoiseCancellationButton = () => {
     <WithTooltip
       title={`Noise cancellation is ${isEnabled ? 'active' : 'inactive'}`}
     >
-      <CompositeButton
-        active={isEnabled}
-        onClick={() => setEnabled((v) => !v)}
-        variant="primary"
-      >
-        <Icon icon="anc" />
+      <CompositeButton onClick={() => setEnabled((v) => !v)} variant="primary">
+        <Icon icon={isEnabled ? 'anc' : 'anc-off'} />
       </CompositeButton>
     </WithTooltip>
   );
