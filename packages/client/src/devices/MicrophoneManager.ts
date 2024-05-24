@@ -19,7 +19,6 @@ import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorCleanup?: Function;
-  private soundDetectorDeviceId?: string;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
