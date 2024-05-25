@@ -14,6 +14,7 @@ import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
+import { BlurVideoFilterButton } from './BlurVideoFilterButton';
 
 export type CallControlsComponentProps = Pick<
   CallContentProps,
@@ -50,6 +51,7 @@ export const CallControlsComponent = ({
       )}
       <View style={[styles.callControlsWrapper, landscapeStyles]}>
         <ReactionsButton />
+        <BlurVideoFilterButton />
         <ChatButton
           onPressHandler={onChatOpenHandler}
           unreadBadgeCount={unreadCountIndicator}

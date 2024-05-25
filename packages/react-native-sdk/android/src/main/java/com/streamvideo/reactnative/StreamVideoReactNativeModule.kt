@@ -9,12 +9,16 @@ import android.os.Build
 import android.os.Process
 import android.util.Rational
 import androidx.annotation.RequiresApi
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import com.facebook.react.bridge.Promise;
+import com.oney.WebRTCModule.videoEffects.ProcessorProvider
 import com.streamvideo.reactnative.util.RingtoneUtil
+import com.streamvideo.reactnative.videofilters.BackgroundBlurFactory
+import com.streamvideo.reactnative.videofilters.BlurIntensity
+
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -56,6 +60,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     @ReactMethod
     fun removeListeners(count: Int) {
+    }
+
+    @ReactMethod
+    fun registerBackgroundBlurVideoFilter(blurIntensityStr: String?) {
+        val blurIntensity = when (blurIntensityStr) {
+            "light" -> BlurIntensity.LIGHT
+            "heavy" -> BlurIntensity.HEAVY
+            else -> BlurIntensity.MEDIUM
+        }
+        ProcessorProvider.addProcessor("BackgroundBlur", BackgroundBlurFactory(blurIntensity))
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
