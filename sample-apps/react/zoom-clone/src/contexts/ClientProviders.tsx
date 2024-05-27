@@ -1,8 +1,7 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { Chat } from 'stream-chat-react';
+import { Chat, useCreateChatClient } from 'stream-chat-react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
-import { useChatClient } from '../hooks';
 
 import type { User } from '../types';
 
@@ -11,10 +10,10 @@ export const ClientProviders = ({
   children,
 }: PropsWithChildren<{ user: User }>) => {
   const { apiKey, token, tokenProvider } = useUserContext();
-  const chatClient = useChatClient({
+  const chatClient = useCreateChatClient({
     apiKey,
     tokenOrProvider: token || tokenProvider,
-    user,
+    userData: user,
   });
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
 
