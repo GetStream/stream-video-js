@@ -34,7 +34,7 @@
     "react-dom": "^18.2.0",
     "react-form": "^4.0.1",
     "starwars-names": "^1.6.0",
-    "stream-chat": "^8.25.1",
+    "stream-chat": "^8.33.0",
     "stream-chat-react": "^11.19.0",
     "yargs": "^17.7.2"
   },
