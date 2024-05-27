@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.12...@stream-io/video-react-native-sdk-0.7.13) (2024-05-27)
+
+
+### Bug Fixes
+
+* export the LivestreamPlayer component ([#1376](https://github.com/GetStream/stream-video-js/issues/1376)) ([89688a0](https://github.com/GetStream/stream-video-js/commit/89688a03a88ecebb04455b76237350ca0c91afe9)), closes [#1373](https://github.com/GetStream/stream-video-js/issues/1373)
+
 ### [0.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.11...@stream-io/video-react-native-sdk-0.7.12) (2024-05-27)
 
 
