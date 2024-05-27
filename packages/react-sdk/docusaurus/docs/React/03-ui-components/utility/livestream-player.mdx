@@ -1,0 +1,46 @@
+---
+id: livestream-player
+title: LivestreamPlayer
+---
+
+The `LivestreamPlayer` is a UI component that plays a WebRTC livestream given the call ID and the call type.
+Under the hood, it uses the [`LivestreamLayout`](../../core/call-layout/#livestreamlayout) component.
+
+## General usage
+
+Let's see how to render the `LivestreamPlayer` UI:
+
+```tsx
+import {
+  LivestreamPlayer,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
+export const MyLivestreamScreen = () => {
+  let client: StreamVideoClient; // init the client
+  return (
+    <StreamVideo client={client}>
+      <LivestreamPlayer callType="livestream" callId="my-call-id" />
+    </StreamVideo>
+  );
+};
+```
+
+## Props
+
+### `callType`
+
+The call type. Typically, `livestream`.
+
+### `callId`
+
+The call ID.
+
+### `layoutProps`
+
+A list of props that can be passed to the `LivestreamLayout` component. You can read more about it [here](../../..//ui-cookbook/watching-a-livestream/).
+
+| Type                                   | Default Value |
+| -------------------------------------- | ------------- |
+| `LivestreamLayoutProps` \| `undefined` | `undefined`   |

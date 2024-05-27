@@ -1,8 +1,7 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { Chat } from 'stream-chat-react';
+import { Chat, useCreateChatClient } from 'stream-chat-react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
-import { useCreateChatClient } from '../hooks';
 import type { StreamChatType } from '../types/chat';
 import type { User } from '../types/user';
 
