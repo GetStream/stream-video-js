@@ -53,6 +53,7 @@
   border-radius: 8px;
 }
 
+.str-chat__attachment-list-scroll-container,
 .str-chat__list {
   --scrollbar-color-thumb: var(--str-chat__disabled-color);
   --scrollbar-color-track: transparent;
