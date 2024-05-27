@@ -58,7 +58,7 @@ We can show the user info such as image, name, or additional details of the user
 ```tsx title="UserInfoComponent.tsx"
 import React from 'react';
 import {
-  useCallMembers,
+  useCallStateHooks,
   useConnectedUser,
   UserResponse,
 } from '@stream-io/video-react-native-sdk';
@@ -66,6 +66,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 
 export const UserInfoComponent = () => {
   const connectedUser = useConnectedUser();
+  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   const membersToShow: UserResponse[] = (members || [])
