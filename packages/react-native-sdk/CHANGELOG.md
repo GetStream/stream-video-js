@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.11...@stream-io/video-react-native-sdk-0.7.12) (2024-05-27)
+
+
+### Bug Fixes
+
+* **reac-native:** properly cleanup call instance in LivestreamPlayer ([4e60c50](https://github.com/GetStream/stream-video-js/commit/4e60c5067503a7e3e1fdc77a4f6775c5873ed508))
+
 ### [0.7.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.10...@stream-io/video-react-native-sdk-0.7.11) (2024-05-27)
 
 
