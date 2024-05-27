@@ -64,7 +64,7 @@ export const MyToggleTranscriptionButton = () => {
             console.log('Failed to stop transcriptions', err);
           });
         } else {
-          call?.startTransaction().catch((err) => {
+          call?.startTranscription().catch((err) => {
             console.error('Failed to start transcription', err);
           });
         }
