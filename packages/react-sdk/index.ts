@@ -6,6 +6,7 @@ export * from '@stream-io/video-react-bindings';
 export * from './src/core';
 
 export * from './src/components';
+export * from './src/wrappers';
 export * from './src/translations';
 export {
   useHorizontalScrollPosition,
