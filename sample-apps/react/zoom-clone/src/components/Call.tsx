@@ -3,7 +3,7 @@ import { CallingState, StreamCall } from '@stream-io/video-react-sdk';
 
 import { MeetingUI } from './MeetingUI';
 import { ChatSidebar } from './ChatSidebar';
-import { useSetCall } from '../hooks/useSetCall';
+import { useSetCall } from '../hooks';
 import { useJoinedCall } from '../contexts/JoinedCallProvider';
 
 export const CallUI = () => {

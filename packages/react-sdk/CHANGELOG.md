@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.12...@stream-io/video-react-sdk-1.0.13) (2024-05-27)
+
+
+### Bug Fixes
+
+* add LivestreamPlayer wrapper component ([#1372](https://github.com/GetStream/stream-video-js/issues/1372)) ([49e9b98](https://github.com/GetStream/stream-video-js/commit/49e9b980eff548f62f8aa45e6156cfa3dd40dcbd))
+
 ### [1.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.11...@stream-io/video-react-sdk-1.0.12) (2024-05-23)
 
 
