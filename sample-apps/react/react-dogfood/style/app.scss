@@ -62,6 +62,7 @@ body {
     flex-direction: column;
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
 
     .str-video__permission-requests {
       width: 100%;
