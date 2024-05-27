@@ -1,9 +1,9 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ViewerLivestream as DefaultViewerLivestream,
   ViewerLivestreamProps,
 } from '..';
-import { StreamCall, useStreamVideoClient } from '../../..';
+import { Call, StreamCall, useStreamVideoClient } from '../../..';
 
 export type LivestreamPlayerProps = {
   /**
@@ -28,24 +28,24 @@ export const LivestreamPlayer = ({
 }: LivestreamPlayerProps) => {
   const client = useStreamVideoClient();
 
-  const call = useMemo(
-    () => client?.call(callType, callId),
-    [callType, callId, client],
-  );
+  const [call, setCall] = useState<Call>();
 
   useEffect(() => {
-    if (!call) {
+    if (!client) {
       return;
     }
-    call.join().catch((e) => {
+    const myCall = client.call(callType, callId);
+    setCall(myCall);
+    myCall.join().catch((e) => {
       console.error('Failed to join call', e);
     });
     return () => {
-      call.leave().catch((e) => {
+      myCall.leave().catch((e) => {
         console.error('Failed to leave call', e);
       });
+      setCall(undefined);
     };
-  }, [call]);
+  }, [callId, callType, client]);
 
   if (!call) {
     return null;
