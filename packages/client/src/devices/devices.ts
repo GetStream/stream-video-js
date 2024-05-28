@@ -172,7 +172,7 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
-    getLogger(['devices'])('error', `Failed get user media`, {
+    getLogger(['devices'])('error', `Failed to getUserMedia`, {
       error: e,
       constraints: constraints,
     });

@@ -345,7 +345,8 @@ export class StreamVideoClient {
       QueryCallsResponse,
       QueryCallsRequest
     >('/calls', data);
-    const calls = response.calls.map((c) => {
+    const calls = [];
+    for (const c of response.calls) {
       const call = new Call({
         streamClient: this.streamClient,
         id: c.call.id,
@@ -356,12 +357,12 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      call.applyDeviceConfig();
+      await call.applyDeviceConfig();
       if (data.watch) {
         this.writeableStateStore.registerCall(call);
       }
-      return call;
-    });
+      calls.push(call);
+    }
     return {
       ...response,
       calls: calls,
