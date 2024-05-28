@@ -10,11 +10,11 @@ import com.google.mlkit.vision.segmentation.SegmentationMask
 import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
 import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor
 import com.oney.WebRTCModule.videoEffects.VideoFrameProcessorFactoryInterface
-import com.streamvideo.reactnative.videofilters.common.BitmapVideoFilter
-import com.streamvideo.reactnative.videofilters.common.Segment
-import com.streamvideo.reactnative.videofilters.common.VideoFrameProcessorWithBitmapFilter
-import com.streamvideo.reactnative.videofilters.common.copySegment
-import com.streamvideo.reactnative.videofilters.common.newSegmentationMaskMatrix
+import com.streamio.videofiltersreactnative.common.BitmapVideoFilter
+import com.streamio.videofiltersreactnative.common.Segment
+import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
+import com.streamio.videofiltersreactnative.common.copySegment
+import com.streamio.videofiltersreactnative.common.newSegmentationMaskMatrix
 
 
 // Original Sources
@@ -36,7 +36,7 @@ class BackgroundBlurFactory(
     }
 }
 
-class BlurredBackgroundVideoFilter(
+private class BlurredBackgroundVideoFilter(
     private val blurIntensity: BlurIntensity,
     foregroundThreshold: Double,
 ) : BitmapVideoFilter() {

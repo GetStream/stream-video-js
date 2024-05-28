@@ -8,13 +8,14 @@ import {
   ToggleVideoPublishingButton,
   ScreenShareToggleButton,
   useCallStateHooks,
+  BackgroundFiltersProvider,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
-import { BlurVideoFilterButton } from './BlurVideoFilterButton';
+import { VideoFilterButton } from './BlurVideoFilterButton';
 
 export type CallControlsComponentProps = Pick<
   CallContentProps,
@@ -43,26 +44,28 @@ export const CallControlsComponent = ({
   };
 
   return (
-    <View>
-      {isSpeakingWhileMuted && (
-        <View style={styles.speakingLabelContainer}>
-          <Text style={styles.label}>You are muted. Unmute to speak.</Text>
+    <BackgroundFiltersProvider>
+      <View>
+        {isSpeakingWhileMuted && (
+          <View style={styles.speakingLabelContainer}>
+            <Text style={styles.label}>You are muted. Unmute to speak.</Text>
+          </View>
+        )}
+        <View style={[styles.callControlsWrapper, landscapeStyles]}>
+          <ReactionsButton />
+          <VideoFilterButton />
+          <ChatButton
+            onPressHandler={onChatOpenHandler}
+            unreadBadgeCount={unreadCountIndicator}
+          />
+          <ScreenShareToggleButton />
+          <ToggleVideoPublishingButton />
+          <ToggleAudioPublishingButton />
+          <ToggleCameraFaceButton />
+          <HangUpCallButton onPressHandler={onHangupCallHandler} />
         </View>
-      )}
-      <View style={[styles.callControlsWrapper, landscapeStyles]}>
-        <ReactionsButton />
-        <BlurVideoFilterButton />
-        <ChatButton
-          onPressHandler={onChatOpenHandler}
-          unreadBadgeCount={unreadCountIndicator}
-        />
-        <ScreenShareToggleButton />
-        <ToggleVideoPublishingButton />
-        <ToggleAudioPublishingButton />
-        <ToggleCameraFaceButton />
-        <HangUpCallButton onPressHandler={onHangupCallHandler} />
       </View>
-    </View>
+    </BackgroundFiltersProvider>
   );
 };
 

@@ -59,6 +59,7 @@
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
     "@stream-io/react-native-webrtc": "^118.0.1",
+    "@stream-io/video-filters-react-native": ">=0.1.0",
     "expo": ">=47.0.0",
     "expo-build-properties": "*",
     "expo-notifications": "*",
@@ -80,6 +81,9 @@
       "optional": true
     },
     "@react-native-firebase/messaging": {
+      "optional": true
+    },
+    "@stream-io/video-filters-react-native": {
       "optional": true
     },
     "expo": {
@@ -117,6 +121,7 @@
     "@react-native-firebase/app": "17.5.0",
     "@react-native-firebase/messaging": "17.5.0",
     "@stream-io/react-native-webrtc": "118.0.1",
+    "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",
     "@tsconfig/node14": "14.1.0",

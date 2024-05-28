@@ -1,0 +1,197 @@
+import React, {
+  PropsWithChildren,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  registerBackgroundBlurVideoFilters,
+  registerVirtualBackgroundFilter,
+} from '@stream-io/video-filters-react-native';
+import { MediaStream } from '@stream-io/react-native-webrtc';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Platform } from 'react-native';
+
+type VideoFiltersModuleType =
+  typeof import('@stream-io/video-filters-react-native');
+
+let videoFiltersModule: VideoFiltersModuleType | undefined;
+
+try {
+  videoFiltersModule = require('@stream-io/video-filters-react-native').default;
+} catch (_e) {}
+
+import { Image } from 'react-native';
+
+const resolveAssetSourceFunc = Image.resolveAssetSource;
+
+// excluding array of images and only allow one image
+type ImageSourceType = Exclude<
+  Parameters<typeof resolveAssetSourceFunc>[0],
+  Array<any>
+>;
+
+export type BlurIntensity = 'light' | 'medium' | 'heavy';
+
+export type BackgroundFilterType = 'blur' | 'image';
+
+export type CurrentBackgroundFilter = {
+  blur?: BlurIntensity;
+  image?: ImageSourceType;
+};
+
+export type BackgroundFiltersAPI = {
+  /**
+   * The currently applied background filter. Undefined value indicates that no filter is applied.
+   */
+  currentBackgroundFilter: CurrentBackgroundFilter | undefined;
+  /**
+   * Whether the current device supports the background filters.
+   */
+  isSupported: boolean;
+  /**
+   * Applies a background image filter to the video.
+   *
+   * @param imageSource the URL of the image to use as the background.
+   */
+  applyBackgroundImageFilter: (imageSource: ImageSourceType) => void;
+  /**
+   * Applies a background blur filter to the video.
+   *
+   * @param blurLevel the level of blur to apply to the background.
+   */
+  applyBackgroundBlurFilter: (blurIntensity: BlurIntensity) => void;
+  /**
+   * Disables all background filters applied to the video.
+   */
+  disableBackgroundFilter: () => void;
+};
+
+/**
+ * The context for the background filters.
+ */
+const BackgroundFiltersContext = createContext<
+  BackgroundFiltersAPI | undefined
+>(undefined);
+
+/**
+ * A hook to access the background filters context API.
+ */
+export const useBackgroundFilters = () => {
+  const context = useContext(BackgroundFiltersContext);
+  if (!context) {
+    throw new Error(
+      'useBackgroundFilters must be used within a BackgroundFiltersProvider',
+    );
+  }
+  if (!videoFiltersModule) {
+    throw new Error(
+      "Install the '@stream-io/video-filters-react-native' library to use background filters",
+    );
+  }
+  return context;
+};
+
+const isSupported = Platform.OS === 'android';
+
+/**
+ * A provider component that enables the use of background filters in your app.
+ *
+ * Please make sure you have the `@stream-io/video-filters-react-native` package installed
+ * in your project before using this component.
+ */
+export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
+  if (!videoFiltersModule) {
+    throw new Error(
+      "Install the '@stream-io/video-filters-react-native' library to use background filters",
+    );
+  }
+  const { useCameraState } = useCallStateHooks();
+  const { camera } = useCameraState();
+  const isBlurRegisteredRef = useRef(false);
+  const registeredImageFiltersSetRef = useRef(new Set<string>());
+  const [currentBackgroundFilter, setCurrentBackgroundFilter] =
+    useState<CurrentBackgroundFilter>();
+
+  const applyBackgroundBlurFilter = useCallback(
+    (blurIntensity: BlurIntensity) => {
+      if (!isSupported) {
+        return;
+      }
+      if (!isBlurRegisteredRef.current) {
+        registerBackgroundBlurVideoFilters();
+      }
+      let filterName = 'BackgroundBlurMedium';
+      if (blurIntensity === 'heavy') {
+        filterName = 'BackgroundBlurHeavy';
+      } else if (blurIntensity === 'light') {
+        filterName = 'BackgroundBlurLight';
+      }
+      (camera.state.mediaStream as MediaStream | undefined)
+        ?.getVideoTracks()
+        .forEach((track) => {
+          track._setVideoEffect(filterName);
+        });
+      setCurrentBackgroundFilter({ blur: blurIntensity });
+    },
+    [camera],
+  );
+
+  const applyBackgroundImageFilter = useCallback(
+    (imageSource: ImageSourceType) => {
+      const source = resolveAssetSourceFunc(imageSource);
+      const imageUri = source.uri;
+      const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
+      if (!registeredImageFiltersSet.has(imageUri)) {
+        registerVirtualBackgroundFilter(imageUri);
+        registeredImageFiltersSetRef.current.add(imageUri);
+      }
+      const filterName = `VirtualBackground-${imageUri}`;
+      (camera.state.mediaStream as MediaStream | undefined)
+        ?.getVideoTracks()
+        .forEach((track) => {
+          track._setVideoEffect(filterName);
+        });
+      setCurrentBackgroundFilter({ image: imageSource });
+    },
+    [camera],
+  );
+
+  const disableBackgroundFilter = useCallback(() => {
+    if (!isSupported) {
+      return;
+    }
+    (camera.state.mediaStream as MediaStream | undefined)
+      ?.getVideoTracks()
+      .forEach((track) => {
+        // @ts-expect-error - webrtc typing is wrong, null is supported
+        track._setVideoEffect(null);
+      });
+    setCurrentBackgroundFilter(undefined);
+  }, [camera]);
+
+  const value = useMemo(
+    () => ({
+      currentBackgroundFilter,
+      isSupported,
+      applyBackgroundImageFilter,
+      applyBackgroundBlurFilter,
+      disableBackgroundFilter,
+    }),
+    [
+      applyBackgroundBlurFilter,
+      applyBackgroundImageFilter,
+      currentBackgroundFilter,
+      disableBackgroundFilter,
+    ],
+  );
+
+  return (
+    <BackgroundFiltersContext.Provider value={value}>
+      {children}
+    </BackgroundFiltersContext.Provider>
+  );
+};

@@ -1,4 +1,4 @@
-package package com.streamio.videofiltersreactnative.common
+package com.streamio.videofiltersreactnative.common
 
 import android.graphics.Bitmap
 import android.graphics.Matrix

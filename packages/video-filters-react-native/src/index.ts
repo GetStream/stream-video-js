@@ -17,6 +17,10 @@ const VideoFiltersReactNative = NativeModules.VideoFiltersReactNative
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return VideoFiltersReactNative.multiply(a, b);
+export function registerBackgroundBlurVideoFilters() {
+  VideoFiltersReactNative.registerBackgroundBlurVideoFilters();
+}
+
+export function registerVirtualBackgroundFilter(imageUri: string) {
+  VideoFiltersReactNative.registerVirtualBackgroundFilter(imageUri);
 }

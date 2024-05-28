@@ -30,6 +30,7 @@ export * from './translations';
 
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
-export { StreamVideo, StreamCall } from './providers';
+export { StreamVideo } from './providers/StreamVideo';
+export { StreamCall } from './providers/StreamCall';
 
 setClientDetails();
