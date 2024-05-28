@@ -1,6 +1,5 @@
 package com.streamio.videofiltersreactnative.factories
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -8,7 +7,7 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
-import androidx.annotation.DrawableRes
+import android.util.Log
 import androidx.annotation.Keep
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
@@ -37,10 +36,15 @@ class VirtualBackgroundFactory(
   private val backgroundImageUrlString: String,
   private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : VideoFrameProcessorFactoryInterface {
+
   override fun build(): VideoFrameProcessor {
     return VideoFrameProcessorWithBitmapFilter {
       VirtualBackgroundVideoFilter(backgroundImageUrlString, foregroundThreshold)
     }
+  }
+
+  companion object {
+    private const val TAG = "VirtualBackgroundFactory"
   }
 }
 
@@ -72,12 +76,14 @@ private class VirtualBackgroundVideoFilter(
       Bitmap.Config.ARGB_8888,
     )
   }
-  private val foregroundPaint by lazy {
-    Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
-  }
 
   private val virtualBackgroundBitmap by lazy {
+    Log.d(TAG, "getBitmapFromUrl - $backgroundImageUrlString")
     getBitmapFromUrl(backgroundImageUrlString)
+  }
+
+  private val foregroundPaint by lazy {
+    Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
   }
   private var scaledVirtualBackgroundBitmap: Bitmap? = null
   private var scaledVirtualBackgroundBitmapCopy: Bitmap? = null
@@ -179,6 +185,11 @@ private class VirtualBackgroundVideoFilter(
       bitmapWithAlpha
     }
   }
+
+  companion object {
+    private const val TAG = "VirtualBackgroundVideoFilter"
+  }
 }
 
-private const val DEFAULT_FOREGROUND_THRESHOLD: Double = 0.7 // 1 is max confidence that pixel is in the foreground
+private const val DEFAULT_FOREGROUND_THRESHOLD: Double =
+  0.7 // 1 is max confidence that pixel is in the foreground

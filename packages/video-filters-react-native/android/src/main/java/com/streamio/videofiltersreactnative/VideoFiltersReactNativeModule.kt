@@ -25,14 +25,26 @@ class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun registerBackgroundBlurVideoFilters() {
-    ProcessorProvider.addProcessor("BackgroundBlurLight", BackgroundBlurFactory(BlurIntensity.LIGHT))
-    ProcessorProvider.addProcessor("BackgroundBlurMedium", BackgroundBlurFactory(BlurIntensity.MEDIUM))
-    ProcessorProvider.addProcessor("BackgroundBlurHeavy", BackgroundBlurFactory(BlurIntensity.HEAVY))
+    ProcessorProvider.addProcessor(
+      "BackgroundBlurLight",
+      BackgroundBlurFactory(BlurIntensity.LIGHT)
+    )
+    ProcessorProvider.addProcessor(
+      "BackgroundBlurMedium",
+      BackgroundBlurFactory(BlurIntensity.MEDIUM)
+    )
+    ProcessorProvider.addProcessor(
+      "BackgroundBlurHeavy",
+      BackgroundBlurFactory(BlurIntensity.HEAVY)
+    )
   }
 
   @ReactMethod
   fun registerVirtualBackgroundFilter(backgroundImageUrlString: String) {
-    ProcessorProvider.addProcessor("VirtualBackground-$backgroundImageUrlString", VirtualBackgroundFactory(backgroundImageUrlString))
+    ProcessorProvider.addProcessor(
+      "VirtualBackground-$backgroundImageUrlString",
+      VirtualBackgroundFactory(backgroundImageUrlString)
+    )
   }
 
   companion object {

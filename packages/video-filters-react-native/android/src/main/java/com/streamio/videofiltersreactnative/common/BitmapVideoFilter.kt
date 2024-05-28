@@ -7,5 +7,5 @@ import android.graphics.Bitmap
  * RawVideoFilter because we do YUV<->ARGB conversions internally.
  */
 abstract class BitmapVideoFilter {
-    abstract fun applyFilter(videoFrameBitmap: Bitmap)
+  abstract fun applyFilter(videoFrameBitmap: Bitmap)
 }
