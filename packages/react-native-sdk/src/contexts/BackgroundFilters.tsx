@@ -7,10 +7,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  registerBackgroundBlurVideoFilters,
-  registerVirtualBackgroundFilter,
-} from '@stream-io/video-filters-react-native';
 import { MediaStream } from '@stream-io/react-native-webrtc';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Platform } from 'react-native';
@@ -21,8 +17,10 @@ type VideoFiltersModuleType =
 let videoFiltersModule: VideoFiltersModuleType | undefined;
 
 try {
-  videoFiltersModule = require('@stream-io/video-filters-react-native').default;
-} catch (_e) {}
+  videoFiltersModule = require('@stream-io/video-filters-react-native');
+} catch (e) {
+  console.log(e);
+}
 
 import { Image } from 'react-native';
 
@@ -122,7 +120,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         return;
       }
       if (!isBlurRegisteredRef.current) {
-        registerBackgroundBlurVideoFilters();
+        videoFiltersModule?.registerBackgroundBlurVideoFilters();
       }
       let filterName = 'BackgroundBlurMedium';
       if (blurIntensity === 'heavy') {
@@ -146,7 +144,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       const imageUri = source.uri;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
       if (!registeredImageFiltersSet.has(imageUri)) {
-        registerVirtualBackgroundFilter(imageUri);
+        videoFiltersModule?.registerVirtualBackgroundFilter(imageUri);
         registeredImageFiltersSetRef.current.add(imageUri);
       }
       const filterName = `VirtualBackground-${imageUri}`;
