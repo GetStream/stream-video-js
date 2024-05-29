@@ -38,7 +38,7 @@ vi.mock('../devices.ts', () => {
 vi.mock('../../helpers/sound-detector.ts', () => {
   console.log('MOCKING sound detector');
   return {
-    createSoundDetector: vi.fn(),
+    createSoundDetector: vi.fn(() => () => {}),
   };
 });
 
@@ -170,22 +170,28 @@ describe('MicrophoneManager', () => {
     it('should update speaking while muted state', async () => {
       const mock = createSoundDetector as Mock;
       let handler: SoundStateChangeHandler;
+      let prevMockImplementation = mock.getMockImplementation();
       mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
         handler = h;
       });
-      await manager['startSpeakingWhileMutedDetection']();
+      try {
+        await manager['startSpeakingWhileMutedDetection']();
 
-      expect(manager.state.speakingWhileMuted).toBe(false);
+        expect(manager.state.speakingWhileMuted).toBe(false);
 
-      handler!({ isSoundDetected: true, audioLevel: 2 });
+        handler!({ isSoundDetected: true, audioLevel: 2 });
 
-      expect(manager.state.speakingWhileMuted).toBe(true);
+        expect(manager.state.speakingWhileMuted).toBe(true);
 
-      handler!({ isSoundDetected: false, audioLevel: 0 });
+        handler!({ isSoundDetected: false, audioLevel: 0 });
 
-      expect(manager.state.speakingWhileMuted).toBe(false);
+        expect(manager.state.speakingWhileMuted).toBe(false);
+      } finally {
+        mock.mockImplementation(prevMockImplementation!);
+      }
     });
 
+    // --- this ---
     it('should stop speaking while muted notifications if user loses permission to send audio', async () => {
       await manager.enable();
       await manager.disable();
@@ -197,6 +203,7 @@ describe('MicrophoneManager', () => {
       expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
     });
 
+    // --- this ---
     it('should start speaking while muted notifications if user gains permission to send audio', async () => {
       await manager.enable();
       await manager.disable();

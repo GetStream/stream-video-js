@@ -242,6 +242,8 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       const cleanup = await startPromise;
       await cleanup();
     };
+
+    await startPromise;
   }
 
   private async stopSpeakingWhileMutedDetection() {
