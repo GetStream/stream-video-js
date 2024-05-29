@@ -212,38 +212,45 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
-    await this.stopSpeakingWhileMutedDetection();
-    if (isReactNative()) {
-      this.rnSpeechDetector = new RNSpeechDetector();
-      await this.rnSpeechDetector.start();
-      const unsubscribe = this.rnSpeechDetector?.onSpeakingDetectedStateChange(
-        (event) => {
-          this.state.setSpeakingWhileMuted(event.isSoundDetected);
-        },
-      );
-      this.soundDetectorCleanup = () => {
-        unsubscribe();
-        this.rnSpeechDetector?.stop();
-        this.rnSpeechDetector = undefined;
-      };
-    } else {
-      // Need to start a new stream that's not connected to publisher
-      const stream = await this.getStream({
-        deviceId,
-      });
-      this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
-        this.state.setSpeakingWhileMuted(event.isSoundDetected);
-      });
-    }
+    const startPromise: Promise<(() => void) | (() => Promise<void>)> =
+      (async () => {
+        await this.stopSpeakingWhileMutedDetection();
+        if (isReactNative()) {
+          this.rnSpeechDetector = new RNSpeechDetector();
+          await this.rnSpeechDetector.start();
+          const unsubscribe =
+            this.rnSpeechDetector?.onSpeakingDetectedStateChange((event) => {
+              this.state.setSpeakingWhileMuted(event.isSoundDetected);
+            });
+          return () => {
+            unsubscribe();
+            this.rnSpeechDetector?.stop();
+            this.rnSpeechDetector = undefined;
+          };
+        } else {
+          // Need to start a new stream that's not connected to publisher
+          const stream = await this.getStream({
+            deviceId,
+          });
+          return createSoundDetector(stream, (event) => {
+            this.state.setSpeakingWhileMuted(event.isSoundDetected);
+          });
+        }
+      })();
+
+    this.soundDetectorCleanup = async () => {
+      const cleanup = await startPromise;
+      await cleanup();
+    };
+
+    await startPromise;
   }
 
   private async stopSpeakingWhileMutedDetection() {
     if (!this.soundDetectorCleanup) return;
+    const soundDetectorCleanup = this.soundDetectorCleanup;
+    this.soundDetectorCleanup = undefined;
     this.state.setSpeakingWhileMuted(false);
-    try {
-      await this.soundDetectorCleanup();
-    } finally {
-      this.soundDetectorCleanup = undefined;
-    }
+    await soundDetectorCleanup();
   }
 }
