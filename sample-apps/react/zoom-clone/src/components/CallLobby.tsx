@@ -3,7 +3,7 @@ import { useChatContext } from 'stream-chat-react';
 import { StreamCall } from '@stream-io/video-react-sdk';
 
 import { Preview } from './Preview';
-import { useSetCall } from '../hooks/useSetCall';
+import { useSetCall } from '../hooks';
 import { DEFAULT_CHANNEL_TYPE } from '../utils';
 
 import users from '../../data/users.json';

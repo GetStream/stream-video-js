@@ -1,7 +1,7 @@
 .str-video__tooltip {
   display: flex;
   justify-content: center;
-  padding: 0.5rem 1rem;
+  padding: var(--str-video__spacing-sm);
   z-index: 4;
   max-width: 250px;
   width: max-content;

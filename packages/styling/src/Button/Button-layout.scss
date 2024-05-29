@@ -21,7 +21,6 @@
 
   &__icon {
     margin-right: var(--str-video__spacing-xs);
-    height: 16px;
     background-color: var(--str-video__text-color1);
   }
 
@@ -50,7 +49,6 @@
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      height: calc(38px - 1rem);
       padding: 0.5rem;
 
       &:hover {
@@ -80,11 +78,6 @@
 .str-video__call-controls__button {
   padding: 0.5rem;
 
-  &--variant-danger,
-  &--variant-success {
-    padding: 0.5rem 1rem;
-  }
-
   &[disabled] {
     cursor: not-allowed;
   }
@@ -92,18 +85,6 @@
   &:hover,
   &:hover > *:hover {
     cursor: pointer;
-  }
-
-  .str-video__icon {
-    &--call-end {
-      width: 1.5rem;
-      height: 1.5rem;
-    }
-
-    &--call-accept {
-      width: 1.5rem;
-      height: 1.5rem;
-    }
   }
 }
 

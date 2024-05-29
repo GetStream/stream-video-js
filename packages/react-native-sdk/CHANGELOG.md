@@ -2,6 +2,33 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.12...@stream-io/video-react-native-sdk-0.7.13) (2024-05-27)
+
+
+### Bug Fixes
+
+* export the LivestreamPlayer component ([#1376](https://github.com/GetStream/stream-video-js/issues/1376)) ([89688a0](https://github.com/GetStream/stream-video-js/commit/89688a03a88ecebb04455b76237350ca0c91afe9)), closes [#1373](https://github.com/GetStream/stream-video-js/issues/1373)
+
+### [0.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.11...@stream-io/video-react-native-sdk-0.7.12) (2024-05-27)
+
+
+### Bug Fixes
+
+* **reac-native:** properly cleanup call instance in LivestreamPlayer ([4e60c50](https://github.com/GetStream/stream-video-js/commit/4e60c5067503a7e3e1fdc77a4f6775c5873ed508))
+
+### [0.7.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.10...@stream-io/video-react-native-sdk-0.7.11) (2024-05-27)
+
+
+### Features
+
+* **react-native:** add livestream player component ([#1373](https://github.com/GetStream/stream-video-js/issues/1373)) ([a821e23](https://github.com/GetStream/stream-video-js/commit/a821e2359ad6c3ff1535f971c1d644a0b35fff78))
+
+### [0.7.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.9...@stream-io/video-react-native-sdk-0.7.10) (2024-05-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.8`
+* `@stream-io/video-react-bindings` updated to version `0.4.34`
 ### [0.7.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.8...@stream-io/video-react-native-sdk-0.7.9) (2024-05-22)
 
 
