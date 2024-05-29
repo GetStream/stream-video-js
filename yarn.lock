@@ -6933,11 +6933,11 @@ __metadata:
   resolution: "@stream-io/audio-rooms@workspace:sample-apps/react/audio-rooms"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     typescript: ^5.4.3
     vite: ^4.4.11
@@ -6953,11 +6953,11 @@ __metadata:
     "@mui/material": ^5.14.14
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
@@ -6972,14 +6972,14 @@ __metadata:
     "@sentry/react": ^7.112.2
     "@sentry/vite-plugin": ^2.16.1
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
     clsx: ^2.0.0
     js-base64: ^3.7.5
     nanoid: ^5.0.4
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
@@ -7008,7 +7008,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": ^0.1.34
     "@stream-io/react-native-webrtc": 118.0.1
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": ~18.2.45
+    "@types/react": ^18.3.2
     "@types/react-native-incall-manager": ^4
     expo: ~50.0.3
     expo-constants: ~15.4.5
@@ -7050,13 +7050,13 @@ __metadata:
     "@emotion/styled": ^11.11.0
     "@mui/material": ^5.14.14
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
     clsx: ^2.0.0
     hls.js: ^1.4.3
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     typescript: ^5.4.3
     vite: ^4.4.11
@@ -7069,16 +7069,16 @@ __metadata:
   dependencies:
     "@mui/icons-material": ^5.14.14
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
     clsx: ^2.0.0
     dayjs: ^1.11.6
     dotenv: ^16.3.1
     immer: ^9.0.16
     nanoid: ^5.0.4
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     sass: ^1.69.5
     stream-chat: ^8.33.0
@@ -7118,11 +7118,11 @@ __metadata:
   resolution: "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     typescript: ^5.4.3
     vite: ^4.4.11
   languageName: unknown
@@ -7232,16 +7232,16 @@ __metadata:
   dependencies:
     "@rollup/plugin-typescript": ^11.1.6
     "@stream-io/video-client": "workspace:^"
-    "@types/react": ^18.2.28
+    "@types/react": ^18.3.2
     i18next: ^23.5.1
-    react: ^18.2.0
+    react: ^18.3.1
     rimraf: ^5.0.5
     rollup: ^3.29.4
     rxjs: ~7.8.1
     typescript: ^5.4.3
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
-    react: ">=17.0.0"
+    react: ^17 || ^18 || ^19
   languageName: unknown
   linkType: soft
 
@@ -7275,8 +7275,8 @@ __metadata:
     next: ^14.2.3
     next-auth: ^4.24.7
     qrcode.react: ^3.1.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     react-form: ^4.0.1
     rimraf: ^5.0.5
     sass: ^1.69.5
@@ -7317,7 +7317,7 @@ __metadata:
     "@stream-io/react-native-webrtc": 118.0.1
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/express": ^4
-    "@types/react": ^18.2.55
+    "@types/react": ^18.3.2
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-native-video": ^5
     "@types/react-test-renderer": ^18.0.0
@@ -7372,7 +7372,7 @@ __metadata:
     "@tsconfig/node14": 14.1.0
     "@types/jest": ^29.5.1
     "@types/lodash.merge": ^4
-    "@types/react": 18.2.28
+    "@types/react": ^18.3.2
     "@types/react-native": ^0.70.4
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18
@@ -7457,17 +7457,16 @@ __metadata:
     "@stream-io/video-filters-web": "workspace:*"
     "@stream-io/video-react-bindings": "workspace:*"
     "@stream-io/video-styling": "workspace:^"
+    "@types/react": ^18.3.2
     chart.js: ^4.4.1
     clsx: ^2.0.0
-    react: ^18.2.0
+    react: ^18.3.1
     react-chartjs-2: ^5.2.0
-    react-dom: ^18.2.0
     rimraf: ^5.0.5
     rollup: ^3.29.4
     typescript: ^5.4.3
   peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^18 || ^19
   languageName: unknown
   linkType: soft
 
@@ -7485,16 +7484,16 @@ __metadata:
   resolution: "@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
+    "@types/react": ^18.3.2
+    "@types/react-dom": ^18.3.0
     "@vitejs/plugin-react": ^4.1.0
     autoprefixer: ^10.4.13
     clsx: ^2.0.0
     dotenv: ^16.3.1
     nanoid: ^5.0.4
     postcss: ^8.4.31
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     stream-chat: ^8.33.0
     stream-chat-react: ^11.19.0
@@ -8025,12 +8024,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.2.13":
-  version: 18.2.13
-  resolution: "@types/react-dom@npm:18.2.13"
+"@types/react-dom@npm:^18.3.0":
+  version: 18.3.0
+  resolution: "@types/react-dom@npm:18.3.0"
   dependencies:
     "@types/react": "*"
-  checksum: 22ba066b141dca5a5a9227fae0afc7c94b470fff8e8a38ade72649da57a8ea04d0cb2ba3e22005e7d8e772d49bddd28855b1dd98e6defd033bba6afb6edff883
+  checksum: a0cd9b1b815a6abd2a367a9eabdd8df8dd8f13f95897b2f9e1359ea3ac6619f957c1432ece004af7d95e2a7caddbba19faa045f831f32d6263483fc5404a7596
   languageName: node
   linkType: hard
 
@@ -8104,7 +8103,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:18.2.28, @types/react@npm:>=16.0.0, @types/react@npm:^18.2.28":
+"@types/react@npm:*, @types/react@npm:>=16.0.0":
   version: 18.2.28
   resolution: "@types/react@npm:18.2.28"
   dependencies:
@@ -8115,25 +8114,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.2.55":
-  version: 18.2.55
-  resolution: "@types/react@npm:18.2.55"
+"@types/react@npm:^18.3.2":
+  version: 18.3.2
+  resolution: "@types/react@npm:18.3.2"
   dependencies:
     "@types/prop-types": "*"
-    "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: a8eb4fa77f73831b9112d4f11a7006217dc0740361649b9b0da3fd441d151a9cd415d5d68b91c0af4e430e063424d301c77489e5edaddc9f711c4e46cf9818a5
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:~18.2.45":
-  version: 18.2.48
-  resolution: "@types/react@npm:18.2.48"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: c9ca43ed2995389b7e09492c24e6f911a8439bb8276dd17cc66a2fbebbf0b42daf7b2ad177043256533607c2ca644d7d928fdfce37a67af1f8646d2bac988900
+  checksum: d0b8b9d0ede6cd28dbbe34106d914b5e3652d9d7aa9d0f32fe6171506b6fc7c826d9d6571642976a5422bd29c5022fd893a710ed59a1177a0c1df8e02cf17ffe
   languageName: node
   linkType: hard
 
@@ -22243,15 +22230,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18.2.0":
-  version: 18.2.0
-  resolution: "react-dom@npm:18.2.0"
+"react-dom@npm:^18.3.1":
+  version: 18.3.1
+  resolution: "react-dom@npm:18.3.1"
   dependencies:
     loose-envify: ^1.1.0
-    scheduler: ^0.23.0
+    scheduler: ^0.23.2
   peerDependencies:
-    react: ^18.2.0
-  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
+    react: ^18.3.1
+  checksum: 298954ecd8f78288dcaece05e88b570014d8f6dce5db6f66e6ee91448debeb59dcd31561dddb354eee47e6c1bb234669459060deb238ed0213497146e555a0b9
   languageName: node
   linkType: hard
 
@@ -23044,12 +23031,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0, react@npm:^18.2.0":
+"react@npm:18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:
     loose-envify: ^1.1.0
   checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
+  languageName: node
+  linkType: hard
+
+"react@npm:^18.3.1":
+  version: 18.3.1
+  resolution: "react@npm:18.3.1"
+  dependencies:
+    loose-envify: ^1.1.0
+  checksum: a27bcfa8ff7c15a1e50244ad0d0c1cb2ad4375eeffefd266a64889beea6f6b64c4966c9b37d14ee32d6c9fcd5aa6ba183b6988167ab4d127d13e7cb5b386a376
   languageName: node
   linkType: hard
 
@@ -23770,6 +23766,15 @@ __metadata:
   dependencies:
     loose-envify: ^1.1.0
   checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
+  languageName: node
+  linkType: hard
+
+"scheduler@npm:^0.23.2":
+  version: 0.23.2
+  resolution: "scheduler@npm:0.23.2"
+  dependencies:
+    loose-envify: ^1.1.0
+  checksum: 3e82d1f419e240ef6219d794ff29c7ee415fbdc19e038f680a10c067108e06284f1847450a210b29bbaf97b9d8a97ced5f624c31c681248ac84c80d56ad5a2c4
   languageName: node
   linkType: hard
 
