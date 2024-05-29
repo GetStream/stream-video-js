@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.8...@stream-io/video-client-1.0.9) (2024-05-29)
+
+
+### Bug Fixes
+
+* prevent double sound detectors set up ([#1371](https://github.com/GetStream/stream-video-js/issues/1371)) ([51c9198](https://github.com/GetStream/stream-video-js/commit/51c9198a96b956884554bc508e38c90af0cee30f))
+
 ### [1.0.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.7...@stream-io/video-client-1.0.8) (2024-05-23)
 
 
