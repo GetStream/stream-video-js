@@ -912,6 +912,91 @@ export interface CallParticipantResponse {
   user_session_id: string;
 }
 /**
+ *
+ * @export
+ * @interface CallRTMPBroadcast
+ */
+export interface CallRTMPBroadcast {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  CallID: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  CreatedAt: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  DeletedAt?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  EndedAt?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  Error: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  ErrorMessage: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  Name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  Password: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  StartedAt?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  Status: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  StreamKey: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  StreamURL: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRTMPBroadcast
+   */
+  Username: string;
+}
+/**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
  * @export
  * @interface CallReactionEvent
@@ -3442,6 +3527,12 @@ export interface GoLiveRequest {
    * @type {boolean}
    * @memberof GoLiveRequest
    */
+  start_rtmp_broadcasts?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
   start_transcription?: boolean;
   /**
    *
@@ -3720,6 +3811,25 @@ export interface ListDevicesResponse {
    *
    * @type {string}
    * @memberof ListDevicesResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface ListRTMPBroadcastsResponse
+ */
+export interface ListRTMPBroadcastsResponse {
+  /**
+   *
+   * @type {Array<CallRTMPBroadcast>}
+   * @memberof ListRTMPBroadcastsResponse
+   */
+  broadcasts: Array<CallRTMPBroadcast>;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof ListRTMPBroadcastsResponse
    */
   duration: string;
 }
@@ -4285,7 +4395,7 @@ export interface OwnUserResponse {
    * @type {boolean}
    * @memberof OwnUserResponse
    */
-  invisible?: boolean;
+  invisible: boolean;
   /**
    *
    * @type {string}
@@ -5190,6 +5300,56 @@ export interface StartHLSBroadcastingResponse {
 /**
  *
  * @export
+ * @interface StartRTMPBroadcastsRequest
+ */
+export interface StartRTMPBroadcastsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  password?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  stream_key?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  stream_url?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  username?: string;
+}
+/**
+ *
+ * @export
+ * @interface StartRTMPBroadcastsResponse
+ */
+export interface StartRTMPBroadcastsResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StartRTMPBroadcastsResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface StartRecordingRequest
  */
 export interface StartRecordingRequest {
@@ -5300,6 +5460,32 @@ export interface StopLiveResponse {
    * Duration of the request in human-readable format
    * @type {string}
    * @memberof StopLiveResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StopRTMPBroadcastsRequest
+ */
+export interface StopRTMPBroadcastsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StopRTMPBroadcastsRequest
+   */
+  name?: string;
+}
+/**
+ *
+ * @export
+ * @interface StopRTMPBroadcastsResponse
+ */
+export interface StopRTMPBroadcastsResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopRTMPBroadcastsResponse
    */
   duration: string;
 }
