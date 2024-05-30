@@ -63,6 +63,7 @@
   background-color: var(--str-video__base-color6);
   max-width: 250px;
   gap: var(--str-video__spacing-md);
+  box-shadow: 0 0 24px -4px rgba(0, 0, 0, 0.64);
 
   &__header {
     display: flex;
