@@ -4823,7 +4823,7 @@ export interface RTMPBroadcast {
    * @type {string}
    * @memberof RTMPBroadcast
    */
-  password: string;
+  password?: string;
   /**
    *
    * @type {string}
@@ -4853,7 +4853,7 @@ export interface RTMPBroadcast {
    * @type {string}
    * @memberof RTMPBroadcast
    */
-  username: string;
+  username?: string;
 }
 /**
  * RTMP input settings
