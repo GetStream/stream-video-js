@@ -912,91 +912,6 @@ export interface CallParticipantResponse {
   user_session_id: string;
 }
 /**
- *
- * @export
- * @interface CallRTMPBroadcast
- */
-export interface CallRTMPBroadcast {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  CallID: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  CreatedAt: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  DeletedAt?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  EndedAt?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  Error: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  ErrorMessage: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  Name: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  Password: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  StartedAt?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  Status: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  StreamKey: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  StreamURL: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRTMPBroadcast
-   */
-  Username: string;
-}
-/**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
  * @export
  * @interface CallReactionEvent
@@ -3822,10 +3737,10 @@ export interface ListDevicesResponse {
 export interface ListRTMPBroadcastsResponse {
   /**
    *
-   * @type {Array<CallRTMPBroadcast>}
+   * @type {Array<RTMPBroadcast>}
    * @memberof ListRTMPBroadcastsResponse
    */
-  broadcasts: Array<CallRTMPBroadcast>;
+  broadcasts: Array<RTMPBroadcast>;
   /**
    * Duration of the request in human-readable format
    * @type {string}
@@ -4860,6 +4775,85 @@ export interface QueryCallsResponse {
    * @memberof QueryCallsResponse
    */
   prev?: string;
+}
+/**
+ *
+ * @export
+ * @interface RTMPBroadcast
+ */
+export interface RTMPBroadcast {
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  error?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  error_message?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  password: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  status: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  stream_key: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  stream_url: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  username: string;
 }
 /**
  * RTMP input settings

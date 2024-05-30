@@ -37,6 +37,7 @@ import {
   GoLiveRequest,
   GoLiveResponse,
   ListRecordingsResponse,
+  ListRTMPBroadcastsResponse,
   ListTranscriptionsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
@@ -650,6 +651,12 @@ export class Call {
     return this.streamClient.post<StopRTMPBroadcastsResponse>(
       `${this.streamClientBasePath}/stop_rtmp_broadcasts`,
       data,
+    );
+  };
+
+  listRTMPBroadcasts = async () => {
+    return this.streamClient.get<ListRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/list_rtmp_broadcasts`,
     );
   };
 
