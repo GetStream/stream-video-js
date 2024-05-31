@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.9...@stream-io/video-client-1.0.10) (2024-05-31)
+
+
+### Bug Fixes
+
+* improved input device error handling ([#1378](https://github.com/GetStream/stream-video-js/issues/1378)) ([90abc38](https://github.com/GetStream/stream-video-js/commit/90abc38762acc4b8095c281b3b06b1fc8237ec15))
+
 ### [1.0.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.8...@stream-io/video-client-1.0.9) (2024-05-29)
 
 
