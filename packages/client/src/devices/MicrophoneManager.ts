@@ -41,20 +41,24 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
           this.state.status$,
         ]),
         async ([callingState, ownCapabilities, deviceId, status]) => {
-          if (callingState === CallingState.LEFT) {
-            await this.stopSpeakingWhileMutedDetection();
-          }
-          if (callingState !== CallingState.JOINED) return;
-          if (!this.speakingWhileMutedNotificationEnabled) return;
+          try {
+            if (callingState === CallingState.LEFT) {
+              await this.stopSpeakingWhileMutedDetection();
+            }
+            if (callingState !== CallingState.JOINED) return;
+            if (!this.speakingWhileMutedNotificationEnabled) return;
 
-          if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
-            if (status === 'disabled') {
-              await this.startSpeakingWhileMutedDetection(deviceId);
+            if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
+              if (status === 'disabled') {
+                await this.startSpeakingWhileMutedDetection(deviceId);
+              } else {
+                await this.stopSpeakingWhileMutedDetection();
+              }
             } else {
               await this.stopSpeakingWhileMutedDetection();
             }
-          } else {
-            await this.stopSpeakingWhileMutedDetection();
+          } catch (err) {
+            this.logger('warn', 'Could not enable speaking while muted', err);
           }
         },
       ),
