@@ -10,21 +10,7 @@ npm install @stream-io/video-filters-react-native
 
 ## Usage
 
-```js
-import { multiply } from '@stream-io/video-filters-react-native';
-
-// ...
-
-const result = await multiply(3, 7);
-```
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
-
-## License
-
-MIT
+Please see https://getstream.io/video/docs/reactnative/advanced/apply-video-filters/
 
 ---
 
