@@ -22,6 +22,7 @@
     background-color: var(--str-video__button-default-base);
 
     text-decoration: none;
+    font-size: var(--str-video__font-size-sm);
 
     &:hover {
       background-color: var(--str-video__button-default-hover);

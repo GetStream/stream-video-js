@@ -2,6 +2,48 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.14...@stream-io/video-react-sdk-1.0.15) (2024-05-31)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.10`
+* `@stream-io/video-react-bindings` updated to version `0.4.36`
+### [1.0.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.13...@stream-io/video-react-sdk-1.0.14) (2024-05-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.9`
+* `@stream-io/video-react-bindings` updated to version `0.4.35`
+### [1.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.12...@stream-io/video-react-sdk-1.0.13) (2024-05-27)
+
+
+### Bug Fixes
+
+* add LivestreamPlayer wrapper component ([#1372](https://github.com/GetStream/stream-video-js/issues/1372)) ([49e9b98](https://github.com/GetStream/stream-video-js/commit/49e9b980eff548f62f8aa45e6156cfa3dd40dcbd))
+
+### [1.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.11...@stream-io/video-react-sdk-1.0.12) (2024-05-23)
+
+
+### Bug Fixes
+
+* participant sounds and cookbook ([#1367](https://github.com/GetStream/stream-video-js/issues/1367)) ([d5e774c](https://github.com/GetStream/stream-video-js/commit/d5e774c14568c98a819cb282d3453a0136a84d84))
+
+### [1.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.10...@stream-io/video-react-sdk-1.0.11) (2024-05-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.0.8`
+* `@stream-io/video-react-bindings` updated to version `0.4.34`
+### [1.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.9...@stream-io/video-react-sdk-1.0.10) (2024-05-23)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `1.0.4`
+
+### Bug Fixes
+
+* popup styling ([#1363](https://github.com/GetStream/stream-video-js/issues/1363)) ([6549d4b](https://github.com/GetStream/stream-video-js/commit/6549d4bd80e198169e8d09920c46dcb487eb071b))
+
 ### [1.0.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.8...@stream-io/video-react-sdk-1.0.9) (2024-05-21)
 
 ### Dependency Updates

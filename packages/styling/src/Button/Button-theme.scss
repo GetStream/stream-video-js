@@ -81,6 +81,10 @@
     &:hover {
       background-color: var(--str-video__button-primary-hover);
     }
+
+    .str-video__icon {
+      background-color: var(--str-video__icon-active);
+    }
   }
 
   &.str-video__composite-button__button-group--active-primary {
@@ -140,7 +144,6 @@
 
   &--variant-danger {
     background-color: var(--str-video__button-tertiary-base);
-    padding: 0.4rem;
 
     .str-video__icon {
       background-color: white;
@@ -156,6 +159,14 @@
 
     &:hover {
       background-color: var(--str-video__info-color--accent);
+    }
+  }
+
+  &--variant-active {
+    background-color: var(--str-video__button-primary-active);
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
     }
   }
 

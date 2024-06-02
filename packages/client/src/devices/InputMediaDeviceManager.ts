@@ -381,42 +381,49 @@ export abstract class InputMediaDeviceManager<
           this.state.selectedDevice$,
         ]),
         async ([[prevDevices, currentDevices], deviceId]) => {
-          if (!deviceId) {
-            return;
-          }
-          if (this.statusChangePromise) {
+          try {
+            if (!deviceId) return;
             await this.statusChangePromise;
-          }
 
-          let isDeviceDisconnected = false;
-          let isDeviceReplaced = false;
-          const currentDevice = this.findDeviceInList(currentDevices, deviceId);
-          const prevDevice = this.findDeviceInList(prevDevices, deviceId);
-          if (!currentDevice && prevDevice) {
-            isDeviceDisconnected = true;
-          } else if (
-            currentDevice &&
-            prevDevice &&
-            currentDevice.deviceId === prevDevice.deviceId &&
-            currentDevice.groupId !== prevDevice.groupId
-          ) {
-            isDeviceReplaced = true;
-          }
-
-          if (isDeviceDisconnected) {
-            await this.disable();
-            this.select(undefined);
-          }
-          if (isDeviceReplaced) {
-            if (
-              this.isTrackStoppedDueToTrackEnd &&
-              this.state.status === 'disabled'
+            let isDeviceDisconnected = false;
+            let isDeviceReplaced = false;
+            const currentDevice = this.findDeviceInList(
+              currentDevices,
+              deviceId,
+            );
+            const prevDevice = this.findDeviceInList(prevDevices, deviceId);
+            if (!currentDevice && prevDevice) {
+              isDeviceDisconnected = true;
+            } else if (
+              currentDevice &&
+              prevDevice &&
+              currentDevice.deviceId === prevDevice.deviceId &&
+              currentDevice.groupId !== prevDevice.groupId
             ) {
-              await this.enable();
-              this.isTrackStoppedDueToTrackEnd = false;
-            } else {
-              await this.applySettingsToStream();
+              isDeviceReplaced = true;
             }
+
+            if (isDeviceDisconnected) {
+              await this.disable();
+              await this.select(undefined);
+            }
+            if (isDeviceReplaced) {
+              if (
+                this.isTrackStoppedDueToTrackEnd &&
+                this.state.status === 'disabled'
+              ) {
+                await this.enable();
+                this.isTrackStoppedDueToTrackEnd = false;
+              } else {
+                await this.applySettingsToStream();
+              }
+            }
+          } catch (err) {
+            this.logger(
+              'warn',
+              'Unexpected error while handling disconnected or replaced device',
+              err,
+            );
           }
         },
       ),

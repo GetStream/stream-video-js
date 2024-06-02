@@ -15,6 +15,8 @@ export type StreamChatType = {
   commandType: CommandType;
   eventType: EventType;
   messageType: MessageType;
+  pollType: UR;
+  pollOptionType: UR;
   reactionType: ReactionType;
   userType: UserType;
 };

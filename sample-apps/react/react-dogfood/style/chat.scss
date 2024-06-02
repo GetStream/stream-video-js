@@ -53,6 +53,35 @@
   border-radius: 8px;
 }
 
+.str-chat__attachment-list-scroll-container,
+.str-chat__list {
+  --scrollbar-color-thumb: var(--str-chat__disabled-color);
+  --scrollbar-color-track: transparent;
+  --scrollbar-width: thin;
+  --scrollbar-width-legacy: 8px;
+
+  /* Modern browsers with `scrollbar-*` support */
+  @supports (scrollbar-width: auto) {
+    & {
+      scrollbar-color: var(--scrollbar-color-thumb) var(--scrollbar-color-track);
+      scrollbar-width: var(--scrollbar-width);
+    }
+  }
+
+  /* Legacy browsers with `::-webkit-scrollbar-*` support */
+  @supports selector(::-webkit-scrollbar) {
+    &::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-color-thumb);
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--scrollbar-color-track);
+    }
+    &::-webkit-scrollbar {
+      max-width: var(--scrollbar-width-legacy);
+      max-height: var(--scrollbar-width-legacy);
+    }
+  }
+}
 .str-chat__message-input {
   border-bottom-left-radius: var(--str-video__border-radius-md);
   border-bottom-right-radius: var(--str-video__border-radius-md);

@@ -388,7 +388,9 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
-          await this.leave({ reason: 'user blocked' });
+          await this.leave({ reason: 'user blocked' }).catch((err) => {
+            this.logger('error', 'Error leaving call after being blocked', err);
+          });
         }
       }),
     );
@@ -493,7 +495,11 @@ export class Call {
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
       const hasOtherParticipants = this.state.remoteParticipants.length > 0;
-      if (this.isCreatedByMe && !hasOtherParticipants) {
+      if (
+        this.isCreatedByMe &&
+        !hasOtherParticipants &&
+        callingState === CallingState.RINGING
+      ) {
         // Signals other users that I have cancelled my call to them
         // before they accepted it.
         await this.reject();
@@ -596,7 +602,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    this.applyDeviceConfig();
+    await this.applyDeviceConfig();
 
     return response;
   };
@@ -625,7 +631,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    this.applyDeviceConfig();
+    await this.applyDeviceConfig();
 
     return response;
   };
@@ -2015,9 +2021,18 @@ export class Call {
     );
   };
 
-  applyDeviceConfig = () => {
-    this.initCamera({ setStatus: false });
-    this.initMic({ setStatus: false });
+  /**
+   * Applies the device configuration from the backend.
+   *
+   * @internal
+   */
+  applyDeviceConfig = async () => {
+    await this.initCamera({ setStatus: false }).catch((err) => {
+      this.logger('warn', 'Camera init failed', err);
+    });
+    await this.initMic({ setStatus: false }).catch((err) => {
+      this.logger('warn', 'Mic init failed', err);
+    });
   };
 
   private async initCamera(options: { setStatus: boolean }) {

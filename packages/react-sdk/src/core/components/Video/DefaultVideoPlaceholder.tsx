@@ -1,10 +1,11 @@
-import { ComponentPropsWithRef, forwardRef, useState } from 'react';
+import { ComponentProps, RefAttributes, forwardRef, useState } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type VideoPlaceholderProps = {
   participant: StreamVideoParticipant;
-} & ComponentPropsWithRef<'div'>;
+} & RefAttributes<HTMLDivElement> &
+  ComponentProps<'div'>;
 
 export const DefaultVideoPlaceholder = forwardRef<
   HTMLDivElement,

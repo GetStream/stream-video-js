@@ -5,6 +5,7 @@
   position: fixed;
   border-radius: var(--str-video__border-radius-lg);
   background-color: var(--str-video__base-color6);
+  box-shadow: 0 0 24px -4px rgba(0, 0, 0, 0.64);
   padding: var(--str-video__spacing-lg);
   gap: var(--str-video__spacing-lg);
 
@@ -143,9 +144,8 @@
 }
 
 .rd__sdk-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--str-video__spacing-md);
   margin-top: var(--str-video__spacing-md);
 }
