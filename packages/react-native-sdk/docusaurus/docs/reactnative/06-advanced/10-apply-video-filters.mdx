@@ -214,7 +214,7 @@ type CustomFilters = 'GrayScale' | 'MyOtherCustomFilter';
 
 export const useCustomVideoFilters = () => {
   const call = useCall();
-  const isGrayScaleRegisteredRef = useRef(false);
+  const isFiltersRegisteredRef = useRef(false);
   const { disableAllFilters } = useBackgroundFilters();
   const [currentCustomFilter, setCustomFilter] = useState<CustomFilters>();
 
@@ -222,16 +222,16 @@ export const useCustomVideoFilters = () => {
     if (!isSupported) {
       return;
     }
-    if (!isGrayScaleRegisteredRef.current) {
+    if (!isFiltersRegisteredRef.current) {
       // registering is needed only once
-      VideoEffectsModule?.registerVideoFilters();
-      isGrayScaleRegisteredRef.current = true;
+      VideoEffectsModutle?.registerVideoFilters();
+      isFiltersRegisteredRef.current = true;
     }
     disableAllFilters(); // disable any other filter
     (call?.camera.state.mediaStream as MediaStream | undefined)
       ?.getVideoTracks()
       .forEach((track) => {
-        track._setVideoEffect('grayscale'); // set this filter
+        track._setVideoEffect('grayscale'); // set the grayscale filter
       });
     setCustomFilter('GrayScale');
   }, [call, disableAllFilters]);
@@ -250,8 +250,8 @@ export const useCustomVideoFilters = () => {
 ```
 
 Below is a preview of the applied video filter:
-![Preview of the grayscale video filter](../assets/06-advanced/10-apply-video-filters/preview-blur-filter.png)
+![Preview of the grayscale video filter](../assets/06-advanced/10-apply-video-filters/preview-grayscale-filter.png)
 
 :::note
-When using a custom filter along with the built-in filters, always call the `disableAllFilter` method from the `useBackgroundFilters()` hook so that the hook is informed if the built-in filters have been disabled.
+When using a custom filter along with the built-in filters, always call the `disableAllFilter` method from the `useBackgroundFilters()` hook so that the state inside the hook is informed if the built-in filters have been disabled.
 :::
