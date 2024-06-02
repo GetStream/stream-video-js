@@ -2,27 +2,39 @@ import {
   CallControlsButton,
   useBackgroundFilters,
   BlurIntensity,
+  BackgroundFiltersProvider,
 } from '@stream-io/video-react-native-sdk';
 import React, { useState } from 'react';
-import { Blur } from '../assets/Blur';
+import { AutoAwesome } from '../../assets/AutoAwesome';
 import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { appTheme } from '../theme';
-import { Button } from './Button';
+import { appTheme } from '../../theme';
+import { Button } from '../Button';
+import { useCustomVideoFilters } from './CustomFilters';
 
 const images = [
-  require('../assets/backgrounds/amsterdam-1.jpg'),
-  require('../assets/backgrounds/amsterdam-2.jpg'),
-  require('../assets/backgrounds/boulder-1.jpg'),
-  require('../assets/backgrounds/boulder-2.jpg'),
-  require('../assets/backgrounds/gradient-1.jpg'),
-  require('../assets/backgrounds/gradient-2.jpg'),
-  require('../assets/backgrounds/gradient-3.jpg'),
+  require('../../assets/backgrounds/amsterdam-1.jpg'),
+  require('../../assets/backgrounds/amsterdam-2.jpg'),
+  require('../../assets/backgrounds/boulder-1.jpg'),
+  require('../../assets/backgrounds/boulder-2.jpg'),
+  require('../../assets/backgrounds/gradient-1.jpg'),
+  require('../../assets/backgrounds/gradient-2.jpg'),
+  require('../../assets/backgrounds/gradient-3.jpg'),
 ] as number[];
 
-export const VideoFilterButton = () => {
+export const VideoEffectsButton = () => (
+  <BackgroundFiltersProvider>
+    <FilterButton />
+  </BackgroundFiltersProvider>
+);
+
+/**
+ * This button opens a modal dialog showing all the possible video filters
+ */
+const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
-  const { isSupported, disableBackgroundFilter } = useBackgroundFilters();
+  const { disableCustomFilter } = useCustomVideoFilters();
+  const { isSupported, disableAllFilters } = useBackgroundFilters();
 
   if (!isSupported) {
     return null;
@@ -36,18 +48,17 @@ export const VideoFilterButton = () => {
         visible={modalVisible}
         onRequestClose={closeModal}
       >
-        <Pressable
-          style={styles.centeredView}
-          onPress={() => setModalVisible(false)}
-        >
+        <Pressable style={styles.centeredView} onPress={closeModal}>
           <View style={styles.modalView} onStartShouldSetResponder={() => true}>
+            <CustomFiltersRow closeModal={closeModal} />
             <BlurFilterItemsRow closeModal={closeModal} />
             <ImageFilterItemsRow closeModal={closeModal} />
             <Button
               title="Clear Filter"
               buttonStyle={styles.modalButton}
               onPress={() => {
-                disableBackgroundFilter();
+                disableCustomFilter();
+                disableAllFilters();
                 closeModal();
               }}
             />
@@ -55,13 +66,57 @@ export const VideoFilterButton = () => {
         </Pressable>
       </Modal>
       <CallControlsButton onPress={() => setModalVisible((prev) => !prev)}>
-        <Blur />
+        <AutoAwesome />
       </CallControlsButton>
     </>
   );
 };
 
-const BlurItemPressable = ({
+const CustomFiltersRow = ({ closeModal }: { closeModal: () => void }) => {
+  const { applyGrayScaleFilter, currentCustomFilter } = useCustomVideoFilters();
+  const grayScaleSelected = currentCustomFilter === 'GrayScale';
+  return (
+    <>
+      <Text style={styles.modalHeaderText}>{'Custom Filters'}</Text>
+      <View style={styles.row}>
+        <ModalFilterButton
+          title="Gray-Scale"
+          isSelected={grayScaleSelected}
+          onPress={applyGrayScaleFilter}
+          closeModal={closeModal}
+        />
+      </View>
+    </>
+  );
+};
+
+const ModalFilterButton = ({
+  title,
+  isSelected,
+  onPress,
+  closeModal,
+}: {
+  title: string;
+  isSelected: boolean;
+  onPress: () => void;
+  closeModal: () => void;
+}) => {
+  return (
+    <Button
+      title={title}
+      buttonStyle={[
+        styles.modalButton,
+        isSelected ? styles.selectedModalButton : styles.unselectedModalButton,
+      ]}
+      onPress={() => {
+        onPress();
+        closeModal();
+      }}
+    />
+  );
+};
+
+const ModalBlurItemButton = ({
   blurIntensity,
   closeModal,
 }: {
@@ -72,15 +127,12 @@ const BlurItemPressable = ({
     useBackgroundFilters();
   const isSelected = currentBackgroundFilter?.blur === blurIntensity;
   return (
-    <Button
+    <ModalFilterButton
       title={blurIntensity}
-      buttonStyle={[
-        styles.modalButton,
-        isSelected ? styles.selectedModalButton : styles.unselectedModalButton,
-      ]}
+      isSelected={isSelected}
+      closeModal={closeModal}
       onPress={() => {
         applyBackgroundBlurFilter(blurIntensity);
-        closeModal();
       }}
     />
   );
@@ -91,9 +143,9 @@ const BlurFilterItemsRow = ({ closeModal }: { closeModal: () => void }) => {
     <>
       <Text style={styles.modalHeaderText}>{'Blur Filters'}</Text>
       <View style={styles.row}>
-        <BlurItemPressable blurIntensity="light" closeModal={closeModal} />
-        <BlurItemPressable blurIntensity="medium" closeModal={closeModal} />
-        <BlurItemPressable blurIntensity="heavy" closeModal={closeModal} />
+        <ModalBlurItemButton blurIntensity="light" closeModal={closeModal} />
+        <ModalBlurItemButton blurIntensity="medium" closeModal={closeModal} />
+        <ModalBlurItemButton blurIntensity="heavy" closeModal={closeModal} />
       </View>
     </>
   );

@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { MediaStream } from '@stream-io/react-native-webrtc';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { Platform } from 'react-native';
 
 type VideoFiltersModuleType =
@@ -63,9 +63,9 @@ export type BackgroundFiltersAPI = {
    */
   applyBackgroundBlurFilter: (blurIntensity: BlurIntensity) => void;
   /**
-   * Disables all background filters applied to the video.
+   * Disables all filters applied to the video.
    */
-  disableBackgroundFilter: () => void;
+  disableAllFilters: () => void;
 };
 
 /**
@@ -107,8 +107,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       "Install the '@stream-io/video-filters-react-native' library to use background filters",
     );
   }
-  const { useCameraState } = useCallStateHooks();
-  const { camera } = useCameraState();
+  const call = useCall();
   const isBlurRegisteredRef = useRef(false);
   const registeredImageFiltersSetRef = useRef(new Set<string>());
   const [currentBackgroundFilter, setCurrentBackgroundFilter] =
@@ -128,18 +127,21 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       } else if (blurIntensity === 'light') {
         filterName = 'BackgroundBlurLight';
       }
-      (camera.state.mediaStream as MediaStream | undefined)
+      (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
           track._setVideoEffect(filterName);
         });
       setCurrentBackgroundFilter({ blur: blurIntensity });
     },
-    [camera],
+    [call],
   );
 
   const applyBackgroundImageFilter = useCallback(
     (imageSource: ImageSourceType) => {
+      if (!isSupported) {
+        return;
+      }
       const source = resolveAssetSourceFunc(imageSource);
       const imageUri = source.uri;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
@@ -148,28 +150,28 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         registeredImageFiltersSetRef.current.add(imageUri);
       }
       const filterName = `VirtualBackground-${imageUri}`;
-      (camera.state.mediaStream as MediaStream | undefined)
+      (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
           track._setVideoEffect(filterName);
         });
       setCurrentBackgroundFilter({ image: imageSource });
     },
-    [camera],
+    [call],
   );
 
-  const disableBackgroundFilter = useCallback(() => {
+  const disableAllFilters = useCallback(() => {
     if (!isSupported) {
       return;
     }
-    (camera.state.mediaStream as MediaStream | undefined)
+    (call?.camera.state.mediaStream as MediaStream | undefined)
       ?.getVideoTracks()
       .forEach((track) => {
         // @ts-expect-error - webrtc typing is wrong, null is supported
         track._setVideoEffect(null);
       });
     setCurrentBackgroundFilter(undefined);
-  }, [camera]);
+  }, [call]);
 
   const value = useMemo(
     () => ({
@@ -177,13 +179,13 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       isSupported,
       applyBackgroundImageFilter,
       applyBackgroundBlurFilter,
-      disableBackgroundFilter,
+      disableAllFilters,
     }),
     [
       applyBackgroundBlurFilter,
       applyBackgroundImageFilter,
       currentBackgroundFilter,
-      disableBackgroundFilter,
+      disableAllFilters,
     ],
   );
 
