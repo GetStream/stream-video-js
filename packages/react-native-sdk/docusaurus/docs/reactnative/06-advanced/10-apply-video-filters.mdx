@@ -18,7 +18,7 @@ To enable background filters in your app. You must first add the `@stream-io/vid
 yarn add @stream-io/video-filters-react-native
 ```
 
-This library adds the required native module for processing the video stream and applying your desired video filter.
+This library adds the required native module for processing the video stream and manipulating it with your desired video filter.
 
 ### Step 2 - Wrap under Provider component
 
@@ -93,7 +93,7 @@ export const MyBackgroundFilterUI = () => {
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | ![Preview of the background blur filter](../assets/06-advanced/10-apply-video-filters/preview-blur-filter.png) | ![Preview of background image replacement filter](../assets/06-advanced/10-apply-video-filters/preview-image-filter.png) |
 
-## Advanced - adding your own custom filters on Android
+## Advanced: Adding your own custom filters on Android
 
 ### Step 1 - Implement an Interface in Android to add your desired filter
 
@@ -120,10 +120,10 @@ class RotationFilterFactory : VideoFrameProcessorFactoryInterface {
 For the easiness of processing video frames in Bitmap. We export a `VideoFrameProcessorWithBitmapFilter` class from the `@stream-io/video-filters-react-native` library. The built-in background filters of the library have been implemented using this class. To implement a video filter with Bitmap, create a class by extending a filter that extends from `BitmapVideoFilter` abstract class. This `BitmapVideoFilter` abstract class gives you a bitmap for each video frame, which you can manipulate directly. By returning a new `VideoFrameProcessorWithBitmapFilter` instance with that filter we can implement a bitmap processing filter.
 
 :::note
-`BitmapVideoFilter` is less performant than a normal video filter that does not use bitmaps due to the overhead of certain operations, like *YUV <-> ARGB* conversions.
+`BitmapVideoFilter` is less performant than a normal video filter that does not use bitmaps. It is due to the overhead of certain operations, like *YUV <-> ARGB* conversions.
 :::
 
-#### Example: Grayscale Video Filter
+#### Example: Grayscale video filter
 ​
 We can create and set a simple video filter that turns the video frame to grayscale by extending a filter that extends from `BitmapVideoFilter` abstract class like this:
 
@@ -160,9 +160,9 @@ private class GrayScaleFilter : BitmapVideoFilter() {
 }
 ```
 
-### Step 2 - Create a Native Module in your app
+### Step 2 - Create a new Android native module
 
-Now you have to add a method in your app to register this video filter to the `@stream-io/video-filters-react-native` library. For this, follow the official React Native documentation to create a new [Android Native module](https://reactnative.dev/docs/native-modules-android). In that native module, add a new method to add the filter to the `ProcessorMap`. For example:
+Now you have to add a method in your app to register this video filter to the `@stream-io/video-filters-react-native` library. For this, follow the official React Native documentation to create a new [Android native module](https://reactnative.dev/docs/native-modules-android). In that native module, add a new method to add the filter to the `ProcessorProvider`. For example:
 
 ```kt title="VideoEffectsModule.kt"
 import com.facebook.react.bridge.ReactApplicationContext
