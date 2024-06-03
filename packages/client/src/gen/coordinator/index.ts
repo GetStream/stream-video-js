@@ -1500,6 +1500,12 @@ export interface CallSessionResponse {
    * @memberof CallSessionResponse
    */
   started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  timer_ends_at?: string;
 }
 /**
  * This event is sent when a call session starts
@@ -1570,6 +1576,12 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   /**
    *
+   * @type {LimitsSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  limits?: LimitsSettingsRequest;
+  /**
+   *
    * @type {RecordSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -1635,6 +1647,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   geofencing: GeofenceSettingsResponse;
+  /**
+   *
+   * @type {LimitsSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  limits: LimitsSettingsResponse;
   /**
    *
    * @type {RecordSettingsResponse}
@@ -2246,6 +2264,12 @@ export interface ChannelMember {
    * @memberof ChannelMember
    */
   is_moderator?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelMember
+   */
+  notifications_muted: boolean;
   /**
    * Whether member is shadow banned in this channel or not
    * @type {boolean}
@@ -3707,6 +3731,44 @@ export interface LabelThresholds {
 /**
  *
  * @export
+ * @interface LimitsSettingsRequest
+ */
+export interface LimitsSettingsRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsRequest
+   */
+  max_duration_seconds?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsRequest
+   */
+  max_participants?: number;
+}
+/**
+ *
+ * @export
+ * @interface LimitsSettingsResponse
+ */
+export interface LimitsSettingsResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsResponse
+   */
+  max_duration_seconds?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsResponse
+   */
+  max_participants?: number;
+}
+/**
+ *
+ * @export
  * @interface ListDevicesResponse
  */
 export interface ListDevicesResponse {
@@ -4048,6 +4110,7 @@ export interface NullTime {
  */
 export const OwnCapability = {
   BLOCK_USERS: 'block-users',
+  CHANGE_MAX_DURATION: 'change-max-duration',
   CREATE_CALL: 'create-call',
   CREATE_REACTION: 'create-reaction',
   ENABLE_NOISE_CANCELLATION: 'enable-noise-cancellation',
@@ -4285,7 +4348,7 @@ export interface OwnUserResponse {
    * @type {boolean}
    * @memberof OwnUserResponse
    */
-  invisible?: boolean;
+  invisible: boolean;
   /**
    *
    * @type {string}
