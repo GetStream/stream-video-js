@@ -119,6 +119,7 @@ import {
   AllCallEvents,
   CallEventListener,
   Logger,
+  RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './client-details';
@@ -680,10 +681,13 @@ export class Call {
    * This method should be used only for "ringing" call flows.
    * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
+   *
+   * @param reason the reason for rejecting the call.
    */
-  reject = async () => {
+  reject = async (reason?: RejectReason): Promise<RejectCallResponse> => {
     return this.streamClient.post<RejectCallResponse>(
       `${this.streamClientBasePath}/reject`,
+      { reason: reason },
     );
   };
 

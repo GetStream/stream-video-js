@@ -142,3 +142,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
 
 export type TokenProvider = () => Promise<string>;
 export type TokenOrProvider = null | string | TokenProvider | undefined;
+
+export type BuiltInRejectReason = 'busy' | 'decline' | 'cancel';
+export type RejectReason = BuiltInRejectReason | string;
