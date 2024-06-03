@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.17...@stream-io/video-react-native-sdk-0.7.18) (2024-06-03)
+
+
+### Bug Fixes
+
+* **react-native:** getting if pip was enabled from native was randomly broken  ([#1385](https://github.com/GetStream/stream-video-js/issues/1385)) ([a055011](https://github.com/GetStream/stream-video-js/commit/a055011117fc4cee4ff00c855315aa72ffd7d881))
+
 ### [0.7.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.16...@stream-io/video-react-native-sdk-0.7.17) (2024-06-03)
 
 ### Dependency Updates
