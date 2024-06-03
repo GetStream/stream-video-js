@@ -23,15 +23,12 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         return NAME;
     }
 
-    private var isInPictureInPictureMode = false
-
     override fun initialize() {
         super.initialize()
         StreamVideoReactNative.pipListeners.add { isInPictureInPictureMode ->
             reactApplicationContext.getJSModule(
                 RCTDeviceEventEmitter::class.java
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
-            this.isInPictureInPictureMode = isInPictureInPictureMode
         }
     }
 
@@ -48,7 +45,9 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     @ReactMethod
     fun isInPiPMode(promise: Promise) {
-        promise.resolve(isInPictureInPictureMode);
+        val inPictureInPictureMode: Boolean? =
+            reactApplicationContext.currentActivity?.isInPictureInPictureMode
+        promise.resolve(inPictureInPictureMode)
     }
 
     @ReactMethod

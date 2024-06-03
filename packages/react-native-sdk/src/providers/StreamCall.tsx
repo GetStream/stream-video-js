@@ -53,7 +53,7 @@ const AppStateListener = () => {
         // in Android, we need to check if we are in PiP mode
         // in PiP mode, we don't want to disable the camera
         NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
-          async (isInPiP: boolean) => {
+          async (isInPiP: boolean | null | undefined) => {
             if (!isInPiP) {
               await call?.camera?.disable();
             }
