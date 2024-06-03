@@ -145,7 +145,7 @@
     "react-native": "0.71.8",
     "react-native-builder-bob": "^0.21.3",
     "react-native-callkeep": "4.3.11",
-    "react-native-gesture-handler": "2.8.0",
+    "react-native-gesture-handler": "2.16.2",
     "react-native-incall-manager": "^4.0.0",
     "react-native-reanimated": "2.7.0",
     "react-native-svg": "^13.6.0",
