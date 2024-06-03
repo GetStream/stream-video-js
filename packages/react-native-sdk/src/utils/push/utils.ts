@@ -17,7 +17,7 @@ type CanAddPushWSSubscriptionsRef = { current: boolean };
 export const shouldCallBeEnded = (
   callFromPush: Call,
   created_by_id: string | undefined,
-  receiver_id: string | undefined,
+  receiver_id: string | undefined
 ) => {
   /* callkeep reasons for ending a call
     FAILED: 1,
@@ -61,7 +61,7 @@ export const shouldCallBeEnded = (
 export const processCallFromPushInBackground = async (
   pushConfig: PushConfig,
   call_cid: string,
-  action: Parameters<typeof processCallFromPush>[2],
+  action: Parameters<typeof processCallFromPush>[2]
 ) => {
   let videoClient: StreamVideoClient | undefined;
 
@@ -87,7 +87,7 @@ export const processCallFromPushInBackground = async (
 export const processCallFromPush = async (
   client: StreamVideoClient,
   call_cid: string,
-  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered'
 ) => {
   let callFromPush: Call;
   try {
@@ -118,7 +118,7 @@ export const processCallFromPush = async (
 export const processNonIncomingCallFromPush = async (
   client: StreamVideoClient,
   call_cid: string,
-  nonRingingNotificationType: NonRingingPushEvent,
+  nonRingingNotificationType: NonRingingPushEvent
 ) => {
   let callFromPush: Call;
   try {
@@ -144,7 +144,7 @@ export const processNonIncomingCallFromPush = async (
  */
 export const clearPushWSEventSubscriptions = () => {
   const unsubscriptionCallbacks = RxUtils.getCurrentValue(
-    pushUnsubscriptionCallbacks$,
+    pushUnsubscriptionCallbacks$
   );
   if (unsubscriptionCallbacks) {
     unsubscriptionCallbacks.forEach((cb) => cb());

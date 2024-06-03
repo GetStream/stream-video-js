@@ -63,7 +63,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
 
     const callLiveStartedUnsubscribe = call?.on(
       'call.live_started',
-      handleLiveStarted,
+      handleLiveStarted
     );
     const callUpdatedUnsubscribe = call?.on('call.updated', handleLiveEnded);
 

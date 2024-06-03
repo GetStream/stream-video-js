@@ -3,7 +3,7 @@ import { AppState, AppStateStatus } from 'react-native';
 
 export const useAppStateListener = (
   onForeground?: () => void,
-  onBackground?: () => void,
+  onBackground?: () => void
 ) => {
   const appStateRef = useRef(AppState.currentState);
   const onForegroundRef = useRef(onForeground);
@@ -31,7 +31,7 @@ export const useAppStateListener = (
     };
     const subscription = AppState.addEventListener(
       'change',
-      handleAppStateChange,
+      handleAppStateChange
     );
 
     return () => {

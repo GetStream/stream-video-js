@@ -82,12 +82,12 @@ export const useBackgroundFilters = () => {
   const context = useContext(BackgroundFiltersContext);
   if (!context) {
     throw new Error(
-      'useBackgroundFilters must be used within a BackgroundFiltersProvider',
+      'useBackgroundFilters must be used within a BackgroundFiltersProvider'
     );
   }
   if (!videoFiltersModule) {
     throw new Error(
-      "Install the '@stream-io/video-filters-react-native' library to use background filters",
+      "Install the '@stream-io/video-filters-react-native' library to use background filters"
     );
   }
   return context;
@@ -104,7 +104,7 @@ const isSupported = Platform.OS === 'android';
 export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
   if (!videoFiltersModule) {
     throw new Error(
-      "Install the '@stream-io/video-filters-react-native' library to use background filters",
+      "Install the '@stream-io/video-filters-react-native' library to use background filters"
     );
   }
   const call = useCall();
@@ -134,7 +134,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         });
       setCurrentBackgroundFilter({ blur: blurIntensity });
     },
-    [call],
+    [call]
   );
 
   const applyBackgroundImageFilter = useCallback(
@@ -157,7 +157,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         });
       setCurrentBackgroundFilter({ image: imageSource });
     },
-    [call],
+    [call]
   );
 
   const disableAllFilters = useCallback(() => {
@@ -186,7 +186,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       applyBackgroundImageFilter,
       currentBackgroundFilter,
       disableAllFilters,
-    ],
+    ]
   );
 
   return (

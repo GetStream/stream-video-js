@@ -1,6 +1,6 @@
 export default function addNewLinesToAppDelegate(
   content: string,
-  toAdd: string[],
+  toAdd: string[]
 ) {
   const lines = content.split('\n');
   let lineIndex = lines.findIndex((line) => line.match('@end'));

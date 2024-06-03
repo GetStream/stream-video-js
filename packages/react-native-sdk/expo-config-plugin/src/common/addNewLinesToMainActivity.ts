@@ -1,6 +1,6 @@
 export default function addNewLinesToMainActivity(
   content: string,
-  toAdd: string[],
+  toAdd: string[]
 ) {
   const lines = content.trim().split('\n');
   let lineIndex = lines.length - 1;

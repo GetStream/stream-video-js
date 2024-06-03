@@ -14,14 +14,14 @@ export function useIsIosScreenshareBroadcastStarted() {
     }
 
     const eventEmitter = new NativeEventEmitter(
-      NativeModules.StreamVideoReactNative,
+      NativeModules.StreamVideoReactNative
     );
 
     const subscription = eventEmitter.addListener(
       'StreamVideoReactNative_Ios_Screenshare_Event',
       (event: Event) => {
         setHasStarted(event.name === 'iOS_BroadcastStarted');
-      },
+      }
     );
 
     return () => {

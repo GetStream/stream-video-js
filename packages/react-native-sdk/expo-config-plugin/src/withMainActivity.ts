@@ -5,7 +5,7 @@ import addNewLinesToMainActivity from './common/addNewLinesToMainActivity';
 
 const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
   configuration,
-  props,
+  props
 ) => {
   return withMainActivity(configuration, (config) => {
     const isMainActivityJava = config.modResults.language === 'java';
@@ -20,21 +20,21 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
           'androidx.lifecycle.Lifecycle',
           'android.app.PictureInPictureParams',
         ],
-        isMainActivityJava,
+        isMainActivityJava
       );
       config.modResults.contents = addOnPictureInPictureModeChanged(
         config.modResults.contents,
-        isMainActivityJava,
+        isMainActivityJava
       );
       if (props?.androidPictureInPicture?.enableAutomaticEnter) {
         config.modResults.contents = addOnUserLeaveHint(
           config.modResults.contents,
-          isMainActivityJava,
+          isMainActivityJava
         );
       }
     } catch (error: any) {
       throw new Error(
-        "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed.",
+        "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed."
       );
     }
 
@@ -76,7 +76,7 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
 
     contents = addNewLinesToMainActivity(
       contents,
-      statementToInsert.trim().split('\n'),
+      statementToInsert.trim().split('\n')
     );
   }
   return contents;
@@ -85,7 +85,7 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
 function addOnUserLeaveHint(contents: string, isJava: boolean) {
   if (
     !contents.includes(
-      'StreamVideoReactNative.canAutoEnterPictureInPictureMode',
+      'StreamVideoReactNative.canAutoEnterPictureInPictureMode'
     )
   ) {
     let statementToInsert = '';
@@ -113,7 +113,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
 
     contents = addNewLinesToMainActivity(
       contents,
-      statementToInsert.trim().split('\n'),
+      statementToInsert.trim().split('\n')
     );
   }
   return contents;

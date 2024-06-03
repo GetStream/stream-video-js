@@ -1392,8 +1392,8 @@ export class Call {
             trackType === 'videoTrack'
               ? 'videoDimension'
               : trackType === 'screenShareTrack'
-              ? 'screenShareDimension'
-              : undefined;
+                ? 'screenShareDimension'
+                : undefined;
           if (prop) {
             acc[sessionId] = {
               [prop]: change.dimension,
@@ -1985,9 +1985,8 @@ export class Call {
       );
     }
 
-    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
-      getClientDetails(),
-    );
+    const { sdkName, sdkVersion, ...platform } =
+      getSdkSignature(getClientDetails());
 
     // user sessionId is not available once the call has been left
     // until we relax the backend validation, we'll send N/A

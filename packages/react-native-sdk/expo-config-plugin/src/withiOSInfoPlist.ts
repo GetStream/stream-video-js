@@ -3,7 +3,7 @@ import { ConfigProps } from './common/types';
 
 const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
   configuration,
-  props,
+  props
 ) => {
   return withInfoPlist(configuration, (config) => {
     if (!Array.isArray(config.modResults.UIBackgroundModes)) {

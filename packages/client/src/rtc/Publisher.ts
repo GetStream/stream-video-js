@@ -248,12 +248,12 @@ export class Publisher {
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution)
           : trackType === TrackType.SCREEN_SHARE
-          ? findOptimalScreenSharingLayers(
-              track,
-              opts.screenShareSettings,
-              screenShareBitrate,
-            )
-          : undefined;
+            ? findOptimalScreenSharingLayers(
+                track,
+                opts.screenShareSettings,
+                screenShareBitrate,
+              )
+            : undefined;
 
       let preferredCodec = opts.preferredCodec;
       if (!preferredCodec && trackType === TrackType.VIDEO) {
@@ -747,11 +747,11 @@ export class Publisher {
             trackType === TrackType.VIDEO
               ? findOptimalVideoLayers(track, targetResolution)
               : trackType === TrackType.SCREEN_SHARE
-              ? findOptimalScreenSharingLayers(
-                  track,
-                  publishOpts?.screenShareSettings,
-                )
-              : [];
+                ? findOptimalScreenSharingLayers(
+                    track,
+                    publishOpts?.screenShareSettings,
+                  )
+                : [];
           this.trackLayersCache[trackType] = optimalLayers;
         } else {
           // we report the last known optimal layers for ended tracks
@@ -853,7 +853,7 @@ export class Publisher {
     return rid === 'q'
       ? VideoQuality.LOW_UNSPECIFIED
       : rid === 'h'
-      ? VideoQuality.MID
-      : VideoQuality.HIGH; // default to HIGH
+        ? VideoQuality.MID
+        : VideoQuality.HIGH; // default to HIGH
   };
 }

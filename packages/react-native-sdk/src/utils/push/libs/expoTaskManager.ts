@@ -9,7 +9,7 @@ try {
 export function getExpoTaskManagerLib(): ExpoTaskManagerLib {
   if (!expoTaskManagerLib) {
     throw Error(
-      'expo-task-manager library is not installed. Please see https://docs.expo.dev/versions/latest/sdk/task-manager/ for installation instructions',
+      'expo-task-manager library is not installed. Please see https://docs.expo.dev/versions/latest/sdk/task-manager/ for installation instructions'
     );
   }
   return expoTaskManagerLib;

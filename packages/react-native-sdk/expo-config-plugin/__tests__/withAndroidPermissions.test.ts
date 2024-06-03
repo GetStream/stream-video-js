@@ -18,7 +18,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
 
     const updatedConfig = withStreamVideoReactNativeSDKAndroidPermissions(
       inputConfig,
-      props,
+      props
     );
 
     // Assert that the necessary permissions are added to the Android config
@@ -31,7 +31,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
         'android.permission.BLUETOOTH',
         'android.permission.BLUETOOTH_CONNECT',
         'android.permission.BLUETOOTH_ADMIN',
-      ]),
+      ])
     );
   });
 });

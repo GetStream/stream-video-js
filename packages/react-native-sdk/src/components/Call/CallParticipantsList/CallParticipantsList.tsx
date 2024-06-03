@@ -109,7 +109,7 @@ export const CallParticipantsList = ({
     const participantPatches: StreamVideoParticipantPatches = {};
     let mustUpdate = false;
     const newVisibleParticipantSessionIds = new Set<string>(
-      viewableItems.map((v) => v.key),
+      viewableItems.map((v) => v.key)
     );
     const oldVisibleParticipantSessionIds =
       viewableParticipantSessionIds.current;
@@ -144,7 +144,7 @@ export const CallParticipantsList = ({
 
   // NOTE: key must be sessionId always as it is used to track viewable participants
   const keyExtractor = useRef<NonNullable<FlatListProps['keyExtractor']>>(
-    (item) => item.sessionId,
+    (item) => item.sessionId
   ).current;
 
   const onLayout = useRef<NonNullable<FlatListProps['onLayout']>>((event) => {
@@ -187,7 +187,7 @@ export const CallParticipantsList = ({
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
       const isVisible = viewableParticipantSessionIds.current.has(
-        participant.sessionId,
+        participant.sessionId
       );
       return (
         <>
@@ -205,7 +205,7 @@ export const CallParticipantsList = ({
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [itemContainerStyle],
+    [itemContainerStyle]
   );
 
   // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid

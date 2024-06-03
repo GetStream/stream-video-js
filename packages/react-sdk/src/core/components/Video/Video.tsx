@@ -82,8 +82,8 @@ export const Video = ({
     trackType === 'videoTrack'
       ? videoStream
       : trackType === 'screenShareTrack'
-      ? screenShareStream
-      : undefined;
+        ? screenShareStream
+        : undefined;
 
   useLayoutEffect(() => {
     if (!call || !videoElement || trackType === 'none') return;
@@ -132,8 +132,8 @@ export const Video = ({
     trackType === 'videoTrack'
       ? hasVideo(participant)
       : trackType === 'screenShareTrack'
-      ? hasScreenShare(participant)
-      : false;
+        ? hasScreenShare(participant)
+        : false;
 
   const isInvisible =
     trackType === 'none' ||

@@ -28,14 +28,14 @@ export const useIosCallKeepEventsSetupEffect = () => {
       ({ callUUID }) => {
         const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
         iosCallkeepAcceptCall(call_cid, callUUID);
-      },
+      }
     );
     const { remove: removeEndCall } = callkeep.addEventListener(
       'endCall',
       ({ callUUID }) => {
         const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
         iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
-      },
+      }
     );
 
     const { remove: removeDisplayIncomingCall } = callkeep.addEventListener(
@@ -52,7 +52,7 @@ export const useIosCallKeepEventsSetupEffect = () => {
           uuid: callUUID,
           cid: call_cid,
         });
-      },
+      }
     );
 
     return () => {

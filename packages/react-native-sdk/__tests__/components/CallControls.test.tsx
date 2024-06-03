@@ -52,10 +52,10 @@ describe('ChatButton', () => {
 
     await waitFor(() =>
       expect(() =>
-        screen.getByTestId(ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR),
+        screen.getByTestId(ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR)
       ).toThrow(
-        /Unable to find an element with testID: chat-unread-badge-count-indicator/i,
-      ),
+        /Unable to find an element with testID: chat-unread-badge-count-indicator/i
+      )
     );
   });
 });
@@ -71,7 +71,7 @@ describe('ReactionsButton', () => {
           userId: P_IDS.LOCAL_1,
         }),
       ],
-      [OwnCapability.CREATE_REACTION],
+      [OwnCapability.CREATE_REACTION]
     );
 
     render(<ReactionsButton reactions={defaultEmojiReactions} />, {

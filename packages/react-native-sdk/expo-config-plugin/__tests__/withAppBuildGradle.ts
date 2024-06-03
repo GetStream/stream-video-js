@@ -18,7 +18,7 @@ jest.mock('@expo/config-plugins', () => {
     ...originalModule,
     withAppBuildGradle: jest.fn((config, callback) => {
       const updatedConfig: CustomExpoConfig = callback(
-        config as CustomExpoConfig,
+        config as CustomExpoConfig
       );
       return updatedConfig;
     }),
@@ -38,7 +38,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
     const updatedConfig = withAppBuildGradle(inputConfig) as CustomExpoConfig;
 
     expect(
-      updatedConfig.modResults.contents.includes('compileOptions'),
+      updatedConfig.modResults.contents.includes('compileOptions')
     ).toBeTruthy();
   });
 });

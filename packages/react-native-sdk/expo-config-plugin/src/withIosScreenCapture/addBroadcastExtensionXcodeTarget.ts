@@ -26,7 +26,7 @@ export default function addBroadcastExtensionXcodeTarget(
     currentProjectVersion,
     marketingVersion,
     developmentTeamId,
-  }: AddXcodeTargetParams,
+  }: AddXcodeTargetParams
 ) {
   const targets = proj.getFirstProject().firstProject.targets ?? [];
   if (
@@ -85,7 +85,7 @@ const addXCConfigurationList = (
     currentProjectVersion,
     marketingVersion,
     extensionName,
-  }: Omit<AddXcodeTargetParams, 'developmentTeamId'>,
+  }: Omit<AddXcodeTargetParams, 'developmentTeamId'>
 ) => {
   const commonBuildSettings: any = {
     CLANG_ANALYZER_NONNULL: 'YES',
@@ -105,7 +105,7 @@ const addXCConfigurationList = (
     INFOPLIST_KEY_NSHumanReadableCopyright: quoted(''),
     IPHONEOS_DEPLOYMENT_TARGET: '14.0',
     LD_RUNPATH_SEARCH_PATHS: quoted(
-      '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
+      '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
     ),
     MARKETING_VERSION: marketingVersion,
     MTL_FAST_MATH: 'YES',
@@ -145,7 +145,7 @@ const addXCConfigurationList = (
   const xCConfigurationList = proj.addXCConfigurationList(
     buildConfigurationsList,
     'Release',
-    `Build configuration list for PBXNativeTarget ${quoted(extensionName)}`,
+    `Build configuration list for PBXNativeTarget ${quoted(extensionName)}`
   );
 
   console.log(`Added XCConfigurationList ${xCConfigurationList.uuid}`);
@@ -155,7 +155,7 @@ const addXCConfigurationList = (
     'ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES',
     'YES',
     null,
-    proj.getFirstTarget().firstTarget.name,
+    proj.getFirstTarget().firstTarget.name
   );
 
   return xCConfigurationList;
@@ -164,7 +164,7 @@ const addXCConfigurationList = (
 const addProductFile = (
   proj: XcodeProject,
   extensionName: string,
-  groupName: string,
+  groupName: string
 ) => {
   const productFile = {
     basename: `${extensionName}.appex`,
@@ -201,7 +201,7 @@ const addToPbxNativeTargetSection = (
     targetUuid: string;
     productFile: any;
     xCConfigurationList: any;
-  },
+  }
 ) => {
   const target = {
     uuid: targetUuid,
@@ -276,7 +276,7 @@ const addTargetDependency = (proj: XcodeProject, target: any) => {
 
 const addBuildPhases = (
   proj: XcodeProject,
-  { groupName, productFile, targetUuid, frameworkPath }: AddBuildPhaseParams,
+  { groupName, productFile, targetUuid, frameworkPath }: AddBuildPhaseParams
 ) => {
   const buildPath = quoted('');
 
@@ -287,7 +287,7 @@ const addBuildPhases = (
     'Sources',
     targetUuid,
     'app_extension',
-    buildPath,
+    buildPath
   );
   console.log(`Added PBXSourcesBuildPhase ${sourcesBuildPhaseUuid}`);
 
@@ -298,7 +298,7 @@ const addBuildPhases = (
     groupName,
     proj.getFirstTarget().uuid,
     'app_extension',
-    buildPath,
+    buildPath
   );
   console.log(`Added PBXCopyFilesBuildPhase ${copyFilesBuildPhaseUuid}`);
 
@@ -309,7 +309,7 @@ const addBuildPhases = (
     'Frameworks',
     targetUuid,
     'app_extension',
-    buildPath,
+    buildPath
   );
   console.log(`Added PBXFrameworksBuildPhase ${frameworksBuildPhaseUuid}`);
 
@@ -320,7 +320,7 @@ const addBuildPhases = (
     'Resources',
     targetUuid,
     'app_extension',
-    buildPath,
+    buildPath
   );
   console.log(`Added PBXResourcesBuildPhase ${resourcesBuildPhaseUuid}`);
 };
@@ -330,7 +330,7 @@ const addPbxGroup = (proj: XcodeProject, productFile: any) => {
   const { uuid: pbxGroupUuid } = proj.addPbxGroup(
     ['SampleHandler.swift', 'Info.plist'],
     'broadcast',
-    'broadcast',
+    'broadcast'
   );
   console.log(`Added PBXGroup ${pbxGroupUuid}`);
 
@@ -341,7 +341,7 @@ const addPbxGroup = (proj: XcodeProject, productFile: any) => {
       if (groups[key].name === undefined && groups[key].path === undefined) {
         proj.addToPbxGroup(pbxGroupUuid, key);
         console.log(
-          `Added PBXGroup ${pbxGroupUuid} root PBXGroup group ${key}`,
+          `Added PBXGroup ${pbxGroupUuid} root PBXGroup group ${key}`
         );
       } else if (groups[key].name === 'Products') {
         proj.addToPbxGroup(productFile, key);

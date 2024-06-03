@@ -18,7 +18,7 @@ const pkg = require('../../package.json');
 
 const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
   config,
-  props,
+  props
 ) => {
   return withPlugins(config, [
     // ios
@@ -37,5 +37,5 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
 export default createRunOncePlugin(
   withStreamVideoReactNativeSDK,
   pkg.name,
-  pkg.version,
+  pkg.version
 );

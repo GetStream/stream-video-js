@@ -119,8 +119,8 @@ export function isOnline(logger: Logger) {
     typeof navigator !== 'undefined'
       ? navigator
       : typeof window !== 'undefined' && window.navigator
-      ? window.navigator
-      : undefined;
+        ? window.navigator
+        : undefined;
 
   if (!nav) {
     logger(
