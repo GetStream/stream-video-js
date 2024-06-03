@@ -33,7 +33,8 @@ export function useIsInPiPMode() {
           // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
         }
         // attempt to take the value as soon as app state is changed
-        // this can be faster than
+        // this can be faster than event emitter at times
+        // also in new arch this can be made a synchronous method
         NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
           (isInPiPNativeMethod: boolean | null | undefined) => {
             setIsInPiPMode(!!isInPiPNativeMethod);
