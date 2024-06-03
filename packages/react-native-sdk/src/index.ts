@@ -28,7 +28,7 @@ export * from './theme';
 export * from './utils';
 export * from './translations';
 
-// Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
+// Overriding 'StreamVideo' and 'StreamCall' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
 export { StreamVideo } from './providers/StreamVideo';
 export { StreamCall } from './providers/StreamCall';

@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from 'react';
 import { Call, StreamVideoClient } from '@stream-io/video-client';
-import { StreamVideo } from '../../src/providers';
+import { StreamVideo } from '../../src/providers/StreamVideo';
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import {
   render as rtlRender,
