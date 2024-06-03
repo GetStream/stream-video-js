@@ -72,13 +72,13 @@ export const CallRecordingsPage = ({
               {!recordings
                 ? null
                 : recordings.length
-                ? recordings.map((recording) => (
-                    <CallRecordingListItem
-                      recording={recording}
-                      key={recording.filename}
-                    />
-                  ))
-                : 'No recordings found for the call'}
+                  ? recordings.map((recording) => (
+                      <CallRecordingListItem
+                        recording={recording}
+                        key={recording.filename}
+                      />
+                    ))
+                  : 'No recordings found for the call'}
             </div>
           )}
         </div>
