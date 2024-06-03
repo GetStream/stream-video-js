@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.10...@stream-io/video-client-1.1.0) (2024-06-03)
+
+
+### Features
+
+* video filters on android ([#1382](https://github.com/GetStream/stream-video-js/issues/1382)) ([7ba8b0e](https://github.com/GetStream/stream-video-js/commit/7ba8b0e3b444869d38aae1a045dffb05444643f5))
+
 ### [1.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.9...@stream-io/video-client-1.0.10) (2024-05-31)
 
 
