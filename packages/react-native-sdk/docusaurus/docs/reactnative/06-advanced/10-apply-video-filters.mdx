@@ -7,7 +7,7 @@ description: How to add video filters
 In this guide, we will show you how to apply video filters to a video stream. Our SDK offers background blurring and virtual backgrounds out of the box and also has support for injecting your custom filter into the calling experience.
 
 :::note
-Video filters are currently only supported in Android by the SDK.
+Video filters are currently only supported in **Android** by the SDK.
 :::
 
 ### Step 1 - Install the video filters library
@@ -95,7 +95,7 @@ export const MyBackgroundFilterUI = () => {
 
 ## Advanced: Adding your own custom filters on Android
 
-### Step 1 - Implement an Interface in Android to add your desired filter
+### Step 1 - Implement an interface in Android to add your desired filter
 
 To create a new video filter, you need to implement the `VideoFrameProcessorFactoryInterface` from `@stream-io/react-native-webrtc`. A simple example that applies rotation to the video filter would be like the following: 
 
@@ -123,7 +123,7 @@ For the easiness of processing video frames in Bitmap. We export a `VideoFramePr
 `BitmapVideoFilter` is less performant than a normal video filter that does not use bitmaps. It is due to the overhead of certain operations, like *YUV <-> ARGB* conversions.
 :::
 
-#### Example: Grayscale video filter
+#### Example: grayscale video filter
 ​
 We can create and set a simple video filter that turns the video frame to grayscale by extending a filter that extends from `BitmapVideoFilter` abstract class like this:
 
