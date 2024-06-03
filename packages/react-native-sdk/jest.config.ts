@@ -4,8 +4,7 @@ const config: Config = {
   preset: 'react-native',
   setupFilesAfterEnv: [
     '<rootDir>/jest-setup.ts',
-    // this package is hoisted to the root node_modules
-    '<rootDir>/../../node_modules/react-native-gesture-handler/jestSetup.js',
+    'node_modules/react-native-gesture-handler/jestSetup.js',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/__tests__/mocks/',
