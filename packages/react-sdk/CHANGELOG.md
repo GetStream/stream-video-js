@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.15...@stream-io/video-react-sdk-1.1.0) (2024-06-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.1.0`
+* `@stream-io/video-filters-web` updated to version `0.1.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.37`
+
+### Features
+
+* video filters on android ([#1382](https://github.com/GetStream/stream-video-js/issues/1382)) ([7ba8b0e](https://github.com/GetStream/stream-video-js/commit/7ba8b0e3b444869d38aae1a045dffb05444643f5))
+
 ### [1.0.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.14...@stream-io/video-react-sdk-1.0.15) (2024-05-31)
 
 ### Dependency Updates
