@@ -12,6 +12,7 @@ config.watchFolders = [
   path.join(workspaceRoot, 'packages/client'),
   path.join(workspaceRoot, 'packages/react-bindings'),
   path.join(workspaceRoot, 'packages/react-native-sdk'),
+  path.join(workspaceRoot, 'packages/video-filters-react-native'),
 ];
 
 // find what all modules need to be unique for the app

@@ -68,7 +68,7 @@ export const LivestreamLayout = ({
         setObjectFit(isWidthWide ? 'contain' : 'cover');
       }
     },
-    [],
+    []
   );
 
   const landScapeStyles: ViewStyle = {

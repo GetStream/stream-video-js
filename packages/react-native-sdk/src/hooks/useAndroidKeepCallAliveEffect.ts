@@ -28,7 +28,7 @@ async function startForegroundService(call_cid: string) {
   const settings = await notifee.getNotificationSettings();
   if (settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
     console.warn(
-      'Notification permission not granted, can not start foreground service to keep the call alive',
+      'Notification permission not granted, can not start foreground service to keep the call alive'
     );
     return;
   }
@@ -110,7 +110,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       } else {
         notifee.getDisplayedNotifications().then((displayedNotifications) => {
           const activeCallNotification = displayedNotifications.find(
-            (notification) => notification.id === activeCallCid,
+            (notification) => notification.id === activeCallCid
           );
           if (activeCallNotification) {
             // this means that we have a incoming call notification shown as foreground service and we must stop it

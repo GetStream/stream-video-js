@@ -125,8 +125,8 @@ export const ToggleAudioPublishingButton = (
             !hasPermission
               ? t('You have no permission to share your audio')
               : !hasBrowserPermission
-              ? t('Check your browser mic permissions')
-              : caption ?? t('Mic')
+                ? t('Check your browser mic permissions')
+                : caption ?? t('Mic')
           }
           tooltipDisabled={tooltipDisabled}
         >

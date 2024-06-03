@@ -46,13 +46,16 @@ export function createRenderer(
     getSegmentationParams(segmentationLevel),
   );
 
-  const id = setInterval(() => {
-    pipeline.render();
+  const id = setInterval(
+    () => {
+      pipeline.render();
 
-    if (backgroundFilter === 'image') {
-      pipeline.updatePostProcessingConfig();
-    }
-  }, 1000 / (fps <= 0 ? 30 : fps));
+      if (backgroundFilter === 'image') {
+        pipeline.updatePostProcessingConfig();
+      }
+    },
+    1000 / (fps <= 0 ? 30 : fps),
+  );
 
   return {
     dispose: () => {

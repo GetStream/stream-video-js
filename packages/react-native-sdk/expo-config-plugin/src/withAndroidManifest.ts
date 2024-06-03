@@ -8,11 +8,8 @@ const { prefixAndroidKeys, getMainApplicationOrThrow, getMainActivityOrThrow } =
   AndroidConfig.Manifest;
 
 // extract the type from array
-type Unpacked<T> = T extends Array<infer U>
-  ? U
-  : T extends ReadonlyArray<infer U>
-  ? U
-  : T;
+type Unpacked<T> =
+  T extends Array<infer U> ? U : T extends ReadonlyArray<infer U> ? U : T;
 // extract the service type
 type ManifestService = Unpacked<
   NonNullable<AndroidConfig.Manifest.ManifestApplication['service']>
@@ -41,7 +38,7 @@ function getNotifeeService(enableScreenshare: boolean = false) {
 
 const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   configuration,
-  props,
+  props
 ) => {
   return withAndroidManifest(configuration, (config) => {
     try {
@@ -52,7 +49,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
       // we filter out the existing notifee service (if any) so that we can override it
       services = services.filter(
         (service) =>
-          service.$['android:name'] !== 'app.notifee.core.ForegroundService',
+          service.$['android:name'] !== 'app.notifee.core.ForegroundService'
       );
       services.push(getNotifeeService(props?.enableScreenshare));
       mainApplication.service = services;
@@ -86,7 +83,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
     } catch (error: any) {
       console.log(error);
       throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the AndroidManifest is malformed',
+        'Cannot setup StreamVideoReactNativeSDK because the AndroidManifest is malformed'
       );
     }
     return config;

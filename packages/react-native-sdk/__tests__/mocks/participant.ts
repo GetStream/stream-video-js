@@ -8,7 +8,7 @@ const trackMock = {
 };
 
 const mockParticipant = (
-  customFields?: Partial<StreamVideoParticipant>,
+  customFields?: Partial<StreamVideoParticipant>
 ): StreamVideoParticipant => ({
   audioLevel: 3,
   connectionQuality: 3,

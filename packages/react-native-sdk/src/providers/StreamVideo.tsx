@@ -24,7 +24,7 @@ export const StreamVideo = (
       StreamI18nProviderProps & {
         style?: DeepPartial<Theme>;
       }
-  >,
+  >
 ) => {
   const {
     client,

@@ -8,7 +8,7 @@ export const usePermissionRequest = () => {
 
   const { useHasPermissions } = useCallStateHooks();
   const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS,
+    OwnCapability.UPDATE_CALL_PERMISSIONS
   );
 
   const messageForPermission = (userName: string, permission: string) => {
@@ -39,7 +39,7 @@ export const usePermissionRequest = () => {
         }
       };
     },
-    [call],
+    [call]
   );
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export const usePermissionRequest = () => {
               text: 'Allow',
               onPress: handleUpdatePermission(event, true),
             },
-          ],
+          ]
         );
       });
     });

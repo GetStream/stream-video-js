@@ -130,10 +130,10 @@ export const ToggleVideoPublishingButton = (
             !hasPermission
               ? t('You have no permission to share your video')
               : !hasBrowserPermission
-              ? t('Check your browser video permissions')
-              : !isPublishingVideoAllowed
-              ? t('Video publishing is disabled by the system')
-              : caption || t('Video')
+                ? t('Check your browser video permissions')
+                : !isPublishingVideoAllowed
+                  ? t('Video publishing is disabled by the system')
+                  : caption || t('Video')
           }
           tooltipDisabled={tooltipDisabled}
         >

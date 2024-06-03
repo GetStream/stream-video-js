@@ -9,7 +9,7 @@ try {
 export function getExpoNotificationsLib() {
   if (!expoNotificationsLib) {
     throw Error(
-      'expo-notifications library is not installed. Please see https://docs.expo.dev/versions/latest/sdk/notifications/ for installation instructions',
+      'expo-notifications library is not installed. Please see https://docs.expo.dev/versions/latest/sdk/notifications/ for installation instructions'
     );
   }
   return expoNotificationsLib;

@@ -49,10 +49,10 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
       // handles on app killed state in expo, expo-notifications cannot handle that
       messaging().setBackgroundMessageHandler(
         async (msg) =>
-          await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+          await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
       );
       messaging().onMessage((msg) =>
-        firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+        firebaseMessagingOnMessageHandler(msg.data, pushConfig)
       ); // this is to listen to foreground messages, which we dont need for now
     } else {
       const Notifications = getExpoNotificationsLib();
@@ -69,7 +69,7 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
           // @ts-ignore
           const dataToProcess = data.notification?.data;
           firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
-        },
+        }
       );
       // background handler (does not handle on app killed state)
       Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
@@ -101,10 +101,10 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     const messaging = getFirebaseMessagingLib();
     messaging().setBackgroundMessageHandler(
       async (msg) =>
-        await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+        await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
     );
     messaging().onMessage((msg) =>
-      firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+      firebaseMessagingOnMessageHandler(msg.data, pushConfig)
     ); // this is to listen to foreground messages, which we dont need for now
   }
 
@@ -121,7 +121,7 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
 export async function initAndroidPushToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
-  setUnsubscribeListener: (unsubscribe: () => void) => void,
+  setUnsubscribeListener: (unsubscribe: () => void) => void
 ) {
   if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
     return;
@@ -142,7 +142,7 @@ export async function initAndroidPushToken(
     const subscription = expoNotificationsLib.addPushTokenListener(
       (devicePushToken) => {
         setDeviceToken(devicePushToken.data);
-      },
+      }
     );
     setUnsubscribeListener(() => subscription.remove());
     const devicePushToken =
@@ -152,7 +152,7 @@ export async function initAndroidPushToken(
   } else {
     const messaging = getFirebaseMessagingLib();
     const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
-      setDeviceToken(refreshedToken),
+      setDeviceToken(refreshedToken)
     );
     setUnsubscribeListener(unsubscribe);
     const token = await messaging().getToken();
@@ -162,7 +162,7 @@ export async function initAndroidPushToken(
 
 const firebaseMessagingOnMessageHandler = async (
   data: FirebaseMessagingTypes.RemoteMessage['data'],
-  pushConfig: PushConfig,
+  pushConfig: PushConfig
 ) => {
   /* Example data from firebase
     "message": {
@@ -192,7 +192,7 @@ const firebaseMessagingOnMessageHandler = async (
       const { mustEndCall } = shouldCallBeEnded(
         callToCheck,
         created_by_id,
-        receiver_id,
+        receiver_id
       );
       return mustEndCall;
     }
@@ -237,7 +237,7 @@ const firebaseMessagingOnMessageHandler = async (
       pushConfig.android.incomingCallNotificationTextGetters;
     if (!incomingCallChannel || !incomingCallNotificationTextGetters) {
       console.debug(
-        "Can't show incoming call notification as either or both incomingCallChannel and was not provided",
+        "Can't show incoming call notification as either or both incomingCallChannel and was not provided"
       );
       return;
     }
@@ -310,7 +310,7 @@ const firebaseMessagingOnMessageHandler = async (
       pushConfig.android.callNotificationTextGetters;
     if (!callChannel || !callNotificationTextGetters) {
       console.debug(
-        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
+        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided"
       );
       return;
     }
@@ -343,7 +343,7 @@ const firebaseMessagingOnMessageHandler = async (
 const onNotifeeEvent = async (
   event: Event,
   pushConfig: PushConfig,
-  isBackground: boolean,
+  isBackground: boolean
 ) => {
   const { type, detail } = event;
   const { notification, pressAction } = detail;
@@ -402,7 +402,7 @@ const onNotifeeEvent = async (
       pushTappedIncomingCallCId$.next(call_cid);
       pushConfig.onTapNonRingingCallNotification?.(
         call_cid,
-        data.type as NonRingingPushEvent,
+        data.type as NonRingingPushEvent
       );
     }
   }

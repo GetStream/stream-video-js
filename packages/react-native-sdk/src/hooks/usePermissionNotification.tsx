@@ -24,7 +24,7 @@ export type PermissionNotificationProps = {
 };
 
 export const usePermissionNotification = (
-  props: PermissionNotificationProps,
+  props: PermissionNotificationProps
 ) => {
   const { permission, messageApproved, messageRevoked } = props;
   const { useCallCallingState, useHasPermissions } = useCallStateHooks();

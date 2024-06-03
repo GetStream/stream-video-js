@@ -10,7 +10,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
   ];
   if (props?.enableScreenshare) {
     foregroundServicePermissions.push(
-      'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION',
+      'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION'
     );
   }
   const config = AndroidConfig.Permissions.withPermissions(configuration, [

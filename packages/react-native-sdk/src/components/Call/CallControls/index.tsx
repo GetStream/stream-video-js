@@ -9,6 +9,7 @@ export * from './ToggleCameraFaceButton';
 export * from './ChatButton';
 export * from './ReactionsButton';
 export * from './CallControls';
+export * from './CallControlsButton';
 export * from './LobbyControls';
 export * from './IncomingCallControls';
 export * from './OutgoingCallControls';

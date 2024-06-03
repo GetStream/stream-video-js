@@ -69,8 +69,8 @@ const LoginScreen = () => {
           REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
             ? 'demo'
             : prontoEnvironment
-            ? 'pronto'
-            : 'demo',
+              ? 'pronto'
+              : 'demo',
       });
     } catch (error) {
       console.log(error);
@@ -96,8 +96,8 @@ const LoginScreen = () => {
           REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
             ? 'demo'
             : prontoEnvironment
-            ? 'pronto'
-            : 'demo',
+              ? 'pronto'
+              : 'demo',
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {

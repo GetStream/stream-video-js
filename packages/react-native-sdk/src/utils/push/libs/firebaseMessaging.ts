@@ -14,7 +14,7 @@ export function getFirebaseMessagingLib() {
   if (!messaging) {
     throw Error(
       '@react-native-firebase/messaging is not installed. ' +
-        INSTALLATION_INSTRUCTION,
+        INSTALLATION_INSTRUCTION
     );
   }
   return messaging;
@@ -27,7 +27,7 @@ export function getFirebaseMessagingLibNoThrow(isExpo: boolean) {
         isExpo
           ? 'In Expo, @react-native-firebase/messaging library is required to receive ringing notifications in app killed state for Android.'
           : ''
-      }${INSTALLATION_INSTRUCTION}`,
+      }${INSTALLATION_INSTRUCTION}`
     );
   }
   return messaging;

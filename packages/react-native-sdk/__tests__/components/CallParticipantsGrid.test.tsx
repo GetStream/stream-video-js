@@ -44,25 +44,25 @@ describe('CallParticipantsGrid', () => {
       />,
       {
         call,
-      },
+      }
     );
 
     expect(
-      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_GRID),
+      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_GRID)
     ).toBeVisible();
 
     // Locating and verifying that all ParticipantViews are rendered
     const participant1 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_1}-is-not-speaking`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_1}-is-not-speaking`)
     );
 
     expect(
-      participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
+      participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM)
     ).toHaveProp('streamURL', 'video-test-url');
 
     // flat list should not be rendered for 2 participants as we should not wrap them in a grid
     expect(
-      screen.queryByLabelText(ComponentTestIds.CALL_PARTICIPANTS_LIST),
+      screen.queryByLabelText(ComponentTestIds.CALL_PARTICIPANTS_LIST)
     ).toBeNull();
   });
 
@@ -101,7 +101,7 @@ describe('CallParticipantsGrid', () => {
       />,
       {
         call,
-      },
+      }
     );
 
     const visibleParticipantsItems = call.state.participants.map((p) => ({
@@ -116,31 +116,31 @@ describe('CallParticipantsGrid', () => {
     // Locating and verifying that all ParticipantViews are rendered
 
     const participant2 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_2}-is-not-speaking`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_2}-is-not-speaking`)
     );
     const participant3 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_3}-is-not-speaking`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_3}-is-not-speaking`)
     );
 
     // Verifying that the local partic.'s video/audio are rendered within their respective participant
     expect(
-      participant2.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
+      participant2.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM)
     ).toHaveProp('streamURL', 'video-test-url');
     expect(
-      participant3.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
+      participant3.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM)
     ).toHaveProp('streamURL', 'video-test-url');
     // Verifying no extra/unknown RTCViews are rendered
     expect(
-      screen.getAllByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
+      screen.getAllByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM)
     ).toHaveLength(3);
   });
 });
 
 const simulateOnViewableItemsChanged = async (
-  viewableItems: Array<ViewToken>,
+  viewableItems: Array<ViewToken>
 ) => {
   const flatList = await screen.findByTestId(
-    ComponentTestIds.CALL_PARTICIPANTS_LIST,
+    ComponentTestIds.CALL_PARTICIPANTS_LIST
   );
   await act(() => {
     flatList.props.onViewableItemsChanged({

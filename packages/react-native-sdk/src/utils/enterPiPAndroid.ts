@@ -6,6 +6,6 @@ export function enterPiPAndroid(width?: number, height?: number) {
   }
   return NativeModules?.StreamVideoReactNative?.enterPipMode(
     width ? Math.floor(width) : 0,
-    height ? Math.floor(height) : 0,
+    height ? Math.floor(height) : 0
   );
 }

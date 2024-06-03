@@ -30,7 +30,7 @@ type StreamPayload =
   | undefined;
 
 function processNonRingingNotificationStreamPayload(
-  streamPayload: StreamPayload,
+  streamPayload: StreamPayload
 ) {
   if (
     streamPayload?.sender === 'stream.video' &&
@@ -45,7 +45,7 @@ function processNonRingingNotificationStreamPayload(
 
 export const iosCallkeepAcceptCall = (
   call_cid: string | undefined,
-  callUUIDFromCallkeep: string,
+  callUUIDFromCallkeep: string
 ) => {
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
@@ -65,7 +65,7 @@ export const iosCallkeepAcceptCall = (
 export const iosCallkeepRejectCall = async (
   call_cid: string | undefined,
   callUUIDFromCallkeep: string,
-  pushConfig: PushConfig,
+  pushConfig: PushConfig
 ) => {
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
@@ -84,7 +84,7 @@ export const iosCallkeepRejectCall = async (
  */
 const shouldProcessCallFromCallkeep = (
   call_cid: string | undefined,
-  callUUIDFromCallkeep: string,
+  callUUIDFromCallkeep: string
 ): call_cid is string => {
   if (!call_cid || !callUUIDFromCallkeep) {
     return false;
@@ -127,7 +127,7 @@ export const setupRemoteNotificationsHandleriOS = (pushConfig: PushConfig) => {
 export async function initIosNonVoipToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
-  setUnsubscribeListener: (unsubscribe: () => void) => void,
+  setUnsubscribeListener: (unsubscribe: () => void) => void
 ) {
   if (
     Platform.OS !== 'ios' ||
@@ -155,7 +155,7 @@ export async function initIosNonVoipToken(
     const subscription = expoNotificationsLib.addPushTokenListener(
       (devicePushToken) => {
         setDeviceToken(devicePushToken.data);
-      },
+      }
     );
     const subscriptionForReceive =
       expoNotificationsLib.addNotificationReceivedListener((event) => {

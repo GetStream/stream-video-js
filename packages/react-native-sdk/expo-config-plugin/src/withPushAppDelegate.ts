@@ -17,7 +17,7 @@ const DID_RECEIVE_INCOMING_PUSH =
 
 const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
   configuration,
-  props,
+  props
 ) => {
   return withAppDelegate(configuration, (config) => {
     if (!props?.ringingPushNotifications) {
@@ -34,30 +34,30 @@ const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
             '<PushKit/PushKit.h>',
             '"RNVoipPushNotificationManager.h"',
             '"StreamVideoReactNative.h"',
-          ],
+          ]
         );
 
         config.modResults.contents = addDidFinishLaunchingWithOptions(
           config.modResults.contents,
-          props.ringingPushNotifications,
+          props.ringingPushNotifications
         );
 
         config.modResults.contents = addDidUpdatePushCredentials(
-          config.modResults.contents,
+          config.modResults.contents
         );
 
         config.modResults.contents = addDidReceiveIncomingPushCallback(
-          config.modResults.contents,
+          config.modResults.contents
         );
         return config;
       } catch (error: any) {
         throw new Error(
-          'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed',
+          'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed'
         );
       }
     } else {
       throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the language is not supported',
+        'Cannot setup StreamVideoReactNativeSDK because the language is not supported'
       );
     }
   });
@@ -65,7 +65,7 @@ const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
 
 function addDidFinishLaunchingWithOptions(
   contents: string,
-  ringingPushNotifications: RingingPushNotifications,
+  ringingPushNotifications: RingingPushNotifications
 ) {
   // call the setup RNCallKeep
   const supportsVideoString = ringingPushNotifications.disableVideoIos
@@ -85,7 +85,7 @@ function addDidFinishLaunchingWithOptions(
       contents,
       DID_FINISH_LAUNCHING_WITH_OPTIONS,
       setupCallKeep,
-      { position: 'head' },
+      { position: 'head' }
     );
   }
   // call the setup of voip push notification
@@ -95,7 +95,7 @@ function addDidFinishLaunchingWithOptions(
       contents,
       DID_FINISH_LAUNCHING_WITH_OPTIONS,
       voipSetupMethod,
-      { position: 'head' },
+      { position: 'head' }
     );
   }
   return contents;
@@ -107,7 +107,7 @@ function addDidUpdatePushCredentials(contents: string) {
   if (!contents.includes(updatedPushCredentialsMethod)) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
-      DID_UPDATE_PUSH_CREDENTIALS,
+      DID_UPDATE_PUSH_CREDENTIALS
     );
     if (!codeblock) {
       return addNewLinesToAppDelegate(contents, [
@@ -120,7 +120,7 @@ function addDidUpdatePushCredentials(contents: string) {
         contents,
         DID_UPDATE_PUSH_CREDENTIALS,
         updatedPushCredentialsMethod,
-        { position: 'tail' },
+        { position: 'tail' }
       );
     }
   }
@@ -158,12 +158,12 @@ function addDidReceiveIncomingPushCallback(contents: string) {
 `;
   if (
     !contents.includes(
-      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload',
+      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload'
     )
   ) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
-      DID_RECEIVE_INCOMING_PUSH,
+      DID_RECEIVE_INCOMING_PUSH
     );
     if (!codeblock) {
       return addNewLinesToAppDelegate(contents, [
@@ -176,7 +176,7 @@ function addDidReceiveIncomingPushCallback(contents: string) {
         contents,
         DID_RECEIVE_INCOMING_PUSH,
         onIncomingPush,
-        { position: 'tail' },
+        { position: 'tail' }
       );
     }
   }

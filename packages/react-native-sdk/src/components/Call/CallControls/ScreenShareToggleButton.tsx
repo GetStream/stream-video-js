@@ -59,7 +59,7 @@ export const ScreenShareToggleButton = ({
 
   const iosScreenShareStartedFromSystem = useIsIosScreenshareBroadcastStarted();
   const prevIosScreenShareStartedFromSystem = usePrevious(
-    iosScreenShareStartedFromSystem,
+    iosScreenShareStartedFromSystem
   );
 
   const localParticipant = useLocalParticipant();

@@ -42,7 +42,7 @@ interface CallControlsButtonProps {
 }
 
 export const CallControlsButton = (
-  props: React.PropsWithChildren<CallControlsButtonProps>,
+  props: React.PropsWithChildren<CallControlsButtonProps>
 ) => {
   const {
     onPress,

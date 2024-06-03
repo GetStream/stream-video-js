@@ -30,8 +30,8 @@ export const getSdkName = (sdk: Sdk | undefined) => {
   return sdk && sdk.type === SdkType.REACT
     ? 'stream-react'
     : sdk && sdk.type === SdkType.REACT_NATIVE
-    ? 'stream-react-native'
-    : 'stream-js';
+      ? 'stream-react-native'
+      : 'stream-js';
 };
 
 export const getSdkVersion = (sdk: Sdk | undefined) => {

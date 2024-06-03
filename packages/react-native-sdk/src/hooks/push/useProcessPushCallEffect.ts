@@ -37,7 +37,7 @@ export const useProcessPushCallEffect = () => {
       pushAcceptedIncomingCallCId$,
       client,
       pushConfig,
-      'accept',
+      'accept'
     );
 
     // if the user rejects the call from push notification we leave the call
@@ -45,7 +45,7 @@ export const useProcessPushCallEffect = () => {
       pushRejectedIncomingCallCId$,
       client,
       pushConfig,
-      'decline',
+      'decline'
     );
 
     // if the user taps the call from push notification we do nothing as the only thing is to get the call which adds it to the client
@@ -53,14 +53,14 @@ export const useProcessPushCallEffect = () => {
       pushTappedIncomingCallCId$,
       client,
       pushConfig,
-      'pressed',
+      'pressed'
     );
 
     const backgroundIncomingDeliveredCallSubscription = createCallSubscription(
       pushAndroidBackgroundDeliveredIncomingCallCId$,
       client,
       pushConfig,
-      'backgroundDelivered',
+      'backgroundDelivered'
     );
 
     return () => {
@@ -86,7 +86,7 @@ const createCallSubscription = (
   behaviourSubjectWithCallCid: BehaviorSubject<string | undefined>,
   client: StreamVideoClient,
   pushConfig: NonNullable<StreamVideoConfig['push']>,
-  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered'
 ) => {
   return behaviourSubjectWithCallCid
     .pipe(filter(cidIsNotUndefined))

@@ -61,10 +61,10 @@ export const useIosCallkeepWithCallingStateEffect = () => {
         return;
       }
       const nativeDialerAcceptedCallMap = RxUtils.getCurrentValue(
-        voipCallkeepAcceptedCallOnNativeDialerMap$,
+        voipCallkeepAcceptedCallOnNativeDialerMap$
       );
       const foregroundIncomingCallkeepMap = RxUtils.getCurrentValue(
-        voipCallkeepCallOnForegroundMap$,
+        voipCallkeepCallOnForegroundMap$
       );
       const callkeep = getCallKeepLib();
       if (activeCallCid === nativeDialerAcceptedCallMap?.cid) {
@@ -95,7 +95,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     // push notification was displayed
     // but the call has been accepted through the app and not through the native dialer
     const foregroundCallkeepMap = RxUtils.getCurrentValue(
-      voipCallkeepCallOnForegroundMap$,
+      voipCallkeepCallOnForegroundMap$
     );
     if (foregroundCallkeepMap && foregroundCallkeepMap.cid === activeCallCid) {
       // this call should be accepted in callkeep
@@ -122,7 +122,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     // this was a call which had push notification displayed but never joined
     // the user rejected in the app and not from native dialer
     const foregroundIncomingCallkeepMap = RxUtils.getCurrentValue(
-      voipCallkeepCallOnForegroundMap$,
+      voipCallkeepCallOnForegroundMap$
     );
     if (activeCallCid === foregroundIncomingCallkeepMap?.cid) {
       callkeep.endCall(foregroundIncomingCallkeepMap.uuid);
@@ -134,7 +134,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     // it was an accepted call from native dialer and not from the app
     // the user left using the leave button in the app
     const nativeDialerAcceptedCallMap = RxUtils.getCurrentValue(
-      voipCallkeepAcceptedCallOnNativeDialerMap$,
+      voipCallkeepAcceptedCallOnNativeDialerMap$
     );
     if (activeCallCid === nativeDialerAcceptedCallMap?.cid) {
       callkeep.endCall(nativeDialerAcceptedCallMap.uuid);

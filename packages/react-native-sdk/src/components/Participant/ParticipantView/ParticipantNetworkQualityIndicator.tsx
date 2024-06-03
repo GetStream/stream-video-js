@@ -15,7 +15,7 @@ export type ParticipantNetworkQualityIndicatorProps = Pick<
 >;
 
 const useConnectionQualitySignalColors = (
-  participant: ParticipantViewProps['participant'],
+  participant: ParticipantViewProps['participant']
 ) => {
   const {
     theme: { colors },

@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from 'react';
 import { Call, StreamVideoClient } from '@stream-io/video-client';
-import { StreamVideo } from '../../src/providers';
+import { StreamVideo } from '../../src/providers/StreamVideo';
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import {
   render as rtlRender,
@@ -38,7 +38,7 @@ const Wrapper = ({
 // that way we can wrap the component with the necessary providers
 const render = (
   component: RenderProps['component'],
-  { call, ...options }: RenderProps['options'] = {},
+  { call, ...options }: RenderProps['options'] = {}
 ): RenderResult => {
   const testClient = mockClientWithUser({ id: 'test-user-id' });
   const testCall = call || mockCall(testClient);

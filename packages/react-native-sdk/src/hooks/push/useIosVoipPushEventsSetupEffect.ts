@@ -146,9 +146,10 @@ const onNotificationReceived = async (notification: any) => {
   const callFromPush = await client.onRingingCall(call_cid);
   let uuid = '';
   try {
-    uuid = await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
-      call_cid,
-    );
+    uuid =
+      await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
+        call_cid
+      );
   } catch (error) {
     console.log('Error in getting call uuid', error);
   }
@@ -161,7 +162,7 @@ const onNotificationReceived = async (notification: any) => {
     const { mustEndCall, callkeepReason } = shouldCallBeEnded(
       callFromPush,
       created_by_id,
-      receiver_id,
+      receiver_id
     );
     if (mustEndCall) {
       const callkeep = getCallKeepLib();

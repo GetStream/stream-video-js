@@ -31,6 +31,7 @@
     "@react-navigation/native-stack": "^6.9.18",
     "@stream-io/flat-list-mvcp": "^0.10.3",
     "@stream-io/react-native-webrtc": "118.0.1",
+    "@stream-io/video-filters-react-native": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "react": "18.2.0",
     "react-native": "0.73.4",
@@ -74,7 +75,7 @@
     "express": "^4.18.2",
     "jest": "^29.6.3",
     "patch-package": "^6.4.7",
-    "prettier": "2.8.8",
+    "prettier": "^3.3.0",
     "react-test-renderer": "18.2.0",
     "typescript": "^5.4.3"
   },

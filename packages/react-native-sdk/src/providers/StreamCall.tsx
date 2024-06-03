@@ -57,12 +57,12 @@ const AppStateListener = () => {
             if (!isInPiP) {
               await call?.camera?.disable();
             }
-          },
+          }
         );
       } else {
         await call?.camera?.disable();
       }
-    },
+    }
   );
 
   return null;

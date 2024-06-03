@@ -10,14 +10,14 @@ export function useIsInPiPMode() {
     }
 
     const eventEmitter = new NativeEventEmitter(
-      NativeModules.StreamVideoReactNative,
+      NativeModules.StreamVideoReactNative
     );
 
     const subscription = eventEmitter.addListener(
       'StreamVideoReactNative_PIP_CHANGE_EVENT',
       (isPiPEnabled: boolean) => {
         setIsInPiPMode(isPiPEnabled);
-      },
+      }
     );
 
     return () => {

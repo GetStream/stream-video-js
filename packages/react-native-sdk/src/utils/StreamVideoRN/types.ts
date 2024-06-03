@@ -77,7 +77,7 @@ export type StreamVideoConfig = {
       callNotificationTextGetters?: {
         getTitle: (
           type: NonRingingPushEvent,
-          createdUserName: string,
+          createdUserName: string
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
@@ -107,7 +107,7 @@ export type StreamVideoConfig = {
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
       call_cid: string,
-      type: NonRingingPushEvent,
+      type: NonRingingPushEvent
     ) => void;
   };
   foregroundService: {
