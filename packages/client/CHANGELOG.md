@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.0...@stream-io/video-client-1.2.1) (2024-06-04)
+
+
+### Bug Fixes
+
+* join doesn't work on chrome 86 ([#1386](https://github.com/GetStream/stream-video-js/issues/1386)) ([7b462da](https://github.com/GetStream/stream-video-js/commit/7b462da8131e086f224c0590221d549a38ba419c))
+
 ## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.1.0...@stream-io/video-client-1.2.0) (2024-06-03)
 
 
