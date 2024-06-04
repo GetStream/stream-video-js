@@ -45,6 +45,7 @@ import {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
@@ -685,7 +686,7 @@ export class Call {
    * @param reason the reason for rejecting the call.
    */
   reject = async (reason?: RejectReason): Promise<RejectCallResponse> => {
-    return this.streamClient.post<RejectCallResponse>(
+    return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
       `${this.streamClientBasePath}/reject`,
       { reason: reason },
     );
