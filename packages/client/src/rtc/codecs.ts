@@ -51,7 +51,7 @@ export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
   let sdp = offer.sdp ?? '';
 
   tempPc.getTransceivers().forEach((t) => {
-    t.stop();
+    t.stop?.();
   });
   tempPc.close();
   return sdp;
