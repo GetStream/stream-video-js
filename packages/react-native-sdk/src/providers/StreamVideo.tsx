@@ -2,7 +2,6 @@ import {
   StreamVideoProvider,
   StreamVideoProps,
   StreamI18nProviderProps,
-  useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';

@@ -149,9 +149,10 @@ const onNotificationReceived = async (notification: any) => {
   const callFromPush = await client.onRingingCall(call_cid);
   let uuid = '';
   try {
-    uuid = await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
-      call_cid
-    );
+    uuid =
+      await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
+        call_cid
+      );
   } catch (error) {
     const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
     logger('error', 'Error in getting call uuid from native module', error);

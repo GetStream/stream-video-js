@@ -116,8 +116,8 @@ export const HostStartStreamButton = ({
           backgroundColor: isAwaitingResponse
             ? colors.dark_gray
             : liveOrBroadcasting
-            ? colors.error
-            : colors.primary,
+              ? colors.error
+              : colors.primary,
         },
         hostStartStreamButton.container,
       ]}
@@ -151,8 +151,8 @@ export const HostStartStreamButton = ({
         {isAwaitingResponse
           ? t('Loading...')
           : liveOrBroadcasting
-          ? t('Stop Livestream')
-          : t('Start Livestream')}
+            ? t('Stop Livestream')
+            : t('Start Livestream')}
       </Text>
     </Pressable>
   );
