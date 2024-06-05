@@ -8,7 +8,7 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
-import { withCancellation } from '../helpers/concurrency';
+import { settled, withCancellation } from '../helpers/concurrency';
 
 export type MediaStreamFilter = (stream: MediaStream) => Promise<MediaStream>;
 
@@ -336,9 +336,7 @@ export abstract class InputMediaDeviceManager<
       this.state.setMediaStream(stream, await rootStream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
-          if (this.statusChangePromise) {
-            await this.statusChangePromise;
-          }
+          await settled(this.statusChangeConcurrencyTag);
           if (this.state.status === 'enabled') {
             this.isTrackStoppedDueToTrackEnd = true;
             setTimeout(() => {
@@ -371,7 +369,7 @@ export abstract class InputMediaDeviceManager<
         async ([[prevDevices, currentDevices], deviceId]) => {
           try {
             if (!deviceId) return;
-            await this.statusChangePromise;
+            await settled(this.statusChangeConcurrencyTag);
 
             let isDeviceDisconnected = false;
             let isDeviceReplaced = false;

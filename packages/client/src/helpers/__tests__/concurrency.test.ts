@@ -13,9 +13,9 @@ beforeEach(() => {
 
 it('runs promises without concurrency', async () => {
   const tag = Symbol();
-  const [run1, resolve1] = mockPromise('promise1');
-  const [run2, resolve2] = mockPromise('promise2');
-  const [run3, resolve3] = mockPromise('promise3');
+  const [run1, resolve1] = mockAsyncFn('promise1');
+  const [run2, resolve2] = mockAsyncFn('promise2');
+  const [run3, resolve3] = mockAsyncFn('promise3');
 
   const ready1 = withoutConcurrency(tag, run1);
   const ready2 = withoutConcurrency(tag, run2);
@@ -55,9 +55,9 @@ it('runs promises without concurrency', async () => {
 
 it('appends promises to a partially fulfulled queue', async () => {
   const tag = Symbol();
-  const [run1, resolve1] = mockPromise('promise1');
-  const [run2, resolve2] = mockPromise('promise2');
-  const [run3, resolve3] = mockPromise('promise3');
+  const [run1, resolve1] = mockAsyncFn('promise1');
+  const [run2, resolve2] = mockAsyncFn('promise2');
+  const [run3, resolve3] = mockAsyncFn('promise3');
 
   const ready1 = withoutConcurrency(tag, run1);
   const ready2 = withoutConcurrency(tag, run2);
@@ -100,10 +100,10 @@ it('runs multiple queues in parallel', async () => {
   const tom = Symbol();
   const jerry = Symbol();
 
-  const [runTom1, resolveTom1] = mockPromise('tom1');
-  const [runTom2, resolveTom2] = mockPromise('tom2');
-  const [runJerry1, resolveJerry1] = mockPromise('jerry1');
-  const [runJerry2, resolveJerry2] = mockPromise('jerry2');
+  const [runTom1, resolveTom1] = mockAsyncFn('tom1');
+  const [runTom2, resolveTom2] = mockAsyncFn('tom2');
+  const [runJerry1, resolveJerry1] = mockAsyncFn('jerry1');
+  const [runJerry2, resolveJerry2] = mockAsyncFn('jerry2');
 
   const readyTom1 = withoutConcurrency(tom, runTom1);
   const readyTom2 = withoutConcurrency(tom, runTom2);
@@ -149,8 +149,8 @@ it('runs multiple queues in parallel', async () => {
 
 it('keeps track of pending promises', async () => {
   const tag = Symbol();
-  const [run1, resolve1] = mockPromise('promise1');
-  const [run2, resolve2] = mockPromise('promise2');
+  const [run1, resolve1] = mockAsyncFn('promise1');
+  const [run2, resolve2] = mockAsyncFn('promise2');
 
   expect(hasPending(tag)).toBeFalsy();
 
@@ -171,8 +171,8 @@ it('keeps track of pending promises', async () => {
 describe('cancelation', () => {
   it('cancels promises mid-action', async () => {
     const tag = Symbol();
-    const [run1, resolve1] = mockPromise('promise1');
-    const [run2, resolve2] = mockPromise('promise2');
+    const [run1, resolve1] = mockAsyncFn('promise1');
+    const [run2, resolve2] = mockAsyncFn('promise2');
 
     const ready1 = withCancellation(tag, run1);
 
@@ -197,9 +197,9 @@ describe('cancelation', () => {
 
   it('promises canceled before starting never run', async () => {
     const tag = Symbol();
-    const [run1, resolve1] = mockPromise('promise1');
-    const [run2] = mockPromise('promise2');
-    const [run3, resolve3] = mockPromise('promise3');
+    const [run1, resolve1] = mockAsyncFn('promise1');
+    const [run2] = mockAsyncFn('promise2');
+    const [run3, resolve3] = mockAsyncFn('promise3');
 
     const ready1 = withCancellation(tag, run1);
     withCancellation(tag, run2);
@@ -222,12 +222,12 @@ describe('cancelation', () => {
 });
 
 /**
- * Creates a promise that can be imperatively controlled from outside. It won't resolve
- * until explicitly asked to.
- * @param name Human-readable name for logging purposes
- * @returns A tuple: callback that returns a promise, and callback to resolve a promise.
+ * Creates a mock async function that can be imperatively controlled from outside.
+ * It won't resolve until explicitly asked to.
+ * @param name Human-readable name for logging purposes.
+ * @returns A tuple: async function, and a callback to resolve it.
  */
-function mockPromise(name: string) {
+function mockAsyncFn(name: string) {
   let resolve: (() => void) | undefined;
   let resolveOnRun = false;
   const logCanceled = () => {

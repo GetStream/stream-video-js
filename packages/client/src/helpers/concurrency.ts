@@ -47,6 +47,10 @@ export function hasPending(tag: string | symbol) {
   return pendingPromises.has(tag);
 }
 
+export async function settled(tag: string | symbol) {
+  await pendingPromises.get(tag)?.promise;
+}
+
 /**
  * Implements common functionality of running async functions serially, by chaining
  * their promises one after another.
