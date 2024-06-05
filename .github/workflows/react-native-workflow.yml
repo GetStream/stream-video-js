@@ -21,7 +21,7 @@ env:
 on:
   push:
     tags:
-      - @stream-io/video-react-native-dogfood-* # deploy only after version is updated
+      - '@stream-io/video-react-native-dogfood-*'
   pull_request:
     types:
       - opened
