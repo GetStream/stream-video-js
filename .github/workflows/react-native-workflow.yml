@@ -23,8 +23,7 @@ on:
     branches:
       - main
     paths:
-      - 'sample-apps/react-native/dogfood/**'
-      - '!**.md'
+      - 'sample-apps/react-native/dogfood/package.json' # deploy only after version is updated
   pull_request:
     types:
       - opened
