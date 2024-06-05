@@ -20,10 +20,8 @@ env:
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'sample-apps/react-native/dogfood/package.json' # deploy only after version is updated
+    tags:
+      - @stream-io/video-react-native-dogfood-* # deploy only after version is updated
   pull_request:
     types:
       - opened
@@ -35,6 +33,7 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
+      - 'packages/video-filters-react-native/**'
       - '!**/docusaurus/**'
       - '!**.md'
   workflow_dispatch:
