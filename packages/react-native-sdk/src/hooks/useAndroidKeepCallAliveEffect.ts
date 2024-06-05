@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, getLogger } from '@stream-io/video-client';
 
 function setForegroundService() {
   if (Platform.OS !== 'android') {
@@ -11,7 +11,8 @@ function setForegroundService() {
   }
   notifee.registerForegroundService(() => {
     return new Promise(() => {
-      console.log('Foreground service running for call in progress');
+      const logger = getLogger(['setForegroundService method']);
+      logger('info', 'Foreground service running for call in progress');
     });
   });
 }
@@ -27,7 +28,9 @@ async function startForegroundService(call_cid: string) {
   // request for notification permission and then start the foreground service
   const settings = await notifee.getNotificationSettings();
   if (settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
-    console.info(
+    const logger = getLogger(['startForegroundService']);
+    logger(
+      'info',
       'Notification permission not granted, can not start foreground service to keep the call alive'
     );
     return;

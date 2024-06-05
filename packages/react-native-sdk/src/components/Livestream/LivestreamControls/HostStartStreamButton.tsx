@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
-import { SfuModels } from '@stream-io/video-client';
+import { SfuModels, getLogger } from '@stream-io/video-client';
 
 /**
  * Props for the HostStartStreamButton component.
@@ -79,7 +79,8 @@ export const HostStartStreamButton = ({
         onStartStreamHandler();
       }
     } catch (error) {
-      console.error('Error starting livestream', error);
+      const logger = getLogger(['HostStartStreamButton']);
+      logger('error', 'Error starting livestream', error);
     }
   };
 
@@ -101,7 +102,8 @@ export const HostStartStreamButton = ({
         onEndStreamHandler();
       }
     } catch (error) {
-      console.error('Error stopping livestream', error);
+      const logger = getLogger(['HostStartStreamButton']);
+      logger('error', 'Error stopping livestream', error);
     }
   };
 
@@ -114,8 +116,8 @@ export const HostStartStreamButton = ({
           backgroundColor: isAwaitingResponse
             ? colors.dark_gray
             : liveOrBroadcasting
-              ? colors.error
-              : colors.primary,
+            ? colors.error
+            : colors.primary,
         },
         hostStartStreamButton.container,
       ]}
@@ -149,8 +151,8 @@ export const HostStartStreamButton = ({
         {isAwaitingResponse
           ? t('Loading...')
           : liveOrBroadcasting
-            ? t('Stop Livestream')
-            : t('Start Livestream')}
+          ? t('Stop Livestream')
+          : t('Start Livestream')}
       </Text>
     </Pressable>
   );

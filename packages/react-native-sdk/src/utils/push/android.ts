@@ -5,7 +5,12 @@ import notifee, {
   AndroidChannel,
 } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
+import {
+  Call,
+  RxUtils,
+  StreamVideoClient,
+  getLogger,
+} from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
@@ -157,9 +162,10 @@ export async function initAndroidPushToken(
   const setDeviceToken = async (token: string) => {
     setPushLogoutCallback(async () => {
       try {
-        client.removeDevice(token);
+        await client.removeDevice(token);
       } catch (err) {
-        console.warn('Failed to remove firebase token from stream', err);
+        const logger = getLogger(['initAndroidPushToken']);
+        logger('warn', 'Failed to remove firebase token from stream', err);
       }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
@@ -265,7 +271,9 @@ const firebaseMessagingOnMessageHandler = async (
     const incomingCallNotificationTextGetters =
       pushConfig.android.incomingCallNotificationTextGetters;
     if (!incomingCallChannel || !incomingCallNotificationTextGetters) {
-      console.debug(
+      const logger = getLogger(['firebaseMessagingOnMessageHandler']);
+      logger(
+        'info',
         "Can't show incoming call notification as either or both incomingCallChannel and incomingCallNotificationTextGetters were not provided"
       );
       return;
@@ -348,7 +356,9 @@ const firebaseMessagingOnMessageHandler = async (
     const callNotificationTextGetters =
       pushConfig.android.callNotificationTextGetters;
     if (!callChannel || !callNotificationTextGetters) {
-      console.debug(
+      const logger = getLogger(['firebaseMessagingOnMessageHandler']);
+      logger(
+        'info',
         "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided"
       );
       return;

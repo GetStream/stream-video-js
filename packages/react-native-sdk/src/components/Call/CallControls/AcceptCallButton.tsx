@@ -1,4 +1,5 @@
 import { useCall } from '@stream-io/video-react-bindings';
+import { getLogger } from '@stream-io/video-client';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { Phone } from '../../../icons';
@@ -48,7 +49,8 @@ export const AcceptCallButton = ({
         onAcceptCallHandler();
       }
     } catch (error) {
-      console.log('Error joining Call', error);
+      const logger = getLogger(['AcceptCallButton']);
+      logger('error', 'Error joining Call', error);
     }
   };
 

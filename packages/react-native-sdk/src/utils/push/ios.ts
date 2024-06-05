@@ -15,7 +15,7 @@ import {
   processCallFromPushInBackground,
 } from './utils';
 import { getExpoNotificationsLib, getPushNotificationIosLib } from './libs';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient, getLogger } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import notifee, { EventType } from '@notifee/react-native';
 
@@ -139,9 +139,10 @@ export async function initIosNonVoipToken(
   const setDeviceToken = async (token: string) => {
     setPushLogoutCallback(async () => {
       try {
-        client.removeDevice(token);
+        await client.removeDevice(token);
       } catch (err) {
-        console.warn('Failed to remove apn token from stream', err);
+        const logger = getLogger(['initIosNonVoipToken']);
+        logger('warn', 'Failed to remove apn token from stream', err);
       }
     });
     const push_provider_name = pushConfig.ios.pushProviderName;

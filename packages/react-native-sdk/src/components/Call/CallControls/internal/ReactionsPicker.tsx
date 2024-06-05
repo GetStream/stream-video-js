@@ -7,7 +7,7 @@ import {
   Easing,
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { SendReactionRequest } from '@stream-io/video-client';
+import { SendReactionRequest, getLogger } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { ReactionsButtonProps } from '../ReactionsButton';
@@ -84,7 +84,8 @@ export const ReactionsPicker = ({
   const onClose = (reaction?: SendReactionRequest) => {
     if (reaction) {
       call?.sendReaction(reaction).catch((e) => {
-        console.error(e, reaction);
+        const logger = getLogger(['ReactionsPicker']);
+        logger('error', 'Error on onClose-sendReaction', e, reaction);
       });
     }
     Animated.timing(elasticAnimRef.current, {

@@ -1,3 +1,5 @@
+import { getLogger } from '@stream-io/video-client';
+
 export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 export type FirebaseMessagingType =
   typeof import('@react-native-firebase/messaging').default;
@@ -22,7 +24,9 @@ export function getFirebaseMessagingLib() {
 
 export function getFirebaseMessagingLibNoThrow(isExpo: boolean) {
   if (!messaging) {
-    console.warn(
+    const logger = getLogger(['getFirebaseMessagingLibNoThrow']);
+    logger(
+      'warn',
       `${
         isExpo
           ? 'In Expo, @react-native-firebase/messaging library is required to receive ringing notifications in app killed state for Android.'
