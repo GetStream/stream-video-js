@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.21...@stream-io/video-react-native-sdk-0.7.22) (2024-06-05)
+
+
+### Bug Fixes
+
+* use same channel id for all foreground services ([#1389](https://github.com/GetStream/stream-video-js/issues/1389)) ([d321b90](https://github.com/GetStream/stream-video-js/commit/d321b90330c73c694ea90e1f494f6e5f38d6c720))
+
 ### [0.7.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.20...@stream-io/video-react-native-sdk-0.7.21) (2024-06-05)
 
 
