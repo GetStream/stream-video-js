@@ -204,17 +204,17 @@ describe('MicrophoneManager', () => {
     });
 
     // --- this ---
-    it('should start speaking while muted notifications if user gains permission to send audio', async () => {
+    it.only('should start speaking while muted notifications if user gains permission to send audio', async () => {
       await manager.enable();
       await manager.disable();
 
       manager['call'].state.setOwnCapabilities([]);
 
       // @ts-expect-error
-      vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-      expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
     });
 
     it(`disables speaking while muted notifications`, async () => {

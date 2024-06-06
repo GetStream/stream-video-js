@@ -114,10 +114,10 @@ describe('MicrophoneManager React Native', () => {
     manager['call'].state.setOwnCapabilities([]);
 
     // @ts-expect-error
-    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
   });
 
   describe('Noise Suppression', () => {
