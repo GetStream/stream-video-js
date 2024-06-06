@@ -99,6 +99,13 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
+   * Returns a promise that resolves when all pe
+   */
+  async statusChangeSettled() {
+    await settled(this.statusChangeConcurrencyTag);
+  }
+
+  /**
    * If status was previously enabled, it will re-enable the device.
    */
   async resume() {
@@ -336,7 +343,7 @@ export abstract class InputMediaDeviceManager<
       this.state.setMediaStream(stream, await rootStream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
-          await settled(this.statusChangeConcurrencyTag);
+          await this.statusChangeSettled();
           if (this.state.status === 'enabled') {
             this.isTrackStoppedDueToTrackEnd = true;
             setTimeout(() => {
@@ -369,7 +376,7 @@ export abstract class InputMediaDeviceManager<
         async ([[prevDevices, currentDevices], deviceId]) => {
           try {
             if (!deviceId) return;
-            await settled(this.statusChangeConcurrencyTag);
+            await this.statusChangeSettled();
 
             let isDeviceDisconnected = false;
             let isDeviceReplaced = false;

@@ -53,9 +53,9 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   async selectTargetResolution(resolution: { width: number; height: number }) {
     this.targetResolution.height = resolution.height;
     this.targetResolution.width = resolution.width;
-    if (this.statusChangePromise && this.state.optimisticStatus === 'enabled') {
+    if (this.state.optimisticStatus === 'enabled') {
       try {
-        await this.statusChangePromise;
+        await this.statusChangeSettled();
       } catch (error) {
         // couldn't enable device, target resolution will be applied the next time user attempts to start the device
         this.logger('warn', 'could not apply target resolution', error);

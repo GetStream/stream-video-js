@@ -2041,7 +2041,7 @@ export class Call {
 
   private async initCamera(options: { setStatus: boolean }) {
     // Wait for any in progress camera operation
-    await this.camera.statusChangePromise;
+    await this.camera.statusChangeSettled();
 
     if (
       this.state.localParticipant?.videoStream ||
@@ -2090,7 +2090,7 @@ export class Call {
 
   private async initMic(options: { setStatus: boolean }) {
     // Wait for any in progress mic operation
-    await this.microphone.statusChangePromise;
+    await this.microphone.statusChangeSettled();
 
     if (
       this.state.localParticipant?.audioStream ||
