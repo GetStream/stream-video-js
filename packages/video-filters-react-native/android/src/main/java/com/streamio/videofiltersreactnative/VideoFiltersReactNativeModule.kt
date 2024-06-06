@@ -43,7 +43,7 @@ class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
   fun registerVirtualBackgroundFilter(backgroundImageUrlString: String) {
     ProcessorProvider.addProcessor(
       "VirtualBackground-$backgroundImageUrlString",
-      VirtualBackgroundFactory(backgroundImageUrlString)
+      VirtualBackgroundFactory(reactApplicationContext, backgroundImageUrlString)
     )
   }
 
