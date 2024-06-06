@@ -204,7 +204,7 @@ describe('MicrophoneManager', () => {
     });
 
     // --- this ---
-    it.only('should start speaking while muted notifications if user gains permission to send audio', async () => {
+    it('should start speaking while muted notifications if user gains permission to send audio', async () => {
       await manager.enable();
       await manager.disable();
 
