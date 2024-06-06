@@ -84,6 +84,9 @@ export abstract class InputMediaDeviceManager<
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
     }
+
+    this.state.setPendingStatus('disabled');
+
     await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
       try {
         const stopTracks =
@@ -123,9 +126,9 @@ export abstract class InputMediaDeviceManager<
    */
   async toggle() {
     if (this.state.optimisticStatus === 'enabled') {
-      return this.disable();
+      return await this.disable();
     } else {
-      return this.enable();
+      return await this.enable();
     }
   }
 
