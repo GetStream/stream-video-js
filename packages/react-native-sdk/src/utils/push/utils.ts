@@ -1,4 +1,9 @@
-import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
+import {
+  Call,
+  RxUtils,
+  StreamVideoClient,
+  getLogger,
+} from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
@@ -71,7 +76,8 @@ export const processCallFromPushInBackground = async (
       return;
     }
   } catch (e) {
-    console.log('failed to create video client and connect user', e);
+    const logger = getLogger(['processCallFromPushInBackground']);
+    logger('error', 'failed to create video client', e);
     return;
   }
   await processCallFromPush(videoClient, call_cid, action);
@@ -93,7 +99,8 @@ export const processCallFromPush = async (
   try {
     callFromPush = await client.onRingingCall(call_cid);
   } catch (e) {
-    console.log('failed to fetch call from push notification', e);
+    const logger = getLogger(['processCallFromPush']);
+    logger('error', 'failed to fetch call from push notification', e);
     return;
   }
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
@@ -104,7 +111,12 @@ export const processCallFromPush = async (
       await callFromPush.leave({ reject: true });
     }
   } catch (e) {
-    console.log('failed to process call from push notification', e, action);
+    const logger = getLogger(['processCallFromPush']);
+    logger(
+      'error',
+      `failed to process ${action} call from push notification`,
+      e
+    );
   }
 };
 
@@ -132,7 +144,8 @@ export const processNonIncomingCallFromPush = async (
       await callFromPush.get();
     }
   } catch (e) {
-    console.log('failed to fetch call from push notification', e);
+    const logger = getLogger(['processNonIncomingCallFromPush']);
+    logger('error', 'failed to fetch call from push notification', e);
     return;
   }
   onNewCallNotification(callFromPush, nonRingingNotificationType);

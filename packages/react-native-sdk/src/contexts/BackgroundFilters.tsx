@@ -18,9 +18,7 @@ let videoFiltersModule: VideoFiltersModuleType | undefined;
 
 try {
   videoFiltersModule = require('@stream-io/video-filters-react-native');
-} catch (e) {
-  console.log(e);
-}
+} catch (_e) {}
 
 import { Image } from 'react-native';
 

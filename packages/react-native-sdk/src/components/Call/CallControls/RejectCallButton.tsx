@@ -2,7 +2,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { PhoneDown } from '../../../icons';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, getLogger } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -55,7 +55,8 @@ export const RejectCallButton = ({
         onRejectCallHandler();
       }
     } catch (error) {
-      console.log('Error rejecting Call', error);
+      const logger = getLogger(['RejectCallButton']);
+      logger('error', 'Error rejecting Call', error);
     }
   };
 

@@ -4,6 +4,7 @@ import {
   ViewerLivestreamProps,
 } from '..';
 import { Call, StreamCall, useStreamVideoClient } from '../../..';
+import { CallingState, getLogger } from '@stream-io/video-client';
 
 export type LivestreamPlayerProps = {
   /**
@@ -37,15 +38,31 @@ export const LivestreamPlayer = ({
     const myCall = client.call(callType, callId);
     setCall(myCall);
     myCall.join().catch((e) => {
-      console.error('Failed to join call', e);
+      const logger = getLogger(['LivestreamPlayer']);
+      logger('error', 'Error joining call:', e);
     });
     return () => {
-      myCall.leave().catch((e) => {
-        console.error('Failed to leave call', e);
-      });
+      if (myCall.state.callingState !== CallingState.LEFT) {
+        myCall.leave().catch((e) => {
+          const logger = getLogger(['LivestreamPlayer']);
+          logger('error', 'Error leaving call:', e);
+        });
+      }
       setCall(undefined);
     };
   }, [callId, callType, client]);
+
+  useEffect(() => {
+    return () => {
+      // this handles unmount on metro reloads
+      if (call?.state.callingState !== CallingState.LEFT) {
+        call?.leave().catch((e) => {
+          const logger = getLogger(['LivestreamPlayer']);
+          logger('error', 'Error leaving call:', e);
+        });
+      }
+    };
+  }, [call]);
 
   if (!call) {
     return null;
