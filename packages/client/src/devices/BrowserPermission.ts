@@ -1,0 +1,115 @@
+import { fromEventPattern, map } from 'rxjs';
+import { isReactNative } from '../helpers/platforms';
+import { getLogger } from '../logger';
+import { disposeOfMediaStream } from './devices';
+
+interface BrowserPermissionConfig {
+  constraints: DisplayMediaStreamOptions;
+  queryName: PermissionName;
+}
+
+export class BrowserPermission {
+  private ready: Promise<void>;
+  private disposeController = new AbortController();
+  private state: PermissionState | undefined;
+  private wasPrompted: boolean = false;
+  private listeners = new Set<(state: PermissionState) => void>();
+  private logger = getLogger(['permissions']);
+
+  constructor(private readonly permission: BrowserPermissionConfig) {
+    const signal = this.disposeController.signal;
+
+    this.ready = (async () => {
+      if (!canQueryPermissions()) {
+        this.logger('warn', "Can't query permissions, assuming granted", {
+          permission,
+        });
+        this.setState('granted');
+        return;
+      }
+
+      const status = await navigator.permissions.query({
+        name: permission.queryName,
+      });
+
+      if (!signal.aborted) {
+        this.setState(status.state);
+        status.addEventListener('change', () => this.setState(status.state), {
+          signal,
+        });
+      }
+    })();
+  }
+
+  dispose() {
+    this.state = undefined;
+    this.disposeController.abort();
+  }
+
+  async getState() {
+    await this.ready;
+    if (!this.state) {
+      throw new Error('BrowserPermission instance possibly disposed');
+    }
+    return this.state;
+  }
+
+  async prompt({ forcePrompt = false }: { forcePrompt?: boolean } = {}) {
+    if (
+      (await this.getState()) !== 'prompt' ||
+      (this.wasPrompted && !forcePrompt)
+    ) {
+      return this.state === 'granted';
+    }
+
+    try {
+      this.wasPrompted = true;
+      const stream = await navigator.mediaDevices.getUserMedia(
+        this.permission.constraints,
+      );
+      disposeOfMediaStream(stream);
+      return true;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'NotAllowedError') {
+        this.logger('info', 'Browser permission was not granted', {
+          permission: this.permission,
+        });
+
+        return false;
+      }
+
+      this.logger('error', `Failed to getUserMedia`, {
+        error: e,
+        permission: this.permission,
+      });
+      throw e;
+    }
+  }
+
+  async listen(cb: (state: PermissionState) => void) {
+    this.listeners.add(cb);
+    return () => this.listeners.delete(cb);
+  }
+
+  asObservable() {
+    return fromEventPattern<PermissionState>(
+      (handler) => this.listen(handler),
+      (handler, unlisten) => unlisten(),
+    ).pipe(map((state) => state !== 'denied'));
+  }
+
+  private setState(state: PermissionState) {
+    if (this.state !== state) {
+      this.state = state;
+      this.listeners.forEach((listener) => listener(state));
+    }
+  }
+}
+
+function canQueryPermissions() {
+  return (
+    !isReactNative() &&
+    typeof navigator !== 'undefined' &&
+    !!navigator.permissions?.query
+  );
+}
