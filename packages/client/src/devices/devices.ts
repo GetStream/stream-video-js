@@ -8,7 +8,6 @@ import {
   shareReplay,
 } from 'rxjs';
 import { getLogger } from '../logger';
-import { BrowserPermission } from './BrowserPermission';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -17,18 +16,27 @@ import { BrowserPermission } from './BrowserPermission';
  * @param constraints the constraints to use when requesting the devices.
  * @param kind the kind of devices to enumerate.
  */
-const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
+const getDevices = (
+  constraints: MediaStreamConstraints,
+  kind: MediaDeviceKind,
+) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
     const enumerate = async () => {
       let devices = await navigator.mediaDevices.enumerateDevices();
       // some browsers report empty device labels (Firefox).
       // in that case, we need to request permissions (via getUserMedia)
       // to be able to get the device labels
-      const shouldPromptForBrowserPermission = devices.some(
+      const needsGetUserMedia = devices.some(
         (device) => device.kind === kind && device.label === '',
       );
-      if (shouldPromptForBrowserPermission && (await permission.prompt())) {
-        devices = await navigator.mediaDevices.enumerateDevices();
+      if (needsGetUserMedia) {
+        let mediaStream: MediaStream | undefined;
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+          devices = await navigator.mediaDevices.enumerateDevices();
+        } finally {
+          if (mediaStream) disposeOfMediaStream(mediaStream);
+        }
       }
       return devices;
     };
@@ -78,16 +86,6 @@ const videoDeviceConstraints = {
   },
 } satisfies MediaStreamConstraints;
 
-export const audioBrowserPermission = new BrowserPermission({
-  constraints: audioDeviceConstraints,
-  queryName: 'microphone' as PermissionName,
-});
-
-export const videoBrowserPermission = new BrowserPermission({
-  constraints: videoDeviceConstraints,
-  queryName: 'camera' as PermissionName,
-});
-
 /**
  * Creates a memoized observable instance
  * that will be created only once and shared between all callers.
@@ -124,21 +122,21 @@ const getDeviceChangeObserver = memoizedObservable(() => {
 
 const getAudioDevicesObserver = memoizedObservable(() => {
   return merge(
-    getDevices(audioBrowserPermission, 'audioinput'),
+    getDevices(audioDeviceConstraints, 'audioinput'),
     getDeviceChangeObserver(),
   ).pipe(shareReplay(1));
 });
 
 const getAudioOutputDevicesObserver = memoizedObservable(() => {
   return merge(
-    getDevices(audioBrowserPermission, 'audiooutput'),
+    getDevices(audioDeviceConstraints, 'audiooutput'),
     getDeviceChangeObserver(),
   ).pipe(shareReplay(1));
 });
 
 const getVideoDevicesObserver = memoizedObservable(() => {
   return merge(
-    getDevices(videoBrowserPermission, 'videoinput'),
+    getDevices(videoDeviceConstraints, 'videoinput'),
     getDeviceChangeObserver(),
   ).pipe(shareReplay(1));
 });
