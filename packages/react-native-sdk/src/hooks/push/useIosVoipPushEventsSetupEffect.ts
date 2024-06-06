@@ -17,7 +17,7 @@ import {
   pushUnsubscriptionCallbacks$,
   voipPushNotificationCallCId$,
 } from '../../utils/push/rxSubjects';
-import { RxUtils } from '@stream-io/video-client';
+import { RxUtils, getLogger } from '@stream-io/video-client';
 
 let lastVoipToken: string | undefined = '';
 
@@ -41,7 +41,8 @@ export const useIosVoipPushEventsSetupEffect = () => {
       client
         .addVoipDevice(lastVoipToken, 'apn', push_provider_name)
         .catch((err) => {
-          console.warn('Failed to send voip token to stream', err);
+          const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
+          logger('warn', 'Failed to send lastVoipToken to stream', err);
         });
     }
     const voipPushNotification = getVoipPushNotificationLib();
@@ -53,14 +54,16 @@ export const useIosVoipPushEventsSetupEffect = () => {
         return;
       }
       client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
-        console.warn('Failed to send voip token to stream', err);
+        const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
+        logger('warn', 'Failed to send voip token to stream', err);
       });
       // set the logout callback
       setPushLogoutCallback(async () => {
         try {
-          client.removeDevice(token);
+          await client.removeDevice(token);
         } catch (err) {
-          console.warn('Failed to remove voip token from stream', err);
+          const logger = getLogger(['PushLogoutCallback']);
+          logger('warn', 'Failed to remove voip token from stream', err);
         }
       });
     };
@@ -151,7 +154,8 @@ const onNotificationReceived = async (notification: any) => {
         call_cid
       );
   } catch (error) {
-    console.log('Error in getting call uuid', error);
+    const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
+    logger('error', 'Error in getting call uuid from native module', error);
   }
   if (!uuid) {
     return;

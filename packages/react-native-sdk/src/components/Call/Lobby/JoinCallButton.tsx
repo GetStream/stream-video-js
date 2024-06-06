@@ -3,6 +3,7 @@ import { LobbyProps } from './Lobby';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { getLogger } from '@stream-io/video-client';
 
 /**
  * Props for the Join Call Button in the Lobby component.
@@ -35,7 +36,8 @@ export const JoinCallButton = ({
         onJoinCallHandler();
       }
     } catch (error) {
-      console.error('Error joining call:', error);
+      const logger = getLogger(['JoinCallButton']);
+      logger('error', 'Error joining call:', error);
     }
   };
 

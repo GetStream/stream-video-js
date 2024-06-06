@@ -7,8 +7,11 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.Keep
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
@@ -33,13 +36,14 @@ import java.net.URL
  * @param foregroundThreshold The confidence threshold for the foreground. Pixels with a confidence value greater than or equal to this threshold are considered to be in the foreground. Value is coerced between 0 and 1, inclusive.
  */
 class VirtualBackgroundFactory(
+  private val reactContext: ReactApplicationContext,
   private val backgroundImageUrlString: String,
   private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : VideoFrameProcessorFactoryInterface {
 
   override fun build(): VideoFrameProcessor {
     return VideoFrameProcessorWithBitmapFilter {
-      VirtualBackgroundVideoFilter(backgroundImageUrlString, foregroundThreshold)
+      VirtualBackgroundVideoFilter(reactContext, backgroundImageUrlString, foregroundThreshold)
     }
   }
 
@@ -56,6 +60,7 @@ class VirtualBackgroundFactory(
  */
 @Keep
 private class VirtualBackgroundVideoFilter(
+  reactContext: ReactApplicationContext,
   backgroundImageUrlString: String,
   foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : BitmapVideoFilter() {
@@ -79,7 +84,20 @@ private class VirtualBackgroundVideoFilter(
 
   private val virtualBackgroundBitmap by lazy {
     Log.d(TAG, "getBitmapFromUrl - $backgroundImageUrlString")
-    getBitmapFromUrl(backgroundImageUrlString)
+    try {
+      val uri = Uri.parse(backgroundImageUrlString)
+      if (uri.scheme == null) { // this is a local image
+        val drawableId = ResourceDrawableIdHelper.getInstance()
+          .getResourceDrawableId(reactContext, backgroundImageUrlString)
+        BitmapFactory.decodeResource(reactContext.resources, drawableId)
+      } else {
+        val url = URL(backgroundImageUrlString)
+        BitmapFactory.decodeStream(url.openConnection().getInputStream())
+      }
+    } catch (e: IOException) {
+      Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
+      null
+    }
   }
 
   private val foregroundPaint by lazy {
@@ -141,17 +159,6 @@ private class VirtualBackgroundVideoFilter(
 
       // Draw the virtual background (with the cutout) on the video frame bitmap
       videoFrameCanvas.drawBitmap(scaledVirtualBackgroundBitmapCopy!!, 0f, 0f, null)
-    }
-  }
-
-  private fun getBitmapFromUrl(imageUrl: String): Bitmap? {
-    try {
-      val url = URL(imageUrl)
-      val image = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-      return image
-    } catch (e: IOException) {
-      println(e)
-      return null
     }
   }
 

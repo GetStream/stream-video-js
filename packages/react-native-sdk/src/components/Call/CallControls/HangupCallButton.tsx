@@ -1,4 +1,5 @@
 import React from 'react';
+import { getLogger } from '@stream-io/video-client';
 import { CallControlsButton } from './CallControlsButton';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
@@ -58,7 +59,8 @@ export const HangUpCallButton = ({
         onHangupCallHandler();
       }
     } catch (error) {
-      console.error('Error leaving call:', error);
+      const logger = getLogger(['HangUpCallButton']);
+      logger('error', 'Error leaving Call', error);
     }
   };
 

@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.2...@stream-io/video-client-1.2.3) (2024-06-05)
+
+
+### Bug Fixes
+
+* catch error for user connect in constructor ([#1390](https://github.com/GetStream/stream-video-js/issues/1390)) ([9a69853](https://github.com/GetStream/stream-video-js/commit/9a69853bac33f70d62224e30a3df5e5383173940))
+
 ### [1.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.1...@stream-io/video-client-1.2.2) (2024-06-04)
 
 

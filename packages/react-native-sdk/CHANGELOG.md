@@ -2,6 +2,43 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.25...@stream-io/video-react-native-sdk-0.7.26) (2024-06-06)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.1.1`
+### [0.7.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.24...@stream-io/video-react-native-sdk-0.7.25) (2024-06-06)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.1.0`
+### [0.7.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.23...@stream-io/video-react-native-sdk-0.7.24) (2024-06-06)
+
+
+### Features
+
+* use logger from client for react native sdk ([#1391](https://github.com/GetStream/stream-video-js/issues/1391)) ([8779da9](https://github.com/GetStream/stream-video-js/commit/8779da965c169ac651b63d600beef3112db889fa))
+
+### [0.7.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.22...@stream-io/video-react-native-sdk-0.7.23) (2024-06-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.2.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.41`
+### [0.7.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.21...@stream-io/video-react-native-sdk-0.7.22) (2024-06-05)
+
+
+### Bug Fixes
+
+* use same channel id for all foreground services ([#1389](https://github.com/GetStream/stream-video-js/issues/1389)) ([d321b90](https://github.com/GetStream/stream-video-js/commit/d321b90330c73c694ea90e1f494f6e5f38d6c720))
+
+### [0.7.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.20...@stream-io/video-react-native-sdk-0.7.21) (2024-06-05)
+
+
+### Bug Fixes
+
+* change unnecessary warning log to info ([e8dda7d](https://github.com/GetStream/stream-video-js/commit/e8dda7ded3bedc63e20e8230ecfab702da154f98))
+
 ### [0.7.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.19...@stream-io/video-react-native-sdk-0.7.20) (2024-06-04)
 
 ### Dependency Updates

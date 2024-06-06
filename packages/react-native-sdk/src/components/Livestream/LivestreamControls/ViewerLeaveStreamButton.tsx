@@ -9,6 +9,7 @@ import {
 import { useTheme } from '../../../contexts';
 import { LeaveStreamIcon } from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { getLogger } from '@stream-io/video-client';
 
 /**
  * Props for the ViewerLeaveStreamButton component.
@@ -49,7 +50,8 @@ export const ViewerLeaveStreamButton = ({
       await call?.leave();
       setIsAwaitingResponse(false);
     } catch (error) {
-      console.error('Error stopping livestream', error);
+      const logger = getLogger(['ViewerLeaveStreamButton']);
+      logger('error', 'Error stopping livestream', error);
     }
   };
 
