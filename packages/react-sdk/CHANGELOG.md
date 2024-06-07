@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.5...@stream-io/video-react-sdk-1.2.0) (2024-06-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.3.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.42`
+
+### Features
+
+* improve `isSupported` method for noise cancellation ([#1388](https://github.com/GetStream/stream-video-js/issues/1388)) ([07031ba](https://github.com/GetStream/stream-video-js/commit/07031ba72443a84cac8856c7481f3d4053b46d4c))
+
 ### [1.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.4...@stream-io/video-react-sdk-1.1.5) (2024-06-07)
 
 ### Dependency Updates
