@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.3...@stream-io/video-client-1.3.0) (2024-06-07)
+
+
+### Features
+
+* improve `isSupported` method for noise cancellation ([#1388](https://github.com/GetStream/stream-video-js/issues/1388)) ([07031ba](https://github.com/GetStream/stream-video-js/commit/07031ba72443a84cac8856c7481f3d4053b46d4c))
+
 ### [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.2...@stream-io/video-client-1.2.3) (2024-06-05)
 
 
