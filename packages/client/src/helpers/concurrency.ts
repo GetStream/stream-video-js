@@ -67,7 +67,9 @@ function createRunner<P extends unknown[], T>(wrapper: AsyncWrapper<P, T>) {
     const { cb: wrapped, onContinued } = wrapper(tag, cb);
     const pending = pendingPromises.get(tag);
     pending?.onContinued();
-    const promise = pending ? pending.promise.then(wrapped) : wrapped();
+    const promise = pending
+      ? pending.promise.then(wrapped, wrapped)
+      : wrapped();
     pendingPromises.set(tag, { promise, onContinued });
     return promise;
   };
