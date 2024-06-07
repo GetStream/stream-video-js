@@ -62,6 +62,7 @@ export const MyApp = () => {
 };
 
 const MyToggleNoiseCancellationButton = () => {
+  // isSupported can be true, false or undefined (undefined is used while compatibility check is in progress)
   const { isSupported, isEnabled, setEnabled } = useNoiseCancellation();
   return (
     <button
