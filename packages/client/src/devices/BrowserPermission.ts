@@ -2,6 +2,7 @@ import { fromEventPattern, map } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { getLogger } from '../logger';
 import { disposeOfMediaStream } from './devices';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 interface BrowserPermissionConfig {
   constraints: DisplayMediaStreamOptions;
@@ -54,39 +55,60 @@ export class BrowserPermission {
     return this.state;
   }
 
-  async prompt({ forcePrompt = false }: { forcePrompt?: boolean } = {}) {
-    if (
-      (await this.getState()) !== 'prompt' ||
-      (this.wasPrompted && !forcePrompt)
-    ) {
-      return this.state === 'granted';
-    }
+  async prompt({
+    forcePrompt = false,
+    throwOnNotAllowed = false,
+  }: { forcePrompt?: boolean; throwOnNotAllowed?: boolean } = {}) {
+    await withoutConcurrency(
+      `permission-prompt-${this.permission.queryName}`,
+      async () => {
+        if (
+          (await this.getState()) !== 'prompt' ||
+          (this.wasPrompted && !forcePrompt)
+        ) {
+          const isGranted = this.state === 'granted';
 
-    try {
-      this.wasPrompted = true;
-      const stream = await navigator.mediaDevices.getUserMedia(
-        this.permission.constraints,
-      );
-      disposeOfMediaStream(stream);
-      return true;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'NotAllowedError') {
-        this.logger('info', 'Browser permission was not granted', {
-          permission: this.permission,
-        });
+          if (!isGranted && throwOnNotAllowed) {
+            throw new DOMException(
+              'Permission was not granted previously, and prompting again is not allowed',
+              'NotAllowedError',
+            );
+          }
 
-        return false;
-      }
+          return isGranted;
+        }
 
-      this.logger('error', `Failed to getUserMedia`, {
-        error: e,
-        permission: this.permission,
-      });
-      throw e;
-    }
+        try {
+          this.wasPrompted = true;
+          const stream = await navigator.mediaDevices.getUserMedia(
+            this.permission.constraints,
+          );
+          disposeOfMediaStream(stream);
+          return true;
+        } catch (e) {
+          if (e instanceof DOMException && e.name === 'NotAllowedError') {
+            this.logger('info', 'Browser permission was not granted', {
+              permission: this.permission,
+            });
+
+            if (throwOnNotAllowed) {
+              throw e;
+            }
+
+            return false;
+          }
+
+          this.logger('error', `Failed to getUserMedia`, {
+            error: e,
+            permission: this.permission,
+          });
+          throw e;
+        }
+      },
+    );
   }
 
-  async listen(cb: (state: PermissionState) => void) {
+  listen(cb: (state: PermissionState) => void) {
     this.listeners.add(cb);
     return () => this.listeners.delete(cb);
   }
