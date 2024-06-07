@@ -4,7 +4,12 @@ import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
-import { mockAudioDevices, mockAudioStream, mockCall } from './mocks';
+import {
+  mockAudioDevices,
+  mockAudioStream,
+  mockBrowserPermission,
+  mockCall,
+} from './mocks';
 import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
@@ -25,6 +30,8 @@ vi.mock('../devices.ts', () => {
       return of(mockAudioDevices);
     }),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
+    getAudioBrowserPermission: () => mockBrowserPermission,
+    getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: {},
   };
 });

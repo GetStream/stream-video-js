@@ -6,6 +6,7 @@ import {
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { of, Subject } from 'rxjs';
+import { BrowserPermission } from '../BrowserPermission';
 
 export const mockVideoDevices = [
   {
@@ -220,4 +221,4 @@ export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
 
 export const mockBrowserPermission = {
   asObservable: () => of(true),
-};
+} as BrowserPermission;

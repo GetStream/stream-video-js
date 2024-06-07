@@ -117,7 +117,13 @@ export class BrowserPermission {
     return fromEventPattern<PermissionState>(
       (handler) => this.listen(handler),
       (handler, unlisten) => unlisten(),
-    ).pipe(map((state) => state !== 'denied'));
+    ).pipe(
+      // In some browsers, the 'change' event doesn't reliably emit and hence,
+      // permissionState stays in 'prompt' state forever.
+      // Typically, this happens when a user grants one-time permission.
+      // Instead of checking if a permission is granted, we check if it isn't denied
+      map((state) => state !== 'denied'),
+    );
   }
 
   private setState(state: PermissionState) {

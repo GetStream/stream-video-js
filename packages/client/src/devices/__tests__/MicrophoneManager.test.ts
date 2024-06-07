@@ -53,7 +53,7 @@ vi.mock('../../Call.ts', () => {
 });
 
 class NoiseCancellationStub implements INoiseCancellation {
-  private listeners: { [event: string]: Array<() => void> } = {};
+  private listeners: { [event: string]: Array<(arg: boolean) => void> } = {};
 
   isSupported = () => true;
   init = () => Promise.resolve(undefined);
