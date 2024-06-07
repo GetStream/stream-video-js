@@ -9,6 +9,7 @@ import type {
 } from './krispai/krispsdk';
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
+import { simd } from 'wasm-feature-detect';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -32,7 +33,7 @@ export type NoiseCancellationOptions = {
  * Provided for easier unit testing.
  */
 export interface INoiseCancellation {
-  isSupported: () => boolean;
+  isSupported: () => boolean | Promise<boolean>;
   init: () => Promise<void>;
   enable: () => void;
   disable: () => void;
@@ -85,7 +86,13 @@ export class NoiseCancellation implements INoiseCancellation {
    * Checks if the noise cancellation is supported on this platform.
    * Make sure you call this method before trying to enable the noise cancellation.
    */
-  isSupported = () => KrispSDK.isSupported();
+  isSupported = () => {
+    if (!KrispSDK.isSupported()) {
+      return false;
+    } else {
+      return simd();
+    }
+  };
 
   /**
    * Initializes the KrispAI SDK.
@@ -94,7 +101,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * or if the SDK is already initialized.
    */
   init = async () => {
-    if (!KrispSDK.isSupported()) {
+    if (!(await this.isSupported())) {
       throw new Error('NoiseCancellation is not supported on this platform');
     }
     if (this.sdk) {

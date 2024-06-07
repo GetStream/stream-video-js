@@ -25,6 +25,9 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "dependencies": {
+    "wasm-feature-detect": "^1.6.1"
+  },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-typescript": "^11.1.6",
