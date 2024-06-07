@@ -21,23 +21,31 @@ export class BrowserPermission {
     const signal = this.disposeController.signal;
 
     this.ready = (async () => {
-      if (!canQueryPermissions()) {
+      const assumeGranted = (error?: unknown) => {
         this.logger('warn', "Can't query permissions, assuming granted", {
           permission,
+          error,
         });
         this.setState('granted');
-        return;
+      };
+
+      if (!canQueryPermissions()) {
+        return assumeGranted();
       }
 
-      const status = await navigator.permissions.query({
-        name: permission.queryName,
-      });
-
-      if (!signal.aborted) {
-        this.setState(status.state);
-        status.addEventListener('change', () => this.setState(status.state), {
-          signal,
+      try {
+        const status = await navigator.permissions.query({
+          name: permission.queryName,
         });
+
+        if (!signal.aborted) {
+          this.setState(status.state);
+          status.addEventListener('change', () => this.setState(status.state), {
+            signal,
+          });
+        }
+      } catch (err) {
+        assumeGranted(err);
       }
     })();
   }
@@ -110,6 +118,7 @@ export class BrowserPermission {
 
   listen(cb: (state: PermissionState) => void) {
     this.listeners.add(cb);
+    if (this.state) cb(this.state);
     return () => this.listeners.delete(cb);
   }
 
