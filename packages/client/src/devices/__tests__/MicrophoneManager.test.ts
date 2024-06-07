@@ -12,6 +12,7 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   mockAudioDevices,
   mockAudioStream,
+  mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
 } from './mocks';
@@ -31,6 +32,8 @@ vi.mock('../devices.ts', () => {
       return of(mockAudioDevices);
     }),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
+    getAudioBrowserPermission: () => mockBrowserPermission,
+    getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
   };
 });

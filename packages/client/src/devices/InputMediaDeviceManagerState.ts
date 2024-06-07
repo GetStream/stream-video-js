@@ -1,8 +1,8 @@
 import {
   BehaviorSubject,
   distinctUntilChanged,
-  from,
   Observable,
+  of,
   shareReplay,
 } from 'rxjs';
 import { RxUtils } from '../store';
@@ -80,7 +80,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   ) {
     this.hasBrowserPermission$ = permission
       ? permission.asObservable().pipe(shareReplay(1))
-      : from([true]);
+      : of(true);
   }
 
   /**

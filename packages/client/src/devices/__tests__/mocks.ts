@@ -5,7 +5,7 @@ import {
   OwnCapability,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 export const mockVideoDevices = [
   {
@@ -216,4 +216,8 @@ export const mockDeviceIds$ = () => {
 
 export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
   deviceIds.next(values);
+};
+
+export const mockBrowserPermission = {
+  asObservable: () => of(true),
 };
