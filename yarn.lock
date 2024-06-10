@@ -7532,6 +7532,7 @@ __metadata:
     rimraf: ^5.0.5
     rollup: ^3.29.4
     typescript: ^5.4.3
+    wasm-feature-detect: ^1.6.1
   languageName: unknown
   linkType: soft
 
