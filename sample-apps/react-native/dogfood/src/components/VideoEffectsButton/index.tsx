@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   modalHeaderText: {
+    color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
     alignSelf: 'center',

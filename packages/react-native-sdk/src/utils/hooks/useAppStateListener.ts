@@ -13,9 +13,12 @@ export const useAppStateListener = (
   onForegroundRef.current = onForeground;
   onBackgroundRef.current = onBackground;
 
+  // https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to
+
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       const prevAppState = appStateRef.current;
+      console.log('app state changed', { prevAppState, nextAppState });
       if (
         prevAppState.match(/inactive|background/) &&
         nextAppState === 'active'

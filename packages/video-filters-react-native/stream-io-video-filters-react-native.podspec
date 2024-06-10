@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
   s.dependency "stream-react-native-webrtc"
-  # Swift/Objective-C compatibility #https://blog.cocoapods.org/CocoaPods-1.5.0/
+  # Swift/Objective-C compatibility https://blog.cocoapods.org/CocoaPods-1.5.0/
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES'
   }

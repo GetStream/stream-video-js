@@ -11,6 +11,15 @@ import { MediaStream } from '@stream-io/react-native-webrtc';
 import { useCall } from '@stream-io/video-react-bindings';
 import { Platform } from 'react-native';
 
+const isSupported = (function () {
+  if (Platform.OS === 'ios') {
+    // only supported on ios 15 and above
+    const currentVersion = parseInt(Platform.Version, 10);
+    return currentVersion >= 15;
+  }
+  return Platform.OS === 'android';
+})();
+
 type VideoFiltersModuleType =
   typeof import('@stream-io/video-filters-react-native');
 
@@ -90,8 +99,6 @@ export const useBackgroundFilters = () => {
   }
   return context;
 };
-
-const isSupported = Platform.OS === 'android';
 
 /**
  * A provider component that enables the use of background filters in your app.
