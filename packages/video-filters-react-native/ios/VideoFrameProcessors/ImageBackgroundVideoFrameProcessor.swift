@@ -75,7 +75,7 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
         }
     }
     
-    /// Returns the cached or processed background image for a given input.
+    /// Returns the cached or processed background image for a given original image (frame image).
     private func backgroundImage(image: CIImage, originalImage: CIImage, originalImageOrientation: CGImagePropertyOrientation) -> CIImage {
         if
             let cachedValue = cachedValue,

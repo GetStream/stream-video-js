@@ -119,12 +119,13 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
     useState<CurrentBackgroundFilter>();
 
   const applyBackgroundBlurFilter = useCallback(
-    (blurIntensity: BlurIntensity) => {
+    async (blurIntensity: BlurIntensity) => {
       if (!isSupported) {
         return;
       }
       if (!isBlurRegisteredRef.current) {
-        videoFiltersModule?.registerBackgroundBlurVideoFilters();
+        await videoFiltersModule?.registerBackgroundBlurVideoFilters();
+        isBlurRegisteredRef.current = true;
       }
       let filterName = 'BackgroundBlurMedium';
       if (blurIntensity === 'heavy') {
@@ -143,7 +144,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
   );
 
   const applyBackgroundImageFilter = useCallback(
-    (imageSource: ImageSourceType) => {
+    async (imageSource: ImageSourceType) => {
       if (!isSupported) {
         return;
       }
@@ -151,7 +152,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       const imageUri = source.uri;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
       if (!registeredImageFiltersSet.has(imageUri)) {
-        videoFiltersModule?.registerVirtualBackgroundFilter(imageUri);
+        await videoFiltersModule?.registerVirtualBackgroundFilter(imageUri);
         registeredImageFiltersSetRef.current.add(imageUri);
       }
       const filterName = `VirtualBackground-${imageUri}`;
