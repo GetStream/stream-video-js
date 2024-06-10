@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.7.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.27...@stream-io/video-react-native-sdk-0.7.28) (2024-06-10)
+
+
+### Bug Fixes
+
+* **ios:** do not disable camera on inactive state ([#1396](https://github.com/GetStream/stream-video-js/issues/1396)) ([741f0bc](https://github.com/GetStream/stream-video-js/commit/741f0bc2dc54db0f95211eea3b558b16a45d40f3))
+
 ### [0.7.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.26...@stream-io/video-react-native-sdk-0.7.27) (2024-06-07)
 
 ### Dependency Updates
