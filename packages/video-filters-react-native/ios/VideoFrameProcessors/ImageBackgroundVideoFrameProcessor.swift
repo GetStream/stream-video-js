@@ -28,11 +28,6 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
     private var cachedValue: CacheValue?
     private var backgroundImageUrl: String
     
-    @available(*, unavailable)
-    override public init(
-        filter: @escaping (Input) -> CIImage
-    ) { fatalError() }
-    
     private lazy var backgroundImageFilterProcessor = { return BackgroundImageFilterProcessor() }()
     
     private lazy var backgroundCIImage: CIImage? = {
@@ -54,6 +49,11 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
         }
         return nil
     }()
+    
+    @available(*, unavailable)
+    override public init(
+        filter: @escaping (Input) -> CIImage
+    ) { fatalError() }
     
     init(_ backgroundImageUrl: String) {
         self.backgroundImageUrl = backgroundImageUrl
