@@ -1,5 +1,6 @@
 package com.streamio.videofiltersreactnative
 
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -24,7 +25,7 @@ class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun registerBackgroundBlurVideoFilters() {
+  fun registerBackgroundBlurVideoFilters(promise: Promise) {
     ProcessorProvider.addProcessor(
       "BackgroundBlurLight",
       BackgroundBlurFactory(BlurIntensity.LIGHT)
@@ -37,14 +38,16 @@ class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
       "BackgroundBlurHeavy",
       BackgroundBlurFactory(BlurIntensity.HEAVY)
     )
+    promise.resolve(true)
   }
 
   @ReactMethod
-  fun registerVirtualBackgroundFilter(backgroundImageUrlString: String) {
+  fun registerVirtualBackgroundFilter(backgroundImageUrlString: String, promise: Promise) {
     ProcessorProvider.addProcessor(
       "VirtualBackground-$backgroundImageUrlString",
       VirtualBackgroundFactory(reactApplicationContext, backgroundImageUrlString)
     )
+    promise.resolve(true)
   }
 
   companion object {
