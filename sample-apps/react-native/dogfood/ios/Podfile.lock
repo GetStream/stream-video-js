@@ -1202,10 +1202,14 @@ PODS:
   - RNVoipPushNotification (3.3.2):
     - React-Core
   - SocketRocket (0.6.1)
+  - stream-io-video-filters-react-native (0.1.1):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - stream-react-native-webrtc (118.0.1):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (0.6.20):
+  - stream-video-react-native (0.7.28):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
@@ -1305,6 +1309,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVoipPushNotification (from `../node_modules/react-native-voip-push-notification`)
+  - "stream-io-video-filters-react-native (from `../node_modules/@stream-io/video-filters-react-native`)"
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
   - "stream-video-react-native (from `../node_modules/@stream-io/video-react-native-sdk`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -1473,6 +1478,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   RNVoipPushNotification:
     :path: "../node_modules/react-native-voip-push-notification"
+  stream-io-video-filters-react-native:
+    :path: "../node_modules/@stream-io/video-filters-react-native"
   stream-react-native-webrtc:
     :path: "../node_modules/@stream-io/react-native-webrtc"
   stream-video-react-native:
@@ -1571,10 +1578,11 @@ SPEC CHECKSUMS:
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
+  stream-io-video-filters-react-native: eadf49a4d72b7346a19b8697620f8df1730c5bc1
   stream-react-native-webrtc: 31fe9ee69d5b4fc191380a78efa292377494b7ac
-  stream-video-react-native: 0744097b49fa347928650d93265df9f75630e7e5
+  stream-video-react-native: 7394453e7b3ea6699a4f94ef65a64c49d06a69be
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: d648756febffefcf3982743a0f0035d6871ef40b
 
