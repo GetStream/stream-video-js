@@ -2,7 +2,7 @@ import Foundation
 
 @available(iOS 15.0, *)
 final class BlurBackgroundVideoFrameProcessor: VideoFilter {
-    
+
     @available(*, unavailable)
     override public init(
         filter: @escaping (Input) -> CIImage
@@ -13,7 +13,7 @@ final class BlurBackgroundVideoFrameProcessor: VideoFilter {
     private let blurParameters: [String : Float]
     
     init(blurIntensity: BlurIntensity = BlurIntensity.medium) {
-        blurParameters = ["inputRadius": blurIntensity.radius]
+        blurParameters = ["inputRadius": blurIntensity.rawValue]
         
         super.init(
             filter: { input in input.originalImage }
@@ -32,19 +32,8 @@ final class BlurBackgroundVideoFrameProcessor: VideoFilter {
     }
 }
 
-enum BlurIntensity: String {
-    case light = "LIGHT"
-    case medium = "MEDIUM"
-    case heavy = "HEAVY"
-    
-    var radius: Float {
-        switch self {
-        case .light:
-            return 5.0
-        case .medium:
-            return 10.0
-        case .heavy:
-            return 15.0
-        }
-    }
+enum BlurIntensity: Float {
+    case light = 5.0
+    case medium = 10.0
+    case heavy = 15.0
 }
