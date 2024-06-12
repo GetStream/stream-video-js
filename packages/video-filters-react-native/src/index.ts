@@ -17,10 +17,14 @@ const VideoFiltersReactNative = NativeModules.VideoFiltersReactNative
       }
     );
 
-export function registerBackgroundBlurVideoFilters() {
-  VideoFiltersReactNative.registerBackgroundBlurVideoFilters();
+export async function registerBackgroundBlurVideoFilters(): Promise<boolean> {
+  return await VideoFiltersReactNative.registerBackgroundBlurVideoFilters();
 }
 
-export function registerVirtualBackgroundFilter(imageUri: string) {
-  VideoFiltersReactNative.registerVirtualBackgroundFilter(imageUri);
+export async function registerVirtualBackgroundFilter(
+  imageUri: string
+): Promise<boolean> {
+  return await VideoFiltersReactNative.registerVirtualBackgroundFilter(
+    imageUri
+  );
 }

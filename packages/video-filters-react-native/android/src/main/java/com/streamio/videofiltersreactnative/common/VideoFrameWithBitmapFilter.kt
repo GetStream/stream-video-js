@@ -67,7 +67,7 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
 
   private fun initialize(width: Int, height: Int, textureHelper: SurfaceTextureHelper) {
     // TODO: temporarily disabled due to crash: java.lang.IllegalStateException: release() called on an object with refcount < 1
-    // yuvBuffer?.release()
+//     yuvBuffer?.release()
 
     if (this.inputWidth != width || this.inputHeight != height) {
       Log.d(TAG, "initialize - width: $width height: $height")

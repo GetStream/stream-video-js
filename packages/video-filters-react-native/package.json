@@ -54,7 +54,7 @@
     "@commitlint/config-conventional": "^17.0.2",
     "@evilmartians/lefthook": "^1.5.0",
     "@react-native/eslint-config": "^0.73.1",
-    "@stream-io/react-native-webrtc": "^118.0.1",
+    "@stream-io/react-native-webrtc": "^118.1.0",
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
@@ -74,7 +74,7 @@
     "@types/react": "^18.2.44"
   },
   "peerDependencies": {
-    "@stream-io/react-native-webrtc": ">=118.0.1",
+    "@stream-io/react-native-webrtc": ">=118.1.0",
     "react": "*",
     "react-native": "*"
   },

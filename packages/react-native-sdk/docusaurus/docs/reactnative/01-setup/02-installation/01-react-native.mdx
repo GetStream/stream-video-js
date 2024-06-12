@@ -72,16 +72,6 @@ compileOptions {
 }
 ```
 
-#### Disable desugaring
-
-In `android/gradle.properties` add the following:
-
-```groovy
-# This one fixes a weird WebRTC runtime problem on some devices.
-
-android.enableDexingArtifactTransform.desugaring=false
-```
-
 #### Optional: R8/ProGuard Support
 
 If you require R8/ProGuard support then in `android/app/proguard-rules.pro` add the following on a new line:
