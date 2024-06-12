@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.1...@stream-io/video-filters-web-0.1.2) (2024-06-12)
+
+
+### Bug Fixes
+
+* infinitely adjustable blur filter ([#1399](https://github.com/GetStream/stream-video-js/issues/1399)) ([447e73f](https://github.com/GetStream/stream-video-js/commit/447e73f2363142a0c1b43d05f848400950ecf697))
+
 ### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.0...@stream-io/video-filters-web-0.1.1) (2024-06-03)
 
 
