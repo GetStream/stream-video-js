@@ -1,4 +1,5 @@
 import { combineLatest, Observable, Subject } from 'rxjs';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 type FunctionPatch<T> = (currentValue: T) => T;
 
@@ -68,6 +69,27 @@ export const createSubscription = <T>(
   handler: (value: T) => void,
 ) => {
   const subscription = observable.subscribe(handler);
+  return () => {
+    subscription.unsubscribe();
+  };
+};
+
+/**
+ * Creates a subscription and returns a function to unsubscribe. Makes sure that
+ * only one async handler runs at the same time. If updates come in quicker than
+ * it takes for the current handler to finish, other handlers will wait.
+ *
+ * @param observable the observable to subscribe to.
+ * @param handler the async handler to call when the observable emits a value.
+ */
+export const createSafeAsyncSubscription = <T>(
+  observable: Observable<T>,
+  handler: (value: T) => Promise<void>,
+) => {
+  const tag = Symbol();
+  const subscription = observable.subscribe((value) => {
+    withoutConcurrency(tag, () => handler(value));
+  });
   return () => {
     subscription.unsubscribe();
   };

@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.1...@stream-io/video-react-sdk-1.2.2) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.1.2`
+
+### Bug Fixes
+
+* infinitely adjustable blur filter ([#1399](https://github.com/GetStream/stream-video-js/issues/1399)) ([447e73f](https://github.com/GetStream/stream-video-js/commit/447e73f2363142a0c1b43d05f848400950ecf697))
+
+### [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.0...@stream-io/video-react-sdk-1.2.1) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.3.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.43`
 ## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.5...@stream-io/video-react-sdk-1.2.0) (2024-06-07)
 
 ### Dependency Updates
