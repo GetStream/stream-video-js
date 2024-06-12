@@ -6,20 +6,29 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import React, { useState } from 'react';
 import { AutoAwesome } from '../../assets/AutoAwesome';
-import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ImageURISource,
+} from 'react-native';
 import { appTheme } from '../../theme';
 import { Button } from '../Button';
 import { useCustomVideoFilters } from './CustomFilters';
 
-const images = [
+type ImageSourceType = ImageURISource | number;
+
+const images: ImageSourceType[] = [
+  {
+    uri: 'https://upload.wikimedia.org/wikipedia/commons/1/18/React_Native_Logo.png',
+  },
   require('../../assets/backgrounds/amsterdam-1.jpg'),
-  require('../../assets/backgrounds/amsterdam-2.jpg'),
   require('../../assets/backgrounds/boulder-1.jpg'),
-  require('../../assets/backgrounds/boulder-2.jpg'),
   require('../../assets/backgrounds/gradient-1.jpg'),
-  require('../../assets/backgrounds/gradient-2.jpg'),
-  require('../../assets/backgrounds/gradient-3.jpg'),
-] as number[];
+];
 
 export const VideoEffectsButton = () => (
   <BackgroundFiltersProvider>
@@ -155,7 +164,7 @@ const ImageItemPressable = ({
   imageSource,
   closeModal,
 }: {
-  imageSource: number;
+  imageSource: ImageSourceType;
   closeModal: () => void;
 }) => {
   const { applyBackgroundImageFilter, currentBackgroundFilter } =
@@ -184,7 +193,7 @@ const ImageFilterItemsRow = ({ closeModal }: { closeModal: () => void }) => {
       <View style={styles.row}>
         {images.map((img) => (
           <ImageItemPressable
-            key={img}
+            key={typeof img === 'number' ? img : img.uri}
             imageSource={img}
             closeModal={closeModal}
           />
