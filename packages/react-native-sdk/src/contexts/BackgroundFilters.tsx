@@ -152,7 +152,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       const imageUri = source.uri;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
       if (!registeredImageFiltersSet.has(imageUri)) {
-        await videoFiltersModule?.registerVirtualBackgroundFilter(imageUri);
+        await videoFiltersModule?.registerVirtualBackgroundFilter(imageSource);
         registeredImageFiltersSetRef.current.add(imageUri);
       }
       const filterName = `VirtualBackground-${imageUri}`;
