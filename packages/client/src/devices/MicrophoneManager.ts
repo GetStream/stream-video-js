@@ -15,9 +15,11 @@ import {
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
+  private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: Function;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
@@ -216,45 +218,39 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
-    const startPromise: Promise<(() => void) | (() => Promise<void>)> =
-      (async () => {
-        await this.stopSpeakingWhileMutedDetection();
-        if (isReactNative()) {
-          this.rnSpeechDetector = new RNSpeechDetector();
-          await this.rnSpeechDetector.start();
-          const unsubscribe =
-            this.rnSpeechDetector?.onSpeakingDetectedStateChange((event) => {
-              this.state.setSpeakingWhileMuted(event.isSoundDetected);
-            });
-          return () => {
-            unsubscribe();
-            this.rnSpeechDetector?.stop();
-            this.rnSpeechDetector = undefined;
-          };
-        } else {
-          // Need to start a new stream that's not connected to publisher
-          const stream = await this.getStream({
-            deviceId,
-          });
-          return createSoundDetector(stream, (event) => {
+    await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
+      await this.stopSpeakingWhileMutedDetection();
+      if (isReactNative()) {
+        this.rnSpeechDetector = new RNSpeechDetector();
+        await this.rnSpeechDetector.start();
+        const unsubscribe =
+          this.rnSpeechDetector?.onSpeakingDetectedStateChange((event) => {
             this.state.setSpeakingWhileMuted(event.isSoundDetected);
           });
-        }
-      })();
-
-    this.soundDetectorCleanup = async () => {
-      const cleanup = await startPromise;
-      await cleanup();
-    };
-
-    await startPromise;
+        this.soundDetectorCleanup = () => {
+          unsubscribe();
+          this.rnSpeechDetector?.stop();
+          this.rnSpeechDetector = undefined;
+        };
+      } else {
+        // Need to start a new stream that's not connected to publisher
+        const stream = await this.getStream({
+          deviceId,
+        });
+        this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
+          this.state.setSpeakingWhileMuted(event.isSoundDetected);
+        });
+      }
+    });
   }
 
   private async stopSpeakingWhileMutedDetection() {
-    if (!this.soundDetectorCleanup) return;
-    const soundDetectorCleanup = this.soundDetectorCleanup;
-    this.soundDetectorCleanup = undefined;
-    this.state.setSpeakingWhileMuted(false);
-    await soundDetectorCleanup();
+    await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
+      if (!this.soundDetectorCleanup) return;
+      const soundDetectorCleanup = this.soundDetectorCleanup;
+      this.soundDetectorCleanup = undefined;
+      this.state.setSpeakingWhileMuted(false);
+      await soundDetectorCleanup();
+    });
   }
 }
