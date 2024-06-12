@@ -62,12 +62,22 @@ function buildBlurPass(
   canvas: HTMLCanvasElement,
   blurLevel: BackgroundBlurLevel,
 ) {
-  const weights =
-    blurLevel === 'low'
-      ? [0.227027027, 0.1545945946, 0.1016216216, 0.0340540541, 0.0142162162]
-      : blurLevel === 'medium'
-        ? [0.327027027, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162]
-        : [0.627027027, 0.3445945946, 0.2216216216, 0.0540540541, 0.0162162162];
+  const sigma =
+    typeof blurLevel === 'number'
+      ? blurLevel
+      : blurLevel === 'low'
+        ? 2
+        : blurLevel === 'medium'
+          ? 4
+          : 6;
+  const windowSize = Math.max(1, Math.floor(sigma * 3));
+  const offset = new Array<number>(windowSize).fill(0).map((v, index) => index);
+  const variance = sigma ** 2;
+  const weights = offset.map((x) => {
+    var m = sigma * Math.sqrt(2 * Math.PI);
+    var e = Math.exp(-(x ** 2) / (2 * variance));
+    return e / m;
+  });
 
   const fragmentShaderSource = glsl`#version 300 es
 
@@ -80,10 +90,8 @@ function buildBlurPass(
     in vec2 v_texCoord;
     out vec4 outColor;
 
-    const float offset[5] = float[](0.0, 1.0, 2.0, 3.0, 4.0);
-    const float weight[5] = float[](
-      ${weights.join(',')}
-    );
+    const float offset[${windowSize}] = float[](${offset.map((i) => i.toFixed(10)).join(', ')});
+    const float weight[${windowSize}] = float[](${weights.map((i) => i.toFixed(10)).join(', ')});
 
     void main() {
       vec4 centerColor = texture(u_inputFrame, v_texCoord);
@@ -91,7 +99,7 @@ function buildBlurPass(
 
       vec4 frameColor = centerColor * weight[0] * (1.0 - personMask);
 
-      for (int i = 1; i < 5; i++) {
+      for (int i = 1; i < ${windowSize}; i++) {
         vec2 offset = vec2(offset[i]) * u_texelSize;
 
         vec2 texCoord = v_texCoord + offset;
