@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.0...@stream-io/video-react-native-sdk-0.8.1) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.2.1`
+
+### Features
+
+* docs to make video filters usable without the RN SDK ([6061f4d](https://github.com/GetStream/stream-video-js/commit/6061f4d5b83d1ed46051dde12c7d3e269ec26aeb))
+
 ## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.29...@stream-io/video-react-native-sdk-0.8.0) (2024-06-12)
 
 ### Dependency Updates
