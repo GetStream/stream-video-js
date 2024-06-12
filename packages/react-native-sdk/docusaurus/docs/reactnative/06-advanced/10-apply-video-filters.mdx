@@ -109,7 +109,7 @@ export const MyBackgroundFilterUI = () => {
 ### Step 1 - Add your custom filter natively in Android and iOS
 
 :::note
-For Expo, make sure to create a new [Expo local module](https://docs.expo.dev/modules/get-started/#adding-a-new-module-to-an-existing-application) first if you dont have any existing module set up already.
+For Expo, make sure to create a new [Expo local module](https://docs.expo.dev/modules/get-started/#adding-a-new-module-to-an-existing-application) first if you do not have any existing module set up already.
 :::
 
 <Tabs groupId="current-os" queryString>
@@ -228,8 +228,9 @@ Now you have to add a method in your app to register this video filter to the `@
 <Tabs groupId="current-os" queryString>
   <TabItem value="android" label="Android">
 
-
+<!-- vale off -->
 Follow the official React Native documentation to create a new [Android native module](https://reactnative.dev/docs/native-modules-android) if there is no native module in your app already. In that native module, add a method to add the filter to the `ProcessorProvider` from the `@stream-io/video-filters-react-native` library. For example:
+<!-- vale on -->
 
 ```kotlin title="VideoEffectsModule.kt"
 import com.facebook.react.bridge.Promise
