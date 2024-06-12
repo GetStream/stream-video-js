@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
 import { signOut, useSession } from 'next-auth/react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { LanguageMenu } from './Settings/LanguageMenu';
@@ -11,12 +10,11 @@ import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 
 export const HomeButton = () => (
   <Link href="/" data-testid="home-button">
-    <Image
+    <img
       src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo.png`}
       alt="Stream logo"
-      priority={false}
       width={36}
-      height={24}
+      height={36}
     />
   </Link>
 );
