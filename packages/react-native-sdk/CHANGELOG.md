@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.8.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.1...@stream-io/video-react-native-sdk-0.8.2) (2024-06-13)
+
+
+### Bug Fixes
+
+* **android:**  no ringtone when incoming call was through foreground service ([#1402](https://github.com/GetStream/stream-video-js/issues/1402)) ([7796d81](https://github.com/GetStream/stream-video-js/commit/7796d817d03902c418fa7c672af05f4fc7df7c5d))
+
 ### [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.0...@stream-io/video-react-native-sdk-0.8.1) (2024-06-12)
 
 ### Dependency Updates
