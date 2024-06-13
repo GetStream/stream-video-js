@@ -249,6 +249,10 @@ const firebaseMessagingOnMessageHandler = async (
       );
       return;
     }
+    /*
+     * Sound has to be set on channel level for android 8 and above and cant be updated later after creation!
+     * For android 7 and below, sound should be set on notification level
+     */
     // set default ringtone if not provided
     if (!incomingCallChannel.sound) {
       incomingCallChannel.sound = await getAndroidDefaultRingtoneUrl();
