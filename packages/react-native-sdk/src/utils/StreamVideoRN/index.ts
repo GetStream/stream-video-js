@@ -75,10 +75,8 @@ export class StreamVideoRN {
       return;
     }
     this.config.push = pushConfig;
-    const foregroundServiceChannel =
-      this.config.foregroundService.android.channel;
     // After getting the config we should setup callkeep events, firebase handler asap to handle incoming calls from a dead state
-    setupFirebaseHandlerAndroid(pushConfig, foregroundServiceChannel);
+    setupFirebaseHandlerAndroid(pushConfig);
     // setup ios handler for non-voip push notifications asap
     setupRemoteNotificationsHandleriOS(pushConfig);
   }

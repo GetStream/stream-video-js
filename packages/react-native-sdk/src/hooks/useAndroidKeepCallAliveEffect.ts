@@ -91,9 +91,20 @@ export const useAndroidKeepCallAliveEffect = () => {
         if (foregroundServiceStartedRef.current) {
           return;
         }
-        // request for notification permission and then start the foreground service
-        await startForegroundService(activeCallCid);
-        foregroundServiceStartedRef.current = true;
+        notifee.getDisplayedNotifications().then((displayedNotifications) => {
+          const activeCallNotification = displayedNotifications.find(
+            (notification) => notification.id === activeCallCid
+          );
+          if (activeCallNotification) {
+            // this means that we have a incoming call notification shown as foreground service and we must stop it
+            notifee.stopForegroundService();
+            notifee.cancelDisplayedNotification(activeCallCid);
+          }
+          // request for notification permission and then start the foreground service
+          startForegroundService(activeCallCid).then(() => {
+            foregroundServiceStartedRef.current = true;
+          });
+        });
       };
       run();
     } else if (callingState === CallingState.RINGING) {
