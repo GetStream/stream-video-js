@@ -90,7 +90,7 @@ export const LivestreamLayout = ({
       {VideoRenderer &&
         hasOngoingScreenShare &&
         presenter &&
-        (ScreenShareOverlay ? (
+        (presenter.isLocalParticipant && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <VideoRenderer trackType="screenShareTrack" participant={presenter} />
