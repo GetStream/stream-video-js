@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.8.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.2...@stream-io/video-react-native-sdk-0.8.3) (2024-06-17)
+
+
+### Bug Fixes
+
+* **rn:** screenshare overlay should not be seen for remote streams ([c9e9721](https://github.com/GetStream/stream-video-js/commit/c9e9721789de23985d6914011f5ddffd42fac5ab))
+
 ### [0.8.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.1...@stream-io/video-react-native-sdk-0.8.2) (2024-06-13)
 
 
