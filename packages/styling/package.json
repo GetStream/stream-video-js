@@ -9,7 +9,7 @@
     "build": "sass index.scss ./dist/css/styles.css"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.7",
     "sass": "^1.69.5"
   }
 }

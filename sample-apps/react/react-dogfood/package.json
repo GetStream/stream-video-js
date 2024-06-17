@@ -44,7 +44,7 @@
     "@types/react-form": "^4.0.5",
     "@types/starwars-names": "^1.6.2",
     "@types/yargs": "^17.0.32",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.7",
     "sass": "^1.69.5",
     "source-map-loader": "^4.0.1"
   }
