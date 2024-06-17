@@ -7920,7 +7920,7 @@ __metadata:
     source-map-loader: ^4.0.1
     starwars-names: ^1.6.0
     stream-chat: ^8.33.0
-    stream-chat-react: ^11.19.0
+    stream-chat-react: 12.0.0-rc.1
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -25776,6 +25776,68 @@ __metadata:
     react-native-video:
       optional: true
   checksum: 0e5e1158f60f6568019d978567f6dece427a98b0d1200e5c853f05cff5dabf9155017e42934af23d273d51ca78d33fde576d9a50f110573b4726512c662c51d0
+  languageName: node
+  linkType: hard
+
+"stream-chat-react@npm:12.0.0-rc.1":
+  version: 12.0.0-rc.1
+  resolution: "stream-chat-react@npm:12.0.0-rc.1"
+  dependencies:
+    "@braintree/sanitize-url": ^6.0.4
+    "@breezystack/lamejs": ^1.2.7
+    "@popperjs/core": ^2.11.5
+    "@react-aria/focus": ^3
+    "@stream-io/transliterate": ^1.5.5
+    clsx: ^2.0.0
+    dayjs: ^1.10.4
+    emoji-regex: ^9.2.0
+    fix-webm-duration: ^1.0.5
+    hast-util-find-and-replace: ^5.0.1
+    i18next: ^21.6.14
+    isomorphic-ws: ^4.0.1
+    linkifyjs: ^4.1.0
+    lodash.debounce: ^4.0.8
+    lodash.defaultsdeep: ^4.6.1
+    lodash.mergewith: ^4.6.2
+    lodash.throttle: ^4.1.1
+    lodash.uniqby: ^4.7.0
+    mml-react: ^0.4.7
+    nanoid: ^3.3.4
+    prop-types: ^15.7.2
+    react-dropzone: ^14.2.3
+    react-fast-compare: ^3.2.2
+    react-image-gallery: 1.2.12
+    react-is: ^18.1.0
+    react-markdown: 9.0.1
+    react-player: 2.10.1
+    react-popper: ^2.3.0
+    react-textarea-autosize: ^8.3.0
+    react-virtuoso: ^2.16.5
+    remark-gfm: ^4.0.0
+    textarea-caret: ^3.1.0
+    tslib: ^2.6.2
+    unist-builder: ^3.0.0
+    unist-util-visit: ^5.0.0
+  peerDependencies:
+    "@emoji-mart/data": ^1.1.0
+    "@emoji-mart/react": ^1.1.0
+    emoji-mart: ^5.4.0
+    react: ^18.0.0 || ^17.0.0 || ^16.8.0
+    react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
+    stream-chat: ^8.33.1
+  dependenciesMeta:
+    "@stream-io/transliterate":
+      optional: true
+    mml-react:
+      optional: true
+  peerDependenciesMeta:
+    "@emoji-mart/data":
+      optional: true
+    "@emoji-mart/react":
+      optional: true
+    emoji-mart:
+      optional: true
+  checksum: 14fb9624d1f13dde82ac7e3600d3c0b12058564695134122582b3555ce8342b94671cb71b0f1045eeb8ed5d66ac0c3f95d67768c3c594f6b8aa31f67f54cae61
   languageName: node
   linkType: hard
 

@@ -35,7 +35,7 @@
     "react-form": "^4.0.1",
     "starwars-names": "^1.6.0",
     "stream-chat": "^8.33.0",
-    "stream-chat-react": "^11.19.0",
+    "stream-chat-react": "12.0.0-rc.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
