@@ -80,5 +80,8 @@
     "typescript": "^5.4.5",
     "vercel": "^34.1.2",
     "vite": "^4.4.11"
+  },
+  "resolutions": {
+    "eslint-plugin-prettier": "^5.1.3"
   }
 }
