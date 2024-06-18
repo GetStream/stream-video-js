@@ -42,16 +42,13 @@ const useJoinCall = ({
 
   useEffect(() => {
     if (!enabled) return;
-
-    client.connectUser(
-      {
-        id: userId,
-      },
-      token,
-    );
-
+    client.connectUser({ id: userId }, token).catch((err) => {
+      console.error('Error connecting user', err);
+    });
     return () => {
-      client.disconnectUser();
+      client.disconnectUser().catch((err) => {
+        console.error('Error disconnecting user', err);
+      });
     };
   }, [client, enabled, token, userId]);
 
@@ -65,11 +62,13 @@ const useJoinCall = ({
       call.microphone.disable(),
     ]);
 
-    const callJoinPromise = deviceSetup.then(() => call.join());
+    const callJoinPromise = deviceSetup
+      .then(() => call.join())
+      .catch((err) => console.error('Error joining call', err));
     return () => {
-      callJoinPromise.then(() => {
-        call.leave();
-      });
+      callJoinPromise
+        .then(() => call.leave())
+        .catch((err) => console.error('Error leaving call', err));
     };
   }, [call, client, enabled]);
 };
@@ -80,14 +79,16 @@ export const useInitializeClientAndCall = () => {
     api_key: apiKey,
     call_type: callType,
     call_id: callId,
+    log_level: logLevel = 'debug',
     test_environment: testEnvironment,
   } = useConfigurationContext();
 
   const client = useMemo<StreamVideoClient>(() => {
     return new StreamVideoClient(apiKey, {
       baseURL,
+      logLevel,
     });
-  }, [apiKey, baseURL]);
+  }, [apiKey, baseURL, logLevel]);
 
   const call = useMemo<Call>(() => {
     return client.call(callType, callId);
@@ -97,6 +98,11 @@ export const useInitializeClientAndCall = () => {
   useVideoStateMocks({ client, call, enabled: !!testEnvironment });
   // join call and proceed normally
   useJoinCall({ client, call, enabled: !testEnvironment });
+
+  // @ts-ignore expose the client and call for debugging
+  window.client = client;
+  // @ts-ignore expose the client and call for debugging
+  window.call = call;
 
   return { client, call };
 };
