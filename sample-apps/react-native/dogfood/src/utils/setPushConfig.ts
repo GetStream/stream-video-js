@@ -22,7 +22,7 @@ export function setPushConfig() {
         sound: 'default',
       },
       incomingCallChannel: {
-        id: 'stream_incoming_call_channel_update1',
+        id: 'stream_incoming_call_channel_update2',
         name: 'Incoming call notifications',
         importance: AndroidImportance.HIGH,
       },

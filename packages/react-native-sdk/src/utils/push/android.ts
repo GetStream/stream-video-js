@@ -2,7 +2,6 @@ import notifee, {
   EventType,
   Event,
   AndroidCategory,
-  AndroidChannel,
 } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import {
@@ -45,10 +44,7 @@ const DECLINE_CALL_ACTION_ID = 'decline';
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
 /** Setup Firebase push message handler **/
-export function setupFirebaseHandlerAndroid(
-  pushConfig: PushConfig,
-  foregroundServiceChannel: AndroidChannel
-) {
+export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
   if (Platform.OS !== 'android') {
     return;
   }
@@ -58,18 +54,10 @@ export function setupFirebaseHandlerAndroid(
       // handles on app killed state in expo, expo-notifications cannot handle that
       messaging().setBackgroundMessageHandler(
         async (msg) =>
-          await firebaseMessagingOnMessageHandler(
-            msg.data,
-            pushConfig,
-            foregroundServiceChannel
-          )
+          await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
       );
       messaging().onMessage((msg) =>
-        firebaseMessagingOnMessageHandler(
-          msg.data,
-          pushConfig,
-          foregroundServiceChannel
-        )
+        firebaseMessagingOnMessageHandler(msg.data, pushConfig)
       ); // this is to listen to foreground messages, which we dont need for now
     } else {
       const Notifications = getExpoNotificationsLib();
@@ -85,11 +73,7 @@ export function setupFirebaseHandlerAndroid(
           }
           // @ts-ignore
           const dataToProcess = data.notification?.data;
-          firebaseMessagingOnMessageHandler(
-            dataToProcess,
-            pushConfig,
-            foregroundServiceChannel
-          );
+          firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
         }
       );
       // background handler (does not handle on app killed state)
@@ -102,11 +86,7 @@ export function setupFirebaseHandlerAndroid(
           if (trigger.type === 'push') {
             const data = trigger?.remoteMessage?.data;
             if (data?.sender === 'stream.video') {
-              await firebaseMessagingOnMessageHandler(
-                data,
-                pushConfig,
-                foregroundServiceChannel
-              );
+              await firebaseMessagingOnMessageHandler(data, pushConfig);
               return {
                 shouldShowAlert: false,
                 shouldPlaySound: false,
@@ -126,18 +106,10 @@ export function setupFirebaseHandlerAndroid(
     const messaging = getFirebaseMessagingLib();
     messaging().setBackgroundMessageHandler(
       async (msg) =>
-        await firebaseMessagingOnMessageHandler(
-          msg.data,
-          pushConfig,
-          foregroundServiceChannel
-        )
+        await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
     );
     messaging().onMessage((msg) =>
-      firebaseMessagingOnMessageHandler(
-        msg.data,
-        pushConfig,
-        foregroundServiceChannel
-      )
+      firebaseMessagingOnMessageHandler(msg.data, pushConfig)
     ); // this is to listen to foreground messages, which we dont need for now
   }
 
@@ -196,8 +168,7 @@ export async function initAndroidPushToken(
 
 const firebaseMessagingOnMessageHandler = async (
   data: FirebaseMessagingTypes.RemoteMessage['data'],
-  pushConfig: PushConfig,
-  foregroundServiceChannel: AndroidChannel
+  pushConfig: PushConfig
 ) => {
   /* Example data from firebase
     "message": {
@@ -278,25 +249,19 @@ const firebaseMessagingOnMessageHandler = async (
       );
       return;
     }
-    // if its a foreground service make sure we use the same channel id
-    // so that this notification can be replaced when call is active
-    let channelId: string;
-    if (asForegroundService) {
-      await notifee.createChannel(foregroundServiceChannel);
-      channelId = foregroundServiceChannel.id;
-    } else {
-      await notifee.createChannel(incomingCallChannel);
-      channelId = incomingCallChannel.id;
-    }
+    /*
+     * Sound has to be set on channel level for android 8 and above and cant be updated later after creation!
+     * For android 7 and below, sound should be set on notification level
+     */
     // set default ringtone if not provided
-    let sound = incomingCallChannel.sound;
-    if (!sound) {
-      sound = await getAndroidDefaultRingtoneUrl();
+    if (!incomingCallChannel.sound) {
+      incomingCallChannel.sound = await getAndroidDefaultRingtoneUrl();
     }
-
+    await notifee.createChannel(incomingCallChannel);
     const { getTitle, getBody } = incomingCallNotificationTextGetters;
     const createdUserName = data.created_by_display_name as string;
 
+    const channelId = incomingCallChannel.id;
     await notifee.displayNotification({
       id: call_cid,
       title: getTitle(createdUserName),
@@ -305,7 +270,7 @@ const firebaseMessagingOnMessageHandler = async (
       android: {
         channelId,
         asForegroundService,
-        sound,
+        sound: incomingCallChannel.sound,
         vibrationPattern: incomingCallChannel.vibrationPattern,
         pressAction: {
           id: 'default',

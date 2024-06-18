@@ -83,11 +83,12 @@ private class BlurredBackgroundVideoFilter(
 
 /**
  * The intensity of the background blur effect. Used in [BlurredBackgroundVideoFilter].
+ * Range is 1 to 25
  */
 enum class BlurIntensity(val radius: Int) {
-  LIGHT(3),
-  MEDIUM(8),
-  HEAVY(17),
+  LIGHT(5),
+  MEDIUM(10),
+  HEAVY(15),
 }
 
 private const val DEFAULT_FOREGROUND_THRESHOLD: Double =

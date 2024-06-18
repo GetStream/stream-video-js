@@ -11,6 +11,15 @@ import { MediaStream } from '@stream-io/react-native-webrtc';
 import { useCall } from '@stream-io/video-react-bindings';
 import { Platform } from 'react-native';
 
+const isSupported = (function () {
+  if (Platform.OS === 'ios') {
+    // only supported on ios 15 and above
+    const currentVersion = parseInt(Platform.Version, 10);
+    return currentVersion >= 15;
+  }
+  return Platform.OS === 'android';
+})();
+
 type VideoFiltersModuleType =
   typeof import('@stream-io/video-filters-react-native');
 
@@ -91,8 +100,6 @@ export const useBackgroundFilters = () => {
   return context;
 };
 
-const isSupported = Platform.OS === 'android';
-
 /**
  * A provider component that enables the use of background filters in your app.
  *
@@ -112,12 +119,13 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
     useState<CurrentBackgroundFilter>();
 
   const applyBackgroundBlurFilter = useCallback(
-    (blurIntensity: BlurIntensity) => {
+    async (blurIntensity: BlurIntensity) => {
       if (!isSupported) {
         return;
       }
       if (!isBlurRegisteredRef.current) {
-        videoFiltersModule?.registerBackgroundBlurVideoFilters();
+        await videoFiltersModule?.registerBackgroundBlurVideoFilters();
+        isBlurRegisteredRef.current = true;
       }
       let filterName = 'BackgroundBlurMedium';
       if (blurIntensity === 'heavy') {
@@ -136,7 +144,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
   );
 
   const applyBackgroundImageFilter = useCallback(
-    (imageSource: ImageSourceType) => {
+    async (imageSource: ImageSourceType) => {
       if (!isSupported) {
         return;
       }
@@ -144,7 +152,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       const imageUri = source.uri;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
       if (!registeredImageFiltersSet.has(imageUri)) {
-        videoFiltersModule?.registerVirtualBackgroundFilter(imageUri);
+        await videoFiltersModule?.registerVirtualBackgroundFilter(imageSource);
         registeredImageFiltersSetRef.current.add(imageUri);
       }
       const filterName = `VirtualBackground-${imageUri}`;

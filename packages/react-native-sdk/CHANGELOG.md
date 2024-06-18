@@ -2,6 +2,63 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.8.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.2...@stream-io/video-react-native-sdk-0.8.3) (2024-06-17)
+
+
+### Bug Fixes
+
+* **rn:** screenshare overlay should not be seen for remote streams ([c9e9721](https://github.com/GetStream/stream-video-js/commit/c9e9721789de23985d6914011f5ddffd42fac5ab))
+
+### [0.8.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.1...@stream-io/video-react-native-sdk-0.8.2) (2024-06-13)
+
+
+### Bug Fixes
+
+* **android:**  no ringtone when incoming call was through foreground service ([#1402](https://github.com/GetStream/stream-video-js/issues/1402)) ([7796d81](https://github.com/GetStream/stream-video-js/commit/7796d817d03902c418fa7c672af05f4fc7df7c5d))
+
+### [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.0...@stream-io/video-react-native-sdk-0.8.1) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.2.1`
+
+### Features
+
+* docs to make video filters usable without the RN SDK ([6061f4d](https://github.com/GetStream/stream-video-js/commit/6061f4d5b83d1ed46051dde12c7d3e269ec26aeb))
+
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.29...@stream-io/video-react-native-sdk-0.8.0) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.2.0`
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** add ios video filters (#1400)
+
+### Features
+
+* **react-native:** add ios video filters ([#1400](https://github.com/GetStream/stream-video-js/issues/1400)) ([dbad806](https://github.com/GetStream/stream-video-js/commit/dbad806e136de7d60a10d292431c8cfe74bd28f9))
+
+### [0.7.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.28...@stream-io/video-react-native-sdk-0.7.29) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.3.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.43`
+### [0.7.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.27...@stream-io/video-react-native-sdk-0.7.28) (2024-06-10)
+
+
+### Bug Fixes
+
+* **ios:** do not disable camera on inactive state ([#1396](https://github.com/GetStream/stream-video-js/issues/1396)) ([741f0bc](https://github.com/GetStream/stream-video-js/commit/741f0bc2dc54db0f95211eea3b558b16a45d40f3))
+
+### [0.7.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.26...@stream-io/video-react-native-sdk-0.7.27) (2024-06-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.3.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.42`
 ### [0.7.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.7.25...@stream-io/video-react-native-sdk-0.7.26) (2024-06-06)
 
 ### Dependency Updates

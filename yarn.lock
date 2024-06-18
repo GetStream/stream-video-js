@@ -2337,14 +2337,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@config-plugins/react-native-webrtc@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@config-plugins/react-native-webrtc@npm:7.0.0"
+"@config-plugins/react-native-webrtc@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@config-plugins/react-native-webrtc@npm:9.0.0"
   dependencies:
-    expo-build-properties: ~0.8.3
+    expo-build-properties: ~0.12.1
   peerDependencies:
-    expo: ^49
-  checksum: 5fd5bfd137f289b72495c47689786a539516987cd3daa2aa64a52991a95656e81ce6214c4692e577d5227c37a53379fb93565216f373aece9cc0b4c9d0d5e18b
+    expo: ^51
+  checksum: 510185216b3b53d8f6d93f520cc62c5bf573884af402cdd35bfba3fd6d2d60f4fe807365aae17a513bf6860d4a350aeb1d23ae2d03df1dd59eeea3653039560e
   languageName: node
   linkType: hard
 
@@ -7532,6 +7532,7 @@ __metadata:
     rimraf: ^5.0.5
     rollup: ^3.29.4
     typescript: ^5.4.3
+    wasm-feature-detect: ^1.6.1
   languageName: unknown
   linkType: soft
 
@@ -7605,7 +7606,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.20.0
     "@config-plugins/react-native-callkeep": ^6.0.0
-    "@config-plugins/react-native-webrtc": ^7.0.0
+    "@config-plugins/react-native-webrtc": ^9.0.0
     "@notifee/react-native": ^7.8.0
     "@react-native-async-storage/async-storage": 1.21.0
     "@react-native-community/netinfo": 11.1.0
@@ -7613,7 +7614,7 @@ __metadata:
     "@react-native-firebase/messaging": 19.2.2
     "@rnx-kit/metro-config": ^1.3.14
     "@rnx-kit/metro-resolver-symlinks": ^0.1.34
-    "@stream-io/react-native-webrtc": 118.0.1
+    "@stream-io/react-native-webrtc": 118.1.0
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": ^18.3.2
     "@types/react-native-incall-manager": ^4
@@ -7707,16 +7708,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:118.0.1, @stream-io/react-native-webrtc@npm:^118.0.1":
-  version: 118.0.1
-  resolution: "@stream-io/react-native-webrtc@npm:118.0.1"
+"@stream-io/react-native-webrtc@npm:118.1.0, @stream-io/react-native-webrtc@npm:^118.1.0":
+  version: 118.1.0
+  resolution: "@stream-io/react-native-webrtc@npm:118.1.0"
   dependencies:
     base64-js: 1.5.1
     debug: 4.3.4
     event-target-shim: 6.0.2
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 8609d2938b2be0c357079c810cab0f7cd2d8ba654d1fb7ce0ba28feaabf97c02da6cd1abfb7fa063350998daf78bcb085ee6c77133615c38713c22b80edcb26c
+  checksum: 4d33f6af5452c66210dc2f1403639cd739b0d0ef36f2b4dd9503567098c357b96433c0985086f0827d8b20bac1bb0437427d9c9bb9efbee0c7ee5c027be8bd80
   languageName: node
   linkType: hard
 
@@ -7800,7 +7801,7 @@ __metadata:
     "@commitlint/config-conventional": ^17.0.2
     "@evilmartians/lefthook": ^1.5.0
     "@react-native/eslint-config": ^0.73.1
-    "@stream-io/react-native-webrtc": ^118.0.1
+    "@stream-io/react-native-webrtc": ^118.1.0
     "@types/jest": ^29.5.5
     "@types/react": ^18.2.44
     commitlint: ^17.0.2
@@ -7816,7 +7817,7 @@ __metadata:
     turbo: ^1.10.7
     typescript: ^5.2.2
   peerDependencies:
-    "@stream-io/react-native-webrtc": ">=118.0.1"
+    "@stream-io/react-native-webrtc": ">=118.1.0"
     react: "*"
     react-native: "*"
   languageName: unknown
@@ -7919,7 +7920,7 @@ __metadata:
     source-map-loader: ^4.0.1
     starwars-names: ^1.6.0
     stream-chat: ^8.33.0
-    stream-chat-react: ^11.19.0
+    stream-chat-react: 12.0.0-rc.1
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -7950,7 +7951,7 @@ __metadata:
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
     "@stream-io/flat-list-mvcp": ^0.10.3
-    "@stream-io/react-native-webrtc": 118.0.1
+    "@stream-io/react-native-webrtc": 118.1.0
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/express": ^4
@@ -8001,7 +8002,7 @@ __metadata:
     "@react-native-firebase/app": 17.5.0
     "@react-native-firebase/messaging": 17.5.0
     "@react-native/eslint-config": ^0.74.83
-    "@stream-io/react-native-webrtc": 118.0.1
+    "@stream-io/react-native-webrtc": 118.1.0
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
@@ -8047,7 +8048,7 @@ __metadata:
     "@react-native-community/push-notification-ios": ">=1.11.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
-    "@stream-io/react-native-webrtc": ^118.0.1
+    "@stream-io/react-native-webrtc": ^118.1.0
     "@stream-io/video-filters-react-native": ">=0.1.0"
     expo: ">=47.0.0"
     expo-build-properties: "*"
@@ -14570,15 +14571,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-build-properties@npm:~0.8.3":
-  version: 0.8.3
-  resolution: "expo-build-properties@npm:0.8.3"
+"expo-build-properties@npm:~0.12.1":
+  version: 0.12.3
+  resolution: "expo-build-properties@npm:0.12.3"
   dependencies:
     ajv: ^8.11.0
-    semver: ^7.5.3
+    semver: ^7.6.0
   peerDependencies:
     expo: "*"
-  checksum: 7a296f2dc398f129af7d5543526edbe46f87e80fb860d8d2ff9edd37e0464a785ef02a18ad218e5ad350cfda6a44e1837d942c4cdabf62b4d100790b50982302
+  checksum: abbda36ec49eb5cbfcf881b59dac0a9c81e7fb2baf5c34435132b7c3124b62b576179a1940ccd143341a4c08dff0bc48d0a7e347963d157f0d2b1d90bd829054
   languageName: node
   linkType: hard
 
@@ -25775,6 +25776,68 @@ __metadata:
     react-native-video:
       optional: true
   checksum: 0e5e1158f60f6568019d978567f6dece427a98b0d1200e5c853f05cff5dabf9155017e42934af23d273d51ca78d33fde576d9a50f110573b4726512c662c51d0
+  languageName: node
+  linkType: hard
+
+"stream-chat-react@npm:12.0.0-rc.1":
+  version: 12.0.0-rc.1
+  resolution: "stream-chat-react@npm:12.0.0-rc.1"
+  dependencies:
+    "@braintree/sanitize-url": ^6.0.4
+    "@breezystack/lamejs": ^1.2.7
+    "@popperjs/core": ^2.11.5
+    "@react-aria/focus": ^3
+    "@stream-io/transliterate": ^1.5.5
+    clsx: ^2.0.0
+    dayjs: ^1.10.4
+    emoji-regex: ^9.2.0
+    fix-webm-duration: ^1.0.5
+    hast-util-find-and-replace: ^5.0.1
+    i18next: ^21.6.14
+    isomorphic-ws: ^4.0.1
+    linkifyjs: ^4.1.0
+    lodash.debounce: ^4.0.8
+    lodash.defaultsdeep: ^4.6.1
+    lodash.mergewith: ^4.6.2
+    lodash.throttle: ^4.1.1
+    lodash.uniqby: ^4.7.0
+    mml-react: ^0.4.7
+    nanoid: ^3.3.4
+    prop-types: ^15.7.2
+    react-dropzone: ^14.2.3
+    react-fast-compare: ^3.2.2
+    react-image-gallery: 1.2.12
+    react-is: ^18.1.0
+    react-markdown: 9.0.1
+    react-player: 2.10.1
+    react-popper: ^2.3.0
+    react-textarea-autosize: ^8.3.0
+    react-virtuoso: ^2.16.5
+    remark-gfm: ^4.0.0
+    textarea-caret: ^3.1.0
+    tslib: ^2.6.2
+    unist-builder: ^3.0.0
+    unist-util-visit: ^5.0.0
+  peerDependencies:
+    "@emoji-mart/data": ^1.1.0
+    "@emoji-mart/react": ^1.1.0
+    emoji-mart: ^5.4.0
+    react: ^18.0.0 || ^17.0.0 || ^16.8.0
+    react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
+    stream-chat: ^8.33.1
+  dependenciesMeta:
+    "@stream-io/transliterate":
+      optional: true
+    mml-react:
+      optional: true
+  peerDependenciesMeta:
+    "@emoji-mart/data":
+      optional: true
+    "@emoji-mart/react":
+      optional: true
+    emoji-mart:
+      optional: true
+  checksum: 14fb9624d1f13dde82ac7e3600d3c0b12058564695134122582b3555ce8342b94671cb71b0f1045eeb8ed5d66ac0c3f95d67768c3c594f6b8aa31f67f54cae61
   languageName: node
   linkType: hard
 

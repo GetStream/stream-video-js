@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.1.0...@stream-io/audio-filters-web-0.2.0) (2024-06-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* the return value of the `isSupported` method changed
+from `boolean` to `boolean | Promise<boolean>`
+
+### Features
+
+* extend `isSupported` method ([#1387](https://github.com/GetStream/stream-video-js/issues/1387)) ([ee021ea](https://github.com/GetStream/stream-video-js/commit/ee021eae4e3779e27edf481954198bde71978991))
+
 ## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.0.1...@stream-io/audio-filters-web-0.1.0) (2024-04-25)
 
 

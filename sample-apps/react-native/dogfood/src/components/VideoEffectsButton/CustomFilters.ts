@@ -10,7 +10,7 @@ import { NativeModules, Platform } from 'react-native';
 
 const VideoEffectsModule = NativeModules.VideoEffectsModule;
 
-const isSupported = Platform.OS === 'android';
+const isSupported = Platform.OS === 'android' || Platform.OS === 'ios';
 
 type CustomFilters = 'GrayScale';
 
@@ -20,12 +20,12 @@ export const useCustomVideoFilters = () => {
   const { disableAllFilters } = useBackgroundFilters();
   const [currentCustomFilter, setCustomFilter] = useState<CustomFilters>();
 
-  const applyGrayScaleFilter = useCallback(() => {
+  const applyGrayScaleFilter = useCallback(async () => {
     if (!isSupported) {
       return;
     }
     if (!isGrayScaleRegisteredRef.current) {
-      VideoEffectsModule?.registerVideoFilters();
+      await VideoEffectsModule?.registerVideoFilters();
       isGrayScaleRegisteredRef.current = true;
     }
     disableAllFilters();

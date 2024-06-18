@@ -16,6 +16,9 @@
 		D60F78EC16CA0DD1ACEF890C /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9FAC086DB956152C16435BF1 /* libPods-StreamReactNativeVideoSDKSample.a */; };
 		DD17437129221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD17437229221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
+		DD36F8FD2C182FFD00836A94 /* VideoEffectsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD36F8FC2C182FFD00836A94 /* VideoEffectsModule.swift */; };
+		DD36F8FF2C18311200836A94 /* VideoEffectsModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = DD36F8FE2C18311200836A94 /* VideoEffectsModule.mm */; };
+		DD36F9012C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD36F9002C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift */; };
 		DD6FC6022987E2D700B13B16 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD6FC6012987E2D700B13B16 /* Intents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		DD6FC6042987E2E800B13B16 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD6FC6032987E2E800B13B16 /* CallKit.framework */; };
 		DD74B7542AD83F640042DB4B /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD74B7532AD83F640042DB4B /* ReplayKit.framework */; };
@@ -25,6 +28,7 @@
 		DD74B7642AD847420042DB4B /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7632AD847420042DB4B /* Atomic.swift */; };
 		DD74B7662AD8479E0042DB4B /* SocketConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7652AD8479E0042DB4B /* SocketConnection.swift */; };
 		DD74B7682AD847F10042DB4B /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */; };
+		DDF2353B2C1875B700BCA10E /* VideoFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF2353A2C1875B700BCA10E /* VideoFilters.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +81,10 @@
 		D9BA28C1DE31CC574CAF95CF /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		DD17437029221798001CBEA0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		DD17437329229D96001CBEA0 /* StreamReactNativeVideoSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = StreamReactNativeVideoSDKSample.entitlements; path = StreamReactNativeVideoSDKSample/StreamReactNativeVideoSDKSample.entitlements; sourceTree = "<group>"; };
+		DD36F8FB2C182FFC00836A94 /* StreamReactNativeVideoSDKSample-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StreamReactNativeVideoSDKSample-Bridging-Header.h"; sourceTree = "<group>"; };
+		DD36F8FC2C182FFD00836A94 /* VideoEffectsModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEffectsModule.swift; sourceTree = "<group>"; };
+		DD36F8FE2C18311200836A94 /* VideoEffectsModule.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = VideoEffectsModule.mm; sourceTree = "<group>"; };
+		DD36F9002C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrayScaleVideoFrameProcessor.swift; sourceTree = "<group>"; };
 		DD6FC6012987E2D700B13B16 /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 		DD6FC6032987E2E800B13B16 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
 		DD74B7522AD83F640042DB4B /* Broadcast Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Broadcast Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,6 +96,7 @@
 		DD74B7632AD847420042DB4B /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
 		DD74B7652AD8479E0042DB4B /* SocketConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketConnection.swift; sourceTree = "<group>"; };
 		DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
+		DDF2353A2C1875B700BCA10E /* VideoFilters.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoFilters.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -149,6 +158,11 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				DDF2353A2C1875B700BCA10E /* VideoFilters.swift */,
+				DD36F8FC2C182FFD00836A94 /* VideoEffectsModule.swift */,
+				DD36F8FB2C182FFC00836A94 /* StreamReactNativeVideoSDKSample-Bridging-Header.h */,
+				DD36F8FE2C18311200836A94 /* VideoEffectsModule.mm */,
+				DD36F9002C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift */,
 			);
 			name = StreamReactNativeVideoSDKSample;
 			sourceTree = "<group>";
@@ -302,7 +316,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1520;
 					};
 					DD74B7512AD83F640042DB4B = {
 						CreatedOnToolsVersion = 14.2;
@@ -501,7 +515,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD36F8FF2C18311200836A94 /* VideoEffectsModule.mm in Sources */,
+				DD36F9012C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
+				DDF2353B2C1875B700BCA10E /* VideoFilters.swift in Sources */,
+				DD36F8FD2C182FFD00836A94 /* VideoEffectsModule.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -538,6 +556,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 708A154FC8B4F4BC106A6A17 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				DEVELOPMENT_TEAM = EHV7XZLAHA;
@@ -567,6 +586,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D9BA28C1DE31CC574CAF95CF /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				COPY_PHASE_STRIP = NO;
@@ -687,6 +707,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.getstream.rnvideosample;
 				PRODUCT_NAME = StreamReactNativeVideoSDKSample;
+				SWIFT_OBJC_BRIDGING_HEADER = "StreamReactNativeVideoSDKSample-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -792,6 +813,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.getstream.rnvideosample;
 				PRODUCT_NAME = StreamReactNativeVideoSDKSample;
 				PROVISIONING_PROFILE_SPECIFIER = "match AppStore io.getstream.rnvideosample";
+				SWIFT_OBJC_BRIDGING_HEADER = "StreamReactNativeVideoSDKSample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

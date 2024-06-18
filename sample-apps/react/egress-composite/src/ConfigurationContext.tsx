@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
-import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import { LogLevel, StreamVideoParticipant } from '@stream-io/video-react-sdk';
 
 import { Layout, ScreenshareLayout } from './components/layouts';
 
@@ -40,6 +40,7 @@ export type ConfigurationValue = {
   call_id: string;
   token: string;
   user_id: string; // pulled from the token payload
+  log_level?: LogLevel; // default: 'debug'
 
   ext_css?: string;
 

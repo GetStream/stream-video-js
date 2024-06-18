@@ -39,7 +39,7 @@ let call: Call; // grab a reference to the call instance
 const noiseCancellation = new NoiseCancellation();
 
 // check if the current platform is supported
-const isSupported = noiseCancellation.isSupported();
+const isSupported = await noiseCancellation.isSupported();
 
 // and initialize it
 await noiseCancellation.init();
@@ -51,7 +51,7 @@ await call.microphone.enableNoiseCancellation(noiseCancellation);
 await call.microphone.disableNoiseCancellation();
 
 // convenience methods
-noiseCancellation.isSupported(); // returns true for supported platforms
+await noiseCancellation.isSupported(); // returns true for supported platforms
 
 noiseCancellation.disable(); // will temporarily disable NC (doesn't unregister the plugin)
 noiseCancellation.enable(); // will enable NC (requires the plugin to be registered first)
