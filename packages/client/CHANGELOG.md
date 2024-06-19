@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.3.1...@stream-io/video-client-1.4.0) (2024-06-19)
+
+
+### Features
+
+* **client:** support join_ahead_time_seconds field in the BackstageSettingsRequest struct ([#1397](https://github.com/GetStream/stream-video-js/issues/1397)) ([ded7a23](https://github.com/GetStream/stream-video-js/commit/ded7a23b1d112b496821bee95fe073f57bd51783))
+
 ### [1.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.3.0...@stream-io/video-client-1.3.1) (2024-06-12)
 
 
