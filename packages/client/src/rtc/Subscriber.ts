@@ -12,6 +12,7 @@ export type SubscriberOpts = {
   state: CallState;
   connectionConfig?: RTCConfiguration;
   iceRestartDelay?: number;
+  onUnrecoverableError?: () => void;
 };
 
 const logger = getLogger(['Subscriber']);
@@ -27,6 +28,7 @@ export class Subscriber {
 
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
+  private readonly onUnrecoverableError?: () => void;
 
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
@@ -53,6 +55,7 @@ export class Subscriber {
    * @param state the state of the call.
    * @param connectionConfig the connection configuration to use.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE when connection goes to `disconnected` state.
+   * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
    */
   constructor({
     sfuClient,
@@ -60,10 +63,12 @@ export class Subscriber {
     state,
     connectionConfig,
     iceRestartDelay = 2500,
+    onUnrecoverableError,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.state = state;
     this.iceRestartDelay = iceRestartDelay;
+    this.onUnrecoverableError = onUnrecoverableError;
 
     this.pc = this.createPeerConnection(connectionConfig);
 
@@ -80,6 +85,7 @@ export class Subscriber {
       if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
       this.restartIce().catch((err) => {
         logger('warn', `ICERestart failed`, err);
+        this.onUnrecoverableError?.();
       });
     });
   }
@@ -251,32 +257,24 @@ export class Subscriber {
     );
     if (!participantToUpdate) {
       logger(
-        'error',
+        'warn',
         `[onTrack]: Received track for unknown participant: ${trackId}`,
         e,
       );
       return;
     }
 
+    const trackDebugInfo = `${participantToUpdate.userId} ${trackType}:${trackId}`;
     e.track.addEventListener('mute', () => {
-      logger(
-        'info',
-        `[onTrack]: Track muted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
-      );
+      logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
     });
 
     e.track.addEventListener('unmute', () => {
-      logger(
-        'info',
-        `[onTrack]: Track unmuted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
-      );
+      logger('info', `[onTrack]: Track unmuted: ${trackDebugInfo}`);
     });
 
     e.track.addEventListener('ended', () => {
-      logger(
-        'info',
-        `[onTrack]: Track ended: ${participantToUpdate.userId} ${trackType}:${trackId}`,
-      );
+      logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
     });
 
     const streamKindProp = (
@@ -366,14 +364,15 @@ export class Subscriber {
       this.state.callingState !== CallingState.OFFLINE;
 
     if (state === 'failed') {
-      logger('warn', `Attempting to restart ICE`);
+      logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart failed`, e);
+        this.onUnrecoverableError?.();
       });
     } else if (state === 'disconnected' && hasNetworkConnection) {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
-      logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
+      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
       this.iceRestartTimeout = setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime
@@ -383,6 +382,7 @@ export class Subscriber {
         ) {
           this.restartIce().catch((e) => {
             logger('error', `ICE restart failed`, e);
+            this.onUnrecoverableError?.();
           });
         } else {
           logger(
@@ -390,7 +390,7 @@ export class Subscriber {
             `Scheduled ICE restart: connection recovered, canceled.`,
           );
         }
-      }, 5000);
+      }, this.iceRestartDelay);
     }
   };
 
