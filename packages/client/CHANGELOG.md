@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.0...@stream-io/video-client-1.4.1) (2024-06-19)
+
+
+### Bug Fixes
+
+* perform full reconnect if ice restart fails ([#1408](https://github.com/GetStream/stream-video-js/issues/1408)) ([641df7e](https://github.com/GetStream/stream-video-js/commit/641df7e50522452171498a9cf3de893472fe7b7b))
+
 ## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.3.1...@stream-io/video-client-1.4.0) (2024-06-19)
 
 
