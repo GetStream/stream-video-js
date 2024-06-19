@@ -229,6 +229,13 @@ export class Subscriber {
       logger('debug', 'ICE restart is already in progress');
       return;
     }
+    if (this.pc.connectionState === 'new') {
+      logger(
+        'debug',
+        `ICE connection is not yet established, skipping restart.`,
+      );
+      return;
+    }
     const previousIsIceRestarting = this.isIceRestarting;
     try {
       this.isIceRestarting = true;
