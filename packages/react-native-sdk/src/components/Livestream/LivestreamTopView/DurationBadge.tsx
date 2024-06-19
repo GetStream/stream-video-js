@@ -42,7 +42,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     if (mode !== 'host') {
       return;
     }
-    let intervalId: NodeJS.Timer;
+    let intervalId: NodeJS.Timeout;
 
     const handleLiveStarted = () => {
       intervalId = setInterval(() => {
@@ -86,7 +86,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     if (mode !== 'viewer') {
       return;
     }
-    let intervalId: NodeJS.Timer;
+    let intervalId: NodeJS.Timeout;
     const handleLiveStarted = () => {
       intervalId = setInterval(() => {
         setDuration((d) => d + 1);
