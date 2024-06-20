@@ -43,6 +43,8 @@ Every `call` instance has a local state, exposed to integrators through:
 - `call.state.callingState` - a getter that returns the current value
 - `call.state.callingState$` - an observable that an integrator can subscribe to and be notified everytime the value changes
 
+The call instance is a stateful resource that, once acquired with `client.call()`, must be disposed of with `call.leave()`. Failure to dispose of the call properly can result in memory leaks and unexpected behavior.
+
 ## Calling State
 
 Every `call` instance has its own local state managed by the SDK.

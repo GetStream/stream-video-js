@@ -44,6 +44,34 @@ Every `call` instance has a local state, exposed to integrators through:
 - `call.state.callingState$` - an observable that an integrator can subscribe to and be notified everytime the value changes
 - `useCallCallingState()` - a [call state hook](../../guides/call-and-participant-state/#call-state-hooks) that makes it easy to read and update the UI based on calling state values in React components.
 
+## Call Instance
+
+The call instance is a stateful resource that you acquire with `client.call()` and must dispose of with `call.leave()`. Failure to dispose of the call properly can result in memory leaks and unexpected behavior.
+
+In practice, this means that:
+
+1. You should only create call instances in effects.
+2. Effects that create a call instance should have a `call.leave()` cleanup.
+
+```ts
+const [call, setCall] = useState<Call | undefined>(undefined);
+
+useEffect(() => {
+  const myCall = client.call(callType, callId);
+  myCall.join({ create: true }).then(
+    () => setCall(myCall),
+    () => console.error('Failed to join the call'),
+  );
+
+  return () => {
+    myCall.leave().catch(() => console.error('Failed to leave the call'));
+    setCall(undefined);
+  };
+}, [callType, callId]);
+```
+
+Once the call has been disposed of, it can no longer be used. However, you can get a new call instance with the same type and id. In practice, this is rarely an issue when you're using the pattern above.
+
 ## Calling State
 
 Every `call` instance has its own local state managed by the SDK.
