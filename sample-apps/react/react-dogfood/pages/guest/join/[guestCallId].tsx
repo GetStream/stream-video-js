@@ -127,7 +127,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         <StreamCall call={call}>
           <BackgroundFiltersProvider
             basePath={`${basePath}/tf`}
-            isBlurringEnabled={true}
             backgroundImages={[
               `${basePath}/backgrounds/amsterdam-1.jpg`,
               `${basePath}/backgrounds/amsterdam-2.jpg`,
