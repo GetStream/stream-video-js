@@ -1014,6 +1014,11 @@ export class Call {
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
+        onUnrecoverableError: () => {
+          reconnect('full', 'unrecoverable subscriber error').catch((err) => {
+            this.logger('debug', '[Rejoin]: Rejoin failed', err);
+          });
+        },
       });
     }
 
@@ -1031,6 +1036,11 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
+        onUnrecoverableError: () => {
+          reconnect('full', 'unrecoverable publisher error').catch((err) => {
+            this.logger('debug', '[Rejoin]: Rejoin failed', err);
+          });
+        },
       });
     }
 

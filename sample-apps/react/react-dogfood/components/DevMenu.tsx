@@ -215,7 +215,9 @@ const RestartPublisher = () => {
       hidden={!call}
       onClick={() => {
         if (!call) return;
-        call.publisher?.restartIce();
+        call.publisher?.restartIce().catch((err) => {
+          console.error(`Failed to restart ICE on the publisher`, err);
+        });
       }}
     >
       <Icon className="rd__button__icon" icon="recording-off" />
@@ -232,7 +234,9 @@ const RestartSubscriber = () => {
       hidden={!call}
       onClick={() => {
         if (!call) return;
-        call.subscriber?.restartIce();
+        call.subscriber?.restartIce().catch((err) => {
+          console.error(`Failed to restart ICE on the subscriber`, err);
+        });
       }}
     >
       <Icon className="rd__button__icon" icon="recording-on" />

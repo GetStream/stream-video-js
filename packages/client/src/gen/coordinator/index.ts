@@ -194,6 +194,13 @@ export interface BackstageSettingsRequest {
    * @memberof BackstageSettingsRequest
    */
   enabled?: boolean;
+
+  /**
+   * Optional: the number of seconds before the call starts that the user can join the call
+   * @type {number}
+   * @memberof BackstageSettingsRequest
+   */
+  join_ahead_time_seconds?: number;
 }
 /**
  *
