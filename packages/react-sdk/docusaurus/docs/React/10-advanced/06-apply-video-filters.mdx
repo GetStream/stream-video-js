@@ -42,7 +42,6 @@ export default function App() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <BackgroundFiltersProvider
-          isBlurringEnabled={true} // enables blurring
           backgroundFilter="blur" // initial filter
           backgroundImages={[
             'https://my-domain.com/bg/random-bg-1.jpg',

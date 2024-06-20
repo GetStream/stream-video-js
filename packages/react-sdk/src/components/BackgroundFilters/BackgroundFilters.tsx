@@ -21,19 +21,13 @@ import {
 
 export type BackgroundFiltersProps = {
   /**
-   * Enables or disables the background-blurring feature.
-   * @default true.
-   */
-  isBlurringEnabled?: boolean;
-
-  /**
    * A list of URLs to use as background images.
    */
   backgroundImages?: string[];
 
   /**
    * The background filter to apply to the video (by default).
-   * @default 'none'.
+   * @default undefined no filter applied
    */
   backgroundFilter?: BackgroundFilter;
 
@@ -138,7 +132,6 @@ export const BackgroundFiltersProvider = (
 ) => {
   const {
     children,
-    isBlurringEnabled = true,
     backgroundImages = [],
     backgroundFilter: bgFilterFromProps = undefined,
     backgroundImage: bgImageFromProps = undefined,
@@ -198,7 +191,6 @@ export const BackgroundFiltersProvider = (
         applyBackgroundBlurFilter,
         applyBackgroundImageFilter,
         backgroundImages,
-        isBlurringEnabled,
         tfFilePath,
         modelFilePath,
         basePath,

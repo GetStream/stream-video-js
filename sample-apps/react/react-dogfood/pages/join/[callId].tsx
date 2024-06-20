@@ -235,7 +235,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
           <TourProvider>
             <BackgroundFiltersProvider
               basePath={`${basePath}/tf`}
-              isBlurringEnabled={true}
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
                 `${basePath}/backgrounds/amsterdam-2.jpg`,
