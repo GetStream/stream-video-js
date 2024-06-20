@@ -222,20 +222,22 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const unregister = useRef<Promise<void>>();
   useEffect(() => {
     if (!call || !backgroundFilter) return;
+    const cleanup = () => {
+      signalFilterReadyRef.current = undefined;
+      setMediaStream(undefined);
+    };
     const register = (unregister.current || Promise.resolve()).then(() =>
       call.camera.registerFilter(async (ms) => {
         return new Promise<MediaStream>((resolve) => {
-          signalFilterReadyRef.current = resolve;
           setMediaStream(ms);
+          signalFilterReadyRef.current = resolve;
         });
-      }),
+      }, cleanup),
     );
 
     return () => {
       unregister.current = register
         .then((unregisterFilter) => unregisterFilter())
-        .then(() => (signalFilterReadyRef.current = undefined))
-        .then(() => setMediaStream(undefined))
         .catch((err) => console.error('Failed to unregister filter', err));
     };
   }, [backgroundFilter, call]);

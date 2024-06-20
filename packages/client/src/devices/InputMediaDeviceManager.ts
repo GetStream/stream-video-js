@@ -11,6 +11,7 @@ import { deviceIds$ } from './devices';
 import { settled, withCancellation } from '../helpers/concurrency';
 
 export type MediaStreamFilter = (stream: MediaStream) => Promise<MediaStream>;
+export type MediaStreamFilterCleanup = (() => void) | undefined;
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -24,7 +25,7 @@ export abstract class InputMediaDeviceManager<
 
   protected subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
-  private filters: MediaStreamFilter[] = [];
+  private filters: [MediaStreamFilter, MediaStreamFilterCleanup][] = [];
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
 
   protected constructor(
@@ -141,11 +142,19 @@ export abstract class InputMediaDeviceManager<
    * @param filter the filter to register.
    * @returns a function that will unregister the filter.
    */
-  async registerFilter(filter: MediaStreamFilter) {
-    this.filters.push(filter);
+  async registerFilter(
+    filter: MediaStreamFilter,
+    cleanup?: MediaStreamFilterCleanup,
+  ) {
+    const entry: [MediaStreamFilter, MediaStreamFilterCleanup] = [
+      filter,
+      cleanup,
+    ];
+    this.filters.push(entry);
     await this.applySettingsToStream();
     return async () => {
-      this.filters = this.filters.filter((f) => f !== filter);
+      cleanup?.();
+      this.filters = this.filters.filter((f) => f !== entry);
       await this.applySettingsToStream();
     };
   }
@@ -224,6 +233,7 @@ export abstract class InputMediaDeviceManager<
         this.state.mediaStream.release();
       }
       this.state.setMediaStream(undefined, undefined);
+      this.filters.forEach(([filter, cleanup]) => cleanup?.());
     }
   }
 
@@ -335,7 +345,7 @@ export abstract class InputMediaDeviceManager<
       rootStream = this.getStream(constraints as C);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
-        (parent, filter) => parent.then(filter).then(chainWith(parent)),
+        (parent, [filter]) => parent.then(filter).then(chainWith(parent)),
         rootStream,
       );
     }
