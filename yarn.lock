@@ -7920,7 +7920,7 @@ __metadata:
     source-map-loader: ^4.0.1
     starwars-names: ^1.6.0
     stream-chat: ^8.33.0
-    stream-chat-react: 12.0.0-rc.1
+    stream-chat-react: 12.0.0-rc.2
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -25779,9 +25779,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:12.0.0-rc.1":
-  version: 12.0.0-rc.1
-  resolution: "stream-chat-react@npm:12.0.0-rc.1"
+"stream-chat-react@npm:12.0.0-rc.2":
+  version: 12.0.0-rc.2
+  resolution: "stream-chat-react@npm:12.0.0-rc.2"
   dependencies:
     "@braintree/sanitize-url": ^6.0.4
     "@breezystack/lamejs": ^1.2.7
@@ -25837,7 +25837,7 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 14fb9624d1f13dde82ac7e3600d3c0b12058564695134122582b3555ce8342b94671cb71b0f1045eeb8ed5d66ac0c3f95d67768c3c594f6b8aa31f67f54cae61
+  checksum: 74a31c872f6c7b3491dcd7e7b774ddc429e20380951e265420d503c32c256de2dae00b72c6c4b07d4decab4f6aa0df6f3da458f3048c16c870d207a2a086bb7f
   languageName: node
   linkType: hard
 
