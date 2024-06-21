@@ -2609,7 +2609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/config-plugins@npm:~7.8.0":
+"@expo/config-plugins@npm:~7.8.4":
   version: 7.8.4
   resolution: "@expo/config-plugins@npm:7.8.4"
   dependencies:
@@ -6657,7 +6657,7 @@ __metadata:
     "@rollup/plugin-typescript": ^11.1.6
     rimraf: ^5.0.7
     rollup: ^3.29.4
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     wasm-feature-detect: ^1.6.1
   languageName: unknown
   linkType: soft
@@ -6673,7 +6673,7 @@ __metadata:
     react: ^18.3.1
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6692,7 +6692,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.1.0
     react: ^18.3.1
     react-dom: ^18.3.1
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6714,7 +6714,7 @@ __metadata:
     nanoid: ^5.0.4
     react: ^18.3.1
     react-dom: ^18.3.1
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6762,7 +6762,7 @@ __metadata:
     react-native-screens: ~3.29.0
     react-native-svg: 14.1.0
     react-native-voip-push-notification: ^3.3.2
-    typescript: ^5.4.5
+    typescript: ^5.5.2
   languageName: unknown
   linkType: soft
 
@@ -6792,7 +6792,7 @@ __metadata:
     react: ^18.3.1
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6817,7 +6817,7 @@ __metadata:
     sass: ^1.69.5
     stream-chat: ^8.33.0
     stream-chat-react: ^11.19.0
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6857,7 +6857,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.1.0
     react: ^18.3.1
     react-dom: ^18.3.1
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6879,7 +6879,7 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@vitejs/plugin-basic-ssl": ^1.0.1
     js-base64: ^3.7.5
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -6910,7 +6910,7 @@ __metadata:
     rollup: ^3.29.4
     rxjs: ~7.8.1
     sdp-transform: ^2.14.1
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     ua-parser-js: ^1.0.36
     vite: ^4.4.11
     vitest: ^0.34.4
@@ -6928,7 +6928,7 @@ __metadata:
     react-native: 0.74.1
     react-native-builder-bob: ^0.23.2
     rimraf: ^5.0.7
-    typescript: ^5.4.5
+    typescript: ^5.5.2
   peerDependencies:
     "@stream-io/react-native-webrtc": ">=118.1.0"
     react-native: "*"
@@ -6944,7 +6944,7 @@ __metadata:
     "@types/emscripten": ^1.39.10
     rimraf: ^5.0.7
     rollup: ^3.29.4
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     wasm-feature-detect: ^1.6.1
   languageName: unknown
   linkType: soft
@@ -6969,7 +6969,7 @@ __metadata:
     ngx-deploy-npm: ^5.2.0
     nx: 16.0.1
     prettier: ^3.3.2
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vercel: ^34.1.2
     vite: ^4.4.11
   languageName: unknown
@@ -6987,7 +6987,7 @@ __metadata:
     rimraf: ^5.0.7
     rollup: ^3.29.4
     rxjs: ~7.8.1
-    typescript: ^5.4.5
+    typescript: ^5.5.2
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
     react: ^17 || ^18 || ^19
@@ -7098,7 +7098,7 @@ __metadata:
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
     stream-chat-react-native: 5.27.0
-    typescript: ^5.4.5
+    typescript: ^5.5.2
   languageName: unknown
   linkType: soft
 
@@ -7107,7 +7107,7 @@ __metadata:
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
     "@babel/preset-typescript": ^7.24.7
-    "@expo/config-plugins": ~7.8.0
+    "@expo/config-plugins": ~7.8.4
     "@notifee/react-native": 7.8.0
     "@react-native-community/netinfo": 9.3.9
     "@react-native-community/push-notification-ios": 1.11.0
@@ -7129,7 +7129,7 @@ __metadata:
     "@types/react-test-renderer": ^18
     expo: 50.0.19
     expo-build-properties: ^0.12.3
-    expo-modules-core: 1.12.15
+    expo-modules-core: 1.12.16
     expo-notifications: 0.28.9
     expo-task-manager: 11.8.2
     intl-pluralrules: 2.0.1
@@ -7149,7 +7149,7 @@ __metadata:
     text-encoding-polyfill: 0.6.7
     ts-jest: ^29.1.5
     ts-node: ^10.9.2
-    typescript: ^5.4.5
+    typescript: ^5.5.2
   peerDependencies:
     "@notifee/react-native": ">=7.8.0"
     "@react-native-community/netinfo": ">=9.0.0"
@@ -7218,7 +7218,7 @@ __metadata:
     react-chartjs-2: ^5.2.0
     rimraf: ^5.0.7
     rollup: ^3.29.4
-    typescript: ^5.4.5
+    typescript: ^5.5.2
   peerDependencies:
     react: ^18 || ^19
   languageName: unknown
@@ -7252,7 +7252,7 @@ __metadata:
     stream-chat: ^8.33.0
     stream-chat-react: ^11.19.0
     tailwindcss: ^3.2.4
-    typescript: ^5.4.5
+    typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
   linkType: soft
@@ -13252,12 +13252,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-modules-core@npm:1.12.15":
-  version: 1.12.15
-  resolution: "expo-modules-core@npm:1.12.15"
+"expo-modules-core@npm:1.12.16":
+  version: 1.12.16
+  resolution: "expo-modules-core@npm:1.12.16"
   dependencies:
     invariant: ^2.2.4
-  checksum: fd582278399decdf167820dc607da2669601539b18abc96be7b100d780c48b3900724231571dfe6cf5ecdba1718cb29e6325aa8f36a9cb7f7f5f38b150244f79
+  checksum: ee10fea5f10844fad3e7cae42d281d88fac7b8ccd6249a1e057f7f8bc669eeef05a01028debc0b81614bbdffa40fd3e89c14d43c33a435e5d8d22a6389902474
   languageName: node
   linkType: hard
 
@@ -24864,13 +24864,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.6.4 || ^5.0.0, typescript@npm:^5.4.5":
-  version: 5.4.5
-  resolution: "typescript@npm:5.4.5"
+"typescript@npm:^4.6.4 || ^5.0.0, typescript@npm:^5.5.2":
+  version: 5.5.2
+  resolution: "typescript@npm:5.5.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 53c879c6fa1e3bcb194b274d4501ba1985894b2c2692fa079db03c5a5a7140587a1e04e1ba03184605d35f439b40192d9e138eb3279ca8eee313c081c8bcd9b0
+  checksum: 9c5a7982dadcb2d38d129c575dd38645ae11588ae0d4a12852fb04482bbc5a1660b2371e48fd5b33b6b605cc57cefe777670054546856945a05e77bd22c8c2cd
   languageName: node
   linkType: hard
 
@@ -24884,13 +24884,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.6.4 || ^5.0.0#~builtin<compat/typescript>, typescript@patch:typescript@^5.4.5#~builtin<compat/typescript>":
-  version: 5.4.5
-  resolution: "typescript@patch:typescript@npm%3A5.4.5#~builtin<compat/typescript>::version=5.4.5&hash=85af82"
+"typescript@patch:typescript@^4.6.4 || ^5.0.0#~builtin<compat/typescript>, typescript@patch:typescript@^5.5.2#~builtin<compat/typescript>":
+  version: 5.5.2
+  resolution: "typescript@patch:typescript@npm%3A5.5.2#~builtin<compat/typescript>::version=5.5.2&hash=85af82"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2373c693f3b328f3b2387c3efafe6d257b057a142f9a79291854b14ff4d5367d3d730810aee981726b677ae0fd8329b23309da3b6aaab8263dbdccf1da07a3ba
+  checksum: 9d89bac0de650e15d6846485f238d1e65f1013f2c260d9e53e86a1da6ecf8109d9fad9402575c5c36a6592dc5d4370db090e12971c8630ae84453654baabb6b4
   languageName: node
   linkType: hard
 

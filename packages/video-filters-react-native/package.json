@@ -52,7 +52,7 @@
     "react-native": "0.74.1",
     "react-native-builder-bob": "^0.23.2",
     "rimraf": "^5.0.7",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   },
   "peerDependencies": {
     "@stream-io/react-native-webrtc": ">=118.1.0",
