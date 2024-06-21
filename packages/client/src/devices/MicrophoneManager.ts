@@ -139,8 +139,10 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         },
       );
 
-      this.noiseCancellationRegistration = this.registerFilter(
-        noiseCancellation.toFilter(),
+      const { ready: noiseCancellationRegistration, unregister } =
+        this.registerFilter(noiseCancellation.toFilter());
+      this.noiseCancellationRegistration = noiseCancellationRegistration.then(
+        () => unregister,
       );
       await this.noiseCancellationRegistration;
 
