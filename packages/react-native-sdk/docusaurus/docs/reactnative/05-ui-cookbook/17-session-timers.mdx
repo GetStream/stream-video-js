@@ -354,7 +354,9 @@ It's easy to lose track of time during a meeting and then be surprised when time
 runs out. Let's add an alert that pops up on the page twenty minutes before the
 session timer reaches zero:
 
-```jsx
+```tsx
+import { Alert } from 'react-native';
+
 const useSessionTimerAlert = (remainingMs: number, thresholdMs: number) => {
   const didAlert = useRef(false);
 
@@ -382,6 +384,23 @@ const SessionTimer = () => {
 ```
 
 ![Alert indicating that session is about to end](../assets/05-ui-cookbook/17-session-timers/session-timer-alert.png)
+
+Similarly, we can show an alert when the call session is over (when time has elapsed): 
+
+```tsx
+const useSessionEndedAlert = (remainingMs: number) => {
+  const didAlert = useRef(false);
+
+  useEffect(() => {
+    if (!didAlert.current && remainingMs <= 0) {
+      Alert.alert(
+        'Call ended'
+      );
+      didAlert.current = true;
+    }
+  }, [remainingMs]);
+};
+```
 
 ### Extending a Session
 
