@@ -4985,6 +4985,11 @@ export const RecordSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  PORTRAIT_360X640: 'portrait-360x640',
+  PORTRAIT_480X854: 'portrait-480x854',
+  PORTRAIT_720X1280: 'portrait-720x1280',
+  PORTRAIT_1080X1920: 'portrait-1080x1920',
+  PORTRAIT_1440X2560: 'portrait-1440x2560',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
