@@ -6,7 +6,7 @@ import { useConfigurationContext } from '../../ConfigurationContext';
 export const useParticipantStyles = () => {
   const {
     options: {
-      'participant.aspect_ratio': participantAspectRatio = '4 / 3',
+      'participant.aspect_ratio': participantAspectRatio,
       'participant.border_radius': participantBorderRadius,
       'participant.outline_color': participantOutlineColor = '#005fff',
       'participant.outline_width': participantOutlineWidth = '2px',
