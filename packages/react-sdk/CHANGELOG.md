@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.5...@stream-io/video-react-sdk-1.2.6) (2024-06-24)
+
+
+### Bug Fixes
+
+* default onMenuToggle behavior shouldn't be overridden ([#1417](https://github.com/GetStream/stream-video-js/issues/1417)) ([3529e40](https://github.com/GetStream/stream-video-js/commit/3529e40b338c64e61ecbc7460e97c3c878771434))
+
 ### [1.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.4...@stream-io/video-react-sdk-1.2.5) (2024-06-20)
 
 
