@@ -36,8 +36,12 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   // Leave the call if the call is not left and the component is unmounted.
   useEffect(() => {
     return () => {
-      const leaveCall = async () => await call?.leave();
-      if (callingState !== CallingState.LEFT) {
+      const leaveCall = async () => {
+        try {
+          await call?.leave();
+        } catch (_e) {}
+      };
+      if (call?.state.callingState !== CallingState.LEFT) {
         leaveCall();
       }
     };

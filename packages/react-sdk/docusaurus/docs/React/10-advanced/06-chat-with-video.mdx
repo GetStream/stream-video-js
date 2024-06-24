@@ -113,14 +113,13 @@ import { useCallback } from 'react';
 import {
   MemberRequest,
 } from '@stream-io/video-react-sdk';
-import { useChannelStateContext, useChatContext } from 'stream-chat-react';
+import { useChannelStateContext } from 'stream-chat-react';
 import { LocalPhone } from '@mui/icons-material';
 import { meetingId } from '../../utils/meetingId';
 import type { StreamChatType } from '../../types/chat';
 
 export const CreateCallButton = () => {
   const videoClient = /* ... */
-  const { client } = useChatContext<StreamChatType>();
   const { channel } = useChannelStateContext<StreamChatType>();
 
   const createCall = useCallback(() => {
@@ -132,20 +131,12 @@ export const CreateCallButton = () => {
           channelCid: channel.cid,
         },
         // highlight-next-line
-        members: Object.values(channel.state.members).reduce<MemberRequest[]>(
-          (acc, member) => {
-            if (member.user_id !== client.user?.id) {
-              acc.push({
-                user_id: member.user_id!,
-              });
-            }
-            return acc;
-          },
-          [],
+        members: Object.values(channel.state.members).map<MemberRequest>(
+          (member) => ({ user_id: member.user_id! }),
         ),
       },
     });
-  }, [videoClient, channel.cid, channel.state.members, client.user?.id]);
+  }, [videoClient, channel.cid, channel.state.members]);
 
   const disableCreateCall = !videoClient;
   return (
@@ -370,7 +361,8 @@ In order the default styles that come with both the chat and video SDKs can be a
   @import 'stream-chat-react/dist/scss/v2/index.scss';
 }
 
-@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
+@import '@stream-io/video-react-sdk/dist/css/styles.css'
+  layer(default-video-sdk);
 ```
 
 File [`index.scss`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/style/index.scss) is then imported into [`App.tsx`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/App.tsx). Additionally, we add [`StreamTheme`](../../ui-components/video-theme) component to wrap the app in an element carrying CSS class `str-video`. This will make sure all the variables and styles are applied to the child components:

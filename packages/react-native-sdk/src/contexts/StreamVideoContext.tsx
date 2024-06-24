@@ -17,7 +17,7 @@ function createStoreContext<StoreType extends object>(initialState: StoreType) {
   type SetStateFuncType = (
     partialStateOrFunc:
       | Partial<StoreType>
-      | ((prevState: StoreType) => Partial<StoreType>),
+      | ((prevState: StoreType) => Partial<StoreType>)
   ) => void;
 
   // returns unsubscribe function
@@ -79,7 +79,7 @@ function createStoreContext<StoreType extends object>(initialState: StoreType) {
    * @category Client State
    */
   function useStoreValue<SelectorOutput extends StoreType[keyof StoreType]>(
-    selector: (store: StoreType) => SelectorOutput,
+    selector: (store: StoreType) => SelectorOutput
   ): SelectorOutput {
     const store = useContext(StoreContext);
     if (!store) {
@@ -89,7 +89,7 @@ function createStoreContext<StoreType extends object>(initialState: StoreType) {
     const [state, setState] = useState(selector(store.getSnapshot()));
     useEffect(
       () => store.subscribe(() => setState(selector(store.getSnapshot()))),
-      [selector, store],
+      [selector, store]
     );
 
     return state;

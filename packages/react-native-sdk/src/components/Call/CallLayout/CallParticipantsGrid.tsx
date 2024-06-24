@@ -78,8 +78,8 @@ export const CallParticipantsGrid = ({
       remoteParticipants.length > 0
         ? [remoteParticipants[0] as StreamVideoParticipant]
         : localParticipant
-        ? [localParticipant]
-        : [];
+          ? [localParticipant]
+          : [];
   }
 
   const participantViewProps: CallParticipantsListComponentProps = {

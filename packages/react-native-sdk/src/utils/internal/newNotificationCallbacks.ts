@@ -3,7 +3,7 @@ import { NonRingingPushEvent } from '../StreamVideoRN/types';
 
 export type NewCallNotificationCallback = (
   call: Call,
-  notificationType: NonRingingPushEvent,
+  notificationType: NonRingingPushEvent
 ) => void;
 
 type NewNotificationCallbacks = {
@@ -16,11 +16,11 @@ const newNotificationCallbacks: NewNotificationCallbacks = {};
 
 export const onNewCallNotification: NewCallNotificationCallback = (
   call,
-  notificationType,
+  notificationType
 ) => {
   if (newNotificationCallbacks.current && lastCid !== call.cid) {
     newNotificationCallbacks.current.forEach((callback) =>
-      callback(call, notificationType),
+      callback(call, notificationType)
     );
     lastCid = call.cid;
   }

@@ -210,7 +210,7 @@ export const VideoRenderer = ({
   }, [trackType, sessionId]);
 
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
-    event,
+    event
   ) => {
     if (!call || isLocalParticipant) {
       return;

@@ -1,7 +1,7 @@
 {
   "name": "@stream-io/audio-filters-web",
   "packageManager": "yarn@3.5.0",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
@@ -25,11 +25,14 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "dependencies": {
+    "wasm-feature-detect": "^1.6.1"
+  },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-typescript": "^11.1.6",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.7",
     "rollup": "^3.29.4",
-    "typescript": "^5.4.3"
+    "typescript": "^5.5.2"
   }
 }

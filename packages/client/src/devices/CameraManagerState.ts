@@ -55,8 +55,8 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
       const direction = isReactNative()
         ? this.direction
         : stream.getVideoTracks()[0]?.getSettings().facingMode === 'environment'
-        ? 'back'
-        : 'front';
+          ? 'back'
+          : 'front';
       this.setDirection(direction);
     }
   }

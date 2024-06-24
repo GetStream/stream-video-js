@@ -14,6 +14,7 @@ import {
   getClosestSnapAlignment,
   floatingChildViewContainerStyle,
 } from './common';
+import { getLogger } from '@stream-io/video-client';
 
 const AnimatedFloatingView = ({
   initialAlignment,
@@ -85,7 +86,7 @@ const AnimatedFloatingView = ({
         ],
         {
           useNativeDriver: false, // pan responder move event doesn't support nativeDriver
-        },
+        }
       ),
       onPanResponderGrant: () => {
         // start of a drag value is always (0,0) and offset is the last (translateX, translateY)
@@ -110,12 +111,14 @@ const AnimatedFloatingView = ({
           easing: Easing.inOut(Easing.quad),
         }).start();
       },
-    }),
+    })
   ).current;
 
   useEffect(() => {
-    console.info(
-      'react-native-reanimated and/or react-native-gesture-handler libraries are not installed. Please install them to get a more performant draggable local video component',
+    const logger = getLogger(['AnimatedFloatingView']);
+    logger(
+      'info',
+      'react-native-reanimated and/or react-native-gesture-handler libraries are not installed. Please install them to get a more performant draggable local video component'
     );
   }, []);
 

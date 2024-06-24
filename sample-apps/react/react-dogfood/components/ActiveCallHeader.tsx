@@ -150,8 +150,8 @@ export const ActiveCallHeader = ({
                     isMigrating
                       ? 'Migrating...'
                       : isJoining
-                      ? 'Joining...'
-                      : 'Reconnecting...'
+                        ? 'Joining...'
+                        : 'Reconnecting...'
                   }
                 />
               }

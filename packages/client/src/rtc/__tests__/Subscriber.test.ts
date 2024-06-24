@@ -168,6 +168,15 @@ describe('Subscriber', () => {
       expect(sfuClient.iceRestart).not.toHaveBeenCalled();
     });
 
+    it('should skip ICE restart when connection is still new', async () => {
+      sfuClient.iceRestart = vi.fn();
+      // @ts-ignore
+      subscriber['pc'].connectionState = 'new';
+
+      await subscriber.restartIce();
+      expect(sfuClient.iceRestart).not.toHaveBeenCalled();
+    });
+
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
       // @ts-ignore

@@ -2,6 +2,106 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.6...@stream-io/video-react-sdk-1.2.7) (2024-06-24)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.46`
+### [1.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.5...@stream-io/video-react-sdk-1.2.6) (2024-06-24)
+
+
+### Bug Fixes
+
+* default onMenuToggle behavior shouldn't be overridden ([#1417](https://github.com/GetStream/stream-video-js/issues/1417)) ([3529e40](https://github.com/GetStream/stream-video-js/commit/3529e40b338c64e61ecbc7460e97c3c878771434))
+
+### [1.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.4...@stream-io/video-react-sdk-1.2.5) (2024-06-20)
+
+
+### Bug Fixes
+
+* remove `isBlurringEnabled` prop ([#1411](https://github.com/GetStream/stream-video-js/issues/1411)) ([23bafe0](https://github.com/GetStream/stream-video-js/commit/23bafe0cc6a3bf0bcdff2e0339904dae5778c560))
+
+### [1.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.3...@stream-io/video-react-sdk-1.2.4) (2024-06-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.45`
+### [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.2...@stream-io/video-react-sdk-1.2.3) (2024-06-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.44`
+### [1.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.1...@stream-io/video-react-sdk-1.2.2) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.1.2`
+
+### Bug Fixes
+
+* infinitely adjustable blur filter ([#1399](https://github.com/GetStream/stream-video-js/issues/1399)) ([447e73f](https://github.com/GetStream/stream-video-js/commit/447e73f2363142a0c1b43d05f848400950ecf697))
+
+### [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.0...@stream-io/video-react-sdk-1.2.1) (2024-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.3.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.43`
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.5...@stream-io/video-react-sdk-1.2.0) (2024-06-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.3.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.42`
+
+### Features
+
+* improve `isSupported` method for noise cancellation ([#1388](https://github.com/GetStream/stream-video-js/issues/1388)) ([07031ba](https://github.com/GetStream/stream-video-js/commit/07031ba72443a84cac8856c7481f3d4053b46d4c))
+
+### [1.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.4...@stream-io/video-react-sdk-1.1.5) (2024-06-07)
+
+### Dependency Updates
+
+* `@stream-io/audio-filters-web` updated to version `0.2.0`
+### [1.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.3...@stream-io/video-react-sdk-1.1.4) (2024-06-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.2.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.41`
+### [1.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.2...@stream-io/video-react-sdk-1.1.3) (2024-06-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.2.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.40`
+### [1.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.1...@stream-io/video-react-sdk-1.1.2) (2024-06-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.2.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.39`
+### [1.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.1.0...@stream-io/video-react-sdk-1.1.1) (2024-06-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.2.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.38`
+## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.15...@stream-io/video-react-sdk-1.1.0) (2024-06-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.1.0`
+* `@stream-io/video-filters-web` updated to version `0.1.1`
+* `@stream-io/video-react-bindings` updated to version `0.4.37`
+
+### Features
+
+* video filters on android ([#1382](https://github.com/GetStream/stream-video-js/issues/1382)) ([7ba8b0e](https://github.com/GetStream/stream-video-js/commit/7ba8b0e3b444869d38aae1a045dffb05444643f5))
+
 ### [1.0.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.0.14...@stream-io/video-react-sdk-1.0.15) (2024-05-31)
 
 ### Dependency Updates

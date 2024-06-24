@@ -194,6 +194,13 @@ export interface BackstageSettingsRequest {
    * @memberof BackstageSettingsRequest
    */
   enabled?: boolean;
+
+  /**
+   * Optional: the number of seconds before the call starts that the user can join the call
+   * @type {number}
+   * @memberof BackstageSettingsRequest
+   */
+  join_ahead_time_seconds?: number;
 }
 /**
  *
@@ -832,6 +839,55 @@ export interface CallMemberUpdatedPermissionEvent {
   type: string;
 }
 /**
+ * This event is sent to call members who did not accept/reject/join the call to notify they missed the call
+ * @export
+ * @interface CallMissedEvent
+ */
+export interface CallMissedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallMissedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMissedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMissedEvent
+   */
+  created_at: string;
+  /**
+   * List of members who missed the call
+   * @type {Array<MemberResponse>}
+   * @memberof CallMissedEvent
+   */
+  members: Array<MemberResponse>;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallMissedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.notification" in this case
+   * @type {string}
+   * @memberof CallMissedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallMissedEvent
+   */
+  user: UserResponse;
+}
+/**
  * This event is sent to all call members to notify they are getting called
  * @export
  * @interface CallNotificationEvent
@@ -1103,6 +1159,12 @@ export interface CallRejectedEvent {
    * @memberof CallRejectedEvent
    */
   created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRejectedEvent
+   */
+  reason?: string;
   /**
    * The type of event: "call.rejected" in this case
    * @type {string}
@@ -1478,6 +1540,12 @@ export interface CallSessionResponse {
   live_started_at?: string;
   /**
    *
+   * @type {{ [key: string]: string; }}
+   * @memberof CallSessionResponse
+   */
+  missed_by: { [key: string]: string };
+  /**
+   *
    * @type {Array<CallParticipantResponse>}
    * @memberof CallSessionResponse
    */
@@ -1500,6 +1568,12 @@ export interface CallSessionResponse {
    * @memberof CallSessionResponse
    */
   started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  timer_ends_at?: string;
 }
 /**
  * This event is sent when a call session starts
@@ -1570,6 +1644,12 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   /**
    *
+   * @type {LimitsSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  limits?: LimitsSettingsRequest;
+  /**
+   *
    * @type {RecordSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -1635,6 +1715,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   geofencing: GeofenceSettingsResponse;
+  /**
+   *
+   * @type {LimitsSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  limits: LimitsSettingsResponse;
   /**
    *
    * @type {RecordSettingsResponse}
@@ -2246,6 +2332,12 @@ export interface ChannelMember {
    * @memberof ChannelMember
    */
   is_moderator?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChannelMember
+   */
+  notifications_muted: boolean;
   /**
    * Whether member is shadow banned in this channel or not
    * @type {boolean}
@@ -3707,6 +3799,44 @@ export interface LabelThresholds {
 /**
  *
  * @export
+ * @interface LimitsSettingsRequest
+ */
+export interface LimitsSettingsRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsRequest
+   */
+  max_duration_seconds?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsRequest
+   */
+  max_participants?: number;
+}
+/**
+ *
+ * @export
+ * @interface LimitsSettingsResponse
+ */
+export interface LimitsSettingsResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsResponse
+   */
+  max_duration_seconds?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof LimitsSettingsResponse
+   */
+  max_participants?: number;
+}
+/**
+ *
+ * @export
  * @interface ListDevicesResponse
  */
 export interface ListDevicesResponse {
@@ -4048,6 +4178,7 @@ export interface NullTime {
  */
 export const OwnCapability = {
   BLOCK_USERS: 'block-users',
+  CHANGE_MAX_DURATION: 'change-max-duration',
   CREATE_CALL: 'create-call',
   CREATE_REACTION: 'create-reaction',
   ENABLE_NOISE_CANCELLATION: 'enable-noise-cancellation',
@@ -4285,7 +4416,7 @@ export interface OwnUserResponse {
    * @type {boolean}
    * @memberof OwnUserResponse
    */
-  invisible?: boolean;
+  invisible: boolean;
   /**
    *
    * @type {string}
@@ -4854,6 +4985,11 @@ export const RecordSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  PORTRAIT_360X640: 'portrait-360x640',
+  PORTRAIT_480X854: 'portrait-480x854',
+  PORTRAIT_720X1280: 'portrait-720x1280',
+  PORTRAIT_1080X1920: 'portrait-1080x1920',
+  PORTRAIT_1440X2560: 'portrait-1440x2560',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
@@ -4882,6 +5018,19 @@ export interface RecordSettingsResponse {
    * @memberof RecordSettingsResponse
    */
   quality: string;
+}
+/**
+ *
+ * @export
+ * @interface RejectCallRequest
+ */
+export interface RejectCallRequest {
+  /**
+   * Reason for rejecting the call
+   * @type {string}
+   * @memberof RejectCallRequest
+   */
+  reason?: string;
 }
 /**
  *
@@ -4953,6 +5102,12 @@ export interface RingSettingsRequest {
    * @memberof RingSettingsRequest
    */
   incoming_call_timeout_ms: number;
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettingsRequest
+   */
+  missed_call_timeout_ms?: number;
 }
 /**
  *
@@ -4972,6 +5127,12 @@ export interface RingSettingsResponse {
    * @memberof RingSettingsResponse
    */
   incoming_call_timeout_ms: number;
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettingsResponse
+   */
+  missed_call_timeout_ms: number;
 }
 /**
  *
@@ -6971,6 +7132,7 @@ export type WSEvent =
   | ({
       type: 'call.member_updated_permission';
     } & CallMemberUpdatedPermissionEvent)
+  | ({ type: 'call.missed' } & CallMissedEvent)
   | ({ type: 'call.notification' } & CallNotificationEvent)
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)

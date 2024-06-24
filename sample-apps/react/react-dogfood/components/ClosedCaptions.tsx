@@ -1,5 +1,9 @@
-import { useEffect, useState } from 'react';
-import { CallClosedCaption, useCall } from '@stream-io/video-react-sdk';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  CallClosedCaption,
+  useCall,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
 
 export const ClosedCaptions = () => {
   const call = useCall();
@@ -20,6 +24,7 @@ export const ClosedCaptions = () => {
     return () => clearTimeout(id);
   }, [queue]);
 
+  const userNameMapping = useUserIdToUserNameMapping();
   return (
     <div className="rd__closed-captions">
       {queue.map(({ speaker_id, text }, index) => (
@@ -27,7 +32,9 @@ export const ClosedCaptions = () => {
           className="rd__closed-captions__line"
           key={speaker_id + index + text}
         >
-          <span className="rd__closed-captions__speaker">{speaker_id}:</span>
+          <span className="rd__closed-captions__speaker">
+            {userNameMapping[speaker_id] || speaker_id}:
+          </span>
           <span className="rd__closed-captions__text"> {text}</span>
         </p>
       ))}
@@ -47,6 +54,7 @@ export const ClosedCaptionsSidebar = () => {
     });
   }, [call]);
 
+  const userNameMapping = useUserIdToUserNameMapping();
   return (
     <div className="rd__closed-captions-sidebar">
       <h3>Closed Captions</h3>
@@ -56,11 +64,28 @@ export const ClosedCaptionsSidebar = () => {
             className="rd__closed-captions__line"
             key={speaker_id + index + text}
           >
-            <span className="rd__closed-captions__speaker">{speaker_id}:</span>
+            <span className="rd__closed-captions__speaker">
+              {userNameMapping[speaker_id] || speaker_id}:
+            </span>
             <span className="rd__closed-captions__text"> {text}</span>
           </p>
         ))}
       </div>
     </div>
   );
+};
+
+const useUserIdToUserNameMapping = () => {
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
+  return useMemo(() => {
+    if (!session) return {};
+    return session.participants.reduce<Record<string, string | undefined>>(
+      (result, participant) => {
+        result[participant.user.id] = participant.user.name;
+        return result;
+      },
+      {},
+    );
+  }, [session]);
 };

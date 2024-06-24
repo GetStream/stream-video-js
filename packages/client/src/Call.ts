@@ -45,6 +45,7 @@ import {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
@@ -119,6 +120,7 @@ import {
   AllCallEvents,
   CallEventListener,
   Logger,
+  RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './client-details';
@@ -680,10 +682,13 @@ export class Call {
    * This method should be used only for "ringing" call flows.
    * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
+   *
+   * @param reason the reason for rejecting the call.
    */
-  reject = async () => {
-    return this.streamClient.post<RejectCallResponse>(
+  reject = async (reason?: RejectReason): Promise<RejectCallResponse> => {
+    return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
       `${this.streamClientBasePath}/reject`,
+      { reason: reason },
     );
   };
 
@@ -1009,6 +1014,11 @@ export class Call {
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
+        onUnrecoverableError: () => {
+          reconnect('full', 'unrecoverable subscriber error').catch((err) => {
+            this.logger('debug', '[Rejoin]: Rejoin failed', err);
+          });
+        },
       });
     }
 
@@ -1026,6 +1036,11 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
+        onUnrecoverableError: () => {
+          reconnect('full', 'unrecoverable publisher error').catch((err) => {
+            this.logger('debug', '[Rejoin]: Rejoin failed', err);
+          });
+        },
       });
     }
 
@@ -1392,8 +1407,8 @@ export class Call {
             trackType === 'videoTrack'
               ? 'videoDimension'
               : trackType === 'screenShareTrack'
-              ? 'screenShareDimension'
-              : undefined;
+                ? 'screenShareDimension'
+                : undefined;
           if (prop) {
             acc[sessionId] = {
               [prop]: change.dimension,
@@ -1985,9 +2000,8 @@ export class Call {
       );
     }
 
-    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
-      getClientDetails(),
-    );
+    const { sdkName, sdkVersion, ...platform } =
+      getSdkSignature(getClientDetails());
 
     // user sessionId is not available once the call has been left
     // until we relax the backend validation, we'll send N/A
@@ -2037,7 +2051,7 @@ export class Call {
 
   private async initCamera(options: { setStatus: boolean }) {
     // Wait for any in progress camera operation
-    await this.camera.statusChangePromise;
+    await this.camera.statusChangeSettled();
 
     if (
       this.state.localParticipant?.videoStream ||
@@ -2086,7 +2100,7 @@ export class Call {
 
   private async initMic(options: { setStatus: boolean }) {
     // Wait for any in progress mic operation
-    await this.microphone.statusChangePromise;
+    await this.microphone.statusChangeSettled();
 
     if (
       this.state.localParticipant?.audioStream ||

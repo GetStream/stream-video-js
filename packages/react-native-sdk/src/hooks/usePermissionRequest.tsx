@@ -1,4 +1,8 @@
-import { OwnCapability, PermissionRequestEvent } from '@stream-io/video-client';
+import {
+  OwnCapability,
+  PermissionRequestEvent,
+  getLogger,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
@@ -8,7 +12,7 @@ export const usePermissionRequest = () => {
 
   const { useHasPermissions } = useCallStateHooks();
   const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS,
+    OwnCapability.UPDATE_CALL_PERMISSIONS
   );
 
   const messageForPermission = (userName: string, permission: string) => {
@@ -35,11 +39,12 @@ export const usePermissionRequest = () => {
             await call?.revokePermissions(user.id, permissions);
           }
         } catch (err) {
-          console.log(err);
+          const logger = getLogger(['usePermissionRequest']);
+          logger('error', 'error handling permissions: ', err);
         }
       };
     },
-    [call],
+    [call]
   );
 
   useEffect(() => {
@@ -64,7 +69,7 @@ export const usePermissionRequest = () => {
               text: 'Allow',
               onPress: handleUpdatePermission(event, true),
             },
-          ],
+          ]
         );
       });
     });

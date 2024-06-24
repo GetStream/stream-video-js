@@ -44,7 +44,7 @@ export const LivestreamScreenShareToggleButton = () => {
 
   const iosScreenShareStartedFromSystem = useIsIosScreenshareBroadcastStarted();
   const prevIosScreenShareStartedFromSystem = usePrevious(
-    iosScreenShareStartedFromSystem,
+    iosScreenShareStartedFromSystem
   );
 
   const localParticipant = useLocalParticipant();

@@ -28,7 +28,7 @@ export type NoiseCancellationAPI = {
    * A boolean providing information whether Noise Cancelling functionalities
    * are supported on this platform and for the current user.
    */
-  isSupported: boolean;
+  isSupported: boolean | undefined;
   /**
    * Provides information whether Noise Cancellation is active or not.
    */
@@ -76,10 +76,31 @@ export const NoiseCancellationProvider = (
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
+  const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<
+    boolean | undefined
+  >(undefined);
+
+  useEffect(() => {
+    const result = noiseCancellation.isSupported();
+
+    if (typeof result === 'boolean') {
+      setIsSupportedByBrowser(result);
+    } else {
+      result
+        .then((_isSupportedByBrowser) =>
+          setIsSupportedByBrowser(_isSupportedByBrowser),
+        )
+        .catch((err) =>
+          console.error(
+            `Can't determine if noise cancellation is supported`,
+            err,
+          ),
+        );
+    }
+  }, [noiseCancellation]);
+
   const isSupported =
-    hasCapability &&
-    noiseCancellationAllowed &&
-    noiseCancellation.isSupported();
+    isSupportedByBrowser && hasCapability && noiseCancellationAllowed;
 
   const [isEnabled, setIsEnabled] = useState(false);
   const deinit = useRef<Promise<void>>();

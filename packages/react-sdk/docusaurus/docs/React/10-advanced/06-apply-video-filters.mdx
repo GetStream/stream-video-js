@@ -42,7 +42,6 @@ export default function App() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <BackgroundFiltersProvider
-          isBlurringEnabled={true} // enables blurring
           backgroundFilter="blur" // initial filter
           backgroundImages={[
             'https://my-domain.com/bg/random-bg-1.jpg',
@@ -104,6 +103,10 @@ export const MyBackgroundFilterSettings = () => {
   );
 };
 ```
+
+:::note
+`applyBackgroundBlurFilter` also takes a more fine-grained numeric argument, that specifies the strength of the applied Gaussian blur filter: `applyBackgroundBlurFilter(5.1)`. Note that higher values make the filter more resource intensive.
+:::
 
 ## Audio Filters
 

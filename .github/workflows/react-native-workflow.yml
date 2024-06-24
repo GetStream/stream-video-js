@@ -20,11 +20,8 @@ env:
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'sample-apps/react-native/dogfood/**'
-      - '!**.md'
+    tags:
+      - '@stream-io/video-react-native-dogfood-*'
   pull_request:
     types:
       - opened
@@ -36,6 +33,7 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
+      - 'packages/video-filters-react-native/**'
       - '!**/docusaurus/**'
       - '!**.md'
   workflow_dispatch:

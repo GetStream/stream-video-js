@@ -17,7 +17,7 @@ jest.mock('@expo/config-plugins', () => {
     ...originalModule,
     withInfoPlist: jest.fn((config, callback) => {
       const updatedConfig: CustomExpoConfig = callback(
-        config as CustomExpoConfig,
+        config as CustomExpoConfig
       );
       return updatedConfig;
     }),
@@ -36,7 +36,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     const props: ConfigProps = {};
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
-      props,
+      props
     ) as CustomExpoConfig;
 
     expect(modifiedConfig?.modResults?.UIBackgroundModes).toEqual(['audio']);
@@ -53,7 +53,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     const props: ConfigProps = {};
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
-      props,
+      props
     ) as CustomExpoConfig;
 
     expect(modifiedConfig?.modResults?.UIBackgroundModes).toEqual(['audio']);
@@ -70,7 +70,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     const props: ConfigProps = {};
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
-      props,
+      props
     ) as CustomExpoConfig;
 
     expect(modifiedConfig.modResults.UIBackgroundModes).toEqual(['audio']);
@@ -89,7 +89,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     };
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
-      props,
+      props
     ) as CustomExpoConfig;
 
     expect(modifiedConfig.modResults.UIBackgroundModes).toEqual([
@@ -111,7 +111,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     };
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
-      props,
+      props
     ) as CustomExpoConfig;
 
     expect(modifiedConfig.modResults.UIBackgroundModes).toEqual([

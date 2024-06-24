@@ -7,7 +7,7 @@ const AUDIO_LEVEL_THRESHOLD = 0.2;
 export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});
   private pc2 = new RTCPeerConnection({});
-  private intervalId: NodeJS.Timer | undefined;
+  private intervalId: NodeJS.Timeout | undefined;
 
   /**
    * Starts the speech detection.

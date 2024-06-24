@@ -42,7 +42,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     if (mode !== 'host') {
       return;
     }
-    let intervalId: NodeJS.Timer;
+    let intervalId: NodeJS.Timeout;
 
     const handleLiveStarted = () => {
       intervalId = setInterval(() => {
@@ -63,7 +63,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
 
     const callLiveStartedUnsubscribe = call?.on(
       'call.live_started',
-      handleLiveStarted,
+      handleLiveStarted
     );
     const callUpdatedUnsubscribe = call?.on('call.updated', handleLiveEnded);
 
@@ -86,7 +86,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     if (mode !== 'viewer') {
       return;
     }
-    let intervalId: NodeJS.Timer;
+    let intervalId: NodeJS.Timeout;
     const handleLiveStarted = () => {
       intervalId = setInterval(() => {
         setDuration((d) => d + 1);

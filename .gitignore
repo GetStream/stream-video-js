@@ -27,8 +27,6 @@ coverage
 
 /**/docusaurus/shared
 
-lefthook.yml
-
 # Test files
 video-buddy-session.json
 video-buddy-log.txt

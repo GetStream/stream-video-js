@@ -29,7 +29,7 @@ import {
 
 type RingCallEvents = Extract<
   AllClientCallEvents,
-  'call.accepted' | 'call.rejected'
+  'call.accepted' | 'call.rejected' | 'call.missed'
 >;
 
 /**

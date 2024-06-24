@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
 import { signOut, useSession } from 'next-auth/react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { LanguageMenu } from './Settings/LanguageMenu';
@@ -11,12 +10,11 @@ import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 
 export const HomeButton = () => (
   <Link href="/" data-testid="home-button">
-    <Image
+    <img
       src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo.png`}
       alt="Stream logo"
-      priority={false}
       width={36}
-      height={24}
+      height={36}
     />
   </Link>
 );
@@ -59,23 +57,22 @@ export const UserInfo = () => {
   return <ToggleLogoutButton />;
 };
 
-const ToggleMenuButton = forwardRef<HTMLDivElement>(function ToggleMenuButton(
-  props,
-  ref,
-) {
-  const { data: theSession } = useSession();
-  if (!theSession || !theSession.user) return null;
-  return (
-    <div className="rd__user-session" ref={ref}>
-      <div className="rd__user-session__container">
-        <div className="rd__user-session__user">
-          <p className="rd__user-session__name">{theSession.user.name}</p>
-          <p className="rd__user-session__email">{theSession.user.email}</p>
+const ToggleMenuButton = forwardRef<HTMLDivElement>(
+  function ToggleMenuButton(props, ref) {
+    const { data: theSession } = useSession();
+    if (!theSession || !theSession.user) return null;
+    return (
+      <div className="rd__user-session" ref={ref}>
+        <div className="rd__user-session__container">
+          <div className="rd__user-session__user">
+            <p className="rd__user-session__name">{theSession.user.name}</p>
+            <p className="rd__user-session__email">{theSession.user.email}</p>
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 const ToggleLogoutButton = () => {
   return (

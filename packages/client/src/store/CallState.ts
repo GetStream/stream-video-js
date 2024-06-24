@@ -472,6 +472,7 @@ export class CallState {
         this.setCurrentValue(this.recordingSubject, false),
       'call.rejected': (e) => this.updateFromCallResponse(e.call),
       'call.ring': (e) => this.updateFromCallResponse(e.call),
+      'call.missed': (e) => this.updateFromCallResponse(e.call),
       'call.session_ended': (e) => this.updateFromCallResponse(e.call),
       'call.session_participant_joined':
         this.updateFromSessionParticipantJoined,

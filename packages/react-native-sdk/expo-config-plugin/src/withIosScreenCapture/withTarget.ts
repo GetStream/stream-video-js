@@ -24,7 +24,7 @@ const withTarget: ConfigPlugin<ConfigProps> = (configuration, props) => {
     const developmentTeamId = props?.appleTeamId;
     if (!developmentTeamId) {
       throw new Error(
-        'No appleTeamId was provided in the Expo config. Please provide one to create the screenshare broadcast extension',
+        'No appleTeamId was provided in the Expo config. Please provide one to create the screenshare broadcast extension'
       );
     }
 
@@ -41,7 +41,7 @@ const withTarget: ConfigPlugin<ConfigProps> = (configuration, props) => {
       .bundleIdentifier!}.appgroup`;
     const extensionRootPath = path.join(
       config.modRequest.platformProjectRoot,
-      'broadcast',
+      'broadcast'
     );
 
     addBroadcastEntitlementsFile({
@@ -73,7 +73,7 @@ const addBroadcastEntitlementsFile = ({
 }) => {
   const entitlementsPath = path.join(
     extensionRootPath,
-    'broadcast.entitlements',
+    'broadcast.entitlements'
   );
 
   const extensionEntitlements: InfoPlist = {
@@ -108,7 +108,7 @@ const addBroadcastSourceFiles = ({
   fs.mkdirSync(extensionRootPath, { recursive: true });
   fs.copyFileSync(
     path.join(__dirname, '..', '..', 'static', 'Atomic.swift'),
-    path.join(extensionRootPath, 'Atomic.swift'),
+    path.join(extensionRootPath, 'Atomic.swift')
   );
   fs.copyFileSync(
     path.join(
@@ -116,27 +116,27 @@ const addBroadcastSourceFiles = ({
       '..',
       '..',
       'static',
-      'DarwinNotificationCenter.swift',
+      'DarwinNotificationCenter.swift'
     ),
-    path.join(extensionRootPath, 'DarwinNotificationCenter.swift'),
+    path.join(extensionRootPath, 'DarwinNotificationCenter.swift')
   );
   fs.copyFileSync(
     path.join(__dirname, '..', '..', 'static', 'SampleUploader.swift'),
-    path.join(extensionRootPath, 'SampleUploader.swift'),
+    path.join(extensionRootPath, 'SampleUploader.swift')
   );
   fs.copyFileSync(
     path.join(__dirname, '..', '..', 'static', 'SocketConnection.swift'),
-    path.join(extensionRootPath, 'SocketConnection.swift'),
+    path.join(extensionRootPath, 'SocketConnection.swift')
   );
 
   // Update app group bundle id in SampleHandler code
   const code = fs.readFileSync(
     path.join(extensionRootPath, 'SampleHandler.swift'),
-    { encoding: 'utf-8' },
+    { encoding: 'utf-8' }
   );
   fs.writeFileSync(
     path.join(extensionRootPath, 'SampleHandler.swift'),
-    code.replace('group.com.example.broadcast.appgroup', appGroupIdentifier),
+    code.replace('group.com.example.broadcast.appgroup', appGroupIdentifier)
   );
 
   const targetUuid = proj.findTargetKey('broadcast');
@@ -156,7 +156,7 @@ const addBroadcastSourceFiles = ({
     {
       target: targetUuid,
     },
-    groupUuid,
+    groupUuid
   );
 
   proj.addSourceFile(
@@ -164,7 +164,7 @@ const addBroadcastSourceFiles = ({
     {
       target: targetUuid,
     },
-    groupUuid,
+    groupUuid
   );
 
   proj.addSourceFile(
@@ -172,7 +172,7 @@ const addBroadcastSourceFiles = ({
     {
       target: targetUuid,
     },
-    groupUuid,
+    groupUuid
   );
 
   proj.addSourceFile(
@@ -180,6 +180,6 @@ const addBroadcastSourceFiles = ({
     {
       target: targetUuid,
     },
-    groupUuid,
+    groupUuid
   );
 };

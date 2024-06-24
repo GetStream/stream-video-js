@@ -24,12 +24,12 @@ const withBroadcastExtensionHandler: ConfigPlugin = (configuration) => {
     (config) => {
       const extensionRootPath = path.join(
         config.modRequest.platformProjectRoot,
-        'broadcast',
+        'broadcast'
       );
       fs.mkdirSync(extensionRootPath, { recursive: true });
       fs.copyFileSync(
         path.join(__dirname, '..', '..', 'static', 'SampleHandler.swift'),
-        path.join(extensionRootPath, 'SampleHandler.swift'),
+        path.join(extensionRootPath, 'SampleHandler.swift')
       );
       return config;
     },
@@ -43,7 +43,7 @@ const withBroadcastExtensionPlist: ConfigPlugin = (configuration) => {
     (config) => {
       const extensionRootPath = path.join(
         config.modRequest.platformProjectRoot,
-        'broadcast',
+        'broadcast'
       );
       const extensionPlistPath = path.join(extensionRootPath, 'Info.plist');
 

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, getLogger } from '@stream-io/video-client';
 
 function setForegroundService() {
   if (Platform.OS !== 'android') {
@@ -11,7 +11,8 @@ function setForegroundService() {
   }
   notifee.registerForegroundService(() => {
     return new Promise(() => {
-      console.log('Foreground service running for call in progress');
+      const logger = getLogger(['setForegroundService method']);
+      logger('info', 'Foreground service running for call in progress');
     });
   });
 }
@@ -27,8 +28,10 @@ async function startForegroundService(call_cid: string) {
   // request for notification permission and then start the foreground service
   const settings = await notifee.getNotificationSettings();
   if (settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
-    console.warn(
-      'Notification permission not granted, can not start foreground service to keep the call alive',
+    const logger = getLogger(['startForegroundService']);
+    logger(
+      'info',
+      'Notification permission not granted, can not start foreground service to keep the call alive'
     );
     return;
   }
@@ -88,9 +91,20 @@ export const useAndroidKeepCallAliveEffect = () => {
         if (foregroundServiceStartedRef.current) {
           return;
         }
-        // request for notification permission and then start the foreground service
-        await startForegroundService(activeCallCid);
-        foregroundServiceStartedRef.current = true;
+        notifee.getDisplayedNotifications().then((displayedNotifications) => {
+          const activeCallNotification = displayedNotifications.find(
+            (notification) => notification.id === activeCallCid
+          );
+          if (activeCallNotification) {
+            // this means that we have a incoming call notification shown as foreground service and we must stop it
+            notifee.stopForegroundService();
+            notifee.cancelDisplayedNotification(activeCallCid);
+          }
+          // request for notification permission and then start the foreground service
+          startForegroundService(activeCallCid).then(() => {
+            foregroundServiceStartedRef.current = true;
+          });
+        });
       };
       run();
     } else if (callingState === CallingState.RINGING) {
@@ -110,7 +124,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       } else {
         notifee.getDisplayedNotifications().then((displayedNotifications) => {
           const activeCallNotification = displayedNotifications.find(
-            (notification) => notification.id === activeCallCid,
+            (notification) => notification.id === activeCallCid
           );
           if (activeCallNotification) {
             // this means that we have a incoming call notification shown as foreground service and we must stop it

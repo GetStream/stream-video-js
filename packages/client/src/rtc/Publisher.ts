@@ -36,6 +36,7 @@ export type PublisherConstructorOpts = {
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
   iceRestartDelay?: number;
+  onUnrecoverableError?: () => void;
 };
 
 /**
@@ -94,6 +95,7 @@ export class Publisher {
   private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
+  private readonly onUnrecoverableError?: () => void;
 
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
@@ -127,6 +129,7 @@ export class Publisher {
    * @param isDtxEnabled whether DTX is enabled.
    * @param isRedEnabled whether RED is enabled.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
+   * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
    */
   constructor({
     connectionConfig,
@@ -136,6 +139,7 @@ export class Publisher {
     isDtxEnabled,
     isRedEnabled,
     iceRestartDelay = 2500,
+    onUnrecoverableError,
   }: PublisherConstructorOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
@@ -143,11 +147,13 @@ export class Publisher {
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
     this.iceRestartDelay = iceRestartDelay;
+    this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
       this.restartIce().catch((err) => {
         logger('warn', `ICERestart failed`, err);
+        this.onUnrecoverableError?.();
       });
     });
   }
@@ -248,12 +254,12 @@ export class Publisher {
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution)
           : trackType === TrackType.SCREEN_SHARE
-          ? findOptimalScreenSharingLayers(
-              track,
-              opts.screenShareSettings,
-              screenShareBitrate,
-            )
-          : undefined;
+            ? findOptimalScreenSharingLayers(
+                track,
+                opts.screenShareSettings,
+                screenShareBitrate,
+              )
+            : undefined;
 
       let preferredCodec = opts.preferredCodec;
       if (!preferredCodec && trackType === TrackType.VIDEO) {
@@ -747,11 +753,11 @@ export class Publisher {
             trackType === TrackType.VIDEO
               ? findOptimalVideoLayers(track, targetResolution)
               : trackType === TrackType.SCREEN_SHARE
-              ? findOptimalScreenSharingLayers(
-                  track,
-                  publishOpts?.screenShareSettings,
-                )
-              : [];
+                ? findOptimalScreenSharingLayers(
+                    track,
+                    publishOpts?.screenShareSettings,
+                  )
+                : [];
           this.trackLayersCache[trackType] = optimalLayers;
         } else {
           // we report the last known optimal layers for ended tracks
@@ -813,14 +819,15 @@ export class Publisher {
       this.state.callingState !== CallingState.OFFLINE;
 
     if (state === 'failed') {
-      logger('warn', `Attempting to restart ICE`);
+      logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart error`, e);
+        this.onUnrecoverableError?.();
       });
     } else if (state === 'disconnected' && hasNetworkConnection) {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
-      logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
+      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
       this.iceRestartTimeout = setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime
@@ -830,6 +837,7 @@ export class Publisher {
         ) {
           this.restartIce().catch((e) => {
             logger('error', `ICE restart error`, e);
+            this.onUnrecoverableError?.();
           });
         } else {
           logger(
@@ -853,7 +861,7 @@ export class Publisher {
     return rid === 'q'
       ? VideoQuality.LOW_UNSPECIFIED
       : rid === 'h'
-      ? VideoQuality.MID
-      : VideoQuality.HIGH; // default to HIGH
+        ? VideoQuality.MID
+        : VideoQuality.HIGH; // default to HIGH
   };
 }

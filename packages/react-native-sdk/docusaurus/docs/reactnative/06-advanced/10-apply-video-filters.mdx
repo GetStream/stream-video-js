@@ -1,0 +1,362 @@
+---
+id: apply-video-filters
+title: Video filters
+description: How to add video filters
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+A very common use case during a video call is to apply some effect on our backgrounds. Those backgrounds can vary but the most common ones are blurring and adding a static image. Our SDK offers background blurring and virtual backgrounds with static images out of the box and also has support for injecting your custom filter into the calling experience. In this guide, we will show you how to apply video filters to a video stream. 
+
+## Using the background video filters provided by the SDK
+
+### Step 1 - Install the video filters library
+
+To enable background filters in your app. You must first add the `@stream-io/video-filters-react-native` library.
+
+```bash title=Terminal
+yarn add @stream-io/video-filters-react-native
+```
+
+This library adds the required native module for processing the video stream and manipulating it with your desired video filter.
+
+:::note IMPORTANT
+For iOS, the library is written in Swift. In order for Xcode to build the app when you use the library, your main app project must contain Swift code and a [bridging header](https://developer.apple.com/documentation/swift/importing-objective-c-into-swift) file. If your app project does not contain any Swift code yet, a simple workaround is to add a single empty `.swift` file and an empty bridging header.
+:::
+
+### Step 2 - Wrap under Provider component
+
+Background filters are provided through the following APIs and components:
+
+- `<BackgroundFiltersProvider />` - a React context provider that will allow you to use the filters API in your application.
+- `useBackgroundFilters()` - a React hook that will allow you to access the filters API in your application
+
+A basic integration looks like this:
+
+```tsx
+import {
+  BackgroundFiltersProvider,
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+
+export default function App() {
+  let client: StreamVideoClient; /* = ... */
+  let call: Call; /* = ... */
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <BackgroundFiltersProvider>
+          <MyCallContent />
+          <MyBackgroundFilterUI /> {/* your UI to enable or disable filters, for example a modal dialog */}
+        </BackgroundFiltersProvider>
+      </StreamCall>
+    </StreamVideo>
+  );
+}
+```
+
+The `BackgroundFiltersProvider` holds the state of the background filters in the app. It must be wrapped under the `StreamCall` component so that the media stream of the call can be accessed.
+
+### Step 2 - Use the hook to control the filters
+
+Once you have the `BackgroundFiltersProvider` rendered in your application,
+you can use the `useBackgroundFilters()` hook to access the filters API and control the behavior of the filters.
+
+:::caution
+In iOS, the background video filters are supported only on iOS 15 and above.
+However, the iOS platform's minimum level of support for the custom filters that you may add depends on what APIs you would use.
+:::
+
+```tsx
+import { useBackgroundFilters } from '@stream-io/video-react-native-sdk';
+
+export const MyBackgroundFilterUI = () => {
+  const {
+    isSupported, // checks if these filters can run on this device
+    disableAllFilter // disables all the video filters
+    applyBackgroundBlurFilter, // applies the blur filter
+    applyBackgroundImageFilter, // applies the image filter
+    currentBackgroundFilter, // the currently applied filter
+  } = useBackgroundFilters();
+
+  if (!isSupported) {
+    return null;
+  }
+
+  return (
+    <SafeAreaView>
+      <Button onPress={disableBackgroundFilter} title="Disable"/>
+      <Button onPress={() => applyBackgroundBlurFilter('heavy')} title="Blur Heavy"/>
+      <Button onPress={() => applyBackgroundBlurFilter('medium')} title="Blur Medium">
+      <Button onPress={() => applyBackgroundBlurFilter('light')} title="Blur Light"/>
+      <Button onPress={() => applyBackgroundImageFilter(require('path/to/image/amsterdam.png'))} title="Amsterdam Local Image Background"/>
+      <Button onPress={() => applyBackgroundImageFilter({uri: 'https://upload.wikimedia.org/wikipedia/commons/1/18/React_Native_Logo.png'})} title="React Native Remote Image Background"/>
+    </SafeAreaView>
+  );
+};
+```
+
+| Preview of background blur filter  | Preview of background image replacement filter  |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| ![Preview of the background blur filter](../assets/06-advanced/10-apply-video-filters/preview-blur-filter.png) | ![Preview of background image replacement filter](../assets/06-advanced/10-apply-video-filters/preview-image-filter.png) |
+
+## Advanced: adding custom video filters
+
+### Step 1 - Add your custom filter natively in Android and iOS
+
+:::note
+For Expo, make sure to create a new [Expo local module](https://docs.expo.dev/modules/get-started/#adding-a-new-module-to-an-existing-application) first if you do not have any existing module set up already.
+:::
+
+<Tabs groupId="current-os" queryString>
+  <TabItem value="android" label="Android">
+
+To create a new video filter, you need to implement the `VideoFrameProcessorFactoryInterface` from `@stream-io/react-native-webrtc`. A simple example that applies rotation to the video filter would be like the following: 
+
+```kotlin title="RotationFilterFactory.kt"
+import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor
+import com.oney.WebRTCModule.videoEffects.VideoFrameProcessorFactoryInterface
+import org.webrtc.VideoFrame
+
+class RotationFilterFactory : VideoFrameProcessorFactoryInterface {
+    override fun build(): VideoFrameProcessor {
+        return VideoFrameProcessor { frame, textureHelper ->
+            VideoFrame(
+                frame.buffer.toI420(),
+                180, // apply rotation to the video frame
+                frame.timestampNs
+            )
+        }
+    }
+}
+```
+
+For the easiness of processing video frames in [`Bitmap`](https://developer.android.com/reference/android/graphics/Bitmap), we export a `VideoFrameProcessorWithBitmapFilter` class from the `@stream-io/video-filters-react-native` library. The built-in background filters of the library have been implemented using this class. To implement a video filter with `Bitmap`, create a class by extending a filter that extends from `BitmapVideoFilter` abstract class. This `BitmapVideoFilter` abstract class gives you a `Bitmap` for each video frame, which you can manipulate directly. By returning a new `VideoFrameProcessorWithBitmapFilter` instance with that filter we can implement a bitmap processing filter.
+
+:::note
+`BitmapVideoFilter` is less performant than a normal video filter that does not use bitmaps. It is due to the overhead of certain operations, like *YUV <-> ARGB* conversions.
+:::
+
+#### Example: grayscale video filter
+​
+We can create and set a simple video filter that turns the video frame to grayscale by extending a filter that extends from `BitmapVideoFilter` abstract class like this:
+
+```kotlin title="GrayScaleVideoFilterFactory.kt"
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor
+import com.oney.WebRTCModule.videoEffects.VideoFrameProcessorFactoryInterface
+import com.streamio.videofiltersreactnative.common.BitmapVideoFilter
+import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
+
+class GrayScaleVideoFilterFactory : VideoFrameProcessorFactoryInterface {
+  override fun build(): VideoFrameProcessor {
+    return VideoFrameProcessorWithBitmapFilter {
+      GrayScaleFilter()
+    }
+  }
+}
+private class GrayScaleFilter : BitmapVideoFilter() {
+    override fun applyFilter(videoFrameBitmap: Bitmap) {
+        val canvas = Canvas(videoFrameBitmap)
+        val paint = Paint().apply {
+            val colorMatrix = ColorMatrix().apply {
+                // map the saturation of the color to grayscale
+                setSaturation(0f)
+            }
+            colorFilter = ColorMatrixColorFilter(colorMatrix)
+        }
+        canvas.drawBitmap(videoFrameBitmap, 0f, 0f, paint)
+    }
+}
+```
+  </TabItem>
+  <TabItem value="ios" label="iOS">
+
+To add a new video filter, you need to specify an object that conforms to the `VideoFrameProcessorDelegate` protocol from the `@stream-io/video-filters-react-native` library and inherits from the `NSObject` class.
+
+For the easiness of processing video frames in [`CIImage`](https://developer.apple.com/documentation/coreimage/ciimage), copy this [VideoFilters.swift](https://github.com/GetStream/stream-video-js/blob/main/packages/video-filters-react-native/ios/VideoFrameProcessors/Utils/VideoFilters.swift) file into your app. How does this class work? If you implement the filter using the `VideoFilter` class, you will receive each frame of the user's local video as `CIImage`, allowing you to apply the filters. The `VideoFilter` class allows you to easily create your own filters. It contains the function that converts the original `CIImage` to an output `CIImage`. This way you have complete freedom over the processing pipeline. Instead, if you would need to access the raw video frame you can look into the implementation of `VideoFilter` class and adapt it to your own filter.
+
+Additionally, you will need to import the necessary headers in the [bridging header](https://developer.apple.com/documentation/swift/importing-objective-c-into-swift) file. This header file is to expose the Objective-C files to Swift. If it is the first Swift file that you add to your app, Xcode will automatically offer to create a bridging header file. Your bridging header file should minimally have the two following header imports:
+
+```objectivec title="MyApp-Bridging-Header.h"
+#import <React/RCTBridgeModule.h>
+#import "ProcessorProvider.h"
+```
+
+#### Example: grayscale video filter
+
+We can create and set a simple video filter that turns the video frame to grayscale by extending a filter class that extends from `VideoFilter` class like this:
+
+```swift title="GrayScaleVideoFrameProcessor.swift"
+import Foundation
+
+final class GrayScaleVideoFrameProcessor: VideoFilter {
+    @available(*, unavailable)
+    override public init(
+        filter: @escaping (Input) -> CIImage
+    ) { fatalError() }
+    
+    init() {
+        super.init(
+            filter: { input in
+                let filter = CIFilter(name: "CIPhotoEffectMono")
+                filter?.setValue(input.originalImage, forKey: kCIInputImageKey)
+                
+                let outputImage: CIImage = filter?.outputImage ?? input.originalImage
+                return outputImage
+            }
+        )
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+### Step 2 - Register this filter in your native module 
+
+Now you have to add a method in your app to register this video filter to the `@stream-io/video-filters-react-native` library.
+
+<Tabs groupId="current-os" queryString>
+  <TabItem value="android" label="Android">
+
+<!-- vale off -->
+Follow the official React Native documentation to create a new [Android native module](https://reactnative.dev/docs/native-modules-android) if there is no native module in your app already. In that native module, add a method to add the filter to the `ProcessorProvider` from the `@stream-io/video-filters-react-native` library. For example:
+<!-- vale on -->
+
+```kotlin title="VideoEffectsModule.kt"
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.oney.WebRTCModule.videoEffects.ProcessorProvider
+import io.getstream.rnvideosample.videofilters.GrayScaleVideoFilterFactory
+
+class VideoEffectsModule (reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+    override fun getName(): String {
+        return NAME;
+    }
+
+    @ReactMethod
+    fun registerVideoFilters(promise: Promise) {
+        ProcessorProvider.addProcessor("grayscale", GrayScaleVideoFilterFactory())
+        promise.resolve(true)
+    }
+
+    companion object {
+        private const val NAME = "VideoEffectsModule"
+    }
+}
+```
+  </TabItem>
+  <TabItem value="ios" label="iOS">
+
+
+In this step, we add a method to our [iOS native module](https://reactnative.dev/docs/native-modules-ios) in Swift. If there is no native module in your app already, add a new one. In that native module, add a method to add the filter to the `ProcessorProvider` from the `@stream-io/video-filters-react-native` library. For example:
+
+```swift title="VideoEffectsModule.swift"
+@objc(VideoEffectsModule)
+class VideoEffectsModule: NSObject {
+  
+  @objc(registerVideoFilters:withRejecter:)
+  func registerVideoFilters(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    ProcessorProvider.addProcessor(GrayScaleVideoFrameProcessor(), forName: "grayscale")
+    resolve(true)
+  }
+  
+}
+```
+:::caution
+It is important to use the `@objc` modifiers to ensure the class and functions are exported properly to the Objective-C runtime.
+:::
+
+Then create a private implementation file that will register the required information with React Native:
+
+```objectivec title="VideoEffectsModule.mm"
+#import <React/RCTBridgeModule.h>
+
+@interface RCT_EXTERN_MODULE(VideoEffectsModule, NSObject)
+
+RCT_EXTERN_METHOD(registerVideoFilters:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+@end
+```
+
+  </TabItem>
+</Tabs>
+
+:::info NOTE
+While calling the `addProcessor` method. We need to provide a name to the filter that we are registering. In the above example, it is `grayscale`. This name is to be later called in JavaScript.
+:::
+
+### Step 3 - Apply the video filter in JavaScript
+
+To apply this video filter. You have to call the method `mediaStreamTrack._setVideoEffect(name)`. To disable the filters you have to call the method `mediaStreamTrack._setVideoEffect(null)` or you can call the `disableAllFilter` method from the `useBackgroundFilters()` hook. Below is a small example of a hook that can be used to apply the grayscale video filter that we created. Note that the media stream is present inside the `Call` instance returned from the `useCall` hook.
+
+```ts
+import {
+  useBackgroundFilters,
+  useCall,
+} from '@stream-io/video-react-native-sdk';
+import { useRef, useCallback, useState } from 'react';
+
+import { MediaStream } from '@stream-io/react-native-webrtc';
+
+import { NativeModules, Platform } from 'react-native';
+
+type CustomFilters = 'GrayScale' | 'MyOtherCustomFilter';
+
+export const useCustomVideoFilters = () => {
+  const call = useCall();
+  const isFiltersRegisteredRef = useRef(false);
+  const { disableAllFilters } = useBackgroundFilters();
+  const [currentCustomFilter, setCustomFilter] = useState<CustomFilters>();
+
+  const applyGrayScaleFilter = useCallback(async () => {
+    if (!isFiltersRegisteredRef.current) {
+      // registering is needed only once per the app's lifetime
+      await NativeModules.VideoEffectsModule?.registerVideoFilters();
+      isFiltersRegisteredRef.current = true;
+    }
+    disableAllFilters(); // disable any other filter
+    (call?.camera.state.mediaStream as MediaStream | undefined)
+      ?.getVideoTracks()
+      .forEach((track) => {
+        track._setVideoEffect('grayscale'); // set the grayscale filter
+      });
+    setCustomFilter('GrayScale');
+  }, [call, disableAllFilters]);
+
+  const disableCustomFilter = useCallback(() => {
+    disableAllFilters();
+    setCustomFilter(undefined);
+  }, [disableAllFilters]);
+
+  return {
+    currentCustomFilter,
+    applyGrayScaleFilter,
+    disableCustomFilter,
+  };
+};
+```
+
+Below is a preview of the above grayscale video filter:
+![Preview of the grayscale video filter](../assets/06-advanced/10-apply-video-filters/preview-grayscale-filter.png)
+
+:::info NOTE
+When using a custom filter along with the built-in background filters, always call the `disableAllFilter` method from the `useBackgroundFilters()` hook so that the state inside the hook is informed if the built-in filters have been disabled.
+:::

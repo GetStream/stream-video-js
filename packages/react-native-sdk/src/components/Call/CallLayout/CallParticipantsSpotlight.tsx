@@ -101,7 +101,7 @@ export const CallParticipantsSpotlight = ({
     >
       {participantInSpotlight &&
         ParticipantView &&
-        (ScreenShareOverlay ? (
+        (participantInSpotlight.isLocalParticipant && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <ParticipantView

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.7.15",
+  "version": "0.8.6",
   "packageManager": "yarn@3.2.4",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
@@ -12,6 +12,7 @@
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist && rimraf expo-config-plugin/dist",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "start": "yarn copy-version && tsc --project tsconfig.json --watch",
     "build:expo-plugin": "rimraf expo-config-plugin/dist && tsc --project expo-config-plugin/tsconfig.json",
     "build": "yarn clean && yarn copy-version && bob build && yarn build:expo-plugin",
@@ -58,7 +59,8 @@
     "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
-    "@stream-io/react-native-webrtc": "^118.0.1",
+    "@stream-io/react-native-webrtc": "^118.1.0",
+    "@stream-io/video-filters-react-native": ">=0.1.0",
     "expo": ">=47.0.0",
     "expo-build-properties": "*",
     "expo-notifications": "*",
@@ -80,6 +82,9 @@
       "optional": true
     },
     "@react-native-firebase/messaging": {
+      "optional": true
+    },
+    "@stream-io/video-filters-react-native": {
       "optional": true
     },
     "expo": {
@@ -108,43 +113,47 @@
     }
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.21.5",
-    "@expo/config-plugins": "~7.8.0",
+    "@babel/preset-typescript": "^7.24.7",
+    "@expo/config-plugins": "~7.8.4",
     "@notifee/react-native": "7.8.0",
-    "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-community/netinfo": "9.3.9",
     "@react-native-community/push-notification-ios": "1.11.0",
     "@react-native-firebase/app": "17.5.0",
     "@react-native-firebase/messaging": "17.5.0",
-    "@stream-io/react-native-webrtc": "118.0.1",
+    "@react-native/eslint-config": "^0.74.84",
+    "@stream-io/react-native-webrtc": "118.1.0",
+    "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",
     "@tsconfig/node14": "14.1.0",
     "@types/jest": "^29.5.1",
     "@types/lodash.merge": "^4",
-    "@types/react": "^18.3.2",
+    "@types/react": "^18.2.44",
     "@types/react-native": "^0.70.4",
     "@types/react-native-incall-manager": "^3.2.1",
     "@types/react-test-renderer": "^18",
-    "expo": "49.0.13",
-    "expo-build-properties": "^0.5.1",
-    "expo-modules-core": "1.5.11",
-    "expo-notifications": "0.20.1",
-    "expo-task-manager": "11.3.0",
-    "jest": "^29.5.0",
+    "expo": "50.0.19",
+    "expo-build-properties": "^0.12.3",
+    "expo-modules-core": "1.12.16",
+    "expo-notifications": "0.28.9",
+    "expo-task-manager": "11.8.2",
+    "jest": "^29.7.0",
     "react-native": "0.71.8",
-    "react-native-builder-bob": "^0.21.3",
+    "react-native-builder-bob": "^0.23.2",
     "react-native-callkeep": "4.3.11",
-    "react-native-gesture-handler": "2.8.0",
+    "react-native-gesture-handler": "2.16.2",
     "react-native-incall-manager": "^4.0.0",
     "react-native-reanimated": "2.7.0",
     "react-native-svg": "^13.6.0",
     "react-native-voip-push-notification": "3.3.1",
     "react-test-renderer": "^18.2.0",
-    "rimraf": "^5.0.5",
-    "ts-jest": "^29.1.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.4.3"
+    "rimraf": "^5.0.7",
+    "ts-jest": "^29.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2"
+  },
+  "resolutions": {
+    "@types/react": "^18.2.44"
   },
   "react-native-builder-bob": {
     "source": "src",

@@ -120,7 +120,9 @@ export class StreamVideoClient {
       const user = apiKeyOrArgs.user;
       const token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
       if (user) {
-        this.connectUser(user, token);
+        this.connectUser(user, token).catch((err) => {
+          this.logger('error', 'Failed to connect', err);
+        });
       }
     }
   }

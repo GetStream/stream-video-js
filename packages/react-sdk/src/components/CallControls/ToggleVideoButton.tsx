@@ -31,6 +31,7 @@ export const ToggleVideoPreviewButton = (
     caption,
     Menu = DeviceSelectorVideo,
     menuPlacement = 'top',
+    onMenuToggle,
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
@@ -64,8 +65,11 @@ export const ToggleVideoPreviewButton = (
         disabled={!hasBrowserPermission}
         Menu={Menu}
         menuPlacement={menuPlacement}
-        onMenuToggle={(shown) => setTooltipDisabled(shown)}
         {...restCompositeButtonProps}
+        onMenuToggle={(shown) => {
+          setTooltipDisabled(shown);
+          onMenuToggle?.(shown);
+        }}
       >
         <Icon icon={!optimisticIsMute ? 'camera' : 'camera-off'} />
         {!hasBrowserPermission && (
@@ -95,6 +99,7 @@ export const ToggleVideoPublishingButton = (
     caption,
     Menu = <DeviceSelectorVideo visualType="list" />,
     menuPlacement = 'top',
+    onMenuToggle,
     ...restCompositeButtonProps
   } = props;
 
@@ -130,10 +135,10 @@ export const ToggleVideoPublishingButton = (
             !hasPermission
               ? t('You have no permission to share your video')
               : !hasBrowserPermission
-              ? t('Check your browser video permissions')
-              : !isPublishingVideoAllowed
-              ? t('Video publishing is disabled by the system')
-              : caption || t('Video')
+                ? t('Check your browser video permissions')
+                : !isPublishingVideoAllowed
+                  ? t('Video publishing is disabled by the system')
+                  : caption || t('Video')
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -153,8 +158,11 @@ export const ToggleVideoPublishingButton = (
             Menu={Menu}
             menuPlacement={menuPlacement}
             menuOffset={16}
-            onMenuToggle={(shown) => setTooltipDisabled(shown)}
             {...restCompositeButtonProps}
+            onMenuToggle={(shown) => {
+              setTooltipDisabled(shown);
+              onMenuToggle?.(shown);
+            }}
           >
             <Icon icon={optimisticIsMute ? 'camera-off' : 'camera'} />
             {(!hasBrowserPermission ||

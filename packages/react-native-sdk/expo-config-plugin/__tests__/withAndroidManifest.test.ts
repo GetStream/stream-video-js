@@ -17,7 +17,7 @@ jest.mock('@expo/config-plugins', () => {
     ...originalModule,
     withAndroidManifest: jest.fn((config, callback) => {
       const updatedConfig: CustomExpoConfig = callback(
-        config as CustomExpoConfig,
+        config as CustomExpoConfig
       );
       return updatedConfig;
     }),
@@ -53,7 +53,7 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
 
     const updatedConfig = withStreamVideoReactNativeSDKManifest(
       config,
-      props,
+      props
     ) as CustomExpoConfig;
 
     const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
@@ -61,14 +61,14 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
     expect(
       mainApp.service?.some(
         (service) =>
-          service.$['android:name'] === 'app.notifee.core.ForegroundService',
-      ),
+          service.$['android:name'] === 'app.notifee.core.ForegroundService'
+      )
     ).toBeTruthy();
 
     const mainActivity = getMainActivityOrThrow(updatedConfig.modResults);
 
     expect(
-      mainActivity.$['android:supportsPictureInPicture'] === 'true',
+      mainActivity.$['android:supportsPictureInPicture'] === 'true'
     ).toBeTruthy();
 
     modifiedConfig = updatedConfig;
@@ -85,13 +85,13 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
 
     const updatedConfig2 = withStreamVideoReactNativeSDKManifest(
       config2,
-      props2,
+      props2
     ) as CustomExpoConfig;
 
     const mainActivity2 = getMainActivityOrThrow(updatedConfig2.modResults);
 
     expect(
-      mainActivity2.$['android:supportsPictureInPicture'] === 'true',
+      mainActivity2.$['android:supportsPictureInPicture'] === 'true'
     ).toBeFalsy();
   });
 
@@ -100,7 +100,7 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
 
     const updatedConfig = withStreamVideoReactNativeSDKManifest(
       modifiedConfig!,
-      props,
+      props
     ) as CustomExpoConfig;
 
     const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
@@ -108,8 +108,8 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
     expect(
       mainApp.service?.filter(
         (service) =>
-          service.$['android:name'] === 'app.notifee.core.ForegroundService',
-      ).length,
+          service.$['android:name'] === 'app.notifee.core.ForegroundService'
+      ).length
     ).toBe(1);
 
     modifiedConfig = updatedConfig;
@@ -126,7 +126,7 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
       },
     };
     expect(() =>
-      withStreamVideoReactNativeSDKManifest(config, props),
+      withStreamVideoReactNativeSDKManifest(config, props)
     ).toThrow();
   });
 });

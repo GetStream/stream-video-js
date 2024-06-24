@@ -1,5 +1,17 @@
 module.exports = {
   root: true,
-  extends: '@react-native-community',
-  ignorePatterns: ['node_modules'],
+  extends: ['@react-native', 'prettier'],
+  rules: {
+    'prettier/prettier': [
+      'error',
+      {
+        quoteProps: 'consistent',
+        singleQuote: true,
+        tabWidth: 2,
+        trailingComma: 'es5',
+        useTabs: false,
+      },
+    ],
+  },
+  ignorePatterns: ['node_modules', 'dist/', 'coverage/'],
 };

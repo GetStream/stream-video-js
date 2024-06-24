@@ -4,7 +4,12 @@ import notifee, {
   AndroidCategory,
 } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
+import {
+  Call,
+  RxUtils,
+  StreamVideoClient,
+  getLogger,
+} from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
@@ -49,10 +54,10 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
       // handles on app killed state in expo, expo-notifications cannot handle that
       messaging().setBackgroundMessageHandler(
         async (msg) =>
-          await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+          await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
       );
       messaging().onMessage((msg) =>
-        firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+        firebaseMessagingOnMessageHandler(msg.data, pushConfig)
       ); // this is to listen to foreground messages, which we dont need for now
     } else {
       const Notifications = getExpoNotificationsLib();
@@ -69,7 +74,7 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
           // @ts-ignore
           const dataToProcess = data.notification?.data;
           firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
-        },
+        }
       );
       // background handler (does not handle on app killed state)
       Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
@@ -101,10 +106,10 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     const messaging = getFirebaseMessagingLib();
     messaging().setBackgroundMessageHandler(
       async (msg) =>
-        await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+        await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
     );
     messaging().onMessage((msg) =>
-      firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+      firebaseMessagingOnMessageHandler(msg.data, pushConfig)
     ); // this is to listen to foreground messages, which we dont need for now
   }
 
@@ -121,7 +126,7 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
 export async function initAndroidPushToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
-  setUnsubscribeListener: (unsubscribe: () => void) => void,
+  setUnsubscribeListener: (unsubscribe: () => void) => void
 ) {
   if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
     return;
@@ -129,9 +134,10 @@ export async function initAndroidPushToken(
   const setDeviceToken = async (token: string) => {
     setPushLogoutCallback(async () => {
       try {
-        client.removeDevice(token);
+        await client.removeDevice(token);
       } catch (err) {
-        console.warn('Failed to remove firebase token from stream', err);
+        const logger = getLogger(['initAndroidPushToken']);
+        logger('warn', 'Failed to remove firebase token from stream', err);
       }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
@@ -142,7 +148,7 @@ export async function initAndroidPushToken(
     const subscription = expoNotificationsLib.addPushTokenListener(
       (devicePushToken) => {
         setDeviceToken(devicePushToken.data);
-      },
+      }
     );
     setUnsubscribeListener(() => subscription.remove());
     const devicePushToken =
@@ -152,7 +158,7 @@ export async function initAndroidPushToken(
   } else {
     const messaging = getFirebaseMessagingLib();
     const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
-      setDeviceToken(refreshedToken),
+      setDeviceToken(refreshedToken)
     );
     setUnsubscribeListener(unsubscribe);
     const token = await messaging().getToken();
@@ -162,7 +168,7 @@ export async function initAndroidPushToken(
 
 const firebaseMessagingOnMessageHandler = async (
   data: FirebaseMessagingTypes.RemoteMessage['data'],
-  pushConfig: PushConfig,
+  pushConfig: PushConfig
 ) => {
   /* Example data from firebase
     "message": {
@@ -192,7 +198,7 @@ const firebaseMessagingOnMessageHandler = async (
       const { mustEndCall } = shouldCallBeEnded(
         callToCheck,
         created_by_id,
-        receiver_id,
+        receiver_id
       );
       return mustEndCall;
     }
@@ -236,11 +242,17 @@ const firebaseMessagingOnMessageHandler = async (
     const incomingCallNotificationTextGetters =
       pushConfig.android.incomingCallNotificationTextGetters;
     if (!incomingCallChannel || !incomingCallNotificationTextGetters) {
-      console.debug(
-        "Can't show incoming call notification as either or both incomingCallChannel and was not provided",
+      const logger = getLogger(['firebaseMessagingOnMessageHandler']);
+      logger(
+        'info',
+        "Can't show incoming call notification as either or both incomingCallChannel and incomingCallNotificationTextGetters were not provided"
       );
       return;
     }
+    /*
+     * Sound has to be set on channel level for android 8 and above and cant be updated later after creation!
+     * For android 7 and below, sound should be set on notification level
+     */
     // set default ringtone if not provided
     if (!incomingCallChannel.sound) {
       incomingCallChannel.sound = await getAndroidDefaultRingtoneUrl();
@@ -309,8 +321,10 @@ const firebaseMessagingOnMessageHandler = async (
     const callNotificationTextGetters =
       pushConfig.android.callNotificationTextGetters;
     if (!callChannel || !callNotificationTextGetters) {
-      console.debug(
-        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
+      const logger = getLogger(['firebaseMessagingOnMessageHandler']);
+      logger(
+        'info',
+        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided"
       );
       return;
     }
@@ -343,7 +357,7 @@ const firebaseMessagingOnMessageHandler = async (
 const onNotifeeEvent = async (
   event: Event,
   pushConfig: PushConfig,
-  isBackground: boolean,
+  isBackground: boolean
 ) => {
   const { type, detail } = event;
   const { notification, pressAction } = detail;
@@ -402,7 +416,7 @@ const onNotifeeEvent = async (
       pushTappedIncomingCallCId$.next(call_cid);
       pushConfig.onTapNonRingingCallNotification?.(
         call_cid,
-        data.type as NonRingingPushEvent,
+        data.type as NonRingingPushEvent
       );
     }
   }

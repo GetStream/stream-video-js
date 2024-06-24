@@ -9,12 +9,13 @@ import android.os.Build
 import android.os.Process
 import android.util.Rational
 import androidx.annotation.RequiresApi
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import com.facebook.react.bridge.Promise;
 import com.streamvideo.reactnative.util.RingtoneUtil
+
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -22,15 +23,12 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         return NAME;
     }
 
-    private var isInPictureInPictureMode = false
-
     override fun initialize() {
         super.initialize()
         StreamVideoReactNative.pipListeners.add { isInPictureInPictureMode ->
             reactApplicationContext.getJSModule(
                 RCTDeviceEventEmitter::class.java
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
-            this.isInPictureInPictureMode = isInPictureInPictureMode
         }
     }
 
@@ -47,7 +45,9 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     @ReactMethod
     fun isInPiPMode(promise: Promise) {
-        promise.resolve(isInPictureInPictureMode);
+        val inPictureInPictureMode: Boolean? =
+            reactApplicationContext.currentActivity?.isInPictureInPictureMode
+        promise.resolve(inPictureInPictureMode)
     }
 
     @ReactMethod

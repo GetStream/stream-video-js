@@ -2,6 +2,76 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.1...@stream-io/video-client-1.4.2) (2024-06-24)
+
+
+### Bug Fixes
+
+* support for portrait mode recording ([#1418](https://github.com/GetStream/stream-video-js/issues/1418)) ([70a304d](https://github.com/GetStream/stream-video-js/commit/70a304d3f20d93ecfffc97794e8e4974acf88e9a))
+
+### [1.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.0...@stream-io/video-client-1.4.1) (2024-06-19)
+
+
+### Bug Fixes
+
+* perform full reconnect if ice restart fails ([#1408](https://github.com/GetStream/stream-video-js/issues/1408)) ([641df7e](https://github.com/GetStream/stream-video-js/commit/641df7e50522452171498a9cf3de893472fe7b7b))
+
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.3.1...@stream-io/video-client-1.4.0) (2024-06-19)
+
+
+### Features
+
+* **client:** support join_ahead_time_seconds field in the BackstageSettingsRequest struct ([#1397](https://github.com/GetStream/stream-video-js/issues/1397)) ([ded7a23](https://github.com/GetStream/stream-video-js/commit/ded7a23b1d112b496821bee95fe073f57bd51783))
+
+### [1.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.3.0...@stream-io/video-client-1.3.1) (2024-06-12)
+
+
+### Bug Fixes
+
+* add concurrency helpers ([#1392](https://github.com/GetStream/stream-video-js/issues/1392)) ([b87068e](https://github.com/GetStream/stream-video-js/commit/b87068e14d40253a42d0383a4015c52be8f9c03b))
+
+## [1.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.3...@stream-io/video-client-1.3.0) (2024-06-07)
+
+
+### Features
+
+* improve `isSupported` method for noise cancellation ([#1388](https://github.com/GetStream/stream-video-js/issues/1388)) ([07031ba](https://github.com/GetStream/stream-video-js/commit/07031ba72443a84cac8856c7481f3d4053b46d4c))
+
+### [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.2...@stream-io/video-client-1.2.3) (2024-06-05)
+
+
+### Bug Fixes
+
+* catch error for user connect in constructor ([#1390](https://github.com/GetStream/stream-video-js/issues/1390)) ([9a69853](https://github.com/GetStream/stream-video-js/commit/9a69853bac33f70d62224e30a3df5e5383173940))
+
+### [1.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.1...@stream-io/video-client-1.2.2) (2024-06-04)
+
+
+### Bug Fixes
+
+* align with the latest openapi ([#1384](https://github.com/GetStream/stream-video-js/issues/1384)) ([7c37e83](https://github.com/GetStream/stream-video-js/commit/7c37e8363ffc7e17e59de8357a2ed769e074bd8d))
+
+### [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.2.0...@stream-io/video-client-1.2.1) (2024-06-04)
+
+
+### Bug Fixes
+
+* join doesn't work on chrome 86 ([#1386](https://github.com/GetStream/stream-video-js/issues/1386)) ([7b462da](https://github.com/GetStream/stream-video-js/commit/7b462da8131e086f224c0590221d549a38ba419c))
+
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.1.0...@stream-io/video-client-1.2.0) (2024-06-03)
+
+
+### Features
+
+* **client:** support reject reason ([#1369](https://github.com/GetStream/stream-video-js/issues/1369)) ([decfc10](https://github.com/GetStream/stream-video-js/commit/decfc105c68867977c8a9a6484475b805583b446))
+
+## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.10...@stream-io/video-client-1.1.0) (2024-06-03)
+
+
+### Features
+
+* video filters on android ([#1382](https://github.com/GetStream/stream-video-js/issues/1382)) ([7ba8b0e](https://github.com/GetStream/stream-video-js/commit/7ba8b0e3b444869d38aae1a045dffb05444643f5))
+
 ### [1.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.0.9...@stream-io/video-client-1.0.10) (2024-05-31)
 
 

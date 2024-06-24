@@ -56,7 +56,7 @@ export const ParticipantReaction = ({
     reaction &&
     supportedReactions.find(
       (supportedReaction) =>
-        supportedReaction.emoji_code === reaction.emoji_code,
+        supportedReaction.emoji_code === reaction.emoji_code
     );
 
   return (
