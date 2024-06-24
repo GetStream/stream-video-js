@@ -210,6 +210,7 @@ import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
 const client = new StreamVideoClient({
   apiKey: 'REPLACE_WITH_API_KEY',
   user: {
+    /* one of the test users */
     id: 'bill',
     name: 'Buffalo Bill',
   },
@@ -397,11 +398,11 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { Button } from 'react-native';
 
-type Props = {
-  durationSecsToExtend: number
-}
-
-const ExtendSessionButton = ({ durationSecsToExtend }: Props) => {
+const ExtendSessionButton = ({
+  durationSecsToExtend,
+}: {
+  durationSecsToExtend: number;
+}) => {
   const call = useCall();
   const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
@@ -412,35 +413,34 @@ const ExtendSessionButton = ({ durationSecsToExtend }: Props) => {
   }
 
   const onPress = () => {
-    call.update({
+    call?.update({
       settings_override: {
         limits: {
           max_duration_seconds:
-            settings.limits.max_duration_seconds + durationSecsToExtend,
+            (settings?.limits?.max_duration_seconds ?? 0) +
+            durationSecsToExtend,
         },
       },
     });
-  }
-  
+  };
 
   return (
     <Button
       onPress={onPress}
-      title={`Extend by ${Math.round((durationSecsToExtend / 60) * 10) / 10)} minutes`}
+      title={`Extend by ${Math.round(((durationSecsToExtend / 60) * 10) / 10)} minutes`}
     />
-    >
   );
 };
 
 // Somewhere inside <StreamCall>:
-<ExtendSessionButton durationSecsToExtend={1800} />;
+<ExtendSessionButton durationSecsToExtend={10 * 60} />;
 ```
 
 :::infoINFO
 The button is only visible to the user with `specialist` role.
 :::
 
-<!-- ![Alert with an option to extend the sesion by 30 minutes](../assets/06-ui-cookbook/19-session-timers/session-timer-extend.png) -->
+![Alert with an option to extend the session by 30 minutes](../assets/05-ui-cookbook/17-session-timers/session-timer-extend.png)
 
 When the call settings are updated, all the states from the SDK are updated automatically, so
 our `SessionTimer` component always reflects the current settings.
