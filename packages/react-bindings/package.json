@@ -33,8 +33,8 @@
     "@stream-io/video-client": "workspace:^",
     "@types/react": "^18.3.2",
     "react": "^18.3.1",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.7",
     "rollup": "^3.29.4",
-    "typescript": "^5.4.3"
+    "typescript": "^5.5.2"
   }
 }

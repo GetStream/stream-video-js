@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "rootDir": ".",
     "paths": {
       "@stream-io/video-filters-react-native": ["./src/index"]
     },
@@ -10,7 +9,8 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["esnext"],
-    "module": "esnext",
+    "module": "ES2020",
+    "target": "ES2020",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -22,7 +22,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
     "verbatimModuleSyntax": true
   }
 }
