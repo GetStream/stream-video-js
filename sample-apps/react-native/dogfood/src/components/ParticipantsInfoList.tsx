@@ -128,7 +128,7 @@ export const ParticipantsInfoList = ({
               >
                 <Cross
                   color={appTheme.colors.primary}
-                  style={{ height: 15, width: 15 }}
+                  style={styles.crossIcon}
                 />
               </Pressable>
             </View>
@@ -280,6 +280,10 @@ const styles = StyleSheet.create({
   genericIconContainer: {
     height: 20,
     width: 20,
+  },
+  crossIcon: {
+    height: 15,
+    width: 15,
   },
   button: {
     flex: 1,
