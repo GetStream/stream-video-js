@@ -77,12 +77,7 @@ export const ScreenShareToggleButton = ({
         !prevIosScreenShareStartedFromSystem
       ) {
         onScreenShareStartedHandlerRef.current?.();
-        const media = await navigator.mediaDevices.getDisplayMedia({
-          // @ts-ignore
-          deviceId: 'broadcast',
-          video: true,
-          audio: true,
-        });
+        const media = await navigator.mediaDevices.getDisplayMedia();
         await call?.publishScreenShareStream(media);
       } else if (
         !iosScreenShareStartedFromSystem &&
@@ -110,10 +105,7 @@ export const ScreenShareToggleButton = ({
         // and the useEffect listener will handle the rest
       } else {
         try {
-          const media = await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: true,
-          });
+          const media = await navigator.mediaDevices.getDisplayMedia();
           onScreenShareStartedHandler?.();
           await call?.publishScreenShareStream(media);
         } catch (e) {

@@ -10,11 +10,14 @@ import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.oney.WebRTCModule.WebRTCModuleOptions
 
 import com.streamvideo.reactnative.StreamVideoReactNative
 
 class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val options: WebRTCModuleOptions = WebRTCModuleOptions.getInstance()
+        options.enableMediaProjectionService = true
         // for react-navigation
         super.onCreate(null)
     }
