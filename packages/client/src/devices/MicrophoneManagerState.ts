@@ -3,6 +3,7 @@ import {
   InputMediaDeviceManagerState,
   TrackDisableMode,
 } from './InputMediaDeviceManagerState';
+import { getAudioBrowserPermission } from './devices';
 
 export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
@@ -15,12 +16,7 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   speakingWhileMuted$: Observable<boolean>;
 
   constructor(disableMode: TrackDisableMode) {
-    super(
-      disableMode,
-      // `microphone` is not in the W3C standard yet,
-      // but it's supported by Chrome and Safari.
-      'microphone' as PermissionName,
-    );
+    super(disableMode, getAudioBrowserPermission());
 
     this.speakingWhileMuted$ = this.speakingWhileMutedSubject
       .asObservable()
