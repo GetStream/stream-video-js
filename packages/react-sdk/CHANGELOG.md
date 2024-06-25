@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.8...@stream-io/video-react-sdk-1.2.9) (2024-06-25)
+
+
+### Bug Fixes
+
+* in some browsers event.key could be undefined ([#1421](https://github.com/GetStream/stream-video-js/issues/1421)) ([0a01c9f](https://github.com/GetStream/stream-video-js/commit/0a01c9fc6148457f9c9de0f8073f71143b05dc80))
+
 ### [1.2.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.7...@stream-io/video-react-sdk-1.2.8) (2024-06-25)
 
 ### Dependency Updates
