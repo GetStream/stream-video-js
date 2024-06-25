@@ -6,3 +6,4 @@ export * from './useIsIosScreenshareBroadcastStarted';
 export * from './useIsInPiPMode';
 export * from './useAutoEnterPiPEffect';
 export * from './useApplyDefaultMediaStreamSettings';
+export * from './useScreenShareButton';
