@@ -203,10 +203,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross
-              color={colorPallet.dark.primary}
-              style={{ height: 15, width: 15 }}
-            />
+            <Cross color={colorPallet.dark.primary} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -227,7 +224,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
               key={option.title}
               onPress={onPressHandler}
             >
-              <View style={{ height: 20, width: 20 }}>{option.icon}</View>
+              <View style={styles.iconContainer}>{option.icon}</View>
               <Text style={styles.title}>{option.title}</Text>
             </Pressable>
           );
@@ -269,6 +266,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  iconContainer: {
+    height: 20,
+    width: 20,
+  },
   title: {
     marginLeft: 16,
     color: colorPallet.dark.text_high_emphasis,
@@ -278,6 +279,10 @@ const styles = StyleSheet.create({
   borderBottom: {
     borderBottomColor: colorPallet.dark.borders,
     borderBottomWidth: 1,
+  },
+  crossIcon: {
+    height: 15,
+    width: 15,
   },
   closePressable: {
     padding: 8,

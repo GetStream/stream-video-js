@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.6...@stream-io/video-react-sdk-1.2.7) (2024-06-24)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.2`
+* `@stream-io/video-react-bindings` updated to version `0.4.46`
+### [1.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.5...@stream-io/video-react-sdk-1.2.6) (2024-06-24)
+
+
+### Bug Fixes
+
+* default onMenuToggle behavior shouldn't be overridden ([#1417](https://github.com/GetStream/stream-video-js/issues/1417)) ([3529e40](https://github.com/GetStream/stream-video-js/commit/3529e40b338c64e61ecbc7460e97c3c878771434))
+
+### [1.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.4...@stream-io/video-react-sdk-1.2.5) (2024-06-20)
+
+
+### Bug Fixes
+
+* remove `isBlurringEnabled` prop ([#1411](https://github.com/GetStream/stream-video-js/issues/1411)) ([23bafe0](https://github.com/GetStream/stream-video-js/commit/23bafe0cc6a3bf0bcdff2e0339904dae5778c560))
+
 ### [1.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.3...@stream-io/video-react-sdk-1.2.4) (2024-06-19)
 
 ### Dependency Updates

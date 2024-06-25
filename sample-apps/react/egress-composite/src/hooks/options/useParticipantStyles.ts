@@ -6,6 +6,7 @@ import { useConfigurationContext } from '../../ConfigurationContext';
 export const useParticipantStyles = () => {
   const {
     options: {
+      'participant.aspect_ratio': participantAspectRatio,
       'participant.border_radius': participantBorderRadius,
       'participant.outline_color': participantOutlineColor = '#005fff',
       'participant.outline_width': participantOutlineWidth = '2px',
@@ -19,6 +20,12 @@ export const useParticipantStyles = () => {
       css`
         & .str-video__participant-view {
           border-radius: ${participantBorderRadius};
+        }
+      `,
+    participantAspectRatio &&
+      css`
+        & .str-video__participant-view {
+          aspect-ratio: ${participantAspectRatio};
         }
       `,
     css`

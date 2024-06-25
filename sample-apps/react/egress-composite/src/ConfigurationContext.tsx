@@ -76,6 +76,7 @@ export type ConfigurationValue = {
     'title.margin_inline'?: string | number;
 
     // ✅
+    'participant.aspect_ratio'?: string; // '16 / 9', '4 / 3', '1 / 1', '9 / 16'
     'participant.outline_color'?: string;
     'participant.outline_width'?: string;
     'participant.border_radius'?: string | number;

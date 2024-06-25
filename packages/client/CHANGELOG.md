@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.1...@stream-io/video-client-1.4.2) (2024-06-24)
+
+
+### Bug Fixes
+
+* support for portrait mode recording ([#1418](https://github.com/GetStream/stream-video-js/issues/1418)) ([70a304d](https://github.com/GetStream/stream-video-js/commit/70a304d3f20d93ecfffc97794e8e4974acf88e9a))
+
 ### [1.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.0...@stream-io/video-client-1.4.1) (2024-06-19)
 
 
