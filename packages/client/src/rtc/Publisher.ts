@@ -341,16 +341,23 @@ export class Publisher {
     const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
+    const track = transceiver?.sender.track;
     if (
       transceiver &&
-      transceiver.sender.track &&
-      (stopTrack
-        ? transceiver.sender.track.readyState === 'live'
-        : transceiver.sender.track.enabled)
+      track &&
+      (stopTrack ? track.readyState === 'live' : track.enabled)
     ) {
-      stopTrack
-        ? transceiver.sender.track.stop()
-        : (transceiver.sender.track.enabled = false);
+      if (stopTrack) {
+        track.stop();
+        // @ts-expect-error release() is present in react-native-webrtc
+        // and must be called to dispose the track in the stream
+        if (typeof track.release === 'function') {
+          // @ts-expect-error
+          track.release();
+        }
+      } else {
+        track.enabled = false;
+      }
       // We don't need to notify SFU if unpublishing in response to remote soft mute
       if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
         await this.notifyTrackMuteStateChanged(undefined, trackType, true);
