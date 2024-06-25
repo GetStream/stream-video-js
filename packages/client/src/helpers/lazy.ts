@@ -1,7 +1,7 @@
-const uninitialized = Symbol();
+const uninitialized = Symbol('uninitialized');
 
 /**
- * Lazyly creates a value using a provided factory
+ * Lazily creates a value using a provided factory
  */
 export function lazy<T>(factory: () => T): () => T {
   let value: T | typeof uninitialized = uninitialized;
