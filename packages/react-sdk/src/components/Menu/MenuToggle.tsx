@@ -110,6 +110,7 @@ export const MenuToggle = <E extends HTMLElement>({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
+        event.key && // key can be undefined in some browsers
         event.key.toLowerCase() === 'escape' &&
         !event.altKey &&
         !event.ctrlKey
