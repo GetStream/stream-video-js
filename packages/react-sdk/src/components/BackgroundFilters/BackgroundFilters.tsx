@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
 import { disposeOfMediaStream } from '@stream-io/video-client';
@@ -16,6 +17,7 @@ import {
   createRenderer,
   isPlatformSupported,
   loadTFLite,
+  Renderer,
   TFLite,
 } from '@stream-io/video-filters-web';
 
@@ -236,7 +238,11 @@ const useRenderer = (tfLite: TFLite) => {
 
   const start = useCallback(
     (ms: MediaStream) => {
-      return new Promise<[MediaStream, () => void]>((resolve, reject) => {
+      console.log('>>> Starting filter', backgroundFilter, backgroundBlurLevel);
+      let outputStream: MediaStream | undefined;
+      let renderer: Renderer | undefined;
+
+      const output = new Promise<MediaStream>((resolve, reject) => {
         if (!backgroundFilter) {
           reject(new Error('No filter specified'));
           return;
@@ -252,38 +258,51 @@ const useRenderer = (tfLite: TFLite) => {
           return;
         }
 
-        const [track] = ms.getVideoTracks();
-        const trackSettings = track.getSettings();
-        setVideoSize({
-          width: trackSettings.width ?? 0,
-          height: trackSettings.height ?? 0,
-        });
         videoEl.srcObject = ms;
         videoEl.play().then(() => {
-          const renderer = createRenderer(tfLite, videoEl, canvasEl, {
+          const [track] = ms.getVideoTracks();
+
+          if (!track) {
+            reject(new Error('No video tracks in input media stream'));
+          }
+
+          const trackSettings = track.getSettings();
+          flushSync(() =>
+            setVideoSize({
+              width: trackSettings.width ?? 0,
+              height: trackSettings.height ?? 0,
+            }),
+          );
+          renderer = createRenderer(tfLite, videoEl, canvasEl, {
             backgroundFilter,
             backgroundBlurLevel,
             backgroundImage: bgImageEl ?? undefined,
           });
-
-          const outputStream = canvasEl.captureStream();
-
-          resolve([
-            outputStream,
-            () => {
-              renderer.dispose();
-              videoEl.srcObject = null;
-              disposeOfMediaStream(outputStream);
-            },
-          ]);
+          outputStream = canvasEl.captureStream();
+          resolve(outputStream);
         });
       });
+
+      return {
+        output,
+        stop: () => {
+          console.log(
+            '>>> Filter stopping',
+            backgroundFilter,
+            backgroundBlurLevel,
+            Boolean(renderer && videoRef.current && outputStream),
+          );
+          renderer?.dispose();
+          videoRef.current && (videoRef.current.srcObject = null);
+          outputStream && disposeOfMediaStream(outputStream);
+        },
+      };
     },
     [backgroundBlurLevel, backgroundFilter, backgroundImage, tfLite],
   );
 
   const children = (
-    <>
+    <div className="str-video__background-filters">
       <video
         className={clsx(
           'str-video__background-filters__video',
@@ -310,7 +329,7 @@ const useRenderer = (tfLite: TFLite) => {
         {...videoSize}
         ref={canvasRef}
       />
-    </>
+    </div>
   );
 
   return {

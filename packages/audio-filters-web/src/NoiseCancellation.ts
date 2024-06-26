@@ -38,9 +38,9 @@ export interface INoiseCancellation {
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
-  toFilter: () => (
-    mediaStream: MediaStream,
-  ) => Promise<[MediaStream, undefined]>;
+  toFilter: () => (mediaStream: MediaStream) => {
+    output: MediaStream;
+  };
   on: <E extends keyof Events, T = Events[E]>(
     event: E,
     callback: T,
@@ -197,7 +197,7 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * A utility method convenient for our Microphone filters API.
    */
-  toFilter = () => async (mediaStream: MediaStream) => {
+  toFilter = () => (mediaStream: MediaStream) => {
     if (!this.filterNode || !this.audioContext) {
       throw new Error('NoiseCancellation is not initialized');
     }
@@ -205,11 +205,7 @@ export class NoiseCancellation implements INoiseCancellation {
     const destination = this.audioContext.createMediaStreamDestination();
 
     source.connect(this.filterNode).connect(destination);
-    const filterOutput: [MediaStream, undefined] = [
-      destination.stream,
-      undefined,
-    ];
-    return filterOutput;
+    return { output: destination.stream };
   };
 
   /**

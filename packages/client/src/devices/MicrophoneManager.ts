@@ -24,7 +24,8 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
-  private noiseCancellationRegistration?: Promise<() => Promise<void>>;
+  private noiseCancellationRegistration?: Promise<void>;
+  private uregisterNoiseCancellation?: () => Promise<void>;
 
   constructor(
     call: Call,
@@ -139,11 +140,11 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         },
       );
 
-      const { ready: noiseCancellationRegistration, unregister } =
-        this.registerFilter(noiseCancellation.toFilter());
-      this.noiseCancellationRegistration = noiseCancellationRegistration.then(
-        () => unregister,
+      const registrationResult = this.registerFilter(
+        noiseCancellation.toFilter(),
       );
+      this.noiseCancellationRegistration = registrationResult.registered;
+      this.uregisterNoiseCancellation = registrationResult.unregister;
       await this.noiseCancellationRegistration;
 
       // handles an edge case where a noise cancellation is enabled after
@@ -172,8 +173,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     if (isReactNative()) {
       throw new Error('Noise cancellation is not supported in React Native');
     }
-    await this.noiseCancellationRegistration
-      ?.then((unregister) => unregister())
+    await (this.uregisterNoiseCancellation?.() ?? Promise.resolve())
       .then(() => this.noiseCancellation?.disable())
       .then(() => this.noiseCancellationChangeUnsubscribe?.())
       .catch((err) => {

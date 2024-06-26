@@ -13,11 +13,11 @@ import {
   withCancellation,
   withoutConcurrency,
 } from '../helpers/concurrency';
-
-export type MediaStreamFilter = (
-  stream: MediaStream,
-) => Promise<[MediaStream, MediaStreamFilterCleanup]>;
-export type MediaStreamFilterCleanup = (() => void) | undefined;
+import {
+  MediaStreamFilter,
+  MediaStreamFilterEntry,
+  MediaStreamFilterRegistrationResult,
+} from './filters';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -31,7 +31,7 @@ export abstract class InputMediaDeviceManager<
 
   protected subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
-  private filters: [MediaStreamFilter, MediaStreamFilterCleanup][] = [];
+  private filters: MediaStreamFilterEntry[] = [];
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
   private filterRegistrationConcurrencyTag = Symbol(
     'filterRegistrationConcurrencyTag',
@@ -149,15 +149,17 @@ export abstract class InputMediaDeviceManager<
    * a new stream with the applied filter.
    *
    * @param filter the filter to register.
-   * @returns a function that will unregister the filter.
+   * @returns MediaStreamFilterRegistrationResult
    */
-  registerFilter(filter: MediaStreamFilter) {
-    const entry: [MediaStreamFilter, MediaStreamFilterCleanup] = [
-      filter,
-      undefined,
-    ];
+  registerFilter(
+    filter: MediaStreamFilter,
+  ): MediaStreamFilterRegistrationResult {
+    const entry: MediaStreamFilterEntry = {
+      start: filter,
+      stop: undefined,
+    };
 
-    const ready = withoutConcurrency(
+    const registered = withoutConcurrency(
       this.filterRegistrationConcurrencyTag,
       async () => {
         this.filters.push(entry);
@@ -166,11 +168,10 @@ export abstract class InputMediaDeviceManager<
     );
 
     return {
-      ready,
+      registered,
       unregister: () =>
         withoutConcurrency(this.filterRegistrationConcurrencyTag, async () => {
-          const cleanup = entry[1];
-          cleanup?.();
+          entry.stop?.();
           this.filters = this.filters.filter((f) => f !== entry);
           await this.applySettingsToStream();
         }),
@@ -251,7 +252,7 @@ export abstract class InputMediaDeviceManager<
         this.state.mediaStream.release();
       }
       this.state.setMediaStream(undefined, undefined);
-      this.filters.forEach(([filter, cleanup]) => cleanup?.());
+      this.filters.forEach((entry) => entry.stop?.());
     }
   }
 
@@ -362,16 +363,14 @@ export abstract class InputMediaDeviceManager<
       // e.g. camera or microphone stream
       rootStream = this.getStream(constraints as C);
       // we publish the last MediaStream of the chain
+      console.log('>>> Chaining filters', this.filters.length);
       stream = await this.filters.reduce(
         (parent, entry) =>
           parent
             .then((inputStream) => {
-              const filter = entry[0];
-              return filter(inputStream);
-            })
-            .then(([outputStream, cleanup]) => {
-              entry[1] = cleanup;
-              return outputStream;
+              const { stop, output } = entry.start(inputStream);
+              entry.stop = stop;
+              return output;
             })
             .then(chainWith(parent)),
         rootStream,
