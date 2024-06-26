@@ -179,3 +179,5 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     );
   },
 );
+
+ParticipantView.displayName = 'ParticipantView';

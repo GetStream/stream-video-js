@@ -172,3 +172,5 @@ export const Video = ({
     </>
   );
 };
+
+Video.displayName = 'Video';
