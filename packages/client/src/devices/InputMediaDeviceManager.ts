@@ -363,7 +363,6 @@ export abstract class InputMediaDeviceManager<
       // e.g. camera or microphone stream
       rootStream = this.getStream(constraints as C);
       // we publish the last MediaStream of the chain
-      console.log('>>> Chaining filters', this.filters.length);
       stream = await this.filters.reduce(
         (parent, entry) =>
           parent
@@ -372,7 +371,14 @@ export abstract class InputMediaDeviceManager<
               entry.stop = stop;
               return output;
             })
-            .then(chainWith(parent)),
+            .then(chainWith(parent), (error) => {
+              this.logger(
+                'warn',
+                'Fitler failed to start and will be ignored',
+                error,
+              );
+              return parent;
+            }),
         rootStream,
       );
     }

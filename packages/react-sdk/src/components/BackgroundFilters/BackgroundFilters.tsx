@@ -64,6 +64,14 @@ export type BackgroundFiltersProps = {
    * (e.g., if you choose to host it yourself).
    */
   modelFilePath?: string;
+
+  /**
+   * When a started filter encounters an error, this callback will be executed.
+   * The default behavior (not overridable) is unregistering a failed filter.
+   * Use this callback to display UI error message, disable the corresponsing stream,
+   * or to try registering the filter again.
+   */
+  onError?: (error: any) => void;
 };
 
 export type BackgroundFiltersAPI = {
@@ -141,6 +149,7 @@ export const BackgroundFiltersProvider = (
     tfFilePath,
     modelFilePath,
     basePath,
+    onError,
   } = props;
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
@@ -181,6 +190,14 @@ export const BackgroundFiltersProvider = (
       .catch((err) => console.error('Failed to load TFLite', err));
   }, [basePath, isSupported, modelFilePath, tfFilePath]);
 
+  const handleError = useCallback(
+    (error: any) => {
+      disableBackgroundFilter();
+      onError?.(error);
+    },
+    [disableBackgroundFilter, onError],
+  );
+
   return (
     <BackgroundFiltersContext.Provider
       value={{
@@ -196,6 +213,7 @@ export const BackgroundFiltersProvider = (
         tfFilePath,
         modelFilePath,
         basePath,
+        onError: handleError,
       }}
     >
       {children}
@@ -207,14 +225,15 @@ export const BackgroundFiltersProvider = (
 const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const call = useCall();
   const { children, start } = useRenderer(props.tfLite);
-  const { backgroundFilter } = useBackgroundFilters();
+  const { backgroundFilter, onError } = useBackgroundFilters();
+  const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
+  handleErrorRef.current = onError;
 
   useEffect(() => {
-    if (!call || !backgroundFilter) {
-      return;
-    }
-
-    const { unregister } = call.camera.registerFilter((ms) => start(ms));
+    if (!call || !backgroundFilter) return;
+    const { unregister } = call.camera.registerFilter((ms) =>
+      start(ms, (error) => handleErrorRef.current?.(error)),
+    );
     return () => {
       unregister();
     };
@@ -237,8 +256,7 @@ const useRenderer = (tfLite: TFLite) => {
   );
 
   const start = useCallback(
-    (ms: MediaStream) => {
-      console.log('>>> Starting filter', backgroundFilter, backgroundBlurLevel);
+    (ms: MediaStream, onError?: (error: any) => void) => {
       let outputStream: MediaStream | undefined;
       let renderer: Renderer | undefined;
 
@@ -273,11 +291,17 @@ const useRenderer = (tfLite: TFLite) => {
               height: trackSettings.height ?? 0,
             }),
           );
-          renderer = createRenderer(tfLite, videoEl, canvasEl, {
-            backgroundFilter,
-            backgroundBlurLevel,
-            backgroundImage: bgImageEl ?? undefined,
-          });
+          renderer = createRenderer(
+            tfLite,
+            videoEl,
+            canvasEl,
+            {
+              backgroundFilter,
+              backgroundBlurLevel,
+              backgroundImage: bgImageEl ?? undefined,
+            },
+            onError,
+          );
           outputStream = canvasEl.captureStream();
           resolve(outputStream);
         });
@@ -286,12 +310,6 @@ const useRenderer = (tfLite: TFLite) => {
       return {
         output,
         stop: () => {
-          console.log(
-            '>>> Filter stopping',
-            backgroundFilter,
-            backgroundBlurLevel,
-            Boolean(renderer && videoRef.current && outputStream),
-          );
           renderer?.dispose();
           videoRef.current && (videoRef.current.srcObject = null);
           outputStream && disposeOfMediaStream(outputStream);
