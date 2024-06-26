@@ -55,3 +55,5 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
     </>
   );
 };
+
+ParticipantsAudio.displayName = 'ParticipantsAudio';

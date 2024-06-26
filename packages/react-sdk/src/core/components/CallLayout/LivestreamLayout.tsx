@@ -180,6 +180,8 @@ const ParticipantOverlay = (props: {
   );
 };
 
+LivestreamLayout.displayName = 'LivestreamLayout';
+
 const useUpdateCallDuration = () => {
   const { useIsCallLive, useCallSession } = useCallStateHooks();
   const isCallLive = useIsCallLive();
