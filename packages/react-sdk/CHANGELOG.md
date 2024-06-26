@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.9...@stream-io/video-react-sdk-1.2.10) (2024-06-26)
+
+
+### Bug Fixes
+
+* **react:** provide displayName for our core components ([#1423](https://github.com/GetStream/stream-video-js/issues/1423)) ([724c444](https://github.com/GetStream/stream-video-js/commit/724c4449f3f4dfd4c468323e1a8dde1d12e56135))
+
 ### [1.2.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.8...@stream-io/video-react-sdk-1.2.9) (2024-06-25)
 
 
