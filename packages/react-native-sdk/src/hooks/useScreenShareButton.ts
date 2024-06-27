@@ -64,25 +64,22 @@ export const useScreenShareButton = (
 
   // listens to iOS screen share broadcast started event from the system
   useEffect(() => {
-    const run = async () => {
-      if (Platform.OS !== 'ios') {
-        return;
-      }
-      if (
-        iosScreenShareStartedFromSystem &&
-        !prevIosScreenShareStartedFromSystem
-      ) {
-        onScreenShareStartedHandlerRef.current?.();
-        call?.screenShare.enable();
-      } else if (
-        !iosScreenShareStartedFromSystem &&
-        prevIosScreenShareStartedFromSystem
-      ) {
-        onScreenShareStoppedHandlerRef.current?.();
-        call?.screenShare.disable(true);
-      }
-    };
-    run();
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+    if (
+      iosScreenShareStartedFromSystem &&
+      !prevIosScreenShareStartedFromSystem
+    ) {
+      onScreenShareStartedHandlerRef.current?.();
+      call?.screenShare.enable();
+    } else if (
+      !iosScreenShareStartedFromSystem &&
+      prevIosScreenShareStartedFromSystem
+    ) {
+      onScreenShareStoppedHandlerRef.current?.();
+      call?.screenShare.disable(true);
+    }
   }, [
     call,
     iosScreenShareStartedFromSystem,
@@ -110,6 +107,11 @@ export const useScreenShareButton = (
           onScreenShareStartedHandler?.();
         } catch (e) {
           // ignored.. user didnt allow the screen share in the popup
+          const logger = getLogger(['useScreenShareButton']);
+          logger(
+            'info',
+            'User opted to not give permissions to start a screen share stream'
+          );
         }
       }
     } else if (hasPublishedScreenShare) {
