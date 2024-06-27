@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { findNodeHandle, NativeModules, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { Platform } from 'react-native';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
 import { ScreenShare } from '../../../icons/ScreenShare';
 import { StopScreenShare } from '../../../icons/StopScreenShare';
