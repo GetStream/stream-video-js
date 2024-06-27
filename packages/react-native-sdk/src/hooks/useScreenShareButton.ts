@@ -13,8 +13,8 @@ import { useIsIosScreenshareBroadcastStarted } from './useIsIosScreenshareBroadc
 const CanDeviceScreenShare =
   (Platform.OS === 'ios' &&
     // @ts-ignore
-    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14, 10) ||
-  Platform.OS === 'android';
+    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14,
+  10) || Platform.OS === 'android';
 
 export const useScreenShareButton = (
   /**
@@ -105,12 +105,13 @@ export const useScreenShareButton = (
         try {
           await call?.screenShare.enable();
           onScreenShareStartedHandler?.();
-        } catch (e) {
+        } catch (error) {
           // ignored.. user didnt allow the screen share in the popup
           const logger = getLogger(['useScreenShareButton']);
           logger(
             'info',
-            'User opted to not give permissions to start a screen share stream'
+            'User opted to not give permissions to start a screen share stream',
+            error
           );
         }
       }
