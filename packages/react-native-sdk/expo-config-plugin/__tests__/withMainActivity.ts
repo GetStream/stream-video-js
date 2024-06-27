@@ -44,6 +44,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       androidPictureInPicture: {
         enableAutomaticEnter: true,
       },
+      enableScreenshare: true,
     };
 
     const updatedConfig = withMainActivity(config, props) as CustomExpoConfig;
@@ -56,10 +57,15 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /StreamVideoReactNative.canAutoEnterPictureInPictureMode/
     );
 
+    expect(updatedConfig.modResults.contents).toMatch(
+      /options.enableMediaProjectionService = true/
+    );
+
     const props2: ConfigProps = {
       androidPictureInPicture: {
         enableAutomaticEnter: false,
       },
+      enableScreenshare: false,
     };
 
     const config2: CustomExpoConfig = {
@@ -78,6 +84,10 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     expect(updatedConfig2.modResults.contents).not.toMatch(
       /StreamVideoReactNative.canAutoEnterPictureInPictureMode/
+    );
+
+    expect(updatedConfig2.modResults.contents).not.toMatch(
+      /options.enableMediaProjectionService = true/
     );
   });
 

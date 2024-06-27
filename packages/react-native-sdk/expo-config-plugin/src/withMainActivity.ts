@@ -1,5 +1,8 @@
 import { ConfigPlugin, withMainActivity } from '@expo/config-plugins';
-import { addImports } from '@expo/config-plugins/build/android/codeMod';
+import {
+  addImports,
+  appendContentsInsideDeclarationBlock,
+} from '@expo/config-plugins/build/android/codeMod';
 import { ConfigProps } from './common/types';
 import addNewLinesToMainActivity from './common/addNewLinesToMainActivity';
 
@@ -19,6 +22,7 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
           'android.util.Rational',
           'androidx.lifecycle.Lifecycle',
           'android.app.PictureInPictureParams',
+          'com.oney.WebRTCModule.WebRTCModuleOptions',
         ],
         isMainActivityJava
       );
@@ -28,6 +32,12 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
       );
       if (props?.androidPictureInPicture?.enableAutomaticEnter) {
         config.modResults.contents = addOnUserLeaveHint(
+          config.modResults.contents,
+          isMainActivityJava
+        );
+      }
+      if (props?.enableScreenshare) {
+        config.modResults.contents = addInsideOnCreate(
           config.modResults.contents,
           isMainActivityJava
         );
@@ -114,6 +124,24 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
     contents = addNewLinesToMainActivity(
       contents,
       statementToInsert.trim().split('\n')
+    );
+  }
+  return contents;
+}
+
+function addInsideOnCreate(contents: string, isJava: boolean) {
+  const addScreenShareServiceEnablerBlock = isJava
+    ? `WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
+    options.enableMediaProjectionService = true;
+`
+    : `val options: WebRTCModuleOptions = WebRTCModuleOptions.getInstance()
+    options.enableMediaProjectionService = true
+`;
+  if (!contents.includes('options.enableMediaProjectionService = true')) {
+    contents = appendContentsInsideDeclarationBlock(
+      contents,
+      'onCreate',
+      addScreenShareServiceEnablerBlock
     );
   }
   return contents;
