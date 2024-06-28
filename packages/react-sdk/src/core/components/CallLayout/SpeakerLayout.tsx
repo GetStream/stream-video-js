@@ -181,6 +181,8 @@ export const SpeakerLayout = ({
   );
 };
 
+SpeakerLayout.displayName = 'SpeakerLayout';
+
 type ScrollButtonsProps<T extends HTMLElement> = {
   scrollWrapper: T | null;
 };

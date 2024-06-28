@@ -159,3 +159,5 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
     </div>
   );
 };
+
+PaginatedGridLayout.displayName = 'PaginatedGridLayout';

@@ -5,7 +5,11 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
-import { mockVideoDevices, mockVideoStream } from './mocks';
+import {
+  mockBrowserPermission,
+  mockVideoDevices,
+  mockVideoStream,
+} from './mocks';
 import { TrackType } from '../../gen/video/sfu/models/models';
 
 import '../../rtc/__tests__/mocks/webrtc.mocks';
@@ -28,7 +32,7 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
       call,
       new TestInputMediaDeviceManagerState(
         'stop-tracks',
-        'camera' as PermissionName,
+        mockBrowserPermission,
       ),
       TrackType.VIDEO,
     );

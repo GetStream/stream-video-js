@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.4...@stream-io/video-styling-1.0.5) (2024-06-28)
+
+
+### Bug Fixes
+
+* video bg color ([#1426](https://github.com/GetStream/stream-video-js/issues/1426)) ([24652e9](https://github.com/GetStream/stream-video-js/commit/24652e9234fbe81fc7c46d752bd8e2584cad96b8))
+
 ### [1.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.3...@stream-io/video-styling-1.0.4) (2024-05-23)
 
 

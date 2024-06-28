@@ -1,6 +1,7 @@
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
+import { getVideoBrowserPermission } from './devices';
 
 export type CameraDirection = 'front' | 'back' | undefined;
 
@@ -15,12 +16,7 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   direction$: Observable<CameraDirection>;
 
   constructor() {
-    super(
-      'stop-tracks',
-      // `camera` is not in the W3C standard yet,
-      // but it's supported by Chrome and Safari.
-      'camera' as PermissionName,
-    );
+    super('stop-tracks', getVideoBrowserPermission());
     this.direction$ = this.directionSubject
       .asObservable()
       .pipe(distinctUntilChanged());

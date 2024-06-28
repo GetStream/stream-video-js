@@ -213,7 +213,7 @@ The `apiKey`, `userData` and the `tokenProvider` comes up from the `ChatWrapper`
 
 ### Step 1: Wrapping the `ChatWrapper`
 
-If we extend our [Video Calling Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
+If we extend our [Video Calling Tutorial](https://getstream.io/video/sdk/react-native/tutorial/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
 
 ```tsx title="App.tsx" {16,24}
 import React, { useEffect, useState } from 'react';
@@ -320,7 +320,7 @@ The `ChatButton` component takes up an `onPressHandler`, which is responsible to
 
 ![Preview of the call controls with chat button](../assets/06-advanced/02-chat-integration/call-controls-chat.png).
 
-In the VideoCallUI component of our [Video Calling Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/), we will add the above:
+In the VideoCallUI component of our [Video Calling Tutorial](https://getstream.io/video/sdk/react-native/tutorial/video-calling/), we will add the above:
 
 ```tsx title="src/components/VideoCallUI.tsx" {13-16,25,35-38,40-42,46}
 import React from 'react';
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
 
 ### Step 3: Creating and passing the Video Wrapper
 
-Adhering to the [Getting and Setting the credentials](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/#step-3---getting-and-setting-the-credentials) step of the [Video Call Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/), we will create a video wrapper that wraps and provides the Stream's Video client to the rest of the app.
+Adhering to the [Getting and Setting the credentials](https://getstream.io/video/sdk/react-native/tutorial/video-calling/#step-3---getting-and-setting-the-credentials) step of the [Video Call Tutorial](https://getstream.io/video/sdk/react-native/tutorial/video-calling/), we will create a video wrapper that wraps and provides the Stream's Video client to the rest of the app.
 
 ```tsx title="src/components/VideoWrapper.tsx"
 import React, { PropsWithChildren, useEffect, useState } from 'react';
@@ -927,7 +927,7 @@ import {
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
-    undefined,
+    undefined
   );
 
   const user = {
@@ -1031,7 +1031,7 @@ export const Calls = () => {
     Alert.alert(
       `Incoming call from ${
         lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
-      }, only 1 call at a time is supported`,
+      }, only 1 call at a time is supported`
     );
   }, [calls]);
 
@@ -1132,7 +1132,7 @@ const ChannelHeader = (props: ChannelHeaderProps) => {
   const { channel } = useAppContext();
   const videoClient = useStreamVideoClient();
   const members = Object.values(
-    channel?.state?.members ?? {},
+    channel?.state?.members ?? {}
   ).map<MemberRequest>((member) => ({
     user_id: member.user_id!,
   }));

@@ -1,72 +1,66 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
+import { firstValueFrom } from 'rxjs';
+import { BrowserPermission } from '../BrowserPermission';
 
 class TestInputMediaDeviceManagerState extends InputMediaDeviceManagerState {
   constructor() {
-    super('stop-tracks', 'camera' as PermissionName);
+    super(
+      'stop-tracks',
+      new BrowserPermission({
+        queryName: 'camera' as PermissionName,
+        constraints: {},
+      }),
+    );
   }
 
   getDeviceIdFromStream = vi.fn();
 }
 
+function mockPermissionStatus(state: PermissionState): PermissionStatus {
+  return {
+    state,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  } as any;
+}
+
 describe('InputMediaDeviceManagerState', () => {
-  let state: InputMediaDeviceManagerState;
-
-  beforeEach(() => {
-    state = new TestInputMediaDeviceManagerState();
-  });
-
   describe('hasBrowserPermission', () => {
     it('should emit true when permission is granted', async () => {
-      const permissionStatus: Partial<PermissionStatus> = {
-        state: 'granted',
-        addEventListener: vi.fn(),
-      };
+      const permissionStatus = mockPermissionStatus('granted');
       const query = vi.fn(() => Promise.resolve(permissionStatus));
-      globalThis.navigator ??= {} as Navigator;
-      // @ts-ignore - navigator is readonly, but we need to mock it
-      globalThis.navigator.permissions = { query };
+      globalThis.navigator = { permissions: { query } } as any;
+      const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await new Promise((resolve) => {
-        state.hasBrowserPermission$.subscribe((v) => resolve(v));
-      });
+      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
     });
 
     it('should emit false when permission is denied', async () => {
-      const permissionStatus: Partial<PermissionStatus> = {
-        state: 'denied',
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      };
+      const permissionStatus = mockPermissionStatus('denied');
       const query = vi.fn(() => Promise.resolve(permissionStatus));
-      globalThis.navigator ??= {} as Navigator;
-      // @ts-ignore - navigator is readonly, but we need to mock it
-      globalThis.navigator.permissions = { query };
+      globalThis.navigator = { permissions: { query } } as any;
+      const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await new Promise((resolve) => {
-        state.hasBrowserPermission$.subscribe((v) => resolve(v));
-      });
+      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+
       expect(hasPermission).toBe(false);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
     });
 
     it('should emit true when prompt is needed', async () => {
-      const permissionStatus: Partial<PermissionStatus> = {
-        state: 'prompt',
-        addEventListener: vi.fn(),
-      };
+      const permissionStatus = mockPermissionStatus('prompt');
       const query = vi.fn(() => Promise.resolve(permissionStatus));
-      globalThis.navigator ??= {} as Navigator;
-      // @ts-ignore - navigator is readonly, but we need to mock it
-      globalThis.navigator.permissions = { query };
+      globalThis.navigator = { permissions: { query } } as any;
+      const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await new Promise((resolve) => {
-        state.hasBrowserPermission$.subscribe((v) => resolve(v));
-      });
+      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
@@ -74,25 +68,21 @@ describe('InputMediaDeviceManagerState', () => {
 
     it('should emit true when permissions cannot be queried', async () => {
       const query = vi.fn(() => Promise.reject());
-      globalThis.navigator ??= {} as Navigator;
-      // @ts-ignore - navigator is readonly, but we need to mock it
-      globalThis.navigator.permissions = { query };
+      globalThis.navigator = { permissions: { query } } as any;
+      const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await new Promise((resolve) => {
-        state.hasBrowserPermission$.subscribe((v) => resolve(v));
-      });
+      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
     });
 
     it('should emit true when permissions API is unavailable', async () => {
-      globalThis.navigator ??= {} as Navigator;
-      // @ts-ignore - navigator is readonly, but we need to mock it
-      globalThis.navigator.permissions = null;
+      globalThis.navigator = {} as any;
+      const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await new Promise((resolve) => {
-        state.hasBrowserPermission$.subscribe((v) => resolve(v));
-      });
+      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+
       expect(hasPermission).toBe(true);
     });
   });

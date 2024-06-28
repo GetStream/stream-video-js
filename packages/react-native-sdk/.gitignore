@@ -65,3 +65,4 @@ buck-out/
 /vendor/bundle/
 
 version.ts
+!docusaurus/.env

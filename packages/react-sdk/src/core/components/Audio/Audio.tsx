@@ -48,3 +48,5 @@ export const Audio = ({
     />
   );
 };
+
+Audio.displayName = 'Audio';

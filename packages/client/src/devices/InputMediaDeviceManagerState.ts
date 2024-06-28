@@ -2,11 +2,11 @@ import {
   BehaviorSubject,
   distinctUntilChanged,
   Observable,
+  of,
   shareReplay,
 } from 'rxjs';
-import { isReactNative } from '../helpers/platforms';
 import { RxUtils } from '../store';
-import { getLogger } from '../logger';
+import { BrowserPermission } from './BrowserPermission';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
@@ -65,57 +65,23 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * An observable that will emit `true` if browser/system permission
    * is granted, `false` otherwise.
    */
-  hasBrowserPermission$ = new Observable<boolean>((subscriber) => {
-    const notifyGranted = () => subscriber.next(true);
-    const permissionsAPIAvailable = !!navigator?.permissions?.query;
-    if (isReactNative() || !this.permissionName || !permissionsAPIAvailable) {
-      getLogger(['devices'])(
-        'warn',
-        `Permissions can't be queried. Assuming granted.`,
-      );
-      return notifyGranted();
-    }
-
-    let permissionState: PermissionStatus;
-    const notify = () => {
-      subscriber.next(
-        // In some browsers, the 'change' event doesn't reliably emit and hence,
-        // permissionState stays in 'prompt' state forever.
-        // Typically, this happens when a user grants one-time permission.
-        // Instead of checking if a permission is granted, we check if it isn't denied
-        permissionState.state !== 'denied',
-      );
-    };
-    navigator.permissions
-      .query({ name: this.permissionName })
-      .then((permissionStatus) => {
-        permissionState = permissionStatus;
-        permissionState.addEventListener('change', notify);
-        notify();
-      })
-      .catch(() => {
-        // permission doesn't exist or can't be queried -> assume it's granted
-        // an example would be Firefox,
-        // where neither camera microphone permission can be queried
-        notifyGranted();
-      });
-
-    return () => {
-      permissionState?.removeEventListener('change', notify);
-    };
-  }).pipe(shareReplay(1));
+  hasBrowserPermission$: Observable<boolean>;
 
   /**
    * Constructs new InputMediaDeviceManagerState instance.
    *
    * @param disableMode the disable mode to use.
-   * @param permissionName the permission name to use for querying.
+   * @param permission the BrowserPermission to use for querying.
    * `undefined` means no permission is required.
    */
   constructor(
     public readonly disableMode: TrackDisableMode = 'stop-tracks',
-    private readonly permissionName: PermissionName | undefined = undefined,
-  ) {}
+    permission?: BrowserPermission,
+  ) {
+    this.hasBrowserPermission$ = permission
+      ? permission.asObservable().pipe(shareReplay(1))
+      : of(true);
+  }
 
   /**
    * The device status

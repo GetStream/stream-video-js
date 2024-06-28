@@ -9,92 +9,28 @@ import TabItem from '@theme/TabItem';
 A session timer allows you to **limit the maximum duration** of a call. It's
 possible to
 [configure a session timer](https://getstream.io/video/docs/api/calls/#session-timers)
-for a single call, or every call of a certain type. When a session timer
-reaches zero, the call automatically ends, making it a great tool for managing
-paid appointments.
-
-## Low-level client capabilities
-​
-First, let's see how we can create a single call that has a limited duration.
-
-```ts
-const client = useStreamVideoClient();
-const callType = "default";
-const callId = "12345";
-
-const newCall = client.call(callType, callId);
-await newCall.create({
-  data: {
-    settings_override: {
-      limits: {
-        max_duration_seconds: 3600,
-      },
-    },
-  },
-});
-```
-
-This code will create a call, which will have a duration of 3600 seconds (1 hour), as soon as the session is started (a participant joined the call).
-
-You can check the start date of a call with the following code:
-
-```ts
-const { useCallSession } = useCallStateHooks();
-const session = useCallSession();
-
-const started_at = session?.started_at;
-```
-
-When the `max_duration_seconds` of a call is specified, the call session also provides the `timer_ends_at` value, which provides the date when the call will end. When a call is ended, all the participants are removed from the call.
-
-```ts
-const { useCallSession } = useCallStateHooks();
-const session = useCallSession();
-
-const timer_ends_at = session?.timer_ends_at;
-```
-
-### Extending the call duration
-​
-You can also extend the duration of a call, both before or during the call. To do that, you should use the `call.update` method:
-
-```ts
-  const { useCallSettings } = useCallStateHooks();
-  const settings = useCallSettings();
-
-  // extend by 1 minute
-  const new_max_duration_seconds = settings.limits.max_duration_seconds + 60;
-
-  await call.update({
-    settings_override: {
-      limits: {
-        max_duration_seconds: new_max_duration_seconds,
-      },
-    },
-  });
-```
-
-
-When the call duration is extended, the `timer_ends_at`  will be updated to reflect that change.
-
-## Example implementation
+for a single call, or every call of a certain type. When a session timer reaches
+zero, the call automatically ends, making it a great tool for managing paid
+appointments.
 
 In this article, we'll integrate a session timer into a sample telemedicine
-application. We assume that two users are joining a call: a medical specialist 
-and a patient. Each appointment lasts 30 minutes, but the specialist can extend the appointment if necessary.
+application. We assume that two users are joining a call: a medical specialist
+and a patient. Each appointment lasts 1 hour, but the specialist can extend the
+appointment if necessary.
 
-### Prerequisites
+## Prerequisites
 
 Let's start by setting up an application. Here's what we need:
 
 1. Separate user roles for a medical specialist (`specialist`) and a patient
    (`patient`)
-2. An `appointment` call type with a maximum duration of 30 minutes
+2. An `appointment` call type with a maximum duration of 1 hour
 3. Two test users, one for each call (we'll call them `dr-lecter` and `bill`)
 4. One test call of an `appointment` type
 
-The quickest way to set up these requirements is to use the **server-side Node.js
-SDK**. Let us create a one-off Node.js script. So let's install it in a project:
+The quickest way to set up these requirements is to use the **server-side
+Node.js SDK**. Let us create a one-off Node.js script. So let's install it in a
+project:
 
 <Tabs>
   <TabItem value="yarn" label="yarn" default>
@@ -116,20 +52,20 @@ npm install @stream-io/node-sdk
 Then create a one-off Node.js script with the following:
 
 ```ts title="script.ts"
-import { StreamClient, VideoOwnCapability } from "@stream-io/node-sdk";
+import { StreamClient, VideoOwnCapability } from '@stream-io/node-sdk';
 
-const apiKey = "REPLACE_WITH_API_KEY";
-const secret = "REPLACE_WITH_SECRET";
+const apiKey = 'REPLACE_WITH_API_KEY';
+const secret = 'REPLACE_WITH_SECRET';
 const client = new StreamClient(apiKey, secret);
 
 async function main() {
   // 1. Roles for a medical specialist (`specialist`) and a patient:
-  await client.createRole({ name: "specialist" });
-  await client.createRole({ name: "patient" });
+  await client.createRole({ name: 'specialist' });
+  await client.createRole({ name: 'patient' });
 
-  // 2. Call type with the maximum duration of 30 minutes:
+  // 2. Call type with the maximum duration of 1 hour:
   await client.video.createCallType({
-    name: "appointment",
+    name: 'appointment',
     grants: {
       specialist: [
         VideoOwnCapability.JOIN_CALL,
@@ -156,24 +92,24 @@ async function main() {
   // 3. Two test users:
   await client.upsertUsers({
     users: {
-      "dr-lecter": {
-        id: "dr-lecter",
-        name: "Dr. Hannibal Lecter",
-        role: "specialist",
+      'dr-lecter': {
+        id: 'dr-lecter',
+        name: 'Dr. Hannibal Lecter',
+        role: 'specialist',
       },
-      bill: {
-        id: "bill",
-        name: "Buffalo Bill",
-        role: "patient",
+      'bill': {
+        id: 'bill',
+        name: 'Buffalo Bill',
+        role: 'patient',
       },
     },
   });
 
   // 4. Test call:
-  await client.video.call("appointment", "test-call").create({
+  await client.video.call('appointment', 'test-call').create({
     data: {
-      members: [{ user_id: "dr-lecter" }, { user_id: "bill" }],
-      created_by_id: "dr-lecter",
+      members: [{ user_id: 'dr-lecter' }, { user_id: 'bill' }],
+      created_by_id: 'dr-lecter',
     },
   });
 }
@@ -188,7 +124,8 @@ Now, run the script with the following:
 ```
 
 We can verify that the script ran successfully by checking the `Call Types` and
-the `Roles & Permissions` sections in the application [dashboard](https://dashboard.getstream.io/).
+the `Roles & Permissions` sections in the application
+[dashboard](https://dashboard.getstream.io/).
 
 Now we're ready to add a session timer to our application. If you haven't
 already bootstrapped a video calling application (our
@@ -268,7 +205,23 @@ const styles = StyleSheet.create({
 export default App;
 ```
 
-### Session Timer Component
+At this point it's also possible to override the default call duration. The user
+must have a permission to update call and call settings (in our case, the
+`specialist` role has these permissions):
+
+```js
+newCall.join({
+  data: {
+    settings_override: {
+      limits: {
+        max_duration_seconds: 7200,
+      },
+    },
+  },
+});
+```
+
+## Session Timer Component
 
 After joining the call, we can examine the `session.timer_ends_at` property: if
 the session timer has been set up, it contains the timestamp at which point the
@@ -279,7 +232,6 @@ Let's implement a component that displays a countdown to the end of the session:
 ```tsx
 import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 import { StyleSheet, Text, View } from 'react-native';
-
 
 const useSessionTimer = () => {
   const { useCallSession } = useCallStateHooks();
@@ -348,7 +300,7 @@ countdown in the call UI:
 
 ![SessionTimer component in use](../assets/05-ui-cookbook/17-session-timers/session-timer.png)
 
-### Adding Alerts
+## Adding Alerts
 
 It's easy to lose track of time during a meeting and then be surprised when time
 runs out. Let's add an alert that pops up on the page twenty minutes before the
@@ -364,7 +316,7 @@ const useSessionTimerAlert = (remainingMs: number, thresholdMs: number) => {
     if (!didAlert.current && remainingMs < thresholdMs) {
       Alert.alert(
         'Notice',
-        `Less than ${thresholdMs / 60000} minutes remaining`,
+        `Less than ${thresholdMs / 60000} minutes remaining`
       );
       didAlert.current = true;
     }
@@ -385,7 +337,8 @@ const SessionTimer = () => {
 
 ![Alert indicating that session is about to end](../assets/05-ui-cookbook/17-session-timers/session-timer-alert.png)
 
-Similarly, we can show an alert when the call session is over (when time has elapsed): 
+Similarly, we can show an alert when the call session is over (when time has
+elapsed):
 
 ```tsx
 const useSessionEndedAlert = (remainingMs: number) => {
@@ -393,16 +346,14 @@ const useSessionEndedAlert = (remainingMs: number) => {
 
   useEffect(() => {
     if (!didAlert.current && remainingMs <= 0) {
-      Alert.alert(
-        'Call ended'
-      );
+      Alert.alert('Call ended');
       didAlert.current = true;
     }
   }, [remainingMs]);
 };
 ```
 
-### Extending a Session
+## Extending a Session
 
 The `specialist` user role that we created has the permission to update call
 settings, granting it the `change-max-duration` capability, which allows a user
@@ -455,14 +406,13 @@ const ExtendSessionButton = ({
 <ExtendSessionButton durationSecsToExtend={10 * 60} />;
 ```
 
-:::infoINFO
-The button is only visible to the user with `specialist` role.
-:::
+:::infoINFO The button is only visible to the user with `specialist` role. :::
 
 ![Alert with an option to extend the session by 30 minutes](../assets/05-ui-cookbook/17-session-timers/session-timer-extend.png)
 
-When the call settings are updated, all the states from the SDK are updated automatically, so
-our `SessionTimer` component always reflects the current settings.
+When the call settings are updated, all the states from the SDK are updated
+automatically, so our `SessionTimer` component always reflects the current
+settings.
 
 <!-- Similar to other permissions, the `CHANGE_MAX_DURATION` capability can be
 [requested](../../guides/permissions-and-moderation/#request-permissions) by the
