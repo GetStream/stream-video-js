@@ -2,25 +2,97 @@
 title: React Native Screen sharing Setup
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 In this document, we explain how to setup screen share for Android and iOS in your React Native App.
 
 ## Android Setup
 
-In Android, we will use a foreground service to keep the call alive and also to do screen capturing . The SDK will manage the foreground service. But in order to be able to use the foreground service, some declarations need to be added in the `AndroidManifest.xml`:
+In Android, we will use a foreground service to keep the call alive and also to do screen capturing. The `@stream-io/react-native-webrtc` library will manage the foreground service. The following changes need to be made for the Android app:
+
+### Edit AndroidManifest
+
+To be able to use the foreground service, the permission must be declared in the `AndroidManifest.xml`:
 
 ```xml title="AndroidManifest.xml"
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <!-- We declare the permissions to for using foreground service -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+// highlight-next-line
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-
-<!-- add the following inside the <application> section -->
-<service
-    android:name="app.notifee.core.ForegroundService"
-    android:stopWithTask="true"
-    android:foregroundServiceType="mediaProjection|microphone" />
 ```
+
+### Changes to MainActivity
+
+Add the following import:
+
+<!-- vale off -->
+
+<Tabs
+  defaultValue="kotlin"
+  groupId="codebase"
+  values={[
+    {label: 'Kotlin', value: 'kotlin'},
+    {label: 'Java', value: 'java'},
+  ]}>
+  <TabItem value="kotlin">
+
+```kotlin title="MainActivity.kt"
+import com.oney.WebRTCModule.WebRTCModuleOptions
+```
+
+  </TabItem>
+  <TabItem value="java">
+
+```java title="MainActivity.java"
+import com.oney.WebRTCModule.WebRTCModuleOptions;
+```
+
+  </TabItem>
+</Tabs>
+
+After that, add the following code inside the `onCreate` function:
+
+<Tabs
+  defaultValue="kotlin"
+  groupId="codebase"
+  values={[
+    {label: 'Kotlin', value: 'kotlin'},
+    {label: 'Java', value: 'java'},
+  ]}>
+  <TabItem value="kotlin">
+
+```kotlin title="MainActivity.kt"
+override fun onCreate(savedInstanceState: Bundle?) {
+    // highlight-start
+    val options: WebRTCModuleOptions = WebRTCModuleOptions.getInstance()
+    options.enableMediaProjectionService = true
+    // highlight-end
+    // ..the rest
+}
+```
+
+  </TabItem>
+  <TabItem value="java">
+
+```java title="MainActivity.java"
+ @Override
+protected void onCreate(Bundle savedInstanceState) {
+    // highlight-start
+    WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
+    options.enableMediaProjectionService = true;
+    // highlight-end
+    // ..the rest
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<!-- vale on -->
+
 
 ## iOS Setup
 

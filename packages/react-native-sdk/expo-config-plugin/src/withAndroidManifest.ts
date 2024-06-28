@@ -15,17 +15,17 @@ type ManifestService = Unpacked<
   NonNullable<AndroidConfig.Manifest.ManifestApplication['service']>
 >;
 
-function getNotifeeService(enableScreenshare: boolean = false) {
+function getNotifeeService() {
   /*
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
-        android:foregroundServiceType="mediaProjection|microphone" />
+        android:foregroundServiceType="mediaProjection" />
  */
   let foregroundServiceType = 'microphone';
-  if (enableScreenshare) {
-    foregroundServiceType = 'mediaProjection|' + foregroundServiceType;
-  }
+  // if (enableScreenshare) {
+  //   foregroundServiceType = 'mediaProjection|' + foregroundServiceType;
+  // }
   const head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
     stopWithTask: 'true',
@@ -51,7 +51,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
         (service) =>
           service.$['android:name'] !== 'app.notifee.core.ForegroundService'
       );
-      services.push(getNotifeeService(props?.enableScreenshare));
+      services.push(getNotifeeService());
       mainApplication.service = services;
 
       if (props?.androidPictureInPicture) {

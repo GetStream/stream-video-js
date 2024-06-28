@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
@@ -69,7 +71,8 @@
             "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-router"
     ]
   }
 }

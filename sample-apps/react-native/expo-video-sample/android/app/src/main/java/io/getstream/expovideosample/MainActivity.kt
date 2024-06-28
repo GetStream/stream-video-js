@@ -1,4 +1,5 @@
 package io.getstream.expovideosample
+import com.oney.WebRTCModule.WebRTCModuleOptions
 import android.app.PictureInPictureParams
 import androidx.lifecycle.Lifecycle
 import android.util.Rational
@@ -21,7 +22,9 @@ class MainActivity : ReactActivity() {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null)
-  }
+  val options: WebRTCModuleOptions = WebRTCModuleOptions.getInstance()
+    options.enableMediaProjectionService = true
+}
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
