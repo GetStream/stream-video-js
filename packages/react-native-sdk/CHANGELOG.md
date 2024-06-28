@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.8.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.7...@stream-io/video-react-native-sdk-0.8.8) (2024-06-28)
+
+
+### Features
+
+* **react-native:** enable android 14 compatibility for screensharing foreground service ([#1425](https://github.com/GetStream/stream-video-js/issues/1425)) ([f41aa10](https://github.com/GetStream/stream-video-js/commit/f41aa100b4a5f3ea72a3628407a5d101e9aea342))
+
 ### [0.8.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.6...@stream-io/video-react-native-sdk-0.8.7) (2024-06-25)
 
 ### Dependency Updates
