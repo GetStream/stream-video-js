@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import {
   ViewerLivestream as DefaultViewerLivestream,
   ViewerLivestreamProps,
-} from '..';
-import { Call, StreamCall, useStreamVideoClient } from '../../..';
-import { CallingState, getLogger } from '@stream-io/video-client';
+} from '../ViewerLivestream';
+import { Call, CallingState, getLogger } from '@stream-io/video-client';
+import { StreamCall } from '../../../providers/StreamCall';
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
 export type LivestreamPlayerProps = {
   /**
