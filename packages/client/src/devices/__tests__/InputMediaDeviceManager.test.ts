@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MockTrack,
   emitDeviceIds,
+  mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
   mockVideoDevices,
@@ -26,6 +27,8 @@ vi.mock('../../Call.ts', () => {
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
   return {
+    getAudioBrowserPermission: () => mockBrowserPermission,
+    getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
   };
 });
@@ -48,7 +51,7 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
       call,
       new TestInputMediaDeviceManagerState(
         'stop-tracks',
-        'camera' as PermissionName,
+        mockBrowserPermission,
       ),
       TrackType.VIDEO,
     );
@@ -315,8 +318,7 @@ describe('InputMediaDeviceManager.test', () => {
     await vi.runAllTimersAsync();
 
     expect(manager.state.status).toBe('disabled');
-    expect(manager.disablePromise).toBeUndefined();
-    expect(manager.enablePromise).toBeUndefined();
+    expect(manager.state.optimisticStatus).toBe('disabled');
     expect(manager.state.selectedDevice).toBe(device.deviceId);
 
     vi.useRealTimers();

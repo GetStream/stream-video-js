@@ -1,14 +1,13 @@
 <!-- vale off -->
 import NotifeeWorkaround from "./NotifeeWorkaround"
-import EventTargetShimWorkaround from "./EventTargetShimWorkaround"
 
 ### Troubleshooting
 
 #### Error: Super expression must either be null or a function
 
-<EventTargetShimWorkaround isExpo={props.isExpo} />
+This was a [known issue](https://github.com/react-native-webrtc/react-native-webrtc/issues/1503) in `@stream-io/react-native-webrtc` library.
 
-**Reference**: https://github.com/react-native-webrtc/react-native-webrtc/issues/1503
+It has been fixed on version `118.1.0` of the `@stream-io/react-native-webrtc` library.
 
 #### Android Only Error: Could not find any matches for app.notifee:core:+ as no versions of app.notifee:core are available.
 
@@ -18,6 +17,6 @@ import EventTargetShimWorkaround from "./EventTargetShimWorkaround"
 
 #### Android Only Error: One of receiver_exported or receiver_not_exported
 
-This occurs due to having `targetSdk 34` in Android. This is a [known issue in `react-native-incall-manager`](https://github.com/react-native-webrtc/react-native-incall-manager/issues/235) library. You can temporarily workaround this by downgrading your `targetSdk` to `33` until this issue is resolved.
+This was a [known issue](https://github.com/react-native-webrtc/react-native-incall-manager/issues/235)  in `react-native-incall-manager` library.
 
-**Reference**: https://github.com/GetStream/stream-video-js/issues/1263
+It has been fixed on version `4.2.0` of the `react-native-incall-manager` library.

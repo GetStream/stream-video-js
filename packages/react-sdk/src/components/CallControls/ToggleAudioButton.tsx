@@ -27,7 +27,7 @@ export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
-  const { caption, Menu, menuPlacement, ...restCompositeButtonProps } = props;
+  const { caption, onMenuToggle, ...restCompositeButtonProps } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, optimisticIsMute, hasBrowserPermission } =
@@ -60,10 +60,11 @@ export const ToggleAudioPreviewButton = (
             : 'preview-audio-mute-button'
         }
         onClick={handleClick}
-        Menu={Menu}
-        menuPlacement={menuPlacement}
-        onMenuToggle={(shown) => setTooltipDisabled(shown)}
         {...restCompositeButtonProps}
+        onMenuToggle={(shown) => {
+          setTooltipDisabled(shown);
+          onMenuToggle?.(shown);
+        }}
       >
         <Icon icon={!optimisticIsMute ? 'mic' : 'mic-off'} />
         {!hasBrowserPermission && (
@@ -93,6 +94,7 @@ export const ToggleAudioPublishingButton = (
     caption,
     Menu = <DeviceSelectorAudioInput visualType="list" />,
     menuPlacement = 'top',
+    onMenuToggle,
     ...restCompositeButtonProps
   } = props;
 
@@ -142,8 +144,11 @@ export const ToggleAudioPublishingButton = (
             Menu={Menu}
             menuPlacement={menuPlacement}
             menuOffset={16}
-            onMenuToggle={(shown) => setTooltipDisabled(shown)}
             {...restCompositeButtonProps}
+            onMenuToggle={(shown) => {
+              setTooltipDisabled(shown);
+              onMenuToggle?.(shown);
+            }}
           >
             <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
             {(!hasBrowserPermission || !hasPermission) && (

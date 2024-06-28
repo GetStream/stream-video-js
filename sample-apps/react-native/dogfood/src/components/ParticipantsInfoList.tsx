@@ -128,7 +128,7 @@ export const ParticipantsInfoList = ({
               >
                 <Cross
                   color={appTheme.colors.primary}
-                  style={{ height: 15, width: 15 }}
+                  style={styles.crossIcon}
                 />
               </Pressable>
             </View>
@@ -209,22 +209,24 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
 
       <View style={styles.icons}>
         {isScreenSharing && (
-          <View style={[styles.svgContainerStyle, { height: 25, width: 25 }]}>
+          <View
+            style={[styles.svgContainerStyle, styles.screenShareIconContainer]}
+          >
             <ScreenShare color={colorPallet.dark.info} />
           </View>
         )}
         {isAudioMuted && (
-          <View style={[styles.svgContainerStyle, { height: 20, width: 20 }]}>
+          <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
             <MicOff color={colorPallet.dark.error} />
           </View>
         )}
         {isVideoMuted && (
-          <View style={[styles.svgContainerStyle, { height: 20, width: 20 }]}>
+          <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
             <VideoSlash color={colorPallet.dark.error} />
           </View>
         )}
         {!participantIsLocalParticipant && (
-          <View style={[styles.svgContainerStyle, { height: 20, width: 20 }]}>
+          <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
             <ArrowRight color={colorPallet.dark.text_high_emphasis} />
           </View>
         )}
@@ -270,6 +272,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 4,
+  },
+  screenShareIconContainer: {
+    height: 25,
+    width: 25,
+  },
+  genericIconContainer: {
+    height: 20,
+    width: 20,
+  },
+  crossIcon: {
+    height: 15,
+    width: 15,
   },
   button: {
     flex: 1,

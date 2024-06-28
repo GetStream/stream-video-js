@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { emitDeviceIds, mockAudioDevices, mockDeviceIds$ } from './mocks';
+import {
+  emitDeviceIds,
+  mockAudioDevices,
+  mockBrowserPermission,
+  mockDeviceIds$,
+} from './mocks';
 import { of } from 'rxjs';
 import { SpeakerManager } from '../SpeakerManager';
 import { checkIfAudioOutputChangeSupported } from '../devices';
@@ -12,6 +17,8 @@ vi.mock('../devices.ts', () => {
   return {
     getAudioOutputDevices: vi.fn(() => of(mockAudioDevices)),
     checkIfAudioOutputChangeSupported: vi.fn(() => true),
+    getAudioBrowserPermission: () => mockBrowserPermission,
+    getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
   };
 });

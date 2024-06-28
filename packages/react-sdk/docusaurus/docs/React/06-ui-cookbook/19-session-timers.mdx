@@ -12,8 +12,8 @@ paid appointments.
 
 In this article we'll integrate a session timer into a sample telemedicine
 application. We assume that two users are joining a call: a medical specialist,
-and a patient. Each appointment lasts 30 minutes, but the specialist can extend
-an appointment if necessary.
+and a patient. Each appointment lasts 1 hour, but the specialist can extend an
+appointment if necessary.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ Let's start by setting up an application. Here's what we need:
 
 1. Separate user roles for a medical specialist (`specialist`) and a patient
    (`patient`)
-2. An `appointment` call type with a maximum duration of 30 minutes
+2. An `appointment` call type with a maximum duration of 1 hour
 3. Two test users, one for each call (we'll call them `dr-lecter` and `bill`)
 4. One test call of an `appointment` type
 
@@ -47,7 +47,7 @@ const client = new StreamClient(apiKey, secret);
 await client.createRole({ name: 'specialist' });
 await client.createRole({ name: 'patient' });
 
-// 2. Call type with the maximum duration of 30 minutes:
+// 2. Call type with the maximum duration of 1 hour:
 await client.video.createCallType('appointment', {
   grants: {
     specialist: [
@@ -151,6 +151,22 @@ const App = () => {
     </div>
   );
 };
+```
+
+At this point it's also possible to override the default call duration. The user
+must have a permission to update call and call settings (in our case, the
+`specialist` role has these permissions):
+
+```js
+newCall.join({
+  data: {
+    settings_override: {
+      limits: {
+        max_duration_seconds: 7200,
+      },
+    },
+  },
+});
 ```
 
 ## Session Timer Component

@@ -4,6 +4,7 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import {
+  mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
   mockVideoDevices,
@@ -22,6 +23,8 @@ vi.mock('../devices.ts', () => {
       return of(mockVideoDevices);
     }),
     getVideoStream: vi.fn(() => Promise.resolve(mockVideoStream())),
+    getAudioBrowserPermission: () => mockBrowserPermission,
+    getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
   };
 });

@@ -12,6 +12,7 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   mockAudioDevices,
   mockAudioStream,
+  mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
 } from './mocks';
@@ -31,6 +32,8 @@ vi.mock('../devices.ts', () => {
       return of(mockAudioDevices);
     }),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
+    getAudioBrowserPermission: () => mockBrowserPermission,
+    getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
   };
 });
@@ -50,7 +53,7 @@ vi.mock('../../Call.ts', () => {
 });
 
 class NoiseCancellationStub implements INoiseCancellation {
-  private listeners: { [event: string]: Array<() => void> } = {};
+  private listeners: { [event: string]: Array<(arg: boolean) => void> } = {};
 
   isSupported = () => true;
   init = () => Promise.resolve(undefined);

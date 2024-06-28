@@ -2,12 +2,15 @@ import {
   concatMap,
   debounceTime,
   from,
+  fromEvent,
   map,
   merge,
-  Observable,
   shareReplay,
+  startWith,
 } from 'rxjs';
 import { getLogger } from '../logger';
+import { BrowserPermission } from './BrowserPermission';
+import { lazy } from '../helpers/lazy';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -16,49 +19,28 @@ import { getLogger } from '../logger';
  * @param constraints the constraints to use when requesting the devices.
  * @param kind the kind of devices to enumerate.
  */
-const getDevices = (
-  constraints: MediaStreamConstraints,
-  kind: MediaDeviceKind,
-) => {
-  return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    const enumerate = async () => {
+const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
+  return from(
+    (async () => {
       let devices = await navigator.mediaDevices.enumerateDevices();
-      // some browsers report empty device labels (Firefox).
-      // in that case, we need to request permissions (via getUserMedia)
-      // to be able to get the device labels
-      const needsGetUserMedia = devices.some(
+      // for privacy reasons, most browsers don't give you device labels
+      // unless you have a corresponding camera or microphone permission
+      const shouldPromptForBrowserPermission = devices.some(
         (device) => device.kind === kind && device.label === '',
       );
-      if (needsGetUserMedia) {
-        let mediaStream: MediaStream | undefined;
-        try {
-          mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-          devices = await navigator.mediaDevices.enumerateDevices();
-        } finally {
-          if (mediaStream) disposeOfMediaStream(mediaStream);
-        }
+      if (shouldPromptForBrowserPermission) {
+        await permission.prompt({ throwOnNotAllowed: true });
+        devices = await navigator.mediaDevices.enumerateDevices();
       }
-      return devices;
-    };
-
-    enumerate()
-      .then((devices) => {
-        // notify subscribers and complete
-        subscriber.next(devices);
-        subscriber.complete();
-      })
-      .catch((error) => {
-        const logger = getLogger(['devices']);
-        logger('error', 'Failed to enumerate devices', error);
-        subscriber.error(error);
-      });
-  });
+      return devices.filter((d) => d.kind === kind);
+    })(),
+  );
 };
 
 /**
- * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
- *
- *  */
+ * Tells if the browser supports audio output change on 'audio' elements,
+ * see https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId.
+ */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
   const element = document.createElement('audio');
@@ -87,97 +69,92 @@ const videoDeviceConstraints = {
 } satisfies MediaStreamConstraints;
 
 /**
- * Creates a memoized observable instance
- * that will be created only once and shared between all callers.
- *
- * @param create a function that creates an Observable.
+ * Keeps track of the browser permission to use microphone. This permission also
+ * affects an ability to enumerate audio devices.
  */
-const memoizedObservable = <T>(create: () => Observable<T>) => {
-  let memoized: Observable<T>;
-  return () => {
-    if (!memoized) memoized = create();
-    return memoized;
-  };
-};
+export const getAudioBrowserPermission = lazy(
+  () =>
+    new BrowserPermission({
+      constraints: audioDeviceConstraints,
+      queryName: 'microphone' as PermissionName,
+    }),
+);
 
-const getDeviceChangeObserver = memoizedObservable(() => {
-  // Audio and video devices are requested in two separate requests.
-  // That way, users will be presented with two separate prompts
-  // -> they can give access to just camera, or just microphone
-  return new Observable((subscriber) => {
-    // 'addEventListener' is not available in React Native
-    if (!navigator.mediaDevices.addEventListener) return;
+/**
+ * Keeps track of the browser permission to use camera. This permission also
+ * affects an ability to enumerate video devices.
+ */
+export const getVideoBrowserPermission = lazy(
+  () =>
+    new BrowserPermission({
+      constraints: videoDeviceConstraints,
+      queryName: 'camera' as PermissionName,
+    }),
+);
 
-    const notify = () => subscriber.next();
-    navigator.mediaDevices.addEventListener('devicechange', notify);
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', notify);
-    };
-  }).pipe(
+const getDeviceChangeObserver = lazy(() => {
+  // 'addEventListener' is not available in React Native, returning
+  // an observable that will never fire
+  if (!navigator.mediaDevices.addEventListener) return from([]);
+  return fromEvent(navigator.mediaDevices, 'devicechange').pipe(
+    map(() => undefined),
     debounceTime(500),
-    concatMap(() => from(navigator.mediaDevices.enumerateDevices())),
+  );
+});
+
+/**
+ * Prompts the user for a permission to use audio devices (if not already granted
+ * and was not prompted before) and lists the available 'audioinput' devices,
+ * if devices are added/removed the list is updated, and if the permission is revoked,
+ * the observable errors.
+ */
+export const getAudioDevices = lazy(() => {
+  return merge(
+    getDeviceChangeObserver(),
+    getAudioBrowserPermission().asObservable(),
+  ).pipe(
+    startWith(undefined),
+    concatMap(() => getDevices(getAudioBrowserPermission(), 'audioinput')),
     shareReplay(1),
   );
 });
 
-const getAudioDevicesObserver = memoizedObservable(() => {
-  return merge(
-    getDevices(audioDeviceConstraints, 'audioinput'),
-    getDeviceChangeObserver(),
-  ).pipe(shareReplay(1));
-});
-
-const getAudioOutputDevicesObserver = memoizedObservable(() => {
-  return merge(
-    getDevices(audioDeviceConstraints, 'audiooutput'),
-    getDeviceChangeObserver(),
-  ).pipe(shareReplay(1));
-});
-
-const getVideoDevicesObserver = memoizedObservable(() => {
-  return merge(
-    getDevices(videoDeviceConstraints, 'videoinput'),
-    getDeviceChangeObserver(),
-  ).pipe(shareReplay(1));
-});
-
 /**
- * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audioinput' devices, if devices are added/removed the list is updated.
- */
-export const getAudioDevices = () => {
-  return getAudioDevicesObserver().pipe(
-    map((values) => values.filter((d) => d.kind === 'audioinput')),
-  );
-};
-
-/**
- * Prompts the user for a permission to use video devices (if not already granted) and lists the available 'videoinput' devices, if devices are added/removed the list is updated.
+ * Prompts the user for a permission to use video devices (if not already granted
+ * and was not prompted before) and lists the available 'videoinput' devices,
+ * if devices are added/removed the list is updated, and if the permission is revoked,
+ * the observable errors.
  */
 export const getVideoDevices = () => {
-  return getVideoDevicesObserver().pipe(
-    map((values) => values.filter((d) => d.kind === 'videoinput')),
+  return merge(
+    getDeviceChangeObserver(),
+    getVideoBrowserPermission().asObservable(),
+  ).pipe(
+    startWith(undefined),
+    concatMap(() => getDevices(getVideoBrowserPermission(), 'videoinput')),
+    shareReplay(1),
   );
 };
 
 /**
- * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audiooutput' devices, if devices are added/removed the list is updated. Selecting 'audiooutput' device only makes sense if [the browser has support for changing audio output on 'audio' elements](#checkifaudiooutputchangesupported)
+ * Prompts the user for a permission to use video devices (if not already granted
+ * and was not prompted before) and lists the available 'audiooutput' devices,
+ * if devices are added/removed the list is updated, and if the permission is revoked,
+ * the observable errors.
  */
 export const getAudioOutputDevices = () => {
-  return getAudioOutputDevicesObserver().pipe(
-    map((values) => values.filter((d) => d.kind === 'audiooutput')),
+  return merge(
+    getDeviceChangeObserver(),
+    getAudioBrowserPermission().asObservable(),
+  ).pipe(
+    startWith(undefined),
+    concatMap(() => getDevices(getAudioBrowserPermission(), 'audiooutput')),
+    shareReplay(1),
   );
 };
 
 const getStream = async (constraints: MediaStreamConstraints) => {
-  try {
-    return await navigator.mediaDevices.getUserMedia(constraints);
-  } catch (e) {
-    getLogger(['devices'])('error', `Failed to getUserMedia`, {
-      error: e,
-      constraints: constraints,
-    });
-    throw e;
-  }
+  return await navigator.mediaDevices.getUserMedia(constraints);
 };
 
 /**
@@ -197,7 +174,20 @@ export const getAudioStream = async (
       ...trackConstraints,
     },
   };
-  return getStream(constraints);
+
+  try {
+    await getAudioBrowserPermission().prompt({
+      throwOnNotAllowed: true,
+      forcePrompt: true,
+    });
+    return getStream(constraints);
+  } catch (e) {
+    getLogger(['devices'])('error', 'Failed to get audio stream', {
+      error: e,
+      constraints: constraints,
+    });
+    throw e;
+  }
 };
 
 /**
@@ -217,7 +207,19 @@ export const getVideoStream = async (
       ...trackConstraints,
     },
   };
-  return getStream(constraints);
+  try {
+    await getVideoBrowserPermission().prompt({
+      throwOnNotAllowed: true,
+      forcePrompt: true,
+    });
+    return getStream(constraints);
+  } catch (e) {
+    getLogger(['devices'])('error', 'Failed to get video stream', {
+      error: e,
+      constraints: constraints,
+    });
+    throw e;
+  }
 };
 
 /**
@@ -257,12 +259,11 @@ export const getScreenShareStream = async (
 export const deviceIds$ =
   typeof navigator !== 'undefined' &&
   typeof navigator.mediaDevices !== 'undefined'
-    ? memoizedObservable(() =>
-        merge(
-          from(navigator.mediaDevices.enumerateDevices()),
-          getDeviceChangeObserver(),
-        ).pipe(shareReplay(1)),
-      )()
+    ? getDeviceChangeObserver().pipe(
+        startWith(undefined),
+        concatMap(() => navigator.mediaDevices.enumerateDevices()),
+        shareReplay(1),
+      )
     : undefined;
 
 /**

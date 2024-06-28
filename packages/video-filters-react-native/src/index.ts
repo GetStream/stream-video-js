@@ -1,4 +1,4 @@
-import { NativeModules, Platform, Image } from 'react-native';
+import { Image, NativeModules, Platform } from 'react-native';
 
 const resolveAssetSourceFunc = Image.resolveAssetSource;
 
@@ -22,7 +22,7 @@ const VideoFiltersReactNative = NativeModules.VideoFiltersReactNative
         get() {
           throw new Error(LINKING_ERROR);
         },
-      }
+      },
     );
 
 /**
@@ -41,7 +41,7 @@ export async function registerBackgroundBlurVideoFilters(): Promise<boolean> {
  * @returns the URI of the image that was registered as the virtual background
  */
 export async function registerVirtualBackgroundFilter(
-  imageSource: ImageSourceType
+  imageSource: ImageSourceType,
 ): Promise<string> {
   const source = resolveAssetSourceFunc(imageSource);
   const imageUri = source.uri;
