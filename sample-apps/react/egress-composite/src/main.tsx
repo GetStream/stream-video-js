@@ -19,6 +19,7 @@ if (import.meta.env.MODE === 'production') {
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration(),
+      Sentry.captureConsoleIntegration(),
     ],
     tracesSampleRate: 0.9,
     replaysSessionSampleRate: 0.1,

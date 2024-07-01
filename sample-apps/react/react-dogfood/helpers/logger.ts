@@ -16,6 +16,7 @@ export const customSentryLogger: Logger = (
   if (logLevel === 'warn' || logLevel === 'error') {
     Sentry.captureEvent({
       level: logLevelMapping.get(logLevel),
+      message,
     });
   }
 

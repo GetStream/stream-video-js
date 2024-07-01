@@ -13,6 +13,9 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
+  experimental: {
+    instrumentationHook: true,
+  },
   async headers() {
     return [
       {
@@ -78,11 +81,6 @@ const sentryWebpackPluginOptions = {
   authToken: process.env.PRONTO_SENTRY_AUTH_TOKEN,
   org: 'stream',
   project: 'video-dogfooding',
-};
-
-// Make sure adding Sentry options is the last code to run before exporting, to
-// ensure that your source maps include changes from all other Webpack plugins
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions, {
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
@@ -108,4 +106,8 @@ export default withSentryConfig(nextConfig, sentryWebpackPluginOptions, {
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: false,
-});
+};
+
+// Make sure adding Sentry options is the last code to run before exporting, to
+// ensure that your source maps include changes from all other Webpack plugins
+export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);
