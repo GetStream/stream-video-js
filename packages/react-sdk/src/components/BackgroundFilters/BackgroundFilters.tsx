@@ -10,7 +10,7 @@ import {
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
-import { disposeOfMediaStream } from '@stream-io/video-client';
+import { disposeOfMediaStream, getLogger } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
   BackgroundFilter,
@@ -192,6 +192,10 @@ export const BackgroundFiltersProvider = (
 
   const handleError = useCallback(
     (error: any) => {
+      getLogger(['filters'])(
+        'warn',
+        'Filter encountered an error and will be disabled',
+      );
       disableBackgroundFilter();
       onError?.(error);
     },
@@ -277,34 +281,40 @@ const useRenderer = (tfLite: TFLite) => {
         }
 
         videoEl.srcObject = ms;
-        videoEl.play().then(() => {
-          const [track] = ms.getVideoTracks();
+        videoEl.play().then(
+          () => {
+            const [track] = ms.getVideoTracks();
 
-          if (!track) {
-            reject(new Error('No video tracks in input media stream'));
-          }
+            if (!track) {
+              reject(new Error('No video tracks in input media stream'));
+              return;
+            }
 
-          const trackSettings = track.getSettings();
-          flushSync(() =>
-            setVideoSize({
-              width: trackSettings.width ?? 0,
-              height: trackSettings.height ?? 0,
-            }),
-          );
-          renderer = createRenderer(
-            tfLite,
-            videoEl,
-            canvasEl,
-            {
-              backgroundFilter,
-              backgroundBlurLevel,
-              backgroundImage: bgImageEl ?? undefined,
-            },
-            onError,
-          );
-          outputStream = canvasEl.captureStream();
-          resolve(outputStream);
-        });
+            const trackSettings = track.getSettings();
+            flushSync(() =>
+              setVideoSize({
+                width: trackSettings.width ?? 0,
+                height: trackSettings.height ?? 0,
+              }),
+            );
+            renderer = createRenderer(
+              tfLite,
+              videoEl,
+              canvasEl,
+              {
+                backgroundFilter,
+                backgroundBlurLevel,
+                backgroundImage: bgImageEl ?? undefined,
+              },
+              onError,
+            );
+            outputStream = canvasEl.captureStream();
+            resolve(outputStream);
+          },
+          () => {
+            reject(new Error('Could not play the source video stream'));
+          },
+        );
       });
 
       return {
