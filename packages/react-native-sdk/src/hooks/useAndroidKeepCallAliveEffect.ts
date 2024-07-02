@@ -5,8 +5,10 @@ import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
 import { CallingState, getLogger } from '@stream-io/video-client';
 
+const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
+
 function setForegroundService() {
-  if (Platform.OS !== 'android') {
+  if (isAndroid8OrAbove) {
     return;
   }
   notifee.registerForegroundService(() => {
@@ -18,12 +20,11 @@ function setForegroundService() {
 }
 
 async function startForegroundService(call_cid: string) {
-  if (Platform.OS !== 'android') {
+  if (isAndroid8OrAbove) {
     return;
   }
   const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
-  const channelId = foregroundServiceConfig.android.channel.id;
 
   // request for notification permission and then start the foreground service
   const settings = await notifee.getNotificationSettings();
@@ -35,13 +36,11 @@ async function startForegroundService(call_cid: string) {
     );
     return;
   }
-  await notifee.createChannel(foregroundServiceConfig.android.channel);
   await notifee.displayNotification({
     id: call_cid,
     title,
     body,
     android: {
-      channelId,
       asForegroundService: true,
       ongoing: true, // user cannot dismiss the notification
       colorized: true,
@@ -54,7 +53,7 @@ async function startForegroundService(call_cid: string) {
 }
 
 async function stopForegroundService() {
-  if (Platform.OS !== 'android') {
+  if (isAndroid8OrAbove) {
     return;
   }
   await notifee.stopForegroundService();
@@ -70,7 +69,7 @@ let isSetForegroundServiceRan = false;
  * Additonally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
-  if (!isSetForegroundServiceRan && Platform.OS === 'android') {
+  if (!isSetForegroundServiceRan && !isAndroid8OrAbove) {
     isSetForegroundServiceRan = true;
     setForegroundService();
   }
@@ -81,7 +80,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   const callingState = useCallCallingState();
 
   useEffect((): (() => void) | undefined => {
-    if (Platform.OS !== 'android' || !activeCallCid) {
+    if (isAndroid8OrAbove || !activeCallCid) {
       return;
     }
 
