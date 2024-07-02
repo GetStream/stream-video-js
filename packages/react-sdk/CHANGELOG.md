@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.11...@stream-io/video-react-sdk-1.2.12) (2024-07-02)
+
+
+### Bug Fixes
+
+* **CallStats:** stat card labels translations ([#1429](https://github.com/GetStream/stream-video-js/issues/1429)) ([51132cd](https://github.com/GetStream/stream-video-js/commit/51132cd5f939ef6cebe1f7ad26a1576a6f92f71f))
+
 ### [1.2.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.10...@stream-io/video-react-sdk-1.2.11) (2024-06-28)
 
 ### Dependency Updates
