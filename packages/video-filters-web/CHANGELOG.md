@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.2...@stream-io/video-filters-web-0.1.3) (2024-07-02)
+
+
+### Bug Fixes
+
+* refactor background filters ([#1415](https://github.com/GetStream/stream-video-js/issues/1415)) ([deb6da2](https://github.com/GetStream/stream-video-js/commit/deb6da238f541c733451e84b198434671da8dceb))
+
 ### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.1...@stream-io/video-filters-web-0.1.2) (2024-06-12)
 
 
