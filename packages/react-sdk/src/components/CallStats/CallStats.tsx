@@ -133,14 +133,14 @@ export const CallStats = (props: {
           </div>
 
           <div className="str-video__call-stats__card-container">
-            <StatCard label="Region" value={callStatsReport.datacenter} />
+            <StatCard label={t('Region')} value={callStatsReport.datacenter} />
             <StatCard
-              label="Latency"
+              label={t('Latency')}
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
               comparison={latencyComparison}
             />
             <StatCard
-              label="Receive jitter"
+              label={t('Receive jitter')}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
                 ...latencyComparison,
@@ -148,7 +148,7 @@ export const CallStats = (props: {
               }}
             />
             <StatCard
-              label="Publish jitter"
+              label={t('Publish jitter')}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
                 ...latencyComparison,
@@ -156,23 +156,23 @@ export const CallStats = (props: {
               }}
             />
             <StatCard
-              label="Publish resolution"
+              label={t('Publish resolution')}
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
-              label="Publish quality drop reason"
+              label={t('Publish quality drop reason')}
               value={callStatsReport.publisherStats.qualityLimitationReasons}
             />
             <StatCard
-              label="Receiving resolution"
+              label={t('Receiving resolution')}
               value={toFrameSize(callStatsReport.subscriberStats)}
             />
             <StatCard
-              label="Receive quality drop reason"
+              label={t('Receive quality drop reason')}
               value={callStatsReport.subscriberStats.qualityLimitationReasons}
             />
-            <StatCard label="Publish bitrate" value={publishBitrate} />
-            <StatCard label="Receiving bitrate" value={subscribeBitrate} />
+            <StatCard label={t('Publish bitrate')} value={publishBitrate} />
+            <StatCard label={t('Receiving bitrate')} value={subscribeBitrate} />
           </div>
         </>
       )}
