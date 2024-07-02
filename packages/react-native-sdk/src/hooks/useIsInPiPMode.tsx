@@ -9,7 +9,9 @@ import {
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
 export function useIsInPiPMode() {
-  const [isInPiPMode, setIsInPiPMode] = useState(false);
+  const [isInPiPMode, setIsInPiPMode] = useState(
+    Platform.OS === 'android' && AppState.currentState === 'background'
+  );
 
   useEffect(() => {
     if (Platform.OS !== 'android') {
@@ -25,6 +27,12 @@ export function useIsInPiPMode() {
       setIsInPiPMode
     );
 
+    const setFromNativeMethod = async () => {
+      const isInPiPNativeMethod: boolean | null | undefined =
+        await NativeModules?.StreamVideoReactNative?.isInPiPMode();
+      setIsInPiPMode(!!isInPiPNativeMethod);
+    };
+
     const subscriptionAppState = AppState.addEventListener(
       'change',
       (nextAppState) => {
@@ -32,16 +40,11 @@ export function useIsInPiPMode() {
           setIsInPiPMode(true); // set with an assumption that its enabled so that UI disabling happens faster
           // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
         }
-        // attempt to take the value as soon as app state is changed
-        // this can be faster than event emitter at times
-        // also in new arch this can be made a synchronous method
-        NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
-          (isInPiPNativeMethod: boolean | null | undefined) => {
-            setIsInPiPMode(!!isInPiPNativeMethod);
-          }
-        );
+        setFromNativeMethod();
       }
     );
+
+    setFromNativeMethod();
 
     return () => {
       subscriptionPiPChange.remove();
