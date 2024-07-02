@@ -108,6 +108,29 @@ export const MyBackgroundFilterSettings = () => {
 `applyBackgroundBlurFilter` also takes a more fine-grained numeric argument, that specifies the strength of the applied Gaussian blur filter: `applyBackgroundBlurFilter(5.1)`. Note that higher values make the filter more resource intensive.
 :::
 
+### Step 3 - Handle errors
+
+The performance of the video filter depends on the capabilities of the user device. Even on supported devices, the filter may not work properly, for example, if the device is resource-constrained.
+
+By default, the malfunctioning filter is disabled. You can add the `onError` callback to handle such situations. Use it to display an error notification, to disable the camera completely, etc.
+
+```jsx
+const call = useCall();
+
+<BackgroundFiltersProvider
+  backgroundFilter="blur"
+  onError={(error) => {
+    console.error(
+      'Blur filter encountered an error, camera will be disabled',
+      error,
+    );
+    call?.camera.disable();
+  }}
+>
+  {/* ... */}
+</BackgroundFiltersProvider>;
+```
+
 ## Audio Filters
 
 An example is coming soon...
