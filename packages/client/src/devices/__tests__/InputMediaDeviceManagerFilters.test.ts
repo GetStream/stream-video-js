@@ -58,8 +58,9 @@ describe('MediaStream Filters', () => {
     const track = new MediaStreamTrack();
     vi.spyOn(mediaStream, 'getTracks').mockReturnValue([track]);
     vi.spyOn(track, 'getSettings').mockReturnValue({ deviceId: '123' });
-    const filter = vi.fn().mockReturnValue(mediaStream);
-    const unregister = await manager.registerFilter(filter);
+    const filter = vi.fn().mockReturnValue({ output: mediaStream });
+    const { registered, unregister } = manager.registerFilter(filter);
+    await registered;
     await manager.enable();
 
     expect(filter).toHaveBeenCalled();
@@ -92,10 +93,10 @@ describe('MediaStream Filters', () => {
 
     const rootMediaStream = createMediaStream();
     const filterMediaStream = createMediaStream();
-    const filter1 = vi.fn().mockReturnValue(rootMediaStream);
-    const filter2 = vi.fn().mockReturnValue(filterMediaStream);
-    await manager.registerFilter(filter1);
-    await manager.registerFilter(filter2);
+    const filter1 = vi.fn().mockReturnValue({ output: rootMediaStream });
+    const filter2 = vi.fn().mockReturnValue({ output: filterMediaStream });
+    await manager.registerFilter(filter1).registered;
+    await manager.registerFilter(filter2).registered;
     await manager.enable();
 
     expect(filter1).toHaveBeenCalled();

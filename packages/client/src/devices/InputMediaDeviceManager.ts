@@ -8,9 +8,16 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
-import { settled, withCancellation } from '../helpers/concurrency';
-
-export type MediaStreamFilter = (stream: MediaStream) => Promise<MediaStream>;
+import {
+  settled,
+  withCancellation,
+  withoutConcurrency,
+} from '../helpers/concurrency';
+import {
+  MediaStreamFilter,
+  MediaStreamFilterEntry,
+  MediaStreamFilterRegistrationResult,
+} from './filters';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -24,8 +31,11 @@ export abstract class InputMediaDeviceManager<
 
   protected subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
-  private filters: MediaStreamFilter[] = [];
+  private filters: MediaStreamFilterEntry[] = [];
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
+  private filterRegistrationConcurrencyTag = Symbol(
+    'filterRegistrationConcurrencyTag',
+  );
 
   protected constructor(
     protected readonly call: Call,
@@ -139,14 +149,32 @@ export abstract class InputMediaDeviceManager<
    * a new stream with the applied filter.
    *
    * @param filter the filter to register.
-   * @returns a function that will unregister the filter.
+   * @returns MediaStreamFilterRegistrationResult
    */
-  async registerFilter(filter: MediaStreamFilter) {
-    this.filters.push(filter);
-    await this.applySettingsToStream();
-    return async () => {
-      this.filters = this.filters.filter((f) => f !== filter);
-      await this.applySettingsToStream();
+  registerFilter(
+    filter: MediaStreamFilter,
+  ): MediaStreamFilterRegistrationResult {
+    const entry: MediaStreamFilterEntry = {
+      start: filter,
+      stop: undefined,
+    };
+
+    const registered = withoutConcurrency(
+      this.filterRegistrationConcurrencyTag,
+      async () => {
+        this.filters.push(entry);
+        await this.applySettingsToStream();
+      },
+    );
+
+    return {
+      registered,
+      unregister: () =>
+        withoutConcurrency(this.filterRegistrationConcurrencyTag, async () => {
+          entry.stop?.();
+          this.filters = this.filters.filter((f) => f !== entry);
+          await this.applySettingsToStream();
+        }),
     };
   }
 
@@ -224,6 +252,7 @@ export abstract class InputMediaDeviceManager<
         this.state.mediaStream.release();
       }
       this.state.setMediaStream(undefined, undefined);
+      this.filters.forEach((entry) => entry.stop?.());
     }
   }
 
@@ -335,7 +364,21 @@ export abstract class InputMediaDeviceManager<
       rootStream = this.getStream(constraints as C);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
-        (parent, filter) => parent.then(filter).then(chainWith(parent)),
+        (parent, entry) =>
+          parent
+            .then((inputStream) => {
+              const { stop, output } = entry.start(inputStream);
+              entry.stop = stop;
+              return output;
+            })
+            .then(chainWith(parent), (error) => {
+              this.logger(
+                'warn',
+                'Fitler failed to start and will be ignored',
+                error,
+              );
+              return parent;
+            }),
         rootStream,
       );
     }

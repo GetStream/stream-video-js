@@ -25,6 +25,7 @@ export function buildWebGL2Pipeline(
 ) {
   const gl = canvas.getContext('webgl2')!;
   if (!gl) throw new Error('WebGL2 is not supported');
+  if (gl.isContextLost()) throw new Error('WebGL2 context was lost');
 
   const { width: frameWidth, height: frameHeight } = videoSource;
   const { width: segmentationWidth, height: segmentationHeight } =

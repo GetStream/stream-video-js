@@ -7,15 +7,17 @@ import {
   useRef,
   useState,
 } from 'react';
+import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
-import { disposeOfMediaStream } from '@stream-io/video-client';
+import { disposeOfMediaStream, getLogger } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
   BackgroundFilter,
   createRenderer,
   isPlatformSupported,
   loadTFLite,
+  Renderer,
   TFLite,
 } from '@stream-io/video-filters-web';
 
@@ -62,6 +64,14 @@ export type BackgroundFiltersProps = {
    * (e.g., if you choose to host it yourself).
    */
   modelFilePath?: string;
+
+  /**
+   * When a started filter encounters an error, this callback will be executed.
+   * The default behavior (not overridable) is unregistering a failed filter.
+   * Use this callback to display UI error message, disable the corresponsing stream,
+   * or to try registering the filter again.
+   */
+  onError?: (error: any) => void;
 };
 
 export type BackgroundFiltersAPI = {
@@ -139,6 +149,7 @@ export const BackgroundFiltersProvider = (
     tfFilePath,
     modelFilePath,
     basePath,
+    onError,
   } = props;
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
@@ -179,6 +190,18 @@ export const BackgroundFiltersProvider = (
       .catch((err) => console.error('Failed to load TFLite', err));
   }, [basePath, isSupported, modelFilePath, tfFilePath]);
 
+  const handleError = useCallback(
+    (error: any) => {
+      getLogger(['filters'])(
+        'warn',
+        'Filter encountered an error and will be disabled',
+      );
+      disableBackgroundFilter();
+      onError?.(error);
+    },
+    [disableBackgroundFilter, onError],
+  );
+
   return (
     <BackgroundFiltersContext.Provider
       value={{
@@ -194,167 +217,151 @@ export const BackgroundFiltersProvider = (
         tfFilePath,
         modelFilePath,
         basePath,
+        onError: handleError,
       }}
     >
       {children}
-      {tfLite && backgroundFilter && <BackgroundFilters tfLite={tfLite} />}
+      {tfLite && <BackgroundFilters tfLite={tfLite} />}
     </BackgroundFiltersContext.Provider>
   );
 };
 
 const BackgroundFilters = (props: { tfLite: TFLite }) => {
-  const { tfLite } = props;
   const call = useCall();
-  const { backgroundImage, backgroundFilter } = useBackgroundFilters();
-  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
-  const [bgImageRef, setBgImageRef] = useState<HTMLImageElement | null>(null);
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
-  const [width, setWidth] = useState(1920);
-  const [height, setHeight] = useState(1080);
+  const { children, start } = useRenderer(props.tfLite);
+  const { backgroundFilter, onError } = useBackgroundFilters();
+  const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
+  handleErrorRef.current = onError;
 
-  // Holds a ref to the `resolve` function of the returned Promise as part
-  // of the `camera.registerFilter()` API. Once the filter is initialized,
-  // it should be called with the filtered MediaStream as an argument.
-  const signalFilterReadyRef =
-    useRef<(value: MediaStream | PromiseLike<MediaStream>) => void>();
-
-  const [mediaStream, setMediaStream] = useState<MediaStream>();
-  const unregister = useRef<Promise<void>>();
   useEffect(() => {
     if (!call || !backgroundFilter) return;
-    const register = (unregister.current || Promise.resolve()).then(() =>
-      call.camera.registerFilter(async (ms) => {
-        return new Promise<MediaStream>((resolve) => {
-          signalFilterReadyRef.current = resolve;
-          setMediaStream(ms);
-        });
-      }),
+    const { unregister } = call.camera.registerFilter((ms) =>
+      start(ms, (error) => handleErrorRef.current?.(error)),
     );
-
     return () => {
-      unregister.current = register
-        .then((unregisterFilter) => unregisterFilter())
-        .then(() => (signalFilterReadyRef.current = undefined))
-        .then(() => setMediaStream(undefined))
-        .catch((err) => console.error('Failed to unregister filter', err));
+      unregister();
     };
-  }, [backgroundFilter, call]);
+  }, [backgroundFilter, call, start]);
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  useEffect(() => {
-    if (!mediaStream || !videoRef) return;
-    const handleOnPlay = () => {
-      const [track] = mediaStream.getVideoTracks();
-      if (!track) return;
-      const { width: w = 0, height: h = 0 } = track.getSettings();
-      setWidth(w);
-      setHeight(h);
-      setIsPlaying(true);
-    };
-    videoRef.addEventListener('play', handleOnPlay);
-    videoRef.srcObject = mediaStream;
-    videoRef.play().catch((err) => {
-      console.error('Failed to play video', err);
-    });
-    return () => {
-      videoRef.removeEventListener('play', handleOnPlay);
-      videoRef.srcObject = null;
-      setIsPlaying(false);
-    };
-  }, [mediaStream, videoRef]);
+  return children;
+};
 
-  useEffect(() => {
-    const resolveFilter = signalFilterReadyRef.current;
-    if (!canvasRef || !resolveFilter) return;
+const useRenderer = (tfLite: TFLite) => {
+  const { backgroundFilter, backgroundBlurLevel, backgroundImage } =
+    useBackgroundFilters();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgImageRef = useRef<HTMLImageElement>(null);
+  const [videoSize, setVideoSize] = useState<{ width: number; height: number }>(
+    {
+      width: 1920,
+      height: 1080,
+    },
+  );
 
-    const filter = canvasRef.captureStream();
-    resolveFilter(filter);
-    return () => {
-      disposeOfMediaStream(filter);
-    };
-  }, [canvasRef]);
+  const start = useCallback(
+    (ms: MediaStream, onError?: (error: any) => void) => {
+      let outputStream: MediaStream | undefined;
+      let renderer: Renderer | undefined;
 
-  return (
-    <div
-      className="str-video__background-filters"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-      }}
-    >
-      {mediaStream && isPlaying && (
-        <RenderPipeline
-          tfLite={tfLite}
-          videoRef={videoRef}
-          canvasRef={canvasRef}
-          backgroundImageRef={bgImageRef}
-        />
-      )}
+      const output = new Promise<MediaStream>((resolve, reject) => {
+        if (!backgroundFilter) {
+          reject(new Error('No filter specified'));
+          return;
+        }
+
+        const videoEl = videoRef.current;
+        const canvasEl = canvasRef.current;
+        const bgImageEl = bgImageRef.current;
+
+        if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
+          // You should start renderer in effect or event handlers
+          reject(new Error('Renderer started before elements are ready'));
+          return;
+        }
+
+        videoEl.srcObject = ms;
+        videoEl.play().then(
+          () => {
+            const [track] = ms.getVideoTracks();
+
+            if (!track) {
+              reject(new Error('No video tracks in input media stream'));
+              return;
+            }
+
+            const trackSettings = track.getSettings();
+            flushSync(() =>
+              setVideoSize({
+                width: trackSettings.width ?? 0,
+                height: trackSettings.height ?? 0,
+              }),
+            );
+            renderer = createRenderer(
+              tfLite,
+              videoEl,
+              canvasEl,
+              {
+                backgroundFilter,
+                backgroundBlurLevel,
+                backgroundImage: bgImageEl ?? undefined,
+              },
+              onError,
+            );
+            outputStream = canvasEl.captureStream();
+            resolve(outputStream);
+          },
+          () => {
+            reject(new Error('Could not play the source video stream'));
+          },
+        );
+      });
+
+      return {
+        output,
+        stop: () => {
+          renderer?.dispose();
+          videoRef.current && (videoRef.current.srcObject = null);
+          outputStream && disposeOfMediaStream(outputStream);
+        },
+      };
+    },
+    [backgroundBlurLevel, backgroundFilter, backgroundImage, tfLite],
+  );
+
+  const children = (
+    <div className="str-video__background-filters">
       <video
         className={clsx(
           'str-video__background-filters__video',
-          height > width && 'str-video__background-filters__video--tall',
+          videoSize.height > videoSize.width &&
+            'str-video__background-filters__video--tall',
         )}
-        ref={setVideoRef}
-        autoPlay
+        ref={videoRef}
         playsInline
-        controls={false}
-        width={width}
-        height={height}
         muted
-        loop
+        controls={false}
+        {...videoSize}
       />
       {backgroundImage && (
         <img
           className="str-video__background-filters__background-image"
-          key={backgroundImage}
           alt="Background"
-          ref={setBgImageRef}
+          ref={bgImageRef}
           src={backgroundImage}
-          width={width}
-          height={height}
+          {...videoSize}
         />
       )}
-      {isPlaying && (
-        <canvas
-          className="str-video__background-filters__target-canvas"
-          width={width}
-          height={height}
-          ref={setCanvasRef}
-        />
-      )}
+      <canvas
+        className="str-video__background-filters__target-canvas"
+        {...videoSize}
+        ref={canvasRef}
+      />
     </div>
   );
-};
 
-const RenderPipeline = (props: {
-  tfLite: TFLite;
-  videoRef: HTMLVideoElement | null;
-  canvasRef: HTMLCanvasElement | null;
-  backgroundImageRef: HTMLImageElement | null;
-}) => {
-  const { tfLite, videoRef, canvasRef, backgroundImageRef } = props;
-  const { backgroundFilter, backgroundBlurLevel } = useBackgroundFilters();
-  useEffect(() => {
-    if (!videoRef || !canvasRef || !backgroundFilter) return;
-    if (backgroundFilter === 'image' && !backgroundImageRef) return;
-
-    const renderer = createRenderer(tfLite, videoRef, canvasRef, {
-      backgroundFilter,
-      backgroundImage: backgroundImageRef ?? undefined,
-      backgroundBlurLevel,
-    });
-    return () => {
-      renderer.dispose();
-    };
-  }, [
-    backgroundBlurLevel,
-    backgroundFilter,
-    backgroundImageRef,
-    canvasRef,
-    tfLite,
-    videoRef,
-  ]);
-
-  return null;
+  return {
+    start,
+    children,
+  };
 };

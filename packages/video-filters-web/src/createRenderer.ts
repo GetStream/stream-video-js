@@ -22,6 +22,7 @@ export function createRenderer(
     backgroundBlurLevel?: BackgroundBlurLevel;
     fps?: number;
   },
+  onError?: (error: any) => void,
 ): Renderer {
   const {
     backgroundFilter,
@@ -48,10 +49,14 @@ export function createRenderer(
 
   const id = setInterval(
     () => {
-      pipeline.render();
+      try {
+        pipeline.render();
 
-      if (backgroundFilter === 'image') {
-        pipeline.updatePostProcessingConfig();
+        if (backgroundFilter === 'image') {
+          pipeline.updatePostProcessingConfig();
+        }
+      } catch (error) {
+        onError?.(error);
       }
     },
     1000 / (fps <= 0 ? 30 : fps),
