@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.12...@stream-io/video-react-sdk-1.2.13) (2024-07-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.4`
+* `@stream-io/video-filters-web` updated to version `0.1.3`
+* `@stream-io/video-react-bindings` updated to version `0.4.48`
+* `@stream-io/audio-filters-web` updated to version `0.2.1`
+
+### Bug Fixes
+
+* refactor background filters ([#1415](https://github.com/GetStream/stream-video-js/issues/1415)) ([deb6da2](https://github.com/GetStream/stream-video-js/commit/deb6da238f541c733451e84b198434671da8dceb))
+
 ### [1.2.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.11...@stream-io/video-react-sdk-1.2.12) (2024-07-02)
 
 
