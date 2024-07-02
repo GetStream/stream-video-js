@@ -31,6 +31,7 @@ if (window.location.href.includes('no-trace')) {
         maskAllText: true,
         blockAllMedia: true,
       }),
+      Sentry.captureConsoleIntegration(),
     ],
   });
 }
