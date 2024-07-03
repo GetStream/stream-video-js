@@ -112,8 +112,8 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
             'X-CSRFToken': getCookie('csrftoken') || '',
           },
           body: JSON.stringify({
-            email: values.email || 'no-email@example.com',
-            message: values.message || '<no-message>',
+            email: values.email || 'anonymous-feedback@getstream.io',
+            message: values.message || '<no-message-provided>',
             rating: rating.current,
             page_url: pageUrl.toString(),
           }),
