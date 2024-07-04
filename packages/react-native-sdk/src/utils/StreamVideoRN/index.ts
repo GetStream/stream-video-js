@@ -1,4 +1,3 @@
-import { AndroidImportance } from '@notifee/react-native';
 import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
