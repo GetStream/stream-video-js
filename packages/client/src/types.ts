@@ -147,7 +147,8 @@ export type SubscriptionChanges = {
 };
 
 export type PublishOptions = {
-  preferredCodec?: string | null;
+  preferredCodec?: string;
+  scalabilityMode?: string;
   screenShareSettings?: ScreenShareSettings;
 };
 
