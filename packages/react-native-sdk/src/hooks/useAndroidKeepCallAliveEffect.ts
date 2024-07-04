@@ -8,7 +8,7 @@ import { CallingState, getLogger } from '@stream-io/video-client';
 const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
 
 function setForegroundService() {
-  if (isAndroid8OrAbove) {
+  if (isAndroid8OrAbove || Platform.OS !== 'android') {
     return;
   }
   notifee.registerForegroundService(() => {
@@ -20,7 +20,7 @@ function setForegroundService() {
 }
 
 async function startForegroundService(call_cid: string) {
-  if (isAndroid8OrAbove) {
+  if (isAndroid8OrAbove || Platform.OS !== 'android') {
     return;
   }
   const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
@@ -53,7 +53,7 @@ async function startForegroundService(call_cid: string) {
 }
 
 async function stopForegroundService() {
-  if (isAndroid8OrAbove) {
+  if (isAndroid8OrAbove || Platform.OS !== 'android') {
     return;
   }
   await notifee.stopForegroundService();
@@ -69,7 +69,11 @@ let isSetForegroundServiceRan = false;
  * Additonally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
-  if (!isSetForegroundServiceRan && !isAndroid8OrAbove) {
+  if (
+    !isSetForegroundServiceRan &&
+    !isAndroid8OrAbove &&
+    Platform.OS === 'android'
+  ) {
     isSetForegroundServiceRan = true;
     setForegroundService();
   }
@@ -80,7 +84,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   const callingState = useCallCallingState();
 
   useEffect((): (() => void) | undefined => {
-    if (isAndroid8OrAbove || !activeCallCid) {
+    if (isAndroid8OrAbove || !activeCallCid || Platform.OS !== 'android') {
       return;
     }
 
