@@ -8,13 +8,15 @@ import {
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
+const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
+
 export function useIsInPiPMode() {
   const [isInPiPMode, setIsInPiPMode] = useState(
-    Platform.OS === 'android' && AppState.currentState === 'background'
+    isAndroid8OrAbove && AppState.currentState === 'background'
   );
 
   useEffect(() => {
-    if (Platform.OS !== 'android') {
+    if (!isAndroid8OrAbove) {
       return;
     }
 
