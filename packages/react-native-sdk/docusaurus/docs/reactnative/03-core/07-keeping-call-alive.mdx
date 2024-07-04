@@ -39,6 +39,7 @@ Add the following in `AndroidManifest.xml`:
 
 <service
     android:name="app.notifee.core.ForegroundService"
+    tools:replace="android:foregroundServiceType"
     android:stopWithTask="true"
     android:foregroundServiceType="dataSync" />
 ```
