@@ -5,7 +5,7 @@ import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 
-type PreferredCodec = 'vp8' | 'h264' | string;
+type PreferredCodec = 'vp8' | 'vp9' | 'h264' | string;
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -19,6 +19,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    * @internal internal use only, not part of the public API.
    */
   preferredCodec: PreferredCodec | undefined;
+  /**
+   * The scalability mode to use for the codec.
+   * @internal internal use only, not part of the public API.
+   */
+  scalabilityMode: string | undefined;
 
   constructor(call: Call) {
     super(call, new CameraManagerState(), TrackType.VIDEO);
@@ -83,9 +88,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    *
    * @internal internal use only, not part of the public API.
    * @param codec the codec to use for encoding the video.
+   * @param scalabilityMode the scalability mode to use for the codec.
    */
-  setPreferredCodec(codec: 'vp8' | 'h264' | string | undefined) {
+  setPreferredCodec(codec: PreferredCodec, scalabilityMode?: string) {
     this.preferredCodec = codec;
+    this.scalabilityMode = scalabilityMode;
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -109,6 +116,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   protected publishStream(stream: MediaStream): Promise<void> {
     return this.call.publishVideoStream(stream, {
       preferredCodec: this.preferredCodec,
+      scalabilityMode: this.scalabilityMode,
     });
   }
 

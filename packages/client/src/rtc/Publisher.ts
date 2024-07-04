@@ -252,7 +252,7 @@ export class Publisher {
 
       const videoEncodings =
         trackType === TrackType.VIDEO
-          ? findOptimalVideoLayers(track, targetResolution)
+          ? findOptimalVideoLayers(track, targetResolution, opts)
           : trackType === TrackType.SCREEN_SHARE
             ? findOptimalScreenSharingLayers(
                 track,
@@ -751,7 +751,7 @@ export class Publisher {
           const publishOpts = this.publishOptionsPerTrackType.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
-              ? findOptimalVideoLayers(track, targetResolution)
+              ? findOptimalVideoLayers(track, targetResolution, undefined)
               : trackType === TrackType.SCREEN_SHARE
                 ? findOptimalScreenSharingLayers(
                     track,

@@ -50,8 +50,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!fastJoin) setShow('loading');
       try {
         const preferredCodec = router.query['video_codec'];
+        const scalabilityMode = router.query['scalability_mode'] as
+          | string
+          | undefined;
         if (typeof preferredCodec === 'string') {
-          activeCall?.camera.setPreferredCodec(preferredCodec);
+          activeCall?.camera.setPreferredCodec(preferredCodec, scalabilityMode);
         }
         await activeCall?.join({ create: true });
         setShow('active-call');

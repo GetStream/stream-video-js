@@ -1,5 +1,5 @@
 import { getOSInfo } from '../client-details';
-import { ScreenShareSettings } from '../types';
+import { PublishOptions, ScreenShareSettings } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 import { isReactNative } from '../helpers/platforms';
 
@@ -27,10 +27,12 @@ const defaultBitratePerRid: Record<string, number> = {
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
+ * @param options the publish options.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
+  options: PublishOptions = {},
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
@@ -40,7 +42,8 @@ export const findOptimalVideoLayers = (
 
   const maxBitrate = getComputedMaxBitrate(targetResolution, w, h);
   let downscaleFactor = 1;
-  ['f', 'h', 'q'].forEach((rid) => {
+  const { preferredCodec, scalabilityMode } = options;
+  (preferredCodec === 'vp9' ? ['q'] : ['f', 'h', 'q']).forEach((rid) => {
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
     // when deciding which layer to disable when CPU or bandwidth is constrained.
     // Encodings should be ordered in increasing spatial resolution order.
@@ -58,6 +61,9 @@ export const findOptimalVideoLayers = (
         h: isRNIos ? 30 : 25,
         q: isRNIos ? 30 : 20,
       }[rid],
+      ...(preferredCodec === 'vp9'
+        ? { scalabilityMode: scalabilityMode || 'L3T3' }
+        : null),
     });
     downscaleFactor *= 2;
   });
