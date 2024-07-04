@@ -20,14 +20,16 @@ function getNotifeeService() {
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
+        
         android:foregroundServiceType="mediaProjection" />
  */
   const foregroundServiceType = 'dataSync';
-  const head = prefixAndroidKeys({
+  let head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
     stopWithTask: 'true',
     foregroundServiceType,
   });
+  head = { ...head, 'tools:replace': 'android:foregroundServiceType' };
   return {
     $: head,
   } as ManifestService;
