@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.9...@stream-io/video-react-native-sdk-0.9.0) (2024-07-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** support targetSdk android 14  (#1432)
+
+### Features
+
+* **react-native:** support targetSdk android 14  ([#1432](https://github.com/GetStream/stream-video-js/issues/1432)) ([2e98fbe](https://github.com/GetStream/stream-video-js/commit/2e98fbe5000161088030d553fc38cd5243327dd1))
+
 ### [0.8.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.8...@stream-io/video-react-native-sdk-0.8.9) (2024-07-02)
 
 ### Dependency Updates
