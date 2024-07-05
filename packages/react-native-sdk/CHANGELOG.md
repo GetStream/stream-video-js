@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.0...@stream-io/video-react-native-sdk-0.9.1) (2024-07-05)
+
+
+### Bug Fixes
+
+* **react-native:** ringing call content component did not handle reconnection state ([#1435](https://github.com/GetStream/stream-video-js/issues/1435)) ([a4a50b7](https://github.com/GetStream/stream-video-js/commit/a4a50b74e525324618681b273df998c4478068c6))
+
 ## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.9...@stream-io/video-react-native-sdk-0.9.0) (2024-07-05)
 
 
