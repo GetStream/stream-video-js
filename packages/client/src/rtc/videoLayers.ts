@@ -1,7 +1,5 @@
-import { getOSInfo } from '../client-details';
 import { PublishOptions, ScreenShareSettings } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
-import { isReactNative } from '../helpers/platforms';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -38,8 +36,6 @@ export const findOptimalVideoLayers = (
   const settings = videoTrack.getSettings();
   const { width: w = 0, height: h = 0 } = settings;
 
-  const isRNIos = isReactNative() && getOSInfo()?.name.toLowerCase() === 'ios';
-
   const maxBitrate = getComputedMaxBitrate(targetResolution, w, h);
   let downscaleFactor = 1;
   const { preferredCodec, scalabilityMode } = options;
@@ -55,12 +51,7 @@ export const findOptimalVideoLayers = (
       maxBitrate:
         Math.round(maxBitrate / downscaleFactor) || defaultBitratePerRid[rid],
       scaleResolutionDownBy: downscaleFactor,
-      // Simulcast on iOS React-Native requires all encodings to share the same framerate
-      maxFramerate: {
-        f: 30,
-        h: isRNIos ? 30 : 25,
-        q: isRNIos ? 30 : 20,
-      }[rid],
+      maxFramerate: 30,
       ...(preferredCodec === 'vp9'
         ? { scalabilityMode: scalabilityMode || 'L3T3' }
         : null),
