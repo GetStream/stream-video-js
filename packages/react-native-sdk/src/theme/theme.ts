@@ -160,9 +160,6 @@ export type Theme = {
     bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
   };
-  joiningCallIndicator: {
-    container: ViewStyle;
-  };
   outgoingCall: {
     container: ViewStyle;
     background: ViewStyle;
@@ -486,7 +483,6 @@ export const defaultTheme: Theme = {
     deviceControlButtons: {},
   },
   ringingCallContent: { container: {} },
-  joiningCallIndicator: { container: {} },
   callTopView: {
     container: {},
     content: {},
