@@ -6,12 +6,12 @@ import Troubleshooting from "../../common-content/setup/installation/troubleshoo
 
 Installation and usage of our React Native SDK is simple and involves the following steps:
 
-### Prerequisites
+## Prerequisites
 
 First things first, make sure you have set up the development environment for React Native.
 You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
-### Add Stream's Video SDK and its peer dependencies
+## Add Stream's Video SDK and its peer dependencies
 
 In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
@@ -37,10 +37,10 @@ So what did we install precisely?
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
 - `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
-### Android Specific installation
+## Android Specific installation
 
 <!-- vale off -->
-#### Update the compileSdk, targetSdk and minSdk versions
+### Update the minSdk version
 
 In `android/build.gradle` add the following inside the `buildscript` section:
 
@@ -49,19 +49,13 @@ buildscript {
     ext {
         ...
         minSdkVersion = 24
-        compileSdkVersion = 34
-        targetSdkVersion = 33
     }
     ...
 }
 ```
-
-:::infoINFO
-We have to temporarily use targetSdkVersion 33 due to a lack of support for [dynamically setting foreground service types](https://github.com/invertase/notifee/issues/997#issuecomment-2036781216) in the notifee library. We are aware of the [August 31, 2024 deadline](https://apilevels.com/) for updating to targetSdkVersion 34 and we are actively working on adding support in the notifee library.
-:::
 <!-- vale on -->
 
-#### Enable Java 8 Support
+### Enable Java 8 Support
 
 In `android/app/build.gradle` add the following inside the `android` section:
 
@@ -72,7 +66,7 @@ compileOptions {
 }
 ```
 
-#### Optional: R8/ProGuard Support
+### Optional: R8/ProGuard Support
 
 If you require R8/ProGuard support then in `android/app/proguard-rules.pro` add the following on a new line:
 
@@ -80,11 +74,11 @@ If you require R8/ProGuard support then in `android/app/proguard-rules.pro` add 
 -keep class org.webrtc.** { *; }
 ```
 
-### Declaring Permissions
+## Declaring Permissions
 
 Making video or audio calls requires the usage of the device's camera and microphone accordingly. In both platforms, we must declare the permissions.
 
-#### iOS
+### iOS
 
 Add the following keys and values to `Info.plist` file at a minimum:
 
@@ -95,7 +89,7 @@ Add the following keys and values to `Info.plist` file at a minimum:
 You should replace `<Your_app_name>` (or also use your custom strings instead).
 :::
 
-#### Android
+### Android
 
 In `AndroidManifest.xml` add the following permissions before the `<application>` section.
 
@@ -121,7 +115,7 @@ If you plan to also support Bluetooth devices then also add the following.
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
-### Optional peer dependencies
+## Optional peer dependencies
 
 Some of the optional features we provide require additional dependencies to be installed in order to work properly.
 
@@ -135,5 +129,7 @@ To enable this feature you need to install the following dependencies:
 - `@react-native-voip-push-notification` to receive notifications on iOS.
 
 More about how to enable this feature can be found [in our push notification guide](../../../advanced/push-notifications/overview).
+
+## Troubleshooting
 
 <Troubleshooting isExpo={false} />

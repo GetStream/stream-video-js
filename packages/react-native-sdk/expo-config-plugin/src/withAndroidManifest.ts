@@ -16,21 +16,20 @@ type ManifestService = Unpacked<
 >;
 
 function getNotifeeService() {
-  /*
+  /* Example:
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
+        
         android:foregroundServiceType="mediaProjection" />
  */
-  let foregroundServiceType = 'microphone';
-  // if (enableScreenshare) {
-  //   foregroundServiceType = 'mediaProjection|' + foregroundServiceType;
-  // }
-  const head = prefixAndroidKeys({
+  const foregroundServiceType = 'dataSync';
+  let head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
     stopWithTask: 'true',
     foregroundServiceType,
   });
+  head = { ...head, 'tools:replace': 'android:foregroundServiceType' };
   return {
     $: head,
   } as ManifestService;

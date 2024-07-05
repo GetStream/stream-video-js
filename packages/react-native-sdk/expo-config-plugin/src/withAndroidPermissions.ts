@@ -6,7 +6,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
 > = (configuration, props) => {
   const foregroundServicePermissions = [
     'android.permission.FOREGROUND_SERVICE',
-    'android.permission.FOREGROUND_SERVICE_MICROPHONE',
+    'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
   ];
   if (props?.enableScreenshare) {
     foregroundServicePermissions.push(

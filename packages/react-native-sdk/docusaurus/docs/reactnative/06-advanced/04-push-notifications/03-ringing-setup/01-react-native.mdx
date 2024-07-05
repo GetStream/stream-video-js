@@ -68,6 +68,23 @@ The **google-services.json** file contains unique and non-secret identifiers of 
 
 :::
 
+### Add declarations in AndroidManifest
+
+Add the following in `AndroidManifest.xml`:
+
+```xml title="AndroidManifest.xml"
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<!-- We declare the permissions to for using foreground service -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+<service
+    android:name="app.notifee.core.ForegroundService"
+    tools:replace="android:foregroundServiceType"
+    android:stopWithTask="true"
+    android:foregroundServiceType="dataSync" />
+```
+
 ### Request for notification permissions
 
 At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
