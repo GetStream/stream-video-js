@@ -6,12 +6,12 @@ import Troubleshooting from "../../common-content/setup/installation/troubleshoo
 
 Installation and usage of our React Native SDK is simple and involves the following steps:
 
-## Prerequisites
+### Prerequisites
 
 First things first, make sure you have set up the development environment for React Native.
 You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
-## Add Stream's Video SDK and its peer dependencies
+## SDK Installation
 
 In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
@@ -37,10 +37,10 @@ So what did we install precisely?
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
 - `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
-## Android Specific installation
+### Android Specific installation
 
 <!-- vale off -->
-### Update the minSdk version
+#### Update the minSdk version
 
 In `android/build.gradle` add the following inside the `buildscript` section:
 
@@ -55,7 +55,7 @@ buildscript {
 ```
 <!-- vale on -->
 
-### Enable Java 8 Support
+#### Enable Java 8 Support
 
 In `android/app/build.gradle` add the following inside the `android` section:
 
@@ -66,7 +66,7 @@ compileOptions {
 }
 ```
 
-### Optional: R8/ProGuard Support
+#### Optional: R8/ProGuard Support
 
 If you require R8/ProGuard support then in `android/app/proguard-rules.pro` add the following on a new line:
 
@@ -74,11 +74,11 @@ If you require R8/ProGuard support then in `android/app/proguard-rules.pro` add 
 -keep class org.webrtc.** { *; }
 ```
 
-## Declaring Permissions
+### Declaring Permissions
 
 Making video or audio calls requires the usage of the device's camera and microphone accordingly. In both platforms, we must declare the permissions.
 
-### iOS
+#### iOS
 
 Add the following keys and values to `Info.plist` file at a minimum:
 
@@ -89,7 +89,7 @@ Add the following keys and values to `Info.plist` file at a minimum:
 You should replace `<Your_app_name>` (or also use your custom strings instead).
 :::
 
-### Android
+#### Android
 
 In `AndroidManifest.xml` add the following permissions before the `<application>` section.
 
@@ -115,20 +115,22 @@ If you plan to also support Bluetooth devices then also add the following.
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
-## Optional peer dependencies
+:::infoINFO
+Permissions need to be granted by the user as well. Requests for Camera and Microphone usage are automatically asked when the stream is first requested by the app. But other permissions like `BLUETOOTH_CONNECT` in Android need to be requested manually. However, we recommend that all necessary permissions be manually asked at an appropriate place in your app for the best user experience.
 
-Some of the optional features we provide require additional dependencies to be installed in order to work properly.
+We recommend the usage of [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library to request permissions in the app.
 
-#### Ringing flow
+:::
 
-The ringing flow is a feature that allows you to render a native ringer when the app is in background/dead mode.
-To enable this feature you need to install the following dependencies:
+### Run on device
 
-- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
-- `@react-native-firebase/app` and `@react-native-firebase/messaging` to receive notifications on Android.
-- `@react-native-voip-push-notification` to receive notifications on iOS.
+#### iOS 
 
-More about how to enable this feature can be found [in our push notification guide](../../../advanced/push-notifications/overview).
+In iOS simulators, recording audio or video is not supported. So always test your app on an actual device for the best experience.
+
+#### Android
+
+In Android emulators, a static video stream can be sent and so it can be used for testing. However, we recommend that you always test your app on an actual device for the best experience.
 
 ## Troubleshooting
 
