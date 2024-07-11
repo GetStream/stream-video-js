@@ -11,6 +11,7 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
+  VisibilityState,
 } from '../types';
 import { CallStatsReport } from '../stats';
 import {
@@ -36,7 +37,8 @@ import {
   UserResponse,
   WSEvent,
 } from '../gen/coordinator';
-import { Pin } from '../gen/video/sfu/models/models';
+import { Timestamp } from '../gen/google/protobuf/timestamp';
+import { CallState as SfuCallState, Pin } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
 import { hasScreenShare } from '../helpers/participantUtils';
@@ -1009,6 +1011,43 @@ export class CallState {
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
+  };
+
+  /**
+   * Updates the call state with the data received from the SFU server.
+   *
+   * @internal
+   *
+   * @param callState the call state from the SFU server.
+   * @param currentSessionId the session ID of the current user.
+   */
+  updateFromSfuCallState = (
+    callState: SfuCallState,
+    currentSessionId: string,
+  ) => {
+    const { participants, participantCount, startedAt, pins } = callState;
+    this.setParticipants(() => {
+      const participantLookup = this.getParticipantLookupBySessionId();
+      return participants.map<StreamVideoParticipant>((p) => {
+        // We need to preserve the local state of the participant
+        // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
+        // as it doesn't exist on the server.
+        const existingParticipant = participantLookup[p.sessionId];
+        return Object.assign(p, existingParticipant, {
+          isLocalParticipant: p.sessionId === currentSessionId,
+          viewportVisibilityState:
+            existingParticipant?.viewportVisibilityState ?? {
+              videoTrack: VisibilityState.UNKNOWN,
+              screenShareTrack: VisibilityState.UNKNOWN,
+            },
+        } satisfies Partial<StreamVideoParticipant>);
+      });
+    });
+
+    this.setParticipantCount(participantCount?.total || 0);
+    this.setAnonymousParticipantCount(participantCount?.anonymous || 0);
+    this.setStartedAt(startedAt ? Timestamp.toDate(startedAt) : new Date());
+    this.setServerSidePins(pins);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {

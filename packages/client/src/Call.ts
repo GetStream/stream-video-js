@@ -7,12 +7,12 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
+import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
 import {
   hasScreenShare,
   hasScreenShareAudio,
   hasVideo,
 } from './helpers/participantUtils';
-import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -23,12 +23,13 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import { createSubscription, getCurrentValue } from './store/rxUtils';
-import {
+import type {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
+  Credentials,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -36,11 +37,12 @@ import {
   GetOrCreateCallResponse,
   GoLiveRequest,
   GoLiveResponse,
+  JoinCallRequest,
+  JoinCallResponse,
   ListRecordingsResponse,
   ListTranscriptionsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
-  OwnCapability,
   PinRequest,
   PinResponse,
   QueryCallMembersRequest,
@@ -53,13 +55,11 @@ import {
   SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
-  SFUResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
-  StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
@@ -75,7 +75,7 @@ import {
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
-import { join } from './rtc/flows/join';
+import { OwnCapability } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
@@ -88,7 +88,6 @@ import {
   SubscriptionChanges,
   TrackMuteType,
   VideoTrackType,
-  VisibilityState,
 } from './types';
 import {
   BehaviorSubject,
@@ -100,23 +99,18 @@ import {
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
+import { JoinResponse, VideoLayerSetting } from './gen/video/sfu/event/events';
 import {
-  JoinResponse,
-  Migration,
-  VideoLayerSetting,
-} from './gen/video/sfu/event/events';
-import { Timestamp } from './gen/google/protobuf/timestamp';
+  TrackType,
+  WebsocketReconnectStrategy,
+} from './gen/video/sfu/models/models';
 import { createStatsReporter, SfuStatsReporter, StatsReporter } from './stats';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import {
-  KnownCodes,
-  retryInterval,
-  sleep,
-} from './coordinator/connection/utils';
-import {
+import { generateUUIDv4 } from './coordinator/connection/utils';
+import type {
   AllCallEvents,
   CallEventListener,
   Logger,
@@ -133,6 +127,8 @@ import {
   SpeakerManager,
 } from './devices';
 import { getSdkSignature } from './stats/utils';
+import { withoutConcurrency } from './helpers/concurrency';
+import { ensureExhausted } from './helpers/ensureExhausted';
 
 /**
  * An object representation of a `Call`.
@@ -222,8 +218,24 @@ export class Call {
   public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private isLeaving = false;
+  private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+  // maintain the order of publishing tracks to restore them after a reconnection
+  // it shouldn't contain duplicates
+  private trackPublishOrder: TrackType[] = [];
+
+  /**
+   * The data used to join the call.
+   *
+   * @private
+   */
+  private joinCallData?: JoinCallData;
+
+  /**
+   * The credentials used to join the call.
+   *
+   * @private
+   */
+  private credentials?: Credentials;
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -276,10 +288,37 @@ export class Call {
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
 
-    this.on('all', (event) => {
-      // update state with the latest event data
-      this.state.updateFromEvent(event);
-    });
+    this.leaveCallHooks.add(
+      this.on('all', (event) => {
+        // update state with the latest event data
+        this.state.updateFromEvent(event);
+      }),
+    );
+
+    this.leaveCallHooks.add(
+      this.on('error', ({ reconnectStrategy }) => {
+        if (reconnectStrategy === WebsocketReconnectStrategy.UNSPECIFIED) {
+          return;
+        }
+
+        if (reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT) {
+          this.leave({ reason: 'Sfu instructed to disconnect' }).catch(
+            (err) => {
+              this.logger(
+                'warn',
+                `can't leave call after disconnect request`,
+                err,
+              );
+            },
+          );
+        }
+        withoutConcurrency(Symbol.for('reconnect'), () => {
+          return this.reconnect(reconnectStrategy);
+        }).catch((err) => {
+          this.logger('warn', 'Error reconnecting', err);
+        });
+      }),
+    );
 
     this.leaveCallHooks.add(
       registerEventHandlers(this, this.state, this.dispatcher),
@@ -489,10 +528,8 @@ export class Call {
     }
 
     if (callingState === CallingState.JOINING) {
-      await this.assertCallJoined();
+      await this.waitUntilCallJoined();
     }
-
-    this.isLeaving = true;
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
@@ -523,7 +560,7 @@ export class Call {
     this.publisher?.close();
     this.publisher = undefined;
 
-    this.sfuClient?.close(StreamSfuClient.NORMAL_CLOSURE, reason);
+    this.sfuClient?.leaveAndClose(reason);
     this.sfuClient = undefined;
 
     this.dispatcher.offAll();
@@ -700,11 +737,7 @@ export class Call {
   join = async (data?: JoinCallData): Promise<void> => {
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
-      this.logger(
-        'warn',
-        'Join method called twice, you should only call this once',
-      );
-      throw new Error(`Illegal State: Already joined.`);
+      throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
     if (callingState === CallingState.LEFT) {
@@ -713,10 +746,10 @@ export class Call {
       );
     }
 
-    const isMigrating = callingState === CallingState.MIGRATING;
-    const isReconnecting = callingState === CallingState.RECONNECTING;
-    this.state.setCallingState(CallingState.JOINING);
+    this.joinCallData = data;
+
     this.logger('debug', 'Starting join flow');
+    this.state.setCallingState(CallingState.JOINING);
 
     if (data?.ring && !this.ringing) {
       this.ringingSubject.next(true);
@@ -727,321 +760,80 @@ export class Call {
       await this.accept();
     }
 
-    let sfuServer: SFUResponse;
-    let sfuToken: string;
-    let connectionConfig: RTCConfiguration | undefined;
-    let statsOptions: StatsOptions | undefined;
-    try {
-      if (this.sfuClient?.isFastReconnecting) {
-        // use previous SFU configuration and values
-        connectionConfig = this.publisher?.connectionConfiguration;
-        sfuServer = this.sfuClient.sfuServer;
-        sfuToken = this.sfuClient.token;
-        statsOptions = this.sfuStatsReporter?.options;
-      } else {
-        // full join flow - let the Coordinator pick a new SFU for us
-        const call = await join(this.streamClient, this.type, this.id, data);
-        this.state.updateFromCallResponse(call.metadata);
-        this.state.setMembers(call.members);
-        this.state.setOwnCapabilities(call.ownCapabilities);
-        connectionConfig = call.connectionConfig;
-        sfuServer = call.sfuServer;
-        sfuToken = call.token;
-        statsOptions = call.statsOptions;
+    let statsOptions = this.sfuStatsReporter?.options;
+    if (
+      this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN ||
+      !this.credentials ||
+      !statsOptions
+    ) {
+      try {
+        const joinResponse = await this.doJoinRequest(data);
+        this.credentials = joinResponse.credentials;
+        statsOptions = joinResponse.stats_options;
+      } catch (error) {
+        // restore the previous call state if the join-flow fails
+        this.state.setCallingState(callingState);
+        throw error;
       }
-
-      if (this.streamClient._hasConnectionID()) {
-        this.watching = true;
-        this.clientStore.registerCall(this);
-      }
-    } catch (error) {
-      // restore the previous call state if the join-flow fails
-      this.state.setCallingState(callingState);
-      throw error;
     }
 
     const previousSfuClient = this.sfuClient;
+    const previousSessionId = previousSfuClient?.sessionId;
     const sfuClient = (this.sfuClient = new StreamSfuClient({
       dispatcher: this.dispatcher,
-      sfuServer,
-      token: sfuToken,
-      sessionId: previousSfuClient?.sessionId,
+      sfuServer: this.credentials.server,
+      token: this.credentials.token,
+      sessionId:
+        this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN
+          ? // a new session_id is needed for the rejoin strategy
+            generateUUIDv4()
+          : // use the previous session_id if available, or generate a new one
+            previousSessionId || generateUUIDv4(),
     }));
 
-    /**
-     * A closure which hides away the re-connection logic.
-     */
-    const reconnect = async (
-      strategy: 'full' | 'fast' | 'migrate',
-      reason: string,
-    ): Promise<void> => {
-      const currentState = this.state.callingState;
-      if (
-        currentState === CallingState.MIGRATING ||
-        currentState === CallingState.RECONNECTING
-      ) {
-        // prevent parallel reconnection attempts
-        return;
-      }
-      this.reconnectAttempts++;
-      this.state.setCallingState(
-        strategy === 'migrate'
-          ? CallingState.MIGRATING
-          : CallingState.RECONNECTING,
-      );
-
-      if (strategy === 'migrate') {
-        this.logger(
-          'debug',
-          `[Migration]: migrating call ${this.cid} away from ${sfuServer.edge_name}`,
-        );
-        sfuClient.isMigratingAway = true;
-      } else {
-        this.logger(
-          'debug',
-          `[Rejoin]: ${strategy} rejoin call ${this.cid} (${this.reconnectAttempts})...`,
-        );
-      }
-
-      // take a snapshot of the current "local participant" state
-      // we'll need it for restoring the previous publishing state later
-      const localParticipant = this.state.localParticipant;
-
-      if (strategy === 'fast') {
-        sfuClient.close(
-          StreamSfuClient.ERROR_CONNECTION_BROKEN,
-          `attempting fast reconnect: ${reason}`,
-        );
-      } else if (strategy === 'full') {
-        // in migration or recovery scenarios, we don't want to
-        // wait before attempting to reconnect to an SFU server
-        await sleep(retryInterval(this.reconnectAttempts));
-
-        // in full-reconnect, we need to dispose all Peer Connections
-        this.subscriber?.close();
-        this.subscriber = undefined;
-        this.publisher?.close({ stopTracks: false });
-        this.publisher = undefined;
-        this.statsReporter?.stop();
-        this.statsReporter = undefined;
-        this.sfuStatsReporter?.stop();
-        this.sfuStatsReporter = undefined;
-
-        // clean up current connection
-        sfuClient.close(
-          StreamSfuClient.NORMAL_CLOSURE,
-          `attempting full reconnect: ${reason}`,
-        );
-      }
-      await this.join({
-        ...data,
-        ...(strategy === 'migrate' && { migrating_from: sfuServer.edge_name }),
-      });
-
-      // clean up previous connection
-      if (strategy === 'migrate') {
-        sfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'attempting migration');
-      }
-
-      this.logger(
-        'info',
-        `[Rejoin]: Attempt ${this.reconnectAttempts} successful!`,
-      );
-      // we shouldn't be republishing the streams if we're migrating
-      // as the underlying peer connection will take care of it as part
-      // of the ice-restart process
-      if (localParticipant && strategy === 'full') {
-        const {
-          audioStream,
-          videoStream,
-          screenShareStream,
-          screenShareAudioStream,
-        } = localParticipant;
-
-        let screenShare: MediaStream | undefined;
-        if (screenShareStream || screenShareAudioStream) {
-          screenShare = new MediaStream();
-          screenShareStream?.getVideoTracks().forEach((track) => {
-            screenShare?.addTrack(track);
-          });
-          screenShareAudioStream?.getAudioTracks().forEach((track) => {
-            screenShare?.addTrack(track);
-          });
-        }
-
-        // restore previous publishing state
-        if (audioStream) await this.publishAudioStream(audioStream);
-        if (videoStream) {
-          await this.publishVideoStream(videoStream, {
-            preferredCodec: this.camera.preferredCodec,
-          });
-        }
-        if (screenShare) await this.publishScreenShareStream(screenShare);
-
-        this.logger(
-          'info',
-          `[Rejoin]: State restored. Attempt: ${this.reconnectAttempts}`,
-        );
-      }
-    };
-
-    // reconnect if the connection was closed unexpectedly. example:
-    // - SFU crash or restart
-    // - network change
-    sfuClient.signalReady.then(() => {
-      // register a handler for the "goAway" event
-      const unregisterGoAway = this.dispatcher.on('goAway', (event) => {
-        const { reason } = event;
-        this.logger(
-          'info',
-          `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
-        );
-        reconnect('migrate', GoAwayReason[reason]).catch((err) => {
-          this.logger(
-            'warn',
-            `[Migration]: Failed to migrate to another SFU.`,
-            err,
-          );
-        });
-      });
-
-      sfuClient.signalWs.addEventListener('close', (e) => {
-        // unregister the "goAway" handler, as we won't need it anymore for this connection.
-        // the upcoming re-join will register a new handler anyway
-        unregisterGoAway();
-        // when the user has initiated "call.leave()" operation, we shouldn't
-        // care for the WS close code and we shouldn't ever attempt to reconnect
-        if (this.isLeaving) return;
-        // do nothing if the connection was closed on purpose
-        if (e.code === StreamSfuClient.NORMAL_CLOSURE) return;
-        // do nothing if the connection was closed because of a policy violation
-        // e.g., the user has been blocked by an admin or moderator
-        if (e.code === KnownCodes.WS_POLICY_VIOLATION) return;
-        // When the SFU is being shut down, it sends a goAway message.
-        // While we migrate to another SFU, we might have the WS connection
-        // to the old SFU closed abruptly. In this case, we don't want
-        // to reconnect to the old SFU, but rather to the new one.
-        const isMigratingAway =
-          e.code === KnownCodes.WS_CLOSED_ABRUPTLY && sfuClient.isMigratingAway;
-        const isFastReconnecting =
-          e.code === KnownCodes.WS_CLOSED_ABRUPTLY &&
-          sfuClient.isFastReconnecting;
-        if (isMigratingAway || isFastReconnecting) return;
-
-        // do nothing if the connection was closed because of a fast reconnect
-        if (e.code === StreamSfuClient.ERROR_CONNECTION_BROKEN) return;
-
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          sfuClient.isFastReconnecting = this.reconnectAttempts === 0;
-          const strategy = sfuClient.isFastReconnecting ? 'fast' : 'full';
-          reconnect(strategy, `SFU closed the WS with code: ${e.code}`).catch(
-            (err) => {
-              this.logger(
-                'error',
-                `[Rejoin]: ${strategy} rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
-                err,
-              );
-              this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-            },
-          );
-        } else {
-          this.logger(
-            'error',
-            '[Rejoin]: Reconnect attempts exceeded. Giving up...',
-          );
-          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-        }
-      });
-    });
-
-    // handlers for connection online/offline events
-    const unsubscribeOnlineEvent = this.streamClient.on(
-      'connection.changed',
-      async (e) => {
-        if (e.type !== 'connection.changed') return;
-        if (!e.online) return;
-        unsubscribeOnlineEvent();
-        const currentCallingState = this.state.callingState;
-        const shouldReconnect =
-          currentCallingState === CallingState.OFFLINE ||
-          currentCallingState === CallingState.RECONNECTING_FAILED;
-        if (!shouldReconnect) return;
-        this.logger('info', '[Rejoin]: Going online...');
-        let isFirstReconnectAttempt = true;
-        do {
-          try {
-            sfuClient.isFastReconnecting = isFirstReconnectAttempt;
-            await reconnect(
-              isFirstReconnectAttempt ? 'fast' : 'full',
-              'Network: online',
-            );
-            return; // break the loop if rejoin is successful
-          } catch (err) {
-            this.logger(
-              'error',
-              `[Rejoin][Network]: Rejoin failed for attempt ${this.reconnectAttempts}`,
-              err,
-            );
-          }
-          // wait for a bit before trying to reconnect again
-          await sleep(retryInterval(this.reconnectAttempts));
-          isFirstReconnectAttempt = false;
-        } while (this.reconnectAttempts < this.maxReconnectAttempts);
-
-        // if we're here, it means that we've exhausted all the reconnect attempts
-        this.logger('error', `[Rejoin][Network]: Rejoin failed. Giving up.`);
-        this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-      },
-    );
-    const unsubscribeOfflineEvent = this.streamClient.on(
-      'connection.changed',
-      (e) => {
-        if (e.type !== 'connection.changed') return;
-        if (e.online) return;
-        unsubscribeOfflineEvent();
-        this.state.setCallingState(CallingState.OFFLINE);
-      },
-    );
-
-    this.leaveCallHooks.add(() => {
-      unsubscribeOnlineEvent();
-      unsubscribeOfflineEvent();
-    });
-
-    if (!this.subscriber) {
+    const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
+    if (
+      this.reconnectStrategy === WebsocketReconnectStrategy.FAST &&
+      this.subscriber
+    ) {
+      this.subscriber.setSfuClient(sfuClient);
+      await this.subscriber.restartIce();
+    } else {
+      this.subscriber?.close();
       this.subscriber = new Subscriber({
         sfuClient,
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
-        onUnrecoverableError: () => {
-          reconnect('full', 'unrecoverable subscriber error').catch((err) => {
-            this.logger('debug', '[Rejoin]: Rejoin failed', err);
-          });
-        },
       });
     }
 
-    // anonymous users can't publish anything hence, there is no need
-    // to create Publisher Peer Connection for them
-    const isAnonymous = this.streamClient.user?.type === 'anonymous';
-    if (!this.publisher && !isAnonymous) {
-      const audioSettings = this.state.settings?.audio;
-      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
-      this.publisher = new Publisher({
-        sfuClient,
-        dispatcher: this.dispatcher,
-        state: this.state,
-        connectionConfig,
-        isDtxEnabled,
-        isRedEnabled,
-        onUnrecoverableError: () => {
-          reconnect('full', 'unrecoverable publisher error').catch((err) => {
-            this.logger('debug', '[Rejoin]: Rejoin failed', err);
-          });
-        },
+    if (
+      this.reconnectStrategy === WebsocketReconnectStrategy.FAST &&
+      this.publisher
+    ) {
+      this.publisher.setSfuClient(sfuClient);
+      await this.publisher.restartIce().catch((err) => {
+        this.logger('warn', 'Failed to restart ICE', err);
       });
+    } else {
+      // anonymous users can't publish anything hence, there is no need
+      // to create Publisher Peer Connection for them
+      const isAnonymous = this.streamClient.user?.type === 'anonymous';
+      if (!isAnonymous) {
+        const audioSettings = this.state.settings?.audio;
+        const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
+        this.publisher?.close({ stopTracks: false });
+        this.publisher = new Publisher({
+          sfuClient,
+          dispatcher: this.dispatcher,
+          state: this.state,
+          connectionConfig,
+          isDtxEnabled,
+          isRedEnabled,
+        });
+      }
     }
 
     if (!this.statsReporter) {
@@ -1054,7 +846,7 @@ export class Call {
     }
 
     const clientDetails = getClientDetails();
-    if (!this.sfuStatsReporter && statsOptions) {
+    if (!this.sfuStatsReporter && statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1064,136 +856,87 @@ export class Call {
       this.sfuStatsReporter.start();
     }
 
-    try {
-      // 1. wait for the signal server to be ready before sending "joinRequest"
-      sfuClient.signalReady
-        .catch((err) => this.logger('error', 'Signal ready failed', err))
-        // prepare a generic SDP and send it to the SFU.
-        // this is a throw-away SDP that the SFU will use to determine
-        // the capabilities of the client (codec support, etc.)
-        .then(() => getGenericSdp('recvonly'))
-        .then((sdp) => {
-          const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
-          const migration: Migration | undefined = isMigrating
-            ? {
-                fromSfuId: data?.migrating_from || '',
-                subscriptions: subscriptions.data || [],
-                announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
-              }
-            : undefined;
-
-          return sfuClient.join({
-            subscriberSdp: sdp || '',
-            clientDetails,
-            migration,
-            fastReconnect: previousSfuClient?.isFastReconnecting ?? false,
-          });
-        });
-
-      // 2. in parallel, wait for the SFU to send us the "joinResponse"
-      // this will throw an error if the SFU rejects the join request or
-      // fails to respond in time
-      const { callState, reconnected } = await this.waitForJoinResponse();
-      if (isReconnecting) {
-        this.logger('debug', '[Rejoin] fast reconnected:', reconnected);
-      }
-      if (isMigrating) {
-        await this.subscriber.migrateTo(sfuClient, connectionConfig);
-        await this.publisher?.migrateTo(sfuClient, connectionConfig);
-      } else if (isReconnecting) {
-        if (reconnected) {
-          // update the SFU client instance on the subscriber and publisher
-          this.subscriber.setSfuClient(sfuClient);
-          // publisher might not be there (anonymous users)
-          if (this.publisher) {
-            this.publisher.setSfuClient(sfuClient);
-            // and perform a full ICE restart on the publisher
-            await this.publisher.restartIce();
-          }
-        } else if (previousSfuClient?.isFastReconnecting) {
-          // reconnection wasn't possible, so we need to do a full rejoin
-          return await reconnect('full', 're-attempting').catch((err) => {
-            this.logger(
-              'error',
-              `[Rejoin]: Rejoin failed forced full rejoin.`,
-              err,
-            );
-          });
-        }
-      }
-      const currentParticipants = callState?.participants || [];
-      const participantCount = callState?.participantCount;
-      const startedAt = callState?.startedAt
-        ? Timestamp.toDate(callState.startedAt)
-        : new Date();
-      const pins = callState?.pins ?? [];
-      this.state.setParticipants(() => {
-        const participantLookup = this.state.getParticipantLookupBySessionId();
-        return currentParticipants.map<StreamVideoParticipant>((p) => {
-          // We need to preserve the local state of the participant
-          // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
-          // as it doesn't exist on the server.
-          const existingParticipant = participantLookup[p.sessionId];
-          return Object.assign(p, existingParticipant, {
-            isLocalParticipant: p.sessionId === sfuClient.sessionId,
-            viewportVisibilityState:
-              existingParticipant?.viewportVisibilityState ?? {
-                videoTrack: VisibilityState.UNKNOWN,
-                screenShareTrack: VisibilityState.UNKNOWN,
-              },
-          } satisfies Partial<StreamVideoParticipant>);
+    // 1. wait for the signal server to be ready before sending "joinRequest"
+    sfuClient.signalReady
+      .catch((err) => this.logger('error', 'Signal ready failed', err))
+      // prepare a generic SDP and send it to the SFU.
+      // this is a throw-away SDP that the SFU will use to determine
+      // the capabilities of the client (codec support, etc.)
+      .then(() => getGenericSdp('recvonly'))
+      .then((sdp) => {
+        const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
+        return sfuClient.join({
+          subscriberSdp: sdp || '',
+          clientDetails,
+          fastReconnect:
+            this.reconnectStrategy === WebsocketReconnectStrategy.FAST,
+          reconnectDetails:
+            this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
+              ? {
+                  strategy: this.reconnectStrategy,
+                  announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
+                  subscriptions: subscriptions.data || [],
+                  reconnectAttempt: this.reconnectAttempts,
+                  fromSfuId: data?.migrating_from || '',
+                  previousSessionId:
+                    this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN
+                      ? previousSessionId || ''
+                      : '',
+                }
+              : undefined,
         });
       });
-      this.state.setParticipantCount(participantCount?.total || 0);
-      this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
-      this.state.setStartedAt(startedAt);
-      this.state.setServerSidePins(pins);
 
-      this.reconnectAttempts = 0; // reset the reconnect attempts counter
-      this.state.setCallingState(CallingState.JOINED);
+    // sfuClient.signalWs.addEventListener('close', (event) => {
+    //   if (event.code === 1000) return;
+    //   this.logger('warn', 'SFU connection closed', event);
+    //   this.reconnect(WebsocketReconnectStrategy.FAST);
+    // });
 
-      try {
-        await this.initCamera({ setStatus: true });
-        await this.initMic({ setStatus: true });
-      } catch (error) {
-        this.logger(
-          'warn',
-          'Camera and/or mic init failed during join call',
-          error,
-        );
-      }
+    // 2. in parallel, waits for the SFU to send us the "joinResponse"
+    // this will throw an error if the SFU rejects the join request or
+    // fails to respond in time
+    const { callState } = await this.waitForJoinResponse();
+    // watchNetworkChangeEvents(fastReconnectDeadlineSeconds);
+    if (callState) {
+      this.state.updateFromSfuCallState(callState, sfuClient.sessionId);
+    }
+    this.reconnectAttempts = 0; // reset the reconnect attempts counter
+    this.state.setCallingState(CallingState.JOINED);
 
-      // 3. once we have the "joinResponse", and possibly reconciled the local state
-      // we schedule a fast subscription update for all remote participants
-      // that were visible before we reconnected or migrated to a new SFU.
+    if (this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN) {
+      await previousSfuClient?.leaveAndClose('Reconnect with REJOIN strategy');
+    } else {
+      previousSfuClient?.close(
+        StreamSfuClient.ERROR_CLOSE_RECONNECT,
+        WebsocketReconnectStrategy[this.reconnectStrategy],
+      );
+    }
+
+    // 3. once we have the "joinResponse", and possibly reconciled the local state
+    // we schedule a fast subscription update for all remote participants
+    // that were visible before we reconnected or migrated to a new SFU.
+    if (this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED) {
       const { remoteParticipants } = this.state;
       if (remoteParticipants.length > 0) {
+        // this data is redundant (we already have it in reconnectDetails),
+        // but we do it again as the UI might have changed in the meantime
         this.updateSubscriptions(remoteParticipants, DebounceType.FAST);
       }
-
-      this.logger('info', `Joined call ${this.cid}`);
-    } catch (err) {
-      // join failed, try to rejoin
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        this.logger(
-          'error',
-          `[Rejoin]: Rejoin ${this.reconnectAttempts} failed.`,
-          err,
-        );
-        await reconnect('full', 'previous attempt failed');
-        this.logger(
-          'info',
-          `[Rejoin]: Rejoin ${this.reconnectAttempts} successful!`,
-        );
-      } else {
-        this.logger(
-          'error',
-          `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
-        );
-        this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-        throw new Error('Join failed');
-      }
     }
+
+    try {
+      await this.initCamera({ setStatus: true });
+      await this.initMic({ setStatus: true });
+    } catch (error) {
+      this.logger(
+        'warn',
+        'Camera and/or mic init failed during join call',
+        error,
+      );
+    }
+
+    this.logger('info', `Joined call ${this.cid}`);
   };
 
   private waitForJoinResponse = (timeout: number = 5000) => {
@@ -1212,6 +955,131 @@ export class Call {
   };
 
   /**
+   * Retrieves credentials for joining the call.
+   *
+   * @internal
+   *
+   * @param data the join call data.
+   */
+  doJoinRequest = async (data?: JoinCallData) => {
+    const location = await this.streamClient.getLocationHint();
+    const request: JoinCallRequest = {
+      ...data,
+      location,
+    };
+    const joinResponse = await this.streamClient.post<
+      JoinCallResponse,
+      JoinCallRequest
+    >(`${this.streamClientBasePath}/join`, request);
+    this.state.updateFromCallResponse(joinResponse.call);
+    this.state.setMembers(joinResponse.members);
+    this.state.setOwnCapabilities(joinResponse.own_capabilities);
+
+    if (this.streamClient._hasConnectionID()) {
+      this.watching = true;
+      this.clientStore.registerCall(this);
+    }
+
+    return joinResponse;
+  };
+
+  /**
+   * Handles the reconnection flow.
+   *
+   * @internal
+   *
+   * @param strategy the reconnection strategy to use.
+   */
+  private reconnect = async (strategy: WebsocketReconnectStrategy) => {
+    this.logger(
+      'info',
+      `Reconnecting with strategy`,
+      WebsocketReconnectStrategy[strategy],
+    );
+    this.reconnectStrategy = strategy;
+    this.reconnectAttempts += 1;
+    this.state.setCallingState(
+      strategy === WebsocketReconnectStrategy.MIGRATE
+        ? CallingState.MIGRATING
+        : CallingState.RECONNECTING,
+    );
+    switch (strategy) {
+      case WebsocketReconnectStrategy.FAST:
+        await this.join(this.joinCallData);
+        break;
+      case WebsocketReconnectStrategy.CLEAN:
+        await this.join(this.joinCallData);
+        await this.restorePublishedTracks();
+        break;
+      case WebsocketReconnectStrategy.REJOIN:
+        await this.join(this.joinCallData);
+        await this.restorePublishedTracks();
+        break;
+      case WebsocketReconnectStrategy.MIGRATE:
+        break;
+      case WebsocketReconnectStrategy.UNSPECIFIED:
+      case WebsocketReconnectStrategy.DISCONNECT:
+        break; // UNSPECIFIED and DISCONNECT are no-op
+      default:
+        ensureExhausted(strategy, 'Unknown reconnection strategy');
+        break;
+    }
+  };
+
+  /**
+   * Restores the published tracks after a reconnection.
+   * @internal
+   */
+  private restorePublishedTracks = async () => {
+    const { localParticipant } = this.state;
+    if (!localParticipant) return;
+    const {
+      audioStream,
+      videoStream,
+      screenShareStream,
+      screenShareAudioStream,
+    } = localParticipant;
+    // the tracks need to be restored in their original order of publishing
+    // otherwise, we might get `m-lines order mismatch` errors
+    for (const trackType of this.trackPublishOrder) {
+      switch (trackType) {
+        case TrackType.AUDIO:
+          if (audioStream) await this.publishAudioStream(audioStream);
+          break;
+        case TrackType.VIDEO:
+          if (videoStream) {
+            await this.publishVideoStream(videoStream, {
+              preferredCodec: this.camera.preferredCodec,
+            });
+          }
+          break;
+        case TrackType.SCREEN_SHARE:
+          let screenShare = screenShareStream;
+          if (screenShareAudioStream) {
+            // when we are publishing screen share audio, we need to merge
+            // the two streams into one that holds both audio and video tracks
+            screenShare = new MediaStream();
+            screenShareStream?.getVideoTracks().forEach((track) => {
+              screenShare?.addTrack(track);
+            });
+            screenShareAudioStream?.getAudioTracks().forEach((track) => {
+              screenShare?.addTrack(track);
+            });
+          }
+          if (screenShare) await this.publishScreenShareStream(screenShare);
+          break;
+        // screen share audio can't exist without a screen share, so we handle it there
+        case TrackType.SCREEN_SHARE_AUDIO:
+        case TrackType.UNSPECIFIED:
+          break;
+        default:
+          ensureExhausted(trackType, 'Unknown track type');
+          break;
+      }
+    }
+  };
+
+  /**
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
@@ -1227,7 +1095,7 @@ export class Call {
   ) => {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
-    await this.assertCallJoined();
+    await this.waitUntilCallJoined();
     if (!this.publisher) {
       this.logger('error', 'Trying to publish video before join is completed');
       throw new Error(`Call not joined yet.`);
@@ -1239,6 +1107,9 @@ export class Call {
       return;
     }
 
+    if (!this.trackPublishOrder.includes(TrackType.VIDEO)) {
+      this.trackPublishOrder.push(TrackType.VIDEO);
+    }
     await this.publisher.publishStream(
       videoStream,
       videoTrack,
@@ -1259,7 +1130,7 @@ export class Call {
   publishAudioStream = async (audioStream: MediaStream) => {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
-    await this.assertCallJoined();
+    await this.waitUntilCallJoined();
     if (!this.publisher) {
       this.logger('error', 'Trying to publish audio before join is completed');
       throw new Error(`Call not joined yet.`);
@@ -1271,6 +1142,9 @@ export class Call {
       return;
     }
 
+    if (!this.trackPublishOrder.includes(TrackType.AUDIO)) {
+      this.trackPublishOrder.push(TrackType.AUDIO);
+    }
     await this.publisher.publishStream(
       audioStream,
       audioTrack,
@@ -1293,7 +1167,7 @@ export class Call {
   ) => {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
-    await this.assertCallJoined();
+    await this.waitUntilCallJoined();
     if (!this.publisher) {
       this.logger(
         'error',
@@ -1311,6 +1185,9 @@ export class Call {
       return;
     }
 
+    if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
+      this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
+    }
     await this.publisher.publishStream(
       screenShareStream,
       screenShareTrack,
@@ -1320,6 +1197,9 @@ export class Call {
 
     const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
     if (screenShareAudioTrack) {
+      if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE_AUDIO)) {
+        this.trackPublishOrder.push(TrackType.SCREEN_SHARE_AUDIO);
+      }
       await this.publisher.publishStream(
         screenShareStream,
         screenShareAudioTrack,
@@ -1376,24 +1256,10 @@ export class Call {
    * @param type the debounce type to use for the update.
    */
   updateSubscriptionsPartial = (
-    trackType: VideoTrackType | 'video' | 'screen',
+    trackType: VideoTrackType,
     changes: SubscriptionChanges,
     type: DebounceType = DebounceType.SLOW,
   ) => {
-    if (trackType === 'video') {
-      this.logger(
-        'warn',
-        `updateSubscriptionsPartial: ${trackType} is deprecated. Please switch to 'videoTrack'`,
-      );
-      trackType = 'videoTrack';
-    } else if (trackType === 'screen') {
-      this.logger(
-        'warn',
-        `updateSubscriptionsPartial: ${trackType} is deprecated. Please switch to 'screenShareTrack'`,
-      );
-      trackType = 'screenShareTrack';
-    }
-
     const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
@@ -1515,12 +1381,12 @@ export class Call {
     return this.publisher?.updateVideoPublishQuality(enabledLayers);
   };
 
-  private assertCallJoined = () => {
+  private waitUntilCallJoined = () => {
     return new Promise<void>((resolve) => {
       this.state.callingState$
         .pipe(
           takeWhile((state) => state !== CallingState.JOINED, true),
-          filter((s) => s === CallingState.JOINED),
+          filter((state) => state === CallingState.JOINED),
         )
         .subscribe(() => resolve());
     });

@@ -5,6 +5,7 @@ import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -75,15 +76,19 @@ export class Subscriber {
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
       (subscriberOffer) => {
-        this.negotiate(subscriberOffer).catch((err) => {
+        withoutConcurrency(Symbol.for('subscriberOffer'), () => {
+          return this.negotiate(subscriberOffer);
+        }).catch((err) => {
           logger('warn', `Negotiation failed.`, err);
         });
       },
     );
 
     this.unregisterOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
-      if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
-      this.restartIce().catch((err) => {
+      withoutConcurrency(Symbol.for('iceRestart'), async () => {
+        if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
+        await this.restartIce();
+      }).catch((err) => {
         logger('warn', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });

@@ -41,6 +41,7 @@ export type PublisherConstructorOpts = {
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
+ *
  * @internal
  */
 export class Publisher {
@@ -67,9 +68,9 @@ export class Publisher {
    * This is needed because some browsers (Firefox) don't reliably report
    * trackId and `mid` parameters.
    *
-   * @private
+   * @internal
    */
-  private transceiverInitOrder: TrackType[] = [];
+  transceiverInitOrder: TrackType[] = [];
 
   private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
@@ -275,10 +276,6 @@ export class Publisher {
           }
         }
       }
-      const codecPreferences = this.getCodecPreferences(
-        trackType,
-        preferredCodec,
-      );
 
       // listen for 'ended' event on the track as it might be ended abruptly
       // by an external factor as permission revokes, device disconnected, etc.
@@ -302,7 +299,11 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
-      if ('setCodecPreferences' in transceiver && codecPreferences) {
+      const codecPreferences =
+        'setCodecPreferences' in transceiver
+          ? this.getCodecPreferences(trackType, preferredCodec)
+          : undefined;
+      if (codecPreferences) {
         logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,

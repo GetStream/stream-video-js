@@ -28,14 +28,10 @@ import {
   ICETrickle,
   TrackType,
 } from './gen/video/sfu/models/models';
-import {
-  generateUUIDv4,
-  retryInterval,
-  sleep,
-} from './coordinator/connection/utils';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import { SFUResponse } from './gen/coordinator';
-import { LogLevel, Logger } from './coordinator/connection/types';
-import { getLogger } from './logger';
+import { Logger, LogLevel } from './coordinator/connection/types';
+import { getLogger, getLogLevel } from './logger';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -54,10 +50,9 @@ export type StreamSfuClientConstructor = {
   token: string;
 
   /**
-   * An optional `sessionId` to use for the connection.
-   * If not provided, a random UUIDv4 will be generated.
+   * `sessionId` to use for the connection.
    */
-  sessionId?: string;
+  sessionId: string;
 };
 
 /**
@@ -105,12 +100,6 @@ export class StreamSfuClient {
    */
   isMigratingAway = false;
 
-  /**
-   * A flag indicating that the client connection is broken for the current
-   * client and that a fast-reconnect with a new client should be attempted.
-   */
-  isFastReconnecting = false;
-
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;
@@ -132,11 +121,9 @@ export class StreamSfuClient {
   static ERROR_CONNECTION_UNHEALTHY = 4001;
 
   /**
-   * The error code used when the SFU connection is broken.
-   * Usually, this means that the WS connection has been closed unexpectedly.
-   * This error code is used to announce a fast-reconnect.
+   * This error code is used to announce a reconnect.
    */
-  static ERROR_CONNECTION_BROKEN = 4002; // used in fast-reconnects
+  static ERROR_CLOSE_RECONNECT = 4002;
 
   /**
    * Constructs a new SFU client.
@@ -152,7 +139,7 @@ export class StreamSfuClient {
     token,
     sessionId,
   }: StreamSfuClientConstructor) {
-    this.sessionId = sessionId || generateUUIDv4();
+    this.sessionId = sessionId;
     this.sfuServer = sfuServer;
     this.edgeName = sfuServer.edge_name;
     this.token = token;
@@ -177,8 +164,8 @@ export class StreamSfuClient {
         withHeaders({
           Authorization: `Bearer ${token}`,
         }),
-        logInterceptor,
-      ],
+        getLogLevel() === 'trace' && logInterceptor,
+      ].filter(Boolean) as RpcInterceptor[],
     });
 
     // Special handling for the ICETrickle kind of events.
@@ -218,6 +205,16 @@ export class StreamSfuClient {
     this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
+  };
+
+  leaveAndClose = async (reason: string) => {
+    try {
+      await this.notifyLeave(reason);
+    } catch (err) {
+      this.logger('debug', 'Error notifying SFU about leaving call', err);
+    }
+
+    this.close(StreamSfuClient.NORMAL_CLOSURE, reason.substring(0, 115));
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
@@ -348,6 +345,31 @@ export class StreamSfuClient {
     );
   };
 
+  ping = async () => {
+    return this.send(
+      SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'healthCheckRequest',
+          healthCheckRequest: {},
+        },
+      }),
+    );
+  };
+
+  notifyLeave = async (reason: string) => {
+    return this.send(
+      SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'leaveCallRequest',
+          leaveCallRequest: {
+            sessionId: this.sessionId,
+            reason,
+          },
+        },
+      }),
+    );
+  };
+
   send = async (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
       if (signal.readyState !== signal.OPEN) return;
@@ -363,14 +385,7 @@ export class StreamSfuClient {
   private keepAlive = () => {
     clearInterval(this.keepAliveInterval);
     this.keepAliveInterval = setInterval(() => {
-      this.logger('trace', 'Sending healthCheckRequest to SFU');
-      const message = SfuRequest.create({
-        requestPayload: {
-          oneofKind: 'healthCheckRequest',
-          healthCheckRequest: {},
-        },
-      });
-      this.send(message).catch((e) => {
+      this.ping().catch((e) => {
         this.logger('error', 'Error sending healthCheckRequest to SFU', e);
       });
     }, this.pingIntervalInMs);
@@ -417,6 +432,7 @@ const MAX_RETRIES = 5;
  *
  * @param rpc the closure around the RPC call to execute.
  * @param logger a logger instance to use.
+ * @param level the log level to use.
  * @param <I> the type of the request object.
  * @param <O> the type of the response object.
  */

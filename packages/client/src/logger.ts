@@ -57,6 +57,8 @@ export const setLogLevel = (l: LogLevel) => {
   level = l;
 };
 
+export const getLogLevel = (): LogLevel => level;
+
 export const getLogger = (withTags?: string[]) => {
   const loggerMethod = logger || logToConsole;
   const tags = (withTags || []).join(':');
