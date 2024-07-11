@@ -655,6 +655,14 @@ export enum SdkType {
    * @generated from protobuf enum value: SDK_TYPE_UNITY = 7;
    */
   UNITY = 7,
+  /**
+   * @generated from protobuf enum value: SDK_TYPE_GO = 8;
+   */
+  GO = 8,
+  /**
+   * @generated from protobuf enum value: SDK_TYPE_PLAIN_JAVASCRIPT = 9;
+   */
+  PLAIN_JAVASCRIPT = 9,
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.TrackUnpublishReason
