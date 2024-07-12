@@ -60,6 +60,7 @@ import type {
   StartRecordingResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
+  StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
@@ -101,6 +102,7 @@ import {
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
 import { JoinResponse, VideoLayerSetting } from './gen/video/sfu/event/events';
 import {
+  ClientDetails,
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
@@ -109,7 +111,11 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { generateUUIDv4 } from './coordinator/connection/utils';
+import {
+  generateUUIDv4,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 import type {
   AllCallEvents,
   CallEventListener,
@@ -320,8 +326,6 @@ export class Call {
         });
       }),
     );
-
-    this.watchNetworkChangeEvents();
 
     this.leaveCallHooks.add(
       registerEventHandlers(this, this.state, this.dispatcher),
@@ -644,7 +648,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    await this.applyDeviceConfig();
+    await this.applyDeviceConfig(false);
 
     return response;
   };
@@ -673,7 +677,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    await this.applyDeviceConfig();
+    await this.applyDeviceConfig(false);
 
     return response;
   };
@@ -783,82 +787,19 @@ export class Call {
     const previousSfuClient = this.sfuClient;
     const previousSessionId = previousSfuClient?.sessionId;
     const sfuClient = (this.sfuClient = new StreamSfuClient({
+      logTag: String(this.reconnectAttempts),
       dispatcher: this.dispatcher,
       sfuServer: this.credentials.server,
       token: this.credentials.token,
       sessionId:
+        // a new session_id is needed for the rejoin strategy.
+        // we use the previous session_id if available, or generate a new one
         this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN
-          ? // a new session_id is needed for the rejoin strategy
-            generateUUIDv4()
-          : // use the previous session_id if available, or generate a new one
-            previousSessionId || generateUUIDv4(),
+          ? generateUUIDv4()
+          : previousSessionId || generateUUIDv4(),
     }));
 
-    const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
-    if (
-      this.reconnectStrategy === WebsocketReconnectStrategy.FAST &&
-      this.subscriber
-    ) {
-      this.subscriber.setSfuClient(sfuClient);
-      await this.subscriber.restartIce();
-    } else {
-      this.subscriber?.close();
-      this.subscriber = new Subscriber({
-        sfuClient,
-        dispatcher: this.dispatcher,
-        state: this.state,
-        connectionConfig,
-      });
-    }
-
-    if (
-      this.reconnectStrategy === WebsocketReconnectStrategy.FAST &&
-      this.publisher
-    ) {
-      this.publisher.setSfuClient(sfuClient);
-      await this.publisher.restartIce().catch((err) => {
-        this.logger('warn', 'Failed to restart ICE', err);
-      });
-    } else {
-      // anonymous users can't publish anything hence, there is no need
-      // to create Publisher Peer Connection for them
-      const isAnonymous = this.streamClient.user?.type === 'anonymous';
-      if (!isAnonymous) {
-        const audioSettings = this.state.settings?.audio;
-        const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
-        this.publisher?.close({ stopTracks: false });
-        this.publisher = new Publisher({
-          sfuClient,
-          dispatcher: this.dispatcher,
-          state: this.state,
-          connectionConfig,
-          isDtxEnabled,
-          isRedEnabled,
-        });
-      }
-    }
-
-    if (!this.statsReporter) {
-      this.statsReporter = createStatsReporter({
-        subscriber: this.subscriber,
-        publisher: this.publisher,
-        state: this.state,
-        datacenter: this.sfuClient.edgeName,
-      });
-    }
-
     const clientDetails = getClientDetails();
-    if (!this.sfuStatsReporter && statsOptions?.reporting_interval_ms > 0) {
-      this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
-        clientDetails,
-        options: statsOptions,
-        subscriber: this.subscriber,
-        publisher: this.publisher,
-      });
-      this.sfuStatsReporter.start();
-    }
-
     // 1. wait for the signal server to be ready before sending "joinRequest"
     sfuClient.signalReady
       .catch((err) => this.logger('error', 'Signal ready failed', err))
@@ -890,12 +831,6 @@ export class Call {
         });
       });
 
-    // sfuClient.signalWs.addEventListener('close', (event) => {
-    //   if (event.code === 1000) return;
-    //   this.logger('warn', 'SFU connection closed', event);
-    //   this.reconnect(WebsocketReconnectStrategy.FAST);
-    // });
-
     // 2. in parallel, waits for the SFU to send us the "joinResponse"
     // this will throw an error if the SFU rejects the join request or
     // fails to respond in time
@@ -905,6 +840,19 @@ export class Call {
     if (callState) {
       this.state.updateFromSfuCallState(callState, sfuClient.sessionId);
     }
+
+    if (this.reconnectStrategy === WebsocketReconnectStrategy.FAST) {
+      await this.restoreICE(sfuClient);
+    } else {
+      const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
+      this.initPublisherAndSubscriber({
+        sfuClient,
+        connectionConfig,
+        clientDetails,
+        statsOptions,
+      });
+    }
+
     this.reconnectAttempts = 0; // reset the reconnect attempts counter
     this.state.setCallingState(CallingState.JOINED);
 
@@ -917,30 +865,84 @@ export class Call {
       );
     }
 
-    // 3. once we have the "joinResponse", and possibly reconciled the local state
-    // we schedule a fast subscription update for all remote participants
-    // that were visible before we reconnected or migrated to a new SFU.
-    if (this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED) {
-      const { remoteParticipants } = this.state;
-      if (remoteParticipants.length > 0) {
-        // this data is redundant (we already have it in reconnectDetails),
-        // but we do it again as the UI might have changed in the meantime
-        this.updateSubscriptions(remoteParticipants, DebounceType.FAST);
-      }
-    }
-
-    try {
-      await this.initCamera({ setStatus: true });
-      await this.initMic({ setStatus: true });
-    } catch (error) {
-      this.logger(
-        'warn',
-        'Camera and/or mic init failed during join call',
-        error,
-      );
-    }
+    await this.applyDeviceConfig(true);
 
     this.logger('info', `Joined call ${this.cid}`);
+  };
+
+  /**
+   * Performs an ICE restart on both the Publisher and Subscriber Peer Connections.
+   * Uses the provided SFU client to restore the ICE connection.
+   * @internal
+   */
+  private restoreICE = async (nextSfuClient: StreamSfuClient) => {
+    if (this.subscriber) {
+      this.subscriber.setSfuClient(nextSfuClient);
+      await this.subscriber.restartIce();
+    }
+    if (this.publisher) {
+      this.publisher.setSfuClient(nextSfuClient);
+      await this.publisher.restartIce().catch((err) => {
+        this.logger('warn', 'Failed to restart ICE', err);
+      });
+    }
+  };
+
+  /**
+   * Initializes the Publisher and Subscriber Peer Connections.
+   * @internal
+   */
+  private initPublisherAndSubscriber = (opts: {
+    sfuClient: StreamSfuClient;
+    connectionConfig: RTCConfiguration;
+    statsOptions: StatsOptions;
+    clientDetails: ClientDetails;
+  }) => {
+    const { sfuClient, connectionConfig, clientDetails, statsOptions } = opts;
+    this.subscriber?.close();
+    this.subscriber = new Subscriber({
+      sfuClient,
+      dispatcher: this.dispatcher,
+      state: this.state,
+      connectionConfig,
+    });
+
+    // anonymous users can't publish anything hence, there is no need
+    // to create Publisher Peer Connection for them
+    const isAnonymous = this.streamClient.user?.type === 'anonymous';
+    if (!isAnonymous) {
+      const audioSettings = this.state.settings?.audio;
+      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
+      this.publisher?.close({ stopTracks: false });
+      this.publisher = new Publisher({
+        sfuClient,
+        dispatcher: this.dispatcher,
+        state: this.state,
+        connectionConfig,
+        isDtxEnabled,
+        isRedEnabled,
+      });
+    }
+
+    if (!this.statsReporter) {
+      this.statsReporter = createStatsReporter({
+        subscriber: this.subscriber,
+        publisher: this.publisher,
+        state: this.state,
+        datacenter: sfuClient.edgeName,
+      });
+    }
+
+    if (!this.sfuStatsReporter && statsOptions?.reporting_interval_ms > 0) {
+      this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
+        clientDetails,
+        options: statsOptions,
+        subscriber: this.subscriber,
+        publisher: this.publisher,
+      });
+      this.sfuStatsReporter.start();
+    }
   };
 
   private waitForJoinResponse = (timeout: number = 5000) => {
@@ -1007,26 +1009,34 @@ export class Call {
         ? CallingState.MIGRATING
         : CallingState.RECONNECTING,
     );
-    switch (strategy) {
-      case WebsocketReconnectStrategy.FAST:
-        await this.join(this.joinCallData);
-        break;
-      case WebsocketReconnectStrategy.CLEAN:
-        await this.join(this.joinCallData);
-        await this.restorePublishedTracks();
-        break;
-      case WebsocketReconnectStrategy.REJOIN:
-        await this.join(this.joinCallData);
-        await this.restorePublishedTracks();
-        break;
-      case WebsocketReconnectStrategy.MIGRATE:
-        break;
-      case WebsocketReconnectStrategy.UNSPECIFIED:
-      case WebsocketReconnectStrategy.DISCONNECT:
-        break; // UNSPECIFIED and DISCONNECT are no-op
-      default:
-        ensureExhausted(strategy, 'Unknown reconnection strategy');
-        break;
+    try {
+      switch (strategy) {
+        case WebsocketReconnectStrategy.FAST:
+          await this.join(this.joinCallData);
+          break;
+        case WebsocketReconnectStrategy.CLEAN:
+        case WebsocketReconnectStrategy.REJOIN:
+          await this.join(this.joinCallData);
+          await this.restorePublishedTracks();
+          this.restoreSubscribedTracks();
+          break;
+        case WebsocketReconnectStrategy.MIGRATE:
+          this.logger('debug', 'implement MIGRATE');
+          break;
+        case WebsocketReconnectStrategy.UNSPECIFIED:
+        case WebsocketReconnectStrategy.DISCONNECT:
+          break; // UNSPECIFIED and DISCONNECT are no-op
+        default:
+          ensureExhausted(strategy, 'Unknown reconnection strategy');
+          break;
+      }
+    } catch (error) {
+      await sleep(retryInterval(this.reconnectAttempts));
+      this.reconnect(
+        Math.max(strategy + 1, WebsocketReconnectStrategy.REJOIN),
+      ).catch((err) => {
+        this.logger('warn', 'Error reconnecting', err);
+      });
     }
   };
 
@@ -1084,49 +1094,13 @@ export class Call {
   };
 
   /**
-   * Registers event handlers for network change events.
-   * Triggers a reconnection when the network goes online.
+   * Restores the subscribed tracks after a reconnection.
    * @internal
    */
-  private watchNetworkChangeEvents = () => {
-    let offlineTimestamp: number | undefined;
-    const unsubscribeOnlineEvent = this.streamClient.on(
-      'connection.changed',
-      async (e) => {
-        if (!e.online) return;
-
-        const callingState = this.state.callingState;
-        const shouldReconnect =
-          callingState === CallingState.OFFLINE ||
-          callingState === CallingState.RECONNECTING_FAILED;
-        if (!shouldReconnect) return;
-
-        const offlinePeriodInSeconds =
-          (Date.now() - (offlineTimestamp || 0)) / 1000;
-        const shouldAttemptFastReconnect =
-          offlinePeriodInSeconds < this.fastReconnectDeadlineSeconds;
-
-        this.logger('info', '[Reconnect]: Going online and reconnecting');
-        this.reconnect(
-          shouldAttemptFastReconnect
-            ? WebsocketReconnectStrategy.FAST
-            : WebsocketReconnectStrategy.REJOIN,
-        ).catch((err) => this.logger('warn', '[Reconnect]: error', err));
-      },
-    );
-    const unsubscribeOfflineEvent = this.streamClient.on(
-      'connection.changed',
-      (e) => {
-        if (e.online) return;
-        this.state.setCallingState(CallingState.OFFLINE);
-        offlineTimestamp = Date.now();
-      },
-    );
-
-    this.leaveCallHooks.add(() => {
-      unsubscribeOnlineEvent();
-      unsubscribeOfflineEvent();
-    });
+  private restoreSubscribedTracks = () => {
+    const { remoteParticipants } = this.state;
+    if (remoteParticipants.length <= 0) return;
+    this.updateSubscriptions(remoteParticipants, DebounceType.FAST);
   };
 
   /**
@@ -1956,11 +1930,11 @@ export class Call {
    *
    * @internal
    */
-  applyDeviceConfig = async () => {
-    await this.initCamera({ setStatus: false }).catch((err) => {
+  applyDeviceConfig = async (status: boolean) => {
+    await this.initCamera({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
-    await this.initMic({ setStatus: false }).catch((err) => {
+    await this.initMic({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
   };

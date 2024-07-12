@@ -53,6 +53,11 @@ export type StreamSfuClientConstructor = {
    * `sessionId` to use for the connection.
    */
   sessionId: string;
+
+  /**
+   * A log tag to use for logging. Useful for debugging multiple instances.
+   */
+  logTag?: string;
 };
 
 /**
@@ -132,18 +137,20 @@ export class StreamSfuClient {
    * @param sfuServer the SFU server to connect to.
    * @param token the JWT token to use for authentication.
    * @param sessionId the `sessionId` of the currently connected participant.
+   * @param logTag a log tag to use for logging.
    */
   constructor({
     dispatcher,
     sfuServer,
     token,
     sessionId,
+    logTag,
   }: StreamSfuClientConstructor) {
     this.sessionId = sessionId;
     this.sfuServer = sfuServer;
     this.edgeName = sfuServer.edge_name;
     this.token = token;
-    this.logger = getLogger(['sfu-client']);
+    this.logger = getLogger(['sfu-client', logTag || '']);
     const logInterceptor: RpcInterceptor = {
       interceptUnary: (
         next: NextUnaryFn,

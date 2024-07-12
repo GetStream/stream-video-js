@@ -142,10 +142,10 @@ export class StreamVideoClient {
    * @param user the user to connect.
    * @param token a token or a function that returns a token.
    */
-  async connectUser(
+  connectUser = async (
     user: User,
     token?: TokenOrProvider,
-  ): Promise<void | ConnectedEvent> {
+  ): Promise<void | ConnectedEvent> => {
     if (user.type === 'anonymous') {
       user.id = '!anon';
       return this.connectAnonymousUser(user as UserWithId, token);
@@ -254,7 +254,7 @@ export class StreamVideoClient {
     );
 
     return connectUserResponse;
-  }
+  };
 
   /**
    * Disconnects the currently connected user from the client.
@@ -359,7 +359,7 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig();
+      await call.applyDeviceConfig(false);
       if (data.watch) {
         this.writeableStateStore.registerCall(call);
       }
@@ -424,12 +424,12 @@ export class StreamVideoClient {
    * @param {string} push_provider_name user provided push provider name
    * @param {string} [userID] the user id (defaults to current user)
    */
-  async addVoipDevice(
+  addVoipDevice = async (
     id: string,
     push_provider: string,
     push_provider_name: string,
     userID?: string,
-  ) {
+  ) => {
     return await this.addDevice(
       id,
       push_provider,
@@ -437,7 +437,7 @@ export class StreamVideoClient {
       userID,
       true,
     );
-  }
+  };
 
   /**
    * getDevices - Returns the devices associated with a current user
@@ -471,9 +471,7 @@ export class StreamVideoClient {
   onRingingCall = async (call_cid: string) => {
     // if we find the call and is already ringing, we don't need to create a new call
     // as client would have received the call.ring state because the app had WS alive when receiving push notifications
-    let call = this.readOnlyStateStore.calls.find(
-      (c) => c.cid === call_cid && c.ringing,
-    );
+    let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
     if (!call) {
       // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
       const [callType, callId] = call_cid.split(':');
