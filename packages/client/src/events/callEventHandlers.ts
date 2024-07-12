@@ -17,6 +17,7 @@ import {
   watchParticipantLeft,
   watchParticipantUpdated,
   watchPinsUpdated,
+  watchSfuCallEnded,
   watchSfuErrorReports,
   watchTrackPublished,
   watchTrackUnpublished,
@@ -46,6 +47,7 @@ export const registerEventHandlers = (
 ) => {
   const eventHandlers = [
     call.on('call.ended', watchCallEnded(call)),
+    watchSfuCallEnded(call),
 
     watchLiveEnded(dispatcher, call),
     watchSfuErrorReports(dispatcher),
