@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.4...@stream-io/video-client-1.4.5) (2024-07-12)
+
+
+### Bug Fixes
+
+* report the Plain-JS sdk version to the SFU ([#1438](https://github.com/GetStream/stream-video-js/issues/1438)) ([7ac54e4](https://github.com/GetStream/stream-video-js/commit/7ac54e46c80288debbf99339e861fe7f6cdb0fdf))
+
 ### [1.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.3...@stream-io/video-client-1.4.4) (2024-07-02)
 
 
