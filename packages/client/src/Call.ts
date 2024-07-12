@@ -219,6 +219,7 @@ export class Call {
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+  private fastReconnectDeadlineSeconds: number = 0;
   // maintain the order of publishing tracks to restore them after a reconnection
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
@@ -319,6 +320,8 @@ export class Call {
         });
       }),
     );
+
+    this.watchNetworkChangeEvents();
 
     this.leaveCallHooks.add(
       registerEventHandlers(this, this.state, this.dispatcher),
@@ -896,8 +899,9 @@ export class Call {
     // 2. in parallel, waits for the SFU to send us the "joinResponse"
     // this will throw an error if the SFU rejects the join request or
     // fails to respond in time
-    const { callState } = await this.waitForJoinResponse();
-    // watchNetworkChangeEvents(fastReconnectDeadlineSeconds);
+    const { callState, fastReconnectDeadlineSeconds } =
+      await this.waitForJoinResponse();
+    this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
     if (callState) {
       this.state.updateFromSfuCallState(callState, sfuClient.sessionId);
     }
@@ -1077,6 +1081,52 @@ export class Call {
           break;
       }
     }
+  };
+
+  /**
+   * Registers event handlers for network change events.
+   * Triggers a reconnection when the network goes online.
+   * @internal
+   */
+  private watchNetworkChangeEvents = () => {
+    let offlineTimestamp: number | undefined;
+    const unsubscribeOnlineEvent = this.streamClient.on(
+      'connection.changed',
+      async (e) => {
+        if (!e.online) return;
+
+        const callingState = this.state.callingState;
+        const shouldReconnect =
+          callingState === CallingState.OFFLINE ||
+          callingState === CallingState.RECONNECTING_FAILED;
+        if (!shouldReconnect) return;
+
+        const offlinePeriodInSeconds =
+          (Date.now() - (offlineTimestamp || 0)) / 1000;
+        const shouldAttemptFastReconnect =
+          offlinePeriodInSeconds < this.fastReconnectDeadlineSeconds;
+
+        this.logger('info', '[Reconnect]: Going online and reconnecting');
+        this.reconnect(
+          shouldAttemptFastReconnect
+            ? WebsocketReconnectStrategy.FAST
+            : WebsocketReconnectStrategy.REJOIN,
+        ).catch((err) => this.logger('warn', '[Reconnect]: error', err));
+      },
+    );
+    const unsubscribeOfflineEvent = this.streamClient.on(
+      'connection.changed',
+      (e) => {
+        if (e.online) return;
+        this.state.setCallingState(CallingState.OFFLINE);
+        offlineTimestamp = Date.now();
+      },
+    );
+
+    this.leaveCallHooks.add(() => {
+      unsubscribeOnlineEvent();
+      unsubscribeOfflineEvent();
+    });
   };
 
   /**
