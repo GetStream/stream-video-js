@@ -928,16 +928,16 @@ export class Call {
       });
     }
 
-    if (!this.statsReporter) {
-      this.statsReporter = createStatsReporter({
-        subscriber: this.subscriber,
-        publisher: this.publisher,
-        state: this.state,
-        datacenter: sfuClient.edgeName,
-      });
-    }
+    this.statsReporter?.stop();
+    this.statsReporter = createStatsReporter({
+      subscriber: this.subscriber,
+      publisher: this.publisher,
+      state: this.state,
+      datacenter: sfuClient.edgeName,
+    });
 
-    if (!this.sfuStatsReporter && statsOptions?.reporting_interval_ms > 0) {
+    this.sfuStatsReporter?.stop();
+    if (statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
