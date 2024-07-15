@@ -1,20 +1,21 @@
 import type { WebSocket } from 'ws';
 import type {
   FinishedUnaryCall,
-  MethodInfo,
-  NextUnaryFn,
   RpcInterceptor,
-  RpcOptions,
   UnaryCall,
 } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
-import { createSignalClient, withHeaders } from './rpc';
+import { createSignalClient, withHeaders, withRequestLogger } from './rpc';
 import {
   createWebSocketSignalChannel,
   Dispatcher,
   IceTrickleBuffer,
 } from './rtc';
-import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
+import {
+  JoinRequest,
+  JoinResponse,
+  SfuRequest,
+} from './gen/video/sfu/event/events';
 import {
   ICERestartRequest,
   SendAnswerRequest,
@@ -57,7 +58,13 @@ export type StreamSfuClientConstructor = {
   /**
    * A log tag to use for logging. Useful for debugging multiple instances.
    */
-  logTag?: string;
+  logTag: string;
+
+  /**
+   * The timeout in milliseconds for waiting for the `joinResponse`.
+   * Defaults to 5000ms.
+   */
+  joinResponseTimeout?: number;
 };
 
 /**
@@ -100,6 +107,12 @@ export class StreamSfuClient {
   signalReady: Promise<WebSocket>;
 
   /**
+   * Promise that resolves when the JoinResponse is received.
+   * Rejects after a certain threshold if the response is not received.
+   */
+  joinResponseReady: Promise<JoinResponse>;
+
+  /**
    * A flag indicating whether the client is currently migrating away
    * from this SFU.
    */
@@ -132,12 +145,6 @@ export class StreamSfuClient {
 
   /**
    * Constructs a new SFU client.
-   *
-   * @param dispatcher the event dispatcher to use.
-   * @param sfuServer the SFU server to connect to.
-   * @param token the JWT token to use for authentication.
-   * @param sessionId the `sessionId` of the currently connected participant.
-   * @param logTag a log tag to use for logging.
    */
   constructor({
     dispatcher,
@@ -145,33 +152,20 @@ export class StreamSfuClient {
     token,
     sessionId,
     logTag,
+    joinResponseTimeout = 5000,
   }: StreamSfuClientConstructor) {
     this.sessionId = sessionId;
     this.sfuServer = sfuServer;
     this.edgeName = sfuServer.edge_name;
     this.token = token;
     this.logger = getLogger(['sfu-client', logTag || '']);
-    const logInterceptor: RpcInterceptor = {
-      interceptUnary: (
-        next: NextUnaryFn,
-        method: MethodInfo,
-        input: object,
-        options: RpcOptions,
-      ): UnaryCall => {
-        this.logger('trace', `Calling SFU RPC method ${method.name}`, {
-          input,
-          options,
-        });
-        return next(method, input, options);
-      },
-    };
     this.rpc = createSignalClient({
       baseUrl: sfuServer.url,
       interceptors: [
         withHeaders({
           Authorization: `Bearer ${token}`,
         }),
-        getLogLevel() === 'trace' && logInterceptor,
+        getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
       ].filter(Boolean) as RpcInterceptor[],
     });
 
@@ -185,6 +179,7 @@ export class StreamSfuClient {
     });
 
     this.signalWs = createWebSocketSignalChannel({
+      logTag,
       endpoint: sfuServer.ws_endpoint,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
@@ -196,12 +191,34 @@ export class StreamSfuClient {
     this.signalReady = new Promise((resolve) => {
       const onOpen = () => {
         this.signalWs.removeEventListener('open', onOpen);
-        this.keepAlive();
         resolve(this.signalWs);
       };
       this.signalWs.addEventListener('open', onOpen);
     });
+
+    this.joinResponseReady = new Promise((resolve, reject) => {
+      let timeout: NodeJS.Timeout;
+
+      const onJoinResponse = (joinResponse: JoinResponse) => {
+        this.logger('debug', 'Received joinResponse', joinResponse);
+        clearTimeout(timeout);
+        dispatcher.off('joinResponse', onJoinResponse);
+        this.keepAlive();
+        return resolve(joinResponse);
+      };
+
+      timeout = setTimeout(() => {
+        dispatcher.off('joinResponse', onJoinResponse);
+        return reject(new Error('Waiting for "joinResponse" has timed out'));
+      }, joinResponseTimeout);
+
+      dispatcher.on('joinResponse', onJoinResponse);
+    });
   }
+
+  waitForJoinResponse = async () => {
+    return this.joinResponseReady;
+  };
 
   close = (code: number, reason: string) => {
     this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
@@ -215,6 +232,7 @@ export class StreamSfuClient {
   };
 
   leaveAndClose = async (reason: string) => {
+    await this.joinResponseReady;
     try {
       await this.notifyLeave(reason);
     } catch (err) {
@@ -225,6 +243,7 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.updateSubscriptions({
@@ -237,6 +256,7 @@ export class StreamSfuClient {
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.setPublisher({
@@ -248,6 +268,7 @@ export class StreamSfuClient {
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.sendAnswer({
@@ -259,6 +280,7 @@ export class StreamSfuClient {
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.iceTrickle({
@@ -270,6 +292,7 @@ export class StreamSfuClient {
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.iceRestart({
@@ -281,6 +304,7 @@ export class StreamSfuClient {
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
+    await this.joinResponseReady;
     return this.updateMuteStates({
       muteStates: [
         {
@@ -294,6 +318,7 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.updateMuteStates({
@@ -305,6 +330,7 @@ export class StreamSfuClient {
   };
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.sendStats({
@@ -317,6 +343,7 @@ export class StreamSfuClient {
   };
 
   startNoiseCancellation = async () => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.startNoiseCancellation({
@@ -327,6 +354,7 @@ export class StreamSfuClient {
   };
 
   stopNoiseCancellation = async () => {
+    await this.joinResponseReady;
     return retryable(
       () =>
         this.rpc.stopNoiseCancellation({
@@ -363,7 +391,7 @@ export class StreamSfuClient {
     );
   };
 
-  notifyLeave = async (reason: string) => {
+  private notifyLeave = async (reason: string) => {
     return this.send(
       SfuRequest.create({
         requestPayload: {

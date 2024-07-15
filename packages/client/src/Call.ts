@@ -100,7 +100,7 @@ import {
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
-import { JoinResponse, VideoLayerSetting } from './gen/video/sfu/event/events';
+import { VideoLayerSetting } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
   TrackType,
@@ -767,12 +767,15 @@ export class Call {
       await this.accept();
     }
 
+    const performingRejoinReconnect =
+      this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN;
+    const performingFastReconnect =
+      this.reconnectStrategy === WebsocketReconnectStrategy.FAST;
+    const performingCleanReconnect =
+      this.reconnectStrategy === WebsocketReconnectStrategy.CLEAN;
+
     let statsOptions = this.sfuStatsReporter?.options;
-    if (
-      this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN ||
-      !this.credentials ||
-      !statsOptions
-    ) {
+    if (performingRejoinReconnect || !this.credentials || !statsOptions) {
       try {
         const joinResponse = await this.doJoinRequest(data);
         this.credentials = joinResponse.credentials;
@@ -786,18 +789,23 @@ export class Call {
 
     const previousSfuClient = this.sfuClient;
     const previousSessionId = previousSfuClient?.sessionId;
-    const sfuClient = (this.sfuClient = new StreamSfuClient({
-      logTag: String(this.reconnectAttempts),
-      dispatcher: this.dispatcher,
-      sfuServer: this.credentials.server,
-      token: this.credentials.token,
-      sessionId:
-        // a new session_id is needed for the rejoin strategy.
-        // we use the previous session_id if available, or generate a new one
-        this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN
-          ? generateUUIDv4()
-          : previousSessionId || generateUUIDv4(),
-    }));
+    const sfuClient =
+      performingRejoinReconnect ||
+      performingCleanReconnect ||
+      this.sfuClient?.signalWs.readyState !== WebSocket.OPEN
+        ? new StreamSfuClient({
+            logTag: String(this.reconnectAttempts),
+            dispatcher: this.dispatcher,
+            sfuServer: this.credentials.server,
+            token: this.credentials.token,
+            // a new session_id is needed for the rejoin strategy.
+            // we use the previous session_id if available, or generate a new one
+            sessionId: performingRejoinReconnect
+              ? generateUUIDv4()
+              : previousSessionId || generateUUIDv4(),
+          })
+        : this.sfuClient;
+    this.sfuClient = sfuClient;
 
     const clientDetails = getClientDetails();
     // 1. wait for the signal server to be ready before sending "joinRequest"
@@ -812,8 +820,7 @@ export class Call {
         return sfuClient.join({
           subscriberSdp: sdp || '',
           clientDetails,
-          fastReconnect:
-            this.reconnectStrategy === WebsocketReconnectStrategy.FAST,
+          fastReconnect: performingFastReconnect,
           reconnectDetails:
             this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
               ? {
@@ -822,10 +829,9 @@ export class Call {
                   subscriptions: subscriptions.data || [],
                   reconnectAttempt: this.reconnectAttempts,
                   fromSfuId: data?.migrating_from || '',
-                  previousSessionId:
-                    this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN
-                      ? previousSessionId || ''
-                      : '',
+                  previousSessionId: performingRejoinReconnect
+                    ? previousSessionId || ''
+                    : '',
                 }
               : undefined,
         });
@@ -835,13 +841,13 @@ export class Call {
     // this will throw an error if the SFU rejects the join request or
     // fails to respond in time
     const { callState, fastReconnectDeadlineSeconds } =
-      await this.waitForJoinResponse();
+      await sfuClient.waitForJoinResponse();
     this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
     if (callState) {
       this.state.updateFromSfuCallState(callState, sfuClient.sessionId);
     }
 
-    if (this.reconnectStrategy === WebsocketReconnectStrategy.FAST) {
+    if (performingFastReconnect) {
       await this.restoreICE(sfuClient);
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
@@ -856,12 +862,9 @@ export class Call {
     this.reconnectAttempts = 0; // reset the reconnect attempts counter
     this.state.setCallingState(CallingState.JOINED);
 
-    if (this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN) {
-      await previousSfuClient?.leaveAndClose('Reconnect with REJOIN strategy');
-    } else {
-      previousSfuClient?.close(
-        StreamSfuClient.ERROR_CLOSE_RECONNECT,
-        WebsocketReconnectStrategy[this.reconnectStrategy],
+    if (previousSfuClient !== sfuClient) {
+      await previousSfuClient?.leaveAndClose(
+        `Closing previous WS after reconnect with strategy: ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
       );
     }
 
@@ -943,21 +946,6 @@ export class Call {
       });
       this.sfuStatsReporter.start();
     }
-  };
-
-  private waitForJoinResponse = (timeout: number = 5000) => {
-    return new Promise<JoinResponse>((resolve, reject) => {
-      const unsubscribe = this.on('joinResponse', (event) => {
-        clearTimeout(timeoutId);
-        unsubscribe();
-        resolve(event);
-      });
-
-      const timeoutId = setTimeout(() => {
-        unsubscribe();
-        reject(new Error('Waiting for "joinResponse" has timed out'));
-      }, timeout);
-    });
   };
 
   /**
@@ -1934,12 +1922,12 @@ export class Call {
     await this.initCamera({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
-    await this.initMic({ setStatus: status }).catch((err) => {
+    await this.initMic({ options: { setStatus: status } }).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
   };
 
-  private async initCamera(options: { setStatus: boolean }) {
+  private initCamera = async (options: { setStatus: boolean }) => {
     // Wait for any in progress camera operation
     await this.camera.statusChangeSettled();
 
@@ -1986,9 +1974,13 @@ export class Call {
         await this.camera.enable();
       }
     }
-  }
+  };
 
-  private async initMic(options: { setStatus: boolean }) {
+  private initMic = async ({
+    options,
+  }: {
+    options: { setStatus: boolean };
+  }) => {
     // Wait for any in progress mic operation
     await this.microphone.statusChangeSettled();
 
@@ -2017,7 +2009,7 @@ export class Call {
         await this.microphone.enable();
       }
     }
-  }
+  };
 
   /**
    * Will begin tracking the given element for visibility changes within the
