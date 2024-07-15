@@ -6978,7 +6978,7 @@ __metadata:
     react-router-dom: ^6.17.0
     sass: ^1.69.5
     stream-chat: ^8.33.0
-    stream-chat-react: ^11.19.0
+    stream-chat-react: 12.0.0-rc.5
     typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
@@ -7194,7 +7194,7 @@ __metadata:
     source-map-loader: ^5.0.0
     starwars-names: ^1.6.0
     stream-chat: ^8.33.0
-    stream-chat-react: 12.0.0-rc.2
+    stream-chat-react: 12.0.0-rc.5
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -23968,12 +23968,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:12.0.0-rc.2":
-  version: 12.0.0-rc.2
-  resolution: "stream-chat-react@npm:12.0.0-rc.2"
+"stream-chat-react@npm:12.0.0-rc.5":
+  version: 12.0.0-rc.5
+  resolution: "stream-chat-react@npm:12.0.0-rc.5"
   dependencies:
     "@braintree/sanitize-url": ^6.0.4
-    "@breezystack/lamejs": ^1.2.7
     "@popperjs/core": ^2.11.5
     "@react-aria/focus": ^3
     "@stream-io/transliterate": ^1.5.5
@@ -24008,6 +24007,7 @@ __metadata:
     unist-builder: ^3.0.0
     unist-util-visit: ^5.0.0
   peerDependencies:
+    "@breezystack/lamejs": ^1.2.7
     "@emoji-mart/data": ^1.1.0
     "@emoji-mart/react": ^1.1.0
     emoji-mart: ^5.4.0
@@ -24020,13 +24020,15 @@ __metadata:
     mml-react:
       optional: true
   peerDependenciesMeta:
+    "@breezystack/lamejs":
+      optional: true
     "@emoji-mart/data":
       optional: true
     "@emoji-mart/react":
       optional: true
     emoji-mart:
       optional: true
-  checksum: 74a31c872f6c7b3491dcd7e7b774ddc429e20380951e265420d503c32c256de2dae00b72c6c4b07d4decab4f6aa0df6f3da458f3048c16c870d207a2a086bb7f
+  checksum: 8b1cdf7e4d9dfb0a20cbcbcfa2c60d5379c986e0b0ccd59b8869c6ab05015df44d7d179a227f93fb4d8355b48cf0eaf354d4b97722431e8e4c7c613119eaab9f
   languageName: node
   linkType: hard
 
