@@ -24,19 +24,32 @@ body {
   height: 100%;
 }
 
-
-.str-chat-channel-list {
+#sidebar {
   position: fixed;
   z-index: 1;
+  height: 100%;
   width: 0;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
 
-  &--open {
+  #sidebar:has(.str-chat__channel-list--open) {
     width: 100%;
   }
+  transition: width 0.3s ease-out;
 }
 
-.str-chat-channel {
-  width: 100%;
+.str-chat__channel {
+  flex: 1;
+  min-width: 0;
+}
+
+.str-chat__main-panel {
+  min-width: 0;
+  flex: 1;
+
+  &--thread-open {
+    display: none;
+  }
 }
 
 .str-chat__thread {
@@ -69,9 +82,8 @@ body {
 }
 
 @media screen and (min-width: 768px) {
-  .str-chat-channel-list {
-    width: 100%;
-    max-width: 420px;
+  #sidebar {
+    width: 30%;
     position: initial;
     z-index: 0;
   }
@@ -87,8 +99,17 @@ body {
 }
 
 @media screen and (min-width: 1024px) {
+  .str-chat__main-panel {
+    min-width: 0;
+
+    &--thread-open {
+      max-width: 55%;
+      display: flex;
+    }
+  }
+
   .str-chat__thread {
-    width: 45%;
+    max-width: 45%;
   }
 
   .str-chat__channel-header .str-chat__header-hamburger {

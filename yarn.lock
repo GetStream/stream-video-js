@@ -1752,7 +1752,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.22.5, @babel/runtime@npm:^7.23.1, @babel/runtime@npm:^7.23.6, @babel/runtime@npm:^7.24.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.22.5, @babel/runtime@npm:^7.23.1, @babel/runtime@npm:^7.24.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
   version: 7.24.7
   resolution: "@babel/runtime@npm:7.24.7"
   dependencies:
@@ -1812,13 +1812,6 @@ __metadata:
   version: 6.0.4
   resolution: "@braintree/sanitize-url@npm:6.0.4"
   checksum: f5ec6048973722ea1c46ae555d2e9eb848d7fa258994f8ea7d6db9514ee754ea3ef344ef71b3696d486776bcb839f3124e79f67c6b5b2814ed2da220b340627c
-  languageName: node
-  linkType: hard
-
-"@breezystack/lamejs@npm:^1.2.7":
-  version: 1.2.7
-  resolution: "@breezystack/lamejs@npm:1.2.7"
-  checksum: 650efa21324b3afb94bf1ae47a38c7a46b300f823b0158fef3881ea11d8a4f3e8260846e397bd7f91a0c94ea5eb585f452dc6c3996b62ea3df5203b1eba18c40
   languageName: node
   linkType: hard
 
@@ -6978,7 +6971,7 @@ __metadata:
     react-router-dom: ^6.17.0
     sass: ^1.69.5
     stream-chat: ^8.33.0
-    stream-chat-react: ^11.19.0
+    stream-chat-react: 12.0.0-rc.5
     typescript: ^5.5.2
     vite: ^4.4.11
   languageName: unknown
@@ -7194,7 +7187,7 @@ __metadata:
     source-map-loader: ^5.0.0
     starwars-names: ^1.6.0
     stream-chat: ^8.33.0
-    stream-chat-react: 12.0.0-rc.2
+    stream-chat-react: 12.0.0-rc.5
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -7415,7 +7408,7 @@ __metadata:
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     stream-chat: ^8.33.0
-    stream-chat-react: ^11.19.0
+    stream-chat-react: 12.0.0-rc.5
     tailwindcss: ^3.2.4
     typescript: ^5.5.2
     vite: ^4.4.11
@@ -23968,12 +23961,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:12.0.0-rc.2":
-  version: 12.0.0-rc.2
-  resolution: "stream-chat-react@npm:12.0.0-rc.2"
+"stream-chat-react@npm:12.0.0-rc.5":
+  version: 12.0.0-rc.5
+  resolution: "stream-chat-react@npm:12.0.0-rc.5"
   dependencies:
     "@braintree/sanitize-url": ^6.0.4
-    "@breezystack/lamejs": ^1.2.7
     "@popperjs/core": ^2.11.5
     "@react-aria/focus": ^3
     "@stream-io/transliterate": ^1.5.5
@@ -24008,6 +24000,7 @@ __metadata:
     unist-builder: ^3.0.0
     unist-util-visit: ^5.0.0
   peerDependencies:
+    "@breezystack/lamejs": ^1.2.7
     "@emoji-mart/data": ^1.1.0
     "@emoji-mart/react": ^1.1.0
     emoji-mart: ^5.4.0
@@ -24020,76 +24013,15 @@ __metadata:
     mml-react:
       optional: true
   peerDependenciesMeta:
+    "@breezystack/lamejs":
+      optional: true
     "@emoji-mart/data":
       optional: true
     "@emoji-mart/react":
       optional: true
     emoji-mart:
       optional: true
-  checksum: 74a31c872f6c7b3491dcd7e7b774ddc429e20380951e265420d503c32c256de2dae00b72c6c4b07d4decab4f6aa0df6f3da458f3048c16c870d207a2a086bb7f
-  languageName: node
-  linkType: hard
-
-"stream-chat-react@npm:^11.19.0":
-  version: 11.19.0
-  resolution: "stream-chat-react@npm:11.19.0"
-  dependencies:
-    "@babel/runtime": ^7.23.6
-    "@braintree/sanitize-url": ^6.0.4
-    "@breezystack/lamejs": ^1.2.7
-    "@popperjs/core": ^2.11.5
-    "@react-aria/focus": ^3
-    "@stream-io/transliterate": ^1.5.5
-    clsx: ^2.0.0
-    dayjs: ^1.10.4
-    emoji-regex: ^9.2.0
-    fix-webm-duration: ^1.0.5
-    hast-util-find-and-replace: ^5.0.1
-    i18next: ^21.6.14
-    isomorphic-ws: ^4.0.1
-    linkifyjs: ^4.1.0
-    lodash.debounce: ^4.0.8
-    lodash.defaultsdeep: ^4.6.1
-    lodash.mergewith: ^4.6.2
-    lodash.throttle: ^4.1.1
-    lodash.uniqby: ^4.7.0
-    mml-react: ^0.4.7
-    nanoid: ^3.3.4
-    prop-types: ^15.7.2
-    react-dropzone: ^14.2.3
-    react-fast-compare: ^3.2.2
-    react-image-gallery: 1.2.12
-    react-is: ^18.1.0
-    react-markdown: 9.0.1
-    react-player: 2.10.1
-    react-popper: ^2.3.0
-    react-textarea-autosize: ^8.3.0
-    react-virtuoso: ^2.16.5
-    remark-gfm: ^4.0.0
-    textarea-caret: ^3.1.0
-    tslib: ^2.6.2
-    unist-builder: ^3.0.0
-    unist-util-visit: ^5.0.0
-  peerDependencies:
-    "@emoji-mart/data": ^1.1.0
-    "@emoji-mart/react": ^1.1.0
-    emoji-mart: ^5.4.0
-    react: ^18.0.0 || ^17.0.0 || ^16.8.0
-    react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
-    stream-chat: ^8.30.0
-  dependenciesMeta:
-    "@stream-io/transliterate":
-      optional: true
-    mml-react:
-      optional: true
-  peerDependenciesMeta:
-    "@emoji-mart/data":
-      optional: true
-    "@emoji-mart/react":
-      optional: true
-    emoji-mart:
-      optional: true
-  checksum: 41449464e3555b8950769a8703621a937f12372a0f81f35a144258292fd739c0cb63b0d79dec2e6d48a611a0fe945fcc9be616fd7791ff484d24613cb04e89f0
+  checksum: 8b1cdf7e4d9dfb0a20cbcbcfa2c60d5379c986e0b0ccd59b8869c6ab05015df44d7d179a227f93fb4d8355b48cf0eaf354d4b97722431e8e4c7c613119eaab9f
   languageName: node
   linkType: hard
 

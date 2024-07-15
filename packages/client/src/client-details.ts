@@ -1,4 +1,10 @@
-import { ClientDetails, Device, OS, Sdk } from './gen/video/sfu/models/models';
+import {
+  ClientDetails,
+  Device,
+  OS,
+  Sdk,
+  SdkType,
+} from './gen/video/sfu/models/models';
 import { isReactNative } from './helpers/platforms';
 import { UAParser } from 'ua-parser-js';
 
@@ -6,7 +12,16 @@ type WebRTCInfoType = {
   version: string;
 };
 
-let sdkInfo: Sdk | undefined;
+const version = process.env.PKG_VERSION || '0.0.0';
+const [major, minor, patch] = version.split('.');
+
+let sdkInfo: Sdk | undefined = {
+  type: SdkType.PLAIN_JAVASCRIPT,
+  major,
+  minor,
+  patch,
+};
+
 let osInfo: OS | undefined;
 let deviceInfo: Device | undefined;
 let webRtcInfo: WebRTCInfoType | undefined;

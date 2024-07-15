@@ -121,7 +121,6 @@ const QuickDialButton = <SCG extends ExtendableGenerics = DefaultGenerics>({
       })}
     >
       <Avatar
-        size={50}
         image={user.image as string}
         name={user.name}
         user={user}
