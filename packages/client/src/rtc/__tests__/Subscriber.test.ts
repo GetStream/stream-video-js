@@ -1,7 +1,7 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Dispatcher } from '../Dispatcher';
+import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
@@ -25,6 +25,8 @@ describe('Subscriber', () => {
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
+      sessionId: 'sessionId',
+      logTag: 'logTag',
       sfuServer: {
         url: 'https://getstream.io/',
         ws_endpoint: 'https://getstream.io/ws',
@@ -52,6 +54,8 @@ describe('Subscriber', () => {
     it('should update the sfuClient and create a new peer connection', async () => {
       const newSfuClient = new StreamSfuClient({
         dispatcher: new Dispatcher(),
+        sessionId: 'sessionId',
+        logTag: 'logTag',
         sfuServer: {
           url: 'https://getstream.io/',
           ws_endpoint: 'https://getstream.io/ws',
@@ -135,7 +139,7 @@ describe('Subscriber', () => {
               peerType: PeerType.SUBSCRIBER,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
 
       expect(sfuClient.iceRestart).toHaveBeenCalledWith({
@@ -153,7 +157,7 @@ describe('Subscriber', () => {
               peerType: PeerType.PUBLISHER_UNSPECIFIED,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
 
       expect(sfuClient.iceRestart).not.toHaveBeenCalled();

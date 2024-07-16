@@ -4,9 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
-import { Dispatcher } from '../Dispatcher';
+import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
-import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 
 vi.mock('../../StreamSfuClient', () => {
@@ -40,12 +39,14 @@ describe('Publisher', () => {
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
+      sessionId: 'session-id-test',
       sfuServer: {
         url: 'https://getstream.io/',
         ws_endpoint: 'https://getstream.io/ws',
         edge_name: 'sfu-1',
       },
       token: 'token',
+      logTag: 'test',
     });
 
     // @ts-ignore
@@ -213,6 +214,8 @@ describe('Publisher', () => {
   describe('Publisher migration', () => {
     it('should update the sfuClient and peer connection configuration', async () => {
       const newSfuClient = new StreamSfuClient({
+        sessionId: 'new-session-id',
+        logTag: 'test',
         dispatcher: new Dispatcher(),
         sfuServer: {
           url: 'https://getstream.io/',
@@ -244,8 +247,6 @@ describe('Publisher', () => {
 
     it('should initiate ICE Restart when there are published tracks', async () => {
       vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([]);
-      // @ts-ignore
-      sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
       sfuClient.setPublisher = vi.fn().mockResolvedValue({
         response: {
           sessionId: 'new-session-id',
@@ -289,7 +290,7 @@ describe('Publisher', () => {
               peerType: PeerType.PUBLISHER_UNSPECIFIED,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
       expect(publisher.restartIce).toHaveBeenCalled();
     });
@@ -304,7 +305,7 @@ describe('Publisher', () => {
               peerType: PeerType.SUBSCRIBER,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
       expect(publisher.restartIce).not.toHaveBeenCalled();
     });
