@@ -1,4 +1,3 @@
-import WebSocket from 'isomorphic-ws';
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 import { DispatchableMessage, SfuEventKinds } from './Dispatcher';

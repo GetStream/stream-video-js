@@ -1,4 +1,3 @@
-import type { WebSocket } from 'ws';
 import type {
   FinishedUnaryCall,
   RpcInterceptor,
@@ -6,11 +5,7 @@ import type {
 } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders, withRequestLogger } from './rpc';
-import {
-  createWebSocketSignalChannel,
-  Dispatcher,
-  IceTrickleBuffer,
-} from './rtc';
+import { createWebSocketSignalChannel, Dispatcher } from './rtc';
 import {
   JoinRequest,
   JoinResponse,
@@ -33,6 +28,7 @@ import { retryInterval, sleep } from './coordinator/connection/utils';
 import { SFUResponse } from './gen/coordinator';
 import { Logger, LogLevel } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
+import { promiseWithResolvers } from './helpers/withResolvers';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -72,11 +68,6 @@ export type StreamSfuClientConstructor = {
  */
 export class StreamSfuClient {
   /**
-   * A buffer for ICE Candidates that are received before
-   * the PeerConnections are ready to handle them.
-   */
-  readonly iceTrickleBuffer = new IceTrickleBuffer();
-  /**
    * The `sessionId` of the currently connected participant.
    */
   readonly sessionId: string;
@@ -107,12 +98,6 @@ export class StreamSfuClient {
   signalReady: Promise<WebSocket>;
 
   /**
-   * Promise that resolves when the JoinResponse is received.
-   * Rejects after a certain threshold if the response is not received.
-   */
-  joinResponseReady: Promise<JoinResponse>;
-
-  /**
    * A flag indicating whether the client is currently migrating away
    * from this SFU.
    */
@@ -124,8 +109,14 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
-  private readonly unsubscribeIceTrickle: () => void;
   private readonly logger: Logger;
+  private readonly dispatcher: Dispatcher;
+  private readonly joinResponseTimeout?: number;
+  /**
+   * Promise that resolves when the JoinResponse is received.
+   * Rejects after a certain threshold if the response is not received.
+   */
+  private joinResponseTask = promiseWithResolvers<JoinResponse>();
 
   /**
    * The normal closure code. Used for controlled shutdowns.
@@ -139,11 +130,6 @@ export class StreamSfuClient {
   static ERROR_CONNECTION_UNHEALTHY = 4001;
 
   /**
-   * This error code is used to announce a reconnect.
-   */
-  static ERROR_CLOSE_RECONNECT = 4002;
-
-  /**
    * Constructs a new SFU client.
    */
   constructor({
@@ -154,10 +140,12 @@ export class StreamSfuClient {
     logTag,
     joinResponseTimeout = 5000,
   }: StreamSfuClientConstructor) {
+    this.dispatcher = dispatcher;
     this.sessionId = sessionId;
     this.sfuServer = sfuServer;
     this.edgeName = sfuServer.edge_name;
     this.token = token;
+    this.joinResponseTimeout = joinResponseTimeout;
     this.logger = getLogger(['sfu-client', logTag || '']);
     this.rpc = createSignalClient({
       baseUrl: sfuServer.url,
@@ -167,15 +155,6 @@ export class StreamSfuClient {
         }),
         getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
       ].filter(Boolean) as RpcInterceptor[],
-    });
-
-    // Special handling for the ICETrickle kind of events.
-    // These events might be triggered by the SFU before the initial RTC
-    // connection is established. In that case, those events (ICE candidates)
-    // need to be buffered and later added to the appropriate PeerConnection
-    // once the remoteDescription is known and set.
-    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (iceTrickle) => {
-      this.iceTrickleBuffer.push(iceTrickle);
     });
 
     this.signalWs = createWebSocketSignalChannel({
@@ -195,30 +174,7 @@ export class StreamSfuClient {
       };
       this.signalWs.addEventListener('open', onOpen);
     });
-
-    this.joinResponseReady = new Promise((resolve, reject) => {
-      let timeout: NodeJS.Timeout;
-
-      const onJoinResponse = (joinResponse: JoinResponse) => {
-        this.logger('debug', 'Received joinResponse', joinResponse);
-        clearTimeout(timeout);
-        dispatcher.off('joinResponse', onJoinResponse);
-        this.keepAlive();
-        return resolve(joinResponse);
-      };
-
-      timeout = setTimeout(() => {
-        dispatcher.off('joinResponse', onJoinResponse);
-        return reject(new Error('Waiting for "joinResponse" has timed out'));
-      }, joinResponseTimeout);
-
-      dispatcher.on('joinResponse', onJoinResponse);
-    });
   }
-
-  waitForJoinResponse = async () => {
-    return this.joinResponseReady;
-  };
 
   close = (code: number, reason: string) => {
     this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
@@ -226,13 +182,12 @@ export class StreamSfuClient {
       this.signalWs.close(code, `js-client: ${reason}`);
     }
 
-    this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
   };
 
   leaveAndClose = async (reason: string) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     try {
       await this.notifyLeave(reason);
     } catch (err) {
@@ -243,7 +198,7 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.updateSubscriptions({
@@ -256,7 +211,7 @@ export class StreamSfuClient {
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.setPublisher({
@@ -268,7 +223,7 @@ export class StreamSfuClient {
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.sendAnswer({
@@ -280,7 +235,7 @@ export class StreamSfuClient {
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.iceTrickle({
@@ -292,7 +247,7 @@ export class StreamSfuClient {
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.iceRestart({
@@ -304,7 +259,7 @@ export class StreamSfuClient {
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return this.updateMuteStates({
       muteStates: [
         {
@@ -318,7 +273,7 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.updateMuteStates({
@@ -330,7 +285,7 @@ export class StreamSfuClient {
   };
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.sendStats({
@@ -343,7 +298,7 @@ export class StreamSfuClient {
   };
 
   startNoiseCancellation = async () => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.startNoiseCancellation({
@@ -354,7 +309,7 @@ export class StreamSfuClient {
   };
 
   stopNoiseCancellation = async () => {
-    await this.joinResponseReady;
+    await this.joinResponseTask.promise;
     return retryable(
       () =>
         this.rpc.stopNoiseCancellation({
@@ -364,20 +319,49 @@ export class StreamSfuClient {
     );
   };
 
-  join = async (data: Omit<JoinRequest, 'sessionId' | 'token'>) => {
-    const joinRequest = JoinRequest.create({
-      ...data,
-      sessionId: this.sessionId,
-      token: this.token,
+  join = async (
+    data: Omit<JoinRequest, 'sessionId' | 'token'>,
+  ): Promise<JoinResponse> => {
+    if (this.joinResponseTask.isResolved || this.joinResponseTask.isRejected) {
+      // we need to lock the RPC requests until we receive a JoinResponse.
+      // that's why we have this primitive lock mechanism.
+      // the client starts with already initialized joinResponseReady promise,
+      // and this code creates a new one for the next join request.
+      this.joinResponseTask = promiseWithResolvers<JoinResponse>();
+    }
+
+    // capture a reference to the current joinResponseTask as it might
+    // be replaced with a new one in case a second join request is made
+    const current = this.joinResponseTask;
+
+    let timeoutId: NodeJS.Timeout;
+    const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
+      this.logger('debug', 'Received joinResponse', joinResponse);
+      clearTimeout(timeoutId);
+      unsubscribe();
+      this.keepAlive();
+      current.resolve(joinResponse);
     });
-    return this.send(
+
+    timeoutId = setTimeout(() => {
+      unsubscribe();
+      current.reject(new Error('Waiting for "joinResponse" has timed out'));
+    }, this.joinResponseTimeout);
+
+    await this.send(
       SfuRequest.create({
         requestPayload: {
           oneofKind: 'joinRequest',
-          joinRequest,
+          joinRequest: JoinRequest.create({
+            ...data,
+            sessionId: this.sessionId,
+            token: this.token,
+          }),
         },
       }),
     );
+
+    return current.promise;
   };
 
   ping = async () => {

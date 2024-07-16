@@ -771,8 +771,6 @@ export class Call {
       this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN;
     const performingFastReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.FAST;
-    const performingCleanReconnect =
-      this.reconnectStrategy === WebsocketReconnectStrategy.CLEAN;
 
     let statsOptions = this.sfuStatsReporter?.options;
     if (performingRejoinReconnect || !this.credentials || !statsOptions) {
@@ -791,7 +789,6 @@ export class Call {
     const previousSessionId = previousSfuClient?.sessionId;
     const sfuClient =
       performingRejoinReconnect ||
-      performingCleanReconnect ||
       this.sfuClient?.signalWs.readyState !== WebSocket.OPEN
         ? new StreamSfuClient({
             logTag: String(this.reconnectAttempts),
@@ -807,46 +804,41 @@ export class Call {
         : this.sfuClient;
     this.sfuClient = sfuClient;
 
-    const clientDetails = getClientDetails();
-    // 1. wait for the signal server to be ready before sending "joinRequest"
-    sfuClient.signalReady
-      .catch((err) => this.logger('error', 'Signal ready failed', err))
-      // prepare a generic SDP and send it to the SFU.
-      // this is a throw-away SDP that the SFU will use to determine
-      // the capabilities of the client (codec support, etc.)
-      .then(() => getGenericSdp('recvonly'))
-      .then((sdp) => {
-        const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
-        return sfuClient.join({
-          subscriberSdp: sdp || '',
-          clientDetails,
-          fastReconnect: performingFastReconnect,
-          reconnectDetails:
-            this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
-              ? {
-                  strategy: this.reconnectStrategy,
-                  announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
-                  subscriptions: subscriptions.data || [],
-                  reconnectAttempt: this.reconnectAttempts,
-                  fromSfuId: data?.migrating_from || '',
-                  previousSessionId: performingRejoinReconnect
-                    ? previousSessionId || ''
-                    : '',
-                }
-              : undefined,
-        });
-      });
+    // 1. wait for the signal server web socket to be ready before sending "joinRequest"
+    await sfuClient.signalReady;
 
-    // 2. in parallel, waits for the SFU to send us the "joinResponse"
-    // this will throw an error if the SFU rejects the join request or
-    // fails to respond in time
-    const { callState, fastReconnectDeadlineSeconds } =
-      await sfuClient.waitForJoinResponse();
+    // prepare a generic SDP and send it to the SFU.
+    // this is a throw-away SDP that the SFU will use to determine
+    // the capabilities of the client (codec support, etc.)
+    const subscriberSdp = await getGenericSdp('recvonly');
+    const clientDetails = getClientDetails();
+    const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
+    const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
+      subscriberSdp,
+      clientDetails,
+      fastReconnect: performingFastReconnect,
+      reconnectDetails:
+        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
+          ? {
+              strategy: this.reconnectStrategy,
+              announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
+              subscriptions: subscriptions.data || [],
+              reconnectAttempt: this.reconnectAttempts,
+              fromSfuId: data?.migrating_from || '',
+              previousSessionId: performingRejoinReconnect
+                ? previousSessionId || ''
+                : '',
+            }
+          : undefined,
+    });
+
     this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
     if (callState) {
       this.state.updateFromSfuCallState(callState, sfuClient.sessionId);
     }
 
+    // when performing fast reconnect, or when we reuse the same SFU client,
+    // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
       await this.restoreICE(sfuClient);
     } else {
@@ -862,7 +854,7 @@ export class Call {
     this.reconnectAttempts = 0; // reset the reconnect attempts counter
     this.state.setCallingState(CallingState.JOINED);
 
-    if (previousSfuClient !== sfuClient) {
+    if (performingRejoinReconnect) {
       await previousSfuClient?.leaveAndClose(
         `Closing previous WS after reconnect with strategy: ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
       );
@@ -1922,7 +1914,7 @@ export class Call {
     await this.initCamera({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
-    await this.initMic({ options: { setStatus: status } }).catch((err) => {
+    await this.initMic({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
   };
@@ -1976,11 +1968,7 @@ export class Call {
     }
   };
 
-  private initMic = async ({
-    options,
-  }: {
-    options: { setStatus: boolean };
-  }) => {
+  private initMic = async (options: { setStatus: boolean }) => {
     // Wait for any in progress mic operation
     await this.microphone.statusChangeSettled();
 
