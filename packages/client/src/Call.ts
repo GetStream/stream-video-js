@@ -767,13 +767,20 @@ export class Call {
       await this.accept();
     }
 
+    const performingMigrateReconnect =
+      this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
     const performingRejoinReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN;
     const performingFastReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.FAST;
 
     let statsOptions = this.sfuStatsReporter?.options;
-    if (performingRejoinReconnect || !this.credentials || !statsOptions) {
+    if (
+      performingRejoinReconnect ||
+      performingMigrateReconnect ||
+      !this.credentials ||
+      !statsOptions
+    ) {
       try {
         const joinResponse = await this.doJoinRequest(data);
         this.credentials = joinResponse.credentials;
@@ -787,9 +794,10 @@ export class Call {
 
     const previousSfuClient = this.sfuClient;
     const previousSessionId = previousSfuClient?.sessionId;
+    const isWsHealthy =
+      previousSfuClient?.signalWs.readyState !== WebSocket.OPEN;
     const sfuClient =
-      performingRejoinReconnect ||
-      this.sfuClient?.signalWs.readyState !== WebSocket.OPEN
+      performingRejoinReconnect || performingMigrateReconnect || isWsHealthy
         ? new StreamSfuClient({
             logTag: String(this.reconnectAttempts),
             dispatcher: this.dispatcher,
@@ -801,7 +809,7 @@ export class Call {
               ? generateUUIDv4()
               : previousSessionId || generateUUIDv4(),
           })
-        : this.sfuClient;
+        : previousSfuClient;
     this.sfuClient = sfuClient;
 
     // 1. wait for the signal server web socket to be ready before sending "joinRequest"
@@ -823,6 +831,7 @@ export class Call {
               strategy: this.reconnectStrategy,
               announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
               subscriptions: subscriptions.data || [],
+              // TODO: we shouldn't increment in FAST mode
               reconnectAttempt: this.reconnectAttempts,
               fromSfuId: data?.migrating_from || '',
               previousSessionId: performingRejoinReconnect
@@ -855,9 +864,12 @@ export class Call {
     this.state.setCallingState(CallingState.JOINED);
 
     if (performingRejoinReconnect) {
+      const strategy = WebsocketReconnectStrategy[this.reconnectStrategy];
       await previousSfuClient?.leaveAndClose(
-        `Closing previous WS after reconnect with strategy: ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
+        `Closing previous WS after reconnect with strategy: ${strategy}`,
       );
+    } else if (!isWsHealthy) {
+      previousSfuClient.dispose();
     }
 
     await this.applyDeviceConfig(true);
@@ -983,41 +995,53 @@ export class Call {
       WebsocketReconnectStrategy[strategy],
     );
     this.reconnectStrategy = strategy;
-    this.reconnectAttempts += 1;
     this.state.setCallingState(
-      strategy === WebsocketReconnectStrategy.MIGRATE
+      this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
         ? CallingState.MIGRATING
         : CallingState.RECONNECTING,
     );
-    try {
-      switch (strategy) {
-        case WebsocketReconnectStrategy.FAST:
-          await this.join(this.joinCallData);
-          break;
-        case WebsocketReconnectStrategy.CLEAN:
-        case WebsocketReconnectStrategy.REJOIN:
-          await this.join(this.joinCallData);
-          await this.restorePublishedTracks();
-          this.restoreSubscribedTracks();
-          break;
-        case WebsocketReconnectStrategy.MIGRATE:
-          this.logger('debug', 'implement MIGRATE');
-          break;
-        case WebsocketReconnectStrategy.UNSPECIFIED:
-        case WebsocketReconnectStrategy.DISCONNECT:
-          break; // UNSPECIFIED and DISCONNECT are no-op
-        default:
-          ensureExhausted(strategy, 'Unknown reconnection strategy');
-          break;
+    do {
+      try {
+        switch (this.reconnectStrategy) {
+          case WebsocketReconnectStrategy.FAST:
+            await this.join(this.joinCallData);
+            break;
+          case WebsocketReconnectStrategy.CLEAN:
+          case WebsocketReconnectStrategy.REJOIN:
+            await this.join(this.joinCallData);
+            await this.restorePublishedTracks();
+            this.restoreSubscribedTracks();
+            break;
+          case WebsocketReconnectStrategy.MIGRATE:
+            await this.join({
+              ...this.joinCallData,
+              migrating_from: this.sfuClient?.edgeName,
+            });
+            await this.restorePublishedTracks();
+            this.restoreSubscribedTracks();
+            break;
+          case WebsocketReconnectStrategy.UNSPECIFIED:
+          case WebsocketReconnectStrategy.DISCONNECT:
+            break; // UNSPECIFIED and DISCONNECT are no-op
+          default:
+            ensureExhausted(
+              this.reconnectStrategy,
+              'Unknown reconnection strategy',
+            );
+            break;
+        }
+        // reset to FAST
+        this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
+        break; // do-while loop
+      } catch (error) {
+        await sleep(retryInterval(this.reconnectAttempts));
+        this.reconnectStrategy = Math.max(
+          strategy + 1,
+          WebsocketReconnectStrategy.REJOIN,
+        );
+        this.reconnectAttempts += 1;
       }
-    } catch (error) {
-      await sleep(retryInterval(this.reconnectAttempts));
-      this.reconnect(
-        Math.max(strategy + 1, WebsocketReconnectStrategy.REJOIN),
-      ).catch((err) => {
-        this.logger('warn', 'Error reconnecting', err);
-      });
-    }
+    } while (this.reconnectStrategy <= WebsocketReconnectStrategy.REJOIN);
   };
 
   /**

@@ -146,7 +146,7 @@ export class StreamSfuClient {
     this.edgeName = sfuServer.edge_name;
     this.token = token;
     this.joinResponseTimeout = joinResponseTimeout;
-    this.logger = getLogger(['sfu-client', logTag || '']);
+    this.logger = getLogger(['sfu-client', logTag]);
     this.rpc = createSignalClient({
       baseUrl: sfuServer.url,
       interceptors: [
@@ -186,7 +186,10 @@ export class StreamSfuClient {
     if (this.signalWs.readyState !== this.signalWs.CLOSED) {
       this.signalWs.close(code, `js-client: ${reason}`);
     }
+    this.dispose();
+  };
 
+  dispose = () => {
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
   };
