@@ -167,6 +167,11 @@ export class StreamSfuClient {
       },
     });
 
+    this.signalWs.addEventListener('close', () => {
+      clearInterval(this.keepAliveInterval);
+      clearTimeout(this.connectionCheckTimeout);
+    });
+
     this.signalReady = new Promise((resolve) => {
       const onOpen = () => {
         this.signalWs.removeEventListener('open', onOpen);
@@ -458,7 +463,7 @@ const MAX_RETRIES = 5;
 const retryable = async <I extends object, O extends SfuResponseWithError>(
   rpc: () => UnaryCall<I, O>,
   logger: Logger,
-  level: LogLevel = 'error',
+  level: LogLevel = 'warn',
 ) => {
   let retryAttempt = 0;
   let rpcCallResult: FinishedUnaryCall<I, O>;
