@@ -5,7 +5,11 @@ import type {
 } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders, withRequestLogger } from './rpc';
-import { createWebSocketSignalChannel, Dispatcher } from './rtc';
+import {
+  createWebSocketSignalChannel,
+  Dispatcher,
+  IceTrickleBuffer,
+} from './rtc';
 import {
   JoinRequest,
   JoinResponse,
@@ -68,6 +72,11 @@ export type StreamSfuClientConstructor = {
  */
 export class StreamSfuClient {
   /**
+   * A buffer for ICE Candidates that are received before
+   * the PeerConnections are ready to handle them.
+   */
+  readonly iceTrickleBuffer = new IceTrickleBuffer();
+  /**
    * The `sessionId` of the currently connected participant.
    */
   readonly sessionId: string;
@@ -109,6 +118,7 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
+  private readonly unsubscribeIceTrickle: () => void;
   private readonly logger: Logger;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout?: number;
@@ -157,6 +167,16 @@ export class StreamSfuClient {
       ].filter(Boolean) as RpcInterceptor[],
     });
 
+    // Special handling for the ICETrickle kind of events.
+    // The SFU might trigger these events before the initial RTC
+    // connection is established or "JoinResponse" received.
+    // In that case, those events (ICE candidates) need to be buffered
+    // and later added to the appropriate PeerConnection
+    // once the remoteDescription is known and set.
+    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (iceTrickle) => {
+      this.iceTrickleBuffer.push(iceTrickle);
+    });
+
     this.signalWs = createWebSocketSignalChannel({
       logTag,
       endpoint: sfuServer.ws_endpoint,
@@ -190,6 +210,7 @@ export class StreamSfuClient {
   };
 
   dispose = () => {
+    this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
   };

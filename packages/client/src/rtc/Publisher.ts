@@ -1,4 +1,3 @@
-import { ReplaySubject } from 'rxjs';
 import * as SDP from 'sdp-transform';
 import { StreamSfuClient } from '../StreamSfuClient';
 import {
@@ -71,7 +70,7 @@ export class Publisher {
    *
    * @internal
    */
-  transceiverInitOrder: TrackType[] = [];
+  private readonly transceiverInitOrder: TrackType[] = [];
 
   private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
@@ -97,11 +96,9 @@ export class Publisher {
   private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
-  private readonly unsubscribeOnIceTrickle: () => void;
   // FIXME OL: maybe remove this
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceTrickleBuffer = new ReplaySubject<RTCIceCandidateInit>();
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -161,16 +158,6 @@ export class Publisher {
         this.onUnrecoverableError?.();
       });
     });
-
-    this.unsubscribeOnIceTrickle = dispatcher.on('iceTrickle', (e) => {
-      if (e.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
-      try {
-        const iceCandidate: RTCIceCandidateInit = JSON.parse(e.iceCandidate);
-        this.iceTrickleBuffer.next(iceCandidate);
-      } catch (err) {
-        logger('warn', `ICE candidate error`, err, e);
-      }
-    });
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
@@ -210,7 +197,6 @@ export class Publisher {
 
     clearTimeout(this.iceRestartTimeout);
     this.unsubscribeOnIceRestart();
-    this.unsubscribeOnIceTrickle();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
     this.pc.close();
   };
@@ -686,11 +672,12 @@ export class Publisher {
 
     this.isIceRestarting = false;
 
-    this.iceTrickleBuffer.subscribe(async (candidate) => {
+    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(async (t) => {
       try {
+        const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);
         await this.pc.addIceCandidate(candidate);
       } catch (e) {
-        logger('warn', `Can't add ICE candidate`, e, candidate);
+        logger('warn', `Can't add ICE candidate`, e, t);
       }
     });
   };

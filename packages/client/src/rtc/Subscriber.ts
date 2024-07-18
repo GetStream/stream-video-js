@@ -1,4 +1,3 @@
-import { ReplaySubject } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { getIceCandidate } from './helpers/iceCandidate';
 import { PeerType } from '../gen/video/sfu/models/models';
@@ -22,6 +21,8 @@ const logger = getLogger(['Subscriber']);
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
  * media streams from the SFU.
+ *
+ * @internal
  */
 export class Subscriber {
   private pc: RTCPeerConnection;
@@ -30,11 +31,9 @@ export class Subscriber {
 
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
-  private readonly unregisterOnIceTrickle: () => void;
   // FIXME OL maybe remove this
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceTrickleBuffer = new ReplaySubject<RTCIceCandidateInit>();
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -80,6 +79,8 @@ export class Subscriber {
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
       (subscriberOffer) => {
+        // TODO: use queue per peer connection, otherwise
+        //  it could happen we consume an offer for a different peer connection
         withoutConcurrency(Symbol.for('subscriberOffer'), () => {
           return this.negotiate(subscriberOffer);
         }).catch((err) => {
@@ -96,16 +97,6 @@ export class Subscriber {
         logger('warn', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });
-    });
-
-    this.unregisterOnIceTrickle = dispatcher.on('iceTrickle', (e) => {
-      if (e.peerType !== PeerType.SUBSCRIBER) return;
-      try {
-        const iceCandidate: RTCIceCandidateInit = JSON.parse(e.iceCandidate);
-        this.iceTrickleBuffer.next(iceCandidate);
-      } catch (err) {
-        logger('warn', `ICE candidate error`, err, e);
-      }
     });
   }
 
@@ -140,7 +131,6 @@ export class Subscriber {
     clearTimeout(this.iceRestartTimeout);
     this.unregisterOnSubscriberOffer();
     this.unregisterOnIceRestart();
-    this.unregisterOnIceTrickle();
     this.pc.close();
   };
 
@@ -358,13 +348,16 @@ export class Subscriber {
       sdp: subscriberOffer.sdp,
     });
 
-    this.iceTrickleBuffer.subscribe(async (candidate) => {
-      try {
-        await this.pc.addIceCandidate(candidate);
-      } catch (e) {
-        logger('warn', `Can't add ICE candidate`, e, candidate);
-      }
-    });
+    this.sfuClient.iceTrickleBuffer.subscriberCandidates.subscribe(
+      async (t) => {
+        try {
+          const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);
+          await this.pc.addIceCandidate(candidate);
+        } catch (e) {
+          logger('warn', `Can't add ICE candidate`, e, t);
+        }
+      },
+    );
 
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
