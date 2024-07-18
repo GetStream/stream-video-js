@@ -303,6 +303,16 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
+      this.on('goAway', () => {
+        withoutConcurrency(Symbol.for('reconnect'), () => {
+          return this.reconnect(WebsocketReconnectStrategy.MIGRATE);
+        }).catch((err) => {
+          this.logger('warn', 'Error migrating', err);
+        });
+      }),
+    );
+
+    this.leaveCallHooks.add(
       this.on('error', ({ reconnectStrategy }) => {
         if (reconnectStrategy === WebsocketReconnectStrategy.UNSPECIFIED) {
           return;
