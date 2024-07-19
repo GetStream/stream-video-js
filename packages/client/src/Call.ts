@@ -135,6 +135,10 @@ import {
 import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
+import {
+  PromiseWithResolvers,
+  promiseWithResolvers,
+} from './helpers/withResolvers';
 
 /**
  * An object representation of a `Call`.
@@ -226,6 +230,8 @@ export class Call {
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
   private fastReconnectDeadlineSeconds: number = 0;
+  private lastOfflineTimestamp: number = 0;
+  private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   // maintain the order of publishing tracks to restore them after a reconnection
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
@@ -302,45 +308,9 @@ export class Call {
       }),
     );
 
-    this.leaveCallHooks.add(
-      this.on('goAway', () => {
-        withoutConcurrency(Symbol.for('reconnect'), () => {
-          return this.reconnect(WebsocketReconnectStrategy.MIGRATE);
-        }).catch((err) => {
-          this.logger('warn', 'Error migrating', err);
-        });
-      }),
-    );
-
-    this.leaveCallHooks.add(
-      this.on('error', ({ reconnectStrategy }) => {
-        if (reconnectStrategy === WebsocketReconnectStrategy.UNSPECIFIED) {
-          return;
-        }
-
-        if (reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT) {
-          this.leave({ reason: 'Sfu instructed to disconnect' }).catch(
-            (err) => {
-              this.logger(
-                'warn',
-                `can't leave call after disconnect request`,
-                err,
-              );
-            },
-          );
-        }
-        withoutConcurrency(Symbol.for('reconnect'), () => {
-          return this.reconnect(reconnectStrategy);
-        }).catch((err) => {
-          this.logger('warn', 'Error reconnecting', err);
-        });
-      }),
-    );
-
-    this.leaveCallHooks.add(
-      registerEventHandlers(this, this.state, this.dispatcher),
-    );
+    this.leaveCallHooks.add(registerEventHandlers(this, this.dispatcher));
     this.registerEffects();
+    this.registerReconnectHandlers();
 
     this.leaveCallHooks.add(
       createSubscription(
@@ -818,6 +788,25 @@ export class Call {
             sessionId: performingRejoinReconnect
               ? generateUUIDv4()
               : previousSessionId || generateUUIDv4(),
+            onSignalClose: (e) => {
+              if (e.wasClean) return;
+              let strategy = WebsocketReconnectStrategy.FAST;
+              if (
+                this.state.callingState === CallingState.OFFLINE &&
+                this.lastOfflineTimestamp
+              ) {
+                const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
+                if (offline < this.fastReconnectDeadlineSeconds) {
+                  // We shouldn't attempt FAST if we have exceeded the deadline.
+                  // The SFU would have already wiped out the session.
+                  strategy = WebsocketReconnectStrategy.CLEAN;
+                }
+              }
+
+              this.reconnect(strategy).catch((err) => {
+                this.logger('warn', '[Reconnect] Error reconnecting', err);
+              });
+            },
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
@@ -841,7 +830,6 @@ export class Call {
               strategy: this.reconnectStrategy,
               announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
               subscriptions: subscriptions.data || [],
-              // TODO: we shouldn't increment in FAST mode
               reconnectAttempt: this.reconnectAttempts,
               fromSfuId: data?.migrating_from || '',
               previousSessionId: performingRejoinReconnect
@@ -999,59 +987,118 @@ export class Call {
    * @param strategy the reconnection strategy to use.
    */
   private reconnect = async (strategy: WebsocketReconnectStrategy) => {
-    this.logger(
-      'info',
-      `Reconnecting with strategy`,
-      WebsocketReconnectStrategy[strategy],
-    );
-    this.reconnectStrategy = strategy;
-    this.state.setCallingState(
-      this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
-        ? CallingState.MIGRATING
-        : CallingState.RECONNECTING,
-    );
-    do {
-      try {
-        switch (this.reconnectStrategy) {
-          case WebsocketReconnectStrategy.FAST:
-            await this.join(this.joinCallData);
-            break;
-          case WebsocketReconnectStrategy.CLEAN:
-          case WebsocketReconnectStrategy.REJOIN:
-            await this.join(this.joinCallData);
-            await this.restorePublishedTracks();
-            this.restoreSubscribedTracks();
-            break;
-          case WebsocketReconnectStrategy.MIGRATE:
-            await this.join({
-              ...this.joinCallData,
-              migrating_from: this.sfuClient?.edgeName,
-            });
-            await this.restorePublishedTracks();
-            this.restoreSubscribedTracks();
-            break;
-          case WebsocketReconnectStrategy.UNSPECIFIED:
-          case WebsocketReconnectStrategy.DISCONNECT:
-            break; // UNSPECIFIED and DISCONNECT are no-op
-          default:
-            ensureExhausted(
-              this.reconnectStrategy,
-              'Unknown reconnection strategy',
-            );
-            break;
+    return withoutConcurrency(Symbol.for('reconnect'), async () => {
+      this.logger(
+        'info',
+        `[Reconnect] Reconnecting with strategy`,
+        WebsocketReconnectStrategy[strategy],
+      );
+
+      // wait until the network is available
+      await this.networkAvailableTask?.promise;
+
+      this.reconnectStrategy = strategy;
+      this.state.setCallingState(
+        this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
+          ? CallingState.MIGRATING
+          : CallingState.RECONNECTING,
+      );
+      do {
+        try {
+          switch (this.reconnectStrategy) {
+            case WebsocketReconnectStrategy.FAST:
+              await this.join(this.joinCallData);
+              break;
+            case WebsocketReconnectStrategy.CLEAN:
+            case WebsocketReconnectStrategy.REJOIN:
+              await this.join(this.joinCallData);
+              await this.restorePublishedTracks();
+              this.restoreSubscribedTracks();
+              break;
+            case WebsocketReconnectStrategy.MIGRATE:
+              await this.join({
+                ...this.joinCallData,
+                migrating_from: this.sfuClient?.edgeName,
+              });
+              await this.restorePublishedTracks();
+              this.restoreSubscribedTracks();
+              break;
+            case WebsocketReconnectStrategy.UNSPECIFIED:
+            case WebsocketReconnectStrategy.DISCONNECT:
+              break; // UNSPECIFIED and DISCONNECT are no-op
+            default:
+              ensureExhausted(
+                this.reconnectStrategy,
+                'Unknown reconnection strategy',
+              );
+              break;
+          }
+          break; // do-while loop
+        } catch (error) {
+          await sleep(retryInterval(this.reconnectAttempts));
+          this.reconnectStrategy = Math.max(
+            strategy + 1,
+            WebsocketReconnectStrategy.REJOIN,
+          );
+          if (strategy !== WebsocketReconnectStrategy.FAST) {
+            // we shouldn't increment the attempts counter for fast reconnects
+            this.reconnectAttempts += 1;
+          }
         }
-        // reset to FAST
-        this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
-        break; // do-while loop
-      } catch (error) {
-        await sleep(retryInterval(this.reconnectAttempts));
-        this.reconnectStrategy = Math.max(
-          strategy + 1,
-          WebsocketReconnectStrategy.REJOIN,
-        );
-        this.reconnectAttempts += 1;
+      } while (
+        this.reconnectStrategy <= WebsocketReconnectStrategy.REJOIN ||
+        this.state.callingState === CallingState.JOINED
+      );
+    });
+  };
+
+  /**
+   * Registers the various event handlers for reconnection.
+   *
+   * @internal
+   */
+  private registerReconnectHandlers = () => {
+    // handles the legacy "goAway" event
+    const unregisterGoAway = this.on('goAway', () => {
+      this.reconnect(WebsocketReconnectStrategy.MIGRATE).catch((err) => {
+        this.logger('warn', '[Reconnect] Error reconnecting', err);
+      });
+    });
+
+    // handles the "error" event, through which the SFU can request a reconnect
+    const unregisterOnError = this.on('error', (e) => {
+      const { reconnectStrategy: strategy } = e;
+      if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
+      if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
+        this.leave({ reason: 'SFU instructed to disconnect' }).catch((err) => {
+          this.logger('warn', `Can't leave call after disconnect request`, err);
+        });
       }
-    } while (this.reconnectStrategy <= WebsocketReconnectStrategy.REJOIN);
+
+      this.reconnect(strategy).catch((err) => {
+        this.logger('warn', '[Reconnect] Error reconnecting', err);
+      });
+    });
+
+    const unregisterConnectionChanged = this.streamClient.on(
+      'connection.changed',
+      (e) => {
+        if (!e.online) {
+          // create a new task that would resolve when the network is available
+          this.networkAvailableTask = promiseWithResolvers();
+          this.lastOfflineTimestamp = Date.now();
+          this.state.setCallingState(CallingState.OFFLINE);
+        } else {
+          // we went online, release the previous waiters and reset the state
+          this.networkAvailableTask?.resolve();
+          this.networkAvailableTask = undefined;
+        }
+      },
+    );
+
+    this.leaveCallHooks.add(unregisterGoAway);
+    this.leaveCallHooks.add(unregisterOnError);
+    this.leaveCallHooks.add(unregisterConnectionChanged);
   };
 
   /**

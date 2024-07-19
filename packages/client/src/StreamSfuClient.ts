@@ -65,6 +65,12 @@ export type StreamSfuClientConstructor = {
    * Defaults to 5000ms.
    */
   joinResponseTimeout?: number;
+
+  /**
+   * Callback for when the WebSocket connection is closed.
+   * @param event the event.
+   */
+  onSignalClose?: (event: CloseEvent) => void;
 };
 
 /**
@@ -76,6 +82,7 @@ export class StreamSfuClient {
    * the PeerConnections are ready to handle them.
    */
   readonly iceTrickleBuffer = new IceTrickleBuffer();
+
   /**
    * The `sessionId` of the currently connected participant.
    */
@@ -105,12 +112,6 @@ export class StreamSfuClient {
    * Promise that resolves when the WebSocket connection is ready (open).
    */
   signalReady: Promise<WebSocket>;
-
-  /**
-   * A flag indicating whether the client is currently migrating away
-   * from this SFU.
-   */
-  isMigratingAway = false;
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
@@ -149,6 +150,7 @@ export class StreamSfuClient {
     sessionId,
     logTag,
     joinResponseTimeout = 5000,
+    onSignalClose,
   }: StreamSfuClientConstructor) {
     this.dispatcher = dispatcher;
     this.sessionId = sessionId;
@@ -187,10 +189,15 @@ export class StreamSfuClient {
       },
     });
 
-    this.signalWs.addEventListener('close', () => {
+    const onClose = (e: CloseEvent) => {
+      this.signalWs.removeEventListener('close', onClose);
       clearInterval(this.keepAliveInterval);
       clearTimeout(this.connectionCheckTimeout);
-    });
+      if (onSignalClose) {
+        onSignalClose(e);
+      }
+    };
+    this.signalWs.addEventListener('close', onClose);
 
     this.signalReady = new Promise((resolve) => {
       const onOpen = () => {
