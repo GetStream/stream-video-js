@@ -1020,38 +1020,16 @@ export class Call {
         try {
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.FAST:
-              await this.join(this.joinCallData);
+              await this.reconnectFast();
               break;
             case WebsocketReconnectStrategy.CLEAN:
+              await this.reconnectClean();
+              break;
             case WebsocketReconnectStrategy.REJOIN:
-              await this.join(this.joinCallData);
-              await this.restorePublishedTracks();
-              this.restoreSubscribedTracks();
+              await this.reconnectRejoin();
               break;
             case WebsocketReconnectStrategy.MIGRATE:
-              const currentSfuClient = this.sfuClient;
-              const currentSubscriber = this.subscriber;
-              const currentPublisher = this.publisher;
-
-              currentSubscriber?.detachEventHandlers();
-              currentPublisher?.detachEventHandlers();
-              currentSfuClient?.enterMigration({
-                onComplete: () => {
-                  // close the peer connection instances after the migration is complete
-                  currentSubscriber?.close();
-                  currentPublisher?.close();
-
-                  // and close the previous SFU client, without specifying close code
-                  currentSfuClient?.close();
-                },
-              });
-
-              await this.join({
-                ...this.joinCallData,
-                migrating_from: this.sfuClient?.edgeName,
-              });
-              await this.restorePublishedTracks();
-              this.restoreSubscribedTracks();
+              await this.reconnectMigrate();
               break;
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
@@ -1063,9 +1041,11 @@ export class Call {
               );
               break;
           }
-          break; // do-while loop
+          break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
           await sleep(retryInterval(this.reconnectAttempts));
+          // bump the strategy to the next level in case of failure
+          // but don't go beyond REJOIN
           this.reconnectStrategy = Math.max(
             strategy + 1,
             WebsocketReconnectStrategy.REJOIN,
@@ -1080,6 +1060,64 @@ export class Call {
         this.state.callingState === CallingState.JOINED
       );
     });
+  };
+
+  /**
+   * Initiates the reconnection flow with the "fast" strategy.
+   * @internal
+   */
+  private reconnectFast = async () => {
+    return this.join(this.joinCallData);
+  };
+
+  /**
+   * Initiates the reconnection flow with the "clean" strategy.
+   * @internal
+   */
+  private reconnectClean = async () => {
+    await this.join(this.joinCallData);
+    await this.restorePublishedTracks();
+    this.restoreSubscribedTracks();
+  };
+
+  /**
+   * Initiates the reconnection flow with the "rejoin" strategy.
+   * @internal
+   */
+  private reconnectRejoin = async () => {
+    await this.join(this.joinCallData);
+    await this.restorePublishedTracks();
+    this.restoreSubscribedTracks();
+  };
+
+  /**
+   * Initiates the reconnection flow with the "migrate" strategy.
+   * @internal
+   */
+  private reconnectMigrate = async () => {
+    const currentSfuClient = this.sfuClient;
+    const currentSubscriber = this.subscriber;
+    const currentPublisher = this.publisher;
+
+    currentSubscriber?.detachEventHandlers();
+    currentPublisher?.detachEventHandlers();
+    currentSfuClient?.enterMigration({
+      onComplete: () => {
+        // close the peer connection instances after the migration is complete
+        currentSubscriber?.close();
+        currentPublisher?.close();
+
+        // and close the previous SFU client, without specifying close code
+        currentSfuClient?.close();
+      },
+    });
+
+    await this.join({
+      ...this.joinCallData,
+      migrating_from: this.sfuClient?.edgeName,
+    });
+    await this.restorePublishedTracks();
+    this.restoreSubscribedTracks();
   };
 
   /**
