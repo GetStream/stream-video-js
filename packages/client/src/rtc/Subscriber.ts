@@ -129,9 +129,30 @@ export class Subscriber {
    */
   close = () => {
     clearTimeout(this.iceRestartTimeout);
+    this.detachEventHandlers();
+    this.pc.close();
+  };
+
+  /**
+   * Detaches the event handlers from the `RTCPeerConnection`.
+   * This is useful when we want to replace the `RTCPeerConnection`
+   * instance with a new one (in case of migration).
+   */
+  detachEventHandlers = () => {
     this.unregisterOnSubscriberOffer();
     this.unregisterOnIceRestart();
-    this.pc.close();
+
+    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    this.pc.removeEventListener('track', this.handleOnTrack);
+    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    this.pc.removeEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    this.pc.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChange,
+    );
   };
 
   /**

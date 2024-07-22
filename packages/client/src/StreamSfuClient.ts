@@ -116,6 +116,7 @@ export class StreamSfuClient {
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;
+  private migrateAwayTimeout?: NodeJS.Timeout;
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
@@ -208,7 +209,7 @@ export class StreamSfuClient {
     });
   }
 
-  close = (code: number, reason: string) => {
+  close = (code?: number, reason?: string) => {
     this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
     if (this.signalWs.readyState !== this.signalWs.CLOSED) {
       this.signalWs.close(code, `js-client: ${reason}`);
@@ -220,6 +221,7 @@ export class StreamSfuClient {
     this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
+    clearTimeout(this.migrateAwayTimeout);
   };
 
   leaveAndClose = async (reason: string) => {
@@ -353,6 +355,25 @@ export class StreamSfuClient {
         }),
       this.logger,
     );
+  };
+
+  enterMigration = (opts: {
+    onComplete: (isSuccessful: boolean) => void;
+    timeout?: number;
+  }) => {
+    const { onComplete, timeout = 2500 } = opts;
+    const unsubscribe = this.dispatcher.on(
+      'participantMigrationComplete',
+      () => {
+        unsubscribe();
+        clearTimeout(this.migrateAwayTimeout);
+        onComplete(true);
+      },
+    );
+    this.migrateAwayTimeout = setTimeout(() => {
+      unsubscribe();
+      onComplete(false);
+    }, timeout);
   };
 
   join = async (

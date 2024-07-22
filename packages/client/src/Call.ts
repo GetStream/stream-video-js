@@ -783,7 +783,7 @@ export class Call {
             dispatcher: this.dispatcher,
             sfuServer: this.credentials.server,
             token: this.credentials.token,
-            // a new session_id is needed for the rejoin strategy.
+            // a new session_id is needed for the REJOIN strategy.
             // we use the previous session_id if available, or generate a new one
             sessionId: performingRejoinReconnect
               ? generateUUIDv4()
@@ -855,6 +855,7 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
+        closePreviousInstances: !performingMigrateReconnect,
       });
     }
 
@@ -902,9 +903,18 @@ export class Call {
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
     clientDetails: ClientDetails;
+    closePreviousInstances: boolean;
   }) => {
-    const { sfuClient, connectionConfig, clientDetails, statsOptions } = opts;
-    this.subscriber?.close();
+    const {
+      sfuClient,
+      connectionConfig,
+      clientDetails,
+      statsOptions,
+      closePreviousInstances,
+    } = opts;
+    if (closePreviousInstances && this.subscriber) {
+      this.subscriber.close();
+    }
     this.subscriber = new Subscriber({
       sfuClient,
       dispatcher: this.dispatcher,
@@ -919,7 +929,9 @@ export class Call {
       const audioSettings = this.state.settings?.audio;
       const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
       const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
-      this.publisher?.close({ stopTracks: false });
+      if (closePreviousInstances && this.publisher) {
+        this.publisher.close({ stopTracks: false });
+      }
       this.publisher = new Publisher({
         sfuClient,
         dispatcher: this.dispatcher,
@@ -963,6 +975,7 @@ export class Call {
       ...data,
       location,
     };
+    // TODO: retry if failed
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
@@ -1016,6 +1029,23 @@ export class Call {
               this.restoreSubscribedTracks();
               break;
             case WebsocketReconnectStrategy.MIGRATE:
+              const currentSfuClient = this.sfuClient;
+              const currentSubscriber = this.subscriber;
+              const currentPublisher = this.publisher;
+
+              currentSubscriber?.detachEventHandlers();
+              currentPublisher?.detachEventHandlers();
+              currentSfuClient?.enterMigration({
+                onComplete: () => {
+                  // close the peer connection instances after the migration is complete
+                  currentSubscriber?.close();
+                  currentPublisher?.close();
+
+                  // and close the previous SFU client, without specifying close code
+                  currentSfuClient?.close();
+                },
+              });
+
               await this.join({
                 ...this.joinCallData,
                 migrating_from: this.sfuClient?.edgeName,

@@ -196,9 +196,32 @@ export class Publisher {
     }
 
     clearTimeout(this.iceRestartTimeout);
-    this.unsubscribeOnIceRestart();
-    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    this.detachEventHandlers();
     this.pc.close();
+  };
+
+  /**
+   * Detaches the event handlers from the `RTCPeerConnection`.
+   * This is useful when we want to replace the `RTCPeerConnection`
+   * instance with a new one (in case of migration).
+   */
+  detachEventHandlers = () => {
+    this.unsubscribeOnIceRestart();
+    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    this.pc.removeEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    this.pc.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChange,
+    );
+    this.pc.removeEventListener(
+      'signalingstatechange',
+      this.onSignalingStateChange,
+    );
   };
 
   /**
