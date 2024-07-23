@@ -1149,7 +1149,7 @@ PODS:
     - React-jsi (= 0.73.4)
     - React-logger (= 0.73.4)
     - React-perflogger (= 0.73.4)
-  - ReactNativeIncallManager (4.1.0):
+  - ReactNativeIncallManager (4.2.0):
     - React-Core
   - RNCallKeep (4.3.11):
     - React
@@ -1206,7 +1206,7 @@ PODS:
   - stream-react-native-webrtc (118.1.0):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (0.8.6):
+  - stream-video-react-native (0.8.8):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.7.4)
@@ -1559,7 +1559,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: ed48e5faac6751e66ee1261c4bd01643b436f112
   React-utils: 6e5ad394416482ae21831050928ae27348f83487
   ReactCommon: 840a955d37b7f3358554d819446bffcf624b2522
-  ReactNativeIncallManager: 2385505fa5dfdbbc78925e3b8d23b30ce0cde40e
+  ReactNativeIncallManager: bfc9c67358cd524882a7c4116dcb311ac2293d4b
   RNCallKeep: 7bfa8f502067be6650eeca5ec0ebbf795314c5c3
   RNCClipboard: 3f0451a8100393908bea5c5c5b16f96d45f30bfc
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
@@ -1577,7 +1577,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-io-video-filters-react-native: 17b77e87e0d6a040ff636368e0ab204a9115a52f
   stream-react-native-webrtc: 4ccf61161f77c57b9aa45f78cb7f69b7d91f3e9f
-  stream-video-react-native: 9dbad7e626cb6a3ad5e44a416a6c5e1b286ff41e
+  stream-video-react-native: 9deac7fd7a9e0a7c9d288a68dffdf83365745d1b
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 

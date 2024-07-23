@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.15...@stream-io/video-react-sdk-1.2.16) (2024-07-23)
+
+
+### Bug Fixes
+
+* align audio output button tooltip with the rest of media toggles ([#1445](https://github.com/GetStream/stream-video-js/issues/1445)) ([dcee098](https://github.com/GetStream/stream-video-js/commit/dcee098b219aa570c0ba58e9dc63dde1690e8580))
+
+### [1.2.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.14...@stream-io/video-react-sdk-1.2.15) (2024-07-15)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `1.0.6`
+### [1.2.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.13...@stream-io/video-react-sdk-1.2.14) (2024-07-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.49`
 ### [1.2.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.12...@stream-io/video-react-sdk-1.2.13) (2024-07-02)
 
 ### Dependency Updates

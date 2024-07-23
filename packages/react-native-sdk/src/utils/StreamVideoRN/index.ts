@@ -1,4 +1,3 @@
-import { AndroidImportance } from '@notifee/react-native';
 import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
@@ -10,13 +9,6 @@ import newNotificationCallbacks, {
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
     android: {
-      channel: {
-        id: 'stream_call_foreground_service',
-        name: 'Notification Service to keep call alive',
-        lights: false,
-        vibration: false,
-        importance: AndroidImportance.DEFAULT,
-      },
       notificationTexts: {
         title: 'Call in progress',
         body: 'Tap to return to the call',

@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.1...@stream-io/video-react-native-sdk-0.9.2) (2024-07-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.5`
+* `@stream-io/video-react-bindings` updated to version `0.4.49`
+### [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.0...@stream-io/video-react-native-sdk-0.9.1) (2024-07-05)
+
+
+### Bug Fixes
+
+* **react-native:** ringing call content component did not handle reconnection state ([#1435](https://github.com/GetStream/stream-video-js/issues/1435)) ([a4a50b7](https://github.com/GetStream/stream-video-js/commit/a4a50b74e525324618681b273df998c4478068c6))
+
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.9...@stream-io/video-react-native-sdk-0.9.0) (2024-07-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** support targetSdk android 14  (#1432)
+
+### Features
+
+* **react-native:** support targetSdk android 14  ([#1432](https://github.com/GetStream/stream-video-js/issues/1432)) ([2e98fbe](https://github.com/GetStream/stream-video-js/commit/2e98fbe5000161088030d553fc38cd5243327dd1))
+
 ### [0.8.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.8.8...@stream-io/video-react-native-sdk-0.8.9) (2024-07-02)
 
 ### Dependency Updates

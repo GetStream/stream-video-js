@@ -15,7 +15,14 @@ import {
   OutgoingCall as DefaultOutgoingCall,
   OutgoingCallProps,
 } from './OutgoingCall';
-import { JoiningCallIndicator as DefaultJoiningCallIndicator } from './JoiningCallIndicator';
+import {
+  CallLeftIndicator as DefaultCallLeftIndicator,
+  CallLeftIndicatorProps,
+} from './CallLeftIndicator';
+import {
+  CallPreparingIndicator as DefaultCallPreparingIndicator,
+  CallPreparingIndicatorProps,
+} from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
 
 /**
@@ -39,23 +46,34 @@ export type RingingCallContentProps = {
    */
   CallTopView?: React.ComponentType<CallTopViewProps> | null;
   /**
-   * Prop to customize the JoiningCallIndicator component in the RingingCallContent. It is shown when the call is accepted and is waiting to be joined.
+   * Prop to override the component shown when the call is left.
    */
-  JoiningCallIndicator?: React.ComponentType | null;
+  CallLeftIndicator?: React.ComponentType<CallLeftIndicatorProps> | null;
+  /**
+   * Prop to override the component shown when the call is in idle state.
+   */
+  CallPreparingIndicator?: React.ComponentType<CallPreparingIndicatorProps> | null;
   /**
    * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;
+  /**
+   * Callback to handle the back icon press event
+   * in CallLeftIndicator and CallPreparingIndicator components.
+   */
+  onBackPress?: () => void;
 };
 
 const RingingCallPanel = ({
   IncomingCall = DefaultIncomingCall,
   OutgoingCall = DefaultOutgoingCall,
   CallContent = DefaultCallContent,
-  JoiningCallIndicator = DefaultJoiningCallIndicator,
   CallTopView,
-  landscape = false,
+  CallLeftIndicator = DefaultCallLeftIndicator,
+  CallPreparingIndicator = DefaultCallPreparingIndicator,
+  landscape,
+  onBackPress,
 }: RingingCallContentProps) => {
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
@@ -72,16 +90,22 @@ const RingingCallPanel = ({
         : IncomingCall && (
             <IncomingCall CallTopView={CallTopView} landscape={landscape} />
           );
-    case CallingState.JOINED:
+    case CallingState.LEFT:
+      return (
+        CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />
+      );
+    case CallingState.IDLE:
+      return (
+        CallPreparingIndicator && (
+          <CallPreparingIndicator onBackPress={onBackPress} />
+        )
+      );
+    default:
       return (
         CallContent && (
           <CallContent CallTopView={CallTopView} landscape={landscape} />
         )
       );
-    case CallingState.JOINING:
-      return JoiningCallIndicator && <JoiningCallIndicator />;
-    default:
-      return null;
   }
 };
 
