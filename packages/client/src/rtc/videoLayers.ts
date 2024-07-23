@@ -39,7 +39,10 @@ export const findOptimalVideoLayers = (
   const maxBitrate = getComputedMaxBitrate(targetResolution, w, h);
   let downscaleFactor = 1;
   const { preferredCodec, scalabilityMode } = options;
-  ((preferredCodec === 'vp9' || preferredCodec === 'av1') ? ['q'] : ['f', 'h', 'q']).forEach((rid) => {
+  (preferredCodec === 'vp9' || preferredCodec === 'av1'
+    ? ['q']
+    : ['f', 'h', 'q']
+  ).forEach((rid) => {
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
     // when deciding which layer to disable when CPU or bandwidth is constrained.
     // Encodings should be ordered in increasing spatial resolution order.
@@ -52,7 +55,7 @@ export const findOptimalVideoLayers = (
         Math.round(maxBitrate / downscaleFactor) || defaultBitratePerRid[rid],
       scaleResolutionDownBy: downscaleFactor,
       maxFramerate: 30,
-      ...((preferredCodec === 'vp9' || preferredCodec === 'av1')
+      ...(preferredCodec === 'vp9' || preferredCodec === 'av1'
         ? { scalabilityMode: scalabilityMode || 'L3T3' }
         : null),
     });
