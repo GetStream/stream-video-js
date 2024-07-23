@@ -367,7 +367,7 @@ export class StreamSfuClient {
   }) => {
     this.isClosing = true;
 
-    const { onComplete, timeout = 2500 } = opts;
+    const { onComplete, timeout = 10000 } = opts;
     const unsubscribe = this.dispatcher.on(
       'participantMigrationComplete',
       () => {
