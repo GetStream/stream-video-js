@@ -11,6 +11,8 @@ export type LocalDevicePreferences = {
   [type in 'mic' | 'camera' | 'speaker']: LocalDevicePreference;
 };
 
+const defaultDevice = 'default';
+
 /**
  * This hook will persist the device settings to local storage.
  *
@@ -27,7 +29,6 @@ const usePersistDevicePreferences = (key: string) => {
     if (!call) return;
     if (call.state.callingState === CallingState.LEFT) return;
     try {
-      const defaultDevice = 'default';
       const preferences: LocalDevicePreferences = {
         mic: {
           selectedDeviceId: mic.selectedDevice || defaultDevice,
@@ -70,7 +71,7 @@ const useApplyDevicePreferences = (key: string) => {
 
     const apply = async () => {
       const initMic = async (setting: LocalDevicePreference) => {
-        await call.microphone.select(setting.selectedDeviceId);
+        await call.microphone.select(parseDeviceId(setting.selectedDeviceId));
         if (setting.muted) {
           await call.microphone.disable();
         } else {
@@ -79,7 +80,7 @@ const useApplyDevicePreferences = (key: string) => {
       };
 
       const initCamera = async (setting: LocalDevicePreference) => {
-        await call.camera.select(setting.selectedDeviceId);
+        await call.camera.select(parseDeviceId(setting.selectedDeviceId));
         if (setting.muted) {
           await call.camera.disable();
         } else {
@@ -88,7 +89,7 @@ const useApplyDevicePreferences = (key: string) => {
       };
 
       const initSpeaker = (setting: LocalDevicePreference) => {
-        call.speaker.select(setting.selectedDeviceId);
+        call.speaker.select(parseDeviceId(setting.selectedDeviceId) ?? '');
       };
 
       let preferences: LocalDevicePreferences | null = null;
@@ -123,3 +124,6 @@ export const usePersistedDevicePreferences = (
   useApplyDevicePreferences(key);
   usePersistDevicePreferences(key);
 };
+
+const parseDeviceId = (deviceId: string) =>
+  deviceId !== defaultDevice ? deviceId : undefined;
