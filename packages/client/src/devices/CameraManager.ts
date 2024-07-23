@@ -5,7 +5,7 @@ import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 
-type PreferredCodec = 'vp8' | 'vp9' | 'h264' | string;
+type PreferredCodec = 'vp8' | 'vp9' | 'av1' | 'h264' | string;
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
