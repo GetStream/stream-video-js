@@ -113,6 +113,8 @@ export class StreamSfuClient {
    */
   signalReady: Promise<WebSocket>;
 
+  isClosing = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;
@@ -210,6 +212,8 @@ export class StreamSfuClient {
   }
 
   close = (code?: number, reason?: string) => {
+    this.isClosing = true;
+
     this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
     if (this.signalWs.readyState !== this.signalWs.CLOSED) {
       this.signalWs.close(code, `js-client: ${reason}`);
@@ -361,6 +365,8 @@ export class StreamSfuClient {
     onComplete: (isSuccessful: boolean) => void;
     timeout?: number;
   }) => {
+    this.isClosing = true;
+
     const { onComplete, timeout = 2500 } = opts;
     const unsubscribe = this.dispatcher.on(
       'participantMigrationComplete',

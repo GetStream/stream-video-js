@@ -5,6 +5,7 @@ import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
+import { createSubscription } from '../store/rxUtils';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 export type SubscriberOpts = {
@@ -31,6 +32,7 @@ export class Subscriber {
 
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
+  private unregisterIceTrickleBuffer?: () => void;
   // FIXME OL maybe remove this
   private readonly onUnrecoverableError?: () => void;
 
@@ -141,6 +143,7 @@ export class Subscriber {
   detachEventHandlers = () => {
     this.unregisterOnSubscriberOffer();
     this.unregisterOnIceRestart();
+    this.unregisterIceTrickleBuffer?.();
 
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('track', this.handleOnTrack);
@@ -294,6 +297,9 @@ export class Subscriber {
       e.track,
     );
     if (!participantToUpdate) {
+      // TODO:
+      //  create a stash of tracks that are not yet associated with a participant
+      //  and assign them when the participant eventually joins
       logger(
         'warn',
         `[onTrack]: Received track for unknown participant: ${trackId}`,
@@ -369,7 +375,10 @@ export class Subscriber {
       sdp: subscriberOffer.sdp,
     });
 
-    this.sfuClient.iceTrickleBuffer.subscriberCandidates.subscribe(
+    // unsubscribe from the previous negotiation, if available
+    this.unregisterIceTrickleBuffer?.();
+    this.unregisterIceTrickleBuffer = createSubscription(
+      this.sfuClient.iceTrickleBuffer.subscriberCandidates,
       async (t) => {
         try {
           const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);

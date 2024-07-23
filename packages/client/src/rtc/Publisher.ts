@@ -16,6 +16,7 @@ import {
 import { getPreferredCodecs } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
+import { createSubscription } from '../store/rxUtils';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
 import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
@@ -96,6 +97,7 @@ export class Publisher {
   private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
+  private unregisterIceTrickleBuffer?: () => void;
   // FIXME OL: maybe remove this
   private readonly onUnrecoverableError?: () => void;
 
@@ -207,6 +209,8 @@ export class Publisher {
    */
   detachEventHandlers = () => {
     this.unsubscribeOnIceRestart();
+    this.unregisterIceTrickleBuffer?.();
+
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
     this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
@@ -695,14 +699,19 @@ export class Publisher {
 
     this.isIceRestarting = false;
 
-    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(async (t) => {
-      try {
-        const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);
-        await this.pc.addIceCandidate(candidate);
-      } catch (e) {
-        logger('warn', `Can't add ICE candidate`, e, t);
-      }
-    });
+    // unsubscribe from the previous negotiation, if available
+    this.unregisterIceTrickleBuffer?.();
+    this.unregisterIceTrickleBuffer = createSubscription(
+      this.sfuClient.iceTrickleBuffer.publisherCandidates,
+      async (t) => {
+        try {
+          const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);
+          await this.pc.addIceCandidate(candidate);
+        } catch (e) {
+          logger('warn', `Can't add ICE candidate`, e, t);
+        }
+      },
+    );
   };
 
   private mungeCodecs = (sdp?: string) => {

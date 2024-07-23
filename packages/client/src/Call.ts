@@ -788,8 +788,8 @@ export class Call {
             sessionId: performingRejoinReconnect
               ? generateUUIDv4()
               : previousSessionId || generateUUIDv4(),
-            onSignalClose: (e) => {
-              if (e.wasClean) return;
+            onSignalClose: () => {
+              if (sfuClient.isClosing) return;
               let strategy = WebsocketReconnectStrategy.FAST;
               if (
                 this.state.callingState === CallingState.OFFLINE &&
@@ -859,7 +859,6 @@ export class Call {
       });
     }
 
-    this.reconnectAttempts = 0; // reset the reconnect attempts counter
     this.state.setCallingState(CallingState.JOINED);
 
     if (performingRejoinReconnect) {
@@ -1046,7 +1045,7 @@ export class Call {
           await sleep(retryInterval(this.reconnectAttempts));
           // bump the strategy to the next level in case of failure
           // but don't go beyond REJOIN
-          this.reconnectStrategy = Math.max(
+          this.reconnectStrategy = Math.min(
             strategy + 1,
             WebsocketReconnectStrategy.REJOIN,
           );
@@ -1105,7 +1104,7 @@ export class Call {
       onComplete: () => {
         // close the peer connection instances after the migration is complete
         currentSubscriber?.close();
-        currentPublisher?.close();
+        currentPublisher?.close({ stopTracks: false });
 
         // and close the previous SFU client, without specifying close code
         currentSfuClient?.close();
