@@ -2,10 +2,12 @@ import { CompositeButton, IconButtonWithMenuProps } from '../Button';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../Icon';
 import { DeviceSelectorAudioOutput } from '../DeviceSettings';
+import { WithTooltip } from '../Tooltip';
+import { useState } from 'react';
 
 export type ToggleAudioOutputButtonProps = Pick<
   IconButtonWithMenuProps,
-  'caption' | 'Menu' | 'menuPlacement'
+  'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
 >;
 
 export const ToggleAudioOutputButton = (
@@ -16,17 +18,27 @@ export const ToggleAudioOutputButton = (
     caption,
     Menu = DeviceSelectorAudioOutput,
     menuPlacement = 'top',
+    onMenuToggle,
   } = props;
+  const [tooltipDisabled, setTooltipDisabled] = useState(false);
 
   return (
-    <CompositeButton
-      Menu={Menu}
-      menuPlacement={menuPlacement}
-      caption={caption}
+    <WithTooltip
       title={caption || t('Speakers')}
-      data-testid="audio-output-button"
+      tooltipDisabled={tooltipDisabled}
     >
-      <Icon icon="speaker" />
-    </CompositeButton>
+      <CompositeButton
+        Menu={Menu}
+        menuPlacement={menuPlacement}
+        caption={caption}
+        data-testid="audio-output-button"
+        onMenuToggle={(shown) => {
+          setTooltipDisabled(shown);
+          onMenuToggle?.(shown);
+        }}
+      >
+        <Icon icon="speaker" />
+      </CompositeButton>
+    </WithTooltip>
   );
 };
