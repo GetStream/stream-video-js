@@ -1,8 +1,9 @@
+import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallingState, CallState } from '../CallState';
-import { ConnectionQuality } from '../../gen/video/sfu/models/models';
+import { TrackType } from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
   conditional,
@@ -463,40 +464,17 @@ describe('CallState', () => {
     describe('Call Permission Events', () => {
       it('handles call.permissions_updated', () => {
         const state = new CallState();
-        state.setParticipants([
-          {
-            userId: 'test',
-            name: 'test',
-            sessionId: 'test',
-            isDominantSpeaker: false,
-            isSpeaking: false,
-            audioLevel: 0,
-            image: '',
-            publishedTracks: [],
-            connectionQuality: ConnectionQuality.EXCELLENT,
-            roles: [],
-            trackLookupPrefix: '',
-            isLocalParticipant: true,
-          },
-        ]);
+        // @ts-expect-error incomplete data
+        state.setParticipants([{ userId: 'test', isLocalParticipant: true }]);
 
         state.updateFromEvent({
           type: 'call.permissions_updated',
-          created_at: '',
-          call_cid: 'development:12345',
           own_capabilities: [
             OwnCapability.SEND_AUDIO,
             OwnCapability.SEND_VIDEO,
           ],
-          user: {
-            id: 'test',
-            created_at: '',
-            role: '',
-            updated_at: '',
-            custom: {},
-            teams: [],
-            language: 'en',
-          },
+          // @ts-expect-error incomplete data
+          user: { id: 'test' },
         });
 
         expect(state.ownCapabilities).toEqual([
@@ -509,15 +487,8 @@ describe('CallState', () => {
           created_at: '',
           call_cid: 'development:12345',
           own_capabilities: [OwnCapability.SEND_VIDEO],
-          user: {
-            id: 'test',
-            created_at: '',
-            role: '',
-            updated_at: '',
-            custom: {},
-            teams: [],
-            language: 'en',
-          },
+          // @ts-expect-error incomplete data
+          user: { id: 'test' },
         });
         expect(state.ownCapabilities).toEqual([OwnCapability.SEND_VIDEO]);
       });
@@ -869,6 +840,30 @@ describe('CallState', () => {
           },
         });
       });
+    });
+  });
+
+  describe('orphaned tracks', () => {
+    it('registers orphaned tracks', () => {
+      const state = new CallState();
+      state.registerOrphanedTrack({
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.AUDIO,
+      });
+      expect(state['orphanedTracks'].length).toBe(1);
+    });
+
+    it('removes orphaned tracks once assigned', () => {
+      const state = new CallState();
+      state.registerOrphanedTrack({
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.VIDEO,
+      });
+      const orphans = state.takeOrphanedTracks('123');
+      expect(orphans.length).toBe(1);
+      expect(state['orphanedTracks'].length).toBe(0);
     });
   });
 });

@@ -7,6 +7,7 @@ import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -210,29 +211,18 @@ export class Subscriber {
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
-    const [trackId, trackType] = primaryStream.id.split(':');
+    const [trackId, rawTrackType] = primaryStream.id.split(':');
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
     logger(
       'debug',
-      `[onTrack]: Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
+      `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
       e.track.id,
       e.track,
     );
-    if (!participantToUpdate) {
-      // TODO:
-      //  create a stash of tracks that are not yet associated with a participant
-      //  and assign them when the participant eventually joins
-      logger(
-        'warn',
-        `[onTrack]: Received track for unknown participant: ${trackId}`,
-        e,
-      );
-      return;
-    }
 
-    const trackDebugInfo = `${participantToUpdate.userId} ${trackType}:${trackId}`;
+    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
     e.track.addEventListener('mute', () => {
       logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
     });
@@ -245,17 +235,28 @@ export class Subscriber {
       logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
     });
 
-    const streamKindProp = (
-      {
-        TRACK_TYPE_AUDIO: 'audioStream',
-        TRACK_TYPE_VIDEO: 'videoStream',
-        TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
-        TRACK_TYPE_SCREEN_SHARE_AUDIO: 'screenShareAudioStream',
-      } as const
-    )[trackType];
+    const trackType = toTrackType(rawTrackType);
+    if (!trackType) {
+      return logger('error', `Unknown track type: ${rawTrackType}`);
+    }
 
+    if (!participantToUpdate) {
+      logger(
+        'warn',
+        `[onTrack]: Received track for unknown participant: ${trackId}`,
+        e,
+      );
+      this.state.registerOrphanedTrack({
+        trackLookupPrefix: trackId,
+        track: primaryStream,
+        trackType,
+      });
+      return;
+    }
+
+    const streamKindProp = trackTypeToParticipantStreamKey(trackType);
     if (!streamKindProp) {
-      logger('error', `Unknown track type: ${trackType}`);
+      logger('error', `Unknown track type: ${rawTrackType}`);
       return;
     }
     const previousStream = participantToUpdate[streamKindProp];

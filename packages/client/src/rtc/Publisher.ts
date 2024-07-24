@@ -428,6 +428,7 @@ export class Publisher {
 
     const audioOrVideoOrScreenShareStream =
       trackTypeToParticipantStreamKey(trackType);
+    if (!audioOrVideoOrScreenShareStream) return;
     if (isMuted) {
       this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
         publishedTracks: p.publishedTracks.filter((t) => t !== trackType),

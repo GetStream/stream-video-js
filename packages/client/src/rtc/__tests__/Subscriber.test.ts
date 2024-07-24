@@ -6,7 +6,7 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
-import { PeerType } from '../../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -134,6 +134,54 @@ describe('Subscriber', () => {
 
       vi.runAllTimers();
       expect(subscriber.restartIce).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('OnTrack', () => {
+    it('should add unknown tracks to the to the call state', () => {
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      // @ts-ignore - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const registerOrphanedTrackSpy = vi.spyOn(state, 'registerOrphanedTrack');
+      const updateParticipantSpy = vi.spyOn(state, 'updateParticipant');
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack });
+
+      expect(registerOrphanedTrackSpy).toHaveBeenCalledWith({
+        trackLookupPrefix: '123',
+        track: mediaStream,
+        trackType: TrackType.VIDEO,
+      });
+      expect(updateParticipantSpy).not.toHaveBeenCalled();
+    });
+
+    it('should assign known tracks to the participant', () => {
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      // @ts-ignore - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const registerOrphanedTrackSpy = vi.spyOn(state, 'registerOrphanedTrack');
+      const updateParticipantSpy = vi.spyOn(state, 'updateParticipant');
+
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        trackLookupPrefix: '123',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack });
+
+      expect(registerOrphanedTrackSpy).not.toHaveBeenCalled();
+      expect(updateParticipantSpy).toHaveBeenCalledWith('session-id', {
+        videoStream: mediaStream,
+      });
     });
   });
 });

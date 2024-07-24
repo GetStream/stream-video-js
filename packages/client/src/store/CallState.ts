@@ -38,7 +38,11 @@ import {
   WSEvent,
 } from '../gen/coordinator';
 import { Timestamp } from '../gen/google/protobuf/timestamp';
-import { CallState as SfuCallState, Pin } from '../gen/video/sfu/models/models';
+import {
+  CallState as SfuCallState,
+  Pin,
+  TrackType,
+} from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
 import { hasScreenShare } from '../helpers/participantUtils';
@@ -107,6 +111,12 @@ const defaultEgress: EgressResponse = {
   rtmps: [],
 };
 
+type OrphanedTrack = {
+  trackLookupPrefix: string;
+  trackType: TrackType;
+  track: MediaStream;
+};
+
 /**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
@@ -156,6 +166,12 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+
+  // These are tracks that were delivered to the Subscriber's onTrack event
+  // that we couldn't associate with a participant yet.
+  // This happens when the participantJoined event hasn't been received yet.
+  // We keep these tracks around until we can associate them with a participant.
+  private orphanedTracks: OrphanedTrack[] = [];
 
   // Derived state
 
@@ -980,6 +996,37 @@ export class CallState {
         return participant;
       }),
     );
+  };
+
+  /**
+   * Adds an orphaned track to the call state.
+   *
+   * @internal
+   *
+   * @param orphanedTrack the orphaned track to add.
+   */
+  registerOrphanedTrack = (orphanedTrack: OrphanedTrack) => {
+    this.orphanedTracks.push(orphanedTrack);
+  };
+
+  /**
+   * Takes all orphaned tracks with the given track lookup prefix.
+   * All orphaned tracks with the given track lookup prefix are removed from the call state.
+   *
+   * @internal
+   *
+   * @param trackLookupPrefix the track lookup prefix to match the orphaned tracks by.
+   */
+  takeOrphanedTracks = (trackLookupPrefix: string): OrphanedTrack[] => {
+    const orphans = this.orphanedTracks.filter(
+      (orphan) => orphan.trackLookupPrefix === trackLookupPrefix,
+    );
+    if (orphans.length > 0) {
+      this.orphanedTracks = this.orphanedTracks.filter(
+        (orphan) => orphan.trackLookupPrefix !== trackLookupPrefix,
+      );
+    }
+    return orphans;
   };
 
   /**
