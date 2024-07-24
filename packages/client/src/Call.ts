@@ -227,6 +227,7 @@ export class Call {
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
+
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
@@ -236,20 +237,11 @@ export class Call {
   // maintain the order of publishing tracks to restore them after a reconnection
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
-
-  /**
-   * The data used to join the call.
-   *
-   * @private
-   */
   private joinCallData?: JoinCallData;
-
-  /**
-   * The credentials used to join the call.
-   *
-   * @private
-   */
   private credentials?: Credentials;
+
+  private initialized = false;
+  private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -302,34 +294,46 @@ export class Call {
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
 
-    this.leaveCallHooks.add(
-      this.on('all', (event) => {
-        // update state with the latest event data
-        this.state.updateFromEvent(event);
-      }),
-    );
-
-    this.leaveCallHooks.add(registerEventHandlers(this, this.dispatcher));
-    this.registerEffects();
-    this.registerReconnectHandlers();
-
-    this.leaveCallHooks.add(
-      createSubscription(
-        this.trackSubscriptionsSubject.pipe(
-          debounce((v) => timer(v.type)),
-          map((v) => v.data),
-        ),
-        (subscriptions) =>
-          this.sfuClient?.updateSubscriptions(subscriptions).catch((err) => {
-            this.logger('debug', `Failed to update track subscriptions`, err);
-          }),
-      ),
-    );
-
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
     this.speaker = new SpeakerManager(this);
     this.screenShare = new ScreenShareManager(this);
+  }
+
+  private async setup() {
+    await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
+      if (this.initialized) return;
+
+      this.leaveCallHooks.add(
+        this.on('all', (event) => {
+          // update state with the latest event data
+          this.state.updateFromEvent(event);
+        }),
+      );
+
+      this.leaveCallHooks.add(registerEventHandlers(this, this.dispatcher);
+      this.registerEffects();
+      this.registerReconnectHandlers();
+
+      this.leaveCallHooks.add(
+        createSubscription(
+          this.trackSubscriptionsSubject.pipe(
+            debounce((v) => timer(v.type)),
+            map((v) => v.data),
+          ),
+          (subscriptions) =>
+            this.sfuClient?.updateSubscriptions(subscriptions).catch((err) => {
+              this.logger('debug', `Failed to update track subscriptions`, err);
+            }),
+        ),
+      );
+
+      if (this.state.callingState === CallingState.LEFT) {
+        this.state.setCallingState(CallingState.IDLE);
+      }
+
+      this.initialized = true;
+    });
   }
 
   private registerEffects() {
@@ -510,72 +514,72 @@ export class Call {
     reject = false,
     reason = 'user is leaving the call',
   }: CallLeaveOptions = {}) => {
-    const callingState = this.state.callingState;
-    if (callingState === CallingState.LEFT) {
-      throw new Error('Cannot leave call that has already been left.');
-    }
-
-    if (callingState === CallingState.JOINING) {
-      await this.waitUntilCallJoined();
-    }
-
-    if (this.ringing) {
-      // I'm the one who started the call, so I should cancel it.
-      const hasOtherParticipants = this.state.remoteParticipants.length > 0;
-      if (
-        this.isCreatedByMe &&
-        !hasOtherParticipants &&
-        callingState === CallingState.RINGING
-      ) {
-        // Signals other users that I have cancelled my call to them
-        // before they accepted it.
-        await this.reject();
-      } else if (reject && callingState === CallingState.RINGING) {
-        // Signals other users that I have rejected the incoming call.
-        await this.reject();
+    await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
+      const callingState = this.state.callingState;
+      if (callingState === CallingState.LEFT) {
+        throw new Error('Cannot leave call that has already been left.');
       }
-    }
 
-    this.statsReporter?.stop();
-    this.statsReporter = undefined;
+      if (callingState === CallingState.JOINING) {
+        await this.waitUntilCallJoined();
+      }
 
-    this.sfuStatsReporter?.stop();
-    this.sfuStatsReporter = undefined;
+      if (this.ringing) {
+        // I'm the one who started the call, so I should cancel it.
+        const hasOtherParticipants = this.state.remoteParticipants.length > 0;
+        if (
+          this.isCreatedByMe &&
+          !hasOtherParticipants &&
+          callingState === CallingState.RINGING
+        ) {
+          // Signals other users that I have cancelled my call to them
+          // before they accepted it.
+          await this.reject();
+        } else if (reject && callingState === CallingState.RINGING) {
+          // Signals other users that I have rejected the incoming call.
+          await this.reject();
+        }
+      }
 
-    this.subscriber?.close();
-    this.subscriber = undefined;
+      this.statsReporter?.stop();
+      this.statsReporter = undefined;
 
-    this.publisher?.close();
-    this.publisher = undefined;
+      this.sfuStatsReporter?.stop();
+      this.sfuStatsReporter = undefined;
 
-    this.sfuClient?.leaveAndClose(reason);
-    this.sfuClient = undefined;
+      this.subscriber?.close();
+      this.subscriber = undefined;
 
-    this.dispatcher.offAll();
+      this.publisher?.close();
+      this.publisher = undefined;
 
-    this.state.setCallingState(CallingState.LEFT);
+      await this.sfuClient?.leaveAndClose(reason);
+      this.sfuClient = undefined;
 
-    // Call all leave call hooks, e.g. to clean up global event handlers
-    this.leaveCallHooks.forEach((hook) => hook());
+      this.state.setCallingState(CallingState.LEFT);
 
-    this.clientStore.unregisterCall(this);
+      // Call all leave call hooks, e.g. to clean up global event handlers
+      this.leaveCallHooks.forEach((hook) => hook());
+      this.initialized = false;
+      this.clientStore.unregisterCall(this);
 
-    this.camera.dispose();
-    this.microphone.dispose();
-    this.screenShare.dispose();
-    this.speaker.dispose();
+      this.camera.dispose();
+      this.microphone.dispose();
+      this.screenShare.dispose();
+      this.speaker.dispose();
 
-    const stopOnLeavePromises: Promise<void>[] = [];
-    if (this.camera.stopOnLeave) {
-      stopOnLeavePromises.push(this.camera.disable(true));
-    }
-    if (this.microphone.stopOnLeave) {
-      stopOnLeavePromises.push(this.microphone.disable(true));
-    }
-    if (this.screenShare.stopOnLeave) {
-      stopOnLeavePromises.push(this.screenShare.disable(true));
-    }
-    await Promise.all(stopOnLeavePromises);
+      const stopOnLeavePromises: Promise<void>[] = [];
+      if (this.camera.stopOnLeave) {
+        stopOnLeavePromises.push(this.camera.disable(true));
+      }
+      if (this.microphone.stopOnLeave) {
+        stopOnLeavePromises.push(this.microphone.disable(true));
+      }
+      if (this.screenShare.stopOnLeave) {
+        stopOnLeavePromises.push(this.screenShare.disable(true));
+      }
+      await Promise.all(stopOnLeavePromises);
+    });
   };
 
   /**
@@ -611,6 +615,7 @@ export class Call {
     notify?: boolean;
     members_limit?: number;
   }) => {
+    await this.setup();
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
       params,
@@ -640,6 +645,7 @@ export class Call {
    * @param data the data to create the call with.
    */
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    await this.setup();
     const response = await this.streamClient.post<
       GetOrCreateCallResponse,
       GetOrCreateCallRequest
@@ -723,6 +729,7 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallData): Promise<void> => {
+    await this.setup();
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
