@@ -78,12 +78,13 @@ export class Subscriber {
 
     this.pc = this.createPeerConnection(connectionConfig);
 
+    const subscriberOfferConcurrencyTag = Symbol('subscriberOffer');
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
       (subscriberOffer) => {
         // TODO: use queue per peer connection, otherwise
         //  it could happen we consume an offer for a different peer connection
-        withoutConcurrency(Symbol.for('subscriberOffer'), () => {
+        withoutConcurrency(subscriberOfferConcurrencyTag, () => {
           return this.negotiate(subscriberOffer);
         }).catch((err) => {
           logger('warn', `Negotiation failed.`, err);
@@ -91,8 +92,9 @@ export class Subscriber {
       },
     );
 
+    const iceRestartConcurrencyTag = Symbol('iceRestart');
     this.unregisterOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
-      withoutConcurrency(Symbol.for('iceRestart'), async () => {
+      withoutConcurrency(iceRestartConcurrencyTag, async () => {
         if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
         await this.restartIce();
       }).catch((err) => {

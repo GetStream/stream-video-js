@@ -227,6 +227,7 @@ export class Call {
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
+  private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
   private fastReconnectDeadlineSeconds: number = 0;
@@ -999,7 +1000,7 @@ export class Call {
    * @param strategy the reconnection strategy to use.
    */
   private reconnect = async (strategy: WebsocketReconnectStrategy) => {
-    return withoutConcurrency(Symbol.for('reconnect'), async () => {
+    return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
       this.logger(
         'info',
         `[Reconnect] Reconnecting with strategy`,
@@ -1010,11 +1011,6 @@ export class Call {
       await this.networkAvailableTask?.promise;
 
       this.reconnectStrategy = strategy;
-      this.state.setCallingState(
-        this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
-          ? CallingState.MIGRATING
-          : CallingState.RECONNECTING,
-      );
       do {
         try {
           switch (this.reconnectStrategy) {
@@ -1066,6 +1062,7 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
+    this.state.setCallingState(CallingState.RECONNECTING);
     return this.join(this.joinCallData);
   };
 
@@ -1074,6 +1071,7 @@ export class Call {
    * @internal
    */
   private reconnectClean = async () => {
+    this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
@@ -1084,6 +1082,7 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
+    this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
@@ -1094,6 +1093,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
+    this.state.setCallingState(CallingState.MIGRATING);
     const currentSfuClient = this.sfuClient;
     const currentSubscriber = this.subscriber;
     const currentPublisher = this.publisher;
