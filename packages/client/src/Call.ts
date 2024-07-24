@@ -311,7 +311,7 @@ export class Call {
         }),
       );
 
-      this.leaveCallHooks.add(registerEventHandlers(this, this.dispatcher);
+      this.leaveCallHooks.add(registerEventHandlers(this, this.dispatcher));
       this.registerEffects();
       this.registerReconnectHandlers();
 
