@@ -604,29 +604,6 @@ export class Publisher {
   };
 
   /**
-   * Performs a migration of this publisher instance to a new SFU.
-   *
-   * Initiates a new `iceRestart` offer/answer exchange with the new SFU.
-   *
-   * @param sfuClient the new SFU client to migrate to.
-   * @param connectionConfig the new connection configuration to use.
-   */
-  migrateTo = async (
-    sfuClient: StreamSfuClient,
-    connectionConfig?: RTCConfiguration,
-  ) => {
-    this.sfuClient = sfuClient;
-    this.pc.setConfiguration(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
-
-    const shouldRestartIce = this.pc.iceConnectionState === 'connected';
-    if (shouldRestartIce) {
-      // negotiate only if there are tracks to publish
-      await this.negotiate({ iceRestart: true });
-    }
-  };
-
-  /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
