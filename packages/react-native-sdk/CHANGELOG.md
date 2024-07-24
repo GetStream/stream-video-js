@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.9.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.2...@stream-io/video-react-native-sdk-0.9.3) (2024-07-24)
+
+
+### Bug Fixes
+
+* incoming call notifications not removed on call.leave on android 8 and above ([4000f8a](https://github.com/GetStream/stream-video-js/commit/4000f8a06299fc056b135992eba5d745c9202289))
+
 ### [0.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.1...@stream-io/video-react-native-sdk-0.9.2) (2024-07-12)
 
 ### Dependency Updates

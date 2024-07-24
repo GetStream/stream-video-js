@@ -74,7 +74,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   const callingState = useCallCallingState();
 
   useEffect((): (() => void) | undefined => {
-    if (!isAndroid7OrBelow || !activeCallCid) {
+    if (Platform.OS === 'ios' || !activeCallCid) {
       return;
     }
 
@@ -90,7 +90,9 @@ export const useAndroidKeepCallAliveEffect = () => {
           );
           if (activeCallNotification) {
             // this means that we have a incoming call notification shown as foreground service and we must stop it
-            notifee.stopForegroundService();
+            if (isAndroid7OrBelow) {
+              notifee.stopForegroundService();
+            }
             notifee.cancelDisplayedNotification(activeCallCid);
           }
           // request for notification permission and then start the foreground service
