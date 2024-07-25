@@ -729,12 +729,6 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    if (callingState === CallingState.LEFT) {
-      throw new Error(
-        'Illegal State: Cannot join already left call. Create a new Call instance to join a call.',
-      );
-    }
-
     const isMigrating = callingState === CallingState.MIGRATING;
     const isReconnecting = callingState === CallingState.RECONNECTING;
     this.state.setCallingState(CallingState.JOINING);
