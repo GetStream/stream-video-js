@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.5...@stream-io/video-client-1.4.6) (2024-07-25)
+
+
+### Bug Fixes
+
+* allow joining left call instances ([#1448](https://github.com/GetStream/stream-video-js/issues/1448)) ([2f72300](https://github.com/GetStream/stream-video-js/commit/2f72300f9377eac774516cee3366c28e99840425)), closes [#1433](https://github.com/GetStream/stream-video-js/issues/1433)
+* allow reusing call instances after leaving ([#1433](https://github.com/GetStream/stream-video-js/issues/1433)) ([61e05af](https://github.com/GetStream/stream-video-js/commit/61e05af25c441b7db9db16166a6b4eca20ec7748))
+
 ### [1.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.4...@stream-io/video-client-1.4.5) (2024-07-12)
 
 
