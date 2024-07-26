@@ -1,6 +1,6 @@
 export type PromiseWithResolvers<T> = {
   promise: Promise<T>;
-  resolve: (value: T) => void;
+  resolve: (value: T | PromiseLike<T>) => void;
   reject: (reason: any) => void;
   isResolved: boolean;
   isRejected: boolean;
@@ -13,7 +13,7 @@ export type PromiseWithResolvers<T> = {
  * - https://github.com/tc39/proposal-promise-with-resolvers/blob/main/polyfills.js
  */
 export const promiseWithResolvers = <T = void>(): PromiseWithResolvers<T> => {
-  let resolve: (value: T) => void;
+  let resolve: (value: T | PromiseLike<T>) => void;
   let reject: (reason: any) => void;
   const promise = new Promise<T>((_resolve, _reject) => {
     resolve = _resolve;
@@ -23,7 +23,7 @@ export const promiseWithResolvers = <T = void>(): PromiseWithResolvers<T> => {
   let isResolved = false;
   let isRejected = false;
 
-  const resolver = (value: T) => {
+  const resolver = (value: T | PromiseLike<T>) => {
     isResolved = true;
     resolve(value);
   };

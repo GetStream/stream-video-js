@@ -32,7 +32,10 @@ import { retryInterval, sleep } from './coordinator/connection/utils';
 import { SFUResponse } from './gen/coordinator';
 import { Logger, LogLevel } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
-import { promiseWithResolvers } from './helpers/withResolvers';
+import {
+  promiseWithResolvers,
+  PromiseWithResolvers,
+} from './helpers/withResolvers';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -133,6 +136,12 @@ export class StreamSfuClient {
   private joinResponseTask = promiseWithResolvers<JoinResponse>();
 
   /**
+   * Promise that resolves when the migration is complete.
+   * Rejects after a certain threshold if the migration is not complete.
+   */
+  private migrationTask?: PromiseWithResolvers<void>;
+
+  /**
    * The normal closure code. Used for controlled shutdowns.
    */
   static NORMAL_CLOSURE = 1000;
@@ -211,7 +220,7 @@ export class StreamSfuClient {
     });
   }
 
-  close = (code?: number, reason?: string) => {
+  close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
     this.isClosing = true;
 
     this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
@@ -226,6 +235,7 @@ export class StreamSfuClient {
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
     clearTimeout(this.migrateAwayTimeout);
+    this.migrationTask?.resolve();
   };
 
   leaveAndClose = async (reason: string) => {
@@ -361,25 +371,31 @@ export class StreamSfuClient {
     );
   };
 
-  enterMigration = (opts: {
-    onComplete: (isSuccessful: boolean) => void;
-    timeout?: number;
-  }) => {
+  enterMigration = async (opts: { timeout?: number } = {}) => {
     this.isClosing = true;
+    const { timeout = 10000 } = opts;
 
-    const { onComplete, timeout = 10000 } = opts;
+    this.migrationTask?.reject(new Error('Cancelled previous migration'));
+    this.migrationTask = promiseWithResolvers();
+
+    const task = this.migrationTask;
     const unsubscribe = this.dispatcher.on(
       'participantMigrationComplete',
       () => {
         unsubscribe();
         clearTimeout(this.migrateAwayTimeout);
-        onComplete(true);
+        task.resolve();
       },
     );
     this.migrateAwayTimeout = setTimeout(() => {
       unsubscribe();
-      onComplete(false);
+      // task.reject(new Error('Migration timeout'));
+      // FIXME OL: temporary, switch to `task.reject()` once the SFU starts sending
+      //  the participantMigrationComplete event.
+      task.resolve();
     }, timeout);
+
+    return this.migrationTask.promise;
   };
 
   join = async (

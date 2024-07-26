@@ -796,25 +796,7 @@ export class Call {
             sessionId: performingRejoinReconnect
               ? generateUUIDv4()
               : previousSessionId || generateUUIDv4(),
-            onSignalClose: () => {
-              if (sfuClient.isClosing) return;
-              let strategy = WebsocketReconnectStrategy.FAST;
-              if (
-                this.state.callingState === CallingState.OFFLINE &&
-                this.lastOfflineTimestamp
-              ) {
-                const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
-                if (offline < this.fastReconnectDeadlineSeconds) {
-                  // We shouldn't attempt FAST if we have exceeded the deadline.
-                  // The SFU would have already wiped out the session.
-                  strategy = WebsocketReconnectStrategy.CLEAN;
-                }
-              }
-
-              this.reconnect(strategy).catch((err) => {
-                this.logger('warn', '[Reconnect] Error reconnecting', err);
-              });
-            },
+            onSignalClose: () => this.handleSfuSignalClose(sfuClient),
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
@@ -976,13 +958,9 @@ export class Call {
    *
    * @param data the join call data.
    */
-  doJoinRequest = async (data?: JoinCallData) => {
+  doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
-    const request: JoinCallRequest = {
-      ...data,
-      location,
-    };
-    // TODO: retry if failed
+    const request: JoinCallRequest = { ...data, location };
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
@@ -998,6 +976,34 @@ export class Call {
 
     return joinResponse;
   };
+
+  /**
+   * Handles the closing of the SFU signal connection.
+   *
+   * @internal
+   * @param sfuClient the SFU client instance that was closed.
+   */
+  private handleSfuSignalClose(sfuClient: StreamSfuClient) {
+    // normal close, no need to reconnect
+    if (sfuClient.isClosing) return;
+
+    let strategy = WebsocketReconnectStrategy.FAST;
+    if (
+      this.state.callingState === CallingState.OFFLINE &&
+      this.lastOfflineTimestamp
+    ) {
+      const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
+      if (offline < this.fastReconnectDeadlineSeconds) {
+        // We shouldn't attempt FAST if we have exceeded the deadline.
+        // The SFU would have already wiped out the session.
+        strategy = WebsocketReconnectStrategy.CLEAN;
+      }
+    }
+
+    this.reconnect(strategy).catch((err) => {
+      this.logger('warn', '[Reconnect] Error reconnecting', err);
+    });
+  }
 
   /**
    * Handles the reconnection flow.
@@ -1045,15 +1051,19 @@ export class Call {
           }
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          this.logger(
+            'warn',
+            `[Reconnect] Reconnecting with ${WebsocketReconnectStrategy[this.reconnectStrategy]} strategy failed.`,
+            error,
+          );
           await sleep(retryInterval(this.reconnectAttempts));
-          // bump the strategy to the next level in case of failure
-          // but don't go beyond REJOIN
+          // go to the next strategy in case of failure, but don't go beyond REJOIN
           this.reconnectStrategy = Math.min(
             strategy + 1,
             WebsocketReconnectStrategy.REJOIN,
           );
-          if (strategy !== WebsocketReconnectStrategy.FAST) {
-            // we shouldn't increment the attempts counter for fast reconnects
+          // we shouldn't increment the attempt counter for fast reconnect
+          if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
             this.reconnectAttempts += 1;
           }
         }
@@ -1100,30 +1110,42 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
-    this.state.setCallingState(CallingState.MIGRATING);
     const currentSfuClient = this.sfuClient;
+    if (!currentSfuClient) {
+      throw new Error('Cannot migrate without an active SFU client');
+    }
+
+    this.state.setCallingState(CallingState.MIGRATING);
     const currentSubscriber = this.subscriber;
     const currentPublisher = this.publisher;
 
     currentSubscriber?.detachEventHandlers();
     currentPublisher?.detachEventHandlers();
-    currentSfuClient?.enterMigration({
-      onComplete: () => {
-        // close the peer connection instances after the migration is complete
-        currentSubscriber?.close();
-        currentPublisher?.close({ stopTracks: false });
 
-        // and close the previous SFU client, without specifying close code
-        currentSfuClient?.close();
-      },
-    });
+    const migrationTask = currentSfuClient.enterMigration();
 
     await this.join({
       ...this.joinCallData,
-      migrating_from: this.sfuClient?.edgeName,
+      migrating_from: currentSfuClient.edgeName,
     });
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
+
+    try {
+      // Wait for the migration to complete, then close the previous SFU client
+      // and the peer connection instances. In case of failure, the migration
+      // task would throw an error and REJOIN would be attempted.
+      await migrationTask;
+    } catch (error) {
+      this.logger('warn', 'Migration error', error);
+      // throw error;
+    } finally {
+      currentSubscriber?.close();
+      currentPublisher?.close({ stopTracks: false });
+
+      // and close the previous SFU client, without specifying close code
+      currentSfuClient.close();
+    }
   };
 
   /**
