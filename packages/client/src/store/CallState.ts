@@ -112,6 +112,7 @@ const defaultEgress: EgressResponse = {
 };
 
 type OrphanedTrack = {
+  id: string;
   trackLookupPrefix: string;
   trackType: TrackType;
   track: MediaStream;
@@ -1007,6 +1008,17 @@ export class CallState {
    */
   registerOrphanedTrack = (orphanedTrack: OrphanedTrack) => {
     this.orphanedTracks.push(orphanedTrack);
+  };
+
+  /**
+   * Removes an orphaned track from the call state.
+   *
+   * @internal
+   *
+   * @param id the ID of the orphaned track to remove.
+   */
+  removeOrphanedTrack = (id: string) => {
+    this.orphanedTracks = this.orphanedTracks.filter((o) => o.id !== id);
   };
 
   /**

@@ -233,6 +233,7 @@ export class Subscriber {
 
     e.track.addEventListener('ended', () => {
       logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.state.removeOrphanedTrack(primaryStream.id);
     });
 
     const trackType = toTrackType(rawTrackType);
@@ -247,6 +248,7 @@ export class Subscriber {
         e,
       );
       this.state.registerOrphanedTrack({
+        id: primaryStream.id,
         trackLookupPrefix: trackId,
         track: primaryStream,
         trackType,

@@ -152,6 +152,7 @@ describe('Subscriber', () => {
       onTrack({ streams: [mediaStream], track: mediaStreamTrack });
 
       expect(registerOrphanedTrackSpy).toHaveBeenCalledWith({
+        id: mediaStream.id,
         trackLookupPrefix: '123',
         track: mediaStream,
         trackType: TrackType.VIDEO,

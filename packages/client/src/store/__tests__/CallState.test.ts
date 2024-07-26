@@ -847,6 +847,7 @@ describe('CallState', () => {
     it('registers orphaned tracks', () => {
       const state = new CallState();
       state.registerOrphanedTrack({
+        id: '123:TRACK_TYPE_VIDEO',
         track: new MediaStream(),
         trackLookupPrefix: '123',
         trackType: TrackType.AUDIO,
@@ -857,12 +858,27 @@ describe('CallState', () => {
     it('removes orphaned tracks once assigned', () => {
       const state = new CallState();
       state.registerOrphanedTrack({
+        id: '123:TRACK_TYPE_VIDEO',
         track: new MediaStream(),
         trackLookupPrefix: '123',
         trackType: TrackType.VIDEO,
       });
       const orphans = state.takeOrphanedTracks('123');
       expect(orphans.length).toBe(1);
+      expect(state['orphanedTracks'].length).toBe(0);
+    });
+
+    it('removes orphaned tracks', () => {
+      const state = new CallState();
+      const id = '123:TRACK_TYPE_VIDEO';
+      state.registerOrphanedTrack({
+        id,
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.VIDEO,
+      });
+      expect(state['orphanedTracks'].length).toBe(1);
+      state.removeOrphanedTrack(id);
       expect(state['orphanedTracks'].length).toBe(0);
     });
   });
