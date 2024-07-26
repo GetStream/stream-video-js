@@ -735,12 +735,6 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    if (callingState === CallingState.LEFT) {
-      throw new Error(
-        'Illegal State: Cannot join already left call. Create a new Call instance to join a call.',
-      );
-    }
-
     this.joinCallData = data;
 
     this.logger('debug', 'Starting join flow');
