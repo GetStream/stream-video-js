@@ -21,7 +21,7 @@ export const customSentryLogger: Logger = (
   }
 
   if (
-    message.startsWith('[sfu-client]') &&
+    message.startsWith('[Dispatcher]') &&
     /audioLevelChanged|dominantSpeakerChanged/.test(message)
   ) {
     // reduce noise from audioLevelChanged and dominantSpeakerChanged events
