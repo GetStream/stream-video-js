@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.2.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.17...@stream-io/video-react-sdk-1.2.18) (2024-07-29)
+
+
+### Bug Fixes
+
+* remove applying default settings in usePersistedDevicePreferences ([#1446](https://github.com/GetStream/stream-video-js/issues/1446)) ([b196826](https://github.com/GetStream/stream-video-js/commit/b196826b6c2dcf5bd1d2d3ac8b5b852aeddeee81)), closes [/github.com/GetStream/stream-video-js/blob/main/packages/client/src/Call.ts#L2127](https://github.com/GetStream//github.com/GetStream/stream-video-js/blob/main/packages/client/src/Call.ts/issues/L2127)
+
 ### [1.2.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.16...@stream-io/video-react-sdk-1.2.17) (2024-07-25)
 
 ### Dependency Updates
