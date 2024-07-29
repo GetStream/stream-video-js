@@ -38,5 +38,6 @@ export const getInitialsOfName = (name: string) => {
   return initials;
 };
 
+export * from './push/android';
 export * from './enterPiPAndroid';
 export * from './StreamVideoRN';

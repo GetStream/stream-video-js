@@ -5419,40 +5419,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/app@npm:17.5.0":
-  version: 17.5.0
-  resolution: "@react-native-firebase/app@npm:17.5.0"
-  dependencies:
-    opencollective-postinstall: ^2.0.1
-    superstruct: ^0.6.2
-  peerDependencies:
-    expo: ">=47.0.0"
-    react: "*"
-    react-native: "*"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 7d86f43a063561971edf328f7a2a1928660beb9617cbc3c5ba73ab65f359e0cadbc5e276e5654cfa0ef2d25c29f3f98587ebfd58f193be51f472facff3c3024f
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/app@npm:18.8.0":
-  version: 18.8.0
-  resolution: "@react-native-firebase/app@npm:18.8.0"
-  dependencies:
-    opencollective-postinstall: ^2.0.3
-    superstruct: ^0.6.2
-  peerDependencies:
-    expo: ">=47.0.0"
-    react: "*"
-    react-native: "*"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 10b4e5aec0dd18a690bc2ba07fe95f0d414f2904574dda930efd050b113629469d2c01e1d849b129ce575e84bbf89b53ffbeee55c51716c4a78e36be463c1fff
-  languageName: node
-  linkType: hard
-
 "@react-native-firebase/app@npm:19.2.2":
   version: 19.2.2
   resolution: "@react-native-firebase/app@npm:19.2.2"
@@ -5467,28 +5433,6 @@ __metadata:
     expo:
       optional: true
   checksum: 6bab63a70a92f8576a40ea5181ee37c3f07b1b9b3954574a6f1eb6aa9ddd807a5508ac6a775b48da4a04126fd43e228c018b428cf29f3bbc66cb0bc0febcb300
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/messaging@npm:17.5.0":
-  version: 17.5.0
-  resolution: "@react-native-firebase/messaging@npm:17.5.0"
-  peerDependencies:
-    "@react-native-firebase/app": 17.5.0
-  checksum: 296dad0335d18e262569c4edc6b62d009fc15887b3a9801f7d49a64eb091cd86548b940cbd1e993d649fb7e14282b1e910b221e701adb8213305580db578411a
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/messaging@npm:18.8.0":
-  version: 18.8.0
-  resolution: "@react-native-firebase/messaging@npm:18.8.0"
-  peerDependencies:
-    "@react-native-firebase/app": 18.8.0
-    expo: ">=47.0.0"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 4a6e744579954310557a56c843049283e8478185609d78409ad3949dbfe0e01007b6fb724496308dec9131266a55d068a0828587476df54ddfc3adc8a1013d29
   languageName: node
   linkType: hard
 
@@ -7205,8 +7149,8 @@ __metadata:
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/netinfo": 11.3.0
     "@react-native-community/push-notification-ios": ^1.11.0
-    "@react-native-firebase/app": 18.8.0
-    "@react-native-firebase/messaging": 18.8.0
+    "@react-native-firebase/app": 19.2.2
+    "@react-native-firebase/messaging": 19.2.2
     "@react-native-google-signin/google-signin": ^11.0.0
     "@react-native/babel-preset": 0.73.21
     "@react-native/eslint-config": 0.74.84
@@ -7266,8 +7210,8 @@ __metadata:
     "@notifee/react-native": 7.8.0
     "@react-native-community/netinfo": 9.3.9
     "@react-native-community/push-notification-ios": 1.11.0
-    "@react-native-firebase/app": 17.5.0
-    "@react-native-firebase/messaging": 17.5.0
+    "@react-native-firebase/app": 19.2.2
+    "@react-native-firebase/messaging": 19.2.2
     "@react-native/eslint-config": ^0.74.84
     "@stream-io/react-native-webrtc": 118.1.0
     "@stream-io/video-client": "workspace:^"
@@ -20431,7 +20375,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"opencollective-postinstall@npm:^2.0.1, opencollective-postinstall@npm:^2.0.3":
+"opencollective-postinstall@npm:^2.0.3":
   version: 2.0.3
   resolution: "opencollective-postinstall@npm:2.0.3"
   bin:

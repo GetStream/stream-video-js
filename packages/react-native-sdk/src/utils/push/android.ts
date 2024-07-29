@@ -166,7 +166,7 @@ export async function initAndroidPushToken(
   }
 }
 
-const firebaseMessagingOnMessageHandler = async (
+export const firebaseMessagingOnMessageHandler = async (
   data: FirebaseMessagingTypes.RemoteMessage['data'],
   pushConfig: PushConfig
 ) => {
