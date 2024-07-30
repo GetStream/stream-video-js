@@ -774,16 +774,6 @@ export class Call {
     this.logger('debug', 'Starting join flow');
     this.state.setCallingState(CallingState.JOINING);
 
-    // TODO move to `doJoinRequest`
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
-    if (this.ringing && !this.isCreatedByMe) {
-      // signals other users that I have accepted the incoming call.
-      await this.accept();
-    }
-
     const performingMigrateReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
     const performingRejoinReconnect =
@@ -1018,6 +1008,15 @@ export class Call {
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
+
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
+    if (this.ringing && !this.isCreatedByMe) {
+      // signals other users that I have accepted the incoming call.
+      await this.accept();
+    }
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
