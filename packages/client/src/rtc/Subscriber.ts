@@ -34,7 +34,6 @@ export class Subscriber {
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
   private unregisterIceTrickleBuffer?: () => void;
-  // FIXME OL maybe remove this
   private readonly onUnrecoverableError?: () => void;
 
   private readonly iceRestartDelay: number;
@@ -328,6 +327,8 @@ export class Subscriber {
   };
 
   private onIceConnectionStateChange = () => {
+    if (this.state.callingState === CallingState.RECONNECTING) return;
+
     const state = this.pc.iceConnectionState;
     logger('debug', `ICE connection state changed`, state);
 

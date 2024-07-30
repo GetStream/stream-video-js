@@ -116,7 +116,7 @@ export class StreamSfuClient {
    */
   signalReady: Promise<WebSocket>;
 
-  isClosing = false;
+  isLeaving = false;
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
@@ -221,16 +221,15 @@ export class StreamSfuClient {
   }
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
-    this.isClosing = true;
-
-    this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
     if (this.signalWs.readyState !== this.signalWs.CLOSED) {
+      this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
     }
     this.dispose();
   };
 
   dispose = () => {
+    this.logger('debug', 'Disposing SFU client');
     this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
@@ -241,6 +240,7 @@ export class StreamSfuClient {
   leaveAndClose = async (reason: string) => {
     await this.joinResponseTask.promise;
     try {
+      this.isLeaving = true;
       await this.notifyLeave(reason);
     } catch (err) {
       this.logger('debug', 'Error notifying SFU about leaving call', err);
@@ -372,7 +372,7 @@ export class StreamSfuClient {
   };
 
   enterMigration = async (opts: { timeout?: number } = {}) => {
-    this.isClosing = true;
+    this.isLeaving = true;
     const { timeout = 10000 } = opts;
 
     this.migrationTask?.reject(new Error('Cancelled previous migration'));
@@ -470,7 +470,14 @@ export class StreamSfuClient {
 
   send = async (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
-      if (signal.readyState !== signal.OPEN) return;
+      if (signal.readyState !== signal.OPEN) {
+        this.logger(
+          'debug',
+          'SFU WS connection not open. Skipping message',
+          SfuRequest.toJson(message),
+        );
+        return;
+      }
       this.logger(
         'debug',
         `Sending message to: ${this.edgeName}`,
