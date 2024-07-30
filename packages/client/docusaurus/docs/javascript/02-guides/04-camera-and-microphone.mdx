@@ -348,12 +348,12 @@ Filters can be registered and unregistered at any time, and the SDK will take ca
 Filters can be chained, and the order of registration matters.
 The first registered filter will be the first to modify the raw `MediaStream`.
 
-A filter may be asynchronous. In this case, the function passed to the `registerFilter` method should synchronously
+A filter may be asynchronous. In this case, the function passed to the `registerFilter` method should _synchronously_
 return an object where `output` is a promise that resolves to a `MediaStream`:
 
 ```typescript
 camera.registerFilter(function myVideoFilter(inputMediaStream: MediaStream) {
-  // note that output is returned synchronously
+  // note that output is returned synchronously!
   return {
     output: new Promise((resolve) => resolve(mediaStreamWithFilterApplied)),
     stop: () => {
