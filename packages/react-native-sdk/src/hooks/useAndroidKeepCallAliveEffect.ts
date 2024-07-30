@@ -48,11 +48,6 @@ async function startForegroundService(call_cid: string) {
   });
 }
 
-async function stopForegroundService() {
-  if (!isAndroid7OrBelow) return;
-  await notifee.stopForegroundService();
-}
-
 // flag to check if setForegroundService has already been run once
 let isSetForegroundServiceRan = false;
 
@@ -90,9 +85,7 @@ export const useAndroidKeepCallAliveEffect = () => {
           );
           if (activeCallNotification) {
             // this means that we have a incoming call notification shown as foreground service and we must stop it
-            if (isAndroid7OrBelow) {
-              notifee.stopForegroundService();
-            }
+            notifee.stopForegroundService();
             notifee.cancelDisplayedNotification(activeCallCid);
           }
           // request for notification permission and then start the foreground service
@@ -114,7 +107,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     ) {
       if (foregroundServiceStartedRef.current) {
         // stop foreground service when the call is not active
-        stopForegroundService();
+        notifee.stopForegroundService();
         foregroundServiceStartedRef.current = false;
       } else {
         notifee.getDisplayedNotifications().then((displayedNotifications) => {
@@ -134,7 +127,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     return () => {
       // stop foreground service when this effect is unmounted
       if (foregroundServiceStartedRef.current) {
-        stopForegroundService();
+        notifee.stopForegroundService();
         foregroundServiceStartedRef.current = false;
       }
     };
