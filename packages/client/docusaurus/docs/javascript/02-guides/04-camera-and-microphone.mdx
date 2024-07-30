@@ -312,20 +312,30 @@ import { Call } from '@stream-io/video-client';
 let call: Call;
 
 // apply a custom video filter
-const unregisterMyVideoFilter = await camera.registerFilter(
-  async function myVideoFilter(inputMediaStream: MediaStream) {
+const { unregister: unregisterMyVideoFilter } = camera.registerFilter(
+  function myVideoFilter(inputMediaStream: MediaStream) {
     // initialize the video filter, do some magic and
     // return the modified media stream
-    return mediaStreamWithFilterApplied;
+    return {
+      output: mediaStreamWithFilterApplied,
+      stop: () => {
+        // optional cleanup function
+      },
+    };
   },
 );
 
 // apply a custom audio filter
-const unregisterMyAudioFilter = await microphone.registerFilter(
-  async function myAudioFilter(inputMediaStream: MediaStream) {
+const { unregister: unregisterMyAudioFilter } = microphone.registerFilter(
+  function myAudioFilter(inputMediaStream: MediaStream) {
     // initialize the audio filter, do some magic and
     // return the modified media stream
-    return mediaStreamWithFilterApplied;
+    return {
+      output: mediaStreamWithFilterApplied,
+      stop: () => {
+        // optional cleanup function
+      },
+    };
   },
 );
 
@@ -337,6 +347,34 @@ unregisterMyAudioFilter();
 Filters can be registered and unregistered at any time, and the SDK will take care of the rest.
 Filters can be chained, and the order of registration matters.
 The first registered filter will be the first to modify the raw `MediaStream`.
+
+A filter may be asynchronous. In this case, the function passed to the `registerFilter` method should _synchronously_
+return an object where `output` is a promise that resolves to a `MediaStream`:
+
+```typescript
+camera.registerFilter(function myVideoFilter(inputMediaStream: MediaStream) {
+  // note that output is returned synchronously!
+  return {
+    output: new Promise((resolve) => resolve(mediaStreamWithFilterApplied)),
+    stop: () => {
+      // optional cleanup function
+    },
+  };
+});
+```
+
+Registering a filter is not instantaneous. If you need to know when a filter is registered (e.g. to show
+a spinner in the UI), await for the `registered` promise returned by the `registerFilter` method:
+
+```typescript
+const { registered } = camera.registerFilter(
+  (inputMediaStream: MediaStream) => {
+    // your video filter
+  },
+);
+await registered;
+// at this point, the filter is registered
+```
 
 Once a filter(s) is registered, the SDK will send the last returned `MediaStream` to the remote participants.
 
