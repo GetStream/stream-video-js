@@ -447,11 +447,43 @@ export class Call {
       // "ringing" mode effects and event handlers
       createSubscription(this.ringingSubject, (isRinging) => {
         if (!isRinging) return;
-        this.scheduleAutoDrop();
-        if (this.state.callingState === CallingState.IDLE) {
-          this.state.setCallingState(CallingState.RINGING);
+        const callSession = this.state.session;
+        const receiver_id = this.clientStore.connectedUser?.id;
+        const endedAt = this.state.endedAt;
+        const created_by_id = this.state.createdBy?.id;
+        const rejected_by = callSession?.rejected_by;
+        const accepted_by = callSession?.accepted_by;
+        let leaveCallIdle = false;
+        if (endedAt) {
+          // call was ended before it was accepted or rejected so we should leave it to idle
+          leaveCallIdle = true;
+        } else if (created_by_id && rejected_by) {
+          if (rejected_by[created_by_id]) {
+            // call was cancelled by the caller
+            leaveCallIdle = true;
+          }
+        } else if (receiver_id && rejected_by) {
+          if (rejected_by[receiver_id]) {
+            // call was rejected by the receiver in some other device
+            leaveCallIdle = true;
+          }
+        } else if (receiver_id && accepted_by) {
+          if (accepted_by[receiver_id]) {
+            // call was accepted by the receiver in some other device
+            leaveCallIdle = true;
+          }
         }
-        this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
+        if (leaveCallIdle) {
+          if (this.state.callingState !== CallingState.IDLE) {
+            this.state.setCallingState(CallingState.IDLE);
+          }
+        } else {
+          this.scheduleAutoDrop();
+          if (this.state.callingState === CallingState.IDLE) {
+            this.state.setCallingState(CallingState.RINGING);
+          }
+          this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
+        }
       }),
     );
   }
@@ -621,13 +653,14 @@ export class Call {
       params,
     );
 
-    if (params?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
+
+    if (params?.ring || this.ringing) {
+      // the call response can indicate where the call is still ringing or not
+      this.ringingSubject.next(true);
+    }
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -651,13 +684,14 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
+
+    if (data?.ring || this.ringing) {
+      // the call response can indicate where the call is still ringing or not
+      this.ringingSubject.next(true);
+    }
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
