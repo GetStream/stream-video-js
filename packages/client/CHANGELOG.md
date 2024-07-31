@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.7...@stream-io/video-client-1.4.8) (2024-07-31)
+
+
+### Bug Fixes
+
+* `call.recording_failed` should update the call state ([#1452](https://github.com/GetStream/stream-video-js/issues/1452)) ([439b7f0](https://github.com/GetStream/stream-video-js/commit/439b7f0f53286c4ef3cc05a4bea4b1208e4e490e))
+
 ### [1.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.6...@stream-io/video-client-1.4.7) (2024-07-30)
 
 
