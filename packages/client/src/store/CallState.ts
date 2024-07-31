@@ -427,7 +427,6 @@ export class CallState {
       'call.closed_caption': undefined,
       'call.deleted': undefined,
       'call.permission_request': undefined,
-      'call.recording_failed': undefined,
       'call.recording_ready': undefined,
       'call.transcription_ready': undefined,
       'call.user_muted': undefined,
@@ -469,6 +468,8 @@ export class CallState {
       'call.recording_started': () =>
         this.setCurrentValue(this.recordingSubject, true),
       'call.recording_stopped': () =>
+        this.setCurrentValue(this.recordingSubject, false),
+      'call.recording_failed': () =>
         this.setCurrentValue(this.recordingSubject, false),
       'call.rejected': (e) => this.updateFromCallResponse(e.call),
       'call.ring': (e) => this.updateFromCallResponse(e.call),

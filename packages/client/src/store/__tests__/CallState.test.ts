@@ -679,6 +679,16 @@ describe('CallState', () => {
         expect(state.recording).toBe(false);
       });
 
+      it('handles call.recording_failed events', () => {
+        const state = new CallState();
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.recording_started' });
+        expect(state.recording).toBe(true);
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.recording_failed' });
+        expect(state.recording).toBe(false);
+      });
+
       it('handles call.hls_broadcasting_started events', () => {
         const state = new CallState();
         state.updateFromCallResponse({
