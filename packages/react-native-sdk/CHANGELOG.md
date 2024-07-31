@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.9.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.4...@stream-io/video-react-native-sdk-0.9.5) (2024-07-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.4.7`
+* `@stream-io/video-react-bindings` updated to version `0.4.51`
+
+### Bug Fixes
+
+* ringing state issues when call was already ended ([#1451](https://github.com/GetStream/stream-video-js/issues/1451)) ([4a3556e](https://github.com/GetStream/stream-video-js/commit/4a3556e0f7b0bd58d0022cc635aa4391014063d7))
+
 ### [0.9.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.3...@stream-io/video-react-native-sdk-0.9.4) (2024-07-25)
 
 ### Dependency Updates
