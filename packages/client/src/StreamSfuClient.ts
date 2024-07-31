@@ -28,8 +28,12 @@ import {
   ICETrickle,
   TrackType,
 } from './gen/video/sfu/models/models';
-import { retryInterval, sleep } from './coordinator/connection/utils';
-import { SFUResponse } from './gen/coordinator';
+import {
+  generateUUIDv4,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
+import { Credentials } from './gen/coordinator';
 import { Logger, LogLevel } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
 import {
@@ -44,19 +48,14 @@ export type StreamSfuClientConstructor = {
   dispatcher: Dispatcher;
 
   /**
-   * The SFU server to connect to.
+   * The credentials to use for the connection.
    */
-  sfuServer: SFUResponse;
-
-  /**
-   * The JWT token to use for authentication.
-   */
-  token: string;
+  credentials: Credentials;
 
   /**
    * `sessionId` to use for the connection.
    */
-  sessionId: string;
+  sessionId?: string;
 
   /**
    * A log tag to use for logging. Useful for debugging multiple instances.
@@ -82,7 +81,7 @@ export type StreamSfuClientConstructor = {
 export class StreamSfuClient {
   /**
    * A buffer for ICE Candidates that are received before
-   * the PeerConnections are ready to handle them.
+   * the Publisher and Subscriber Peer Connections are ready to handle them.
    */
   readonly iceTrickleBuffer = new IceTrickleBuffer();
 
@@ -97,25 +96,19 @@ export class StreamSfuClient {
   readonly edgeName: string;
 
   /**
-   * The current token used for authenticating against the SFU.
-   */
-  readonly token: string;
-
-  /**
-   * The SFU server details the current client is connected to.
-   */
-  readonly sfuServer: SFUResponse;
-
-  /**
    * Holds the current WebSocket connection to the SFU.
    */
-  signalWs: WebSocket;
+  readonly signalWs: WebSocket;
 
   /**
    * Promise that resolves when the WebSocket connection is ready (open).
    */
-  signalReady: Promise<WebSocket>;
+  readonly signalReady: Promise<WebSocket>;
 
+  /**
+   * Flag to indicate if the client is in the process of leaving the call.
+   * This is set to `true` when the user initiates the leave process.
+   */
   isLeaving = false;
 
   private readonly rpc: SignalServerClient;
@@ -127,6 +120,7 @@ export class StreamSfuClient {
   private lastMessageTimestamp?: Date;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly logger: Logger;
+  private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout?: number;
   /**
@@ -157,22 +151,21 @@ export class StreamSfuClient {
    */
   constructor({
     dispatcher,
-    sfuServer,
-    token,
+    credentials,
     sessionId,
     logTag,
     joinResponseTimeout = 5000,
     onSignalClose,
   }: StreamSfuClientConstructor) {
     this.dispatcher = dispatcher;
-    this.sessionId = sessionId;
-    this.sfuServer = sfuServer;
-    this.edgeName = sfuServer.edge_name;
-    this.token = token;
+    this.sessionId = sessionId || generateUUIDv4();
+    this.credentials = credentials;
+    const { server, token } = credentials;
+    this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
     this.logger = getLogger(['sfu-client', logTag]);
     this.rpc = createSignalClient({
-      baseUrl: sfuServer.url,
+      baseUrl: server.url,
       interceptors: [
         withHeaders({
           Authorization: `Bearer ${token}`,
@@ -193,7 +186,7 @@ export class StreamSfuClient {
 
     this.signalWs = createWebSocketSignalChannel({
       logTag,
-      endpoint: sfuServer.ws_endpoint,
+      endpoint: server.ws_endpoint,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
@@ -218,6 +211,10 @@ export class StreamSfuClient {
       };
       this.signalWs.addEventListener('open', onOpen);
     });
+  }
+
+  get isHealthy() {
+    return this.signalWs.readyState === this.signalWs.OPEN;
   }
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
@@ -401,10 +398,12 @@ export class StreamSfuClient {
   join = async (
     data: Omit<JoinRequest, 'sessionId' | 'token'>,
   ): Promise<JoinResponse> => {
+    // wait for the signal web socket to be ready before sending "joinRequest"
+    await this.signalReady;
     if (this.joinResponseTask.isResolved || this.joinResponseTask.isRejected) {
       // we need to lock the RPC requests until we receive a JoinResponse.
       // that's why we have this primitive lock mechanism.
-      // the client starts with already initialized joinResponseReady promise,
+      // the client starts with already initialized joinResponseTask,
       // and this code creates a new one for the next join request.
       this.joinResponseTask = promiseWithResolvers<JoinResponse>();
     }
@@ -434,7 +433,7 @@ export class StreamSfuClient {
           joinRequest: JoinRequest.create({
             ...data,
             sessionId: this.sessionId,
-            token: this.token,
+            token: this.credentials.token,
           }),
         },
       }),
@@ -473,7 +472,7 @@ export class StreamSfuClient {
       if (signal.readyState !== signal.OPEN) {
         this.logger(
           'debug',
-          'SFU WS connection not open. Skipping message',
+          'Signal WS connection is not open. Skipping message',
           SfuRequest.toJson(message),
         );
         return;

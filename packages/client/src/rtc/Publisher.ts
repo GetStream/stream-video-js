@@ -648,7 +648,7 @@ export class Publisher {
     // set the munged SDP back to the offer
     offer.sdp = sdp;
 
-    const trackInfos = this.getCurrentTrackInfos(offer.sdp);
+    const trackInfos = this.getAnnouncedTracks(offer.sdp);
     if (trackInfos.length === 0) {
       throw new Error(
         `Can't initiate negotiation without announcing any tracks`,
@@ -738,7 +738,13 @@ export class Publisher {
     return String(media.mid);
   };
 
-  getCurrentTrackInfos = (sdp?: string) => {
+  /**
+   * Returns a list of tracks that are currently being published.
+   *
+   * @internal
+   * @param sdp an optional SDP to extract the `mid` from.
+   */
+  getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
     sdp = sdp || this.pc.localDescription?.sdp;
 
     const { settings } = this.state;

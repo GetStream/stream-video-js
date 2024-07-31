@@ -4,7 +4,11 @@ import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
 import type { CallEnded, PinsChanged } from '../gen/video/sfu/event/events';
-import { CallEndedReason, ErrorCode } from '../gen/video/sfu/models/models';
+import {
+  CallEndedReason,
+  ErrorCode,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
 
 const logger = getLogger(['events']);
@@ -82,9 +86,10 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
   return dispatcher.on('error', (e) => {
     if (!e.error) return;
-    const { error } = e;
+    const { error, reconnectStrategy } = e;
     logger('error', 'SFU reported error', {
       code: ErrorCode[error.code],
+      reconnectStrategy: WebsocketReconnectStrategy[reconnectStrategy],
       message: error.message,
       shouldRetry: error.shouldRetry,
     });

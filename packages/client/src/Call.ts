@@ -100,7 +100,10 @@ import {
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
-import { VideoLayerSetting } from './gen/video/sfu/event/events';
+import {
+  ReconnectDetails,
+  VideoLayerSetting,
+} from './gen/video/sfu/event/events';
 import {
   ClientDetails,
   TrackType,
@@ -111,11 +114,7 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import {
-  generateUUIDv4,
-  retryInterval,
-  sleep,
-} from './coordinator/connection/utils';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import type {
   AllCallEvents,
   CallEventListener,
@@ -774,17 +773,17 @@ export class Call {
     this.logger('debug', 'Starting join flow');
     this.state.setCallingState(CallingState.JOINING);
 
-    const performingMigrateReconnect =
+    const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
-    const performingRejoinReconnect =
+    const performingRejoin =
       this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN;
     const performingFastReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.FAST;
 
     let statsOptions = this.sfuStatsReporter?.options;
     if (
-      performingRejoinReconnect ||
-      performingMigrateReconnect ||
+      performingRejoin ||
+      performingMigration ||
       !this.credentials ||
       !statsOptions
     ) {
@@ -801,20 +800,16 @@ export class Call {
 
     const previousSfuClient = this.sfuClient;
     const previousSessionId = previousSfuClient?.sessionId;
-    const isWsHealthy =
-      previousSfuClient?.signalWs.readyState === WebSocket.OPEN;
+    const isWsHealthy = !!previousSfuClient?.isHealthy;
     const sfuClient =
-      performingRejoinReconnect || performingMigrateReconnect || !isWsHealthy
+      performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
             logTag: String(this.reconnectAttempts),
             dispatcher: this.dispatcher,
-            sfuServer: this.credentials.server,
-            token: this.credentials.token,
-            // a new session_id is needed for the REJOIN strategy.
-            // we use the previous session_id if available, or generate a new one
-            sessionId: performingRejoinReconnect
-              ? generateUUIDv4()
-              : previousSessionId || generateUUIDv4(),
+            credentials: this.credentials,
+            // a new session_id is necessary for the REJOIN strategy.
+            // we use the previous session_id if available
+            sessionId: performingRejoin ? undefined : previousSessionId,
             onSignalClose: () => this.handleSfuSignalClose(sfuClient),
           })
         : previousSfuClient;
@@ -823,30 +818,17 @@ export class Call {
     const clientDetails = getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
-      // 1. wait for the signal server web socket to be ready before sending "joinRequest"
-      await sfuClient.signalReady;
-
       // prepare a generic SDP and send it to the SFU.
       // this is a throw-away SDP that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
       const subscriberSdp = await getGenericSdp('recvonly');
-      const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
       const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
         subscriberSdp,
         clientDetails,
         fastReconnect: performingFastReconnect,
         reconnectDetails:
           this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
-            ? {
-                strategy: this.reconnectStrategy,
-                announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
-                subscriptions: subscriptions.data || [],
-                reconnectAttempt: this.reconnectAttempts,
-                fromSfuId: data?.migrating_from || '',
-                previousSessionId: performingRejoinReconnect
-                  ? previousSessionId || ''
-                  : '',
-              }
+            ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
             : undefined,
       });
 
@@ -867,24 +849,45 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
-        closePreviousInstances: !performingMigrateReconnect,
+        closePreviousInstances: !performingMigration,
       });
     }
 
     this.state.setCallingState(CallingState.JOINED);
 
-    if (performingRejoinReconnect) {
+    if (performingRejoin) {
       const strategy = WebsocketReconnectStrategy[this.reconnectStrategy];
       await previousSfuClient?.leaveAndClose(
         `Closing previous WS after reconnect with strategy: ${strategy}`,
       );
     } else if (!isWsHealthy) {
-      previousSfuClient?.dispose();
+      previousSfuClient?.close(4002, 'Closing unhealthy WS after reconnect');
     }
 
     await this.applyDeviceConfig(true);
-
     this.logger('info', `Joined call ${this.cid}`);
+  };
+
+  /**
+   * Prepares Reconnect Details object.
+   * @internal
+   */
+  private getReconnectDetails = (
+    migratingFromSfuId: string | undefined,
+    previousSessionId: string | undefined,
+  ): ReconnectDetails => {
+    const strategy = this.reconnectStrategy;
+    const performingRejoin = strategy === WebsocketReconnectStrategy.REJOIN;
+    const announcedTracks = this.publisher?.getAnnouncedTracks() || [];
+    const subscribedTracks = getCurrentValue(this.trackSubscriptionsSubject);
+    return {
+      strategy,
+      announcedTracks,
+      subscriptions: subscribedTracks.data || [],
+      reconnectAttempt: this.reconnectAttempts,
+      fromSfuId: migratingFromSfuId || '',
+      previousSessionId: performingRejoin ? previousSessionId || '' : '',
+    };
   };
 
   /**
@@ -946,12 +949,12 @@ export class Call {
     // to create Publisher Peer Connection for them
     const isAnonymous = this.streamClient.user?.type === 'anonymous';
     if (!isAnonymous) {
-      const audioSettings = this.state.settings?.audio;
-      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
       if (closePreviousInstances && this.publisher) {
         this.publisher.close({ stopTracks: false });
       }
+      const audioSettings = this.state.settings?.audio;
+      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
       this.publisher = new Publisher({
         sfuClient,
         dispatcher: this.dispatcher,
@@ -1033,7 +1036,7 @@ export class Call {
    * @param sfuClient the SFU client instance that was closed.
    */
   private handleSfuSignalClose(sfuClient: StreamSfuClient) {
-    console.log('[Reconnect] handleSfuSignalClose');
+    this.logger('debug', '[Reconnect] handleSfuSignalClose');
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
     // attempt to reconnect with CLEAN strategy (the WS is anyway closed)
@@ -1232,7 +1235,7 @@ export class Call {
       'connection.changed',
       (e) => {
         if (!e.online) {
-          console.log('[Reconnect] Going offline');
+          this.logger('debug', '[Reconnect] Going offline');
           this.lastOfflineTimestamp = Date.now();
           // create a new task that would resolve when the network is available
           const networkAvailableTask = promiseWithResolvers();
@@ -1256,9 +1259,10 @@ export class Call {
             });
           });
           this.networkAvailableTask = networkAvailableTask;
+          this.sfuStatsReporter?.stop();
           this.state.setCallingState(CallingState.OFFLINE);
         } else {
-          console.log('[Reconnect] Going online');
+          this.logger('debug', '[Reconnect] Going online');
           this.sfuClient?.close(
             4002,
             'Closing WS to reconnect after going online',
@@ -1266,6 +1270,7 @@ export class Call {
           // we went online, release the previous waiters and reset the state
           this.networkAvailableTask?.resolve();
           this.networkAvailableTask = undefined;
+          this.sfuStatsReporter?.start();
         }
       },
     );
