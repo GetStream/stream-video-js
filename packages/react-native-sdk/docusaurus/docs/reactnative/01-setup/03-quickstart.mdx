@@ -38,10 +38,10 @@ export default function App() {
 }
 ```
 
-When creating a call on the client, the string `default` is a call type. There are 4 built-in [call types](../../core/configuring-call-types/). and you can also create your own.
+When creating a call on the client, the string `default` is a call type. There are 4 built-in [call types](../../core/configuring-call-types/) and you can also create your own.
 The call type controls the permissions and which features are enabled.
 
-The second argument is the call id. Call ids can be reused, meaning it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+The second argument is the call id. Call ids can be reused, meaning it's possible to join a call with the same id multiple times (for example, for recurring meetings). However, for ringing calls, you should always provide a unique call id.
 
 ## Rendering video
 
@@ -102,7 +102,7 @@ More information about this topic can be found in the [Camera & Microphone guide
 
 ## UI Components
 
-The goal of this library is to make it easy to build any type of video/calling experience. You have a few options for the UI:
+The goal of this library is to make it easy to build any type of video/calling experience. You have few options for the UI:
 
 - Build your own UI components using the state as shown above.
 - Use our library of built-in components.
