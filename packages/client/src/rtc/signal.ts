@@ -8,7 +8,7 @@ export const createWebSocketSignalChannel = (opts: {
   logTag: string;
 }) => {
   const { endpoint, onMessage, logTag } = opts;
-  const logger = getLogger(['sfu-client-signal', logTag]);
+  const logger = getLogger(['sfu-client-ws', logTag]);
   const ws = new WebSocket(endpoint);
   ws.binaryType = 'arraybuffer'; // do we need this?
 

@@ -119,6 +119,7 @@ export class StreamSfuClient {
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
   private readonly unsubscribeIceTrickle: () => void;
+  private readonly onSignalClose: ((event: CloseEvent) => void) | undefined;
   private readonly logger: Logger;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
@@ -159,6 +160,7 @@ export class StreamSfuClient {
   }: StreamSfuClientConstructor) {
     this.dispatcher = dispatcher;
     this.sessionId = sessionId || generateUUIDv4();
+    this.onSignalClose = onSignalClose;
     this.credentials = credentials;
     const { server, token } = credentials;
     this.edgeName = server.edge_name;
@@ -186,7 +188,7 @@ export class StreamSfuClient {
 
     this.signalWs = createWebSocketSignalChannel({
       logTag,
-      endpoint: server.ws_endpoint,
+      endpoint: `${server.ws_endpoint}?tag=${logTag}`,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
@@ -194,15 +196,7 @@ export class StreamSfuClient {
       },
     });
 
-    const onClose = (e: CloseEvent) => {
-      this.signalWs.removeEventListener('close', onClose);
-      clearInterval(this.keepAliveInterval);
-      clearTimeout(this.connectionCheckTimeout);
-      if (onSignalClose) {
-        onSignalClose(e);
-      }
-    };
-    this.signalWs.addEventListener('close', onClose);
+    this.signalWs.addEventListener('close', this.handleWebSocketClose);
 
     this.signalReady = new Promise((resolve) => {
       const onOpen = () => {
@@ -214,13 +208,23 @@ export class StreamSfuClient {
   }
 
   get isHealthy() {
-    return this.signalWs.readyState === this.signalWs.OPEN;
+    return this.signalWs.readyState === WebSocket.OPEN;
   }
 
+  private handleWebSocketClose = (e: CloseEvent) => {
+    this.signalWs.removeEventListener('close', this.handleWebSocketClose);
+    clearInterval(this.keepAliveInterval);
+    clearTimeout(this.connectionCheckTimeout);
+    if (this.onSignalClose) {
+      this.onSignalClose(e);
+    }
+  };
+
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
-    if (this.signalWs.readyState !== this.signalWs.CLOSED) {
+    if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
+      this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     }
     this.dispose();
   };
@@ -469,7 +473,7 @@ export class StreamSfuClient {
 
   send = async (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
-      if (signal.readyState !== signal.OPEN) {
+      if (signal.readyState !== WebSocket.OPEN) {
         this.logger(
           'debug',
           'Signal WS connection is not open. Skipping message',

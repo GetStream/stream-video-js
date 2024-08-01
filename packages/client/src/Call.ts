@@ -226,6 +226,7 @@ export class Call {
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
+  private sfuClientTag = 0;
 
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
@@ -804,7 +805,7 @@ export class Call {
     const sfuClient =
       performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
-            logTag: String(this.reconnectAttempts),
+            logTag: String(this.sfuClientTag++),
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             // a new session_id is necessary for the REJOIN strategy.
@@ -935,7 +936,7 @@ export class Call {
       state: this.state,
       connectionConfig,
       onUnrecoverableError: () => {
-        this.reconnect(WebsocketReconnectStrategy.CLEAN).catch((err) => {
+        this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
           this.logger(
             'warn',
             '[Reconnect] Error reconnecting after a subscriber error',
@@ -963,7 +964,7 @@ export class Call {
         isDtxEnabled,
         isRedEnabled,
         onUnrecoverableError: () => {
-          this.reconnect(WebsocketReconnectStrategy.CLEAN).catch((err) => {
+          this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
             this.logger(
               'warn',
               '[Reconnect] Error reconnecting after a publisher error',
@@ -1040,7 +1041,7 @@ export class Call {
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
     // attempt to reconnect with CLEAN strategy (the WS is anyway closed)
-    this.reconnect(WebsocketReconnectStrategy.CLEAN).catch((err) => {
+    this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
   }
@@ -1246,7 +1247,7 @@ export class Call {
               if (offline > this.fastReconnectDeadlineSeconds) {
                 // We shouldn't attempt FAST if we have exceeded the deadline.
                 // The SFU would have already wiped out the session.
-                strategy = WebsocketReconnectStrategy.CLEAN;
+                strategy = WebsocketReconnectStrategy.REJOIN;
               }
             }
 
