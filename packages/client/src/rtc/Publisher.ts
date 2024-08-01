@@ -827,10 +827,10 @@ export class Publisher {
   };
 
   private onIceConnectionStateChange = () => {
-    if (this.state.callingState === CallingState.RECONNECTING) return;
-
     const state = this.pc.iceConnectionState;
     logger('debug', `ICE Connection state changed to`, state);
+
+    if (this.state.callingState === CallingState.RECONNECTING) return;
 
     const hasNetworkConnection =
       this.state.callingState !== CallingState.OFFLINE;

@@ -327,10 +327,10 @@ export class Subscriber {
   };
 
   private onIceConnectionStateChange = () => {
-    if (this.state.callingState === CallingState.RECONNECTING) return;
-
     const state = this.pc.iceConnectionState;
     logger('debug', `ICE connection state changed`, state);
+
+    if (this.state.callingState === CallingState.RECONNECTING) return;
 
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
