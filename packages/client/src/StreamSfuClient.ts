@@ -34,7 +34,7 @@ import {
   sleep,
 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
-import { Logger, LogLevel } from './coordinator/connection/types';
+import { Logger } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
 import {
   promiseWithResolvers,
@@ -252,62 +252,51 @@ export class StreamSfuClient {
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.updateSubscriptions({
-          sessionId: this.sessionId,
-          tracks: subscriptions,
-        }),
-      this.logger,
-      'debug',
+    return retryable(() =>
+      this.rpc.updateSubscriptions({
+        sessionId: this.sessionId,
+        tracks: subscriptions,
+      }),
     );
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.setPublisher({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.setPublisher({
+        ...data,
+        sessionId: this.sessionId,
+      }),
     );
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.sendAnswer({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.sendAnswer({
+        ...data,
+        sessionId: this.sessionId,
+      }),
     );
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.iceTrickle({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.iceTrickle({
+        ...data,
+        sessionId: this.sessionId,
+      }),
     );
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.iceRestart({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.iceRestart({
+        ...data,
+        sessionId: this.sessionId,
+      }),
     );
   };
 
@@ -327,48 +316,39 @@ export class StreamSfuClient {
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.updateMuteStates({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.updateMuteStates({
+        ...data,
+        sessionId: this.sessionId,
+      }),
     );
   };
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.sendStats({
-          ...stats,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
-      'debug',
+    return retryable(() =>
+      this.rpc.sendStats({
+        ...stats,
+        sessionId: this.sessionId,
+      }),
     );
   };
 
   startNoiseCancellation = async () => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.startNoiseCancellation({
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.startNoiseCancellation({
+        sessionId: this.sessionId,
+      }),
     );
   };
 
   stopNoiseCancellation = async () => {
     await this.joinResponseTask.promise;
-    return retryable(
-      () =>
-        this.rpc.stopNoiseCancellation({
-          sessionId: this.sessionId,
-        }),
-      this.logger,
+    return retryable(() =>
+      this.rpc.stopNoiseCancellation({
+        sessionId: this.sessionId,
+      }),
     );
   };
 
@@ -539,15 +519,11 @@ const MAX_RETRIES = 5;
  * request bursts towards the SFU.
  *
  * @param rpc the closure around the RPC call to execute.
- * @param logger a logger instance to use.
- * @param level the log level to use.
  * @param <I> the type of the request object.
  * @param <O> the type of the response object.
  */
 const retryable = async <I extends object, O extends SfuResponseWithError>(
   rpc: () => UnaryCall<I, O>,
-  logger: Logger,
-  level: LogLevel = 'warn',
 ) => {
   let retryAttempt = 0;
   let rpcCallResult: FinishedUnaryCall<I, O>;
@@ -556,17 +532,7 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
     if (retryAttempt > 0) {
       await sleep(retryInterval(retryAttempt));
     }
-
     rpcCallResult = await rpc();
-
-    // if the RPC call failed, log the error and retry
-    if (rpcCallResult.response.error) {
-      logger(
-        level,
-        `SFU RPC Error (${rpcCallResult.method.name}):`,
-        rpcCallResult.response.error,
-      );
-    }
     retryAttempt++;
   } while (
     rpcCallResult.response.error?.shouldRetry &&
