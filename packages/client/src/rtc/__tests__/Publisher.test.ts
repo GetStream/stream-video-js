@@ -7,6 +7,7 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
+import { IceTrickleBuffer } from '../IceTrickleBuffer';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -40,14 +41,20 @@ describe('Publisher', () => {
     sfuClient = new StreamSfuClient({
       dispatcher,
       sessionId: 'session-id-test',
-      sfuServer: {
-        url: 'https://getstream.io/',
-        ws_endpoint: 'https://getstream.io/ws',
-        edge_name: 'sfu-1',
+      credentials: {
+        server: {
+          url: 'https://getstream.io/',
+          ws_endpoint: 'https://getstream.io/ws',
+          edge_name: 'sfu-1',
+        },
+        token: 'token',
+        ice_servers: [],
       },
-      token: 'token',
       logTag: 'test',
     });
+
+    // @ts-expect-error readonly field
+    sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
     // @ts-ignore
     sfuClient['sessionId'] = sessionId;
