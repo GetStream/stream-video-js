@@ -899,12 +899,14 @@ export class Call {
   private restoreICE = async (nextSfuClient: StreamSfuClient) => {
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
-      await this.subscriber.restartIce();
+      await this.subscriber.restartIce().catch((err) => {
+        this.logger('warn', 'Failed to restart ICE on subscriber', err);
+      });
     }
     if (this.publisher) {
       this.publisher.setSfuClient(nextSfuClient);
       await this.publisher.restartIce().catch((err) => {
-        this.logger('warn', 'Failed to restart ICE', err);
+        this.logger('warn', 'Failed to restart ICE on publisher', err);
       });
     }
   };
