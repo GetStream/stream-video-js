@@ -46,7 +46,6 @@ describe('Subscriber', () => {
       dispatcher,
       state,
       connectionConfig: { iceServers: [] },
-      iceRestartDelay: 100,
     });
   });
 
@@ -126,20 +125,6 @@ describe('Subscriber', () => {
       subscriber['onIceConnectionStateChange']();
       vi.runAllTimers();
       expect(subscriber.restartIce).toHaveBeenCalled();
-    });
-
-    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
-      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
-
-      // @ts-ignore
-      subscriber['pc'].iceConnectionState = 'disconnected';
-      subscriber['onIceConnectionStateChange']();
-      // @ts-ignore
-      subscriber['pc'].iceConnectionState = 'connected';
-
-      vi.runAllTimers();
-      expect(subscriber.restartIce).not.toHaveBeenCalled();
     });
   });
 

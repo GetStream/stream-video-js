@@ -36,7 +36,6 @@ export type PublisherConstructorOpts = {
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
-  iceRestartDelay?: number;
   onUnrecoverableError?: () => void;
 };
 
@@ -100,8 +99,7 @@ export class Publisher {
   private readonly unregisterIceTrickleBuffer?: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceCandidates: RTCIceCandidateInit[] = [];
-  private readonly iceRestartDelay: number;
+  private readonly iceCandidatesQueue: RTCIceCandidateInit[] = [];
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
@@ -142,7 +140,6 @@ export class Publisher {
     state,
     isDtxEnabled,
     isRedEnabled,
-    iceRestartDelay = 2500,
     onUnrecoverableError,
   }: PublisherConstructorOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
@@ -150,7 +147,6 @@ export class Publisher {
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
-    this.iceRestartDelay = iceRestartDelay;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
@@ -166,13 +162,14 @@ export class Publisher {
       (trickle) => {
         try {
           const candidate = JSON.parse(trickle.iceCandidate);
-          if (this.pc.iceConnectionState === 'connected') {
-            logger('debug', `Received ICE candidate while connected`, trickle);
+          if (this.pc.remoteDescription) {
+            logger('debug', `Applying ICE candidate to the pc`, trickle);
             this.pc.addIceCandidate(candidate).catch((e) => {
               logger('warn', `Can't add ICE candidate`, e);
             });
+          } else {
+            this.iceCandidatesQueue.push(candidate);
           }
-          this.iceCandidates.push(candidate);
         } catch (e) {
           logger('warn', `Malformed ICE candidate`, e, trickle);
         }
@@ -690,8 +687,8 @@ export class Publisher {
 
     this.isIceRestarting = false;
 
-    while (this.iceCandidates.length > 0) {
-      const candidate = this.iceCandidates.shift();
+    while (this.iceCandidatesQueue.length > 0) {
+      const candidate = this.iceCandidatesQueue.shift();
       try {
         logger('debug', `Adding ICE candidate`, candidate);
         await this.pc.addIceCandidate(candidate);
@@ -852,27 +849,12 @@ export class Publisher {
         this.onUnrecoverableError?.();
       });
     } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically,
-      // hence, we delay the ICE restart
-      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      this.iceRestartTimeout = setTimeout(() => {
-        // check if the state is still `disconnected` or `failed`
-        // as the connection may have recovered (or failed) in the meantime
-        if (
-          this.pc.iceConnectionState === 'disconnected' ||
-          this.pc.iceConnectionState === 'failed'
-        ) {
-          this.restartIce().catch((e) => {
-            logger('error', `ICE restart error`, e);
-            this.onUnrecoverableError?.();
-          });
-        } else {
-          logger(
-            'debug',
-            `Scheduled ICE restart: connection recovered, canceled.`,
-          );
-        }
-      }, this.iceRestartDelay);
+      // when in `disconnected` state, the browser may recover automatically
+      logger('debug', `Attempting ICE restart`);
+      this.restartIce().catch((e) => {
+        logger('error', `ICE restart error`, e);
+        this.onUnrecoverableError?.();
+      });
     }
   };
 

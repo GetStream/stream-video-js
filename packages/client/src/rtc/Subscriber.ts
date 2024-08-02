@@ -14,7 +14,6 @@ export type SubscriberOpts = {
   dispatcher: Dispatcher;
   state: CallState;
   connectionConfig?: RTCConfiguration;
-  iceRestartDelay?: number;
   onUnrecoverableError?: () => void;
 };
 
@@ -36,8 +35,7 @@ export class Subscriber {
   private readonly unregisterIceTrickleBuffer?: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceCandidates: RTCIceCandidateInit[] = [];
-  private readonly iceRestartDelay: number;
+  private readonly iceCandidatesQueue: RTCIceCandidateInit[] = [];
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
@@ -69,12 +67,10 @@ export class Subscriber {
     dispatcher,
     state,
     connectionConfig,
-    iceRestartDelay = 2500,
     onUnrecoverableError,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.state = state;
-    this.iceRestartDelay = iceRestartDelay;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.pc = this.createPeerConnection(connectionConfig);
@@ -109,13 +105,14 @@ export class Subscriber {
       (trickle) => {
         try {
           const candidate = JSON.parse(trickle.iceCandidate);
-          if (this.pc.iceConnectionState === 'connected') {
-            logger('debug', `Received ICE candidate while connected`, trickle);
+          if (this.pc.remoteDescription) {
+            logger('debug', `Applying ICE candidate to the pc`, trickle);
             this.pc.addIceCandidate(candidate).catch((e) => {
               logger('warn', `Can't add ICE candidate`, e);
             });
+          } else {
+            this.iceCandidatesQueue.push(candidate);
           }
-          this.iceCandidates.push(candidate);
         } catch (e) {
           logger('warn', `Malformed ICE candidate`, e, trickle);
         }
@@ -321,8 +318,8 @@ export class Subscriber {
     });
 
     // ensure that trickled ICE candidates are added before creating the answer
-    while (this.iceCandidates.length > 0) {
-      const candidate = this.iceCandidates.shift();
+    while (this.iceCandidatesQueue.length > 0) {
+      const candidate = this.iceCandidatesQueue.shift();
       try {
         logger('debug', `Adding ICE candidate`, candidate);
         await this.pc.addIceCandidate(candidate);
@@ -361,27 +358,12 @@ export class Subscriber {
         this.onUnrecoverableError?.();
       });
     } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically,
-      // hence, we delay the ICE restart
-      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      this.iceRestartTimeout = setTimeout(() => {
-        // check if the state is still `disconnected` or `failed`
-        // as the connection may have recovered (or failed) in the meantime
-        if (
-          this.pc.iceConnectionState === 'disconnected' ||
-          this.pc.iceConnectionState === 'failed'
-        ) {
-          this.restartIce().catch((e) => {
-            logger('error', `ICE restart failed`, e);
-            this.onUnrecoverableError?.();
-          });
-        } else {
-          logger(
-            'debug',
-            `Scheduled ICE restart: connection recovered, canceled.`,
-          );
-        }
-      }, this.iceRestartDelay);
+      // when in `disconnected` state, the browser may recover automatically
+      logger('debug', `Attempting ICE restart`);
+      this.restartIce().catch((e) => {
+        logger('error', `ICE restart failed`, e);
+        this.onUnrecoverableError?.();
+      });
     }
   };
 

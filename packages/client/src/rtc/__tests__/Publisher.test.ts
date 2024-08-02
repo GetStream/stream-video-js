@@ -66,7 +66,6 @@ describe('Publisher', () => {
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
-      iceRestartDelay: 100,
     });
   });
 
@@ -276,20 +275,6 @@ describe('Publisher', () => {
       publisher['onIceConnectionStateChange']();
       vi.runAllTimers();
       expect(publisher.restartIce).toHaveBeenCalled();
-    });
-
-    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
-      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
-
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'disconnected';
-      publisher['onIceConnectionStateChange']();
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
-
-      vi.runAllTimers();
-      expect(publisher.restartIce).not.toHaveBeenCalled();
     });
   });
 });
