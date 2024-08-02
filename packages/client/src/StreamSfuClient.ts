@@ -282,6 +282,7 @@ export class StreamSfuClient {
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
     await this.joinResponseTask.promise;
+    this.logger('debug', `Sending ICE Trickle ${data.peerType}`, data);
     return retryable(() =>
       this.rpc.iceTrickle({
         ...data,
