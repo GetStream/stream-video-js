@@ -5,7 +5,6 @@ import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
-import { createSubscription } from '../store/rxUtils';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 
@@ -32,10 +31,8 @@ export class Subscriber {
 
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
-  private readonly unregisterIceTrickleBuffer?: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceCandidatesQueue: RTCIceCandidateInit[] = [];
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
@@ -99,25 +96,6 @@ export class Subscriber {
         this.onUnrecoverableError?.();
       });
     });
-
-    this.unregisterIceTrickleBuffer = createSubscription(
-      sfuClient.iceTrickleBuffer.subscriberCandidates,
-      (trickle) => {
-        try {
-          const candidate = JSON.parse(trickle.iceCandidate);
-          if (this.pc.remoteDescription) {
-            logger('debug', `Applying ICE candidate to the pc`, trickle);
-            this.pc.addIceCandidate(candidate).catch((e) => {
-              logger('warn', `Can't add ICE candidate`, e);
-            });
-          } else {
-            this.iceCandidatesQueue.push(candidate);
-          }
-        } catch (e) {
-          logger('warn', `Malformed ICE candidate`, e, trickle);
-        }
-      },
-    );
   }
 
   /**
@@ -161,7 +139,6 @@ export class Subscriber {
   detachEventHandlers = () => {
     this.unregisterOnSubscriberOffer();
     this.unregisterOnIceRestart();
-    this.unregisterIceTrickleBuffer?.();
 
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('track', this.handleOnTrack);
@@ -317,16 +294,16 @@ export class Subscriber {
       sdp: subscriberOffer.sdp,
     });
 
-    // ensure that trickled ICE candidates are added before creating the answer
-    while (this.iceCandidatesQueue.length > 0) {
-      const candidate = this.iceCandidatesQueue.shift();
-      try {
-        logger('debug', `Adding ICE candidate`, candidate);
-        await this.pc.addIceCandidate(candidate);
-      } catch (e) {
-        logger('warn', `Can't add ICE candidate`, e);
-      }
-    }
+    this.sfuClient.iceTrickleBuffer.subscriberCandidates.subscribe(
+      async (candidate) => {
+        try {
+          const iceCandidate = JSON.parse(candidate.iceCandidate);
+          await this.pc.addIceCandidate(iceCandidate);
+        } catch (e) {
+          logger('warn', `ICE candidate error`, [e, candidate]);
+        }
+      },
+    );
 
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
@@ -348,23 +325,14 @@ export class Subscriber {
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
-    const hasNetworkConnection =
-      this.state.callingState !== CallingState.OFFLINE;
-
     if (state === 'failed') {
       logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart failed`, e);
         this.onUnrecoverableError?.();
       });
-    } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically
-      logger('debug', `Attempting ICE restart`);
-      this.restartIce().catch((e) => {
-        logger('error', `ICE restart failed`, e);
-        this.onUnrecoverableError?.();
-      });
     }
+    // TODO OL: check if we need to restore the `disconnected` state
   };
 
   private onIceGatheringStateChange = () => {

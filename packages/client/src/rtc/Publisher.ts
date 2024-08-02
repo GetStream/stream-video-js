@@ -16,7 +16,6 @@ import {
 import { getPreferredCodecs } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
-import { createSubscription } from '../store/rxUtils';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
 import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
@@ -96,10 +95,8 @@ export class Publisher {
   private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
-  private readonly unregisterIceTrickleBuffer?: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceCandidatesQueue: RTCIceCandidateInit[] = [];
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
@@ -156,25 +153,6 @@ export class Publisher {
         this.onUnrecoverableError?.();
       });
     });
-
-    this.unregisterIceTrickleBuffer = createSubscription(
-      sfuClient.iceTrickleBuffer.publisherCandidates,
-      (trickle) => {
-        try {
-          const candidate = JSON.parse(trickle.iceCandidate);
-          if (this.pc.remoteDescription) {
-            logger('debug', `Applying ICE candidate to the pc`, trickle);
-            this.pc.addIceCandidate(candidate).catch((e) => {
-              logger('warn', `Can't add ICE candidate`, e);
-            });
-          } else {
-            this.iceCandidatesQueue.push(candidate);
-          }
-        } catch (e) {
-          logger('warn', `Malformed ICE candidate`, e, trickle);
-        }
-      },
-    );
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
@@ -224,7 +202,6 @@ export class Publisher {
    */
   detachEventHandlers = () => {
     this.unsubscribeOnIceRestart();
-    this.unregisterIceTrickleBuffer?.();
 
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -687,15 +664,16 @@ export class Publisher {
 
     this.isIceRestarting = false;
 
-    while (this.iceCandidatesQueue.length > 0) {
-      const candidate = this.iceCandidatesQueue.shift();
-      try {
-        logger('debug', `Adding ICE candidate`, candidate);
-        await this.pc.addIceCandidate(candidate);
-      } catch (e) {
-        logger('warn', `Can't add ICE candidate`, e);
-      }
-    }
+    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
+      async (candidate) => {
+        try {
+          const iceCandidate = JSON.parse(candidate.iceCandidate);
+          await this.pc.addIceCandidate(iceCandidate);
+        } catch (e) {
+          logger('warn', `ICE candidate error`, e, candidate);
+        }
+      },
+    );
   };
 
   private mungeCodecs = (sdp?: string) => {
@@ -839,23 +817,14 @@ export class Publisher {
 
     if (this.state.callingState === CallingState.RECONNECTING) return;
 
-    const hasNetworkConnection =
-      this.state.callingState !== CallingState.OFFLINE;
-
     if (state === 'failed') {
       logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart error`, e);
         this.onUnrecoverableError?.();
       });
-    } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically
-      logger('debug', `Attempting ICE restart`);
-      this.restartIce().catch((e) => {
-        logger('error', `ICE restart error`, e);
-        this.onUnrecoverableError?.();
-      });
     }
+    // TODO OL: check if we need to restore the `disconnected` state
   };
 
   private onIceGatheringStateChange = () => {
