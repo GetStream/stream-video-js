@@ -33,9 +33,10 @@ export class Subscriber {
 
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
-  private unregisterIceTrickleBuffer?: () => void;
+  private readonly unregisterIceTrickleBuffer?: () => void;
   private readonly onUnrecoverableError?: () => void;
 
+  private readonly iceCandidates: RTCIceCandidateInit[] = [];
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -102,6 +103,24 @@ export class Subscriber {
         this.onUnrecoverableError?.();
       });
     });
+
+    this.unregisterIceTrickleBuffer = createSubscription(
+      sfuClient.iceTrickleBuffer.subscriberCandidates,
+      (trickle) => {
+        try {
+          const candidate = JSON.parse(trickle.iceCandidate);
+          if (this.pc.iceConnectionState === 'connected') {
+            logger('debug', `Received ICE candidate while connected`, trickle);
+            this.pc.addIceCandidate(candidate).catch((e) => {
+              logger('warn', `Can't add ICE candidate`, e);
+            });
+          }
+          this.iceCandidates.push(candidate);
+        } catch (e) {
+          logger('warn', `Malformed ICE candidate`, e, trickle);
+        }
+      },
+    );
   }
 
   /**
@@ -301,19 +320,16 @@ export class Subscriber {
       sdp: subscriberOffer.sdp,
     });
 
-    // unsubscribe from the previous negotiation, if available
-    this.unregisterIceTrickleBuffer?.();
-    this.unregisterIceTrickleBuffer = createSubscription(
-      this.sfuClient.iceTrickleBuffer.subscriberCandidates,
-      async (t) => {
-        try {
-          const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);
-          await this.pc.addIceCandidate(candidate);
-        } catch (e) {
-          logger('warn', `Can't add ICE candidate`, e, t);
-        }
-      },
-    );
+    // ensure that trickled ICE candidates are added before creating the answer
+    while (this.iceCandidates.length > 0) {
+      const candidate = this.iceCandidates.shift();
+      try {
+        logger('debug', `Adding ICE candidate`, candidate);
+        await this.pc.addIceCandidate(candidate);
+      } catch (e) {
+        logger('warn', `Can't add ICE candidate`, e);
+      }
+    }
 
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);

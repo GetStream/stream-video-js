@@ -97,9 +97,10 @@ export class Publisher {
   private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
-  private unregisterIceTrickleBuffer?: () => void;
+  private readonly unregisterIceTrickleBuffer?: () => void;
   private readonly onUnrecoverableError?: () => void;
 
+  private readonly iceCandidates: RTCIceCandidateInit[] = [];
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -159,6 +160,24 @@ export class Publisher {
         this.onUnrecoverableError?.();
       });
     });
+
+    this.unregisterIceTrickleBuffer = createSubscription(
+      sfuClient.iceTrickleBuffer.publisherCandidates,
+      (trickle) => {
+        try {
+          const candidate = JSON.parse(trickle.iceCandidate);
+          if (this.pc.iceConnectionState === 'connected') {
+            logger('debug', `Received ICE candidate while connected`, trickle);
+            this.pc.addIceCandidate(candidate).catch((e) => {
+              logger('warn', `Can't add ICE candidate`, e);
+            });
+          }
+          this.iceCandidates.push(candidate);
+        } catch (e) {
+          logger('warn', `Malformed ICE candidate`, e, trickle);
+        }
+      },
+    );
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
@@ -650,9 +669,7 @@ export class Publisher {
 
     const trackInfos = this.getAnnouncedTracks(offer.sdp);
     if (trackInfos.length === 0) {
-      throw new Error(
-        `Can't initiate negotiation without announcing any tracks`,
-      );
+      throw new Error(`Can't negotiate without announcing any tracks`);
     }
 
     await this.pc.setLocalDescription(offer);
@@ -668,27 +685,20 @@ export class Publisher {
         sdp: response.sdp,
       });
     } catch (e) {
-      logger('error', `setRemoteDescription error`, {
-        sdp: response.sdp,
-        error: e,
-      });
+      logger('error', `setRemoteDescription error`, response.sdp, e);
     }
 
     this.isIceRestarting = false;
 
-    // unsubscribe from the previous negotiation, if available
-    this.unregisterIceTrickleBuffer?.();
-    this.unregisterIceTrickleBuffer = createSubscription(
-      this.sfuClient.iceTrickleBuffer.publisherCandidates,
-      async (t) => {
-        try {
-          const candidate: RTCIceCandidateInit = JSON.parse(t.iceCandidate);
-          await this.pc.addIceCandidate(candidate);
-        } catch (e) {
-          logger('warn', `Can't add ICE candidate`, e, t);
-        }
-      },
-    );
+    while (this.iceCandidates.length > 0) {
+      const candidate = this.iceCandidates.shift();
+      try {
+        logger('debug', `Adding ICE candidate`, candidate);
+        await this.pc.addIceCandidate(candidate);
+      } catch (e) {
+        logger('warn', `Can't add ICE candidate`, e);
+      }
+    }
   };
 
   private mungeCodecs = (sdp?: string) => {
