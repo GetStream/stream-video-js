@@ -1055,7 +1055,9 @@ export class Call {
    *
    * @param strategy the reconnection strategy to use.
    */
-  private reconnect = async (strategy: WebsocketReconnectStrategy) => {
+  private reconnect = async (
+    strategy: WebsocketReconnectStrategy,
+  ): Promise<void> => {
     if (hasPending(this.reconnectConcurrencyTag)) {
       const current = WebsocketReconnectStrategy[this.reconnectStrategy];
       const next = WebsocketReconnectStrategy[strategy];
@@ -1076,13 +1078,15 @@ export class Call {
 
       this.reconnectStrategy = strategy;
       do {
+        const current = WebsocketReconnectStrategy[this.reconnectStrategy];
         try {
           switch (this.reconnectStrategy) {
+            case WebsocketReconnectStrategy.UNSPECIFIED:
+            case WebsocketReconnectStrategy.DISCONNECT:
+              this.logger('debug', `[Reconnect] No-op strategy ${current}`);
+              break;
             case WebsocketReconnectStrategy.FAST:
               await this.reconnectFast();
-              break;
-            case WebsocketReconnectStrategy.CLEAN:
-              await this.reconnectClean();
               break;
             case WebsocketReconnectStrategy.REJOIN:
               await this.reconnectRejoin();
@@ -1090,9 +1094,6 @@ export class Call {
             case WebsocketReconnectStrategy.MIGRATE:
               await this.reconnectMigrate();
               break;
-            case WebsocketReconnectStrategy.UNSPECIFIED:
-            case WebsocketReconnectStrategy.DISCONNECT:
-              break; // UNSPECIFIED and DISCONNECT are no-op
             default:
               ensureExhausted(
                 this.reconnectStrategy,
@@ -1102,29 +1103,16 @@ export class Call {
           }
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
-          // go to the next strategy in case of failure, but don't go beyond REJOIN
-          const nextStrategy = Math.min(
-            this.reconnectStrategy + 1,
-            WebsocketReconnectStrategy.REJOIN,
-          );
-          const current = WebsocketReconnectStrategy[this.reconnectStrategy];
-          const next = WebsocketReconnectStrategy[nextStrategy];
           this.logger(
             'warn',
-            `[Reconnect] ${current} strategy failed. Attempting with ${next}`,
+            `[Reconnect] ${current} failed. Attempting with REJOIN`,
             error,
           );
           await sleep(retryInterval(this.reconnectAttempts));
-          this.reconnectStrategy = nextStrategy;
-          // we shouldn't increment the attempt counter for fast reconnect
-          if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
-            this.reconnectAttempts += 1;
-          }
+          this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
+          this.reconnectAttempts += 1;
         }
-      } while (
-        this.reconnectStrategy <= WebsocketReconnectStrategy.REJOIN ||
-        this.state.callingState === CallingState.JOINED
-      );
+      } while (this.state.callingState === CallingState.JOINED);
     });
   };
 
@@ -1136,18 +1124,6 @@ export class Call {
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     return this.join(this.joinCallData);
-  };
-
-  /**
-   * Initiates the reconnection flow with the "clean" strategy.
-   * @internal
-   */
-  private reconnectClean = async () => {
-    this.reconnectStrategy = WebsocketReconnectStrategy.CLEAN;
-    this.state.setCallingState(CallingState.RECONNECTING);
-    await this.join(this.joinCallData);
-    await this.restorePublishedTracks();
-    this.restoreSubscribedTracks();
   };
 
   /**

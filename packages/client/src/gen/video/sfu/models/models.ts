@@ -768,25 +768,18 @@ export enum WebsocketReconnectStrategy {
    */
   FAST = 2,
   /**
-   * SDK should drop existing pc instances and creates a fresh WebSocket connection,
-   * ensuring a clean state for the reconnection.
-   *
-   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_CLEAN = 3;
-   */
-  CLEAN = 3,
-  /**
    * SDK should obtain new credentials from the coordinator, drops existing pc instances, set a new session_id and initializes
    * a completely new WebSocket connection, ensuring a comprehensive reset.
    *
-   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_REJOIN = 4;
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_REJOIN = 3;
    */
-  REJOIN = 4,
+  REJOIN = 3,
   /**
    * SDK should migrate to a new SFU instance
    *
-   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_MIGRATE = 5;
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_MIGRATE = 4;
    */
-  MIGRATE = 5,
+  MIGRATE = 4,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
