@@ -4,6 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { isSafari } from '../helpers/browsers';
 
 type PreferredCodec = 'vp8' | 'h264' | string;
 
@@ -22,6 +23,8 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
 
   constructor(call: Call) {
     super(call, new CameraManagerState(), TrackType.VIDEO);
+
+    this.preferredCodec = isSafari() ? 'h264' : undefined;
   }
 
   /**
@@ -61,10 +64,10 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         this.logger('warn', 'could not apply target resolution', error);
       }
     }
-    if (this.state.status === 'enabled') {
-      const { width, height } = this.state
-        .mediaStream!.getVideoTracks()[0]
-        ?.getSettings();
+    if (this.state.status === 'enabled' && this.state.mediaStream) {
+      const [videoTrack] = this.state.mediaStream.getVideoTracks();
+      if (!videoTrack) return;
+      const { width, height } = videoTrack.getSettings();
       if (
         width !== this.targetResolution.width ||
         height !== this.targetResolution.height
