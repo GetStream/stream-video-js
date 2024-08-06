@@ -25,7 +25,7 @@ export function getNotifeeLibNoThrowForKeepCallAlive() {
   if (!notifeeLib) {
     const logger = getLogger(['getNotifeeLibNoThrow']);
     logger(
-      'warn',
+      'info',
       `${'@notifee/react-native library not installed. It is required to keep call alive in the background for Android < 26. '}${INSTALLATION_INSTRUCTION}`
     );
   }
