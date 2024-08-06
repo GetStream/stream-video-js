@@ -17,44 +17,32 @@ Head over to the documentation [here](../../advanced/pip/) on how to picture-in-
 
 ### Android 7
 
-There is no support for Picture-in-picture (PiP) mode below Android 8. Hence in those platforms, we use a [foreground service](https://developer.android.com/guide/components/foreground-services) to keep the call alive. The SDK will manage the foreground service. In Expo, the config plugin adds it up. But if Expo is not used, be sure to add the following:
-
-#### Add declarations in AndroidManifest
+There is no support for Picture-in-picture (PiP) mode below Android 8. Hence in those platforms, we use a [foreground service](https://developer.android.com/guide/components/foreground-services) to keep the call alive. The SDK will automatically create and manage the foreground service. The only requirement is to install the `Notifee` library so that SDK can handle a foreground service. To install the `Notifee` library, run the following command in your terminal of choice:
 
 <Tabs groupId="current-platform" queryString>
   <TabItem value="expo" label="Expo">
 
-In Expo, declarations in Android Manifest are automatically done by the expo config plugin of the SDK, so nothing needs to be added manually.
+```bash title=Terminal
+npx expo install @notifee/react-native
+```
  
   </TabItem>
   <TabItem value="reactnative" label="React Native">
 
-Add the following in `AndroidManifest.xml`:
-
-```xml title="AndroidManifest.xml"
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-<!-- We declare the permissions to for using foreground service -->
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-
-<service
-    android:name="app.notifee.core.ForegroundService"
-    tools:replace="android:foregroundServiceType"
-    android:stopWithTask="true"
-    android:foregroundServiceType="dataSync" />
+```bash title=Terminal
+yarn add @notifee/react-native
+npx pod-install
 ```
 
   </TabItem>
 </Tabs>
 
-
-#### Optional: override the default configuration of the notifications
+#### Optional: override the default configuration of the foreground service notifications
 
 You can also optionally override the default configuration of the notification used by the SDK. Below we give an example of that:
 
 ```ts
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
-import { AndroidImportance } from '@notifee/react-native';
 
 StreamVideoRN.updateConfig({
   foregroundService: {
