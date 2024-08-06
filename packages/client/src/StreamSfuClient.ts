@@ -221,10 +221,7 @@ export class StreamSfuClient {
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
-    if (
-      this.signalWs.readyState === WebSocket.OPEN ||
-      this.signalWs.readyState === WebSocket.CONNECTING
-    ) {
+    if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
       this.signalWs.removeEventListener('close', this.handleWebSocketClose);
