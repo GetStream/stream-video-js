@@ -74,6 +74,9 @@
     "react-native-voip-push-notification": ">=3.3.1"
   },
   "peerDependenciesMeta": {
+    "@notifee/react-native": {
+      "optional": true
+    },
     "@react-native-community/push-notification-ios": {
       "optional": true
     },
@@ -108,9 +111,6 @@
       "optional": true
     },
     "react-native-voip-push-notification": {
-      "optional": true
-    },
-    "@notifee/react-native": {
       "optional": true
     }
   },
