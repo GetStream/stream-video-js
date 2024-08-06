@@ -54,7 +54,6 @@
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {
-    "@notifee/react-native": ">=7.8.0",
     "@react-native-community/netinfo": ">=9.0.0",
     "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
@@ -109,6 +108,9 @@
       "optional": true
     },
     "react-native-voip-push-notification": {
+      "optional": true
+    },
+    "@notifee/react-native": {
       "optional": true
     }
   },
