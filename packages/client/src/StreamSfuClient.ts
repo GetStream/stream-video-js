@@ -221,7 +221,10 @@ export class StreamSfuClient {
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
-    if (this.signalWs.readyState === WebSocket.OPEN) {
+    if (
+      this.signalWs.readyState === WebSocket.OPEN ||
+      this.signalWs.readyState === WebSocket.CONNECTING
+    ) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
       this.signalWs.removeEventListener('close', this.handleWebSocketClose);
@@ -282,7 +285,6 @@ export class StreamSfuClient {
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    this.logger('debug', `Sending ICE Trickle ${data.peerType}`, data);
     return retryable(() =>
       this.rpc.iceTrickle({
         ...data,
@@ -533,6 +535,7 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
     if (retryAttempt > 0) {
       await sleep(retryInterval(retryAttempt));
     }
+    // TODO implement retries after a network failure
     rpcCallResult = await rpc();
     retryAttempt++;
   } while (

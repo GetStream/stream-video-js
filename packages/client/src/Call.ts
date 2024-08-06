@@ -132,7 +132,7 @@ import {
   SpeakerManager,
 } from './devices';
 import { getSdkSignature } from './stats/utils';
-import { hasPending, withoutConcurrency } from './helpers/concurrency';
+import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import {
   PromiseWithResolvers,
@@ -822,9 +822,9 @@ export class Call {
       // prepare a generic SDP and send it to the SFU.
       // this is a throw-away SDP that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
-      const subscriberSdp = await getGenericSdp('recvonly');
+      const receivingCapabilitiesSdp = await getGenericSdp('recvonly');
       const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
-        subscriberSdp,
+        subscriberSdp: receivingCapabilitiesSdp,
         clientDetails,
         fastReconnect: performingFastReconnect,
         reconnectDetails:
@@ -842,7 +842,9 @@ export class Call {
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
-      await this.restoreICE(sfuClient);
+      // the SFU automatically issues an ICE restart on the subscriber
+      // we don't have to do it ourselves
+      await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
       this.initPublisherAndSubscriber({
@@ -896,18 +898,26 @@ export class Call {
    * Uses the provided SFU client to restore the ICE connection.
    * @internal
    */
-  private restoreICE = async (nextSfuClient: StreamSfuClient) => {
+  private restoreICE = async (
+    nextSfuClient: StreamSfuClient,
+    opts: { includeSubscriber?: boolean; includePublisher?: boolean } = {},
+  ) => {
+    const { includeSubscriber = true, includePublisher = true } = opts;
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
-      await this.subscriber.restartIce().catch((err) => {
-        this.logger('warn', 'Failed to restart ICE on subscriber', err);
-      });
+      if (includeSubscriber) {
+        await this.subscriber.restartIce().catch((err) => {
+          this.logger('warn', 'Failed to restart ICE on subscriber', err);
+        });
+      }
     }
     if (this.publisher) {
       this.publisher.setSfuClient(nextSfuClient);
-      await this.publisher.restartIce().catch((err) => {
-        this.logger('warn', 'Failed to restart ICE on publisher', err);
-      });
+      if (includePublisher) {
+        await this.publisher.restartIce().catch((err) => {
+          this.logger('warn', 'Failed to restart ICE on publisher', err);
+        });
+      }
     }
   };
 
@@ -1058,15 +1068,6 @@ export class Call {
   private reconnect = async (
     strategy: WebsocketReconnectStrategy,
   ): Promise<void> => {
-    if (hasPending(this.reconnectConcurrencyTag)) {
-      const current = WebsocketReconnectStrategy[this.reconnectStrategy];
-      const next = WebsocketReconnectStrategy[strategy];
-      this.logger(
-        'debug',
-        `[Reconnect] ${current} reconnection is ongoing. Discarding ${next}`,
-      );
-      return; // do nothing if there is an ongoing reconnection
-    }
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
       this.logger(
         'info',
@@ -1112,7 +1113,7 @@ export class Call {
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
           this.reconnectAttempts += 1;
         }
-      } while (this.state.callingState === CallingState.JOINED);
+      } while (this.state.callingState !== CallingState.JOINED);
     });
   };
 
