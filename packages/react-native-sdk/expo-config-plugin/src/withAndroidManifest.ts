@@ -16,12 +16,11 @@ type ManifestService = Unpacked<
 >;
 
 function getNotifeeService() {
-  /* Example:
+  /* We add this service to the AndroidManifest.xml:
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
-        
-        android:foregroundServiceType="mediaProjection" />
+        android:foregroundServiceType="dataSync" />
  */
   const foregroundServiceType = 'dataSync';
   let head = prefixAndroidKeys({
@@ -43,15 +42,17 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
     try {
       const androidManifest = config.modResults;
       const mainApplication = getMainApplicationOrThrow(androidManifest);
-      /* Add the notifee Service */
-      let services = mainApplication.service ?? [];
-      // we filter out the existing notifee service (if any) so that we can override it
-      services = services.filter(
-        (service) =>
-          service.$['android:name'] !== 'app.notifee.core.ForegroundService'
-      );
-      services.push(getNotifeeService());
-      mainApplication.service = services;
+      if (props?.ringingPushNotifications) {
+        /* Add the notifee foreground Service */
+        let services = mainApplication.service ?? [];
+        // we filter out the existing notifee service (if any) so that we can override it
+        services = services.filter(
+          (service) =>
+            service.$['android:name'] !== 'app.notifee.core.ForegroundService'
+        );
+        services.push(getNotifeeService());
+        mainApplication.service = services;
+      }
 
       if (props?.androidPictureInPicture) {
         const mainActivity = getMainActivityOrThrow(androidManifest);
