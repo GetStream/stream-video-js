@@ -46,7 +46,7 @@ jobs:
         run: yarn test:ci:all
 
       - name: Test RN SDK
-        run: yarn workspace @stream-io/video-react-native-sdk run copy-version && yarn test:react-native:sdk
+        run: yarn test:react-native:sdk
 
       - name: Build packages
         run: NODE_ENV=production yarn build:all
