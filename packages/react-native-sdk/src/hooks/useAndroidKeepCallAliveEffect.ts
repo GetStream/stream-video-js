@@ -7,9 +7,12 @@ import { getNotifeeLibNoThrowForKeepCallAlive } from '../utils/push/libs/notifee
 
 const isAndroid7OrBelow = Platform.OS === 'android' && Platform.Version < 26;
 
+const notifeeLib = isAndroid7OrBelow
+  ? getNotifeeLibNoThrowForKeepCallAlive()
+  : undefined;
+
 function setForegroundService() {
   if (!isAndroid7OrBelow) return;
-  const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
   notifeeLib?.default.registerForegroundService(() => {
     return new Promise(() => {
       const logger = getLogger(['setForegroundService method']);
@@ -24,7 +27,6 @@ async function startForegroundService(call_cid: string) {
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
 
   // request for notification permission and then start the foreground service
-  const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
   if (!notifeeLib) return;
   const settings = await notifeeLib.default.getNotificationSettings();
   if (
@@ -74,12 +76,10 @@ export const useAndroidKeepCallAliveEffect = () => {
   const callingState = useCallCallingState();
 
   useEffect((): (() => void) | undefined => {
+    if (!notifeeLib) return;
     if (Platform.OS === 'ios' || !activeCallCid) {
       return;
     }
-
-    const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
-    if (!notifeeLib) return;
 
     // start foreground service as soon as the call is joined
     if (callingState === CallingState.JOINED) {
@@ -138,7 +138,6 @@ export const useAndroidKeepCallAliveEffect = () => {
     return () => {
       // stop foreground service when this effect is unmounted
       if (foregroundServiceStartedRef.current) {
-        const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
         if (!notifeeLib) return;
         notifeeLib.default.stopForegroundService();
         foregroundServiceStartedRef.current = false;
