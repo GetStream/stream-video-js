@@ -1076,13 +1076,12 @@ export class Call {
         `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
       );
 
-      // wait until the network is available
-      await this.networkAvailableTask?.promise;
-
       this.reconnectStrategy = strategy;
       do {
         const current = WebsocketReconnectStrategy[this.reconnectStrategy];
         try {
+          // wait until the network is available
+          await this.networkAvailableTask?.promise;
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
@@ -1115,7 +1114,10 @@ export class Call {
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
           this.reconnectAttempts++;
         }
-      } while (this.state.callingState !== CallingState.JOINED);
+      } while (
+        this.state.callingState !== CallingState.JOINED &&
+        this.state.callingState !== CallingState.LEFT
+      );
     });
   };
 
@@ -1174,8 +1176,8 @@ export class Call {
       // task would throw an error and REJOIN would be attempted.
       await migrationTask;
     } catch (error) {
-      this.logger('warn', 'Migration error', error);
-      // throw error;
+      this.logger('warn', '[Reconnect] Migration error', error);
+      throw error; // bubble the error up
     } finally {
       currentSubscriber?.close();
       currentPublisher?.close({ stopTracks: false });
