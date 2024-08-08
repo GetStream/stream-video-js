@@ -57,9 +57,11 @@ export const setLogLevel = (l: LogLevel) => {
   level = l;
 };
 
+export const getLogLevel = (): LogLevel => level;
+
 export const getLogger = (withTags?: string[]) => {
   const loggerMethod = logger || logToConsole;
-  const tags = (withTags || []).join(':');
+  const tags = (withTags || []).filter(Boolean).join(':');
   const result: Logger = (logLevel, message, ...args) => {
     if (logLevels[logLevel] >= logLevels[level]) {
       loggerMethod(logLevel, `[${tags}]: ${message}`, ...args);

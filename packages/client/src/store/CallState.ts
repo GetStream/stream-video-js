@@ -11,6 +11,7 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
+  VisibilityState,
 } from '../types';
 import { CallStatsReport } from '../stats';
 import {
@@ -36,7 +37,12 @@ import {
   UserResponse,
   WSEvent,
 } from '../gen/coordinator';
-import { Pin } from '../gen/video/sfu/models/models';
+import { Timestamp } from '../gen/google/protobuf/timestamp';
+import {
+  CallState as SfuCallState,
+  Pin,
+  TrackType,
+} from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
 import { hasScreenShare } from '../helpers/participantUtils';
@@ -105,6 +111,13 @@ const defaultEgress: EgressResponse = {
   rtmps: [],
 };
 
+type OrphanedTrack = {
+  id: string;
+  trackLookupPrefix: string;
+  trackType: TrackType;
+  track: MediaStream;
+};
+
 /**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
@@ -154,6 +167,12 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+
+  // These are tracks that were delivered to the Subscriber's onTrack event
+  // that we couldn't associate with a participant yet.
+  // This happens when the participantJoined event hasn't been received yet.
+  // We keep these tracks around until we can associate them with a participant.
+  private orphanedTracks: OrphanedTrack[] = [];
 
   // Derived state
 
@@ -982,6 +1001,48 @@ export class CallState {
   };
 
   /**
+   * Adds an orphaned track to the call state.
+   *
+   * @internal
+   *
+   * @param orphanedTrack the orphaned track to add.
+   */
+  registerOrphanedTrack = (orphanedTrack: OrphanedTrack) => {
+    this.orphanedTracks.push(orphanedTrack);
+  };
+
+  /**
+   * Removes an orphaned track from the call state.
+   *
+   * @internal
+   *
+   * @param id the ID of the orphaned track to remove.
+   */
+  removeOrphanedTrack = (id: string) => {
+    this.orphanedTracks = this.orphanedTracks.filter((o) => o.id !== id);
+  };
+
+  /**
+   * Takes all orphaned tracks with the given track lookup prefix.
+   * All orphaned tracks with the given track lookup prefix are removed from the call state.
+   *
+   * @internal
+   *
+   * @param trackLookupPrefix the track lookup prefix to match the orphaned tracks by.
+   */
+  takeOrphanedTracks = (trackLookupPrefix: string): OrphanedTrack[] => {
+    const orphans = this.orphanedTracks.filter(
+      (orphan) => orphan.trackLookupPrefix === trackLookupPrefix,
+    );
+    if (orphans.length > 0) {
+      this.orphanedTracks = this.orphanedTracks.filter(
+        (orphan) => orphan.trackLookupPrefix !== trackLookupPrefix,
+      );
+    }
+    return orphans;
+  };
+
+  /**
    * Updates the call state with the data received from the server.
    *
    * @internal
@@ -1010,6 +1071,43 @@ export class CallState {
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
+  };
+
+  /**
+   * Updates the call state with the data received from the SFU server.
+   *
+   * @internal
+   *
+   * @param callState the call state from the SFU server.
+   * @param currentSessionId the session ID of the current user.
+   */
+  updateFromSfuCallState = (
+    callState: SfuCallState,
+    currentSessionId: string,
+  ) => {
+    const { participants, participantCount, startedAt, pins } = callState;
+    this.setParticipants(() => {
+      const participantLookup = this.getParticipantLookupBySessionId();
+      return participants.map<StreamVideoParticipant>((p) => {
+        // We need to preserve the local state of the participant
+        // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
+        // as it doesn't exist on the server.
+        const existingParticipant = participantLookup[p.sessionId];
+        return Object.assign(p, existingParticipant, {
+          isLocalParticipant: p.sessionId === currentSessionId,
+          viewportVisibilityState:
+            existingParticipant?.viewportVisibilityState ?? {
+              videoTrack: VisibilityState.UNKNOWN,
+              screenShareTrack: VisibilityState.UNKNOWN,
+            },
+        } satisfies Partial<StreamVideoParticipant>);
+      });
+    });
+
+    this.setParticipantCount(participantCount?.total || 0);
+    this.setAnonymousParticipantCount(participantCount?.anonymous || 0);
+    this.setStartedAt(startedAt ? Timestamp.toDate(startedAt) : new Date());
+    this.setServerSidePins(pins);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {

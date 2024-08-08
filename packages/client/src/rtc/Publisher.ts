@@ -35,12 +35,12 @@ export type PublisherConstructorOpts = {
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
-  iceRestartDelay?: number;
   onUnrecoverableError?: () => void;
 };
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
+ *
  * @internal
  */
 export class Publisher {
@@ -67,9 +67,9 @@ export class Publisher {
    * This is needed because some browsers (Firefox) don't reliably report
    * trackId and `mid` parameters.
    *
-   * @private
+   * @internal
    */
-  private transceiverInitOrder: TrackType[] = [];
+  private readonly transceiverInitOrder: TrackType[] = [];
 
   private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
@@ -97,7 +97,6 @@ export class Publisher {
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceRestartDelay: number;
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
@@ -138,7 +137,6 @@ export class Publisher {
     state,
     isDtxEnabled,
     isRedEnabled,
-    iceRestartDelay = 2500,
     onUnrecoverableError,
   }: PublisherConstructorOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
@@ -146,7 +144,6 @@ export class Publisher {
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
-    this.iceRestartDelay = iceRestartDelay;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
@@ -194,9 +191,33 @@ export class Publisher {
     }
 
     clearTimeout(this.iceRestartTimeout);
-    this.unsubscribeOnIceRestart();
-    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    this.detachEventHandlers();
     this.pc.close();
+  };
+
+  /**
+   * Detaches the event handlers from the `RTCPeerConnection`.
+   * This is useful when we want to replace the `RTCPeerConnection`
+   * instance with a new one (in case of migration).
+   */
+  detachEventHandlers = () => {
+    this.unsubscribeOnIceRestart();
+
+    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    this.pc.removeEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    this.pc.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChange,
+    );
+    this.pc.removeEventListener(
+      'signalingstatechange',
+      this.onSignalingStateChange,
+    );
   };
 
   /**
@@ -275,10 +296,6 @@ export class Publisher {
           }
         }
       }
-      const codecPreferences = this.getCodecPreferences(
-        trackType,
-        preferredCodec,
-      );
 
       // listen for 'ended' event on the track as it might be ended abruptly
       // by an external factor as permission revokes, device disconnected, etc.
@@ -302,7 +319,11 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
-      if ('setCodecPreferences' in transceiver && codecPreferences) {
+      const codecPreferences =
+        'setCodecPreferences' in transceiver
+          ? this.getCodecPreferences(trackType, preferredCodec)
+          : undefined;
+      if (codecPreferences) {
         logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,
@@ -399,6 +420,7 @@ export class Publisher {
 
     const audioOrVideoOrScreenShareStream =
       trackTypeToParticipantStreamKey(trackType);
+    if (!audioOrVideoOrScreenShareStream) return;
     if (isMuted) {
       this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
         publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
@@ -575,29 +597,6 @@ export class Publisher {
   };
 
   /**
-   * Performs a migration of this publisher instance to a new SFU.
-   *
-   * Initiates a new `iceRestart` offer/answer exchange with the new SFU.
-   *
-   * @param sfuClient the new SFU client to migrate to.
-   * @param connectionConfig the new connection configuration to use.
-   */
-  migrateTo = async (
-    sfuClient: StreamSfuClient,
-    connectionConfig?: RTCConfiguration,
-  ) => {
-    this.sfuClient = sfuClient;
-    this.pc.setConfiguration(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
-
-    const shouldRestartIce = this.pc.iceConnectionState === 'connected';
-    if (shouldRestartIce) {
-      // negotiate only if there are tracks to publish
-      await this.negotiate({ iceRestart: true });
-    }
-  };
-
-  /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
@@ -642,11 +641,9 @@ export class Publisher {
     // set the munged SDP back to the offer
     offer.sdp = sdp;
 
-    const trackInfos = this.getCurrentTrackInfos(offer.sdp);
+    const trackInfos = this.getAnnouncedTracks(offer.sdp);
     if (trackInfos.length === 0) {
-      throw new Error(
-        `Can't initiate negotiation without announcing any tracks`,
-      );
+      throw new Error(`Can't negotiate without announcing any tracks`);
     }
 
     await this.pc.setLocalDescription(offer);
@@ -662,10 +659,7 @@ export class Publisher {
         sdp: response.sdp,
       });
     } catch (e) {
-      logger('error', `setRemoteDescription error`, {
-        sdp: response.sdp,
-        error: e,
-      });
+      logger('error', `setRemoteDescription error`, response.sdp, e);
     }
 
     this.isIceRestarting = false;
@@ -676,7 +670,7 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('warn', `ICE candidate error`, [e, candidate]);
+          logger('warn', `ICE candidate error`, e, candidate);
         }
       },
     );
@@ -729,7 +723,13 @@ export class Publisher {
     return String(media.mid);
   };
 
-  getCurrentTrackInfos = (sdp?: string) => {
+  /**
+   * Returns a list of tracks that are currently being published.
+   *
+   * @internal
+   * @param sdp an optional SDP to extract the `mid` from.
+   */
+  getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
     sdp = sdp || this.pc.localDescription?.sdp;
 
     const { settings } = this.state;
@@ -815,8 +815,7 @@ export class Publisher {
     const state = this.pc.iceConnectionState;
     logger('debug', `ICE Connection state changed to`, state);
 
-    const hasNetworkConnection =
-      this.state.callingState !== CallingState.OFFLINE;
+    if (this.state.callingState === CallingState.RECONNECTING) return;
 
     if (state === 'failed') {
       logger('debug', `Attempting to restart ICE`);
@@ -824,29 +823,8 @@ export class Publisher {
         logger('error', `ICE restart error`, e);
         this.onUnrecoverableError?.();
       });
-    } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically,
-      // hence, we delay the ICE restart
-      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      this.iceRestartTimeout = setTimeout(() => {
-        // check if the state is still `disconnected` or `failed`
-        // as the connection may have recovered (or failed) in the meantime
-        if (
-          this.pc.iceConnectionState === 'disconnected' ||
-          this.pc.iceConnectionState === 'failed'
-        ) {
-          this.restartIce().catch((e) => {
-            logger('error', `ICE restart error`, e);
-            this.onUnrecoverableError?.();
-          });
-        } else {
-          logger(
-            'debug',
-            `Scheduled ICE restart: connection recovered, canceled.`,
-          );
-        }
-      }, this.iceRestartDelay);
     }
+    // TODO OL: check if we need to restore the `disconnected` state
   };
 
   private onIceGatheringStateChange = () => {

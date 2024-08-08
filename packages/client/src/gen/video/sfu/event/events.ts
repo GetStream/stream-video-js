@@ -249,9 +249,22 @@ export interface SfuEvent {
         participantUpdated: ParticipantUpdated;
       }
     | {
+        oneofKind: 'participantMigrationComplete';
+        /**
+         * ParticipantMigrationComplete is sent when the participant migration is complete
+         *
+         * @generated from protobuf field: stream.video.sfu.event.ParticipantMigrationComplete participant_migration_complete = 25;
+         */
+        participantMigrationComplete: ParticipantMigrationComplete;
+      }
+    | {
         oneofKind: undefined;
       };
 }
+/**
+ * @generated from protobuf message stream.video.sfu.event.ParticipantMigrationComplete
+ */
+export interface ParticipantMigrationComplete {}
 /**
  * @generated from protobuf message stream.video.sfu.event.PinsChanged
  */
@@ -326,8 +339,28 @@ export interface SfuRequest {
         healthCheckRequest: HealthCheckRequest;
       }
     | {
+        oneofKind: 'leaveCallRequest';
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.LeaveCallRequest leave_call_request = 3;
+         */
+        leaveCallRequest: LeaveCallRequest;
+      }
+    | {
         oneofKind: undefined;
       };
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.LeaveCallRequest
+ */
+export interface LeaveCallRequest {
+  /**
+   * @generated from protobuf field: string session_id = 1;
+   */
+  sessionId: string;
+  /**
+   * @generated from protobuf field: string reason = 2;
+   */
+  reason: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.HealthCheckRequest
@@ -423,10 +456,10 @@ export interface JoinRequest {
    */
   clientDetails?: ClientDetails;
   /**
-   * TODO: we should know if this is going to be
-   * - publishing and subscribing, or just subscribing for future routing
+   * Deprecated: use ReconnectDetails instead
    *
-   * @generated from protobuf field: stream.video.sfu.event.Migration migration = 5;
+   * @deprecated
+   * @generated from protobuf field: stream.video.sfu.event.Migration migration = 5 [deprecated = true];
    */
   migration?: Migration;
   /**
@@ -440,9 +473,45 @@ export interface JoinRequest {
    * cached, the client state is not in sync and hence it must be cleaned up before
    * proceeding further.
    *
-   * @generated from protobuf field: bool fast_reconnect = 6;
+   * @deprecated
+   * @generated from protobuf field: bool fast_reconnect = 6 [deprecated = true];
    */
   fastReconnect: boolean;
+  /**
+   * @generated from protobuf field: stream.video.sfu.event.ReconnectDetails reconnect_details = 7;
+   */
+  reconnectDetails?: ReconnectDetails;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.ReconnectDetails
+ */
+export interface ReconnectDetails {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.WebsocketReconnectStrategy strategy = 1;
+   */
+  strategy: WebsocketReconnectStrategy;
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.TrackInfo announced_tracks = 3;
+   */
+  announcedTracks: TrackInfo[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.signal.TrackSubscriptionDetails subscriptions = 4;
+   */
+  subscriptions: TrackSubscriptionDetails[];
+  /**
+   * @generated from protobuf field: uint32 reconnect_attempt = 5;
+   */
+  reconnectAttempt: number;
+  /**
+   * @generated from protobuf field: string from_sfu_id = 6;
+   */
+  fromSfuId: string;
+  /**
+   * only set in case of rejoin
+   *
+   * @generated from protobuf field: string previous_session_id = 7;
+   */
+  previousSessionId: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.Migration
@@ -473,6 +542,10 @@ export interface JoinResponse {
    * @generated from protobuf field: bool reconnected = 2;
    */
   reconnected: boolean;
+  /**
+   * @generated from protobuf field: int32 fast_reconnect_deadline_seconds = 3;
+   */
+  fastReconnectDeadlineSeconds: number;
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -948,6 +1021,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         oneof: 'eventPayload',
         T: () => ParticipantUpdated,
       },
+      {
+        no: 25,
+        name: 'participant_migration_complete',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => ParticipantMigrationComplete,
+      },
     ]);
   }
   create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -1189,6 +1269,18 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             ),
           };
           break;
+        case /* stream.video.sfu.event.ParticipantMigrationComplete participant_migration_complete */ 25:
+          message.eventPayload = {
+            oneofKind: 'participantMigrationComplete',
+            participantMigrationComplete:
+              ParticipantMigrationComplete.internalBinaryRead(
+                reader,
+                reader.uint32(),
+                options,
+                (message.eventPayload as any).participantMigrationComplete,
+              ),
+          };
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -1353,6 +1445,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         writer.tag(24, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* stream.video.sfu.event.ParticipantMigrationComplete participant_migration_complete = 25; */
+    if (message.eventPayload.oneofKind === 'participantMigrationComplete')
+      ParticipantMigrationComplete.internalBinaryWrite(
+        message.eventPayload.participantMigrationComplete,
+        writer.tag(25, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1367,6 +1466,51 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ParticipantMigrationComplete$Type extends MessageType<ParticipantMigrationComplete> {
+  constructor() {
+    super('stream.video.sfu.event.ParticipantMigrationComplete', []);
+  }
+  create(
+    value?: PartialMessage<ParticipantMigrationComplete>,
+  ): ParticipantMigrationComplete {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    if (value !== undefined)
+      reflectionMergePartial<ParticipantMigrationComplete>(
+        this,
+        message,
+        value,
+      );
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ParticipantMigrationComplete,
+  ): ParticipantMigrationComplete {
+    return target ?? this.create();
+  }
+  internalBinaryWrite(
+    message: ParticipantMigrationComplete,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.ParticipantMigrationComplete
+ */
+export const ParticipantMigrationComplete =
+  new ParticipantMigrationComplete$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PinsChanged$Type extends MessageType<PinsChanged> {
   constructor() {
@@ -1721,6 +1865,13 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
         oneof: 'requestPayload',
         T: () => HealthCheckRequest,
       },
+      {
+        no: 3,
+        name: 'leave_call_request',
+        kind: 'message',
+        oneof: 'requestPayload',
+        T: () => LeaveCallRequest,
+      },
     ]);
   }
   create(value?: PartialMessage<SfuRequest>): SfuRequest {
@@ -1763,6 +1914,17 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
             ),
           };
           break;
+        case /* stream.video.sfu.event.LeaveCallRequest leave_call_request */ 3:
+          message.requestPayload = {
+            oneofKind: 'leaveCallRequest',
+            leaveCallRequest: LeaveCallRequest.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+              (message.requestPayload as any).leaveCallRequest,
+            ),
+          };
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -1801,6 +1963,13 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
         writer.tag(2, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* stream.video.sfu.event.LeaveCallRequest leave_call_request = 3; */
+    if (message.requestPayload.oneofKind === 'leaveCallRequest')
+      LeaveCallRequest.internalBinaryWrite(
+        message.requestPayload.leaveCallRequest,
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1815,6 +1984,83 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuRequest
  */
 export const SfuRequest = new SfuRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LeaveCallRequest$Type extends MessageType<LeaveCallRequest> {
+  constructor() {
+    super('stream.video.sfu.event.LeaveCallRequest', [
+      { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'reason', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+    ]);
+  }
+  create(value?: PartialMessage<LeaveCallRequest>): LeaveCallRequest {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.sessionId = '';
+    message.reason = '';
+    if (value !== undefined)
+      reflectionMergePartial<LeaveCallRequest>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: LeaveCallRequest,
+  ): LeaveCallRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string session_id */ 1:
+          message.sessionId = reader.string();
+          break;
+        case /* string reason */ 2:
+          message.reason = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: LeaveCallRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* string session_id = 1; */
+    if (message.sessionId !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+    /* string reason = 2; */
+    if (message.reason !== '')
+      writer.tag(2, WireType.LengthDelimited).string(message.reason);
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.LeaveCallRequest
+ */
+export const LeaveCallRequest = new LeaveCallRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class HealthCheckRequest$Type extends MessageType<HealthCheckRequest> {
   constructor() {
@@ -2195,6 +2441,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         kind: 'scalar',
         T: 8 /*ScalarType.BOOL*/,
       },
+      {
+        no: 7,
+        name: 'reconnect_details',
+        kind: 'message',
+        T: () => ReconnectDetails,
+      },
     ]);
   }
   create(value?: PartialMessage<JoinRequest>): JoinRequest {
@@ -2235,7 +2487,7 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
             message.clientDetails,
           );
           break;
-        case /* stream.video.sfu.event.Migration migration */ 5:
+        case /* stream.video.sfu.event.Migration migration = 5 [deprecated = true];*/ 5:
           message.migration = Migration.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -2243,8 +2495,16 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
             message.migration,
           );
           break;
-        case /* bool fast_reconnect */ 6:
+        case /* bool fast_reconnect = 6 [deprecated = true];*/ 6:
           message.fastReconnect = reader.bool();
+          break;
+        case /* stream.video.sfu.event.ReconnectDetails reconnect_details */ 7:
+          message.reconnectDetails = ReconnectDetails.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.reconnectDetails,
+          );
           break;
         default:
           let u = options.readUnknownField;
@@ -2286,16 +2546,23 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         writer.tag(4, WireType.LengthDelimited).fork(),
         options,
       ).join();
-    /* stream.video.sfu.event.Migration migration = 5; */
+    /* stream.video.sfu.event.Migration migration = 5 [deprecated = true]; */
     if (message.migration)
       Migration.internalBinaryWrite(
         message.migration,
         writer.tag(5, WireType.LengthDelimited).fork(),
         options,
       ).join();
-    /* bool fast_reconnect = 6; */
+    /* bool fast_reconnect = 6 [deprecated = true]; */
     if (message.fastReconnect !== false)
       writer.tag(6, WireType.Varint).bool(message.fastReconnect);
+    /* stream.video.sfu.event.ReconnectDetails reconnect_details = 7; */
+    if (message.reconnectDetails)
+      ReconnectDetails.internalBinaryWrite(
+        message.reconnectDetails,
+        writer.tag(7, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -2310,6 +2577,167 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
  * @generated MessageType for protobuf message stream.video.sfu.event.JoinRequest
  */
 export const JoinRequest = new JoinRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReconnectDetails$Type extends MessageType<ReconnectDetails> {
+  constructor() {
+    super('stream.video.sfu.event.ReconnectDetails', [
+      {
+        no: 1,
+        name: 'strategy',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.WebsocketReconnectStrategy',
+          WebsocketReconnectStrategy,
+          'WEBSOCKET_RECONNECT_STRATEGY_',
+        ],
+      },
+      {
+        no: 3,
+        name: 'announced_tracks',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => TrackInfo,
+      },
+      {
+        no: 4,
+        name: 'subscriptions',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => TrackSubscriptionDetails,
+      },
+      {
+        no: 5,
+        name: 'reconnect_attempt',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
+      {
+        no: 6,
+        name: 'from_sfu_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 7,
+        name: 'previous_session_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+    ]);
+  }
+  create(value?: PartialMessage<ReconnectDetails>): ReconnectDetails {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.strategy = 0;
+    message.announcedTracks = [];
+    message.subscriptions = [];
+    message.reconnectAttempt = 0;
+    message.fromSfuId = '';
+    message.previousSessionId = '';
+    if (value !== undefined)
+      reflectionMergePartial<ReconnectDetails>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ReconnectDetails,
+  ): ReconnectDetails {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* stream.video.sfu.models.WebsocketReconnectStrategy strategy */ 1:
+          message.strategy = reader.int32();
+          break;
+        case /* repeated stream.video.sfu.models.TrackInfo announced_tracks */ 3:
+          message.announcedTracks.push(
+            TrackInfo.internalBinaryRead(reader, reader.uint32(), options),
+          );
+          break;
+        case /* repeated stream.video.sfu.signal.TrackSubscriptionDetails subscriptions */ 4:
+          message.subscriptions.push(
+            TrackSubscriptionDetails.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+            ),
+          );
+          break;
+        case /* uint32 reconnect_attempt */ 5:
+          message.reconnectAttempt = reader.uint32();
+          break;
+        case /* string from_sfu_id */ 6:
+          message.fromSfuId = reader.string();
+          break;
+        case /* string previous_session_id */ 7:
+          message.previousSessionId = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ReconnectDetails,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* stream.video.sfu.models.WebsocketReconnectStrategy strategy = 1; */
+    if (message.strategy !== 0)
+      writer.tag(1, WireType.Varint).int32(message.strategy);
+    /* repeated stream.video.sfu.models.TrackInfo announced_tracks = 3; */
+    for (let i = 0; i < message.announcedTracks.length; i++)
+      TrackInfo.internalBinaryWrite(
+        message.announcedTracks[i],
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* repeated stream.video.sfu.signal.TrackSubscriptionDetails subscriptions = 4; */
+    for (let i = 0; i < message.subscriptions.length; i++)
+      TrackSubscriptionDetails.internalBinaryWrite(
+        message.subscriptions[i],
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* uint32 reconnect_attempt = 5; */
+    if (message.reconnectAttempt !== 0)
+      writer.tag(5, WireType.Varint).uint32(message.reconnectAttempt);
+    /* string from_sfu_id = 6; */
+    if (message.fromSfuId !== '')
+      writer.tag(6, WireType.LengthDelimited).string(message.fromSfuId);
+    /* string previous_session_id = 7; */
+    if (message.previousSessionId !== '')
+      writer.tag(7, WireType.LengthDelimited).string(message.previousSessionId);
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.ReconnectDetails
+ */
+export const ReconnectDetails = new ReconnectDetails$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Migration$Type extends MessageType<Migration> {
   constructor() {
@@ -2434,11 +2862,18 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
     super('stream.video.sfu.event.JoinResponse', [
       { no: 1, name: 'call_state', kind: 'message', T: () => CallState },
       { no: 2, name: 'reconnected', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      {
+        no: 3,
+        name: 'fast_reconnect_deadline_seconds',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
     ]);
   }
   create(value?: PartialMessage<JoinResponse>): JoinResponse {
     const message = globalThis.Object.create(this.messagePrototype!);
     message.reconnected = false;
+    message.fastReconnectDeadlineSeconds = 0;
     if (value !== undefined)
       reflectionMergePartial<JoinResponse>(this, message, value);
     return message;
@@ -2464,6 +2899,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
           break;
         case /* bool reconnected */ 2:
           message.reconnected = reader.bool();
+          break;
+        case /* int32 fast_reconnect_deadline_seconds */ 3:
+          message.fastReconnectDeadlineSeconds = reader.int32();
           break;
         default:
           let u = options.readUnknownField;
@@ -2499,6 +2937,11 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
     /* bool reconnected = 2; */
     if (message.reconnected !== false)
       writer.tag(2, WireType.Varint).bool(message.reconnected);
+    /* int32 fast_reconnect_deadline_seconds = 3; */
+    if (message.fastReconnectDeadlineSeconds !== 0)
+      writer
+        .tag(3, WireType.Varint)
+        .int32(message.fastReconnectDeadlineSeconds);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(

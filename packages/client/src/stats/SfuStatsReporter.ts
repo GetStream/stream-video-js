@@ -65,6 +65,7 @@ export class SfuStatsReporter {
 
   start = () => {
     if (this.options.reporting_interval_ms <= 0) return;
+    clearInterval(this.intervalId);
     this.intervalId = setInterval(() => {
       this.run().catch((err) => {
         this.logger('warn', 'Failed to report stats', err);

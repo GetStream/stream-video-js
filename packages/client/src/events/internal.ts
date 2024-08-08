@@ -3,8 +3,12 @@ import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
-import type { PinsChanged } from '../gen/video/sfu/event/events';
-import { ErrorCode } from '../gen/video/sfu/models/models';
+import type { CallEnded, PinsChanged } from '../gen/video/sfu/event/events';
+import {
+  CallEndedReason,
+  ErrorCode,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
 
 const logger = getLogger(['events']);
@@ -82,9 +86,10 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
   return dispatcher.on('error', (e) => {
     if (!e.error) return;
-    const { error } = e;
+    const { error, reconnectStrategy } = e;
     logger('error', 'SFU reported error', {
       code: ErrorCode[error.code],
+      reconnectStrategy: WebsocketReconnectStrategy[reconnectStrategy],
       message: error.message,
       shouldRetry: error.shouldRetry,
     });
@@ -100,4 +105,16 @@ export const watchPinsUpdated = (state: CallState) => {
     const { pins } = e;
     state.setServerSidePins(pins);
   };
+};
+
+/**
+ * Watches for `callEnded` events.
+ */
+export const watchSfuCallEnded = (call: Call) => {
+  return call.on('callEnded', (e: CallEnded) => {
+    const reason = CallEndedReason[e.reason];
+    call.leave({ reason }).catch((err) => {
+      logger('error', 'Failed to leave call after call ended by the SFU', err);
+    });
+  });
 };

@@ -10,7 +10,6 @@ import { getLogger } from '../logger';
 export class IceTrickleBuffer {
   readonly subscriberCandidates = new ReplaySubject<ICETrickle>();
   readonly publisherCandidates = new ReplaySubject<ICETrickle>();
-  private readonly logger = getLogger(['sfu-client']);
 
   push = (iceTrickle: ICETrickle) => {
     if (iceTrickle.peerType === PeerType.SUBSCRIBER) {
@@ -18,7 +17,8 @@ export class IceTrickleBuffer {
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
       this.publisherCandidates.next(iceTrickle);
     } else {
-      this.logger('warn', `ICETrickle, Unknown peer type`, iceTrickle);
+      const logger = getLogger(['sfu-client']);
+      logger('warn', `ICETrickle, Unknown peer type`, iceTrickle);
     }
   };
 }

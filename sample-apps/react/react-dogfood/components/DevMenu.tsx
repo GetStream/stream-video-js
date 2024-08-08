@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { decodeBase64 } from 'stream-chat';
 
 export const DevMenu = () => {
   return (
@@ -21,6 +22,10 @@ export const DevMenu = () => {
       </li>
       <li className="rd__dev-menu__item">
         <ConnectToLocalSfu sfuId="SFU-3" port={3036} />
+      </li>
+
+      <li className="rd__dev-menu__item">
+        <SfuCallStats />
       </li>
 
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
@@ -285,6 +290,31 @@ const LogSubscriberStats = () => {
     >
       <Icon className="rd__button__icon" icon="folder" />
       Log Subscriber stats
+    </button>
+  );
+};
+
+const SfuCallStats = () => {
+  const call = useCall();
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      disabled={!call}
+      onClick={() => {
+        if (!call) return;
+        const credentials = call['credentials'];
+        if (!credentials) return;
+        const token = credentials.token;
+        const [, claims] = token.split('.');
+        const decoded = JSON.parse(decodeBase64(claims)) as Record<string, any>;
+        const appId = decoded['app_id'] as string;
+        const sfuUrl = credentials.server.url.replace('/twirp', '');
+        const url = `${sfuUrl}:5100/debug/calls/${appId}/${call.cid}/subscriptions`;
+        window.open(url, '_blank');
+      }}
+    >
+      <Icon className="rd__button__icon" icon="folder" />
+      SFU Call State Info
     </button>
   );
 };

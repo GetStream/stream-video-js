@@ -5,8 +5,14 @@ import type {
   TrackPublished,
   TrackUnpublished,
 } from '../gen/video/sfu/event/events';
-import { StreamVideoParticipant, VisibilityState } from '../types';
+import type { Participant } from '../gen/video/sfu/models/models';
+import {
+  StreamVideoParticipant,
+  StreamVideoParticipantPatch,
+  VisibilityState,
+} from '../types';
 import { CallState } from '../store';
+import { trackTypeToParticipantStreamKey } from '../rtc/helpers/tracks';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -19,21 +25,23 @@ export const watchParticipantJoined = (state: CallState) => {
     // potential duplicate events from the SFU.
     //
     // Although the SFU should not send duplicate events, we have seen
-    // some race conditions in the past during the `join-flow` where
-    // the SFU would send participant info as part of the `join`
+    // some race conditions in the past during the `join-flow`.
+    // The SFU would send participant info as part of the `join`
     // response and then follow up with a `participantJoined` event for
     // already announced participants.
+    const orphanedTracks = reconcileOrphanedTracks(state, participant);
     state.updateOrAddParticipant(
       participant.sessionId,
-      Object.assign<StreamVideoParticipant, Partial<StreamVideoParticipant>>(
-        participant,
-        {
-          viewportVisibilityState: {
-            videoTrack: VisibilityState.UNKNOWN,
-            screenShareTrack: VisibilityState.UNKNOWN,
-          },
+      Object.assign<
+        StreamVideoParticipant,
+        StreamVideoParticipantPatch | undefined,
+        Partial<StreamVideoParticipant>
+      >(participant, orphanedTracks, {
+        viewportVisibilityState: {
+          videoTrack: VisibilityState.UNKNOWN,
+          screenShareTrack: VisibilityState.UNKNOWN,
         },
-      ),
+      }),
     );
   };
 };
@@ -69,12 +77,14 @@ export const watchParticipantUpdated = (state: CallState) => {
  */
 export const watchTrackPublished = (state: CallState) => {
   return function onTrackPublished(e: TrackPublished) {
-    const { type, sessionId, participant } = e;
+    const { type, sessionId } = e;
     // An optimization for large calls.
     // After a certain threshold, the SFU would stop emitting `participantJoined`
     // events, and instead, it would only provide the participant's information
     // once they start publishing a track.
-    if (participant) {
+    if (e.participant) {
+      const orphanedTracks = reconcileOrphanedTracks(state, e.participant);
+      const participant = Object.assign(e.participant, orphanedTracks);
       state.updateOrAddParticipant(sessionId, participant);
     } else {
       state.updateParticipant(sessionId, (p) => ({
@@ -90,9 +100,11 @@ export const watchTrackPublished = (state: CallState) => {
  */
 export const watchTrackUnpublished = (state: CallState) => {
   return function onTrackUnpublished(e: TrackUnpublished) {
-    const { type, sessionId, participant } = e;
+    const { type, sessionId } = e;
     // An optimization for large calls. See `watchTrackPublished`.
-    if (participant) {
+    if (e.participant) {
+      const orphanedTracks = reconcileOrphanedTracks(state, e.participant);
+      const participant = Object.assign(e.participant, orphanedTracks);
       state.updateOrAddParticipant(sessionId, participant);
     } else {
       state.updateParticipant(sessionId, (p) => ({
@@ -103,3 +115,24 @@ export const watchTrackUnpublished = (state: CallState) => {
 };
 
 const unique = <T>(v: T, i: number, arr: T[]) => arr.indexOf(v) === i;
+
+/**
+ * Reconciles orphaned tracks (if any) for the given participant.
+ *
+ * @param state the call state.
+ * @param participant the participant.
+ */
+const reconcileOrphanedTracks = (
+  state: CallState,
+  participant: Participant,
+): StreamVideoParticipantPatch | undefined => {
+  const orphanTracks = state.takeOrphanedTracks(participant.trackLookupPrefix);
+  if (!orphanTracks.length) return;
+  const reconciledTracks: StreamVideoParticipantPatch = {};
+  for (const orphan of orphanTracks) {
+    const key = trackTypeToParticipantStreamKey(orphan.trackType);
+    if (!key) continue;
+    reconciledTracks[key] = orphan.track;
+  }
+  return reconciledTracks;
+};
