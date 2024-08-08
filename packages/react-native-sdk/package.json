@@ -17,7 +17,7 @@
     "build:expo-plugin": "rimraf expo-config-plugin/dist && tsc --project expo-config-plugin/tsconfig.json",
     "build": "yarn clean && yarn copy-version && bob build && yarn build:expo-plugin",
     "test:expo-plugin": "jest expo-config-plugin --coverage",
-    "test": "jest --coverage && yarn test:expo-plugin",
+    "test": "yarn copy-version && jest --coverage && yarn test:expo-plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./src/version.ts"
   },
   "files": [
@@ -75,6 +75,9 @@
     "react-native-voip-push-notification": ">=3.3.1"
   },
   "peerDependenciesMeta": {
+    "@notifee/react-native": {
+      "optional": true
+    },
     "@react-native-community/push-notification-ios": {
       "optional": true
     },

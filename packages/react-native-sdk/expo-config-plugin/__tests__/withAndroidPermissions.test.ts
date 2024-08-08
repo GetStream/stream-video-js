@@ -14,6 +14,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
     };
     const props: ConfigProps = {
       enableScreenshare: true,
+      ringingPushNotifications: { disableVideoIos: false },
     };
 
     const updatedConfig = withStreamVideoReactNativeSDKAndroidPermissions(
