@@ -1,10 +1,10 @@
-import type {
-  FinishedUnaryCall,
-  RpcInterceptor,
-  UnaryCall,
-} from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
-import { createSignalClient, withHeaders, withRequestLogger } from './rpc';
+import {
+  createSignalClient,
+  retryable,
+  withHeaders,
+  withRequestLogger,
+} from './rpc';
 import {
   createWebSocketSignalChannel,
   Dispatcher,
@@ -23,16 +23,8 @@ import {
   TrackSubscriptionDetails,
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
-import {
-  Error as SfuError,
-  ICETrickle,
-  TrackType,
-} from './gen/video/sfu/models/models';
-import {
-  generateUUIDv4,
-  retryInterval,
-  sleep,
-} from './coordinator/connection/utils';
+import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
+import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
@@ -137,6 +129,11 @@ export class StreamSfuClient {
   private migrationTask?: PromiseWithResolvers<void>;
 
   /**
+   * A controller to abort the current requests.
+   */
+  private readonly abortController = new AbortController();
+
+  /**
    * The normal closure code. Used for controlled shutdowns.
    */
   static NORMAL_CLOSURE = 1000;
@@ -173,7 +170,7 @@ export class StreamSfuClient {
           Authorization: `Bearer ${token}`,
         }),
         getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
-      ].filter(Boolean) as RpcInterceptor[],
+      ].filter((v) => !!v),
     });
 
     // Special handling for the ICETrickle kind of events.
@@ -235,6 +232,7 @@ export class StreamSfuClient {
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
     clearTimeout(this.migrateAwayTimeout);
+    this.abortController.abort();
     this.migrationTask?.resolve();
   };
 
@@ -250,105 +248,82 @@ export class StreamSfuClient {
     this.close(StreamSfuClient.NORMAL_CLOSURE, reason.substring(0, 115));
   };
 
-  updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
+  updateSubscriptions = async (tracks: TrackSubscriptionDetails[]) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.updateSubscriptions({
-        sessionId: this.sessionId,
-        tracks: subscriptions,
-      }),
+    return retryable(
+      () => this.rpc.updateSubscriptions({ sessionId: this.sessionId, tracks }),
+      this.abortController.signal,
     );
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.setPublisher({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.setPublisher({ ...data, sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.sendAnswer({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.sendAnswer({ ...data, sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.iceTrickle({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.iceTrickle({ ...data, sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.iceRestart({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.iceRestart({ ...data, sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
     await this.joinResponseTask.promise;
-    return this.updateMuteStates({
-      muteStates: [
-        {
-          trackType,
-          muted,
-        },
-      ],
-    });
+    return this.updateMuteStates({ muteStates: [{ trackType, muted }] });
   };
 
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.updateMuteStates({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.updateMuteStates({ ...data, sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.sendStats({
-        ...stats,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.sendStats({ ...stats, sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   startNoiseCancellation = async () => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.startNoiseCancellation({
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.startNoiseCancellation({ sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
   stopNoiseCancellation = async () => {
     await this.joinResponseTask.promise;
-    return retryable(() =>
-      this.rpc.stopNoiseCancellation({
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () => this.rpc.stopNoiseCancellation({ sessionId: this.sessionId }),
+      this.abortController.signal,
     );
   };
 
@@ -496,53 +471,3 @@ export class StreamSfuClient {
     }, this.unhealthyTimeoutInMs);
   };
 }
-
-/**
- * An internal interface which asserts that "retryable" SFU responses
- * contain a field called "error".
- * Ideally, this should be coming from the Protobuf definitions.
- */
-interface SfuResponseWithError {
-  /**
-   * An optional error field which should be present in all SFU responses.
-   */
-  error?: SfuError;
-}
-
-const MAX_RETRIES = 5;
-
-/**
- * Creates a closure which wraps the given RPC call and retries invoking
- * the RPC until it succeeds or the maximum number of retries is reached.
- *
- * Between each retry, there would be a random delay in order to avoid
- * request bursts towards the SFU.
- *
- * @param rpc the closure around the RPC call to execute.
- * @param <I> the type of the request object.
- * @param <O> the type of the response object.
- */
-const retryable = async <I extends object, O extends SfuResponseWithError>(
-  rpc: () => UnaryCall<I, O>,
-) => {
-  let retryAttempt = 0;
-  let rpcCallResult: FinishedUnaryCall<I, O>;
-  do {
-    // don't delay the first invocation
-    if (retryAttempt > 0) {
-      await sleep(retryInterval(retryAttempt));
-    }
-    // TODO implement retries after a network failure
-    rpcCallResult = await rpc();
-    retryAttempt++;
-  } while (
-    rpcCallResult.response.error?.shouldRetry &&
-    retryAttempt < MAX_RETRIES
-  );
-
-  if (rpcCallResult.response.error) {
-    throw rpcCallResult.response.error;
-  }
-
-  return rpcCallResult;
-};

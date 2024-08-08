@@ -238,6 +238,7 @@ export class Call {
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
   private joinCallData?: JoinCallData;
+  private hasJoinedOnce = false;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -857,6 +858,7 @@ export class Call {
     }
 
     this.state.setCallingState(CallingState.JOINED);
+    this.hasJoinedOnce = true;
 
     if (performingRejoin) {
       const strategy = WebsocketReconnectStrategy[this.reconnectStrategy];
@@ -1111,7 +1113,7 @@ export class Call {
           );
           await sleep(retryInterval(this.reconnectAttempts));
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
-          this.reconnectAttempts += 1;
+          this.reconnectAttempts++;
         }
       } while (this.state.callingState !== CallingState.JOINED);
     });
@@ -1216,6 +1218,7 @@ export class Call {
       (e) => {
         if (!e.online) {
           this.logger('debug', '[Reconnect] Going offline');
+          if (!this.hasJoinedOnce) return;
           this.lastOfflineTimestamp = Date.now();
           // create a new task that would resolve when the network is available
           const networkAvailableTask = promiseWithResolvers();
@@ -1243,6 +1246,7 @@ export class Call {
           this.state.setCallingState(CallingState.OFFLINE);
         } else {
           this.logger('debug', '[Reconnect] Going online');
+          // TODO try to remove this .close call
           this.sfuClient?.close(
             4002,
             'Closing WS to reconnect after going online',
