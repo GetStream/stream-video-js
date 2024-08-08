@@ -49,7 +49,18 @@ const AppStateListener = () => {
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (appState.current.match(/background/) && nextAppState === 'active') {
-        call?.camera?.resume();
+        if (
+          call?.camera?.state.status === 'enabled' &&
+          Platform.OS === 'android'
+        ) {
+          // when device is locked and resumed, the status isnt made disabled but stays enabled
+          // as a workaround we stop the track and enable again if its already in enabled state
+          call?.camera?.disable(true).then(() => {
+            call?.camera?.enable();
+          });
+        } else {
+          call?.camera?.resume();
+        }
         appState.current = nextAppState;
       } else if (
         appState.current === 'active' &&

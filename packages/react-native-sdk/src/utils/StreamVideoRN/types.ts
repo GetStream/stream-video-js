@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import { AndroidChannel } from '@notifee/react-native';
+import type { AndroidChannel } from '@notifee/react-native';
 
 export type NonRingingPushEvent = 'call.live_started' | 'call.notification';
 

@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.7...@stream-io/video-react-native-sdk-0.10.0) (2024-08-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** make notifee to be optional (#1456)
+
+### Bug Fixes
+
+* **react-native:** make notifee to be optional ([#1456](https://github.com/GetStream/stream-video-js/issues/1456)) ([0b3f787](https://github.com/GetStream/stream-video-js/commit/0b3f7876c82a8873901bc1bc77a17f6f98825166))
+
+### [0.9.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.6...@stream-io/video-react-native-sdk-0.9.7) (2024-08-06)
+
+
+### Bug Fixes
+
+* added workaround for android where video doesn't resume when resuming app from lock screen ([#1454](https://github.com/GetStream/stream-video-js/issues/1454)) ([b112506](https://github.com/GetStream/stream-video-js/commit/b1125069b24c3bbbf0191582ba27ff841a0cd9f8))
+
 ### [0.9.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.5...@stream-io/video-react-native-sdk-0.9.6) (2024-07-31)
 
 ### Dependency Updates
