@@ -24,10 +24,11 @@ import {
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
 import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
-import { generateUUIDv4 } from './coordinator/connection/utils';
+import { generateUUIDv4, sleep } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
+import { withoutConcurrency } from './helpers/concurrency';
 import {
   promiseWithResolvers,
   PromiseWithResolvers,
@@ -90,12 +91,12 @@ export class StreamSfuClient {
   /**
    * Holds the current WebSocket connection to the SFU.
    */
-  readonly signalWs: WebSocket;
+  private signalWs!: WebSocket;
 
   /**
    * Promise that resolves when the WebSocket connection is ready (open).
    */
-  readonly signalReady: Promise<WebSocket>;
+  private signalReady!: Promise<WebSocket>;
 
   /**
    * Flag to indicate if the client is in the process of leaving the call.
@@ -110,9 +111,11 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
+  private readonly restoreWebSocketConcurrencyTag = Symbol('recoverWebSocket');
   private readonly unsubscribeIceTrickle: () => void;
   private readonly onSignalClose: ((event: CloseEvent) => void) | undefined;
   private readonly logger: Logger;
+  private readonly logTag: string;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout?: number;
@@ -162,6 +165,7 @@ export class StreamSfuClient {
     const { server, token } = credentials;
     this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
+    this.logTag = logTag;
     this.logger = getLogger(['sfu-client', logTag]);
     this.rpc = createSignalClient({
       baseUrl: server.url,
@@ -183,17 +187,22 @@ export class StreamSfuClient {
       this.iceTrickleBuffer.push(iceTrickle);
     });
 
+    this.createWebSocket();
+  }
+
+  private createWebSocket = () => {
     this.signalWs = createWebSocketSignalChannel({
-      logTag,
-      endpoint: `${server.ws_endpoint}?tag=${logTag}`,
+      logTag: this.logTag,
+      endpoint: `${this.credentials.server.ws_endpoint}?tag=${this.logTag}`,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
-        dispatcher.dispatch(message);
+        this.dispatcher.dispatch(message);
       },
     });
 
     this.signalWs.addEventListener('close', this.handleWebSocketClose);
+    this.signalWs.addEventListener('error', this.restoreWebSocket);
 
     this.signalReady = new Promise((resolve) => {
       const onOpen = () => {
@@ -202,7 +211,21 @@ export class StreamSfuClient {
       };
       this.signalWs.addEventListener('open', onOpen);
     });
-  }
+  };
+
+  private cleanUpWebSocket = () => {
+    this.signalWs.removeEventListener('error', this.restoreWebSocket);
+    this.signalWs.removeEventListener('close', this.handleWebSocketClose);
+  };
+
+  private restoreWebSocket = () => {
+    withoutConcurrency(this.restoreWebSocketConcurrencyTag, async () => {
+      this.logger('debug', 'Restoring SFU WS connection');
+      this.cleanUpWebSocket();
+      await sleep(500);
+      this.createWebSocket();
+    }).catch((err) => this.logger('debug', `Can't restore WS connection`, err));
+  };
 
   get isHealthy() {
     return this.signalWs.readyState === WebSocket.OPEN;
@@ -221,7 +244,7 @@ export class StreamSfuClient {
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
-      this.signalWs.removeEventListener('close', this.handleWebSocketClose);
+      this.cleanUpWebSocket();
     }
     this.dispose();
   };
@@ -426,23 +449,15 @@ export class StreamSfuClient {
     );
   };
 
-  send = async (message: SfuRequest) => {
-    return this.signalReady.then((signal) => {
-      if (signal.readyState !== WebSocket.OPEN) {
-        this.logger(
-          'debug',
-          'Signal WS connection is not open. Skipping message',
-          SfuRequest.toJson(message),
-        );
-        return;
-      }
-      this.logger(
-        'debug',
-        `Sending message to: ${this.edgeName}`,
-        SfuRequest.toJson(message),
-      );
-      signal.send(SfuRequest.toBinary(message));
-    });
+  private send = async (message: SfuRequest) => {
+    await this.signalReady; // wait for the signal ws to be open
+    const msgJson = SfuRequest.toJson(message);
+    if (this.signalWs.readyState !== WebSocket.OPEN) {
+      this.logger('debug', 'Signal WS is not open. Skipping message', msgJson);
+      return;
+    }
+    this.logger('debug', `Sending message to: ${this.edgeName}`, msgJson);
+    this.signalWs.send(SfuRequest.toBinary(message));
   };
 
   private keepAlive = () => {
