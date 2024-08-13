@@ -857,7 +857,12 @@ export class Call {
       previousSfuClient?.close(4002, 'Closing unhealthy WS after reconnect');
     }
 
-    await this.applyDeviceConfig(true);
+    // device settings should be applied only once, we don't have to
+    // re-apply them on later reconnections or server-side data fetches
+    if (!this.deviceSettingsAppliedOnce) {
+      await this.applyDeviceConfig(true);
+      this.deviceSettingsAppliedOnce = true;
+    }
     this.logger('info', `Joined call ${this.cid}`);
   };
 
@@ -2145,16 +2150,12 @@ export class Call {
    * @internal
    */
   applyDeviceConfig = async (status: boolean) => {
-    // device settings should be applied only once, we don't have to
-    // re-apply them on later reconnections or server-side data fetches
-    if (this.deviceSettingsAppliedOnce) return;
     await this.initCamera({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
     await this.initMic({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
-    this.deviceSettingsAppliedOnce = true;
   };
 
   private initCamera = async (options: { setStatus: boolean }) => {
