@@ -12,10 +12,12 @@ import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
 import {
+  addConnectionEventListeners,
   isFunction,
   isOnline,
   KnownCodes,
   randomId,
+  removeConnectionEventListeners,
   retryInterval,
   sleep,
 } from './utils';
@@ -131,11 +133,19 @@ export class StreamClient {
       this.options.baseURL || 'https://video.stream-io-api.com/video',
     );
 
-    if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
+    if (
+      typeof process !== 'undefined' &&
+      'env' in process &&
+      process.env.STREAM_LOCAL_TEST_RUN
+    ) {
       this.setBaseURL('http://localhost:3030/video');
     }
 
-    if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_HOST) {
+    if (
+      typeof process !== 'undefined' &&
+      'env' in process &&
+      process.env.STREAM_LOCAL_TEST_HOST
+    ) {
       this.setBaseURL(`http://${process.env.STREAM_LOCAL_TEST_HOST}/video`);
     }
 
@@ -265,6 +275,7 @@ export class StreamClient {
     );
 
     try {
+      addConnectionEventListeners(this.updateNetworkConnectionStatus);
       return await this.setUserPromise;
     } catch (err) {
       if (this.persistUserOnConnectionFailure) {
@@ -398,6 +409,7 @@ export class StreamClient {
     this.anonymous = false;
 
     await this.closeConnection(timeout);
+    removeConnectionEventListeners(this.updateNetworkConnectionStatus);
 
     this.tokenManager.reset();
 
@@ -436,6 +448,7 @@ export class StreamClient {
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
+    addConnectionEventListeners(this.updateNetworkConnectionStatus);
     this.connectionIdPromise = new Promise<string | undefined>(
       (resolve, reject) => {
         this.resolveConnectionId = resolve;
@@ -661,7 +674,6 @@ export class StreamClient {
   };
 
   dispatchEvent = (event: StreamVideoEvent) => {
-    if (!event.received_at) event.received_at = new Date();
     this.logger('debug', `Dispatching event: ${event.type}`, event);
     if (!this.listeners) return;
 
@@ -855,10 +867,15 @@ export class StreamClient {
     });
   };
 
-  /**
-   * creates an abort controller that will be used by the next HTTP Request.
-   */
-  createAbortControllerForNextRequest = () => {
-    return (this.nextRequestAbortController = new AbortController());
+  updateNetworkConnectionStatus = (
+    event: { type: 'online' | 'offline' } | Event,
+  ) => {
+    if (event.type === 'offline') {
+      this.logger('debug', 'browser went offline');
+      this.dispatchEvent({ type: 'network.changed', online: false });
+    } else if (event.type === 'online') {
+      this.logger('debug', 'browser went online');
+      this.dispatchEvent({ type: 'network.changed', online: true });
+    }
   };
 }

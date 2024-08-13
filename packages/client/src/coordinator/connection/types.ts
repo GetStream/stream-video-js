@@ -52,6 +52,11 @@ export type ConnectionChangedEvent = {
   online: boolean;
 };
 
+export type NetworkChangedEvent = {
+  type: 'network.changed';
+  online: boolean;
+};
+
 export type TransportChangedEvent = {
   type: 'transport.changed';
   mode: 'longpoll';
@@ -63,6 +68,7 @@ export type ConnectionRecoveredEvent = {
 
 export type StreamVideoEvent = (
   | WSEvent
+  | NetworkChangedEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent

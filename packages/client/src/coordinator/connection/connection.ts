@@ -578,6 +578,7 @@ export class StableWSConnection {
     }
 
     if (data) {
+      data.received_at = new Date();
       this.client.dispatchEvent(data);
     }
     this.scheduleConnectionCheck();

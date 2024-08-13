@@ -1208,8 +1208,8 @@ export class Call {
       }
     });
 
-    const unregisterConnectionChanged = this.streamClient.on(
-      'connection.changed',
+    const unregisterNetworkChanged = this.streamClient.on(
+      'network.changed',
       (e) => {
         if (!e.online) {
           this.logger('debug', '[Reconnect] Going offline');
@@ -1256,7 +1256,7 @@ export class Call {
 
     this.leaveCallHooks.add(unregisterGoAway);
     this.leaveCallHooks.add(unregisterOnError);
-    this.leaveCallHooks.add(unregisterConnectionChanged);
+    this.leaveCallHooks.add(unregisterNetworkChanged);
   };
 
   /**

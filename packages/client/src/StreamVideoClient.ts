@@ -84,29 +84,30 @@ export class StreamVideoClient {
 
     setLogger(logger, logLevel);
     this.logger = getLogger(['client']);
+    const coordinatorLogger = getLogger(['coordinator']);
 
     if (typeof apiKeyOrArgs === 'string') {
       this.streamClient = new StreamClient(apiKeyOrArgs, {
         persistUserOnConnectionFailure: true,
         ...opts,
         logLevel,
-        logger: this.logger,
+        logger: coordinatorLogger,
       });
     } else {
       this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
         persistUserOnConnectionFailure: true,
         ...apiKeyOrArgs.options,
         logLevel,
-        logger: this.logger,
+        logger: coordinatorLogger,
       });
 
       const sdkInfo = getSdkInfo();
       if (sdkInfo) {
+        const sdkName = SdkType[sdkInfo.type].toLowerCase();
+        const sdkVersion = `${sdkInfo.major}.${sdkInfo.minor}.${sdkInfo.patch}`;
+        const userAgent = this.streamClient.getUserAgent();
         this.streamClient.setUserAgent(
-          this.streamClient.getUserAgent() +
-            `-video-${SdkType[sdkInfo.type].toLowerCase()}-sdk-${
-              sdkInfo.major
-            }.${sdkInfo.minor}.${sdkInfo.patch}`,
+          `${userAgent}-video-${sdkName}-sdk-${sdkVersion}`,
         );
       }
     }
