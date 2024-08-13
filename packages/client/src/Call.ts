@@ -22,7 +22,11 @@ import {
   CallState,
   StreamVideoWriteableStateStore,
 } from './store';
-import { createSubscription, getCurrentValue } from './store/rxUtils';
+import {
+  createSafeAsyncSubscription,
+  createSubscription,
+  getCurrentValue,
+} from './store/rxUtils';
 import type {
   AcceptCallResponse,
   BlockUserRequest,
@@ -239,6 +243,7 @@ export class Call {
   private trackPublishOrder: TrackType[] = [];
   private joinCallData?: JoinCallData;
   private hasJoinedOnce = false;
+  private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -348,71 +353,10 @@ export class Call {
 
     this.leaveCallHooks.add(
       // handle the case when the user permissions are modified.
-      createSubscription(this.state.ownCapabilities$, (ownCapabilities) => {
-        // update the permission context.
-        this.permissionsContext.setPermissions(ownCapabilities);
-
-        if (!this.publisher) return;
-
-        // check if the user still has publishing permissions and stop publishing if not.
-        const permissionToTrackType = {
-          [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
-          [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
-          [OwnCapability.SCREENSHARE]: TrackType.SCREEN_SHARE,
-        };
-        for (const [permission, trackType] of Object.entries(
-          permissionToTrackType,
-        )) {
-          const hasPermission = this.permissionsContext.hasPermission(
-            permission as OwnCapability,
-          );
-          if (
-            !hasPermission &&
-            (this.publisher.isPublishing(trackType) ||
-              this.publisher.isLive(trackType))
-          ) {
-            // Stop tracks, then notify device manager
-            this.stopPublish(trackType)
-              .catch((err) => {
-                this.logger(
-                  'error',
-                  `Error stopping publish ${trackType}`,
-                  err,
-                );
-              })
-              .then(() => {
-                if (
-                  trackType === TrackType.VIDEO &&
-                  this.camera.state.status === 'enabled'
-                ) {
-                  this.camera
-                    .disable()
-                    .catch((err) =>
-                      this.logger(
-                        'error',
-                        `Error disabling camera after permission revoked`,
-                        err,
-                      ),
-                    );
-                }
-                if (
-                  trackType === TrackType.AUDIO &&
-                  this.microphone.state.status === 'enabled'
-                ) {
-                  this.microphone
-                    .disable()
-                    .catch((err) =>
-                      this.logger(
-                        'error',
-                        `Error disabling microphone after permission revoked`,
-                        err,
-                      ),
-                    );
-                }
-              });
-          }
-        }
-      }),
+      createSafeAsyncSubscription(
+        this.state.ownCapabilities$,
+        this.handleOwnCapabilitiesUpdated,
+      ),
     );
 
     this.leaveCallHooks.add(
@@ -488,6 +432,49 @@ export class Call {
       }),
     );
   }
+
+  private handleOwnCapabilitiesUpdated = async (
+    ownCapabilities: OwnCapability[],
+  ) => {
+    // update the permission context.
+    this.permissionsContext.setPermissions(ownCapabilities);
+
+    if (!this.publisher) return;
+
+    // check if the user still has publishing permissions and stop publishing if not.
+    const permissionToTrackType = {
+      [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
+      [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
+      [OwnCapability.SCREENSHARE]: TrackType.SCREEN_SHARE,
+    };
+    for (const [permission, trackType] of Object.entries(
+      permissionToTrackType,
+    )) {
+      const hasPermission = this.permissionsContext.hasPermission(
+        permission as OwnCapability,
+      );
+      if (hasPermission) continue;
+      try {
+        switch (trackType) {
+          case TrackType.AUDIO:
+            if (this.microphone.enabled) await this.microphone.disable();
+            break;
+          case TrackType.VIDEO:
+            if (this.camera.enabled) await this.camera.disable();
+            break;
+          case TrackType.SCREEN_SHARE:
+            if (this.screenShare.enabled) await this.screenShare.disable();
+            break;
+        }
+      } catch (err) {
+        this.logger(
+          'error',
+          `Can't disable mic/camera/screenshare after revoked permissions`,
+          err,
+        );
+      }
+    }
+  };
 
   /**
    * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
@@ -594,6 +581,7 @@ export class Call {
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
+      this.hasJoinedOnce = false;
       this.clientStore.unregisterCall(this);
 
       this.camera.dispose();
@@ -784,10 +772,10 @@ export class Call {
 
     let statsOptions = this.sfuStatsReporter?.options;
     if (
-      performingRejoin ||
-      performingMigration ||
       !this.credentials ||
-      !statsOptions
+      !statsOptions ||
+      performingRejoin ||
+      performingMigration
     ) {
       try {
         const joinResponse = await this.doJoinRequest(data);
@@ -2157,12 +2145,16 @@ export class Call {
    * @internal
    */
   applyDeviceConfig = async (status: boolean) => {
+    // device settings should be applied only once, we don't have to
+    // re-apply them on later reconnections or server-side data fetches
+    if (this.deviceSettingsAppliedOnce) return;
     await this.initCamera({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
     await this.initMic({ setStatus: status }).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
+    this.deviceSettingsAppliedOnce = true;
   };
 
   private initCamera = async (options: { setStatus: boolean }) => {
@@ -2195,7 +2187,7 @@ export class Call {
     if (options.setStatus) {
       // Publish already that was set before we joined
       if (
-        this.camera.state.status === 'enabled' &&
+        this.camera.enabled &&
         this.camera.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.VIDEO)
       ) {
@@ -2228,7 +2220,7 @@ export class Call {
     if (options.setStatus) {
       // Publish media stream that was set before we joined
       if (
-        this.microphone.state.status === 'enabled' &&
+        this.microphone.enabled &&
         this.microphone.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.AUDIO)
       ) {

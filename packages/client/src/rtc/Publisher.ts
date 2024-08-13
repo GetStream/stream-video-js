@@ -385,30 +385,10 @@ export class Publisher {
    * @param trackType the track type to check.
    */
   isPublishing = (trackType: TrackType): boolean => {
-    const transceiverForTrackType = this.transceiverRegistry[trackType];
-    if (transceiverForTrackType && transceiverForTrackType.sender) {
-      const sender = transceiverForTrackType.sender;
-      return (
-        !!sender.track &&
-        sender.track.readyState === 'live' &&
-        sender.track.enabled
-      );
-    }
-    return false;
-  };
-
-  /**
-   * Returns true if the given track type is currently live
-   *
-   * @param trackType the track type to check.
-   */
-  isLive = (trackType: TrackType): boolean => {
-    const transceiverForTrackType = this.transceiverRegistry[trackType];
-    if (transceiverForTrackType && transceiverForTrackType.sender) {
-      const sender = transceiverForTrackType.sender;
-      return !!sender.track && sender.track.readyState === 'live';
-    }
-    return false;
+    const transceiver = this.transceiverRegistry[trackType];
+    if (!transceiver || !transceiver.sender) return false;
+    const track = transceiver.sender.track;
+    return !!track && track.readyState === 'live' && track.enabled;
   };
 
   private notifyTrackMuteStateChanged = async (
