@@ -49,6 +49,8 @@ export class StreamVideoClient {
   protected connectionPromise: Promise<void | ConnectedEvent> | undefined;
   protected disconnectionPromise: Promise<void> | undefined;
 
+  private static _instanceMap: Map<string, StreamVideoClient> = new Map();
+
   /**
    * You should create only one instance of `StreamVideoClient`.
    */
@@ -120,11 +122,49 @@ export class StreamVideoClient {
       const user = apiKeyOrArgs.user;
       const token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
       if (user) {
+        let id = user.id;
+        if (user.type === 'anonymous') {
+          id = '!anon';
+        }
+        if (id && StreamVideoClient._instanceMap.has(id)) {
+          this.logger(
+            'warn',
+            'A StreamVideoClient already exists for the given user ID; Prefer using getOrCreateInstance method',
+          );
+        }
         this.connectUser(user, token).catch((err) => {
           this.logger('error', 'Failed to connect', err);
         });
       }
     }
+  }
+
+  public static getOrCreateInstance(args: {
+    apiKey: string;
+    user: User;
+    tokenProvider: TokenProvider;
+    options?: StreamClientOptions;
+  }): StreamVideoClient {
+    const user = args.user;
+    if (!user.id) {
+      if (args.user.type === 'anonymous') {
+        user.id = '!anon';
+      } else {
+        throw new Error('User ID is required');
+      }
+    }
+    let instance = StreamVideoClient._instanceMap.get(user.id);
+    if (!instance) {
+      instance = new StreamVideoClient({ ...args, user });
+      StreamVideoClient._instanceMap.set(user.id, instance);
+    } else {
+      if (instance.streamClient.key !== args.apiKey) {
+        throw new Error(
+          'It is not supported to have a video client with different API key for an existing user',
+        );
+      }
+    }
+    return instance;
   }
 
   /**
