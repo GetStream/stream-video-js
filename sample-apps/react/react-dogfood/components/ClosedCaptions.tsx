@@ -12,7 +12,7 @@ const useDeduplicatedQueue = (initialQueue: CallClosedCaption[] = []) => {
     setQueue((prevQueue) => {
       const key = `${newCaption.speaker_id}-${newCaption.start_time}`;
       const isDuplicate = prevQueue.some(
-        (caption) => `${caption.speaker_id}-${caption.start_time}` === key
+        (caption) => `${caption.speaker_id}-${caption.start_time}` === key,
       );
 
       if (isDuplicate) {
@@ -41,7 +41,9 @@ export const ClosedCaptions = () => {
 
   useEffect(() => {
     const id = setTimeout(() => {
-      setQueue((prevQueue) => prevQueue.length !== 0 ? prevQueue.slice(1) : prevQueue);
+      setQueue((prevQueue) =>
+        prevQueue.length !== 0 ? prevQueue.slice(1) : prevQueue,
+      );
     }, 2700);
     return () => clearTimeout(id);
   }, [queue]);
