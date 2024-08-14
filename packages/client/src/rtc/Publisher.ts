@@ -588,7 +588,10 @@ export class Publisher {
   };
 
   private onNegotiationNeeded = () => {
-    this.negotiate().catch((err) => logger('warn', `Negotiation failed.`, err));
+    this.negotiate().catch((err) => {
+      logger('warn', `Negotiation failed.`, err);
+      this.onUnrecoverableError?.();
+    });
   };
 
   /**
@@ -602,18 +605,7 @@ export class Publisher {
     const offer = await this.pc.createOffer(options);
     let sdp = this.mungeCodecs(offer.sdp);
     if (sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-      const transceiver =
-        this.transceiverRegistry[TrackType.SCREEN_SHARE_AUDIO];
-      if (transceiver && transceiver.sender.track) {
-        const mid =
-          transceiver.mid ??
-          this.extractMid(
-            sdp,
-            transceiver.sender.track,
-            TrackType.SCREEN_SHARE_AUDIO,
-          );
-        sdp = enableHighQualityAudio(sdp, mid);
-      }
+      sdp = this.enableHighQualityAudio(sdp);
     }
 
     // set the munged SDP back to the offer
@@ -631,16 +623,15 @@ export class Publisher {
       tracks: trackInfos,
     });
 
+    const { sdp: remoteSdp, error } = response;
     try {
-      await this.pc.setRemoteDescription({
-        type: 'answer',
-        sdp: response.sdp,
-      });
+      await this.pc.setRemoteDescription({ type: 'answer', sdp: remoteSdp });
     } catch (e) {
-      logger('error', `setRemoteDescription error`, response.sdp, e);
+      logger('error', `setRemoteDescription error`, remoteSdp, error, e);
+      throw e;
+    } finally {
+      this.isIceRestarting = false;
     }
-
-    this.isIceRestarting = false;
 
     this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
       async (candidate) => {
@@ -654,6 +645,14 @@ export class Publisher {
     );
   };
 
+  private enableHighQualityAudio = (sdp: string) => {
+    const transceiver = this.transceiverRegistry[TrackType.SCREEN_SHARE_AUDIO];
+    if (!transceiver) return sdp;
+
+    const mid = this.extractMid(transceiver, sdp, TrackType.SCREEN_SHARE_AUDIO);
+    return enableHighQualityAudio(sdp, mid);
+  };
+
   private mungeCodecs = (sdp?: string) => {
     if (sdp) {
       sdp = toggleDtx(sdp, this.isDtxEnabled);
@@ -662,10 +661,12 @@ export class Publisher {
   };
 
   private extractMid = (
+    transceiver: RTCRtpTransceiver,
     sdp: string | undefined,
-    track: MediaStreamTrack,
     trackType: TrackType,
   ): string => {
+    if (transceiver.mid) return transceiver.mid;
+
     if (!sdp) {
       logger('warn', 'No SDP found. Returning empty mid');
       return '';
@@ -676,6 +677,7 @@ export class Publisher {
       `No 'mid' found for track. Trying to find it from the Offer SDP`,
     );
 
+    const track = transceiver.sender.track!;
     const parsedSdp = SDP.parse(sdp);
     const media = parsedSdp.media.find((m) => {
       return (
@@ -687,7 +689,7 @@ export class Publisher {
     if (typeof media?.mid === 'undefined') {
       logger(
         'debug',
-        `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
+        `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find it heuristically`,
       );
 
       const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
@@ -770,7 +772,7 @@ export class Publisher {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: transceiver.mid ?? this.extractMid(sdp, track, trackType),
+          mid: this.extractMid(transceiver, sdp, trackType),
 
           stereo: isStereo,
           dtx: isAudioTrack && this.isDtxEnabled,

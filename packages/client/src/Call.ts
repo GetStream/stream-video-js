@@ -891,6 +891,11 @@ export class Call {
   /**
    * Performs an ICE restart on both the Publisher and Subscriber Peer Connections.
    * Uses the provided SFU client to restore the ICE connection.
+   *
+   * This method can throw an error if the ICE restart fails.
+   * This error should be handled by the reconnect loop,
+   * and a new reconnection shall be attempted.
+   *
    * @internal
    */
   private restoreICE = async (
@@ -901,17 +906,13 @@ export class Call {
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
       if (includeSubscriber) {
-        await this.subscriber.restartIce().catch((err) => {
-          this.logger('warn', 'Failed to restart ICE on subscriber', err);
-        });
+        await this.subscriber.restartIce();
       }
     }
     if (this.publisher) {
       this.publisher.setSfuClient(nextSfuClient);
       if (includePublisher) {
-        await this.publisher.restartIce().catch((err) => {
-          this.logger('warn', 'Failed to restart ICE on publisher', err);
-        });
+        await this.publisher.restartIce();
       }
     }
   };
