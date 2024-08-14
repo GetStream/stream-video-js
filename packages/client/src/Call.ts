@@ -1704,7 +1704,9 @@ export class Call {
       }
     }
 
-    return this.muteUser(userIdsToMute, type);
+    if (userIdsToMute.length > 0) {
+      return this.muteUser(userIdsToMute, type);
+    }
   };
 
   /**
