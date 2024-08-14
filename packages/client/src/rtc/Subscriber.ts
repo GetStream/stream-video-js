@@ -325,14 +325,13 @@ export class Subscriber {
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
-    if (state === 'failed') {
+    if (state === 'failed' || state === 'disconnected') {
       logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart failed`, e);
         this.onUnrecoverableError?.();
       });
     }
-    // TODO OL: check if we need to restore the `disconnected` state
   };
 
   private onIceGatheringStateChange = () => {

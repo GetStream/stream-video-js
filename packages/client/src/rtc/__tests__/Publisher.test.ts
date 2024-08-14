@@ -265,5 +265,13 @@ describe('Publisher', () => {
       publisher['onIceConnectionStateChange']();
       expect(publisher.restartIce).toHaveBeenCalled();
     });
+
+    it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
   });
 });

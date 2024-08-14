@@ -115,6 +115,14 @@ describe('Subscriber', () => {
       subscriber['onIceConnectionStateChange']();
       expect(subscriber.restartIce).toHaveBeenCalled();
     });
+
+    it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      // @ts-ignore
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      subscriber['onIceConnectionStateChange']();
+      expect(subscriber.restartIce).toHaveBeenCalled();
+    });
   });
 
   describe('OnTrack', () => {

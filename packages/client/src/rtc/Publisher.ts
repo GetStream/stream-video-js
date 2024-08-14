@@ -283,17 +283,15 @@ export class Publisher {
             : undefined;
 
       let preferredCodec = opts.preferredCodec;
-      if (!preferredCodec && trackType === TrackType.VIDEO) {
-        if (isReactNative()) {
-          const osName = getOSInfo()?.name.toLowerCase();
-          if (osName === 'ipados') {
-            // in ipads it was noticed that if vp8 codec is used
-            // then the bytes sent is 0 in the outbound-rtp
-            // so we are forcing h264 codec for ipads
-            preferredCodec = 'H264';
-          } else if (osName === 'android') {
-            preferredCodec = 'VP8';
-          }
+      if (!preferredCodec && trackType === TrackType.VIDEO && isReactNative()) {
+        const osName = getOSInfo()?.name.toLowerCase();
+        if (osName === 'ipados') {
+          // in ipads it was noticed that if vp8 codec is used
+          // then the bytes sent is 0 in the outbound-rtp
+          // so we are forcing h264 codec for ipads
+          preferredCodec = 'H264';
+        } else if (osName === 'android') {
+          preferredCodec = 'VP8';
         }
       }
 
@@ -797,14 +795,13 @@ export class Publisher {
 
     if (this.state.callingState === CallingState.RECONNECTING) return;
 
-    if (state === 'failed') {
+    if (state === 'failed' || state === 'disconnected') {
       logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart error`, e);
         this.onUnrecoverableError?.();
       });
     }
-    // TODO OL: check if we need to restore the `disconnected` state
   };
 
   private onIceGatheringStateChange = () => {
