@@ -871,10 +871,10 @@ export class StreamClient {
     event: { type: 'online' | 'offline' } | Event,
   ) => {
     if (event.type === 'offline') {
-      this.logger('debug', 'browser went offline');
+      this.logger('debug', 'device went offline');
       this.dispatchEvent({ type: 'network.changed', online: false });
     } else if (event.type === 'online') {
-      this.logger('debug', 'browser went online');
+      this.logger('debug', 'device went online');
       this.dispatchEvent({ type: 'network.changed', online: true });
     }
   };
