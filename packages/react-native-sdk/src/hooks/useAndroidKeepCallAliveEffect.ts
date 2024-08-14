@@ -7,9 +7,7 @@ import { getNotifeeLibNoThrowForKeepCallAlive } from '../utils/push/libs/notifee
 
 const isAndroid7OrBelow = Platform.OS === 'android' && Platform.Version < 26;
 
-const notifeeLib = isAndroid7OrBelow
-  ? getNotifeeLibNoThrowForKeepCallAlive()
-  : undefined;
+const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
 function setForegroundService() {
   if (!isAndroid7OrBelow) return;

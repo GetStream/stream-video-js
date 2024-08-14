@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.0...@stream-io/video-react-native-sdk-0.10.1) (2024-08-14)
+
+
+### Bug Fixes
+
+* push notifications not dismissed automatically on android 8 and above ([18718e6](https://github.com/GetStream/stream-video-js/commit/18718e637265e02510a3d01a35be37e9a18d5117))
+
 ## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.9.7...@stream-io/video-react-native-sdk-0.10.0) (2024-08-08)
 
 
