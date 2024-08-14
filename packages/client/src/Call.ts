@@ -570,7 +570,7 @@ export class Call {
       this.subscriber?.close();
       this.subscriber = undefined;
 
-      this.publisher?.close();
+      this.publisher?.close({ stopTracks: true });
       this.publisher = undefined;
 
       await this.sfuClient?.leaveAndClose(reason);

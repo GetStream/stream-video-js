@@ -177,7 +177,7 @@ export class Publisher {
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
    */
-  close = ({ stopTracks = true } = {}) => {
+  close = ({ stopTracks }: { stopTracks: boolean }) => {
     if (stopTracks) {
       this.stopPublishing();
       Object.keys(this.transceiverRegistry).forEach((trackType) => {
@@ -419,7 +419,7 @@ export class Publisher {
   /**
    * Stops publishing all tracks and stop all tracks.
    */
-  stopPublishing = () => {
+  private stopPublishing = () => {
     logger('debug', 'Stopping publishing all tracks');
     this.pc.getSenders().forEach((s) => {
       s.track?.stop();
