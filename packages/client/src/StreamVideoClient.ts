@@ -126,11 +126,14 @@ export class StreamVideoClient {
         if (user.type === 'anonymous') {
           id = '!anon';
         }
-        if (id && StreamVideoClient._instanceMap.has(id)) {
-          this.logger(
-            'warn',
-            'A StreamVideoClient already exists for the given user ID; Prefer using getOrCreateInstance method',
-          );
+        if (id) {
+          if (StreamVideoClient._instanceMap.has(id)) {
+            this.logger(
+              'warn',
+              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : 'the given user ID'}; Prefer using getOrCreateInstance method`,
+            );
+          }
+          StreamVideoClient._instanceMap.set(id, this);
         }
         this.connectUser(user, token).catch((err) => {
           this.logger('error', 'Failed to connect', err);
@@ -142,7 +145,8 @@ export class StreamVideoClient {
   public static getOrCreateInstance(args: {
     apiKey: string;
     user: User;
-    tokenProvider: TokenProvider;
+    token?: string;
+    tokenProvider?: TokenProvider;
     options?: StreamClientOptions;
   }): StreamVideoClient {
     const user = args.user;
@@ -150,7 +154,14 @@ export class StreamVideoClient {
       if (args.user.type === 'anonymous') {
         user.id = '!anon';
       } else {
-        throw new Error('User ID is required');
+        throw new Error('User ID is required for a non-anonymous user');
+      }
+    }
+    if (!args.token && !args.tokenProvider) {
+      if (args.user.type !== 'anonymous') {
+        throw new Error(
+          'Token or tokenProvider is required for a non-anonymous user',
+        );
       }
     }
     let instance = StreamVideoClient._instanceMap.get(user.id);
