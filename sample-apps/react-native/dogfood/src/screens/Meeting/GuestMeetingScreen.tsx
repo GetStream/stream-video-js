@@ -60,7 +60,7 @@ export const GuestMeetingScreen = (props: Props) => {
       _videoClient = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: userToConnect,
-        tokenProvider: userToConnect.id ? tokenProvider : undefined,
+        tokenProvider,
         options: { logLevel: 'warn' },
       });
       setVideoClient(_videoClient);
