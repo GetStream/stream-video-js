@@ -1142,12 +1142,12 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
-    this.reconnectStrategy = WebsocketReconnectStrategy.MIGRATE;
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
       throw new Error('Cannot migrate without an active SFU client');
     }
 
+    this.reconnectStrategy = WebsocketReconnectStrategy.MIGRATE;
     this.state.setCallingState(CallingState.MIGRATING);
     const currentSubscriber = this.subscriber;
     const currentPublisher = this.publisher;
@@ -1157,10 +1157,15 @@ export class Call {
 
     const migrationTask = currentSfuClient.enterMigration();
 
-    await this.join({
-      ...this.joinCallData,
-      migrating_from: currentSfuClient.edgeName,
-    });
+    try {
+      const currentSfu = currentSfuClient.edgeName;
+      await this.join({ ...this.joinCallData, migrating_from: currentSfu });
+    } finally {
+      // cleanup the migration_from field after the migration is complete or failed
+      // as we don't want to keep dirty data in the join call data
+      delete this.joinCallData?.migrating_from;
+    }
+
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
 
@@ -1169,9 +1174,6 @@ export class Call {
       // and the peer connection instances. In case of failure, the migration
       // task would throw an error and REJOIN would be attempted.
       await migrationTask;
-    } catch (error) {
-      this.logger('warn', '[Reconnect] Migration error', error);
-      throw error; // bubble the error up
     } finally {
       currentSubscriber?.close();
       currentPublisher?.close({ stopTracks: false });
