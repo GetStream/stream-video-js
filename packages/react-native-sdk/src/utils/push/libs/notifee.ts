@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { getLogger } from '../../..';
 
 export type NotifeeLib = typeof import('@notifee/react-native');
@@ -7,6 +8,8 @@ let notifeeLib: NotifeeLib | undefined;
 try {
   notifeeLib = require('@notifee/react-native');
 } catch (_e) {}
+
+const isAndroid7OrBelow = Platform.OS === 'android' && Platform.Version < 26;
 
 const INSTALLATION_INSTRUCTION =
   'Please see https://notifee.app/react-native/docs/installation for installation instructions';
@@ -22,7 +25,7 @@ export function getNotifeeLibThrowIfNotInstalledForPush() {
 }
 
 export function getNotifeeLibNoThrowForKeepCallAlive() {
-  if (!notifeeLib) {
+  if (!notifeeLib && isAndroid7OrBelow) {
     const logger = getLogger(['getNotifeeLibNoThrow']);
     logger(
       'info',
