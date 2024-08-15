@@ -49,7 +49,9 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       });
       setVideoClient(_videoClient);
     };
-    run();
+    if (user.id) {
+      run();
+    }
 
     return () => {
       _videoClient?.disconnectUser();

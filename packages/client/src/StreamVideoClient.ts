@@ -158,9 +158,9 @@ export class StreamVideoClient {
       }
     }
     if (!args.token && !args.tokenProvider) {
-      if (args.user.type !== 'anonymous') {
+      if (args.user.type !== 'anonymous' && args.user.type !== 'guest') {
         throw new Error(
-          'Token or tokenProvider is required for a non-anonymous user',
+          'TokenProvider or token is required for a user that is not a guest or anonymous',
         );
       }
     }
