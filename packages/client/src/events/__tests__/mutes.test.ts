@@ -28,9 +28,9 @@ describe('mutes', () => {
       // @ts-expect-error partial data
       call.publisher.isPublishing = vi.fn().mockReturnValue(true);
 
-      vi.spyOn(call, 'stopPublish').mockResolvedValue(undefined);
       vi.spyOn(call.camera, 'disable').mockResolvedValue(undefined);
       vi.spyOn(call.microphone, 'disable').mockResolvedValue(undefined);
+      vi.spyOn(call.screenShare, 'disable').mockResolvedValue(undefined);
 
       // @ts-ignore
       call.on = (event: string, h) => {
@@ -56,41 +56,38 @@ describe('mutes', () => {
       });
     });
 
-    it('should automatically mute only when cause is moderation', async () => {
-      await handler!({
+    it('should automatically mute only when cause is moderation', () => {
+      handler!({
         cause: TrackUnpublishReason.PERMISSION_REVOKED,
         type: TrackType.VIDEO,
         sessionId: 'session-id',
         userId: 'user-id',
       });
       expect(call.camera.disable).not.toHaveBeenCalled();
-      expect(call.stopPublish).not.toHaveBeenCalledWith(TrackType.VIDEO);
     });
 
-    it('should handle remote soft video mute', async () => {
-      await handler!({
+    it('should handle remote soft video mute', () => {
+      handler!({
         cause: TrackUnpublishReason.MODERATION,
         type: TrackType.VIDEO,
         sessionId: 'session-id',
         userId: 'user-id',
       });
       expect(call.camera.disable).toHaveBeenCalled();
-      expect(call.stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
     });
 
-    it('should handle remote soft audio mute', async () => {
-      await handler!({
+    it('should handle remote soft audio mute', () => {
+      handler!({
         cause: TrackUnpublishReason.MODERATION,
         type: TrackType.AUDIO,
         sessionId: 'session-id',
         userId: 'user-id',
       });
       expect(call.microphone.disable).toHaveBeenCalled();
-      expect(call.stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
     });
 
-    it('should handle remote soft screenshare mute', async () => {
-      await handler!({
+    it('should handle remote soft screenshare mute', () => {
+      handler!({
         cause: TrackUnpublishReason.MODERATION,
         type: TrackType.SCREEN_SHARE,
         sessionId: 'session-id',
@@ -98,7 +95,7 @@ describe('mutes', () => {
       });
       expect(call.camera.disable).not.toHaveBeenCalled();
       expect(call.microphone.disable).not.toHaveBeenCalled();
-      expect(call.stopPublish).toHaveBeenCalledWith(TrackType.SCREEN_SHARE);
+      expect(call.screenShare.disable).toHaveBeenCalled();
     });
   });
 });
