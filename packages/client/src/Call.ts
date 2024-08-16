@@ -1296,18 +1296,6 @@ export class Call {
           }
           break;
         case TrackType.SCREEN_SHARE:
-          // let screenShare = screenShareStream;
-          // if (screenShareAudioStream) {
-          //   // when we are publishing screen share audio, we need to merge
-          //   // the two streams into one that holds both audio and video tracks
-          //   screenShare = new MediaStream();
-          //   screenShareStream?.getVideoTracks().forEach((track) => {
-          //     screenShare?.addTrack(track);
-          //   });
-          //   screenShareAudioStream?.getAudioTracks().forEach((track) => {
-          //     screenShare?.addTrack(track);
-          //   });
-          // }
           if (screenShareStream)
             await this.publishScreenShareStream(screenShareStream);
           break;
