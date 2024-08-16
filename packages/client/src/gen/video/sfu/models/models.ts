@@ -286,6 +286,10 @@ export interface TrackInfo {
    * @generated from protobuf field: bool red = 9;
    */
   red: boolean;
+  /**
+   * @generated from protobuf field: bool muted = 10;
+   */
+  muted: boolean;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -1833,6 +1837,7 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 7, name: 'dtx', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 8, name: 'stereo', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      { no: 10, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
   create(value?: PartialMessage<TrackInfo>): TrackInfo {
@@ -1844,6 +1849,7 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
     message.dtx = false;
     message.stereo = false;
     message.red = false;
+    message.muted = false;
     if (value !== undefined)
       reflectionMergePartial<TrackInfo>(this, message, value);
     return message;
@@ -1881,6 +1887,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
           break;
         case /* bool red */ 9:
           message.red = reader.bool();
+          break;
+        case /* bool muted */ 10:
+          message.muted = reader.bool();
           break;
         default:
           let u = options.readUnknownField;
@@ -1929,6 +1938,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       writer.tag(8, WireType.Varint).bool(message.stereo);
     /* bool red = 9; */
     if (message.red !== false) writer.tag(9, WireType.Varint).bool(message.red);
+    /* bool muted = 10; */
+    if (message.muted !== false)
+      writer.tag(10, WireType.Varint).bool(message.muted);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(

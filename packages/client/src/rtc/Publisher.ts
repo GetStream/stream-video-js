@@ -734,7 +734,8 @@ export class Publisher {
         );
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
-        if (track.readyState === 'live') {
+        const isTrackLive = track.readyState === 'live';
+        if (isTrackLive) {
           const publishOpts = this.publishOptionsPerTrackType.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
@@ -784,6 +785,7 @@ export class Publisher {
           stereo: isStereo,
           dtx: isAudioTrack && this.isDtxEnabled,
           red: isAudioTrack && this.isRedEnabled,
+          muted: !isTrackLive,
         };
       });
   };
