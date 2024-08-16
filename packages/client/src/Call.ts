@@ -812,19 +812,24 @@ export class Call {
       // this is a throw-away SDP that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
       const receivingCapabilitiesSdp = await getGenericSdp('recvonly');
+      const reconnectDetails =
+        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
+          ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
+          : undefined;
       const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
         subscriberSdp: receivingCapabilitiesSdp,
         clientDetails,
         fastReconnect: performingFastReconnect,
-        reconnectDetails:
-          this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
-            ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
-            : undefined,
+        reconnectDetails,
       });
 
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
-        this.state.updateFromSfuCallState(callState, sfuClient.sessionId);
+        this.state.updateFromSfuCallState(
+          callState,
+          sfuClient.sessionId,
+          reconnectDetails,
+        );
       }
     }
 

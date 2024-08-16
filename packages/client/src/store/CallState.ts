@@ -38,6 +38,7 @@ import {
   WSEvent,
 } from '../gen/coordinator';
 import { Timestamp } from '../gen/google/protobuf/timestamp';
+import { ReconnectDetails } from '../gen/video/sfu/event/events';
 import {
   CallState as SfuCallState,
   Pin,
@@ -1080,12 +1081,16 @@ export class CallState {
    *
    * @param callState the call state from the SFU server.
    * @param currentSessionId the session ID of the current user.
+   * @param reconnectDetails optional reconnect details.
    */
   updateFromSfuCallState = (
     callState: SfuCallState,
     currentSessionId: string,
+    reconnectDetails?: ReconnectDetails,
   ) => {
     const { participants, participantCount, startedAt, pins } = callState;
+    const localPublishedTracks =
+      reconnectDetails?.announcedTracks.map((t) => t.trackType) ?? [];
     this.setParticipants(() => {
       const participantLookup = this.getParticipantLookupBySessionId();
       return participants.map<StreamVideoParticipant>((p) => {
@@ -1093,8 +1098,12 @@ export class CallState {
         // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
         // as it doesn't exist on the server.
         const existingParticipant = participantLookup[p.sessionId];
-        return Object.assign(p, existingParticipant, {
-          isLocalParticipant: p.sessionId === currentSessionId,
+        const isLocalParticipant = p.sessionId === currentSessionId;
+        return Object.assign({}, existingParticipant, p, {
+          isLocalParticipant,
+          publishedTracks: isLocalParticipant
+            ? localPublishedTracks
+            : p.publishedTracks,
           viewportVisibilityState:
             existingParticipant?.viewportVisibilityState ?? {
               videoTrack: VisibilityState.UNKNOWN,
