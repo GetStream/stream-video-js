@@ -35,7 +35,6 @@ export class Subscriber {
   private readonly onUnrecoverableError?: () => void;
 
   private isIceRestarting = false;
-  private iceRestartTimeout?: NodeJS.Timeout;
 
   // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
   private _connectionConfiguration: RTCConfiguration | undefined;
@@ -130,7 +129,6 @@ export class Subscriber {
    * Closes the `RTCPeerConnection` and unsubscribes from the dispatcher.
    */
   close = () => {
-    clearTimeout(this.iceRestartTimeout);
     this.detachEventHandlers();
     this.pc.close();
   };

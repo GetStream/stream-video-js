@@ -1274,14 +1274,13 @@ export class Call {
    * @internal
    */
   private restorePublishedTracks = async () => {
-    const { localParticipant } = this.state;
-    if (!localParticipant) return;
-    const {
-      audioStream,
-      videoStream,
-      screenShareStream,
-      screenShareAudioStream,
-    } = localParticipant;
+    const audioStream = this.microphone.state.mediaStream;
+    const videoStream = this.camera.state.mediaStream;
+    const screenShareStream = this.screenShare.state.mediaStream;
+
+    // TODO: handle the case where one of the streams is muted or disabled
+    //  during a migration. Update the mute state
+
     // the tracks need to be restored in their original order of publishing
     // otherwise, we might get `m-lines order mismatch` errors
     for (const trackType of this.trackPublishOrder) {
@@ -1297,19 +1296,20 @@ export class Call {
           }
           break;
         case TrackType.SCREEN_SHARE:
-          let screenShare = screenShareStream;
-          if (screenShareAudioStream) {
-            // when we are publishing screen share audio, we need to merge
-            // the two streams into one that holds both audio and video tracks
-            screenShare = new MediaStream();
-            screenShareStream?.getVideoTracks().forEach((track) => {
-              screenShare?.addTrack(track);
-            });
-            screenShareAudioStream?.getAudioTracks().forEach((track) => {
-              screenShare?.addTrack(track);
-            });
-          }
-          if (screenShare) await this.publishScreenShareStream(screenShare);
+          // let screenShare = screenShareStream;
+          // if (screenShareAudioStream) {
+          //   // when we are publishing screen share audio, we need to merge
+          //   // the two streams into one that holds both audio and video tracks
+          //   screenShare = new MediaStream();
+          //   screenShareStream?.getVideoTracks().forEach((track) => {
+          //     screenShare?.addTrack(track);
+          //   });
+          //   screenShareAudioStream?.getAudioTracks().forEach((track) => {
+          //     screenShare?.addTrack(track);
+          //   });
+          // }
+          if (screenShareStream)
+            await this.publishScreenShareStream(screenShareStream);
           break;
         // screen share audio can't exist without a screen share, so we handle it there
         case TrackType.SCREEN_SHARE_AUDIO:

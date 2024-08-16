@@ -98,7 +98,6 @@ export class Publisher {
   private readonly onUnrecoverableError?: () => void;
 
   private isIceRestarting = false;
-  private iceRestartTimeout?: NodeJS.Timeout;
 
   // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
   private _connectionConfiguration: RTCConfiguration | undefined;
@@ -193,7 +192,6 @@ export class Publisher {
       });
     }
 
-    clearTimeout(this.iceRestartTimeout);
     this.detachEventHandlers();
     this.pc.close();
   };
