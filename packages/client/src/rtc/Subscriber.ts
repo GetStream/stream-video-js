@@ -7,6 +7,7 @@ import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { Logger } from '../coordinator/connection/types';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -14,9 +15,8 @@ export type SubscriberOpts = {
   state: CallState;
   connectionConfig?: RTCConfiguration;
   onUnrecoverableError?: () => void;
+  logTag: string;
 };
-
-const logger = getLogger(['Subscriber']);
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -25,6 +25,7 @@ const logger = getLogger(['Subscriber']);
  * @internal
  */
 export class Subscriber {
+  private readonly logger: Logger;
   private pc: RTCPeerConnection;
   private sfuClient: StreamSfuClient;
   private state: CallState;
@@ -58,6 +59,7 @@ export class Subscriber {
    * @param connectionConfig the connection configuration to use.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE when connection goes to `disconnected` state.
    * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
+   * @param logTag a tag to use for logging.
    */
   constructor({
     sfuClient,
@@ -65,7 +67,9 @@ export class Subscriber {
     state,
     connectionConfig,
     onUnrecoverableError,
+    logTag,
   }: SubscriberOpts) {
+    this.logger = getLogger(['Subscriber', logTag]);
     this.sfuClient = sfuClient;
     this.state = state;
     this.onUnrecoverableError = onUnrecoverableError;
@@ -81,7 +85,7 @@ export class Subscriber {
         withoutConcurrency(subscriberOfferConcurrencyTag, () => {
           return this.negotiate(subscriberOffer);
         }).catch((err) => {
-          logger('warn', `Negotiation failed.`, err);
+          this.logger('warn', `Negotiation failed.`, err);
         });
       },
     );
@@ -92,7 +96,7 @@ export class Subscriber {
         if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
         await this.restartIce();
       }).catch((err) => {
-        logger('warn', `ICERestart failed`, err);
+        this.logger('warn', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });
     });
@@ -175,13 +179,13 @@ export class Subscriber {
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
-    logger('debug', 'Restarting ICE connection');
+    this.logger('debug', 'Restarting ICE connection');
     if (this.pc.signalingState === 'have-remote-offer') {
-      logger('debug', 'ICE restart is already in progress');
+      this.logger('debug', 'ICE restart is already in progress');
       return;
     }
     if (this.pc.connectionState === 'new') {
-      logger(
+      this.logger(
         'debug',
         `ICE connection is not yet established, skipping restart.`,
       );
@@ -207,7 +211,7 @@ export class Subscriber {
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
-    logger(
+    this.logger(
       'debug',
       `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
       e.track.id,
@@ -216,25 +220,25 @@ export class Subscriber {
 
     const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
     e.track.addEventListener('mute', () => {
-      logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
+      this.logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
     });
 
     e.track.addEventListener('unmute', () => {
-      logger('info', `[onTrack]: Track unmuted: ${trackDebugInfo}`);
+      this.logger('info', `[onTrack]: Track unmuted: ${trackDebugInfo}`);
     });
 
     e.track.addEventListener('ended', () => {
-      logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
       this.state.removeOrphanedTrack(primaryStream.id);
     });
 
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
-      return logger('error', `Unknown track type: ${rawTrackType}`);
+      return this.logger('error', `Unknown track type: ${rawTrackType}`);
     }
 
     if (!participantToUpdate) {
-      logger(
+      this.logger(
         'warn',
         `[onTrack]: Received track for unknown participant: ${trackId}`,
         e,
@@ -250,12 +254,12 @@ export class Subscriber {
 
     const streamKindProp = trackTypeToParticipantStreamKey(trackType);
     if (!streamKindProp) {
-      logger('error', `Unknown track type: ${rawTrackType}`);
+      this.logger('error', `Unknown track type: ${rawTrackType}`);
       return;
     }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
-      logger(
+      this.logger(
         'info',
         `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
@@ -272,7 +276,7 @@ export class Subscriber {
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      logger('debug', 'null ice candidate');
+      this.logger('debug', 'null ice candidate');
       return;
     }
 
@@ -282,12 +286,12 @@ export class Subscriber {
         peerType: PeerType.SUBSCRIBER,
       })
       .catch((err) => {
-        logger('warn', `ICETrickle failed`, err);
+        this.logger('warn', `ICETrickle failed`, err);
       });
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    logger('info', `Received subscriberOffer`, subscriberOffer);
+    this.logger('info', `Received subscriberOffer`, subscriberOffer);
 
     await this.pc.setRemoteDescription({
       type: 'offer',
@@ -300,7 +304,7 @@ export class Subscriber {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('warn', `ICE candidate error`, [e, candidate]);
+          this.logger('warn', `ICE candidate error`, [e, candidate]);
         }
       },
     );
@@ -318,7 +322,7 @@ export class Subscriber {
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    logger('debug', `ICE connection state changed`, state);
+    this.logger('debug', `ICE connection state changed`, state);
 
     if (this.state.callingState === CallingState.RECONNECTING) return;
 
@@ -326,16 +330,20 @@ export class Subscriber {
     if (this.isIceRestarting) return;
 
     if (state === 'failed' || state === 'disconnected') {
-      logger('debug', `Attempting to restart ICE`);
+      this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
-        logger('error', `ICE restart failed`, e);
+        this.logger('error', `ICE restart failed`, e);
         this.onUnrecoverableError?.();
       });
     }
   };
 
   private onIceGatheringStateChange = () => {
-    logger('debug', `ICE gathering state changed`, this.pc.iceGatheringState);
+    this.logger(
+      'debug',
+      `ICE gathering state changed`,
+      this.pc.iceGatheringState,
+    );
   };
 
   private onIceCandidateError = (e: Event) => {
@@ -345,6 +353,6 @@ export class Subscriber {
     const iceState = this.pc.iceConnectionState;
     const logLevel =
       iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    logger(logLevel, `ICE Candidate error`, errorMessage);
+    this.logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 }

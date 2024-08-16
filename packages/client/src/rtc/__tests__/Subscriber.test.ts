@@ -46,6 +46,7 @@ describe('Subscriber', () => {
       dispatcher,
       state,
       connectionConfig: { iceServers: [] },
+      logTag: 'test',
     });
   });
 

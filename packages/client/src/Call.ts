@@ -828,6 +828,9 @@ export class Call {
       }
     }
 
+    this.state.setCallingState(CallingState.JOINED);
+    this.hasJoinedOnce = true;
+
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
@@ -844,9 +847,6 @@ export class Call {
         closePreviousInstances: !performingMigration,
       });
     }
-
-    this.state.setCallingState(CallingState.JOINED);
-    this.hasJoinedOnce = true;
 
     if (performingRejoin) {
       const strategy = WebsocketReconnectStrategy[this.reconnectStrategy];
@@ -943,6 +943,7 @@ export class Call {
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
+      logTag: String(this.reconnectAttempts),
       onUnrecoverableError: () => {
         this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
           this.logger(
@@ -971,6 +972,7 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
+        logTag: String(this.reconnectAttempts),
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
             this.logger(
@@ -1101,7 +1103,7 @@ export class Call {
         } catch (error) {
           this.logger(
             'warn',
-            `[Reconnect] ${current} failed. Attempting with REJOIN`,
+            `[Reconnect] ${current}(${this.reconnectAttempts}) failed. Attempting with REJOIN`,
             error,
           );
           await sleep(retryInterval(this.reconnectAttempts));

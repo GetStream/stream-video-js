@@ -66,6 +66,7 @@ describe('Publisher', () => {
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
+      logTag: 'test',
     });
   });
 

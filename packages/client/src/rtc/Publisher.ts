@@ -26,8 +26,6 @@ import { getOSInfo } from '../client-details';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 
-const logger: Logger = getLogger(['Publisher']);
-
 export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
@@ -36,6 +34,7 @@ export type PublisherConstructorOpts = {
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
   onUnrecoverableError?: () => void;
+  logTag: string;
 };
 
 /**
@@ -44,6 +43,7 @@ export type PublisherConstructorOpts = {
  * @internal
  */
 export class Publisher {
+  private readonly logger: Logger;
   private pc: RTCPeerConnection;
   private readonly state: CallState;
 
@@ -129,6 +129,7 @@ export class Publisher {
    * @param isRedEnabled whether RED is enabled.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
    * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
+   * @param logTag the log tag to use.
    */
   constructor({
     connectionConfig,
@@ -138,7 +139,9 @@ export class Publisher {
     isDtxEnabled,
     isRedEnabled,
     onUnrecoverableError,
+    logTag,
   }: PublisherConstructorOpts) {
+    this.logger = getLogger(['Publisher', logTag]);
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
@@ -149,7 +152,7 @@ export class Publisher {
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
       this.restartIce().catch((err) => {
-        logger('warn', `ICERestart failed`, err);
+        this.logger('warn', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });
     });
@@ -255,7 +258,7 @@ export class Publisher {
      * Once the track has ended, it will notify the SFU and update the state.
      */
     const handleTrackEnded = async () => {
-      logger(
+      this.logger(
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
@@ -312,7 +315,7 @@ export class Publisher {
         sendEncodings: videoEncodings,
       });
 
-      logger('debug', `Added ${TrackType[trackType]} transceiver`);
+      this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
       this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
@@ -322,7 +325,7 @@ export class Publisher {
           ? this.getCodecPreferences(trackType, preferredCodec)
           : undefined;
       if (codecPreferences) {
-        logger(
+        this.logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
@@ -330,7 +333,7 @@ export class Publisher {
         try {
           transceiver.setCodecPreferences(codecPreferences);
         } catch (err) {
-          logger('warn', `Couldn't set codec preferences`, err);
+          this.logger('warn', `Couldn't set codec preferences`, err);
         }
       }
     } else {
@@ -420,7 +423,7 @@ export class Publisher {
    * Stops publishing all tracks and stop all tracks.
    */
   private stopPublishing = () => {
-    logger('debug', 'Stopping publishing all tracks');
+    this.logger('debug', 'Stopping publishing all tracks');
     this.pc.getSenders().forEach((s) => {
       s.track?.stop();
       if (this.pc.signalingState !== 'closed') {
@@ -430,7 +433,7 @@ export class Publisher {
   };
 
   updateVideoPublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
-    logger(
+    this.logger(
       'info',
       'Update publish quality, requested layers by SFU:',
       enabledLayers,
@@ -438,13 +441,13 @@ export class Publisher {
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
     if (!videoSender) {
-      logger('warn', 'Update publish quality, no video sender found.');
+      this.logger('warn', 'Update publish quality, no video sender found.');
       return;
     }
 
     const params = videoSender.getParameters();
     if (params.encodings.length === 0) {
-      logger(
+      this.logger(
         'warn',
         'Update publish quality, No suitable video encoding quality found',
       );
@@ -469,7 +472,7 @@ export class Publisher {
             layer.scaleResolutionDownBy >= 1 &&
             layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
           ) {
-            logger(
+            this.logger(
               'debug',
               '[dynascale]: setting scaleResolutionDownBy from server',
               'layer',
@@ -482,7 +485,7 @@ export class Publisher {
           }
 
           if (layer.maxBitrate > 0 && layer.maxBitrate !== enc.maxBitrate) {
-            logger(
+            this.logger(
               'debug',
               '[dynascale] setting max-bitrate from the server',
               'layer',
@@ -498,7 +501,7 @@ export class Publisher {
             layer.maxFramerate > 0 &&
             layer.maxFramerate !== enc.maxFramerate
           ) {
-            logger(
+            this.logger(
               'debug',
               '[dynascale]: setting maxFramerate from server',
               'layer',
@@ -516,9 +519,13 @@ export class Publisher {
     const activeLayers = params.encodings.filter((e) => e.active);
     if (changed) {
       await videoSender.setParameters(params);
-      logger('info', `Update publish quality, enabled rids: `, activeLayers);
+      this.logger(
+        'info',
+        `Update publish quality, enabled rids: `,
+        activeLayers,
+      );
     } else {
-      logger('info', `Update publish quality, no change: `, activeLayers);
+      this.logger('info', `Update publish quality, no change: `, activeLayers);
     }
   };
 
@@ -552,7 +559,7 @@ export class Publisher {
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      logger('debug', 'null ice candidate');
+      this.logger('debug', 'null ice candidate');
       return;
     }
     this.sfuClient
@@ -561,7 +568,7 @@ export class Publisher {
         peerType: PeerType.PUBLISHER_UNSPECIFIED,
       })
       .catch((err) => {
-        logger('warn', `ICETrickle failed`, err);
+        this.logger('warn', `ICETrickle failed`, err);
       });
   };
 
@@ -578,10 +585,10 @@ export class Publisher {
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
-    logger('debug', 'Restarting ICE connection');
+    this.logger('debug', 'Restarting ICE connection');
     const signalingState = this.pc.signalingState;
     if (this.isIceRestarting || signalingState === 'have-local-offer') {
-      logger('debug', 'ICE restart is already in progress');
+      this.logger('debug', 'ICE restart is already in progress');
       return;
     }
     await this.negotiate({ iceRestart: true });
@@ -589,7 +596,7 @@ export class Publisher {
 
   private onNegotiationNeeded = () => {
     this.negotiate().catch((err) => {
-      logger('warn', `Negotiation failed.`, err);
+      this.logger('warn', `Negotiation failed.`, err);
       this.onUnrecoverableError?.();
     });
   };
@@ -627,7 +634,7 @@ export class Publisher {
     try {
       await this.pc.setRemoteDescription({ type: 'answer', sdp: remoteSdp });
     } catch (e) {
-      logger('error', `setRemoteDescription error`, remoteSdp, error, e);
+      this.logger('error', `setRemoteDescription error`, remoteSdp, error, e);
       throw e;
     } finally {
       this.isIceRestarting = false;
@@ -639,7 +646,7 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('warn', `ICE candidate error`, e, candidate);
+          this.logger('warn', `ICE candidate error`, e, candidate);
         }
       },
     );
@@ -668,11 +675,11 @@ export class Publisher {
     if (transceiver.mid) return transceiver.mid;
 
     if (!sdp) {
-      logger('warn', 'No SDP found. Returning empty mid');
+      this.logger('warn', 'No SDP found. Returning empty mid');
       return '';
     }
 
-    logger(
+    this.logger(
       'debug',
       `No 'mid' found for track. Trying to find it from the Offer SDP`,
     );
@@ -687,7 +694,7 @@ export class Publisher {
       );
     });
     if (typeof media?.mid === 'undefined') {
-      logger(
+      this.logger(
         'debug',
         `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find it heuristically`,
       );
@@ -697,7 +704,7 @@ export class Publisher {
         return String(heuristicMid);
       }
 
-      logger('debug', 'No heuristic mid found. Returning empty mid');
+      this.logger('debug', 'No heuristic mid found. Returning empty mid');
       return '';
     }
     return String(media.mid);
@@ -742,7 +749,7 @@ export class Publisher {
         } else {
           // we report the last known optimal layers for ended tracks
           optimalLayers = this.trackLayersCache[trackType] || [];
-          logger(
+          this.logger(
             'debug',
             `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,
             optimalLayers,
@@ -788,30 +795,30 @@ export class Publisher {
     const iceState = this.pc.iceConnectionState;
     const logLevel =
       iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    logger(logLevel, `ICE Candidate error`, errorMessage);
+    this.logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    logger('debug', `ICE Connection state changed to`, state);
+    this.logger('debug', `ICE Connection state changed to`, state);
 
     if (this.state.callingState === CallingState.RECONNECTING) return;
 
     if (state === 'failed' || state === 'disconnected') {
-      logger('debug', `Attempting to restart ICE`);
+      this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
-        logger('error', `ICE restart error`, e);
+        this.logger('error', `ICE restart error`, e);
         this.onUnrecoverableError?.();
       });
     }
   };
 
   private onIceGatheringStateChange = () => {
-    logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
+    this.logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
   };
 
   private onSignalingStateChange = () => {
-    logger('debug', `Signaling state changed`, this.pc.signalingState);
+    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
   };
 
   private ridToVideoQuality = (rid: string): VideoQuality => {

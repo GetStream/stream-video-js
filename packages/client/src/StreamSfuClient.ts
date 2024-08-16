@@ -197,7 +197,7 @@ export class StreamSfuClient {
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
-        this.dispatcher.dispatch(message);
+        this.dispatcher.dispatch(message, this.logTag);
       },
     });
 
