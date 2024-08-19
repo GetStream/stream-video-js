@@ -47,7 +47,8 @@
       "executor": "@jscutlery/semver:github",
       "options": {
         "tag": "${tag}",
-        "notes": "${notes}"
+        "notes": "${notes}",
+        "prerelease": "true"
       }
     },
     "publish": {
