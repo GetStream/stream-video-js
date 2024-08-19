@@ -12,8 +12,6 @@ on:
 
   workflow_dispatch:
 
-  workflow_dispatch:
-
 concurrency:
   group: version-and-release-${{ github.ref }}
   cancel-in-progress: true
