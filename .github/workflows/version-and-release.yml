@@ -11,6 +11,8 @@ on:
       - '!**/docusaurus/**'
       - 'sample-apps/**'
 
+  workflow_dispatch:
+
 concurrency:
   group: version-and-release-${{ github.ref }}
   cancel-in-progress: true

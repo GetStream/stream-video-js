@@ -6,13 +6,14 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "releaseAs": "preminor",
         "preset": {
           "name": "conventionalcommits",
           "preMajor": false,
           "types": [
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
-            {"type": "chore", "hidden": true},
+            {"type": "chore", "hidden": false},
             {"type": "docs", "hidden": true},
             {"type": "style", "hidden": true},
             {"type": "refactor", "hidden": true},
@@ -25,7 +26,7 @@
         "postTargets": [
           "@stream-io/video-client:update-version",
           "@stream-io/video-client:github",
-          "@stream-io/video-client:npm"
+          "@stream-io/video-client:publish"
         ]
       }
     },
@@ -47,13 +48,15 @@
         "notes": "${notes}"
       }
     },
-    "npm": {
-      "executor": "ngx-deploy-npm:deploy",
+    "publish": {
+      "executor": "nx:run-commands",
       "options": {
-        "access": "public",
-        "noBuild": true,
-        "dryRun": false,
-        "distFolderPath": "packages/client"
+        "commands": [
+          {
+            "command": "yarn release:client",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }
