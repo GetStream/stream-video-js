@@ -382,7 +382,7 @@ export class StableWSConnection {
         );
         postInsights?.('ws_fatal', insights);
       }
-      this.client.rejectConnectionId?.();
+      this.client.rejectConnectionId?.(err);
       throw err;
     }
   }
