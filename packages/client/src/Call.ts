@@ -1052,10 +1052,9 @@ export class Call {
    * @param sfuClient the SFU client instance that was closed.
    */
   private handleSfuSignalClose(sfuClient: StreamSfuClient) {
-    this.logger('debug', '[Reconnect] handleSfuSignalClose');
+    this.logger('debug', '[Reconnect] SFU signal connection closed');
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
-    // attempt to reconnect with CLEAN strategy (the WS is anyway closed)
     this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
@@ -1274,21 +1273,18 @@ export class Call {
    * @internal
    */
   private restorePublishedTracks = async () => {
-    const audioStream = this.microphone.state.mediaStream;
-    const videoStream = this.camera.state.mediaStream;
-    const screenShareStream = this.screenShare.state.mediaStream;
-
-    // TODO: handle the case where one of the streams is muted or disabled
-    //  during a migration. Update the mute state
-
     // the tracks need to be restored in their original order of publishing
     // otherwise, we might get `m-lines order mismatch` errors
     for (const trackType of this.trackPublishOrder) {
       switch (trackType) {
         case TrackType.AUDIO:
-          if (audioStream) await this.publishAudioStream(audioStream);
+          const audioStream = this.microphone.state.mediaStream;
+          if (audioStream) {
+            await this.publishAudioStream(audioStream);
+          }
           break;
         case TrackType.VIDEO:
+          const videoStream = this.camera.state.mediaStream;
           if (videoStream) {
             await this.publishVideoStream(videoStream, {
               preferredCodec: this.camera.preferredCodec,
@@ -1296,8 +1292,12 @@ export class Call {
           }
           break;
         case TrackType.SCREEN_SHARE:
-          if (screenShareStream)
-            await this.publishScreenShareStream(screenShareStream);
+          const screenShareStream = this.screenShare.state.mediaStream;
+          if (screenShareStream) {
+            await this.publishScreenShareStream(screenShareStream, {
+              screenShareSettings: this.screenShare.getSettings(),
+            });
+          }
           break;
         // screen share audio can't exist without a screen share, so we handle it there
         case TrackType.SCREEN_SHARE_AUDIO:
