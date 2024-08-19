@@ -93,7 +93,11 @@ export type StreamVideoConfig = {
      *  const tokenProvider = async () => await AsyncStorage.getItem('@userToken');
      *  if (!username || !userId) return undefined;
      *  const user = { id: userId, name: userName };
-     *  return StreamVideoClient.getOrCreateInstance({ apiKey, tokenProvider, user });
+     *  return StreamVideoClient.getOrCreateInstance({
+     *    apiKey,
+     *    tokenProvider,
+     *    user
+     *  });
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;

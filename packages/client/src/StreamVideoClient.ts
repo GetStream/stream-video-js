@@ -133,6 +133,7 @@ export class StreamVideoClient {
               `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : 'the given user ID'}; Prefer using getOrCreateInstance method`,
             );
           }
+          user.id = id;
           StreamVideoClient._instanceMap.set(id, this);
         }
         this.connectUser(user, token).catch((err) => {
@@ -319,6 +320,7 @@ export class StreamVideoClient {
     if (!this.streamClient.user && !this.connectionPromise) {
       return;
     }
+    const userId = this.streamClient.user?.id;
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
     this.disconnectionPromise = this.connectionPromise
       ? this.connectionPromise.then(() => disconnectUser())
@@ -327,6 +329,9 @@ export class StreamVideoClient {
       () => (this.disconnectionPromise = undefined),
     );
     await this.disconnectionPromise;
+    if (userId) {
+      StreamVideoClient._instanceMap.delete(userId);
+    }
     this.eventHandlersToUnregister.forEach((unregister) => unregister());
     this.eventHandlersToUnregister = [];
     this.writeableStateStore.setConnectedUser(undefined);
