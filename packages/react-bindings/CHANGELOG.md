@@ -13,6 +13,24 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 ### Bug Fixes
 
 * flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
+* remove pre-releases ([ba9cf49](https://github.com/GetStream/stream-video-js/commit/ba9cf4968a80ec07831304ee8a791d9681ddc605))
+
+
+* **@stream-io/video-react-bindings:** release version 0.5.0-0 ([76bbacc](https://github.com/GetStream/stream-video-js/commit/76bbacce00262c93f59251a1c41123275908eae9))
+* **@stream-io/video-react-bindings:** release version 0.5.0-0 ([12e5ac5](https://github.com/GetStream/stream-video-js/commit/12e5ac5fdd74570cdb2efc8f05fd318842a7e976))
+* specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
+
+## [0.5.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.52...@stream-io/video-react-bindings-0.5.0-0) (2024-08-19)
+
+
+### Features
+
+* setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
+
+
+### Bug Fixes
+
+* flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
 
 
 * **@stream-io/video-react-bindings:** release version 0.5.0-0 ([12e5ac5](https://github.com/GetStream/stream-video-js/commit/12e5ac5fdd74570cdb2efc8f05fd318842a7e976))
