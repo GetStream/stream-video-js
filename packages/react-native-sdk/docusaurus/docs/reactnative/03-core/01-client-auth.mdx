@@ -18,7 +18,7 @@ const user: User = {
 };
 const apiKey = 'my-stream-api-key';
 const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-const client = new StreamVideoClient({ apiKey, token, user });
+const client = StreamVideoClient.getOrCreateInstance({ apiKey, token, user });
 ```
 
 - The API Key can be found in your dashboard.
@@ -30,7 +30,7 @@ Typically, you'll want to initialize the client when your application loads and 
 ## Generating a token
 
 Tokens need to be generated server side. You can use our [server side SDKs](https://getstream.io/video/docs/api/authentication/) to quickly add support for this.
-Typically, you integrate this logic into the part of your codebase where you log in or register users.
+Typically, you integrate this into the part of your codebase where you log in or register users.
 The tokens provide a way to authenticate a user or give access to a specific set of calls.
 
 <TokenSnippet sampleApp="meeting" displayStyle="credentials" />
@@ -43,7 +43,7 @@ For development purposes, you can use our [Token Generator](https://getstream.io
 
 - Authenticated users are users that have an account on your app.
 - Guest users are temporary user accounts. You can use it to temporarily give someone a name and image when joining a call.
-- Anonymous users are users that are not authenticated. It's common to use this type for watching a livestream or similar where you aren't authenticated.
+- Anonymous users are users that are not authenticated. It's common to use this for watching a livestream or similar where you aren't authenticated.
 
 This example shows the client setup for a guest user:
 
@@ -54,9 +54,8 @@ const user: User = {
   id: 'jack-guest',
   type: 'guest',
 };
-
 const apiKey = 'my-stream-api-key';
-const client = new StreamVideoClient({ apiKey, user });
+const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
 ```
 
 And here's an example for an anonymous user
@@ -69,7 +68,7 @@ const user: User = {
 };
 
 const apiKey = 'my-stream-api-key';
-const client = new StreamVideoClient({ apiKey, user });
+const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
 ```
 
 ## Client options
@@ -77,7 +76,10 @@ const client = new StreamVideoClient({ apiKey, user });
 ### `token` or `tokenProvider`
 
 To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`.
-If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
+
+:::info
+If you use the `tokenProvider` the SDK will automatically execute it to refresh the token whenever the token is expired.
+:::
 
 ```typescript
 import { StreamVideoClient, User } from '@stream-io/video-react-native-sdk';
@@ -92,23 +94,25 @@ const user: User = {
   id: 'sara',
 };
 const apiKey = 'my-stream-api-key';
-const client = new StreamVideoClient({ apiKey, tokenProvider, user });
+const client = StreamVideoClient.getOrCreateInstance({ apiKey, tokenProvider, user });
 ```
 
 ### Logging
 
 You can configure the log level and the logger method used by the SDK.
 
-The default log level is `warn`, other options are: `debug`, `info`, and `error`.
+The default log level is `warn`, other options are: `trace`, `debug`, `info`, and `error`.
 
-The default logger method will log to the browser `console`.
+The default logger method will log to the debugging console.
 
 ```ts
 import { StreamVideoClient, Logger } from '@stream-io/video-react-native-sdk';
 
-const myLogger: Logger;
+const myLogger: Logger = (logLevel, message, ...args) => {
+  // Do something with the log message
+};
 
-const client = new StreamVideoClient({
+const client = StreamVideoClient.getOrCreateInstance({
   apiKey,
   token,
   user,
@@ -138,7 +142,7 @@ export const MyApp = () => {
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
     const tokenProvider = () => Promise.resolve('<token>');
-    const myClient = new StreamVideoClient({ apiKey, user, tokenProvider });
+    const myClient = StreamVideoClient.getOrCreateInstance({ apiKey, user, tokenProvider });
     setClient(myClient);
     return () => {
       myClient.disconnectUser();
