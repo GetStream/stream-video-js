@@ -7,9 +7,10 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '!**/docusaurus/**'
-      - 'sample-apps/**'
+    paths:
+      - 'packages/**'
+
+  workflow_dispatch:
 
   workflow_dispatch:
 
