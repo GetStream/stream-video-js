@@ -130,7 +130,7 @@ export class StreamVideoClient {
           if (StreamVideoClient._instanceMap.has(id)) {
             this.logger(
               'warn',
-              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : 'the given user ID'}; Prefer using getOrCreateInstance method`,
+              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : id}; Prefer using getOrCreateInstance method`,
             );
           }
           user.id = id;
