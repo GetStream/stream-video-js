@@ -10,6 +10,22 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 * setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
 
 
+### Bug Fixes
+
+* flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
+
+
+* **@stream-io/video-react-sdk:** release version 1.3.0-0 ([82a3c1d](https://github.com/GetStream/stream-video-js/commit/82a3c1dbc744b9ab94e96f358ee5babe41bb511e))
+* specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
+
+## [1.3.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.20...@stream-io/video-react-sdk-1.3.0-0) (2024-08-19)
+
+
+### Features
+
+* setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
+
+
 * specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
 
 ### [1.2.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.19...@stream-io/video-react-sdk-1.2.20) (2024-07-31)
