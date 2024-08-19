@@ -931,7 +931,7 @@ export class CallState {
    * @returns all participants, with all patch applied.
    */
   updateParticipants = (patch: StreamVideoParticipantPatches) => {
-    if (Object.keys(patch).length === 0) return;
+    if (Object.keys(patch).length === 0) return this.participants;
     return this.setParticipants((participants) =>
       participants.map((p) => {
         const thePatch = patch[p.sessionId];
