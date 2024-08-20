@@ -127,14 +127,14 @@ export class StreamVideoClient {
           id = '!anon';
         }
         if (id) {
-          if (StreamVideoClient._instanceMap.has(id)) {
+          if (StreamVideoClient._instanceMap.has(apiKeyOrArgs.apiKey + id)) {
             this.logger(
               'warn',
               `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : id}; Prefer using getOrCreateInstance method`,
             );
           }
           user.id = id;
-          StreamVideoClient._instanceMap.set(id, this);
+          StreamVideoClient._instanceMap.set(apiKeyOrArgs.apiKey + id, this);
         }
         this.connectUser(user, token).catch((err) => {
           this.logger('error', 'Failed to connect', err);
@@ -165,16 +165,9 @@ export class StreamVideoClient {
         );
       }
     }
-    let instance = StreamVideoClient._instanceMap.get(user.id);
+    let instance = StreamVideoClient._instanceMap.get(args.apiKey + user.id);
     if (!instance) {
       instance = new StreamVideoClient({ ...args, user });
-      StreamVideoClient._instanceMap.set(user.id, instance);
-    } else {
-      if (instance.streamClient.key !== args.apiKey) {
-        throw new Error(
-          'It is not supported to have a video client with different API key for an existing user',
-        );
-      }
     }
     return instance;
   }
