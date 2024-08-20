@@ -29,7 +29,7 @@ export class BrowserPermission {
         this.setState('granted');
       };
 
-      if (!canQueryPermissions() && !isReactNative()) {
+      if (!canQueryPermissions()) {
         return assumeGranted();
       }
 
