@@ -179,3 +179,30 @@ await call.update({
   },
 });
 ```
+
+### Backstage setup
+
+The backstage feature makes it easy to build a use-case where you and your co-hosts can set up your camera before going live.
+Only after you call `call.goLive()` the regular users will be allowed to join the livestream.
+
+However, you can also specify a `join_ahead_time_seconds`,
+which will allow regular users to join the livestream before the call is live, in the specified join time before the stream starts.
+
+Here's an example of how to do that:
+
+```typescript
+await call.getOrCreate({
+  data: {
+    starts_at: new Date(Date.now() + 5000), // 500 seconds from now
+    settings_override: {
+      backstage: {
+        join_ahead_time_seconds: 300,
+      },
+    },
+  },
+});
+```
+
+In the code snippet above, we are creating a call that starts 500 seconds from now.
+We are also enabling backstage mode, with a `join_ahead_time_seconds` of 300 seconds.
+That means that regular users will be able to join the call 200 seconds from now.
