@@ -355,9 +355,7 @@ export class StreamSfuClient {
     const { timeout = 10000 } = opts;
 
     this.migrationTask?.reject(new Error('Cancelled previous migration'));
-    this.migrationTask = promiseWithResolvers();
-
-    const task = this.migrationTask;
+    const task = (this.migrationTask = promiseWithResolvers());
     const unsubscribe = this.dispatcher.on(
       'participantMigrationComplete',
       () => {
@@ -368,10 +366,7 @@ export class StreamSfuClient {
     );
     this.migrateAwayTimeout = setTimeout(() => {
       unsubscribe();
-      // task.reject(new Error('Migration timeout'));
-      // FIXME OL: temporary, switch to `task.reject()` once the SFU starts sending
-      //  the participantMigrationComplete event.
-      task.resolve();
+      task.reject(new Error(`Migration failed to complete in ${timeout}ms`));
     }, timeout);
 
     return this.migrationTask.promise;
