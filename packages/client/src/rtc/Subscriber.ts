@@ -79,8 +79,6 @@ export class Subscriber {
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
       (subscriberOffer) => {
-        // TODO: use queue per peer connection, otherwise
-        //  it could happen we consume an offer for a different peer connection
         withoutConcurrency(subscriberOfferConcurrencyTag, () => {
           return this.negotiate(subscriberOffer);
         }).catch((err) => {
