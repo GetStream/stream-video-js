@@ -213,7 +213,7 @@ Here's an example of how to do that:
 ```typescript
 await call.getOrCreate({
   data: {
-    starts_at: new Date(Date.now() + 5000), // 500 seconds from now
+    starts_at: new Date(Date.now() + 500 * 1000), // 500 seconds from now
     settings_override: {
       backstage: {
         join_ahead_time_seconds: 300,
