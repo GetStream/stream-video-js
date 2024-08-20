@@ -18,7 +18,7 @@ const user: User = {
 };
 const apiKey = 'my-stream-api-key';
 const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, token, user });
+const client = new StreamVideoClient({ apiKey, token, user });
 ```
 
 - The API Key can be found in your dashboard.
@@ -55,7 +55,7 @@ const user: User = {
   type: 'guest',
 };
 const apiKey = 'my-stream-api-key';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 And here's an example for an anonymous user
@@ -68,7 +68,7 @@ const user: User = {
 };
 
 const apiKey = 'my-stream-api-key';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 ## Client options
@@ -76,10 +76,7 @@ const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
 ### `token` or `tokenProvider`
 
 To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`.
-
-:::info
-If you use the `tokenProvider` the SDK will automatically execute it to refresh the token whenever the token is expired.
-:::
+If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
 
 ```typescript
 import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
@@ -94,7 +91,7 @@ const user: User = {
   id: 'sara',
 };
 const apiKey = 'my-stream-api-key';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, tokenProvider, user });
+const client = new StreamVideoClient({ apiKey, tokenProvider, user });
 ```
 
 ### Logging
@@ -112,7 +109,7 @@ const myLogger: Logger = (logLevel, message, ...args) => {
   // Do something with the log message
 };
 
-const client = StreamVideoClient.getOrCreateInstance({
+const client = new StreamVideoClient({
   apiKey,
   token,
   user,
@@ -175,7 +172,7 @@ export const MyApp = () => {
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
     const tokenProvider = () => Promise.resolve('<token>');
-    const myClient = StreamVideoClient.getOrCreateInstance({ apiKey, user, tokenProvider });
+    const myClient = new StreamVideoClient({ apiKey, user, tokenProvider });
     setClient(myClient);
     return () => {
       myClient.disconnectUser();

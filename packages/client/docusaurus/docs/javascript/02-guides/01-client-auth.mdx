@@ -19,7 +19,7 @@ const user: User = {
 
 const apiKey = 'my-stream-api-key';
 const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, token, user });
+const client = new StreamVideoClient({ apiKey, token, user });
 ```
 
 - The API Key can be found in your dashboard.
@@ -55,8 +55,9 @@ const user: User = {
   id: 'jack-guest',
   type: 'guest',
 };
+
 const apiKey = 'my-stream-api-key';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 And here's an example for an anonymous user
@@ -69,7 +70,7 @@ const user: User = {
 };
 
 const apiKey = 'my-stream-api-key';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 ## Client options
@@ -77,10 +78,7 @@ const client = StreamVideoClient.getOrCreateInstance({ apiKey, user });
 ### `token` or `tokenProvider`
 
 To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`.
-
-:::info
-If you use the `tokenProvider` the SDK will automatically execute it to refresh the token whenever the token is expired.
-:::
+If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
 
 ```typescript
 import { StreamVideoClient, User } from '@stream-io/video-client';
@@ -95,25 +93,23 @@ const user: User = {
   id: 'sara',
 };
 const apiKey = 'my-stream-api-key';
-const client = StreamVideoClient.getOrCreateInstance({ apiKey, tokenProvider, user });
+const client = new StreamVideoClient({ apiKey, tokenProvider, user });
 ```
 
 ### Logging
 
 You can configure the log level and the logger method used by the SDK.
 
-The default log level is `warn`, other options are: `trace`, `debug`, `info`, and `error`.
+The default log level is `warn`, other options are: `debug`, `info`, and `error`.
 
 The default logger method will log to the browser `console`.
 
 ```ts
 import { StreamVideoClient, Logger } from '@stream-io/video-client';
 
-const myLogger: Logger = (logLevel, message, ...args) => {
-  // Do something with the log message
-};
+const myLogger: Logger;
 
-const client = StreamVideoClient.getOrCreateInstance({
+const client = new StreamVideoClient({
   apiKey,
   token,
   user,
