@@ -216,6 +216,7 @@ await call.getOrCreate({
     starts_at: new Date(Date.now() + 500 * 1000), // 500 seconds from now
     settings_override: {
       backstage: {
+        enabled: true,
         join_ahead_time_seconds: 300,
       },
     },
