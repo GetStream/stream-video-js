@@ -117,7 +117,7 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { retryInterval, sleep } from './coordinator/connection/utils';
+import { sleep } from './coordinator/connection/utils';
 import type {
   AllCallEvents,
   CallEventListener,
@@ -1113,7 +1113,7 @@ export class Call {
             `[Reconnect] ${current}(${this.reconnectAttempts}) failed. Attempting with REJOIN`,
             error,
           );
-          await sleep(retryInterval(this.reconnectAttempts));
+          await sleep(500);
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
         }
       } while (
