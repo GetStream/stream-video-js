@@ -1627,12 +1627,14 @@ export class Call {
   };
 
   private waitUntilCallJoined = () => {
+    if (this.sfuClient) {
+      // if we have an SFU client, we can wait for the join response
+      return this.sfuClient.joinResponseTask.promise;
+    }
+    // otherwise, fall back to the calling state
     return new Promise<void>((resolve) => {
       this.state.callingState$
-        .pipe(
-          takeWhile((state) => state !== CallingState.JOINED, true),
-          filter((state) => state === CallingState.JOINED),
-        )
+        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
         .subscribe(() => resolve());
     });
   };

@@ -123,7 +123,7 @@ export class StreamSfuClient {
    * Promise that resolves when the JoinResponse is received.
    * Rejects after a certain threshold if the response is not received.
    */
-  private joinResponseTask = promiseWithResolvers<JoinResponse>();
+  joinResponseTask = promiseWithResolvers<JoinResponse>();
 
   /**
    * Promise that resolves when the migration is complete.
@@ -366,10 +366,14 @@ export class StreamSfuClient {
     );
     this.migrateAwayTimeout = setTimeout(() => {
       unsubscribe();
-      task.reject(new Error(`Migration failed to complete in ${timeout}ms`));
+      task.reject(
+        new Error(
+          `Migration (${this.logTag}) failed to complete in ${timeout}ms`,
+        ),
+      );
     }, timeout);
 
-    return this.migrationTask.promise;
+    return task.promise;
   };
 
   join = async (
