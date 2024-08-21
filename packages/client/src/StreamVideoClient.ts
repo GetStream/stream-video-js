@@ -49,6 +49,8 @@ export class StreamVideoClient {
   protected connectionPromise: Promise<void | ConnectedEvent> | undefined;
   protected disconnectionPromise: Promise<void> | undefined;
 
+  private static _instanceMap: Map<string, StreamVideoClient> = new Map();
+
   /**
    * You should create only one instance of `StreamVideoClient`.
    */
@@ -120,11 +122,54 @@ export class StreamVideoClient {
       const user = apiKeyOrArgs.user;
       const token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
       if (user) {
+        let id = user.id;
+        if (user.type === 'anonymous') {
+          id = '!anon';
+        }
+        if (id) {
+          if (StreamVideoClient._instanceMap.has(apiKeyOrArgs.apiKey + id)) {
+            this.logger(
+              'warn',
+              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : id}; Prefer using getOrCreateInstance method`,
+            );
+          }
+          user.id = id;
+          StreamVideoClient._instanceMap.set(apiKeyOrArgs.apiKey + id, this);
+        }
         this.connectUser(user, token).catch((err) => {
           this.logger('error', 'Failed to connect', err);
         });
       }
     }
+  }
+
+  public static getOrCreateInstance(args: {
+    apiKey: string;
+    user: User;
+    token?: string;
+    tokenProvider?: TokenProvider;
+    options?: StreamClientOptions;
+  }): StreamVideoClient {
+    const user = args.user;
+    if (!user.id) {
+      if (args.user.type === 'anonymous') {
+        user.id = '!anon';
+      } else {
+        throw new Error('User ID is required for a non-anonymous user');
+      }
+    }
+    if (!args.token && !args.tokenProvider) {
+      if (args.user.type !== 'anonymous' && args.user.type !== 'guest') {
+        throw new Error(
+          'TokenProvider or token is required for a user that is not a guest or anonymous',
+        );
+      }
+    }
+    let instance = StreamVideoClient._instanceMap.get(args.apiKey + user.id);
+    if (!instance) {
+      instance = new StreamVideoClient({ ...args, user });
+    }
+    return instance;
   }
 
   /**
@@ -268,6 +313,7 @@ export class StreamVideoClient {
     if (!this.streamClient.user && !this.connectionPromise) {
       return;
     }
+    const userId = this.streamClient.user?.id;
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
     this.disconnectionPromise = this.connectionPromise
       ? this.connectionPromise.then(() => disconnectUser())
@@ -276,6 +322,9 @@ export class StreamVideoClient {
       () => (this.disconnectionPromise = undefined),
     );
     await this.disconnectionPromise;
+    if (userId) {
+      StreamVideoClient._instanceMap.delete(userId);
+    }
     this.eventHandlersToUnregister.forEach((unregister) => unregister());
     this.eventHandlersToUnregister = [];
     this.writeableStateStore.setConnectedUser(undefined);

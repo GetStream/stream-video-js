@@ -87,15 +87,16 @@ const createStreamVideoClient = async () => {
     name: userName,
     imageUrl: userImageUrl,
   };
-  const { token, apiKey } = await createToken(
-    { user_id: user.id },
-    appEnvironment,
-  );
-
-  const client = new StreamVideoClient({
+  const fetchAuthDetails = async () => {
+    return await createToken({ user_id: user.id }, appEnvironment);
+  };
+  const { apiKey } = await fetchAuthDetails();
+  const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
+  const client = StreamVideoClient.getOrCreateInstance({
     apiKey,
     user,
-    token,
+    tokenProvider,
+    options: { logLevel: 'warn' },
   });
   return client;
 };

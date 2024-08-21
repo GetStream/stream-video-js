@@ -309,6 +309,11 @@ const firebaseMessagingOnMessageHandler = async (
       },
     });
 
+    if (asForegroundService) {
+      // no need to check if call has be closed as that will be handled by the fg service
+      return;
+    }
+
     // check if call needs to be closed if accept/decline event was done
     // before the notification was shown
     const client = await pushConfig.createStreamVideoClient();
@@ -318,12 +323,7 @@ const firebaseMessagingOnMessageHandler = async (
     const callFromPush = await client.onRingingCall(call_cid);
 
     if (shouldCallBeClosed(callFromPush)) {
-      if (asForegroundService) {
-        notifee.stopForegroundService();
-      } else {
-        notifee.cancelDisplayedNotification(call_cid);
-      }
-      return;
+      notifee.cancelDisplayedNotification(call_cid);
     }
   } else {
     const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
