@@ -9,15 +9,10 @@ export const useAnonymousInitVideoClient = () => {
   const [client, setClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
-    let _client: StreamVideoClient | undefined;
-    const run = async () => {
-      _client = new StreamVideoClient({
-        apiKey,
-        user: { type: 'anonymous' },
-      });
-      setClient(_client);
-    };
-    run();
+    const _client = StreamVideoClient.getOrCreateInstance({
+      apiKey,
+      user: { type: 'anonymous' },
+    });
 
     return () => {
       _client
