@@ -1078,6 +1078,7 @@ export class Call {
 
       this.reconnectStrategy = strategy;
       do {
+        this.reconnectAttempts++;
         const current = WebsocketReconnectStrategy[this.reconnectStrategy];
         try {
           // wait until the network is available
@@ -1112,7 +1113,6 @@ export class Call {
           );
           await sleep(retryInterval(this.reconnectAttempts));
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
-          this.reconnectAttempts++;
         }
       } while (
         this.state.callingState !== CallingState.JOINED &&
