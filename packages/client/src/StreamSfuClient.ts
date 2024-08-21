@@ -352,7 +352,7 @@ export class StreamSfuClient {
 
   enterMigration = async (opts: { timeout?: number } = {}) => {
     this.isLeaving = true;
-    const { timeout = 10000 } = opts;
+    const { timeout = 7 * 1000 } = opts;
 
     this.migrationTask?.reject(new Error('Cancelled previous migration'));
     const task = (this.migrationTask = promiseWithResolvers());
