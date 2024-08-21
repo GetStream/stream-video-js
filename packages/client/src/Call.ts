@@ -833,7 +833,10 @@ export class Call {
       }
     }
 
-    this.state.setCallingState(CallingState.JOINED);
+    if (!performingMigration) {
+      // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
+      this.state.setCallingState(CallingState.JOINED);
+    }
     this.hasJoinedOnce = true;
 
     // when performing fast reconnect, or when we reuse the same SFU client,
@@ -1180,6 +1183,11 @@ export class Call {
       // and the peer connection instances. In case of failure, the migration
       // task would throw an error and REJOIN would be attempted.
       await migrationTask;
+
+      // in MIGRATE, we can consider the call as joined only after
+      // `participantMigrationComplete` event is received, signaled by
+      // the `migrationTask`
+      this.state.setCallingState(CallingState.JOINED);
     } finally {
       currentSubscriber?.close();
       currentPublisher?.close({ stopTracks: false });
