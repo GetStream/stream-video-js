@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.8...@stream-io/video-client-1.5.0) (2024-08-21)
+
+
+### Features
+
+* **client:** add a instance getter ([#1461](https://github.com/GetStream/stream-video-js/issues/1461)) ([7f4d836](https://github.com/GetStream/stream-video-js/commit/7f4d836511d9afdcd61bf5c6317611d3725953a6))
+
 ### [1.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.7...@stream-io/video-client-1.4.8) (2024-07-31)
 
 
