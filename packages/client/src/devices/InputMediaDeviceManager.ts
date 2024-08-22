@@ -391,8 +391,6 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
-    } else {
-      this.logger('debug', 'Stream is not published as the call is not joined');
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream, await rootStream);
