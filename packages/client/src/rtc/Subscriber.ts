@@ -36,19 +36,6 @@ export class Subscriber {
 
   private isIceRestarting = false;
 
-  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
-  private _connectionConfiguration: RTCConfiguration | undefined;
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    if (this.pc.getConfiguration) return this.pc.getConfiguration();
-    return this._connectionConfiguration;
-  }
-
   /**
    * Constructs a new `Subscriber` instance.
    *
@@ -106,7 +93,6 @@ export class Subscriber {
    */
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('track', this.handleOnTrack);
 

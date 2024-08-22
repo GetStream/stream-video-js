@@ -99,19 +99,6 @@ export class Publisher {
 
   private isIceRestarting = false;
 
-  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
-  private _connectionConfiguration: RTCConfiguration | undefined;
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    if (this.pc.getConfiguration) return this.pc.getConfiguration();
-    return this._connectionConfiguration;
-  }
-
   /**
    * The SFU client instance to use for publishing and signaling.
    */
@@ -159,7 +146,6 @@ export class Publisher {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
@@ -255,14 +241,16 @@ export class Publisher {
      * An event handler which listens for the 'ended' event on the track.
      * Once the track has ended, it will notify the SFU and update the state.
      */
-    const handleTrackEnded = async () => {
+    const handleTrackEnded = () => {
       this.logger(
         'info',
-        `Track ${TrackType[trackType]} has ended, notifying the SFU`,
+        `Track ${TrackType[trackType]} has ended abruptly, notifying the SFU`,
       );
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
-      // clean-up, this event listener needs to run only once.
+      // cleanup, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
+      this.notifyTrackMuteStateChanged(mediaStream, trackType, true).catch(
+        (err) => this.logger('warn', `Couldn't notify track mute state`, err),
+      );
     };
 
     if (!transceiver) {
