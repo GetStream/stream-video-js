@@ -1053,14 +1053,14 @@ export class Call {
    * @internal
    * @param sfuClient the SFU client instance that was closed.
    */
-  private handleSfuSignalClose(sfuClient: StreamSfuClient) {
+  private handleSfuSignalClose = (sfuClient: StreamSfuClient) => {
     this.logger('debug', '[Reconnect] SFU signal connection closed');
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
     this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
-  }
+  };
 
   /**
    * Handles the reconnection flow.
@@ -1110,7 +1110,7 @@ export class Call {
         } catch (error) {
           this.logger(
             'warn',
-            `[Reconnect] ${current}(${this.reconnectAttempts}) failed. Attempting with REJOIN`,
+            `[Reconnect] ${current} (${this.reconnectAttempts}) failed. Attempting with REJOIN`,
             error,
           );
           await sleep(500);
@@ -1247,7 +1247,7 @@ export class Call {
             this.reconnect(strategy).catch((err) => {
               this.logger(
                 'warn',
-                '[Reconnect] Error restoring connection after going online',
+                '[Reconnect] Error reconnecting after going online',
                 err,
               );
             });
