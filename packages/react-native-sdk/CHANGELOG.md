@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.0-1...@stream-io/video-react-native-sdk-1.0.0-rc.0) (2024-08-22)
+
+
+### Bug Fixes
+
+* include rc in the release name ([478cee3](https://github.com/GetStream/stream-video-js/commit/478cee38829d70e76ba62bcc82f6c69d220f4ea5))
+
 ## [1.0.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.1...@stream-io/video-react-native-sdk-1.0.0-0) (2024-08-19)
 
 
