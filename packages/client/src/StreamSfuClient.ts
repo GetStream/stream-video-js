@@ -123,7 +123,7 @@ export class StreamSfuClient {
    * Promise that resolves when the JoinResponse is received.
    * Rejects after a certain threshold if the response is not received.
    */
-  joinResponseTask = promiseWithResolvers<JoinResponse>();
+  private joinResponseTask = promiseWithResolvers<JoinResponse>();
 
   /**
    * Promise that resolves when the migration is complete.
@@ -231,6 +231,10 @@ export class StreamSfuClient {
     return this.signalWs.readyState === WebSocket.OPEN;
   }
 
+  get joinTask() {
+    return this.joinResponseTask.promise;
+  }
+
   private handleWebSocketClose = (e: CloseEvent) => {
     this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     clearInterval(this.keepAliveInterval);
@@ -260,7 +264,7 @@ export class StreamSfuClient {
   };
 
   leaveAndClose = async (reason: string) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     try {
       this.isLeaving = true;
       await this.notifyLeave(reason);
@@ -272,7 +276,7 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (tracks: TrackSubscriptionDetails[]) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.updateSubscriptions({ sessionId: this.sessionId, tracks }),
       this.abortController.signal,
@@ -280,7 +284,7 @@ export class StreamSfuClient {
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.setPublisher({ ...data, sessionId: this.sessionId }),
       this.abortController.signal,
@@ -288,7 +292,7 @@ export class StreamSfuClient {
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.sendAnswer({ ...data, sessionId: this.sessionId }),
       this.abortController.signal,
@@ -296,7 +300,7 @@ export class StreamSfuClient {
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.iceTrickle({ ...data, sessionId: this.sessionId }),
       this.abortController.signal,
@@ -304,7 +308,7 @@ export class StreamSfuClient {
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.iceRestart({ ...data, sessionId: this.sessionId }),
       this.abortController.signal,
@@ -312,14 +316,14 @@ export class StreamSfuClient {
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return this.updateMuteStates({ muteStates: [{ trackType, muted }] });
   };
 
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.updateMuteStates({ ...data, sessionId: this.sessionId }),
       this.abortController.signal,
@@ -327,7 +331,7 @@ export class StreamSfuClient {
   };
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.sendStats({ ...stats, sessionId: this.sessionId }),
       this.abortController.signal,
@@ -335,7 +339,7 @@ export class StreamSfuClient {
   };
 
   startNoiseCancellation = async () => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.startNoiseCancellation({ sessionId: this.sessionId }),
       this.abortController.signal,
@@ -343,7 +347,7 @@ export class StreamSfuClient {
   };
 
   stopNoiseCancellation = async () => {
-    await this.joinResponseTask.promise;
+    await this.joinTask;
     return retryable(
       () => this.rpc.stopNoiseCancellation({ sessionId: this.sessionId }),
       this.abortController.signal,

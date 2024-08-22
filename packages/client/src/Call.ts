@@ -540,7 +540,14 @@ export class Call {
       }
 
       if (callingState === CallingState.JOINING) {
-        await this.waitUntilCallJoined();
+        const waitUntilCallJoined = () => {
+          return new Promise<void>((resolve) => {
+            this.state.callingState$
+              .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
+              .subscribe(() => resolve());
+          });
+        };
+        await waitUntilCallJoined();
       }
 
       if (this.ringing) {
@@ -1341,23 +1348,18 @@ export class Call {
     videoStream: MediaStream,
     opts: PublishOptions = {},
   ) => {
-    // we should wait until we get a JoinResponse from the SFU,
-    // otherwise we risk breaking the ICETrickle flow.
-    await this.waitUntilCallJoined();
-    if (!this.publisher) {
-      this.logger('error', 'Trying to publish video before join is completed');
-      throw new Error(`Call not joined yet.`);
-    }
+    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
+    // joining is in progress, and we should wait until the client is ready
+    await this.sfuClient.joinTask;
+    if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [videoTrack] = videoStream.getVideoTracks();
-    if (!videoTrack) {
-      this.logger('error', `There is no video track to publish in the stream.`);
-      return;
-    }
+    if (!videoTrack) throw new Error('There is no video track in the stream');
 
     if (!this.trackPublishOrder.includes(TrackType.VIDEO)) {
       this.trackPublishOrder.push(TrackType.VIDEO);
     }
+
     await this.publisher.publishStream(
       videoStream,
       videoTrack,
@@ -1376,19 +1378,13 @@ export class Call {
    * @param audioStream the audio stream to publish.
    */
   publishAudioStream = async (audioStream: MediaStream) => {
-    // we should wait until we get a JoinResponse from the SFU,
-    // otherwise we risk breaking the ICETrickle flow.
-    await this.waitUntilCallJoined();
-    if (!this.publisher) {
-      this.logger('error', 'Trying to publish audio before join is completed');
-      throw new Error(`Call not joined yet.`);
-    }
+    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
+    // joining is in progress, and we should wait until the client is ready
+    await this.sfuClient.joinTask;
+    if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [audioTrack] = audioStream.getAudioTracks();
-    if (!audioTrack) {
-      this.logger('error', `There is no audio track in the stream to publish`);
-      return;
-    }
+    if (!audioTrack) throw new Error('There is no audio track in the stream');
 
     if (!this.trackPublishOrder.includes(TrackType.AUDIO)) {
       this.trackPublishOrder.push(TrackType.AUDIO);
@@ -1413,24 +1409,14 @@ export class Call {
     screenShareStream: MediaStream,
     opts: PublishOptions = {},
   ) => {
-    // we should wait until we get a JoinResponse from the SFU,
-    // otherwise we risk breaking the ICETrickle flow.
-    await this.waitUntilCallJoined();
-    if (!this.publisher) {
-      this.logger(
-        'error',
-        'Trying to publish screen share before join is completed',
-      );
-      throw new Error(`Call not joined yet.`);
-    }
+    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
+    // joining is in progress, and we should wait until the client is ready
+    await this.sfuClient.joinTask;
+    if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [screenShareTrack] = screenShareStream.getVideoTracks();
     if (!screenShareTrack) {
-      this.logger(
-        'error',
-        `There is no video track in the screen share stream to publish`,
-      );
-      return;
+      throw new Error('There is no screen share track in the stream');
     }
 
     if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
@@ -1623,19 +1609,6 @@ export class Call {
    */
   updatePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
     return this.publisher?.updateVideoPublishQuality(enabledLayers);
-  };
-
-  private waitUntilCallJoined = () => {
-    if (this.sfuClient) {
-      // if we have an SFU client, we can wait for the join response
-      return this.sfuClient.joinResponseTask.promise;
-    }
-    // otherwise, fall back to the calling state
-    return new Promise<void>((resolve) => {
-      this.state.callingState$
-        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-        .subscribe(() => resolve());
-    });
   };
 
   /**
