@@ -6,6 +6,7 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "baseBranch": "reconnect-v2",
         "preset": {
           "name": "conventionalcommits",
           "types": [
