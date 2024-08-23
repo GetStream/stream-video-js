@@ -1,29 +1,56 @@
-# Changelog
+## 0.3.0 (2024-08-23)
 
-This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
+
+### 🚀 Features
+
+- setup rc release flow
+
+- setup rc release flow
+
+- **react-native:** enable android 14 compatibility for screensharing foreground service
+
+- ⚠️  **react-native:** support targetSdk android 14
+
+
+### 🩹 Fixes
+
+- refactor background filters
+
+- flag pre-releases in github
+
+- ⚠️  **react-native:** make notifee to be optional
+
+
+#### ⚠️  Breaking Changes
+
+- ⚠️  **react-native:** support targetSdk android 14
+- ⚠️  **react-native:** make notifee to be optional
+
+### ❤️  Thank You
+
+- Matvei Andrienko
+- Oliver Lazoroski
+- Santhosh Vaiyapuri
 
 ### [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.2.0...@stream-io/video-filters-react-native-0.2.1) (2024-06-12)
 
-
 ### Features
 
-* docs to make video filters usable without the RN SDK ([6061f4d](https://github.com/GetStream/stream-video-js/commit/6061f4d5b83d1ed46051dde12c7d3e269ec26aeb))
+- docs to make video filters usable without the RN SDK ([6061f4d](https://github.com/GetStream/stream-video-js/commit/6061f4d5b83d1ed46051dde12c7d3e269ec26aeb))
 
 ## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.1.1...@stream-io/video-filters-react-native-0.2.0) (2024-06-12)
 
-
 ### ⚠ BREAKING CHANGES
 
-* **react-native:** add ios video filters (#1400)
+- **react-native:** add ios video filters (#1400)
 
 ### Features
 
-* **react-native:** add ios video filters ([#1400](https://github.com/GetStream/stream-video-js/issues/1400)) ([dbad806](https://github.com/GetStream/stream-video-js/commit/dbad806e136de7d60a10d292431c8cfe74bd28f9))
+- **react-native:** add ios video filters ([#1400](https://github.com/GetStream/stream-video-js/issues/1400)) ([dbad806](https://github.com/GetStream/stream-video-js/commit/dbad806e136de7d60a10d292431c8cfe74bd28f9))
 
 ### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.1.0...@stream-io/video-filters-react-native-0.1.1) (2024-06-06)
 
-
 ### Bug Fixes
 
-* image filters did not work in android release mode ([7edd082](https://github.com/GetStream/stream-video-js/commit/7edd08227cfed2603b4f201975e2e3c98d387277))
-* remove dryrun of automatic release build for rn video filters ([d886459](https://github.com/GetStream/stream-video-js/commit/d886459f0c47bd22a4d45023afe480ee5f6ec446))
+- image filters did not work in android release mode ([7edd082](https://github.com/GetStream/stream-video-js/commit/7edd08227cfed2603b4f201975e2e3c98d387277))
+- remove dryrun of automatic release build for rn video filters ([d886459](https://github.com/GetStream/stream-video-js/commit/d886459f0c47bd22a4d45023afe480ee5f6ec446))
