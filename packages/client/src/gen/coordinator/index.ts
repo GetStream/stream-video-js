@@ -194,9 +194,8 @@ export interface BackstageSettingsRequest {
    * @memberof BackstageSettingsRequest
    */
   enabled?: boolean;
-
   /**
-   * Optional: the number of seconds before the call starts that the user can join the call
+   *
    * @type {number}
    * @memberof BackstageSettingsRequest
    */
@@ -214,6 +213,12 @@ export interface BackstageSettingsResponse {
    * @memberof BackstageSettingsResponse
    */
   enabled: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof BackstageSettingsResponse
+   */
+  join_ahead_time_seconds?: number;
 }
 /**
  *
@@ -266,7 +271,7 @@ export interface BlockUserRequest {
  */
 export interface BlockUserResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof BlockUserResponse
    */
@@ -869,6 +874,12 @@ export interface CallMissedEvent {
    */
   members: Array<MemberResponse>;
   /**
+   *
+   * @type {boolean}
+   * @memberof CallMissedEvent
+   */
+  notify_user: boolean;
+  /**
    * Call session ID
    * @type {string}
    * @memberof CallMissedEvent
@@ -1214,6 +1225,12 @@ export interface CallRequest {
    * @memberof CallRequest
    */
   team?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallRequest
+   */
+  video?: boolean;
 }
 /**
  * Represents a call
@@ -1287,6 +1304,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   ingress: CallIngressResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof CallResponse
+   */
+  join_ahead_time_seconds?: number;
   /**
    *
    * @type {boolean}
@@ -1390,6 +1413,12 @@ export interface CallRingEvent {
    * @memberof CallRingEvent
    */
   user: UserResponse;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallRingEvent
+   */
+  video: boolean;
 }
 /**
  * This event is sent when a call session ends
@@ -1425,6 +1454,50 @@ export interface CallSessionEndedEvent {
    * The type of event: "call.session_ended" in this case
    * @type {string}
    * @memberof CallSessionEndedEvent
+   */
+  type: string;
+}
+
+/**
+ * This event is sent when the participant counts in a call session are updated
+ * @export
+ * @interface CallSessionParticipantCountsUpdatedEvent
+ */
+export interface CallSessionParticipantCountsUpdatedEvent {
+  /**
+   *
+   * @type {number}
+   * @memberof CallSessionParticipantCountsUpdatedEvent
+   */
+  anonymous_participant_count: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionParticipantCountsUpdatedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionParticipantCountsUpdatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof CallSessionParticipantCountsUpdatedEvent
+   */
+  participants_count_by_role: { [key: string]: number };
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallSessionParticipantCountsUpdatedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.session_participant_count_updated" in this case
+   * @type {string}
+   * @memberof CallSessionParticipantCountsUpdatedEvent
    */
   type: string;
 }
@@ -1514,6 +1587,12 @@ export interface CallSessionResponse {
    * @memberof CallSessionResponse
    */
   accepted_by: { [key: string]: string };
+  /**
+   *
+   * @type {number}
+   * @memberof CallSessionResponse
+   */
+  anonymous_participant_count: number;
   /**
    *
    * @type {string}
@@ -2167,6 +2246,18 @@ export interface ChannelConfigWithInfo {
   name: string;
   /**
    *
+   * @type {number}
+   * @memberof ChannelConfigWithInfo
+   */
+  partition_size?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ChannelConfigWithInfo
+   */
+  partition_ttl?: number;
+  /**
+   *
    * @type {boolean}
    * @memberof ChannelConfigWithInfo
    */
@@ -2644,7 +2735,7 @@ export interface CollectUserFeedbackRequest {
  */
 export interface CollectUserFeedbackResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof CollectUserFeedbackResponse
    */
@@ -2836,25 +2927,25 @@ export interface Coordinates {
  */
 export interface CreateDeviceRequest {
   /**
-   *
+   * Device ID
    * @type {string}
    * @memberof CreateDeviceRequest
    */
   id: string;
   /**
-   *
+   * Push provider
    * @type {string}
    * @memberof CreateDeviceRequest
    */
   push_provider: CreateDeviceRequestPushProviderEnum;
   /**
-   *
+   * Push provider name
    * @type {string}
    * @memberof CreateDeviceRequest
    */
   push_provider_name?: string;
   /**
-   *
+   * When true the token is for Apple VoIP push notifications
    * @type {boolean}
    * @memberof CreateDeviceRequest
    */
@@ -2899,7 +2990,7 @@ export interface CreateGuestResponse {
    */
   access_token: string;
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof CreateGuestResponse
    */
@@ -3024,23 +3115,29 @@ export interface Device {
    */
   disabled_reason?: string;
   /**
-   *
+   * Device ID
    * @type {string}
    * @memberof Device
    */
   id: string;
   /**
-   *
+   * Push provider
    * @type {string}
    * @memberof Device
    */
   push_provider: string;
   /**
-   *
+   * Push provider name
    * @type {string}
    * @memberof Device
    */
   push_provider_name?: string;
+  /**
+   * User ID
+   * @type {string}
+   * @memberof Device
+   */
+  user_id: string;
   /**
    * When true the token is for Apple VoIP push notifications
    * @type {boolean}
@@ -3346,7 +3443,7 @@ export interface GetCallStatsResponse {
    */
   call_timeline?: CallTimeline;
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof GetCallStatsResponse
    */
@@ -3419,7 +3516,7 @@ export interface GetCallStatsResponse {
  */
 export interface GetEdgesResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof GetEdgesResponse
    */
@@ -3461,6 +3558,12 @@ export interface GetOrCreateCallRequest {
    * @memberof GetOrCreateCallRequest
    */
   ring?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GetOrCreateCallRequest
+   */
+  video?: boolean;
 }
 /**
  *
@@ -3555,7 +3658,7 @@ export interface GoLiveResponse {
    */
   call: CallResponse;
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof GoLiveResponse
    */
@@ -3721,6 +3824,12 @@ export interface JoinCallRequest {
    * @memberof JoinCallRequest
    */
   ring?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  video?: boolean;
 }
 /**
  *
@@ -4102,7 +4211,7 @@ export interface MuteUsersRequest {
  */
 export interface MuteUsersResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof MuteUsersResponse
    */
@@ -4218,6 +4327,12 @@ export interface OwnUser {
    * @memberof OwnUser
    */
   banned: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof OwnUser
+   */
+  blocked_user_ids?: Array<string>;
   /**
    *
    * @type {Array<ChannelMute>}
@@ -4365,6 +4480,12 @@ export interface OwnUserResponse {
   banned: boolean;
   /**
    *
+   * @type {Array<string>}
+   * @memberof OwnUserResponse
+   */
+  blocked_user_ids?: Array<string>;
+  /**
+   *
    * @type {Array<ChannelMute>}
    * @memberof OwnUserResponse
    */
@@ -4437,10 +4558,10 @@ export interface OwnUserResponse {
   latest_hidden_channels?: Array<string>;
   /**
    *
-   * @type {Array<UserMute>}
+   * @type {Array<UserMuteResponse>}
    * @memberof OwnUserResponse
    */
-  mutes: Array<UserMute>;
+  mutes: Array<UserMuteResponse>;
   /**
    *
    * @type {string}
@@ -4455,16 +4576,16 @@ export interface OwnUserResponse {
   online: boolean;
   /**
    *
-   * @type {PrivacySettings}
+   * @type {PrivacySettingsResponse}
    * @memberof OwnUserResponse
    */
-  privacy_settings?: PrivacySettings;
+  privacy_settings?: PrivacySettingsResponse;
   /**
    *
-   * @type {PushNotificationSettings}
+   * @type {PushNotificationSettingsResponse}
    * @memberof OwnUserResponse
    */
-  push_notifications?: PushNotificationSettings;
+  push_notifications?: PushNotificationSettingsResponse;
   /**
    *
    * @type {string}
@@ -4553,13 +4674,13 @@ export interface PermissionRequestEvent {
  */
 export interface PinRequest {
   /**
-   *
+   * the session ID of the user who pinned the message
    * @type {string}
    * @memberof PinRequest
    */
   session_id: string;
   /**
-   *
+   * the user ID of the user who pinned the message
    * @type {string}
    * @memberof PinRequest
    */
@@ -4572,7 +4693,7 @@ export interface PinRequest {
  */
 export interface PinResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof PinResponse
    */
@@ -4594,6 +4715,26 @@ export interface PrivacySettings {
    *
    * @type {TypingIndicators}
    * @memberof PrivacySettings
+   */
+  typing_indicators?: TypingIndicators;
+}
+
+/**
+ *
+ * @export
+ * @interface PrivacySettingsResponse
+ */
+export interface PrivacySettingsResponse {
+  /**
+   *
+   * @type {ReadReceipts}
+   * @memberof PrivacySettingsResponse
+   */
+  read_receipts?: ReadReceipts;
+  /**
+   *
+   * @type {TypingIndicators}
+   * @memberof PrivacySettingsResponse
    */
   typing_indicators?: TypingIndicators;
 }
@@ -4663,6 +4804,26 @@ export interface PushNotificationSettingsInput {
 /**
  *
  * @export
+ * @interface PushNotificationSettingsResponse
+ */
+export interface PushNotificationSettingsResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PushNotificationSettingsResponse
+   */
+  disabled?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof PushNotificationSettingsResponse
+   */
+  disabled_until?: string;
+}
+
+/**
+ *
+ * @export
  * @interface QueryCallMembersRequest
  */
 export interface QueryCallMembersRequest {
@@ -4698,10 +4859,10 @@ export interface QueryCallMembersRequest {
   prev?: string;
   /**
    *
-   * @type {Array<SortParam>}
+   * @type {Array<SortParamRequest>}
    * @memberof QueryCallMembersRequest
    */
-  sort?: Array<SortParam>;
+  sort?: Array<SortParamRequest>;
   /**
    *
    * @type {string}
@@ -4716,7 +4877,7 @@ export interface QueryCallMembersRequest {
  */
 export interface QueryCallMembersResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof QueryCallMembersResponse
    */
@@ -4772,10 +4933,10 @@ export interface QueryCallStatsRequest {
   prev?: string;
   /**
    *
-   * @type {Array<SortParam>}
+   * @type {Array<SortParamRequest>}
    * @memberof QueryCallStatsRequest
    */
-  sort?: Array<SortParam>;
+  sort?: Array<SortParamRequest>;
 }
 /**
  *
@@ -4784,7 +4945,7 @@ export interface QueryCallStatsRequest {
  */
 export interface QueryCallStatsResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof QueryCallStatsResponse
    */
@@ -4840,10 +5001,10 @@ export interface QueryCallsRequest {
   prev?: string;
   /**
    *
-   * @type {Array<SortParam>}
+   * @type {Array<SortParamRequest>}
    * @memberof QueryCallsRequest
    */
-  sort?: Array<SortParam>;
+  sort?: Array<SortParamRequest>;
   /**
    *
    * @type {boolean}
@@ -4864,7 +5025,7 @@ export interface QueryCallsResponse {
    */
   calls: Array<CallStateResponseFields>;
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof QueryCallsResponse
    */
@@ -5078,7 +5239,7 @@ export interface RequestPermissionResponse {
  */
 export interface Response {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof Response
    */
@@ -5298,7 +5459,7 @@ export interface SendReactionRequest {
  */
 export interface SendReactionResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof SendReactionResponse
    */
@@ -5313,19 +5474,19 @@ export interface SendReactionResponse {
 /**
  *
  * @export
- * @interface SortParam
+ * @interface SortParamRequest
  */
-export interface SortParam {
+export interface SortParamRequest {
   /**
-   * Direction of sorting, -1 for descending, 1 for ascending
+   * Direction of sorting, 1 for Ascending, -1 for Descending, default is 1
    * @type {number}
-   * @memberof SortParam
+   * @memberof SortParamRequest
    */
   direction?: number;
   /**
    * Name of field to sort by
    * @type {string}
-   * @memberof SortParam
+   * @memberof SortParamRequest
    */
   field?: string;
 }
@@ -5336,7 +5497,7 @@ export interface SortParam {
  */
 export interface StartHLSBroadcastingResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StartHLSBroadcastingResponse
    */
@@ -5439,7 +5600,7 @@ export interface StatsOptions {
  */
 export interface StopHLSBroadcastingResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StopHLSBroadcastingResponse
    */
@@ -5458,7 +5619,7 @@ export interface StopLiveResponse {
    */
   call: CallResponse;
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StopLiveResponse
    */
@@ -5471,7 +5632,7 @@ export interface StopLiveResponse {
  */
 export interface StopRecordingResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StopRecordingResponse
    */
@@ -5484,7 +5645,7 @@ export interface StopRecordingResponse {
  */
 export interface StopTranscriptionResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StopTranscriptionResponse
    */
@@ -5717,7 +5878,7 @@ export interface UnblockUserRequest {
  */
 export interface UnblockUserResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof UnblockUserResponse
    */
@@ -5762,13 +5923,13 @@ export interface UnblockedUserEvent {
  */
 export interface UnpinRequest {
   /**
-   *
+   * the session ID of the user who pinned the message
    * @type {string}
    * @memberof UnpinRequest
    */
   session_id: string;
   /**
-   *
+   * the user ID of the user who pinned the message
    * @type {string}
    * @memberof UnpinRequest
    */
@@ -5781,7 +5942,7 @@ export interface UnpinRequest {
  */
 export interface UnpinResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof UnpinResponse
    */
@@ -5813,7 +5974,7 @@ export interface UpdateCallMembersRequest {
  */
 export interface UpdateCallMembersResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof UpdateCallMembersResponse
    */
@@ -5919,7 +6080,7 @@ export interface UpdateUserPermissionsRequest {
  */
 export interface UpdateUserPermissionsResponse {
   /**
-   * Duration of the request in human-readable format
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof UpdateUserPermissionsResponse
    */
@@ -6180,6 +6341,44 @@ export interface UserMute {
 /**
  *
  * @export
+ * @interface UserMuteResponse
+ */
+export interface UserMuteResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof UserMuteResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserMuteResponse
+   */
+  expires?: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof UserMuteResponse
+   */
+  target?: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof UserMuteResponse
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof UserMuteResponse
+   */
+  user?: UserResponse;
+}
+
+/**
+ *
+ * @export
  * @interface UserMutedEvent
  */
 export interface UserMutedEvent {
@@ -6435,11 +6634,17 @@ export interface UserRequest {
  */
 export interface UserResponse {
   /**
-   *
+   * Whether a user is banned or not
    * @type {boolean}
    * @memberof UserResponse
    */
   banned: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof UserResponse
+   */
+  blocked_user_ids: Array<string>;
   /**
    * Date/time of creation
    * @type {string}
@@ -6447,13 +6652,13 @@ export interface UserResponse {
    */
   created_at: string;
   /**
-   *
+   * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof UserResponse
    */
   custom: { [key: string]: any };
   /**
-   *
+   * Date of deactivation
    * @type {string}
    * @memberof UserResponse
    */
@@ -6465,7 +6670,7 @@ export interface UserResponse {
    */
   deleted_at?: string;
   /**
-   *
+   * Unique user identifier
    * @type {string}
    * @memberof UserResponse
    */
@@ -6477,43 +6682,43 @@ export interface UserResponse {
    */
   image?: string;
   /**
-   *
+   * Preferred language of a user
    * @type {string}
    * @memberof UserResponse
    */
   language: string;
   /**
-   *
+   * Date of last activity
    * @type {string}
    * @memberof UserResponse
    */
   last_active?: string;
   /**
-   *
+   * Optional name of user
    * @type {string}
    * @memberof UserResponse
    */
   name?: string;
   /**
-   *
+   * Whether a user online or not
    * @type {boolean}
    * @memberof UserResponse
    */
   online: boolean;
   /**
-   *
+   * Revocation date for tokens
    * @type {string}
    * @memberof UserResponse
    */
   revoke_tokens_issued_before?: string;
   /**
-   *
+   * Determines the set of user permissions
    * @type {string}
    * @memberof UserResponse
    */
   role: string;
   /**
-   *
+   * List of teams user is a part of
    * @type {Array<string>}
    * @memberof UserResponse
    */
@@ -6829,6 +7034,12 @@ export interface UserSessionStats {
   total_pixels_out: number;
   /**
    *
+   * @type {boolean}
+   * @memberof UserSessionStats
+   */
+  truncated?: boolean;
+  /**
+   *
    * @type {string}
    * @memberof UserSessionStats
    */
@@ -6932,6 +7143,12 @@ export interface UserUpdatedEvent {
    * @memberof UserUpdatedEvent
    */
   created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserUpdatedEvent
+   */
+  received_at?: string;
   /**
    *
    * @type {string}
@@ -7144,6 +7361,9 @@ export type WSEvent =
   | ({ type: 'call.rejected' } & CallRejectedEvent)
   | ({ type: 'call.ring' } & CallRingEvent)
   | ({ type: 'call.session_ended' } & CallSessionEndedEvent)
+  | ({
+      type: 'call.session_participant_count_updated';
+    } & CallSessionParticipantCountsUpdatedEvent)
   | ({
       type: 'call.session_participant_joined';
     } & CallSessionParticipantJoinedEvent)

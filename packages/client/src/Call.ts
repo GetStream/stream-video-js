@@ -393,12 +393,12 @@ export class Call {
         if (!isRinging) return;
         const callSession = this.state.session;
         const receiver_id = this.clientStore.connectedUser?.id;
-        const endedAt = this.state.endedAt;
+        const ended_at = callSession?.ended_at;
         const created_by_id = this.state.createdBy?.id;
         const rejected_by = callSession?.rejected_by;
         const accepted_by = callSession?.accepted_by;
         let leaveCallIdle = false;
-        if (endedAt) {
+        if (ended_at) {
           // call was ended before it was accepted or rejected so we should leave it to idle
           leaveCallIdle = true;
         } else if (created_by_id && rejected_by) {
@@ -422,10 +422,10 @@ export class Call {
             this.state.setCallingState(CallingState.IDLE);
           }
         } else {
-          this.scheduleAutoDrop();
           if (this.state.callingState === CallingState.IDLE) {
             this.state.setCallingState(CallingState.RINGING);
           }
+          this.scheduleAutoDrop();
           this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
         }
       }),
