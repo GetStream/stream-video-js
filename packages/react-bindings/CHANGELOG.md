@@ -2,6 +2,37 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.55...@stream-io/video-react-bindings-0.5.0-rc.0) (2024-08-23)
+
+## [0.5.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.5.0-1...@stream-io/video-react-bindings-0.5.0-rc.0) (2024-08-22)
+
+
+### Bug Fixes
+
+* include rc in the release name ([478cee3](https://github.com/GetStream/stream-video-js/commit/478cee38829d70e76ba62bcc82f6c69d220f4ea5))
+
+
+* **@stream-io/video-react-bindings:** release version 0.5.0-rc.0 ([af36ab5](https://github.com/GetStream/stream-video-js/commit/af36ab59eee41f85ca95dcfdacc80ce9d9e52421))
+
+## [0.5.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.52...@stream-io/video-react-bindings-0.5.0-0) (2024-08-19)
+
+
+### Features
+
+* setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
+
+
+### Bug Fixes
+
+* flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
+* remove pre-releases ([ba9cf49](https://github.com/GetStream/stream-video-js/commit/ba9cf4968a80ec07831304ee8a791d9681ddc605))
+
+
+* **@stream-io/video-react-bindings:** release version 0.5.0-0 ([3141136](https://github.com/GetStream/stream-video-js/commit/314113616395a46ce17840f89a32100592b33bc1))
+* **@stream-io/video-react-bindings:** release version 0.5.0-0 ([76bbacc](https://github.com/GetStream/stream-video-js/commit/76bbacce00262c93f59251a1c41123275908eae9))
+* **@stream-io/video-react-bindings:** release version 0.5.0-0 ([12e5ac5](https://github.com/GetStream/stream-video-js/commit/12e5ac5fdd74570cdb2efc8f05fd318842a7e976))
+* specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
+
 ### [0.4.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.4.54...@stream-io/video-react-bindings-0.4.55) (2024-08-23)
 
 ### Dependency Updates
