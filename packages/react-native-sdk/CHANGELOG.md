@@ -2,6 +2,38 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.4...@stream-io/video-react-native-sdk-1.0.0-rc.0) (2024-08-23)
+
+## [1.0.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.0-1...@stream-io/video-react-native-sdk-1.0.0-rc.0) (2024-08-22)
+
+
+### Bug Fixes
+
+* include rc in the release name ([478cee3](https://github.com/GetStream/stream-video-js/commit/478cee38829d70e76ba62bcc82f6c69d220f4ea5))
+
+
+* **@stream-io/video-react-native-sdk:** release version 1.0.0-rc.0 ([1608008](https://github.com/GetStream/stream-video-js/commit/1608008d9c067509b21901f4bdc1f2649b1651b4))
+
+## [1.0.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.1...@stream-io/video-react-native-sdk-1.0.0-0) (2024-08-19)
+
+
+### Features
+
+* setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
+
+
+### Bug Fixes
+
+* decouple network events from coordinator socket healthiness ([e453581](https://github.com/GetStream/stream-video-js/commit/e453581da6f8d4d07678636d7a520609b4486948))
+* flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
+* remove pre-releases ([ba9cf49](https://github.com/GetStream/stream-video-js/commit/ba9cf4968a80ec07831304ee8a791d9681ddc605))
+
+
+* **@stream-io/video-react-native-sdk:** release version 1.0.0-0 ([0d5c2a7](https://github.com/GetStream/stream-video-js/commit/0d5c2a75b7ac2f47e3d29e3c5be42fbcfd60573d))
+* **@stream-io/video-react-native-sdk:** release version 1.0.0-0 ([fbd479d](https://github.com/GetStream/stream-video-js/commit/fbd479d47565cc79e583ec2f8c29b7f678daac38))
+* **@stream-io/video-react-native-sdk:** release version 1.0.0-0 ([c60b29e](https://github.com/GetStream/stream-video-js/commit/c60b29ebaadbd32ca4e61bef04c897258ff0a436))
+* specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
+
 ### [0.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.3...@stream-io/video-react-native-sdk-0.10.4) (2024-08-23)
 
 ### Dependency Updates
