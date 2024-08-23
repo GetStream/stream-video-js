@@ -1009,7 +1009,8 @@ export class CallState {
     this.setCurrentValue(this.egressSubject, call.egress);
     this.setCurrentValue(this.ingressSubject, call.ingress);
     this.setCurrentValue(this.recordingSubject, call.recording);
-    this.setCurrentValue(this.sessionSubject, call.session);
+    const s = this.setCurrentValue(this.sessionSubject, call.session);
+    this.updateParticipantCountFromSession(s);
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
@@ -1067,7 +1068,7 @@ export class CallState {
       session.participants_count_by_role,
     ).reduce((total, countByRole) => total + countByRole, 0);
     this.setParticipantCount(participantCount);
-    this.setAnonymousParticipantCount(session.anonymous_participant_count);
+    this.setAnonymousParticipantCount(session.anonymous_participant_count || 0);
   };
 
   private updateFromSessionParticipantCountUpdate = (

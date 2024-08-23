@@ -737,21 +737,31 @@ describe('CallState', () => {
         const state = new CallState();
         state.updateFromEvent({
           type: 'call.session_started',
-          // @ts-ignore
-          call: { session: { id: 'session-id' } },
+          call: {
+            // @ts-ignore
+            session: { id: 'session-id', participants_count_by_role: {} },
+          },
         });
 
-        expect(state.session).toEqual({ id: 'session-id' });
+        expect(state.session).toEqual({
+          id: 'session-id',
+          participants_count_by_role: {},
+        });
       });
 
       it('should update the call metadata when a session ends', () => {
         const state = new CallState();
         state.updateFromEvent({
           type: 'call.session_ended',
-          // @ts-ignore
-          call: { session: { id: 'session-id' } },
+          call: {
+            // @ts-ignore
+            session: { id: 'session-id', participants_count_by_role: {} },
+          },
         });
-        expect(state.session).toEqual({ id: 'session-id' });
+        expect(state.session).toEqual({
+          id: 'session-id',
+          participants_count_by_role: {},
+        });
       });
 
       it('should update the call metadata when a participant joins', () => {
@@ -882,8 +892,10 @@ describe('CallState', () => {
 
       it('should handle call.session_participant_updated events', () => {
         const state = new CallState();
-        // @ts-expect-error incomplete data
-        state.updateFromCallResponse({ session: {} });
+        state.updateFromCallResponse({
+          // @ts-expect-error incomplete data
+          session: { participants_count_by_role: {} },
+        });
         // @ts-expect-error incomplete data
         state.updateFromEvent({
           type: 'call.session_participant_count_updated',
@@ -903,8 +915,10 @@ describe('CallState', () => {
 
       it('should not update the participant counts when call is joined', () => {
         const state = new CallState();
-        // @ts-expect-error incomplete data
-        state.updateFromCallResponse({ session: {} });
+        state.updateFromCallResponse({
+          // @ts-expect-error incomplete data
+          session: { participants_count_by_role: {} },
+        });
         state.setCallingState(CallingState.JOINED);
 
         // @ts-expect-error incomplete data
