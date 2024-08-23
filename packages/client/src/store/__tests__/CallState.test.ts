@@ -739,12 +739,17 @@ describe('CallState', () => {
           type: 'call.session_started',
           call: {
             // @ts-ignore
-            session: { id: 'session-id', participants_count_by_role: {} },
+            session: {
+              id: 'session-id',
+              participants: [],
+              participants_count_by_role: {},
+            },
           },
         });
 
         expect(state.session).toEqual({
           id: 'session-id',
+          participants: [],
           participants_count_by_role: {},
         });
       });
@@ -755,11 +760,16 @@ describe('CallState', () => {
           type: 'call.session_ended',
           call: {
             // @ts-ignore
-            session: { id: 'session-id', participants_count_by_role: {} },
+            session: {
+              id: 'session-id',
+              participants: [],
+              participants_count_by_role: {},
+            },
           },
         });
         expect(state.session).toEqual({
           id: 'session-id',
+          participants: [],
           participants_count_by_role: {},
         });
       });
@@ -894,7 +904,7 @@ describe('CallState', () => {
         const state = new CallState();
         state.updateFromCallResponse({
           // @ts-expect-error incomplete data
-          session: { participants_count_by_role: {} },
+          session: { participants: [], participants_count_by_role: {} },
         });
         // @ts-expect-error incomplete data
         state.updateFromEvent({
@@ -917,7 +927,7 @@ describe('CallState', () => {
         const state = new CallState();
         state.updateFromCallResponse({
           // @ts-expect-error incomplete data
-          session: { participants_count_by_role: {} },
+          session: { participants: [], participants_count_by_role: {} },
         });
         state.setCallingState(CallingState.JOINED);
 

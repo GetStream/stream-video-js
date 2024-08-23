@@ -1064,9 +1064,10 @@ export class CallState {
     // when in JOINED state, we should use the participant count coming through
     // the SFU healthcheck event, as it's more accurate.
     if (!session || this.callingState === CallingState.JOINED) return;
-    const participantCount = Object.values(
+    const byRoleCount = Object.values(
       session.participants_count_by_role,
     ).reduce((total, countByRole) => total + countByRole, 0);
+    const participantCount = Math.max(byRoleCount, session.participants.length);
     this.setParticipantCount(participantCount);
     this.setAnonymousParticipantCount(session.anonymous_participant_count || 0);
   };
