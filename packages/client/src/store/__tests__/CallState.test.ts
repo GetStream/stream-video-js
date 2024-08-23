@@ -879,6 +879,56 @@ describe('CallState', () => {
           },
         });
       });
+
+      it('should handle call.session_participant_updated events', () => {
+        const state = new CallState();
+        // @ts-expect-error incomplete data
+        state.updateFromCallResponse({ session: {} });
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({
+          type: 'call.session_participant_count_updated',
+          anonymous_participant_count: 10,
+          participants_count_by_role: { user: 5, host: 3, admin: 1 },
+        });
+
+        expect(state.session?.anonymous_participant_count).toBe(10);
+        expect(state.session?.participants_count_by_role).toEqual({
+          user: 5,
+          host: 3,
+          admin: 1,
+        });
+        expect(state.participantCount).toBe(9);
+        expect(state.anonymousParticipantCount).toBe(10);
+      });
+
+      it('should not update the participant counts when call is joined', () => {
+        const state = new CallState();
+        // @ts-expect-error incomplete data
+        state.updateFromCallResponse({ session: {} });
+        state.setCallingState(CallingState.JOINED);
+
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({
+          type: 'call.session_participant_count_updated',
+          anonymous_participant_count: 10,
+          participants_count_by_role: { user: 5, host: 3, admin: 1 },
+        });
+
+        expect(state.session?.anonymous_participant_count).toBe(10);
+        expect(state.session?.participants_count_by_role).toEqual({
+          user: 5,
+          host: 3,
+          admin: 1,
+        });
+        expect(state.participantCount).toBe(0);
+        expect(state.anonymousParticipantCount).toBe(0);
+
+        // simulate SFU heartbeat
+        state.setParticipantCount(3);
+        state.setAnonymousParticipantCount(2);
+        expect(state.participantCount).toBe(3);
+        expect(state.anonymousParticipantCount).toBe(2);
+      });
     });
   });
 });

@@ -23,6 +23,7 @@ import {
   CallMemberUpdatedPermissionEvent,
   CallReactionEvent,
   CallResponse,
+  CallSessionParticipantCountsUpdatedEvent,
   CallSessionParticipantJoinedEvent,
   CallSessionParticipantLeftEvent,
   CallSessionResponse,
@@ -475,6 +476,8 @@ export class CallState {
       'call.ring': (e) => this.updateFromCallResponse(e.call),
       'call.missed': (e) => this.updateFromCallResponse(e.call),
       'call.session_ended': (e) => this.updateFromCallResponse(e.call),
+      'call.session_participant_count_updated':
+        this.updateFromSessionParticipantCountUpdate,
       'call.session_participant_joined':
         this.updateFromSessionParticipantJoined,
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
@@ -1054,18 +1057,38 @@ export class CallState {
     }));
   };
 
+  private updateParticipantCountFromSession = (
+    session: CallSessionResponse | undefined,
+  ) => {
+    // when in JOINED state, we should use the participant count coming through
+    // the SFU healthcheck event, as it's more accurate.
+    if (!session || this.callingState === CallingState.JOINED) return;
+    const participantCount = Object.values(
+      session.participants_count_by_role,
+    ).reduce((total, countByRole) => total + countByRole, 0);
+    this.setParticipantCount(participantCount);
+    this.setAnonymousParticipantCount(session.anonymous_participant_count);
+  };
+
+  private updateFromSessionParticipantCountUpdate = (
+    event: CallSessionParticipantCountsUpdatedEvent,
+  ) => {
+    const s = this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) return session;
+      return {
+        ...session,
+        anonymous_participant_count: event.anonymous_participant_count,
+        participants_count_by_role: event.participants_count_by_role,
+      };
+    });
+    this.updateParticipantCountFromSession(s);
+  };
+
   private updateFromSessionParticipantLeft = (
     event: CallSessionParticipantLeftEvent,
   ) => {
-    this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) {
-        this.logger(
-          'warn',
-          `Received call.session_participant_left event but no session is available.`,
-          event,
-        );
-        return session;
-      }
+    const s = this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) return session;
       const { participants, participants_count_by_role } = session;
       const { user, user_session_id } = event.participant;
       return {
@@ -1082,20 +1105,14 @@ export class CallState {
         },
       };
     });
+    this.updateParticipantCountFromSession(s);
   };
 
   private updateFromSessionParticipantJoined = (
     event: CallSessionParticipantJoinedEvent,
   ) => {
-    this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) {
-        this.logger(
-          'warn',
-          `Received call.session_participant_joined event but no session is available.`,
-          event,
-        );
-        return session;
-      }
+    const s = this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) return session;
       const { participants, participants_count_by_role } = session;
       const { user, user_session_id } = event.participant;
       // It could happen that the backend delivers the same participant more than once.
@@ -1127,6 +1144,7 @@ export class CallState {
         },
       };
     });
+    this.updateParticipantCountFromSession(s);
   };
 
   private updateMembers = (
