@@ -2,6 +2,46 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.3.0-rc1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.23...@stream-io/video-react-sdk-1.3.0-rc1.0) (2024-08-26)
+
+
+* **@stream-io/video-react-sdk:** release version 1.3.0-rc.0 ([47f3d1a](https://github.com/GetStream/stream-video-js/commit/47f3d1a602bee279607ef7b71b346f1395092dc5))
+* **@stream-io/video-react-sdk:** release version 1.3.0-rc.0 ([c4d5f64](https://github.com/GetStream/stream-video-js/commit/c4d5f645b8f8be25c407937df94fc596c7fcd0ff))
+
+
+### Bug Fixes
+
+* new tag ([1b95fe9](https://github.com/GetStream/stream-video-js/commit/1b95fe937d6dc56b4c3c6fb82be2b3d648831cff))
+
+## [1.3.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.3.0-1...@stream-io/video-react-sdk-1.3.0-rc.0) (2024-08-22)
+
+
+* **@stream-io/video-react-sdk:** release version 1.3.0-rc.0 ([fe3b5a2](https://github.com/GetStream/stream-video-js/commit/fe3b5a2ce3317cf993d4c6177a4e74d7ac3cbea8))
+
+
+### Bug Fixes
+
+* include rc in the release name ([478cee3](https://github.com/GetStream/stream-video-js/commit/478cee38829d70e76ba62bcc82f6c69d220f4ea5))
+
+## [1.3.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.20...@stream-io/video-react-sdk-1.3.0-0) (2024-08-19)
+
+
+* **@stream-io/video-react-sdk:** release version 1.3.0-0 ([b75019d](https://github.com/GetStream/stream-video-js/commit/b75019d704a6a0c0e8160ad3f02e4f38d86017a4))
+* **@stream-io/video-react-sdk:** release version 1.3.0-0 ([13f48a1](https://github.com/GetStream/stream-video-js/commit/13f48a18462bfd95da9546052f09a881d41fe93d))
+* **@stream-io/video-react-sdk:** release version 1.3.0-0 ([82a3c1d](https://github.com/GetStream/stream-video-js/commit/82a3c1dbc744b9ab94e96f358ee5babe41bb511e))
+* specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
+
+
+### Features
+
+* setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
+
+
+### Bug Fixes
+
+* flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
+* remove pre-releases ([ba9cf49](https://github.com/GetStream/stream-video-js/commit/ba9cf4968a80ec07831304ee8a791d9681ddc605))
+
 ## [1.3.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.23...@stream-io/video-react-sdk-1.3.0-rc.0) (2024-08-23)
 
 
