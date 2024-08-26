@@ -7,7 +7,7 @@
       }
     }
   },
-  "defaultBase": "main",
+  "defaultBase": "reconnect-v2",
   "targetDependencies": {
     "version": [
       {
