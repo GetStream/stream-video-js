@@ -877,6 +877,13 @@ export class Call {
       await this.applyDeviceConfig(true);
       this.deviceSettingsAppliedOnce = true;
     }
+
+    // We shouldn't persist the `ring` state after joining the call as it's a one-time event
+    // and clashes with the potential reconnection attempts. When reconnecting,
+    // if provided with `ring: true`, we will spam the other participants with
+    // push notifications and `call.ring` events.
+    delete this.joinCallData?.ring;
+
     this.logger('info', `Joined call ${this.cid}`);
   };
 
@@ -957,7 +964,7 @@ export class Call {
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
-      logTag: String(this.reconnectAttempts),
+      logTag: String(this.sfuClientTag),
       onUnrecoverableError: () => {
         this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
           this.logger(
@@ -986,7 +993,7 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
-        logTag: String(this.reconnectAttempts),
+        logTag: String(this.sfuClientTag),
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
             this.logger(
@@ -1087,8 +1094,8 @@ export class Call {
 
       this.reconnectStrategy = strategy;
       do {
+        // we don't increment reconnect attempts for the FAST strategy.
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
-          // we don't increment reconnect attempts for the FAST strategy.
           this.reconnectAttempts++;
         }
         const current = WebsocketReconnectStrategy[this.reconnectStrategy];
