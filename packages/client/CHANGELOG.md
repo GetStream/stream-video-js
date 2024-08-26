@@ -2,6 +2,129 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.0-rc1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.2...@stream-io/video-client-1.6.0-rc1.0) (2024-08-26)
+
+
+* **@stream-io/video-client:** release version 1.6.0-rc.0 ([4616a68](https://github.com/GetStream/stream-video-js/commit/4616a6865193395464bce7e294601c083ff3f40d))
+* **@stream-io/video-client:** release version 1.6.0-rc.0 ([70ea242](https://github.com/GetStream/stream-video-js/commit/70ea24201b981d778045c76cc01720713295430d))
+* convert to arrow function ([a136b90](https://github.com/GetStream/stream-video-js/commit/a136b9014b3c965db86980b469b95dbd10c72016))
+* remove unused code ([aecedc0](https://github.com/GetStream/stream-video-js/commit/aecedc03c4850d6d85855078ccf86e0c1c8427b7))
+* remove unused code ([3879c0c](https://github.com/GetStream/stream-video-js/commit/3879c0ca1f6f7c6c0b2716674afe87c1ebf52e59))
+* remove unused code ([cf1286e](https://github.com/GetStream/stream-video-js/commit/cf1286e8cdd02ded1559d893e2c4738cbcc5047f))
+
+
+### Bug Fixes
+
+* don't increment reconnectAttempts in FAST mode ([4c0fa87](https://github.com/GetStream/stream-video-js/commit/4c0fa87c9bc9bcb652abc4bce1954305f70b2aab))
+* new tag ([1b95fe9](https://github.com/GetStream/stream-video-js/commit/1b95fe937d6dc56b4c3c6fb82be2b3d648831cff))
+* rely on joinresponse before attempting to publish a stream ([8fea94a](https://github.com/GetStream/stream-video-js/commit/8fea94affd88419c1b0247908708f444cdca792e))
+
+## [1.6.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.0-0...@stream-io/video-client-1.6.0-rc.0) (2024-08-22)
+
+
+* **@stream-io/video-client:** release version 1.6.0-rc.0 ([2b6707d](https://github.com/GetStream/stream-video-js/commit/2b6707d09b9138a5835c4cb6925f3dca0482dbb3))
+
+
+### Bug Fixes
+
+* include rc in the release name ([478cee3](https://github.com/GetStream/stream-video-js/commit/478cee38829d70e76ba62bcc82f6c69d220f4ea5))
+
+## 1.6.0-0 (2024-08-22)
+
+
+* **@stream-io/video-client:** release version 1.6.0-0 ([dc54248](https://github.com/GetStream/stream-video-js/commit/dc54248d861ef77185a03fbe4145c7d41c6f3230))
+* remove todo ([ac24f43](https://github.com/GetStream/stream-video-js/commit/ac24f43811ede8b37203c5359e1d03e58bb57f2e))
+* remove unused import ([8b2d5c1](https://github.com/GetStream/stream-video-js/commit/8b2d5c1de7263a317320af4834041eecfbb2aa11))
+
+
+### Bug Fixes
+
+* call shall be considered as joined once joinResponse has been received ([1ed5b10](https://github.com/GetStream/stream-video-js/commit/1ed5b1097591604a3bb1884c2c664fb985873c3c))
+* increment the reconnect attempt on every loop ([9fc54ae](https://github.com/GetStream/stream-video-js/commit/9fc54ae355d1c8bf9f474b708657d8d0a077b28b))
+* **migration:** mark call as JOINED only after participantMigrationComplete is emitted ([60e4f28](https://github.com/GetStream/stream-video-js/commit/60e4f2872b5382a24158ffe340d3850190feab36))
+* reduce the timeout to 7 seconds ([1a34c4d](https://github.com/GetStream/stream-video-js/commit/1a34c4da724290f6e4e69bd6070e370fcfbdee29))
+* remove `participantMigrationComplete` workaround ([69ec50b](https://github.com/GetStream/stream-video-js/commit/69ec50b0226a9595bf49681d871e650aa51074a3))
+* revert incorrect RN check ([d4c127b](https://github.com/GetStream/stream-video-js/commit/d4c127b3c5555184497b8b5a29153332094c28f4))
+* shorter sleep time before attempts ([10db68e](https://github.com/GetStream/stream-video-js/commit/10db68ea101684d774561d1b3da1e8927a5eb981))
+
+## [1.5.0-0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.4.8...@stream-io/video-client-1.5.0-0) (2024-08-19)
+
+
+* **@stream-io/video-client:** release version 1.5.0-0 ([c2c6c08](https://github.com/GetStream/stream-video-js/commit/c2c6c08a89c153ff7f478802eb75ba9dea826ed2))
+* **@stream-io/video-client:** release version 1.5.0-0 ([5357a57](https://github.com/GetStream/stream-video-js/commit/5357a5742e540d530136d3d75cf609250532dd0b))
+* **@stream-io/video-client:** release version 1.5.0-0 ([95f18b8](https://github.com/GetStream/stream-video-js/commit/95f18b8400a625d1abda766f4756b9e6acad1c13))
+* add logs for ice trickle ([990b19a](https://github.com/GetStream/stream-video-js/commit/990b19adcc03808c6b04d9767181a4fa6ceda610))
+* fix bad implicit default ([d076f00](https://github.com/GetStream/stream-video-js/commit/d076f006aab55ff9033619825a2bf64900577c53))
+* refactor the code a bit ([e56a668](https://github.com/GetStream/stream-video-js/commit/e56a668b7190483924c85f6053cabd614ab2fe54))
+* remove commented out code ([02cdfa2](https://github.com/GetStream/stream-video-js/commit/02cdfa23542bb49cb04541c1d423aca9f3be7cd3))
+* remove the legacy migration code ([12c181b](https://github.com/GetStream/stream-video-js/commit/12c181be861030334f4e2555a432a8167242cf63))
+* specify baseBranch ([cc9b2fd](https://github.com/GetStream/stream-video-js/commit/cc9b2fd6d88f6aff7d8fdd8333c7aa33fdbb6857))
+* update log statement ([2245db7](https://github.com/GetStream/stream-video-js/commit/2245db7c362d1819e22e5e5831e82c251aff6117))
+
+
+### Features
+
+* break down the reconnect/join flows ([883d0ee](https://github.com/GetStream/stream-video-js/commit/883d0ee3b54e9b5704364d0c34e466c23aca631a))
+* don't trigger ice restart on the subscriber after a fast reconnect ([c7e2d6f](https://github.com/GetStream/stream-video-js/commit/c7e2d6f964e779f988b29d12763b1ee4d4859111))
+* fast-reconnect strategy ([e4e01d5](https://github.com/GetStream/stream-video-js/commit/e4e01d5dd8185a21652bb2dca2a88217b498c9b7))
+* handle `callEnded` ([7f93307](https://github.com/GetStream/stream-video-js/commit/7f933079193084ac58a93a961e035ddfd7616f67))
+* handle goAway ([d717f1a](https://github.com/GetStream/stream-video-js/commit/d717f1af00a87cf636396c4e0dc33ad106c9377e))
+* handle network change events ([f980f0b](https://github.com/GetStream/stream-video-js/commit/f980f0b93235f1923c06e2e8694c4ce8ff10abc0))
+* improved/linear code flow, clean reconnects ([a210365](https://github.com/GetStream/stream-video-js/commit/a210365dd83fb0e544b543c7144104ece80ac317))
+* migration ([9099a51](https://github.com/GetStream/stream-video-js/commit/9099a51d5cd29282a050bba196ba5a4f646f4341))
+* migration - wip ([3ad96b6](https://github.com/GetStream/stream-video-js/commit/3ad96b6a7d38c7e82effd26889a2fbbad20847b7))
+* Reconnects v2 ([d9f98dc](https://github.com/GetStream/stream-video-js/commit/d9f98dcd6237f7fc9eca263832e6d68753bb2ee1))
+* remove CLEAN strategy ([7e9544b](https://github.com/GetStream/stream-video-js/commit/7e9544b8beb29af4125f2e607865f0415426afcc))
+* send `muted` info about announced tracks ([ccd95c4](https://github.com/GetStream/stream-video-js/commit/ccd95c411650b44816b18d2e6562f9409b35faf2))
+* setup rc release flow ([f183232](https://github.com/GetStream/stream-video-js/commit/f18323254a43fe11c768656e10cd1b915f6ce607))
+
+
+### Bug Fixes
+
+* add missing bracket ([1687722](https://github.com/GetStream/stream-video-js/commit/16877221f98ff277bb41cc04b26d0cdaebd4f22a))
+* adjust to the recent changes made in [#1451](https://github.com/GetStream/stream-video-js/issues/1451) ([9e47834](https://github.com/GetStream/stream-video-js/commit/9e4783480e7f29c9d102824a37fa9db19dda4fc1))
+* always respect local state for the local participant ([6b9cd1d](https://github.com/GetStream/stream-video-js/commit/6b9cd1de37b7f31426e83090b97c56f83062e31b))
+* attempt closing only open sockets ([2d6a388](https://github.com/GetStream/stream-video-js/commit/2d6a3888af9c697c5bcca0bf257cde63700f743a))
+* attempt reconnect after setPublisher fails to return valid SDP ([71ff58e](https://github.com/GetStream/stream-video-js/commit/71ff58e5e9f4a41db714ad39f0ad8a1f22cb8e85))
+* bubble migration errors, check for network availability before attempts, break the reconnect loop on leave ([e3cb2b0](https://github.com/GetStream/stream-video-js/commit/e3cb2b0dda8b34f03214cbdd1aa8f2cd1bb793b0))
+* clean joinData after migration ([16d186a](https://github.com/GetStream/stream-video-js/commit/16d186a6da0af1bfdcee447c4b2b4485604fb49d))
+* decouple network events from coordinator socket healthiness ([e453581](https://github.com/GetStream/stream-video-js/commit/e453581da6f8d4d07678636d7a520609b4486948))
+* disable excessive logging ([f8c63bf](https://github.com/GetStream/stream-video-js/commit/f8c63bf98a1a22c0f39668d723d4c69d841b13b5))
+* don't apply device settings after rejoining ([18a6a3c](https://github.com/GetStream/stream-video-js/commit/18a6a3c9d8e71d8e1ca8222df7319096d9f6bc54))
+* don't apply device settings after rejoining, improve the handling of own capabilities ([8ce0f1a](https://github.com/GetStream/stream-video-js/commit/8ce0f1a82181bf21f4c90b9b1e18b5390e983766))
+* failed test ([f78c943](https://github.com/GetStream/stream-video-js/commit/f78c943912e2292be8e31b575de1742e5c08a0cb))
+* failing tests ([5c0209b](https://github.com/GetStream/stream-video-js/commit/5c0209b46f931f47e439e6f3339d13d34765ba3c))
+* fast reconnect after network switch ([a49539c](https://github.com/GetStream/stream-video-js/commit/a49539c8a21988dfad04af5b7303412cef41c292))
+* flag pre-releases in github ([fed77b2](https://github.com/GetStream/stream-video-js/commit/fed77b2835a49af46cd581e93f76e95e8317724e))
+* handle errors ([5cf999d](https://github.com/GetStream/stream-video-js/commit/5cf999d018a17c0dd7cb92cf45808e070c69fc58))
+* handle orphaned tracks for the subscriber ([10fb269](https://github.com/GetStream/stream-video-js/commit/10fb26983589ee962fc14b464e13350bc17e9105))
+* handle screen share in remote mutes ([6255d36](https://github.com/GetStream/stream-video-js/commit/6255d366d65d4e8641cecb9f42a47876a8cd5e3b))
+* improve handing of ice trickles ([a2ae6b1](https://github.com/GetStream/stream-video-js/commit/a2ae6b105fde51f6cd9de36af9face0e69bca6ff))
+* improve ice trickling ([2fdb932](https://github.com/GetStream/stream-video-js/commit/2fdb9328d138d7067af225ae526fd06e9fe960d1))
+* improve logging ([a3ea1d9](https://github.com/GetStream/stream-video-js/commit/a3ea1d916cf50b445ecf1be7cd01c40f87a2db98))
+* improve logging, mark call as joined earlier ([2722e4d](https://github.com/GetStream/stream-video-js/commit/2722e4dd2a40fb7d3c30e1b4051fc32aa64cf629))
+* improve the migration ([c2495dd](https://github.com/GetStream/stream-video-js/commit/c2495dd01bf462d099214df711fe353001228ffb))
+* increase the migration end deadline ([6d56644](https://github.com/GetStream/stream-video-js/commit/6d566443d22b18ec50fba3752120f5eefd68a8bd))
+* incremental sfu client tag ([ce4432d](https://github.com/GetStream/stream-video-js/commit/ce4432d82256cff9868d91f01bb83daf8b256f55))
+* perform ice restart when state goes to disconnected ([2517625](https://github.com/GetStream/stream-video-js/commit/251762528641cea09a7d7c77e2c2be113ae82bac))
+* prevent assigning ice candidates to closed PC; prevent muting the publisher after migration; don't trigger fast reconnect after goAway migration ([5769097](https://github.com/GetStream/stream-video-js/commit/576909764b387da247bd48c721015cfbc7884e4a))
+* recovering from failed SFU WS connection attempts ([2e00740](https://github.com/GetStream/stream-video-js/commit/2e00740079fa27c87d142824d9b1414525de21e6))
+* remove ended orphaned tracks from the call state ([d68529d](https://github.com/GetStream/stream-video-js/commit/d68529de4b2f4821da91d153377244dd3b7ffc64))
+* remove outdated migration tests ([4b57b19](https://github.com/GetStream/stream-video-js/commit/4b57b197352d6660a7737413f46e526193f9cf74))
+* remove pre-releases ([ba9cf49](https://github.com/GetStream/stream-video-js/commit/ba9cf4968a80ec07831304ee8a791d9681ddc605))
+* reorganize restorePublishedTracks impl ([eaa8072](https://github.com/GetStream/stream-video-js/commit/eaa80723a5355ee4195e92530d74188ba98678fb))
+* restore IceTrickleBuffer ([47be308](https://github.com/GetStream/stream-video-js/commit/47be308ece0360dff66fff415f4f39e821ca2daf))
+* restore logging ([923fa74](https://github.com/GetStream/stream-video-js/commit/923fa74dc1c634a116b1a52ed5d466902d20d915))
+* restore the original addIceCandidate behavior ([36245df](https://github.com/GetStream/stream-video-js/commit/36245df430ebb524ef99d7b07120e017b5fd4280))
+* restore tracks from the local state after reconnecting ([8204598](https://github.com/GetStream/stream-video-js/commit/820459800c8cd87635d020955f6f853d985c92c2))
+* retry failed rpc requests ([8c10922](https://github.com/GetStream/stream-video-js/commit/8c1092292d3b4657ee1ef4bb683bafeeea6568fb))
+* simplify updateParticipants ([d01367d](https://github.com/GetStream/stream-video-js/commit/d01367d1ff21d1c4d69bb5013ec6f967a1138199))
+* stats reporting ([cff501f](https://github.com/GetStream/stream-video-js/commit/cff501f8c6da22c9ccc4f98f8c688e573de94037))
+* stop sending healthcheck events when WS closes ([1c452df](https://github.com/GetStream/stream-video-js/commit/1c452dfa4d1eafe7a7dd46788691b46efc7b853a))
+* tidy up the codebase ([53674c2](https://github.com/GetStream/stream-video-js/commit/53674c294ff2e8ee0be64a3e2a8b6b1ccf34da1f))
+* use 30fps for all layers ([df393b0](https://github.com/GetStream/stream-video-js/commit/df393b07f2ec978b3f7ef2a2da9f319cd3efd477))
+* use symbol per instance ([6d55e68](https://github.com/GetStream/stream-video-js/commit/6d55e687a8189cef00037b7cae3e269fc3ad947b))
+
 ## [1.6.0-rc.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.2...@stream-io/video-client-1.6.0-rc.0) (2024-08-23)
 
 
