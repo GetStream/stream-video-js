@@ -1087,7 +1087,10 @@ export class Call {
 
       this.reconnectStrategy = strategy;
       do {
-        this.reconnectAttempts++;
+        if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
+          // we don't increment reconnect attempts for the FAST strategy.
+          this.reconnectAttempts++;
+        }
         const current = WebsocketReconnectStrategy[this.reconnectStrategy];
         try {
           // wait until the network is available
