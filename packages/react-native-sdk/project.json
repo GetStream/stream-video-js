@@ -7,7 +7,7 @@
       "options": {
         "dryRun": false,
         "releaseAs": "premajor",
-        "preid": "rc1",
+        "preid": "rc2",
         "baseBranch": "reconnect-v2",
         "preset": {
           "name": "conventionalcommits",
