@@ -879,11 +879,12 @@ export class Call {
       this.deviceSettingsAppliedOnce = true;
     }
 
-    // We shouldn't persist the `ring` state after joining the call as it's a one-time event
-    // and clashes with the potential reconnection attempts. When reconnecting,
-    // if provided with `ring: true`, we will spam the other participants with
-    // push notifications and `call.ring` events.
+    // We shouldn't persist the `ring` and `notify` state after joining the call
+    // as it's a one-time event and clashes with the potential reconnection attempts.
+    // When reconnecting, if provided with `ring: true` or `notify: true`,
+    // we will spam the other participants with push notifications and `call.ring` events.
     delete this.joinCallData?.ring;
+    delete this.joinCallData?.notify;
 
     this.logger('info', `Joined call ${this.cid}`);
   };
