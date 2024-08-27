@@ -39,12 +39,14 @@ export type APIErrorResponse = {
   more_info: string;
   StatusCode: number;
   details?: ErrorResponseDetails;
+  unrecoverable?: boolean;
 };
 
 export class ErrorFromResponse<T> extends Error {
   code?: number;
   response?: AxiosResponse<T>;
   status?: number;
+  unrecoverable?: boolean;
 }
 
 export type ConnectionChangedEvent = {

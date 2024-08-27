@@ -118,9 +118,10 @@ import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { sleep } from './coordinator/connection/utils';
-import type {
+import {
   AllCallEvents,
   CallEventListener,
+  ErrorFromResponse,
   Logger,
   RejectReason,
   StreamCallEvent,
@@ -1125,6 +1126,15 @@ export class Call {
           }
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (error instanceof ErrorFromResponse && error.unrecoverable) {
+            this.logger(
+              'warn',
+              `[Reconnect] Can't reconnect due to unrecoverable error`,
+              error,
+            );
+            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+            return;
+          }
           this.logger(
             'warn',
             `[Reconnect] ${current} (${this.reconnectAttempts}) failed. Attempting with REJOIN`,
@@ -1135,6 +1145,7 @@ export class Call {
         }
       } while (
         this.state.callingState !== CallingState.JOINED &&
+        this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
       );
     });
