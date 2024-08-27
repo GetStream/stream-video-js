@@ -8,6 +8,7 @@ import {
 } from '../utils/push/utils';
 import { useAndroidKeepCallAliveEffect } from '../hooks/useAndroidKeepCallAliveEffect';
 import { AppState, NativeModules, Platform } from 'react-native';
+import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
 export type StreamCallProps = {
   /**
@@ -77,7 +78,9 @@ const AppStateListener = () => {
             }
           );
         } else {
-          call?.camera?.disable();
+          if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
+            call?.camera?.disable();
+          }
         }
         appState.current = nextAppState;
       }

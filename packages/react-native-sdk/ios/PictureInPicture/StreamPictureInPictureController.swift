@@ -7,20 +7,21 @@ import Combine
 import Foundation
 
 /// A controller class for picture-in-picture whenever that is possible.
-final class StreamPictureInPictureController: NSObject, AVPictureInPictureControllerDelegate {
+@objc final class StreamPictureInPictureController: NSObject, AVPictureInPictureControllerDelegate {
     
     // MARK: - Properties
     
     /// The RTCVideoTrack for which the picture-in-picture session is created.
-    public var track: RTCVideoTrack? {
+    @objc public var track: RTCVideoTrack? {
         didSet {
             didUpdate(track) // Called when the `track` property changes
         }
     }
     
     /// The UIView that contains the video content.
-    public var sourceView: UIView? {
+    @objc public var sourceView: UIView? {
         didSet {
+            NSLog("PiP - Called when the `sourceView` property changes")
             didUpdate(sourceView) // Called when the `sourceView` property changes
         }
     }
@@ -123,7 +124,7 @@ final class StreamPictureInPictureController: NSObject, AVPictureInPictureContro
         trackStateAdapter.activeTrack = track
     }
     
-    private func didUpdate(_ sourceView: UIView?) {
+    @objc private func didUpdate(_ sourceView: UIView?) {
         if let sourceView {
             // If picture-in-picture isn't active, just create a new controller.
             if pictureInPictureController?.isPictureInPictureActive != true {
@@ -131,8 +132,7 @@ final class StreamPictureInPictureController: NSObject, AVPictureInPictureContro
                 
                 pictureInPictureController?
                     .publisher(for: \.isPictureInPicturePossible)
-                    .removeDuplicates()
-                    .sink {$0}
+                    .sink { NSLog("isPictureInPicturePossible:\($0)") }
                     .store(in: &cancellableBag)
                 
                 pictureInPictureController?
@@ -146,9 +146,27 @@ final class StreamPictureInPictureController: NSObject, AVPictureInPictureContro
             }
         } else {
             if #available(iOS 15.0, *) {
+                NSLog("PiP - contentSource to nil")
+                
+                    NSLog("PiP - stopPictureInPicture")
+                NSLog("Pip is active?- \(String(describing: pictureInPictureController?.isPictureInPictureActive))")
+                    pictureInPictureController?.stopPictureInPicture()
+                
+                
                 pictureInPictureController?.contentSource = nil
             }
         }
+    }
+    
+    @objc func cleanup() {
+        NSLog("PiP - cleanup")
+        contentViewController?.track = nil
+        if #available(iOS 15.0, *) {
+            pictureInPictureController?.contentSource = nil
+        }
+        pictureInPictureController?.delegate = nil
+        pictureInPictureController = nil
+        
     }
     
     private func makePictureInPictureController(with sourceView: UIView) {
@@ -171,6 +189,7 @@ final class StreamPictureInPictureController: NSObject, AVPictureInPictureContro
     }
     
     private func didUpdatePictureInPictureActiveState(_ isActive: Bool) {
+        NSLog("PiP - didUpdatePictureInPictureActiveState - \(isActive)")
         trackStateAdapter.isEnabled = isActive
     }
 }

@@ -1,0 +1,61 @@
+//
+//  RTCViewPip.swift
+//  stream-video-react-native
+//
+//  Created by santhosh vaiyapuri on 22/08/2024.
+//
+
+import Foundation
+
+@objc(RTCViewPip)
+class RTCViewPip: UIView {
+    
+    private lazy var pictureInPictureController = StreamPictureInPictureController()
+    private var webRtcModule: WebRTCModule?
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        setupView()
+    }
+    
+    private func setupView() {
+        let videoView = UIView()
+        self.addSubview(videoView)
+        pictureInPictureController?.sourceView = videoView
+        videoView.backgroundColor = UIColor.clear // make it transparent
+    }
+    
+    func setWebRtcModule(_ module: WebRTCModule) {
+        webRtcModule = module
+    }
+    
+    @objc func setStreamURL(_ streamReactTag: NSString) {
+        webRtcModule?.workerQueue.async {
+            let stream = self.webRtcModule?.stream(forReactTag: String(streamReactTag))
+            let videoTracks = stream?.videoTracks ?? []
+            let videoTrack = videoTracks.first
+            if videoTrack == nil {
+                NSLog("PiP - No video stream for react tag: -\(streamReactTag)")
+            } else {
+                DispatchQueue.main.async {
+                    self.pictureInPictureController?.track = videoTrack
+                }
+            }
+        }
+    }
+    
+    @objc
+    func onCallClosed() {
+        NSLog("PiP - set call closed")
+        DispatchQueue.main.async {
+//            self.pictureInPictureController?.track = nil
+//            self.pictureInPictureController?.sourceView = nil
+            self.pictureInPictureController?.cleanup()
+        }
+    }
+}
