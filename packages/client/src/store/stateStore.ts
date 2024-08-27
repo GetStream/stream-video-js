@@ -2,7 +2,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
-import { CallingState } from './CallState';
+import { CallingState } from './CallingState';
 import type { OwnUserResponse } from '../gen/coordinator';
 import { getLogger } from '../logger';
 
@@ -39,29 +39,10 @@ export class StreamVideoWriteableStateStore {
   }
 
   /**
-   * Gets the current value of an observable, or undefined if the observable has
-   * not emitted a value yet.
-   *
-   * @param observable$ the observable to get the value from.
-   */
-  private getCurrentValue = RxUtils.getCurrentValue;
-
-  /**
-   * Updates the value of the provided Subject.
-   * An `update` can either be a new value or a function which takes
-   * the current value and returns a new value.
-   *
-   * @param subject the subject to update.
-   * @param update the update to apply to the subject.
-   * @return the updated value.
-   */
-  private setCurrentValue = RxUtils.setCurrentValue;
-
-  /**
    * The currently connected user.
    */
   get connectedUser(): OwnUserResponse | undefined {
-    return this.getCurrentValue(this.connectedUserSubject);
+    return RxUtils.getCurrentValue(this.connectedUserSubject);
   }
 
   /**
@@ -71,14 +52,14 @@ export class StreamVideoWriteableStateStore {
    * @param user the user to set as connected.
    */
   setConnectedUser = (user: Patch<OwnUserResponse | undefined>) => {
-    return this.setCurrentValue(this.connectedUserSubject, user);
+    return RxUtils.setCurrentValue(this.connectedUserSubject, user);
   };
 
   /**
    * A list of {@link Call} objects created/tracked by this client.
    */
   get calls(): Call[] {
-    return this.getCurrentValue(this.callsSubject);
+    return RxUtils.getCurrentValue(this.callsSubject);
   }
 
   /**
@@ -86,7 +67,7 @@ export class StreamVideoWriteableStateStore {
    * @param calls
    */
   setCalls = (calls: Patch<Call[]>) => {
-    return this.setCurrentValue(this.callsSubject, calls);
+    return RxUtils.setCurrentValue(this.callsSubject, calls);
   };
 
   /**

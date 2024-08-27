@@ -149,7 +149,7 @@ export const useGleap = (
 
     Gleap.on('flow-started', () => {
       try {
-        const state = client.readOnlyStateStore;
+        const state = client.state;
         const data = Object.entries(state).reduce<Record<string, any>>(
           (acc, [key, observable]) => {
             if (!!observable && typeof observable.subscribe === 'function') {

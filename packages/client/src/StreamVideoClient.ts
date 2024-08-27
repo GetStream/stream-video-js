@@ -36,7 +36,12 @@ import { SdkType } from './gen/video/sfu/models/models';
  */
 export class StreamVideoClient {
   /**
-   * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
+   * A reactive store that exposes all the state variables reactively.
+   * You can subscribe to changes of the different state variables.
+   * Our library is built in a way that all state changes are exposed in this store,
+   * o all UI changes in your application should be handled by subscribing to these variables.
+   *
+   * @deprecated use the `client.state` getter.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   readonly logLevel: LogLevel = 'warn';
@@ -131,7 +136,7 @@ export class StreamVideoClient {
           if (StreamVideoClient._instanceMap.has(apiKeyOrArgs.apiKey + id)) {
             this.logger(
               'warn',
-              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anyonymous user' : id}; Prefer using getOrCreateInstance method`,
+              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anonymous user' : id}; Prefer using getOrCreateInstance method`,
             );
           }
           user.id = id;
