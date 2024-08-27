@@ -1129,7 +1129,7 @@ export class Call {
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
               'warn',
-              `[Reconnect] Can't reconnect due to unrecoverable error`,
+              `[Reconnect] Can't reconnect due to coordinator unrecoverable error`,
               error,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
