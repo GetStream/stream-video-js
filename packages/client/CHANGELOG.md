@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.0-rc2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.0-rc1.0...@stream-io/video-client-1.6.0-rc2.0) (2024-08-27)
+
+
+* update rc tag ([9e4322e](https://github.com/GetStream/stream-video-js/commit/9e4322e07844c4a84c7728675f67e0c03511a9b1))
+
+
+### Features
+
+* break the reconnection loop on unrecoverable error ([48a89f7](https://github.com/GetStream/stream-video-js/commit/48a89f77f0504a9f597cfe08725bd8a6c13fc808))
+
+
+### Bug Fixes
+
+* delete `ring` flag after successful join; use correct log tags ([323f00e](https://github.com/GetStream/stream-video-js/commit/323f00ea3ad846523fc9e359671033919d6f4ebb))
+* import ([17db99d](https://github.com/GetStream/stream-video-js/commit/17db99dc1bf933baead37f126e48359e6657dc45))
+* remove dead code ([3ffb99e](https://github.com/GetStream/stream-video-js/commit/3ffb99e8fc395e9aae75dee21f0672c3e49afc79))
+* reorganize call and client state ([7bafa2e](https://github.com/GetStream/stream-video-js/commit/7bafa2e53874463d0d6bba2d910623542d4ca79b))
+* update log message ([3564a16](https://github.com/GetStream/stream-video-js/commit/3564a166498d577dbb7c3fa3ad8618b64efab114))
+
 ## [1.6.0-rc1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.2...@stream-io/video-client-1.6.0-rc1.0) (2024-08-26)
 
 
