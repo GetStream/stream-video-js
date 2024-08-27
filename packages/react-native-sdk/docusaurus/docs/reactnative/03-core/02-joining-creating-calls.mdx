@@ -14,7 +14,7 @@ This guide shows how to create, join, leave, and end calls and ring calls.
 
 You can create a call by specifying its `callType` and `callId`:
 
-The [Call Type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
+The [Call Type](../../core/call-types) controls which features are enabled, and sets up permissions.
 You can reuse the same call multiple times. As an example, if you're building a telemedicine app calls will be connected to an appointment.
 Using your own appointment id as the call id makes it easy to find the call later.
 
@@ -71,7 +71,7 @@ await call.leave();
 
 ### End call
 
-Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
+Ending a call requires a [special permission](../../core/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
 await call.endCall();
@@ -93,7 +93,7 @@ await call.getOrCreate(); // create if not present and load it
 These operations initialize the `call.state` and create a subscription for call updates to our backend.
 This means that this `call` instance will receive real-time updates in case it is modified somewhere else.
 
-Read more about call state here: [Call & Participant State](../../guides/call-and-participant-state/).
+Read more about call state here: [Call & Participant State](../../core/call-and-participant-state/).
 
 ### Update call
 
