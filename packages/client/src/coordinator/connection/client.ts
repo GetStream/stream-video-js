@@ -77,7 +77,6 @@ export class StreamClient {
   rejectConnectionId?: Function;
   connectionIdPromise?: Promise<string | undefined>;
   guestUserCreatePromise?: Promise<CreateGuestResponse>;
-  private nextRequestAbortController: AbortController | null = null;
 
   /**
    * Initialize a client.
@@ -376,20 +375,6 @@ export class StreamClient {
     this.clientID = `${this.userID}--${randomId()}`;
     this.wsPromise = this.connect();
     return this.wsPromise;
-  };
-
-  _normalizeDate = (before: Date | string | null): string | null => {
-    if (before instanceof Date) {
-      before = before.toISOString();
-    }
-
-    if (before === '') {
-      throw new Error(
-        "Don't pass blank string for since, use null instead if resetting the token revoke",
-      );
-    }
-
-    return before;
   };
 
   /**
@@ -813,11 +798,6 @@ export class StreamClient {
     const token =
       options.publicEndpoint && !this.user ? undefined : this._getToken();
     const authorization = token ? { Authorization: token } : undefined;
-    let signal: AbortSignal | null = null;
-    if (this.nextRequestAbortController !== null) {
-      signal = this.nextRequestAbortController.signal;
-      this.nextRequestAbortController = null;
-    }
 
     if (!options.headers?.['x-client-request-id']) {
       options.headers = {
@@ -842,7 +822,6 @@ export class StreamClient {
         'X-Stream-Client': this.getUserAgent(),
         ...options.headers,
       },
-      ...(signal ? { signal } : {}),
       ...options.config,
       ...this.options.axiosRequestConfig,
     };
