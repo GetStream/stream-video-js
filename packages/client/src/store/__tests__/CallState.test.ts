@@ -2,7 +2,8 @@ import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
-import { CallingState, CallState } from '../CallState';
+import { CallingState } from '../CallingState';
+import { CallState } from '../CallState';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
