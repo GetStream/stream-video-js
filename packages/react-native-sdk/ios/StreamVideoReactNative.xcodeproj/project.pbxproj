@@ -6,6 +6,26 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DDF0AD4F2C778F6900E46BC2 /* RTCViewPip.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD3D2C778F6800E46BC2 /* RTCViewPip.swift */; };
+		DDF0AD502C778F6900E46BC2 /* StreamPixelBufferPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD3F2C778F6800E46BC2 /* StreamPixelBufferPool.swift */; };
+		DDF0AD512C778F6900E46BC2 /* StreamPictureInPictureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD402C778F6800E46BC2 /* StreamPictureInPictureController.swift */; };
+		DDF0AD522C778F6900E46BC2 /* StreamPixelBufferRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD412C778F6800E46BC2 /* StreamPixelBufferRepository.swift */; };
+		DDF0AD532C778F6900E46BC2 /* StreamBufferTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD422C778F6800E46BC2 /* StreamBufferTransformer.swift */; };
+		DDF0AD542C778F6900E46BC2 /* StreamAVPictureInPictureVideoCallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD432C778F6800E46BC2 /* StreamAVPictureInPictureVideoCallViewController.swift */; };
+		DDF0AD552C778F6900E46BC2 /* StreamPictureInPictureVideoRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD442C778F6800E46BC2 /* StreamPictureInPictureVideoRenderer.swift */; };
+		DDF0AD562C778F6900E46BC2 /* StreamPictureInPictureFixedWindowSizePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD462C778F6800E46BC2 /* StreamPictureInPictureFixedWindowSizePolicy.swift */; };
+		DDF0AD572C778F6900E46BC2 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD472C778F6800E46BC2 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift */; };
+		DDF0AD582C778F6900E46BC2 /* StreamPictureInPictureWindowSizePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD482C778F6800E46BC2 /* StreamPictureInPictureWindowSizePolicy.swift */; };
+		DDF0AD592C778F6900E46BC2 /* StreamRTCYUVBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD492C778F6800E46BC2 /* StreamRTCYUVBuffer.swift */; };
+		DDF0AD5A2C778F6900E46BC2 /* YpCbCrPixelRange+Default.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD4A2C778F6800E46BC2 /* YpCbCrPixelRange+Default.swift */; };
+		DDF0AD5B2C778F6900E46BC2 /* StreamYUVToARGBConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD4B2C778F6800E46BC2 /* StreamYUVToARGBConversion.swift */; };
+		DDF0AD5C2C778F6900E46BC2 /* StreamPictureInPictureTrackStateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD4C2C778F6800E46BC2 /* StreamPictureInPictureTrackStateAdapter.swift */; };
+		DDF0AD5D2C778F6900E46BC2 /* SampleBufferVideoCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD4D2C778F6800E46BC2 /* SampleBufferVideoCallView.swift */; };
+		DDF0AD5E2C778F6900E46BC2 /* RTCViewPipManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD4E2C778F6900E46BC2 /* RTCViewPipManager.swift */; };
+		DDF0AD612C778F7D00E46BC2 /* RTCViewPipManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DDF0AD602C778F7C00E46BC2 /* RTCViewPipManager.mm */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		58B511D91A9E6C8500147676 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -22,6 +42,23 @@
 		134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStreamVideoReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3E7B5891CC2AC0600A0062D /* StreamVideoReactNative.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamVideoReactNative.m; sourceTree = "<group>"; };
 		D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StreamVideoReactNative.h; sourceTree = "<group>"; };
+		DDF0AD3D2C778F6800E46BC2 /* RTCViewPip.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RTCViewPip.swift; sourceTree = "<group>"; };
+		DDF0AD3F2C778F6800E46BC2 /* StreamPixelBufferPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPixelBufferPool.swift; sourceTree = "<group>"; };
+		DDF0AD402C778F6800E46BC2 /* StreamPictureInPictureController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureController.swift; sourceTree = "<group>"; };
+		DDF0AD412C778F6800E46BC2 /* StreamPixelBufferRepository.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPixelBufferRepository.swift; sourceTree = "<group>"; };
+		DDF0AD422C778F6800E46BC2 /* StreamBufferTransformer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamBufferTransformer.swift; sourceTree = "<group>"; };
+		DDF0AD432C778F6800E46BC2 /* StreamAVPictureInPictureVideoCallViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamAVPictureInPictureVideoCallViewController.swift; sourceTree = "<group>"; };
+		DDF0AD442C778F6800E46BC2 /* StreamPictureInPictureVideoRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureVideoRenderer.swift; sourceTree = "<group>"; };
+		DDF0AD462C778F6800E46BC2 /* StreamPictureInPictureFixedWindowSizePolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureFixedWindowSizePolicy.swift; sourceTree = "<group>"; };
+		DDF0AD472C778F6800E46BC2 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureAdaptiveWindowSizePolicy.swift; sourceTree = "<group>"; };
+		DDF0AD482C778F6800E46BC2 /* StreamPictureInPictureWindowSizePolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureWindowSizePolicy.swift; sourceTree = "<group>"; };
+		DDF0AD492C778F6800E46BC2 /* StreamRTCYUVBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamRTCYUVBuffer.swift; sourceTree = "<group>"; };
+		DDF0AD4A2C778F6800E46BC2 /* YpCbCrPixelRange+Default.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "YpCbCrPixelRange+Default.swift"; sourceTree = "<group>"; };
+		DDF0AD4B2C778F6800E46BC2 /* StreamYUVToARGBConversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamYUVToARGBConversion.swift; sourceTree = "<group>"; };
+		DDF0AD4C2C778F6800E46BC2 /* StreamPictureInPictureTrackStateAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureTrackStateAdapter.swift; sourceTree = "<group>"; };
+		DDF0AD4D2C778F6800E46BC2 /* SampleBufferVideoCallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleBufferVideoCallView.swift; sourceTree = "<group>"; };
+		DDF0AD4E2C778F6900E46BC2 /* RTCViewPipManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RTCViewPipManager.swift; sourceTree = "<group>"; };
+		DDF0AD602C778F7C00E46BC2 /* RTCViewPipManager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RTCViewPipManager.mm; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* StreamVideoReactNative-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StreamVideoReactNative-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -47,11 +84,44 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				DDF0AD602C778F7C00E46BC2 /* RTCViewPipManager.mm */,
+				DDF0AD3E2C778F6800E46BC2 /* PictureInPicture */,
+				DDF0AD3D2C778F6800E46BC2 /* RTCViewPip.swift */,
+				DDF0AD4E2C778F6900E46BC2 /* RTCViewPipManager.swift */,
 				B3E7B5891CC2AC0600A0062D /* StreamVideoReactNative.m */,
 				D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */,
 				F4FF95D5245B92E700C19C63 /* StreamVideoReactNative-Bridging-Header.h */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		DDF0AD3E2C778F6800E46BC2 /* PictureInPicture */ = {
+			isa = PBXGroup;
+			children = (
+				DDF0AD3F2C778F6800E46BC2 /* StreamPixelBufferPool.swift */,
+				DDF0AD402C778F6800E46BC2 /* StreamPictureInPictureController.swift */,
+				DDF0AD412C778F6800E46BC2 /* StreamPixelBufferRepository.swift */,
+				DDF0AD422C778F6800E46BC2 /* StreamBufferTransformer.swift */,
+				DDF0AD432C778F6800E46BC2 /* StreamAVPictureInPictureVideoCallViewController.swift */,
+				DDF0AD442C778F6800E46BC2 /* StreamPictureInPictureVideoRenderer.swift */,
+				DDF0AD452C778F6800E46BC2 /* WindowSizePolicy */,
+				DDF0AD492C778F6800E46BC2 /* StreamRTCYUVBuffer.swift */,
+				DDF0AD4A2C778F6800E46BC2 /* YpCbCrPixelRange+Default.swift */,
+				DDF0AD4B2C778F6800E46BC2 /* StreamYUVToARGBConversion.swift */,
+				DDF0AD4C2C778F6800E46BC2 /* StreamPictureInPictureTrackStateAdapter.swift */,
+				DDF0AD4D2C778F6800E46BC2 /* SampleBufferVideoCallView.swift */,
+			);
+			path = PictureInPicture;
+			sourceTree = "<group>";
+		};
+		DDF0AD452C778F6800E46BC2 /* WindowSizePolicy */ = {
+			isa = PBXGroup;
+			children = (
+				DDF0AD462C778F6800E46BC2 /* StreamPictureInPictureFixedWindowSizePolicy.swift */,
+				DDF0AD472C778F6800E46BC2 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift */,
+				DDF0AD482C778F6800E46BC2 /* StreamPictureInPictureWindowSizePolicy.swift */,
+			);
+			path = WindowSizePolicy;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -111,6 +181,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDF0AD542C778F6900E46BC2 /* StreamAVPictureInPictureVideoCallViewController.swift in Sources */,
+				DDF0AD572C778F6900E46BC2 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift in Sources */,
+				DDF0AD5C2C778F6900E46BC2 /* StreamPictureInPictureTrackStateAdapter.swift in Sources */,
+				DDF0AD5D2C778F6900E46BC2 /* SampleBufferVideoCallView.swift in Sources */,
+				DDF0AD522C778F6900E46BC2 /* StreamPixelBufferRepository.swift in Sources */,
+				DDF0AD562C778F6900E46BC2 /* StreamPictureInPictureFixedWindowSizePolicy.swift in Sources */,
+				DDF0AD502C778F6900E46BC2 /* StreamPixelBufferPool.swift in Sources */,
+				DDF0AD4F2C778F6900E46BC2 /* RTCViewPip.swift in Sources */,
+				DDF0AD532C778F6900E46BC2 /* StreamBufferTransformer.swift in Sources */,
+				DDF0AD5A2C778F6900E46BC2 /* YpCbCrPixelRange+Default.swift in Sources */,
+				DDF0AD5E2C778F6900E46BC2 /* RTCViewPipManager.swift in Sources */,
+				DDF0AD582C778F6900E46BC2 /* StreamPictureInPictureWindowSizePolicy.swift in Sources */,
+				DDF0AD552C778F6900E46BC2 /* StreamPictureInPictureVideoRenderer.swift in Sources */,
+				DDF0AD5B2C778F6900E46BC2 /* StreamYUVToARGBConversion.swift in Sources */,
+				DDF0AD512C778F6900E46BC2 /* StreamPictureInPictureController.swift in Sources */,
+				DDF0AD612C778F7D00E46BC2 /* RTCViewPipManager.mm in Sources */,
+				DDF0AD592C778F6900E46BC2 /* StreamRTCYUVBuffer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

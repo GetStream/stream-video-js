@@ -37,6 +37,7 @@ import {
   ScreenShareOverlay as DefaultScreenShareOverlay,
   ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
+import RTCViewPipIOS from './RTCViewPipIOS';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -88,6 +89,14 @@ export type CallContentProps = Pick<
      * This will apply the landscape mode styles to the component.
      */
     landscape?: boolean;
+    /*
+     * If true, includes the local participant video in the PiP mode for iOS
+     */
+    iOSPiPIncludeLocalParticipantVideo?: boolean;
+    /**
+     * If true, disables the Picture-in-Picture mode for iOS and Android
+     */
+    disablePictureInPicture?: boolean;
   };
 
 export const CallContent = ({
@@ -109,6 +118,8 @@ export const CallContent = ({
   layout = 'grid',
   landscape = false,
   supportedReactions,
+  iOSPiPIncludeLocalParticipantVideo,
+  disablePictureInPicture,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -124,7 +135,7 @@ export const CallContent = ({
     useLocalParticipant,
   } = useCallStateHooks();
 
-  useAutoEnterPiPEffect();
+  useAutoEnterPiPEffect(disablePictureInPicture);
 
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
@@ -132,7 +143,7 @@ export const CallContent = ({
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
-  const isInPiPMode = useIsInPiPMode();
+  const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
@@ -195,48 +206,55 @@ export const CallContent = ({
   };
 
   return (
-    <View style={[styles.container, landscapeStyles, callContent.container]}>
-      <View style={[styles.container, callContent.callParticipantsContainer]}>
-        <View
-          style={[styles.view, callContent.topContainer]}
-          // "box-none" disallows the container view to be not take up touches
-          // and allows only the top and floating view (its child views) to take up the touches
-          pointerEvents="box-none"
-        >
-          {!isInPiPMode && CallTopView && (
-            <CallTopView
-              onBackPressed={onBackPressed}
-              onParticipantInfoPress={onParticipantInfoPress}
-              ParticipantsInfoBadge={ParticipantsInfoBadge}
-            />
-          )}
-          {showFloatingView && FloatingParticipantView && (
-            <FloatingParticipantView
-              participant={
-                isRemoteParticipantInFloatingView
-                  ? remoteParticipants[0]
-                  : localParticipant
-              }
-              onPressHandler={handleFloatingViewParticipantSwitch}
-              supportedReactions={supportedReactions}
-              {...participantViewProps}
-            />
-          )}
-        </View>
-        {showSpotlightLayout ? (
-          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-        ) : (
-          <CallParticipantsGrid {...callParticipantsGridProps} />
-        )}
-      </View>
-
-      {!isInPiPMode && CallControls && (
-        <CallControls
-          onHangupCallHandler={onHangupCallHandler}
-          landscape={landscape}
+    <>
+      {!disablePictureInPicture && (
+        <RTCViewPipIOS
+          includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
         />
       )}
-    </View>
+      <View style={[styles.container, landscapeStyles, callContent.container]}>
+        <View style={[styles.container, callContent.callParticipantsContainer]}>
+          <View
+            style={[styles.view, callContent.topContainer]}
+            // "box-none" disallows the container view to be not take up touches
+            // and allows only the top and floating view (its child views) to take up the touches
+            pointerEvents="box-none"
+          >
+            {!isInPiPMode && CallTopView && (
+              <CallTopView
+                onBackPressed={onBackPressed}
+                onParticipantInfoPress={onParticipantInfoPress}
+                ParticipantsInfoBadge={ParticipantsInfoBadge}
+              />
+            )}
+            {showFloatingView && FloatingParticipantView && (
+              <FloatingParticipantView
+                participant={
+                  isRemoteParticipantInFloatingView
+                    ? remoteParticipants[0]
+                    : localParticipant
+                }
+                onPressHandler={handleFloatingViewParticipantSwitch}
+                supportedReactions={supportedReactions}
+                {...participantViewProps}
+              />
+            )}
+          </View>
+          {showSpotlightLayout ? (
+            <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+          ) : (
+            <CallParticipantsGrid {...callParticipantsGridProps} />
+          )}
+        </View>
+
+        {!isInPiPMode && CallControls && (
+          <CallControls
+            onHangupCallHandler={onHangupCallHandler}
+            landscape={landscape}
+          />
+        )}
+      </View>
+    </>
   );
 };
 
