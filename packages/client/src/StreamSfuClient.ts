@@ -63,9 +63,8 @@ export type StreamSfuClientConstructor = {
 
   /**
    * Callback for when the WebSocket connection is closed.
-   * @param event the event.
    */
-  onSignalClose?: (event: CloseEvent) => void;
+  onSignalClose?: () => void;
 };
 
 /**
@@ -113,7 +112,7 @@ export class StreamSfuClient {
   private lastMessageTimestamp?: Date;
   private readonly restoreWebSocketConcurrencyTag = Symbol('recoverWebSocket');
   private readonly unsubscribeIceTrickle: () => void;
-  private readonly onSignalClose: ((event: CloseEvent) => void) | undefined;
+  private readonly onSignalClose: (() => void) | undefined;
   private readonly logger: Logger;
   private readonly logTag: string;
   private readonly credentials: Credentials;
@@ -173,7 +172,7 @@ export class StreamSfuClient {
     this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
     this.logTag = logTag;
-    this.logger = getLogger(['sfu-client', logTag]);
+    this.logger = getLogger(['SfuClient', logTag]);
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
@@ -242,13 +241,11 @@ export class StreamSfuClient {
     return this.joinResponseTask.promise;
   }
 
-  private handleWebSocketClose = (e: CloseEvent) => {
+  private handleWebSocketClose = () => {
     this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
-    if (this.onSignalClose) {
-      this.onSignalClose(e);
-    }
+    this.onSignalClose?.();
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
