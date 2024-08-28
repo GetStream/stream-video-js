@@ -21,7 +21,6 @@ import Foundation
     /// The UIView that contains the video content.
     @objc public var sourceView: UIView? {
         didSet {
-            NSLog("PiP - Called when the `sourceView` property changes")
             didUpdate(sourceView) // Called when the `sourceView` property changes
         }
     }
@@ -132,7 +131,7 @@ import Foundation
                 
                 pictureInPictureController?
                     .publisher(for: \.isPictureInPicturePossible)
-                    .sink { NSLog("isPictureInPicturePossible:\($0)") }
+                    .sink { NSLog("PiP - isPictureInPicturePossible:\($0)") }
                     .store(in: &cancellableBag)
                 
                 pictureInPictureController?
@@ -146,20 +145,12 @@ import Foundation
             }
         } else {
             if #available(iOS 15.0, *) {
-                NSLog("PiP - contentSource to nil")
-                
-                    NSLog("PiP - stopPictureInPicture")
-                NSLog("Pip is active?- \(String(describing: pictureInPictureController?.isPictureInPictureActive))")
-                    pictureInPictureController?.stopPictureInPicture()
-                
-                
                 pictureInPictureController?.contentSource = nil
             }
         }
     }
     
     @objc func cleanup() {
-        NSLog("PiP - cleanup")
         contentViewController?.track = nil
         if #available(iOS 15.0, *) {
             pictureInPictureController?.contentSource = nil
@@ -189,7 +180,6 @@ import Foundation
     }
     
     private func didUpdatePictureInPictureActiveState(_ isActive: Bool) {
-        NSLog("PiP - didUpdatePictureInPictureActiveState - \(isActive)")
         trackStateAdapter.isEnabled = isActive
     }
 }

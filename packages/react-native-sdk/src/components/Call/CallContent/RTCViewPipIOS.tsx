@@ -8,6 +8,7 @@ import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect } from 'react';
 import {
   findNodeHandle,
+  HostComponent,
   Platform,
   requireNativeComponent,
   UIManager,
@@ -16,7 +17,30 @@ import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
 const COMPONENT_NAME = 'RTCViewPip';
-const RTCViewPipNative = requireNativeComponent(COMPONENT_NAME);
+
+type RTCViewPipNativeProps = {
+  streamURL?: string;
+};
+
+// workaround to support hot reloading
+// https://medium.com/tribalscale/beyond-the-framework-using-react-native-with-swift-and-kotlin-cfccf4bb9a03
+let RTCViewPipNative: HostComponent<RTCViewPipNativeProps>;
+
+if (__DEV__) {
+  /* @ts-ignore */
+  const cachedView = global.RTCViewPipNative as
+    | HostComponent<RTCViewPipNativeProps>
+    | undefined;
+  if (!cachedView) {
+    RTCViewPipNative = requireNativeComponent(COMPONENT_NAME);
+    /* @ts-ignore */
+    global.RTCViewPipNative = RTCViewPipNative;
+  } else {
+    RTCViewPipNative = cachedView;
+  }
+} else {
+  RTCViewPipNative = requireNativeComponent(COMPONENT_NAME);
+}
 
 /** Wrapper for the native view
  * meant to stay private and not exposed */
@@ -80,13 +104,16 @@ const RTCViewPipIOS = ({ includeLocalParticipantVideo }: Props) => {
         return;
       }
       callClosedInvokedOnce = true;
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(nativeRef.current),
-        // @ts-ignore
-        UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
-        []
-      );
-      shouldDisableIOSLocalVideoOnBackgroundRef.current = false;
+      const node = findNodeHandle(nativeRef.current);
+      if (node !== null) {
+        UIManager.dispatchViewManagerCommand(
+          node,
+          // @ts-ignore
+          UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
+          []
+        );
+      }
+      shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
     };
     const unsubFunc = call?.on('call.ended', () => {
       onCallClosed();

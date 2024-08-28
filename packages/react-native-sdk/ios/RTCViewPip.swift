@@ -51,11 +51,19 @@ class RTCViewPip: UIView {
     
     @objc
     func onCallClosed() {
-        NSLog("PiP - set call closed")
         DispatchQueue.main.async {
-//            self.pictureInPictureController?.track = nil
-//            self.pictureInPictureController?.sourceView = nil
             self.pictureInPictureController?.cleanup()
+            self.pictureInPictureController = nil
+        }
+    }
+    
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        let isVisible = self.superview != nil && self.window != nil;
+        if (!isVisible) {
+            // view is detached so we cleanup the pip controller
+            // taken from:  https://github.com/software-mansion/react-native-screens/blob/main/Example/ios/ScreensExample/RNSSampleLifecycleAwareView.m
+            onCallClosed()
         }
     }
 }
