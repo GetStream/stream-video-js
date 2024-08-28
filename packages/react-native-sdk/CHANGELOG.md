@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.10.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.4...@stream-io/video-react-native-sdk-0.10.5) (2024-08-28)
+
+
+### Features
+
+* PiP mode support on iOS ([#1469](https://github.com/GetStream/stream-video-js/issues/1469)) ([3a76378](https://github.com/GetStream/stream-video-js/commit/3a76378a3e663aa8bc23d801c6ac695d65ee77c6))
+
 ### [0.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.3...@stream-io/video-react-native-sdk-0.10.4) (2024-08-23)
 
 ### Dependency Updates
