@@ -58,7 +58,7 @@ export class Dispatcher {
 
   dispatch = <K extends SfuEventKinds>(
     message: DispatchableMessage<K>,
-    logTag: string,
+    logTag: string = '0',
   ) => {
     const eventKind = message.eventPayload.oneofKind;
     if (!eventKind) return;
