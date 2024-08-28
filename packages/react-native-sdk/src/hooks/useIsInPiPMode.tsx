@@ -10,9 +10,11 @@ const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
 const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
 
-export function useIsInPiPMode() {
+export function useIsInPiPMode(disablePictureInPicture: boolean | undefined) {
   const [isInPiPMode, setIsInPiPMode] = useState(
-    isAndroid8OrAbove && AppState.currentState === 'background'
+    disablePictureInPicture &&
+      isAndroid8OrAbove &&
+      AppState.currentState === 'background'
   );
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function useIsInPiPMode() {
       'change',
       (nextAppState) => {
         if (nextAppState === 'background') {
-          setIsInPiPMode(true); // set with an assumption that its enabled so that UI disabling happens faster
+          setIsInPiPMode(!disablePictureInPicture); // set with an assumption that its enabled so that UI disabling happens faster
           // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
         }
         setFromNativeMethod();
@@ -52,7 +54,7 @@ export function useIsInPiPMode() {
       subscriptionPiPChange.remove();
       subscriptionAppState.remove();
     };
-  }, []);
+  }, [disablePictureInPicture]);
 
   return isInPiPMode;
 }

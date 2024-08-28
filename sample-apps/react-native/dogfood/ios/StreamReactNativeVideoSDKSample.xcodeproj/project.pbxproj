@@ -11,9 +11,9 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		5318450A012104024787F335 /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82EFD02D0801AB3A8C4FA795 /* Pods_StreamReactNativeVideoSDKSample.framework */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		D29905C9FEFBDE3425FE4918 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C42539220A21BB7C6961E53A /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */; };
-		D60F78EC16CA0DD1ACEF890C /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9FAC086DB956152C16435BF1 /* libPods-StreamReactNativeVideoSDKSample.a */; };
+		CC1B146FA84C47A62BC8887B /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C73B75C69992770C64D361AA /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework */; };
 		DD17437129221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD17437229221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD36F8FD2C182FFD00836A94 /* VideoEffectsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD36F8FC2C182FFD00836A94 /* VideoEffectsModule.swift */; };
@@ -74,10 +74,10 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = StreamReactNativeVideoSDKSample/main.m; sourceTree = "<group>"; };
 		708A154FC8B4F4BC106A6A17 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StreamReactNativeVideoSDKSample/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		9FAC086DB956152C16435BF1 /* libPods-StreamReactNativeVideoSDKSample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeVideoSDKSample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		82EFD02D0801AB3A8C4FA795 /* Pods_StreamReactNativeVideoSDKSample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_StreamReactNativeVideoSDKSample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FF5873D7CFBD5B6ADF5E88E /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; sourceTree = "<group>"; };
 		BFF02C9ED8B0E334A6042435 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; sourceTree = "<group>"; };
-		C42539220A21BB7C6961E53A /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C73B75C69992770C64D361AA /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9BA28C1DE31CC574CAF95CF /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		DD17437029221798001CBEA0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		DD17437329229D96001CBEA0 /* StreamReactNativeVideoSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = StreamReactNativeVideoSDKSample.entitlements; path = StreamReactNativeVideoSDKSample/StreamReactNativeVideoSDKSample.entitlements; sourceTree = "<group>"; };
@@ -105,7 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D29905C9FEFBDE3425FE4918 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a in Frameworks */,
+				CC1B146FA84C47A62BC8887B /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,7 +115,7 @@
 			files = (
 				DD6FC6042987E2E800B13B16 /* CallKit.framework in Frameworks */,
 				DD6FC6022987E2D700B13B16 /* Intents.framework in Frameworks */,
-				D60F78EC16CA0DD1ACEF890C /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */,
+				5318450A012104024787F335 /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,9 +173,9 @@
 				DD6FC6032987E2E800B13B16 /* CallKit.framework */,
 				DD6FC6012987E2D700B13B16 /* Intents.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				9FAC086DB956152C16435BF1 /* libPods-StreamReactNativeVideoSDKSample.a */,
-				C42539220A21BB7C6961E53A /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */,
 				DD74B7532AD83F640042DB4B /* ReplayKit.framework */,
+				82EFD02D0801AB3A8C4FA795 /* Pods_StreamReactNativeVideoSDKSample.framework */,
+				C73B75C69992770C64D361AA /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -868,6 +868,17 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers/react/nativemodule/core",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers/platform/ios",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers/react/renderer/components/view/platform/cxx",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-NativeModulesApple/React_NativeModulesApple.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
@@ -945,6 +956,17 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers/react/nativemodule/core",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers/platform/ios",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers/react/renderer/components/view/platform/cxx",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-NativeModulesApple/React_NativeModulesApple.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
