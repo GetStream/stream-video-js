@@ -869,7 +869,10 @@ export class Call {
         `Closing previous WS after reconnect with strategy: ${strategy}`,
       );
     } else if (!isWsHealthy) {
-      previousSfuClient?.close(4002, 'Closing unhealthy WS after reconnect');
+      previousSfuClient?.close(
+        StreamSfuClient.DISPOSE_OLD_SOCKET,
+        'Closing unhealthy WS after reconnect',
+      );
     }
 
     // device settings should be applied only once, we don't have to
@@ -1286,9 +1289,8 @@ export class Call {
           this.state.setCallingState(CallingState.OFFLINE);
         } else {
           this.logger('debug', '[Reconnect] Going online');
-          // TODO try to remove this .close call
           this.sfuClient?.close(
-            4002,
+            StreamSfuClient.DISPOSE_OLD_SOCKET,
             'Closing WS to reconnect after going online',
           );
           // we went online, release the previous waiters and reset the state

@@ -146,6 +146,13 @@ export class StreamSfuClient {
    * a certain amount of time (`connectionCheckTimeout`).
    */
   static ERROR_CONNECTION_UNHEALTHY = 4001;
+  /**
+   * The error code used when the SFU connection is disposed because a new
+   * connection is established or is about to be established.
+   * Here, we don't use 1000 (normal closure) because we don't want the
+   * SFU to clean up the resources associated with the current participant.
+   */
+  static DISPOSE_OLD_SOCKET = 4002;
 
   /**
    * Constructs a new SFU client.
