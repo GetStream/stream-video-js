@@ -1375,6 +1375,11 @@ export class Call {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
+
+    if (!this.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
+      throw new Error('No permission to publish video');
+    }
+
     if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [videoTrack] = videoStream.getVideoTracks();
@@ -1405,6 +1410,11 @@ export class Call {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
+
+    if (!this.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)) {
+      throw new Error('No permission to publish audio');
+    }
+
     if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [audioTrack] = audioStream.getAudioTracks();
@@ -1436,6 +1446,11 @@ export class Call {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
+
+    if (!this.permissionsContext.hasPermission(OwnCapability.SCREENSHARE)) {
+      throw new Error('No permission to publish screen share');
+    }
+
     if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [screenShareTrack] = screenShareStream.getVideoTracks();
