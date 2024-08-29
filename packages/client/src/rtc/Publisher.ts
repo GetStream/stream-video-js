@@ -582,7 +582,7 @@ export class Publisher {
 
   private onNegotiationNeeded = () => {
     this.negotiate().catch((err) => {
-      this.logger('warn', `Negotiation failed.`, err);
+      this.logger('error', `Negotiation failed.`, err);
       this.onUnrecoverableError?.();
     });
   };
@@ -593,8 +593,6 @@ export class Publisher {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions) => {
-    this.isIceRestarting = options?.iceRestart ?? false;
-
     const offer = await this.pc.createOffer(options);
     let sdp = this.mungeCodecs(offer.sdp);
     if (sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
@@ -609,19 +607,17 @@ export class Publisher {
       throw new Error(`Can't negotiate without announcing any tracks`);
     }
 
+    this.isIceRestarting = options?.iceRestart ?? false;
     await this.pc.setLocalDescription(offer);
 
-    const { response } = await this.sfuClient.setPublisher({
-      sdp: offer.sdp || '',
-      tracks: trackInfos,
-    });
-
-    const { sdp: remoteSdp, error } = response;
     try {
-      await this.pc.setRemoteDescription({ type: 'answer', sdp: remoteSdp });
-    } catch (e) {
-      this.logger('error', `setRemoteDescription error`, remoteSdp, error, e);
-      throw e;
+      const { response } = await this.sfuClient.setPublisher({
+        sdp: offer.sdp || '',
+        tracks: trackInfos,
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      await this.pc.setRemoteDescription({ type: 'answer', sdp: response.sdp });
     } finally {
       this.isIceRestarting = false;
     }

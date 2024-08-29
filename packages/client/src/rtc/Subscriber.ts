@@ -69,7 +69,7 @@ export class Subscriber {
         withoutConcurrency(subscriberOfferConcurrencyTag, () => {
           return this.negotiate(subscriberOffer);
         }).catch((err) => {
-          this.logger('warn', `Negotiation failed.`, err);
+          this.logger('error', `Negotiation failed.`, err);
         });
       },
     );
@@ -80,7 +80,7 @@ export class Subscriber {
         if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
         await this.restartIce();
       }).catch((err) => {
-        this.logger('warn', `ICERestart failed`, err);
+        this.logger('error', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });
     });
