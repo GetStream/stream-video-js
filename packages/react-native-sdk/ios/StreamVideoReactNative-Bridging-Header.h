@@ -2,6 +2,7 @@
 #import <React/RCTViewManager.h>
 #import <React/RCTEventEmitter.h>
 #import <React/RCTLog.h>
+#import <React/RCTUIManager.h>
 
 #import <WebRTC/RTCCVPixelBuffer.h>
 #import <WebRTC/RTCVideoFrame.h>
