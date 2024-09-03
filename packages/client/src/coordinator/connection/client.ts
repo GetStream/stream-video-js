@@ -12,10 +12,12 @@ import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
 import {
+  addConnectionEventListeners,
   isFunction,
   isOnline,
   KnownCodes,
   randomId,
+  removeConnectionEventListeners,
   retryInterval,
   sleep,
 } from './utils';
@@ -75,7 +77,6 @@ export class StreamClient {
   rejectConnectionId?: Function;
   connectionIdPromise?: Promise<string | undefined>;
   guestUserCreatePromise?: Promise<CreateGuestResponse>;
-  private nextRequestAbortController: AbortController | null = null;
 
   /**
    * Initialize a client.
@@ -131,11 +132,19 @@ export class StreamClient {
       this.options.baseURL || 'https://video.stream-io-api.com/video',
     );
 
-    if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
+    if (
+      typeof process !== 'undefined' &&
+      'env' in process &&
+      process.env.STREAM_LOCAL_TEST_RUN
+    ) {
       this.setBaseURL('http://localhost:3030/video');
     }
 
-    if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_HOST) {
+    if (
+      typeof process !== 'undefined' &&
+      'env' in process &&
+      process.env.STREAM_LOCAL_TEST_HOST
+    ) {
       this.setBaseURL(`http://${process.env.STREAM_LOCAL_TEST_HOST}/video`);
     }
 
@@ -265,6 +274,7 @@ export class StreamClient {
     );
 
     try {
+      addConnectionEventListeners(this.updateNetworkConnectionStatus);
       return await this.setUserPromise;
     } catch (err) {
       if (this.persistUserOnConnectionFailure) {
@@ -367,20 +377,6 @@ export class StreamClient {
     return this.wsPromise;
   };
 
-  _normalizeDate = (before: Date | string | null): string | null => {
-    if (before instanceof Date) {
-      before = before.toISOString();
-    }
-
-    if (before === '') {
-      throw new Error(
-        "Don't pass blank string for since, use null instead if resetting the token revoke",
-      );
-    }
-
-    return before;
-  };
-
   /**
    * Disconnects the websocket and removes the user from client.
    *
@@ -398,6 +394,7 @@ export class StreamClient {
     this.anonymous = false;
 
     await this.closeConnection(timeout);
+    removeConnectionEventListeners(this.updateNetworkConnectionStatus);
 
     this.tokenManager.reset();
 
@@ -436,6 +433,7 @@ export class StreamClient {
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
+    addConnectionEventListeners(this.updateNetworkConnectionStatus);
     this.connectionIdPromise = new Promise<string | undefined>(
       (resolve, reject) => {
         this.resolveConnectionId = resolve;
@@ -639,16 +637,13 @@ export class StreamClient {
   errorFromResponse = (
     response: AxiosResponse<APIErrorResponse>,
   ): ErrorFromResponse<APIErrorResponse> => {
-    let err: ErrorFromResponse<APIErrorResponse>;
-    err = new ErrorFromResponse(`Stream error HTTP code: ${response.status}`);
-    if (response.data && response.data.code) {
-      err = new Error(
-        `Stream error code ${response.data.code}: ${response.data.message}`,
-      );
-      err.code = response.data.code;
-    }
+    const { data, status } = response;
+    const err = new ErrorFromResponse<APIErrorResponse>();
+    err.message = `Stream error code ${data.code}: ${data.message}`;
+    err.code = data.code;
+    err.unrecoverable = data.unrecoverable;
     err.response = response;
-    err.status = response.status;
+    err.status = status;
     return err;
   };
 
@@ -661,7 +656,6 @@ export class StreamClient {
   };
 
   dispatchEvent = (event: StreamVideoEvent) => {
-    if (!event.received_at) event.received_at = new Date();
     this.logger('debug', `Dispatching event: ${event.type}`, event);
     if (!this.listeners) return;
 
@@ -801,11 +795,6 @@ export class StreamClient {
     const token =
       options.publicEndpoint && !this.user ? undefined : this._getToken();
     const authorization = token ? { Authorization: token } : undefined;
-    let signal: AbortSignal | null = null;
-    if (this.nextRequestAbortController !== null) {
-      signal = this.nextRequestAbortController.signal;
-      this.nextRequestAbortController = null;
-    }
 
     if (!options.headers?.['x-client-request-id']) {
       options.headers = {
@@ -830,7 +819,6 @@ export class StreamClient {
         'X-Stream-Client': this.getUserAgent(),
         ...options.headers,
       },
-      ...(signal ? { signal } : {}),
       ...options.config,
       ...this.options.axiosRequestConfig,
     };
@@ -855,10 +843,15 @@ export class StreamClient {
     });
   };
 
-  /**
-   * creates an abort controller that will be used by the next HTTP Request.
-   */
-  createAbortControllerForNextRequest = () => {
-    return (this.nextRequestAbortController = new AbortController());
+  updateNetworkConnectionStatus = (
+    event: { type: 'online' | 'offline' } | Event,
+  ) => {
+    if (event.type === 'offline') {
+      this.logger('debug', 'device went offline');
+      this.dispatchEvent({ type: 'network.changed', online: false });
+    } else if (event.type === 'online') {
+      this.logger('debug', 'device went online');
+      this.dispatchEvent({ type: 'network.changed', online: true });
+    }
   };
 }

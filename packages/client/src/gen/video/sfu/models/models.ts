@@ -286,49 +286,10 @@ export interface TrackInfo {
    * @generated from protobuf field: bool red = 9;
    */
   red: boolean;
-}
-/**
- * todo remove this
- *
- * @generated from protobuf message stream.video.sfu.models.Call
- */
-export interface Call {
   /**
-   * the call type
-   *
-   * @generated from protobuf field: string type = 1;
+   * @generated from protobuf field: bool muted = 10;
    */
-  type: string;
-  /**
-   * the call id
-   *
-   * @generated from protobuf field: string id = 2;
-   */
-  id: string;
-  /**
-   * the id of the user that created this call
-   *
-   * @generated from protobuf field: string created_by_user_id = 3;
-   */
-  createdByUserId: string;
-  /**
-   * the id of the current host for this call
-   *
-   * @generated from protobuf field: string host_user_id = 4;
-   */
-  hostUserId: string;
-  /**
-   * @generated from protobuf field: google.protobuf.Struct custom = 5;
-   */
-  custom?: Struct;
-  /**
-   * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
-   */
-  createdAt?: Timestamp;
-  /**
-   * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
-   */
-  updatedAt?: Timestamp;
+  muted: boolean;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -431,6 +392,47 @@ export interface Device {
    * @generated from protobuf field: string version = 2;
    */
   version: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.Call
+ */
+export interface Call {
+  /**
+   * the call type
+   *
+   * @generated from protobuf field: string type = 1;
+   */
+  type: string;
+  /**
+   * the call id
+   *
+   * @generated from protobuf field: string id = 2;
+   */
+  id: string;
+  /**
+   * the id of the user that created this call
+   *
+   * @generated from protobuf field: string created_by_user_id = 3;
+   */
+  createdByUserId: string;
+  /**
+   * the id of the current host for this call
+   *
+   * @generated from protobuf field: string host_user_id = 4;
+   */
+  hostUserId: string;
+  /**
+   * @generated from protobuf field: google.protobuf.Struct custom = 5;
+   */
+  custom?: Struct;
+  /**
+   * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
+   */
+  createdAt?: Timestamp;
+  /**
+   * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
+   */
+  updatedAt?: Timestamp;
 }
 /**
  * CallGrants represents the set of permissions given
@@ -741,6 +743,10 @@ export enum CallEndedReason {
    * @generated from protobuf enum value: CALL_ENDED_REASON_KICKED = 3;
    */
   KICKED = 3,
+  /**
+   * @generated from protobuf enum value: CALL_ENDED_REASON_SESSION_ENDED = 4;
+   */
+  SESSION_ENDED = 4,
 }
 /**
  * WebsocketReconnectStrategy defines the ws strategies available for handling reconnections.
@@ -753,7 +759,7 @@ export enum WebsocketReconnectStrategy {
    */
   UNSPECIFIED = 0,
   /**
-   * Sent after reaching the maximum reconnection attempts, leading to permanent disconnect.
+   * Sent after reaching the maximum reconnection attempts, or any other unrecoverable error leading to permanent disconnect.
    *
    * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_DISCONNECT = 1;
    */
@@ -766,25 +772,18 @@ export enum WebsocketReconnectStrategy {
    */
   FAST = 2,
   /**
-   * SDK should drop existing pc instances and creates a fresh WebSocket connection,
-   * ensuring a clean state for the reconnection.
-   *
-   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_CLEAN = 3;
-   */
-  CLEAN = 3,
-  /**
-   * SDK should obtain new credentials from the coordinator, drops existing pc instances, and initializes
+   * SDK should obtain new credentials from the coordinator, drops existing pc instances, set a new session_id and initializes
    * a completely new WebSocket connection, ensuring a comprehensive reset.
    *
-   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_FULL = 4;
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_REJOIN = 3;
    */
-  FULL = 4,
+  REJOIN = 3,
   /**
    * SDK should migrate to a new SFU instance
    *
-   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_MIGRATE = 5;
+   * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_MIGRATE = 4;
    */
-  MIGRATE = 5,
+  MIGRATE = 4,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
@@ -1838,6 +1837,7 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 7, name: 'dtx', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 8, name: 'stereo', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      { no: 10, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
   create(value?: PartialMessage<TrackInfo>): TrackInfo {
@@ -1849,6 +1849,7 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
     message.dtx = false;
     message.stereo = false;
     message.red = false;
+    message.muted = false;
     if (value !== undefined)
       reflectionMergePartial<TrackInfo>(this, message, value);
     return message;
@@ -1886,6 +1887,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
           break;
         case /* bool red */ 9:
           message.red = reader.bool();
+          break;
+        case /* bool muted */ 10:
+          message.muted = reader.bool();
           break;
         default:
           let u = options.readUnknownField;
@@ -1934,6 +1938,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       writer.tag(8, WireType.Varint).bool(message.stereo);
     /* bool red = 9; */
     if (message.red !== false) writer.tag(9, WireType.Varint).bool(message.red);
+    /* bool muted = 10; */
+    if (message.muted !== false)
+      writer.tag(10, WireType.Varint).bool(message.muted);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1948,156 +1955,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
  * @generated MessageType for protobuf message stream.video.sfu.models.TrackInfo
  */
 export const TrackInfo = new TrackInfo$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class Call$Type extends MessageType<Call> {
-  constructor() {
-    super('stream.video.sfu.models.Call', [
-      { no: 1, name: 'type', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 2, name: 'id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      {
-        no: 3,
-        name: 'created_by_user_id',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-      },
-      {
-        no: 4,
-        name: 'host_user_id',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-      },
-      { no: 5, name: 'custom', kind: 'message', T: () => Struct },
-      { no: 6, name: 'created_at', kind: 'message', T: () => Timestamp },
-      { no: 7, name: 'updated_at', kind: 'message', T: () => Timestamp },
-    ]);
-  }
-  create(value?: PartialMessage<Call>): Call {
-    const message = globalThis.Object.create(this.messagePrototype!);
-    message.type = '';
-    message.id = '';
-    message.createdByUserId = '';
-    message.hostUserId = '';
-    if (value !== undefined) reflectionMergePartial<Call>(this, message, value);
-    return message;
-  }
-  internalBinaryRead(
-    reader: IBinaryReader,
-    length: number,
-    options: BinaryReadOptions,
-    target?: Call,
-  ): Call {
-    let message = target ?? this.create(),
-      end = reader.pos + length;
-    while (reader.pos < end) {
-      let [fieldNo, wireType] = reader.tag();
-      switch (fieldNo) {
-        case /* string type */ 1:
-          message.type = reader.string();
-          break;
-        case /* string id */ 2:
-          message.id = reader.string();
-          break;
-        case /* string created_by_user_id */ 3:
-          message.createdByUserId = reader.string();
-          break;
-        case /* string host_user_id */ 4:
-          message.hostUserId = reader.string();
-          break;
-        case /* google.protobuf.Struct custom */ 5:
-          message.custom = Struct.internalBinaryRead(
-            reader,
-            reader.uint32(),
-            options,
-            message.custom,
-          );
-          break;
-        case /* google.protobuf.Timestamp created_at */ 6:
-          message.createdAt = Timestamp.internalBinaryRead(
-            reader,
-            reader.uint32(),
-            options,
-            message.createdAt,
-          );
-          break;
-        case /* google.protobuf.Timestamp updated_at */ 7:
-          message.updatedAt = Timestamp.internalBinaryRead(
-            reader,
-            reader.uint32(),
-            options,
-            message.updatedAt,
-          );
-          break;
-        default:
-          let u = options.readUnknownField;
-          if (u === 'throw')
-            throw new globalThis.Error(
-              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
-            );
-          let d = reader.skip(wireType);
-          if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(
-              this.typeName,
-              message,
-              fieldNo,
-              wireType,
-              d,
-            );
-      }
-    }
-    return message;
-  }
-  internalBinaryWrite(
-    message: Call,
-    writer: IBinaryWriter,
-    options: BinaryWriteOptions,
-  ): IBinaryWriter {
-    /* string type = 1; */
-    if (message.type !== '')
-      writer.tag(1, WireType.LengthDelimited).string(message.type);
-    /* string id = 2; */
-    if (message.id !== '')
-      writer.tag(2, WireType.LengthDelimited).string(message.id);
-    /* string created_by_user_id = 3; */
-    if (message.createdByUserId !== '')
-      writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);
-    /* string host_user_id = 4; */
-    if (message.hostUserId !== '')
-      writer.tag(4, WireType.LengthDelimited).string(message.hostUserId);
-    /* google.protobuf.Struct custom = 5; */
-    if (message.custom)
-      Struct.internalBinaryWrite(
-        message.custom,
-        writer.tag(5, WireType.LengthDelimited).fork(),
-        options,
-      ).join();
-    /* google.protobuf.Timestamp created_at = 6; */
-    if (message.createdAt)
-      Timestamp.internalBinaryWrite(
-        message.createdAt,
-        writer.tag(6, WireType.LengthDelimited).fork(),
-        options,
-      ).join();
-    /* google.protobuf.Timestamp updated_at = 7; */
-    if (message.updatedAt)
-      Timestamp.internalBinaryWrite(
-        message.updatedAt,
-        writer.tag(7, WireType.LengthDelimited).fork(),
-        options,
-      ).join();
-    let u = options.writeUnknownFields;
-    if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(
-        this.typeName,
-        message,
-        writer,
-      );
-    return writer;
-  }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.Call
- */
-export const Call = new Call$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Error$Type extends MessageType<Error> {
   constructor() {
@@ -2655,6 +2512,156 @@ class Device$Type extends MessageType<Device> {
  * @generated MessageType for protobuf message stream.video.sfu.models.Device
  */
 export const Device = new Device$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Call$Type extends MessageType<Call> {
+  constructor() {
+    super('stream.video.sfu.models.Call', [
+      { no: 1, name: 'type', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'created_by_user_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 4,
+        name: 'host_user_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      { no: 5, name: 'custom', kind: 'message', T: () => Struct },
+      { no: 6, name: 'created_at', kind: 'message', T: () => Timestamp },
+      { no: 7, name: 'updated_at', kind: 'message', T: () => Timestamp },
+    ]);
+  }
+  create(value?: PartialMessage<Call>): Call {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.type = '';
+    message.id = '';
+    message.createdByUserId = '';
+    message.hostUserId = '';
+    if (value !== undefined) reflectionMergePartial<Call>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Call,
+  ): Call {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string type */ 1:
+          message.type = reader.string();
+          break;
+        case /* string id */ 2:
+          message.id = reader.string();
+          break;
+        case /* string created_by_user_id */ 3:
+          message.createdByUserId = reader.string();
+          break;
+        case /* string host_user_id */ 4:
+          message.hostUserId = reader.string();
+          break;
+        case /* google.protobuf.Struct custom */ 5:
+          message.custom = Struct.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.custom,
+          );
+          break;
+        case /* google.protobuf.Timestamp created_at */ 6:
+          message.createdAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.createdAt,
+          );
+          break;
+        case /* google.protobuf.Timestamp updated_at */ 7:
+          message.updatedAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.updatedAt,
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: Call,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* string type = 1; */
+    if (message.type !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.type);
+    /* string id = 2; */
+    if (message.id !== '')
+      writer.tag(2, WireType.LengthDelimited).string(message.id);
+    /* string created_by_user_id = 3; */
+    if (message.createdByUserId !== '')
+      writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);
+    /* string host_user_id = 4; */
+    if (message.hostUserId !== '')
+      writer.tag(4, WireType.LengthDelimited).string(message.hostUserId);
+    /* google.protobuf.Struct custom = 5; */
+    if (message.custom)
+      Struct.internalBinaryWrite(
+        message.custom,
+        writer.tag(5, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* google.protobuf.Timestamp created_at = 6; */
+    if (message.createdAt)
+      Timestamp.internalBinaryWrite(
+        message.createdAt,
+        writer.tag(6, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* google.protobuf.Timestamp updated_at = 7; */
+    if (message.updatedAt)
+      Timestamp.internalBinaryWrite(
+        message.updatedAt,
+        writer.tag(7, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.Call
+ */
+export const Call = new Call$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallGrants$Type extends MessageType<CallGrants> {
   constructor() {

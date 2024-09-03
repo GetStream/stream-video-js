@@ -16,7 +16,7 @@ import { lazy } from '../helpers/lazy';
  * Returns an Observable that emits the list of available devices
  * that meet the given constraints.
  *
- * @param constraints the constraints to use when requesting the devices.
+ * @param permission a BrowserPermission instance.
  * @param kind the kind of devices to enumerate.
  */
 const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {

@@ -4,10 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
-import { Dispatcher } from '../Dispatcher';
+import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
-import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
+import { IceTrickleBuffer } from '../IceTrickleBuffer';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -40,13 +40,21 @@ describe('Publisher', () => {
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
-      sfuServer: {
-        url: 'https://getstream.io/',
-        ws_endpoint: 'https://getstream.io/ws',
-        edge_name: 'sfu-1',
+      sessionId: 'session-id-test',
+      credentials: {
+        server: {
+          url: 'https://getstream.io/',
+          ws_endpoint: 'https://getstream.io/ws',
+          edge_name: 'sfu-1',
+        },
+        token: 'token',
+        ice_servers: [],
       },
-      token: 'token',
+      logTag: 'test',
     });
+
+    // @ts-expect-error readonly field
+    sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
     // @ts-ignore
     sfuClient['sessionId'] = sessionId;
@@ -58,7 +66,7 @@ describe('Publisher', () => {
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
-      iceRestartDelay: 100,
+      logTag: 'test',
     });
   });
 
@@ -210,74 +218,6 @@ describe('Publisher', () => {
     expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 
-  describe('Publisher migration', () => {
-    it('should update the sfuClient and peer connection configuration', async () => {
-      const newSfuClient = new StreamSfuClient({
-        dispatcher: new Dispatcher(),
-        sfuServer: {
-          url: 'https://getstream.io/',
-          ws_endpoint: 'https://getstream.io/ws',
-          edge_name: 'sfu-1',
-        },
-        token: 'token',
-      });
-
-      const newPeerConnectionConfig = {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      };
-
-      vi.spyOn(publisher['pc'], 'setConfiguration');
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
-      // @ts-ignore
-      vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
-      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
-
-      await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
-
-      expect(publisher['sfuClient']).toEqual(newSfuClient);
-      expect(publisher['pc'].setConfiguration).toHaveBeenCalledWith(
-        newPeerConnectionConfig,
-      );
-      expect(publisher['negotiate']).toHaveBeenCalledWith({ iceRestart: true });
-    });
-
-    it('should initiate ICE Restart when there are published tracks', async () => {
-      vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([]);
-      // @ts-ignore
-      sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
-      sfuClient.setPublisher = vi.fn().mockResolvedValue({
-        response: {
-          sessionId: 'new-session-id',
-          sdp: 'new-sdp',
-          iceRestart: false,
-        },
-      });
-
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
-      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
-      vi.spyOn(publisher, 'getCurrentTrackInfos').mockReturnValue([
-        // @ts-expect-error
-        { layers: [], trackType: TrackType.AUDIO, mid: '0' },
-      ]);
-
-      await publisher.migrateTo(sfuClient, {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      });
-
-      expect(publisher['pc'].createOffer).toHaveBeenCalledWith({
-        iceRestart: true,
-      });
-      expect(publisher['pc'].setLocalDescription).toHaveBeenCalled();
-      expect(publisher['pc'].setRemoteDescription).toHaveBeenCalledWith({
-        type: 'answer',
-        sdp: 'new-sdp',
-      });
-      expect(sfuClient.setPublisher).toHaveBeenCalled();
-    });
-  });
-
   describe('Publisher ICE Restart', () => {
     it('should perform ICE restart when iceRestart event is received', () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
@@ -289,7 +229,7 @@ describe('Publisher', () => {
               peerType: PeerType.PUBLISHER_UNSPECIFIED,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
       expect(publisher.restartIce).toHaveBeenCalled();
     });
@@ -304,7 +244,7 @@ describe('Publisher', () => {
               peerType: PeerType.SUBSCRIBER,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
       expect(publisher.restartIce).not.toHaveBeenCalled();
     });
@@ -329,27 +269,10 @@ describe('Publisher', () => {
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
-
       // @ts-ignore
       publisher['pc'].iceConnectionState = 'disconnected';
       publisher['onIceConnectionStateChange']();
-      vi.runAllTimers();
       expect(publisher.restartIce).toHaveBeenCalled();
-    });
-
-    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
-      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
-
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'disconnected';
-      publisher['onIceConnectionStateChange']();
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
-
-      vi.runAllTimers();
-      expect(publisher.restartIce).not.toHaveBeenCalled();
     });
   });
 });

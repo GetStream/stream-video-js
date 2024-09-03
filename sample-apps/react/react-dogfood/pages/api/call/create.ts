@@ -36,10 +36,15 @@ const createCallSlackHookAPI = async (
       queryParams.set('type', type);
     }
 
+    const staging = queryParams.get('staging');
+    if (staging) {
+      queryParams.delete('staging');
+    }
+
     const protocol = req.headers['x-forwarded-proto'] ? 'https://' : 'http://';
     const host =
       req.headers.host === 'stream-calls-dogfood.vercel.app'
-        ? 'pronto.getstream.io'
+        ? `${staging ? 'pronto-staging' : 'pronto'}.getstream.io`
         : req.headers.host;
     const joinUrl = [
       protocol,

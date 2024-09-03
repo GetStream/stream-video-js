@@ -18,7 +18,7 @@ import { LayoutSelectorProps } from './LayoutSelector';
 
 import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
-export const LatencyIndicator = () => {
+const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
   const statsReport = useCallStatsReport();
   const latency = statsReport?.publisherStats?.averageRoundTripTimeInMs ?? 0;
@@ -38,12 +38,7 @@ export const LatencyIndicator = () => {
   );
 };
 
-export const Elapsed = ({
-  startedAt,
-}: {
-  className?: string;
-  startedAt: string | undefined;
-}) => {
+const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
     () => (startedAt ? new Date(startedAt).getTime() : Date.now()),

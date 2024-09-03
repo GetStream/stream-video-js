@@ -6,13 +6,15 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "releaseAs": "major",
+        "baseBranch": "main",
         "preset": {
           "name": "conventionalcommits",
           "preMajor": true,
           "types": [
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
-            {"type": "chore", "hidden": true},
+            {"type": "chore", "hidden": false},
             {"type": "docs", "hidden": true},
             {"type": "style", "hidden": true},
             {"type": "refactor", "hidden": true},
