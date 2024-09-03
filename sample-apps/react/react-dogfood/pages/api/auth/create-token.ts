@@ -96,6 +96,7 @@ const createJwtToken = async (
 
   const token = createToken(
     userId,
+    apiKey,
     secretKey,
     params as Record<string, string | string[]>,
   );

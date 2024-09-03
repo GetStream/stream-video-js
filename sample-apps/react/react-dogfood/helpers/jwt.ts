@@ -1,4 +1,5 @@
-import { decodeBase64, JWTUserToken } from 'stream-chat';
+import { StreamClient } from '@stream-io/node-sdk';
+import { decodeBase64 } from 'stream-chat';
 
 /**
  * The maximum validity of a token, in seconds.
@@ -9,34 +10,26 @@ export const maxTokenValidityInSeconds: number =
 
 export const createToken = (
   userId: string,
+  apiKey: string,
   jwtSecret: string,
   params: Record<string, string | string[]> = {},
 ) => {
+  const client = new StreamClient(apiKey, jwtSecret);
+
   const {
     exp, // expiration, in seconds from now
     ...rest
   } = params;
 
-  const expiryFromNowInSeconds = exp
-    ? parseInt(exp as string, 10)
-    : maxTokenValidityInSeconds;
-  const expiration = Math.round(
-    Date.now() / 1000 +
-      Math.min(expiryFromNowInSeconds, maxTokenValidityInSeconds),
-  );
-
-  const payload: Record<string, unknown> = {
+  return client.generateUserToken({
     iss: 'https://pronto.getstream.io',
     sub: `user/${userId}`,
-    // subtract 5 seconds, sometimes the coordinator fails with
-    // "token used before issued at (iat)" error
-    iat: Math.round(Date.now() / 1000) - 5,
-    ...rest,
     user_id: userId,
-    exp: expiration,
-  };
-
-  return JWTUserToken(jwtSecret, userId, payload);
+    validity_in_seconds: exp
+      ? parseInt(exp as string, 10)
+      : maxTokenValidityInSeconds,
+    ...rest,
+  });
 };
 
 export const decodeToken = (token: string): Record<string, any> => {
