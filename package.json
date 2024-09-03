@@ -52,14 +52,14 @@
     "sample:react:tutorial": "yarn workspace @stream-io/stream-video-react-tutorial run dev",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "release": "nx run-many --target version --parallel=1",
-    "release:client": "yarn workspace @stream-io/video-client npm publish --access=public --tag=rc",
-    "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public --tag=rc",
-    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public --tag=rc",
-    "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public --tag=rc",
-    "release:audio-filters-web": "yarn workspace @stream-io/audio-filters-web npm publish --access=public --tag=rc",
-    "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public --tag=rc",
-    "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=rc",
-    "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=rc"
+    "release:client": "yarn workspace @stream-io/video-client npm publish --access=public --tag=latest",
+    "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public --tag=latest",
+    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public --tag=latest",
+    "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public --tag=latest",
+    "release:audio-filters-web": "yarn workspace @stream-io/audio-filters-web npm publish --access=public --tag=latest",
+    "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public --tag=latest",
+    "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=latest",
+    "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",

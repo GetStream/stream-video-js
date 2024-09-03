@@ -6,9 +6,8 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "releaseAs": "premajor",
-        "preid": "rc2",
-        "baseBranch": "reconnect-v2",
+        "releaseAs": "major",
+        "baseBranch": "main",
         "preset": {
           "name": "conventionalcommits",
           "preMajor": true,
