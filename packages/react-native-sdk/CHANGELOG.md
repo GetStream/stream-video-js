@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.10.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.5...@stream-io/video-react-native-sdk-0.10.6) (2024-09-03)
+
+
+### Bug Fixes
+
+* ios build after pip addition was only as a static framework  ([#1473](https://github.com/GetStream/stream-video-js/issues/1473)) ([582fbc9](https://github.com/GetStream/stream-video-js/commit/582fbc921070368fde446ae666ef366eb3d46177)), closes [#1470](https://github.com/GetStream/stream-video-js/issues/1470)
+
 ### [0.10.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.4...@stream-io/video-react-native-sdk-0.10.5) (2024-08-28)
 
 
