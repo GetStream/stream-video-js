@@ -46,13 +46,13 @@ export const ClosedCaptions = () => {
       );
     }, 2700);
     return () => clearTimeout(id);
-  }, [queue]);
+  }, [queue, setQueue]);
 
   const userNameMapping = useUserIdToUserNameMapping();
 
   return (
     <div className="rd__closed-captions">
-      {queue.slice(-2).map(({ speaker_id, text, start_time }, index) => (
+      {queue.slice(-2).map(({ speaker_id, text, start_time }) => (
         <p
           className="rd__closed-captions__line"
           key={`${speaker_id}-${start_time}`}
