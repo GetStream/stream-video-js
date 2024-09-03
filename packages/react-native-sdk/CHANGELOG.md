@@ -5,6 +5,16 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 ## [1.0.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.6...@stream-io/video-react-native-sdk-1.0.0) (2024-09-03)
 
 
+* **@stream-io/video-react-native-sdk:** release version 1.0.0 ([c990e7a](https://github.com/GetStream/stream-video-js/commit/c990e7a3132c5ee2ddcc707d8a4759c5a08fd3ef))
+
+
+### Features
+
+* Reconnects v2 ([#1439](https://github.com/GetStream/stream-video-js/issues/1439)) ([e90aa52](https://github.com/GetStream/stream-video-js/commit/e90aa52780f9e0ca5852a294a152282000f66675))
+
+## [1.0.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.6...@stream-io/video-react-native-sdk-1.0.0) (2024-09-03)
+
+
 ### Features
 
 * Reconnects v2 ([#1439](https://github.com/GetStream/stream-video-js/issues/1439)) ([e90aa52](https://github.com/GetStream/stream-video-js/commit/e90aa52780f9e0ca5852a294a152282000f66675))
