@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.2...@stream-io/video-client-1.6.0) (2024-09-03)
+
+
+* update node-sdk, add this to pronto for token generation ([#1472](https://github.com/GetStream/stream-video-js/issues/1472)) ([c6cbc1f](https://github.com/GetStream/stream-video-js/commit/c6cbc1f8d003ea1c39796ccbc87d7553604f819b))
+
+
+### Features
+
+* Reconnects v2 ([#1439](https://github.com/GetStream/stream-video-js/issues/1439)) ([e90aa52](https://github.com/GetStream/stream-video-js/commit/e90aa52780f9e0ca5852a294a152282000f66675))
+
 ### [1.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.1...@stream-io/video-client-1.5.2) (2024-08-23)
 
 ### Bug Fixes
