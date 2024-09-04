@@ -18,7 +18,13 @@ import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
 export type SpeakerLayoutProps = {
+  /**
+   * The UI to be used for the participant in the spotlight.
+   */
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
+  /**
+   * The UI to be used for the participants in the participants bar.
+   */
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
   /**
    * The position of the participants who are not in focus.
@@ -30,25 +36,34 @@ export type SpeakerLayoutProps = {
    * Providing string `dynamic` will calculate hard limit based on screen width/height.
    */
   participantsBarLimit?: 'dynamic' | number;
+  /**
+   * When set to `true` will exclude the local participant from layout.
+   * @default false
+   */
+  excludeLocalParticipant?: boolean;
+  /**
+   * Turns on/off the pagination arrows.
+   * @default true
+   */
+  pageArrowsVisible?: boolean;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
-const DefaultParticipantViewUIBar = () => (
-  <DefaultParticipantViewUI menuPlacement="top-end" />
-);
-
-const DefaultParticipantViewUISpotlight = () => <DefaultParticipantViewUI />;
-
 export const SpeakerLayout = ({
-  ParticipantViewUIBar = DefaultParticipantViewUIBar,
-  ParticipantViewUISpotlight = DefaultParticipantViewUISpotlight,
+  ParticipantViewUIBar = DefaultParticipantViewUI,
+  ParticipantViewUISpotlight = DefaultParticipantViewUI,
   VideoPlaceholder,
   participantsBarPosition = 'bottom',
   participantsBarLimit,
+  excludeLocalParticipant = false,
+  pageArrowsVisible = true,
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
-  const [participantInSpotlight, ...otherParticipants] = useParticipants();
+  const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
+  const [participantInSpotlight, ...otherParticipants] = excludeLocalParticipant
+    ? remoteParticipants
+    : allParticipants;
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =
     useState<HTMLDivElement | null>(null);
   const [participantsBarElement, setParticipantsBarElement] =
@@ -77,7 +92,7 @@ export const SpeakerLayout = ({
     return () => cleanup();
   }, [participantsBarWrapperElement, call]);
 
-  const isOneOnOneCall = otherParticipants.length === 1;
+  const isOneOnOneCall = allParticipants.length === 2;
   useSpeakerLayoutSortPreset(call, isOneOnOneCall);
 
   let participantsWithAppliedLimit = otherParticipants;
@@ -164,12 +179,12 @@ export const SpeakerLayout = ({
                 ))}
               </div>
             </div>
-            {isVertical && (
+            {pageArrowsVisible && isVertical && (
               <VerticalScrollButtons
                 scrollWrapper={participantsBarWrapperElement}
               />
             )}
-            {isHorizontal && (
+            {pageArrowsVisible && isHorizontal && (
               <HorizontalScrollButtons
                 scrollWrapper={participantsBarWrapperElement}
               />

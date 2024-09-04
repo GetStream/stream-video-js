@@ -59,11 +59,13 @@ export type PaginatedGridLayoutProps = {
 
   /**
    * Whether to exclude the local participant from the grid.
+   * @default false
    */
   excludeLocalParticipant?: boolean;
 
   /**
    * Turns on/off the pagination arrows.
+   * @default true
    */
   pageArrowsVisible?: boolean;
 } & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
@@ -87,7 +89,6 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const participants = useParticipants();
-  // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
 
   usePaginatedLayoutSortPreset(call);
@@ -141,7 +142,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
         )}
         {selectedGroup && (
           <PaginatedGridLayoutGroup
-            group={participantGroups[page]}
+            group={selectedGroup}
             VideoPlaceholder={VideoPlaceholder}
             ParticipantViewUI={ParticipantViewUI}
           />
