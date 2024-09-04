@@ -48,8 +48,12 @@ export type SpeakerLayoutProps = {
   pageArrowsVisible?: boolean;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
+const DefaultParticipantViewUIBar = () => (
+  <DefaultParticipantViewUI menuPlacement="top-end" />
+);
+
 export const SpeakerLayout = ({
-  ParticipantViewUIBar = DefaultParticipantViewUI,
+  ParticipantViewUIBar = DefaultParticipantViewUIBar,
   ParticipantViewUISpotlight = DefaultParticipantViewUI,
   VideoPlaceholder,
   participantsBarPosition = 'bottom',
