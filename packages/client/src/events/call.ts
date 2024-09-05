@@ -1,6 +1,8 @@
 import { CallingState } from '../store';
 import { Call } from '../Call';
 import type { CallAcceptedEvent, CallRejectedEvent } from '../gen/coordinator';
+import { CallEnded } from '../gen/video/sfu/event/events';
+import { CallEndedReason } from '../gen/video/sfu/models/models';
 
 /**
  * Event handler that watched the delivery of `call.accepted`.
@@ -71,14 +73,39 @@ export const watchCallRejected = (call: Call) => {
  * Event handler that watches the delivery of `call.ended` Websocket event.
  */
 export const watchCallEnded = (call: Call) => {
-  return async function onCallEnded() {
+  return function onCallEnded() {
     const { callingState } = call.state;
     if (
       callingState === CallingState.RINGING ||
       callingState === CallingState.JOINED ||
       callingState === CallingState.JOINING
     ) {
-      await call.leave({ reason: 'call.ended event received' });
+      call.leave({ reason: 'call.ended event received' }).catch((err) => {
+        call.logger('error', 'Failed to leave call after call.ended ', err);
+      });
     }
   };
+};
+
+/**
+ * Watches for `callEnded` events.
+ */
+export const watchSfuCallEnded = (call: Call) => {
+  return call.on('callEnded', async (e: CallEnded) => {
+    if (call.state.callingState === CallingState.LEFT) return;
+    try {
+      // `call.ended` event arrived after the call is already left
+      // and all event handlers are detached. We need to manually
+      // update the call state to reflect the call has ended.
+      call.state.setEndedAt(new Date());
+      const reason = CallEndedReason[e.reason];
+      await call.leave({ reason: `callEnded received: ${reason}` });
+    } catch (err) {
+      call.logger(
+        'error',
+        'Failed to leave call after being ended by the SFU',
+        err,
+      );
+    }
+  });
 };
