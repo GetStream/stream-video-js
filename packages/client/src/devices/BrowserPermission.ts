@@ -22,10 +22,6 @@ export class BrowserPermission {
 
     this.ready = (async () => {
       const assumeGranted = (error?: unknown) => {
-        this.logger('warn', "Can't query permissions, assuming granted", {
-          permission,
-          error,
-        });
         this.setState('granted');
       };
 

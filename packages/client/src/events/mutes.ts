@@ -27,15 +27,17 @@ export const handleRemoteSoftMute = (call: Call) => {
           await call.camera.disable();
         } else if (type === TrackType.AUDIO) {
           await call.microphone.disable();
+        } else if (
+          type === TrackType.SCREEN_SHARE ||
+          type === TrackType.SCREEN_SHARE_AUDIO
+        ) {
+          await call.screenShare.disable();
         } else {
           logger(
             'warn',
             'Unsupported track type to soft mute',
             TrackType[type],
           );
-        }
-        if (call.publisher?.isPublishing(type)) {
-          await call.stopPublish(type);
         }
       } catch (error) {
         logger('error', 'Failed to stop publishing', error);

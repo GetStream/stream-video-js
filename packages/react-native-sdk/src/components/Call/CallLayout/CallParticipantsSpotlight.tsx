@@ -17,7 +17,7 @@ import {
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
-import { useIsInPiPMode } from '../../../hooks';
+import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -25,7 +25,10 @@ import { useIsInPiPMode } from '../../../hooks';
 export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
   Pick<
     CallContentProps,
-    'supportedReactions' | 'CallParticipantsList' | 'ScreenShareOverlay'
+    | 'supportedReactions'
+    | 'CallParticipantsList'
+    | 'ScreenShareOverlay'
+    | 'disablePictureInPicture'
   > &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
@@ -50,6 +53,7 @@ export const CallParticipantsSpotlight = ({
   VideoRenderer,
   supportedReactions,
   landscape,
+  disablePictureInPicture,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { colors, callParticipantsSpotlight },
@@ -64,7 +68,7 @@ export const CallParticipantsSpotlight = ({
     participantInSpotlight && hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
 
-  const isInPiP = useIsInPiPMode();
+  const isInPiP = useIsInPiPMode(disablePictureInPicture);
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,

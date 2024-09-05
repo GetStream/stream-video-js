@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import { AndroidChannel } from '@notifee/react-native';
+import type { AndroidChannel } from '@notifee/react-native';
 
 export type NonRingingPushEvent = 'call.live_started' | 'call.notification';
 
@@ -90,14 +90,15 @@ export type StreamVideoConfig = {
      * createStreamVideoClient: async () => {
      *  const userId = await AsyncStorage.getItem('@userId');
      *  const userName = await AsyncStorage.getItem('@userName');
-     *  const token = await AsyncStorage.getItem('@userToken');
-     *  if (!username || !userToken) return undefined;
-     *  const user = { id: userId, name: userName, token };
-     *  return new StreamVideoClient({
-     *    apiKey: STREAM_API_KEY,
-     *    user,
-     *    token,
-     * })
+     *  const tokenProvider = async () => await AsyncStorage.getItem('@userToken');
+     *  if (!username || !userId) return undefined;
+     *  const user = { id: userId, name: userName };
+     *  return StreamVideoClient.getOrCreateInstance({
+     *    apiKey,
+     *    tokenProvider,
+     *    user
+     *  });
+     * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
     /** The callback that is called when a call is accepted, used for navigation */
@@ -113,11 +114,9 @@ export type StreamVideoConfig = {
   foregroundService: {
     android: {
       /**
-       * The notification channel to keep call alive in the background for Android using a foreground service.
-       */
-      channel: AndroidChannel;
-      /**
-       * The texts shown in the notification to keep call alive in the background for Android using a foreground service.
+       * The texts shown in the notification to keep call alive in the background
+       * for Android 24 and 25 platforms using a foreground service.
+       * On Android 26 and above, Picture in Picture mode is used to keep the call alive.
        */
       notificationTexts: {
         title: string;

@@ -7,13 +7,13 @@ import Troubleshooting from "../../common-content/setup/installation/troubleshoo
 
 Our SDK is not available on Expo Go due to native code being required, but you can use the [expo-dev-client](https://docs.expo.dev/development/create-development-builds/) library to run your Expo app with a development build.
 
-## Development Build
+### Development Build
 
 If you haven't already, prepare your project for [expo development builds](https://docs.expo.dev/develop/development-builds/installation/).
 
 ## SDK Installation
 
-Add the SDK and its required dependencies to your project:
+Add the Stream Video React Native SDK and its required dependencies to your project:
 
 ```bash title=Terminal
 npx expo install @stream-io/video-react-native-sdk
@@ -22,7 +22,6 @@ npx expo install @config-plugins/react-native-webrtc
 npx expo install react-native-incall-manager
 npx expo install react-native-svg
 npx expo install @react-native-community/netinfo
-npx expo install @notifee/react-native
 ```
 
 So what did we install precisely?
@@ -33,12 +32,11 @@ So what did we install precisely?
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
-- `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
-## Android Specific installation
+### Android Specific installation
 
 <!-- vale off -->
-### Update the compileSdk, targetSdk and minSdk versions
+#### Update the minSdk version
 
 In your `app.json` file add the following to the `expo-build-properties` plugin:
 
@@ -51,9 +49,7 @@ In your `app.json` file add the following to the `expo-build-properties` plugin:
       "expo-build-properties",
       {
         "android": {
-          "minSdkVersion": 24,
-          "compileSdkVersion": 34,
-          "targetSdkVersion": 33
+          "minSdkVersion": 24
         }
       }
       // highlight-end
@@ -61,13 +57,9 @@ In your `app.json` file add the following to the `expo-build-properties` plugin:
   }
 }
 ```
-
-:::infoINFO
-We have to temporarily use targetSdkVersion 33 due to a lack of support for [dynamically setting foreground service types](https://github.com/invertase/notifee/issues/997#issuecomment-2036781216) in the notifee library. We are aware of the [August 31, 2024 deadline](https://apilevels.com/) for updating to targetSdkVersion 34 and we are actively working on adding support in the notifee library.
-:::
 <!-- vale on -->
 
-## Add config plugin
+### Add config plugin
 
 Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk/expo-config-plugin/README.md) and [`react-native-webrtc`](https://www.npmjs.com/package/@config-plugins/react-native-webrtc) to your `app.json` file:
 
@@ -92,28 +84,23 @@ Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.c
 }
 ```
 
-:::note
-The `POST_NOTIFICATIONS` and `BLUETOOTH_CONNECT` permissions need to be requested and granted by the user as well. [PermissionsAndroid](https://reactnative.dev/docs/permissionsandroid) module can be used to request permissions in Android. For example, below is a way to request permissions in Android:
+:::infoINFO
+Permissions need to be granted by the user as well. Requests for Camera and Microphone usage are automatically asked when the stream is first requested by the app. But other permissions like `BLUETOOTH_CONNECT` in Android need to be requested manually. However, we recommend that all necessary permissions be manually asked at an appropriate place in your app for the best user experience.
 
-```js
-import { useEffect } from 'react';
-import { PermissionsAndroid, Platform } from 'react-native';
-
-useEffect(() => {
-  const run = async () => {
-    if (Platform.OS === 'android') {
-      // highlight-start
-      await PermissionsAndroid.requestMultiple([
-        'android.permission.POST_NOTIFICATIONS',
-        'android.permission.BLUETOOTH_CONNECT',
-      ]);
-      // highlight-end
-    }
-  };
-  run();
-}, []);
-```
+We recommend the usage of [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library to request permissions in the app.
 
 :::
+
+### Run on device
+
+#### iOS 
+
+In iOS simulators, recording audio or video is not supported. So always test your app on an actual device for the best experience.
+
+#### Android
+
+In Android emulators, a static video stream can be sent and so it can be used for testing. However, we recommend that you always test your app on an actual device for the best experience.
+
+## Troubleshooting
 
 <Troubleshooting isExpo={true} />

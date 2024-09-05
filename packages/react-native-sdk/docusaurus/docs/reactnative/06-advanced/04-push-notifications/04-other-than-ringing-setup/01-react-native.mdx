@@ -20,6 +20,7 @@ Please follow the below guides for adding appropriate push providers to Stream:
 yarn add @react-native-firebase/app
 yarn add @react-native-firebase/messaging
 yarn add @react-native-community/push-notification-ios
+yarn add @notifee/react-native
 npx pod-install
 ```
 
@@ -295,7 +296,7 @@ export function setPushConfig() {
       // an example promise to fetch token from your server
       const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
       const user = { id: userId, name: userName };
-      return new StreamVideoClient({
+      return StreamVideoClient.getOrCreateInstance({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
         tokenProvider,

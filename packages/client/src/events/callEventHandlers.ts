@@ -1,6 +1,5 @@
 import { Call } from '../Call';
 import { Dispatcher } from '../rtc';
-import { CallState } from '../store';
 import {
   handleRemoteSoftMute,
   watchAudioLevelChanged,
@@ -17,6 +16,7 @@ import {
   watchParticipantLeft,
   watchParticipantUpdated,
   watchPinsUpdated,
+  watchSfuCallEnded,
   watchSfuErrorReports,
   watchTrackPublished,
   watchTrackUnpublished,
@@ -36,16 +36,13 @@ type RingCallEvents = Extract<
  * Registers the default event handlers for a call during its lifecycle.
  *
  * @param call the call to register event handlers for.
- * @param state the call state.
  * @param dispatcher the dispatcher.
  */
-export const registerEventHandlers = (
-  call: Call,
-  state: CallState,
-  dispatcher: Dispatcher,
-) => {
+export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
+  const state = call.state;
   const eventHandlers = [
     call.on('call.ended', watchCallEnded(call)),
+    watchSfuCallEnded(call),
 
     watchLiveEnded(dispatcher, call),
     watchSfuErrorReports(dispatcher),

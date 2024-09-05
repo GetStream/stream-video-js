@@ -13,38 +13,32 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
   return withMainActivity(configuration, (config) => {
     const isMainActivityJava = config.modResults.language === 'java';
 
-    try {
-      config.modResults.contents = addImports(
+    config.modResults.contents = addImports(
+      config.modResults.contents,
+      [
+        'com.streamvideo.reactnative.StreamVideoReactNative',
+        'android.os.Build',
+        'android.util.Rational',
+        'androidx.lifecycle.Lifecycle',
+        'android.app.PictureInPictureParams',
+        'com.oney.WebRTCModule.WebRTCModuleOptions',
+      ],
+      isMainActivityJava
+    );
+    config.modResults.contents = addOnPictureInPictureModeChanged(
+      config.modResults.contents,
+      isMainActivityJava
+    );
+    if (props?.androidPictureInPicture?.enableAutomaticEnter) {
+      config.modResults.contents = addOnUserLeaveHint(
         config.modResults.contents,
-        [
-          'com.streamvideo.reactnative.StreamVideoReactNative',
-          'android.os.Build',
-          'android.util.Rational',
-          'androidx.lifecycle.Lifecycle',
-          'android.app.PictureInPictureParams',
-          'com.oney.WebRTCModule.WebRTCModuleOptions',
-        ],
         isMainActivityJava
       );
-      config.modResults.contents = addOnPictureInPictureModeChanged(
+    }
+    if (props?.enableScreenshare) {
+      config.modResults.contents = addInsideOnCreate(
         config.modResults.contents,
         isMainActivityJava
-      );
-      if (props?.androidPictureInPicture?.enableAutomaticEnter) {
-        config.modResults.contents = addOnUserLeaveHint(
-          config.modResults.contents,
-          isMainActivityJava
-        );
-      }
-      if (props?.enableScreenshare) {
-        config.modResults.contents = addInsideOnCreate(
-          config.modResults.contents,
-          isMainActivityJava
-        );
-      }
-    } catch (error: any) {
-      throw new Error(
-        "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed."
       );
     }
 

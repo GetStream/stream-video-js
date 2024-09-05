@@ -49,7 +49,7 @@ export const getServerSideCredentialsProps = async (
   const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
   const userName = session.user?.name || userId;
 
-  const token = query.token || createToken(streamUserId, secretKey);
+  const token = query.token || createToken(streamUserId, apiKey, secretKey);
   return {
     props: {
       apiKey,

@@ -10,6 +10,7 @@ import {
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
+import { Logger, LogLevel } from '../coordinator/connection/types';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -31,6 +32,26 @@ export const withHeaders = (
       options: RpcOptions,
     ): UnaryCall {
       options.meta = { ...options.meta, ...headers };
+      return next(method, input, options);
+    },
+  };
+};
+
+export const withRequestLogger = (
+  logger: Logger,
+  level: LogLevel,
+): RpcInterceptor => {
+  return {
+    interceptUnary: (
+      next: NextUnaryFn,
+      method: MethodInfo,
+      input: object,
+      options: RpcOptions,
+    ): UnaryCall => {
+      logger(level, `Calling SFU RPC method ${method.name}`, {
+        input,
+        options,
+      });
       return next(method, input, options);
     },
   };

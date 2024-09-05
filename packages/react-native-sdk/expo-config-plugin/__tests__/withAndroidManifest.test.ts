@@ -35,6 +35,9 @@ const getMainActivityOrThrow = AndroidConfig.Manifest.getMainActivityOrThrow;
 const sampleManifestPath = getFixturePath('AndroidManifest.xml');
 
 const props: ConfigProps = {
+  ringingPushNotifications: {
+    disableVideoIos: false,
+  },
   androidPictureInPicture: {
     enableAutomaticEnter: true,
   },

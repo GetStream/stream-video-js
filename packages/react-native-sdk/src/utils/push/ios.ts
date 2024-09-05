@@ -14,10 +14,13 @@ import {
   clearPushWSEventSubscriptions,
   processCallFromPushInBackground,
 } from './utils';
-import { getExpoNotificationsLib, getPushNotificationIosLib } from './libs';
+import {
+  getExpoNotificationsLib,
+  getNotifeeLibThrowIfNotInstalledForPush,
+  getPushNotificationIosLib,
+} from './libs';
 import { StreamVideoClient, getLogger } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import notifee, { EventType } from '@notifee/react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -96,8 +99,10 @@ export const setupRemoteNotificationsHandleriOS = (pushConfig: PushConfig) => {
   if (Platform.OS !== 'ios') {
     return;
   }
-  notifee.onForegroundEvent(({ type, detail }) => {
-    if (type === EventType.PRESS) {
+  const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+
+  notifeeLib.default.onForegroundEvent(({ type, detail }) => {
+    if (type === notifeeLib.EventType.PRESS) {
       const streamPayload = detail.notification?.data?.stream as
         | StreamPayload
         | undefined;

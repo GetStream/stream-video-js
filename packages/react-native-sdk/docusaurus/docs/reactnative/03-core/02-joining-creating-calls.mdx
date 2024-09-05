@@ -14,7 +14,7 @@ This guide shows how to create, join, leave, and end calls and ring calls.
 
 You can create a call by specifying its `callType` and `callId`:
 
-The [Call Type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
+The [Call Type](../../core/configuring-call-types) controls which features are enabled, and sets up permissions.
 You can reuse the same call multiple times. As an example, if you're building a telemedicine app calls will be connected to an appointment.
 Using your own appointment id as the call id makes it easy to find the call later.
 
@@ -71,13 +71,13 @@ await call.leave();
 
 ### End call
 
-Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
+Ending a call requires a [special permission](../../core/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
 await call.endCall();
 ```
 
-Only users with special permission can join an ended call.
+Only users with a special permission (`OwnCapability.JOIN_ENDED_CALL`) can join an ended call.
 
 ### Load call
 
@@ -93,7 +93,7 @@ await call.getOrCreate(); // create if not present and load it
 These operations initialize the `call.state` and create a subscription for call updates to our backend.
 This means that this `call` instance will receive real-time updates in case it is modified somewhere else.
 
-Read more about call state here: [Call & Participant State](../../guides/call-and-participant-state/).
+Read more about call state here: [Call & Participant State](../../core/call-and-participant-state/).
 
 ### Update call
 
@@ -179,3 +179,31 @@ await call.update({
   },
 });
 ```
+
+### Backstage setup
+
+The backstage feature makes it easy to build a use-case where you and your co-hosts can set up your camera before going live.
+Only after you call `call.goLive()` the regular users will be allowed to join the livestream.
+
+However, you can also specify a `join_ahead_time_seconds`,
+which will allow regular users to join the livestream before the call is live, in the specified join time before the stream starts.
+
+Here's an example of how to do that:
+
+```typescript
+await call.getOrCreate({
+  data: {
+    starts_at: new Date(Date.now() + 500 * 1000), // 500 seconds from now
+    settings_override: {
+      backstage: {
+        enabled: true,
+        join_ahead_time_seconds: 300,
+      },
+    },
+  },
+});
+```
+
+In the code snippet above, we are creating a call that starts 500 seconds from now.
+We are also enabling backstage mode, with a `join_ahead_time_seconds` of 300 seconds.
+That means that regular users will be able to join the call 200 seconds from now.

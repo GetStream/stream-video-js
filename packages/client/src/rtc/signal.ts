@@ -1,4 +1,3 @@
-import WebSocket from 'isomorphic-ws';
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
@@ -6,9 +5,10 @@ import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
   onMessage: <K extends SfuEventKinds>(message: DispatchableMessage<K>) => void;
+  logTag: string;
 }) => {
-  const logger = getLogger(['sfu-client']);
-  const { endpoint, onMessage } = opts;
+  const { endpoint, onMessage, logTag } = opts;
+  const logger = getLogger(['SfuClientWS', logTag]);
   const ws = new WebSocket(endpoint);
   ws.binaryType = 'arraybuffer'; // do we need this?
 

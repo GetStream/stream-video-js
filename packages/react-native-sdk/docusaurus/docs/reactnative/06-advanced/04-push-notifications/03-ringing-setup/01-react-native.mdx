@@ -27,6 +27,7 @@ yarn add @react-native-firebase/app
 yarn add @react-native-firebase/messaging
 yarn add react-native-callkeep
 yarn add react-native-voip-push-notification
+yarn add @notifee/react-native
 npx pod-install
 ```
 
@@ -67,6 +68,23 @@ apply plugin: 'com.google.gms.google-services'
 The **google-services.json** file contains unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
 
 :::
+
+### Add declarations in AndroidManifest
+
+Add the following in `AndroidManifest.xml`:
+
+```xml title="AndroidManifest.xml"
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<!-- We declare the permissions to for using foreground service -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+<service
+    android:name="app.notifee.core.ForegroundService"
+    tools:replace="android:foregroundServiceType"
+    android:stopWithTask="true"
+    android:foregroundServiceType="dataSync" />
+```
 
 ### Request for notification permissions
 
@@ -331,7 +349,7 @@ export function setPushConfig() {
       // an example promise to fetch token from your server
       const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
       const user = { id: userId, name: userName };
-      return new StreamVideoClient({
+      return StreamVideoClient.getOrCreateInstance({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
         tokenProvider,

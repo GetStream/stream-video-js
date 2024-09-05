@@ -26,8 +26,6 @@ import { getOSInfo } from '../client-details';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 
-const logger: Logger = getLogger(['Publisher']);
-
 export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
@@ -35,15 +33,17 @@ export type PublisherConstructorOpts = {
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
-  iceRestartDelay?: number;
   onUnrecoverableError?: () => void;
+  logTag: string;
 };
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
+ *
  * @internal
  */
 export class Publisher {
+  private readonly logger: Logger;
   private pc: RTCPeerConnection;
   private readonly state: CallState;
 
@@ -67,9 +67,9 @@ export class Publisher {
    * This is needed because some browsers (Firefox) don't reliably report
    * trackId and `mid` parameters.
    *
-   * @private
+   * @internal
    */
-  private transceiverInitOrder: TrackType[] = [];
+  private readonly transceiverInitOrder: TrackType[] = [];
 
   private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
@@ -97,22 +97,7 @@ export class Publisher {
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceRestartDelay: number;
   private isIceRestarting = false;
-  private iceRestartTimeout?: NodeJS.Timeout;
-
-  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
-  private _connectionConfiguration: RTCConfiguration | undefined;
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    if (this.pc.getConfiguration) return this.pc.getConfiguration();
-    return this._connectionConfiguration;
-  }
 
   /**
    * The SFU client instance to use for publishing and signaling.
@@ -130,6 +115,7 @@ export class Publisher {
    * @param isRedEnabled whether RED is enabled.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
    * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
+   * @param logTag the log tag to use.
    */
   constructor({
     connectionConfig,
@@ -138,21 +124,21 @@ export class Publisher {
     state,
     isDtxEnabled,
     isRedEnabled,
-    iceRestartDelay = 2500,
     onUnrecoverableError,
+    logTag,
   }: PublisherConstructorOpts) {
+    this.logger = getLogger(['Publisher', logTag]);
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
-    this.iceRestartDelay = iceRestartDelay;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
       this.restartIce().catch((err) => {
-        logger('warn', `ICERestart failed`, err);
+        this.logger('warn', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });
     });
@@ -160,7 +146,6 @@ export class Publisher {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
@@ -180,7 +165,7 @@ export class Publisher {
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
    */
-  close = ({ stopTracks = true } = {}) => {
+  close = ({ stopTracks }: { stopTracks: boolean }) => {
     if (stopTracks) {
       this.stopPublishing();
       Object.keys(this.transceiverRegistry).forEach((trackType) => {
@@ -193,10 +178,33 @@ export class Publisher {
       });
     }
 
-    clearTimeout(this.iceRestartTimeout);
-    this.unsubscribeOnIceRestart();
-    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    this.detachEventHandlers();
     this.pc.close();
+  };
+
+  /**
+   * Detaches the event handlers from the `RTCPeerConnection`.
+   * This is useful when we want to replace the `RTCPeerConnection`
+   * instance with a new one (in case of migration).
+   */
+  detachEventHandlers = () => {
+    this.unsubscribeOnIceRestart();
+
+    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    this.pc.removeEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    this.pc.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChange,
+    );
+    this.pc.removeEventListener(
+      'signalingstatechange',
+      this.onSignalingStateChange,
+    );
   };
 
   /**
@@ -233,14 +241,16 @@ export class Publisher {
      * An event handler which listens for the 'ended' event on the track.
      * Once the track has ended, it will notify the SFU and update the state.
      */
-    const handleTrackEnded = async () => {
-      logger(
+    const handleTrackEnded = () => {
+      this.logger(
         'info',
-        `Track ${TrackType[trackType]} has ended, notifying the SFU`,
+        `Track ${TrackType[trackType]} has ended abruptly, notifying the SFU`,
       );
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
-      // clean-up, this event listener needs to run only once.
+      // cleanup, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
+      this.notifyTrackMuteStateChanged(mediaStream, trackType, true).catch(
+        (err) => this.logger('warn', `Couldn't notify track mute state`, err),
+      );
     };
 
     if (!transceiver) {
@@ -262,23 +272,17 @@ export class Publisher {
             : undefined;
 
       let preferredCodec = opts.preferredCodec;
-      if (!preferredCodec && trackType === TrackType.VIDEO) {
-        if (isReactNative()) {
-          const osName = getOSInfo()?.name.toLowerCase();
-          if (osName === 'ipados') {
-            // in ipads it was noticed that if vp8 codec is used
-            // then the bytes sent is 0 in the outbound-rtp
-            // so we are forcing h264 codec for ipads
-            preferredCodec = 'H264';
-          } else if (osName === 'android') {
-            preferredCodec = 'VP8';
-          }
+      if (!preferredCodec && trackType === TrackType.VIDEO && isReactNative()) {
+        const osName = getOSInfo()?.name.toLowerCase();
+        if (osName === 'ipados') {
+          // in ipads it was noticed that if vp8 codec is used
+          // then the bytes sent is 0 in the outbound-rtp
+          // so we are forcing h264 codec for ipads
+          preferredCodec = 'H264';
+        } else if (osName === 'android') {
+          preferredCodec = 'VP8';
         }
       }
-      const codecPreferences = this.getCodecPreferences(
-        trackType,
-        preferredCodec,
-      );
 
       // listen for 'ended' event on the track as it might be ended abruptly
       // by an external factor as permission revokes, device disconnected, etc.
@@ -297,13 +301,17 @@ export class Publisher {
         sendEncodings: videoEncodings,
       });
 
-      logger('debug', `Added ${TrackType[trackType]} transceiver`);
+      this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
       this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
-      if ('setCodecPreferences' in transceiver && codecPreferences) {
-        logger(
+      const codecPreferences =
+        'setCodecPreferences' in transceiver
+          ? this.getCodecPreferences(trackType, preferredCodec)
+          : undefined;
+      if (codecPreferences) {
+        this.logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
@@ -311,7 +319,7 @@ export class Publisher {
         try {
           transceiver.setCodecPreferences(codecPreferences);
         } catch (err) {
-          logger('warn', `Couldn't set codec preferences`, err);
+          this.logger('warn', `Couldn't set codec preferences`, err);
         }
       }
     } else {
@@ -364,30 +372,10 @@ export class Publisher {
    * @param trackType the track type to check.
    */
   isPublishing = (trackType: TrackType): boolean => {
-    const transceiverForTrackType = this.transceiverRegistry[trackType];
-    if (transceiverForTrackType && transceiverForTrackType.sender) {
-      const sender = transceiverForTrackType.sender;
-      return (
-        !!sender.track &&
-        sender.track.readyState === 'live' &&
-        sender.track.enabled
-      );
-    }
-    return false;
-  };
-
-  /**
-   * Returns true if the given track type is currently live
-   *
-   * @param trackType the track type to check.
-   */
-  isLive = (trackType: TrackType): boolean => {
-    const transceiverForTrackType = this.transceiverRegistry[trackType];
-    if (transceiverForTrackType && transceiverForTrackType.sender) {
-      const sender = transceiverForTrackType.sender;
-      return !!sender.track && sender.track.readyState === 'live';
-    }
-    return false;
+    const transceiver = this.transceiverRegistry[trackType];
+    if (!transceiver || !transceiver.sender) return false;
+    const track = transceiver.sender.track;
+    return !!track && track.readyState === 'live' && track.enabled;
   };
 
   private notifyTrackMuteStateChanged = async (
@@ -399,6 +387,7 @@ export class Publisher {
 
     const audioOrVideoOrScreenShareStream =
       trackTypeToParticipantStreamKey(trackType);
+    if (!audioOrVideoOrScreenShareStream) return;
     if (isMuted) {
       this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
         publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
@@ -419,8 +408,8 @@ export class Publisher {
   /**
    * Stops publishing all tracks and stop all tracks.
    */
-  stopPublishing = () => {
-    logger('debug', 'Stopping publishing all tracks');
+  private stopPublishing = () => {
+    this.logger('debug', 'Stopping publishing all tracks');
     this.pc.getSenders().forEach((s) => {
       s.track?.stop();
       if (this.pc.signalingState !== 'closed') {
@@ -430,7 +419,7 @@ export class Publisher {
   };
 
   updateVideoPublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
-    logger(
+    this.logger(
       'info',
       'Update publish quality, requested layers by SFU:',
       enabledLayers,
@@ -438,13 +427,13 @@ export class Publisher {
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
     if (!videoSender) {
-      logger('warn', 'Update publish quality, no video sender found.');
+      this.logger('warn', 'Update publish quality, no video sender found.');
       return;
     }
 
     const params = videoSender.getParameters();
     if (params.encodings.length === 0) {
-      logger(
+      this.logger(
         'warn',
         'Update publish quality, No suitable video encoding quality found',
       );
@@ -469,7 +458,7 @@ export class Publisher {
             layer.scaleResolutionDownBy >= 1 &&
             layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
           ) {
-            logger(
+            this.logger(
               'debug',
               '[dynascale]: setting scaleResolutionDownBy from server',
               'layer',
@@ -482,7 +471,7 @@ export class Publisher {
           }
 
           if (layer.maxBitrate > 0 && layer.maxBitrate !== enc.maxBitrate) {
-            logger(
+            this.logger(
               'debug',
               '[dynascale] setting max-bitrate from the server',
               'layer',
@@ -498,7 +487,7 @@ export class Publisher {
             layer.maxFramerate > 0 &&
             layer.maxFramerate !== enc.maxFramerate
           ) {
-            logger(
+            this.logger(
               'debug',
               '[dynascale]: setting maxFramerate from server',
               'layer',
@@ -516,9 +505,13 @@ export class Publisher {
     const activeLayers = params.encodings.filter((e) => e.active);
     if (changed) {
       await videoSender.setParameters(params);
-      logger('info', `Update publish quality, enabled rids: `, activeLayers);
+      this.logger(
+        'info',
+        `Update publish quality, enabled rids: `,
+        activeLayers,
+      );
     } else {
-      logger('info', `Update publish quality, no change: `, activeLayers);
+      this.logger('info', `Update publish quality, no change: `, activeLayers);
     }
   };
 
@@ -552,7 +545,7 @@ export class Publisher {
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      logger('debug', 'null ice candidate');
+      this.logger('debug', 'null ice candidate');
       return;
     }
     this.sfuClient
@@ -561,7 +554,7 @@ export class Publisher {
         peerType: PeerType.PUBLISHER_UNSPECIFIED,
       })
       .catch((err) => {
-        logger('warn', `ICETrickle failed`, err);
+        this.logger('warn', `ICETrickle failed`, err);
       });
   };
 
@@ -575,43 +568,23 @@ export class Publisher {
   };
 
   /**
-   * Performs a migration of this publisher instance to a new SFU.
-   *
-   * Initiates a new `iceRestart` offer/answer exchange with the new SFU.
-   *
-   * @param sfuClient the new SFU client to migrate to.
-   * @param connectionConfig the new connection configuration to use.
-   */
-  migrateTo = async (
-    sfuClient: StreamSfuClient,
-    connectionConfig?: RTCConfiguration,
-  ) => {
-    this.sfuClient = sfuClient;
-    this.pc.setConfiguration(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
-
-    const shouldRestartIce = this.pc.iceConnectionState === 'connected';
-    if (shouldRestartIce) {
-      // negotiate only if there are tracks to publish
-      await this.negotiate({ iceRestart: true });
-    }
-  };
-
-  /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
-    logger('debug', 'Restarting ICE connection');
+    this.logger('debug', 'Restarting ICE connection');
     const signalingState = this.pc.signalingState;
     if (this.isIceRestarting || signalingState === 'have-local-offer') {
-      logger('debug', 'ICE restart is already in progress');
+      this.logger('debug', 'ICE restart is already in progress');
       return;
     }
     await this.negotiate({ iceRestart: true });
   };
 
   private onNegotiationNeeded = () => {
-    this.negotiate().catch((err) => logger('warn', `Negotiation failed.`, err));
+    this.negotiate().catch((err) => {
+      this.logger('error', `Negotiation failed.`, err);
+      this.onUnrecoverableError?.();
+    });
   };
 
   /**
@@ -620,55 +593,34 @@ export class Publisher {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions) => {
-    this.isIceRestarting = options?.iceRestart ?? false;
-
     const offer = await this.pc.createOffer(options);
     let sdp = this.mungeCodecs(offer.sdp);
     if (sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-      const transceiver =
-        this.transceiverRegistry[TrackType.SCREEN_SHARE_AUDIO];
-      if (transceiver && transceiver.sender.track) {
-        const mid =
-          transceiver.mid ??
-          this.extractMid(
-            sdp,
-            transceiver.sender.track,
-            TrackType.SCREEN_SHARE_AUDIO,
-          );
-        sdp = enableHighQualityAudio(sdp, mid);
-      }
+      sdp = this.enableHighQualityAudio(sdp);
     }
 
     // set the munged SDP back to the offer
     offer.sdp = sdp;
 
-    const trackInfos = this.getCurrentTrackInfos(offer.sdp);
+    const trackInfos = this.getAnnouncedTracks(offer.sdp);
     if (trackInfos.length === 0) {
-      throw new Error(
-        `Can't initiate negotiation without announcing any tracks`,
-      );
+      throw new Error(`Can't negotiate without announcing any tracks`);
     }
 
+    this.isIceRestarting = options?.iceRestart ?? false;
     await this.pc.setLocalDescription(offer);
 
-    const { response } = await this.sfuClient.setPublisher({
-      sdp: offer.sdp || '',
-      tracks: trackInfos,
-    });
-
     try {
-      await this.pc.setRemoteDescription({
-        type: 'answer',
-        sdp: response.sdp,
+      const { response } = await this.sfuClient.setPublisher({
+        sdp: offer.sdp || '',
+        tracks: trackInfos,
       });
-    } catch (e) {
-      logger('error', `setRemoteDescription error`, {
-        sdp: response.sdp,
-        error: e,
-      });
-    }
 
-    this.isIceRestarting = false;
+      if (response.error) throw new Error(response.error.message);
+      await this.pc.setRemoteDescription({ type: 'answer', sdp: response.sdp });
+    } finally {
+      this.isIceRestarting = false;
+    }
 
     this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
       async (candidate) => {
@@ -676,10 +628,18 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('warn', `ICE candidate error`, [e, candidate]);
+          this.logger('warn', `ICE candidate error`, e, candidate);
         }
       },
     );
+  };
+
+  private enableHighQualityAudio = (sdp: string) => {
+    const transceiver = this.transceiverRegistry[TrackType.SCREEN_SHARE_AUDIO];
+    if (!transceiver) return sdp;
+
+    const mid = this.extractMid(transceiver, sdp, TrackType.SCREEN_SHARE_AUDIO);
+    return enableHighQualityAudio(sdp, mid);
   };
 
   private mungeCodecs = (sdp?: string) => {
@@ -690,20 +650,23 @@ export class Publisher {
   };
 
   private extractMid = (
+    transceiver: RTCRtpTransceiver,
     sdp: string | undefined,
-    track: MediaStreamTrack,
     trackType: TrackType,
   ): string => {
+    if (transceiver.mid) return transceiver.mid;
+
     if (!sdp) {
-      logger('warn', 'No SDP found. Returning empty mid');
+      this.logger('warn', 'No SDP found. Returning empty mid');
       return '';
     }
 
-    logger(
+    this.logger(
       'debug',
       `No 'mid' found for track. Trying to find it from the Offer SDP`,
     );
 
+    const track = transceiver.sender.track!;
     const parsedSdp = SDP.parse(sdp);
     const media = parsedSdp.media.find((m) => {
       return (
@@ -713,9 +676,9 @@ export class Publisher {
       );
     });
     if (typeof media?.mid === 'undefined') {
-      logger(
+      this.logger(
         'debug',
-        `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
+        `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find it heuristically`,
       );
 
       const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
@@ -723,13 +686,19 @@ export class Publisher {
         return String(heuristicMid);
       }
 
-      logger('debug', 'No heuristic mid found. Returning empty mid');
+      this.logger('debug', 'No heuristic mid found. Returning empty mid');
       return '';
     }
     return String(media.mid);
   };
 
-  getCurrentTrackInfos = (sdp?: string) => {
+  /**
+   * Returns a list of tracks that are currently being published.
+   *
+   * @internal
+   * @param sdp an optional SDP to extract the `mid` from.
+   */
+  getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
     sdp = sdp || this.pc.localDescription?.sdp;
 
     const { settings } = this.state;
@@ -747,7 +716,8 @@ export class Publisher {
         );
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
-        if (track.readyState === 'live') {
+        const isTrackLive = track.readyState === 'live';
+        if (isTrackLive) {
           const publishOpts = this.publishOptionsPerTrackType.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
@@ -762,7 +732,7 @@ export class Publisher {
         } else {
           // we report the last known optimal layers for ended tracks
           optimalLayers = this.trackLayersCache[trackType] || [];
-          logger(
+          this.logger(
             'debug',
             `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,
             optimalLayers,
@@ -792,11 +762,12 @@ export class Publisher {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: transceiver.mid ?? this.extractMid(sdp, track, trackType),
+          mid: this.extractMid(transceiver, sdp, trackType),
 
           stereo: isStereo,
           dtx: isAudioTrack && this.isDtxEnabled,
           red: isAudioTrack && this.isRedEnabled,
+          muted: !isTrackLive,
         };
       });
   };
@@ -808,53 +779,30 @@ export class Publisher {
     const iceState = this.pc.iceConnectionState;
     const logLevel =
       iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    logger(logLevel, `ICE Candidate error`, errorMessage);
+    this.logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    logger('debug', `ICE Connection state changed to`, state);
+    this.logger('debug', `ICE Connection state changed to`, state);
 
-    const hasNetworkConnection =
-      this.state.callingState !== CallingState.OFFLINE;
+    if (this.state.callingState === CallingState.RECONNECTING) return;
 
-    if (state === 'failed') {
-      logger('debug', `Attempting to restart ICE`);
+    if (state === 'failed' || state === 'disconnected') {
+      this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
-        logger('error', `ICE restart error`, e);
+        this.logger('error', `ICE restart error`, e);
         this.onUnrecoverableError?.();
       });
-    } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically,
-      // hence, we delay the ICE restart
-      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      this.iceRestartTimeout = setTimeout(() => {
-        // check if the state is still `disconnected` or `failed`
-        // as the connection may have recovered (or failed) in the meantime
-        if (
-          this.pc.iceConnectionState === 'disconnected' ||
-          this.pc.iceConnectionState === 'failed'
-        ) {
-          this.restartIce().catch((e) => {
-            logger('error', `ICE restart error`, e);
-            this.onUnrecoverableError?.();
-          });
-        } else {
-          logger(
-            'debug',
-            `Scheduled ICE restart: connection recovered, canceled.`,
-          );
-        }
-      }, this.iceRestartDelay);
     }
   };
 
   private onIceGatheringStateChange = () => {
-    logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
+    this.logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
   };
 
   private onSignalingStateChange = () => {
-    logger('debug', `Signaling state changed`, this.pc.signalingState);
+    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
   };
 
   private ridToVideoQuality = (rid: string): VideoQuality => {

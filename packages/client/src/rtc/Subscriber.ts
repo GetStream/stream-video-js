@@ -5,23 +5,27 @@ import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
+import { withoutConcurrency } from '../helpers/concurrency';
+import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { Logger } from '../coordinator/connection/types';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
   dispatcher: Dispatcher;
   state: CallState;
   connectionConfig?: RTCConfiguration;
-  iceRestartDelay?: number;
   onUnrecoverableError?: () => void;
+  logTag: string;
 };
-
-const logger = getLogger(['Subscriber']);
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
  * media streams from the SFU.
+ *
+ * @internal
  */
 export class Subscriber {
+  private readonly logger: Logger;
   private pc: RTCPeerConnection;
   private sfuClient: StreamSfuClient;
   private state: CallState;
@@ -30,22 +34,7 @@ export class Subscriber {
   private readonly unregisterOnIceRestart: () => void;
   private readonly onUnrecoverableError?: () => void;
 
-  private readonly iceRestartDelay: number;
   private isIceRestarting = false;
-  private iceRestartTimeout?: NodeJS.Timeout;
-
-  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
-  private _connectionConfiguration: RTCConfiguration | undefined;
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    if (this.pc.getConfiguration) return this.pc.getConfiguration();
-    return this._connectionConfiguration;
-  }
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -56,35 +45,42 @@ export class Subscriber {
    * @param connectionConfig the connection configuration to use.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE when connection goes to `disconnected` state.
    * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
+   * @param logTag a tag to use for logging.
    */
   constructor({
     sfuClient,
     dispatcher,
     state,
     connectionConfig,
-    iceRestartDelay = 2500,
     onUnrecoverableError,
+    logTag,
   }: SubscriberOpts) {
+    this.logger = getLogger(['Subscriber', logTag]);
     this.sfuClient = sfuClient;
     this.state = state;
-    this.iceRestartDelay = iceRestartDelay;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.pc = this.createPeerConnection(connectionConfig);
 
+    const subscriberOfferConcurrencyTag = Symbol('subscriberOffer');
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
       (subscriberOffer) => {
-        this.negotiate(subscriberOffer).catch((err) => {
-          logger('warn', `Negotiation failed.`, err);
+        withoutConcurrency(subscriberOfferConcurrencyTag, () => {
+          return this.negotiate(subscriberOffer);
+        }).catch((err) => {
+          this.logger('error', `Negotiation failed.`, err);
         });
       },
     );
 
+    const iceRestartConcurrencyTag = Symbol('iceRestart');
     this.unregisterOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
-      if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
-      this.restartIce().catch((err) => {
-        logger('warn', `ICERestart failed`, err);
+      withoutConcurrency(iceRestartConcurrencyTag, async () => {
+        if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
+        await this.restartIce();
+      }).catch((err) => {
+        this.logger('error', `ICERestart failed`, err);
         this.onUnrecoverableError?.();
       });
     });
@@ -97,7 +93,6 @@ export class Subscriber {
    */
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
-    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('track', this.handleOnTrack);
 
@@ -118,10 +113,30 @@ export class Subscriber {
    * Closes the `RTCPeerConnection` and unsubscribes from the dispatcher.
    */
   close = () => {
-    clearTimeout(this.iceRestartTimeout);
+    this.detachEventHandlers();
+    this.pc.close();
+  };
+
+  /**
+   * Detaches the event handlers from the `RTCPeerConnection`.
+   * This is useful when we want to replace the `RTCPeerConnection`
+   * instance with a new one (in case of migration).
+   */
+  detachEventHandlers = () => {
     this.unregisterOnSubscriberOffer();
     this.unregisterOnIceRestart();
-    this.pc.close();
+
+    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    this.pc.removeEventListener('track', this.handleOnTrack);
+    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    this.pc.removeEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    this.pc.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChange,
+    );
   };
 
   /**
@@ -143,94 +158,16 @@ export class Subscriber {
   };
 
   /**
-   * Migrates the subscriber to a new SFU client.
-   *
-   * @param sfuClient the new SFU client to migrate to.
-   * @param connectionConfig the new connection configuration to use.
-   */
-  migrateTo = (
-    sfuClient: StreamSfuClient,
-    connectionConfig?: RTCConfiguration,
-  ) => {
-    this.setSfuClient(sfuClient);
-
-    // when migrating, we want to keep the previous subscriber open
-    // until the new one is connected
-    const previousPC = this.pc;
-
-    // we keep a record of previously available video tracks
-    // so that we can monitor when they become available on the new
-    // subscriber and close the previous one.
-    const trackIdsToMigrate = new Set<string>();
-    previousPC.getReceivers().forEach((r) => {
-      if (r.track.kind === 'video') {
-        trackIdsToMigrate.add(r.track.id);
-      }
-    });
-
-    // set up a new subscriber peer connection, configured to connect
-    // to the new SFU node
-    const pc = this.createPeerConnection(connectionConfig);
-
-    let migrationTimeoutId: NodeJS.Timeout;
-    const cleanupMigration = () => {
-      previousPC.close();
-      clearTimeout(migrationTimeoutId);
-    };
-
-    // When migrating, we want to keep track of the video tracks
-    // that are migrating to the new subscriber.
-    // Once all of them are available, we can close the previous subscriber.
-    const handleTrackMigration = (e: RTCTrackEvent) => {
-      logger(
-        'debug',
-        `[Migration]: Migrated track: ${e.track.id}, ${e.track.kind}`,
-      );
-      trackIdsToMigrate.delete(e.track.id);
-      if (trackIdsToMigrate.size === 0) {
-        logger('debug', `[Migration]: Migration complete`);
-        pc.removeEventListener('track', handleTrackMigration);
-        cleanupMigration();
-      }
-    };
-
-    // When migrating, we want to keep track of the connection state
-    // of the new subscriber.
-    // Once it is connected, we give it a 2-second grace period to receive
-    // all the video tracks that are migrating from the previous subscriber.
-    // After this threshold, we abruptly close the previous subscriber.
-    const handleConnectionStateChange = () => {
-      if (pc.connectionState === 'connected') {
-        migrationTimeoutId = setTimeout(() => {
-          pc.removeEventListener('track', handleTrackMigration);
-          cleanupMigration();
-        }, 2000);
-
-        pc.removeEventListener(
-          'connectionstatechange',
-          handleConnectionStateChange,
-        );
-      }
-    };
-
-    pc.addEventListener('track', handleTrackMigration);
-    pc.addEventListener('connectionstatechange', handleConnectionStateChange);
-
-    // replace the PeerConnection instance
-    this.pc = pc;
-  };
-
-  /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
-    logger('debug', 'Restarting ICE connection');
+    this.logger('debug', 'Restarting ICE connection');
     if (this.pc.signalingState === 'have-remote-offer') {
-      logger('debug', 'ICE restart is already in progress');
+      this.logger('debug', 'ICE restart is already in progress');
       return;
     }
     if (this.pc.connectionState === 'new') {
-      logger(
+      this.logger(
         'debug',
         `ICE connection is not yet established, skipping restart.`,
       );
@@ -252,54 +189,59 @@ export class Subscriber {
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
-    const [trackId, trackType] = primaryStream.id.split(':');
+    const [trackId, rawTrackType] = primaryStream.id.split(':');
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
-    logger(
+    this.logger(
       'debug',
-      `[onTrack]: Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
+      `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
       e.track.id,
       e.track,
     );
+
+    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
+    e.track.addEventListener('mute', () => {
+      this.logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
+    });
+
+    e.track.addEventListener('unmute', () => {
+      this.logger('info', `[onTrack]: Track unmuted: ${trackDebugInfo}`);
+    });
+
+    e.track.addEventListener('ended', () => {
+      this.logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.state.removeOrphanedTrack(primaryStream.id);
+    });
+
+    const trackType = toTrackType(rawTrackType);
+    if (!trackType) {
+      return this.logger('error', `Unknown track type: ${rawTrackType}`);
+    }
+
     if (!participantToUpdate) {
-      logger(
+      this.logger(
         'warn',
         `[onTrack]: Received track for unknown participant: ${trackId}`,
         e,
       );
+      this.state.registerOrphanedTrack({
+        id: primaryStream.id,
+        trackLookupPrefix: trackId,
+        track: primaryStream,
+        trackType,
+      });
       return;
     }
 
-    const trackDebugInfo = `${participantToUpdate.userId} ${trackType}:${trackId}`;
-    e.track.addEventListener('mute', () => {
-      logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
-    });
-
-    e.track.addEventListener('unmute', () => {
-      logger('info', `[onTrack]: Track unmuted: ${trackDebugInfo}`);
-    });
-
-    e.track.addEventListener('ended', () => {
-      logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
-    });
-
-    const streamKindProp = (
-      {
-        TRACK_TYPE_AUDIO: 'audioStream',
-        TRACK_TYPE_VIDEO: 'videoStream',
-        TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
-        TRACK_TYPE_SCREEN_SHARE_AUDIO: 'screenShareAudioStream',
-      } as const
-    )[trackType];
-
+    const streamKindProp = trackTypeToParticipantStreamKey(trackType);
     if (!streamKindProp) {
-      logger('error', `Unknown track type: ${trackType}`);
+      this.logger('error', `Unknown track type: ${rawTrackType}`);
       return;
     }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
-      logger(
+      this.logger(
         'info',
         `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
@@ -316,7 +258,7 @@ export class Subscriber {
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      logger('debug', 'null ice candidate');
+      this.logger('debug', 'null ice candidate');
       return;
     }
 
@@ -326,12 +268,12 @@ export class Subscriber {
         peerType: PeerType.SUBSCRIBER,
       })
       .catch((err) => {
-        logger('warn', `ICETrickle failed`, err);
+        this.logger('warn', `ICETrickle failed`, err);
       });
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    logger('info', `Received subscriberOffer`, subscriberOffer);
+    this.logger('info', `Received subscriberOffer`, subscriberOffer);
 
     await this.pc.setRemoteDescription({
       type: 'offer',
@@ -344,7 +286,7 @@ export class Subscriber {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('warn', `ICE candidate error`, [e, candidate]);
+          this.logger('warn', `ICE candidate error`, [e, candidate]);
         }
       },
     );
@@ -362,47 +304,28 @@ export class Subscriber {
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    logger('debug', `ICE connection state changed`, state);
+    this.logger('debug', `ICE connection state changed`, state);
+
+    if (this.state.callingState === CallingState.RECONNECTING) return;
 
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
-    const hasNetworkConnection =
-      this.state.callingState !== CallingState.OFFLINE;
-
-    if (state === 'failed') {
-      logger('debug', `Attempting to restart ICE`);
+    if (state === 'failed' || state === 'disconnected') {
+      this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
-        logger('error', `ICE restart failed`, e);
+        this.logger('error', `ICE restart failed`, e);
         this.onUnrecoverableError?.();
       });
-    } else if (state === 'disconnected' && hasNetworkConnection) {
-      // when in `disconnected` state, the browser may recover automatically,
-      // hence, we delay the ICE restart
-      logger('debug', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      this.iceRestartTimeout = setTimeout(() => {
-        // check if the state is still `disconnected` or `failed`
-        // as the connection may have recovered (or failed) in the meantime
-        if (
-          this.pc.iceConnectionState === 'disconnected' ||
-          this.pc.iceConnectionState === 'failed'
-        ) {
-          this.restartIce().catch((e) => {
-            logger('error', `ICE restart failed`, e);
-            this.onUnrecoverableError?.();
-          });
-        } else {
-          logger(
-            'debug',
-            `Scheduled ICE restart: connection recovered, canceled.`,
-          );
-        }
-      }, this.iceRestartDelay);
     }
   };
 
   private onIceGatheringStateChange = () => {
-    logger('debug', `ICE gathering state changed`, this.pc.iceGatheringState);
+    this.logger(
+      'debug',
+      `ICE gathering state changed`,
+      this.pc.iceGatheringState,
+    );
   };
 
   private onIceCandidateError = (e: Event) => {
@@ -412,6 +335,6 @@ export class Subscriber {
     const iceState = this.pc.iceConnectionState;
     const logLevel =
       iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    logger(logLevel, `ICE Candidate error`, errorMessage);
+    this.logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 }

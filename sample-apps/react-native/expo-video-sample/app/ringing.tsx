@@ -11,7 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 export default function JoinRingingCallScreen() {
-  const calls = useCalls().filter((c) => c.ringing);
+  const calls = useCalls().filter(
+    (c) => c.state.callingState === CallingState.RINGING,
+  );
 
   useEffect(() => {
     if (calls.length > 1) {

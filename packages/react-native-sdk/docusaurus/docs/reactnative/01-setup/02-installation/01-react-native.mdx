@@ -11,7 +11,7 @@ Installation and usage of our React Native SDK is simple and involves the follow
 First things first, make sure you have set up the development environment for React Native.
 You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
-### Add Stream's Video SDK and its peer dependencies
+## SDK Installation
 
 In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
@@ -24,7 +24,7 @@ Stream Video React Native SDK requires installing some peer dependencies to prov
 ```bash title=Terminal
 yarn add @stream-io/react-native-webrtc \
    react-native-incall-manager react-native-svg \
-   @react-native-community/netinfo @notifee/react-native
+   @react-native-community/netinfo
 npx pod-install
 ```
 
@@ -35,12 +35,11 @@ So what did we install precisely?
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
-- `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
 ### Android Specific installation
 
 <!-- vale off -->
-#### Update the compileSdk, targetSdk and minSdk versions
+#### Update the minSdk version
 
 In `android/build.gradle` add the following inside the `buildscript` section:
 
@@ -49,16 +48,10 @@ buildscript {
     ext {
         ...
         minSdkVersion = 24
-        compileSdkVersion = 34
-        targetSdkVersion = 33
     }
     ...
 }
 ```
-
-:::infoINFO
-We have to temporarily use targetSdkVersion 33 due to a lack of support for [dynamically setting foreground service types](https://github.com/invertase/notifee/issues/997#issuecomment-2036781216) in the notifee library. We are aware of the [August 31, 2024 deadline](https://apilevels.com/) for updating to targetSdkVersion 34 and we are actively working on adding support in the notifee library.
-:::
 <!-- vale on -->
 
 #### Enable Java 8 Support
@@ -121,19 +114,23 @@ If you plan to also support Bluetooth devices then also add the following.
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
-### Optional peer dependencies
+:::infoINFO
+Permissions need to be granted by the user as well. Requests for Camera and Microphone usage are automatically asked when the stream is first requested by the app. But other permissions like `BLUETOOTH_CONNECT` in Android need to be requested manually. However, we recommend that all necessary permissions be manually asked at an appropriate place in your app for the best user experience.
 
-Some of the optional features we provide require additional dependencies to be installed in order to work properly.
+We recommend the usage of [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library to request permissions in the app.
 
-#### Ringing flow
+:::
 
-The ringing flow is a feature that allows you to render a native ringer when the app is in background/dead mode.
-To enable this feature you need to install the following dependencies:
+### Run on device
 
-- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
-- `@react-native-firebase/app` and `@react-native-firebase/messaging` to receive notifications on Android.
-- `@react-native-voip-push-notification` to receive notifications on iOS.
+#### iOS 
 
-More about how to enable this feature can be found [in our push notification guide](../../../advanced/push-notifications/overview).
+In iOS simulators, recording audio or video is not supported. So always test your app on an actual device for the best experience.
+
+#### Android
+
+In Android emulators, a static video stream can be sent and so it can be used for testing. However, we recommend that you always test your app on an actual device for the best experience.
+
+## Troubleshooting
 
 <Troubleshooting isExpo={false} />

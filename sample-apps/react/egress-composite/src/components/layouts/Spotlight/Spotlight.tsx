@@ -19,6 +19,8 @@ export const Spotlight = () => {
       <SpeakerLayout
         participantsBarPosition={position}
         participantsBarLimit={limit}
+        excludeLocalParticipant
+        pageArrowsVisible={false}
         ParticipantViewUIBar={
           <DefaultParticipantViewUI
             indicatorsVisible={false}

@@ -19,6 +19,7 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ```bash title=Terminal
 npx expo install expo-notifications
 npx expo install expo-task-manager
+npx expo install @notifee/react-native
 ```
 
 So what did we install precisely?
@@ -174,7 +175,7 @@ export function setPushConfig() {
       // an example promise to fetch token from your server
       const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
       const user = { id: userId, name: userName };
-      return new StreamVideoClient({
+      return StreamVideoClient.getOrCreateInstance({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
         tokenProvider,
