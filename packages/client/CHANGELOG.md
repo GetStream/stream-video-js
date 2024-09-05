@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.0...@stream-io/video-client-1.6.1) (2024-09-05)
+
+
+### Bug Fixes
+
+* update state.endedAt after the SFU terminates the call ([#1477](https://github.com/GetStream/stream-video-js/issues/1477)) ([135b11f](https://github.com/GetStream/stream-video-js/commit/135b11f2e29f486f2f43b9ac2a84848d0fd0b5b4))
+
 ## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.2...@stream-io/video-client-1.6.0) (2024-09-03)
 
 
