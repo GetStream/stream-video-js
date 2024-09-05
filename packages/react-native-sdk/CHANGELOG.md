@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.0...@stream-io/video-react-native-sdk-1.0.1) (2024-09-05)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.2.2`
+
+* reset releaseAs tags [skip ci] ([6161687](https://github.com/GetStream/stream-video-js/commit/61616870178d6bbc29b22ca3b1a354e5e172c9c3))
+
+
+### Bug Fixes
+
+* **ios:** if min ios version is not present default to 12 ([9279d59](https://github.com/GetStream/stream-video-js/commit/9279d59e861a51c723a0f17229c39dae946ee664))
+
 ## [1.0.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.10.6...@stream-io/video-react-native-sdk-1.0.0) (2024-09-03)
 
 
