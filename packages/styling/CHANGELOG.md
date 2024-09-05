@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [1.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.5...@stream-io/video-styling-1.0.6) (2024-07-15)
+
+
+### Bug Fixes
+
+* embed scss sources in the source map ([#1442](https://github.com/GetStream/stream-video-js/issues/1442)) ([52e89ff](https://github.com/GetStream/stream-video-js/commit/52e89ff98f8af3c56e985a09b34e055a822a91ab))
+
 ### [1.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.4...@stream-io/video-styling-1.0.5) (2024-06-28)
 
 

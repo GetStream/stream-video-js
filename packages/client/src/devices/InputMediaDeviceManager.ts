@@ -64,6 +64,13 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
+   * Returns `true` when this device is in enabled state.
+   */
+  get enabled() {
+    return this.state.status === 'enabled';
+  }
+
+  /**
    * Starts stream.
    */
   async enable() {
@@ -216,7 +223,7 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    if (this.state.status === 'enabled') {
+    if (this.enabled) {
       await this.muteStream();
       await this.unmuteStream();
     }
@@ -374,7 +381,7 @@ export abstract class InputMediaDeviceManager<
             .then(chainWith(parent), (error) => {
               this.logger(
                 'warn',
-                'Fitler failed to start and will be ignored',
+                'Filter failed to start and will be ignored',
                 error,
               );
               return parent;
@@ -390,7 +397,7 @@ export abstract class InputMediaDeviceManager<
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
           await this.statusChangeSettled();
-          if (this.state.status === 'enabled') {
+          if (this.enabled) {
             this.isTrackStoppedDueToTrackEnd = true;
             setTimeout(() => {
               this.isTrackStoppedDueToTrackEnd = false;

@@ -1,8 +1,10 @@
+import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
-import { CallingState, CallState } from '../CallState';
-import { ConnectionQuality } from '../../gen/video/sfu/models/models';
+import { CallingState } from '../CallingState';
+import { CallState } from '../CallState';
+import { TrackType } from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
   conditional,
@@ -463,40 +465,17 @@ describe('CallState', () => {
     describe('Call Permission Events', () => {
       it('handles call.permissions_updated', () => {
         const state = new CallState();
-        state.setParticipants([
-          {
-            userId: 'test',
-            name: 'test',
-            sessionId: 'test',
-            isDominantSpeaker: false,
-            isSpeaking: false,
-            audioLevel: 0,
-            image: '',
-            publishedTracks: [],
-            connectionQuality: ConnectionQuality.EXCELLENT,
-            roles: [],
-            trackLookupPrefix: '',
-            isLocalParticipant: true,
-          },
-        ]);
+        // @ts-expect-error incomplete data
+        state.setParticipants([{ userId: 'test', isLocalParticipant: true }]);
 
         state.updateFromEvent({
           type: 'call.permissions_updated',
-          created_at: '',
-          call_cid: 'development:12345',
           own_capabilities: [
             OwnCapability.SEND_AUDIO,
             OwnCapability.SEND_VIDEO,
           ],
-          user: {
-            id: 'test',
-            created_at: '',
-            role: '',
-            updated_at: '',
-            custom: {},
-            teams: [],
-            language: 'en',
-          },
+          // @ts-expect-error incomplete data
+          user: { id: 'test' },
         });
 
         expect(state.ownCapabilities).toEqual([
@@ -509,15 +488,8 @@ describe('CallState', () => {
           created_at: '',
           call_cid: 'development:12345',
           own_capabilities: [OwnCapability.SEND_VIDEO],
-          user: {
-            id: 'test',
-            created_at: '',
-            role: '',
-            updated_at: '',
-            custom: {},
-            teams: [],
-            language: 'en',
-          },
+          // @ts-expect-error incomplete data
+          user: { id: 'test' },
         });
         expect(state.ownCapabilities).toEqual([OwnCapability.SEND_VIDEO]);
       });
@@ -679,6 +651,16 @@ describe('CallState', () => {
         expect(state.recording).toBe(false);
       });
 
+      it('handles call.recording_failed events', () => {
+        const state = new CallState();
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.recording_started' });
+        expect(state.recording).toBe(true);
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.recording_failed' });
+        expect(state.recording).toBe(false);
+      });
+
       it('handles call.hls_broadcasting_started events', () => {
         const state = new CallState();
         state.updateFromCallResponse({
@@ -727,21 +709,41 @@ describe('CallState', () => {
         const state = new CallState();
         state.updateFromEvent({
           type: 'call.session_started',
-          // @ts-ignore
-          call: { session: { id: 'session-id' } },
+          call: {
+            // @ts-ignore
+            session: {
+              id: 'session-id',
+              participants: [],
+              participants_count_by_role: {},
+            },
+          },
         });
 
-        expect(state.session).toEqual({ id: 'session-id' });
+        expect(state.session).toEqual({
+          id: 'session-id',
+          participants: [],
+          participants_count_by_role: {},
+        });
       });
 
       it('should update the call metadata when a session ends', () => {
         const state = new CallState();
         state.updateFromEvent({
           type: 'call.session_ended',
-          // @ts-ignore
-          call: { session: { id: 'session-id' } },
+          call: {
+            // @ts-ignore
+            session: {
+              id: 'session-id',
+              participants: [],
+              participants_count_by_role: {},
+            },
+          },
         });
-        expect(state.session).toEqual({ id: 'session-id' });
+        expect(state.session).toEqual({
+          id: 'session-id',
+          participants: [],
+          participants_count_by_role: {},
+        });
       });
 
       it('should update the call metadata when a participant joins', () => {
@@ -869,6 +871,100 @@ describe('CallState', () => {
           },
         });
       });
+
+      it('should handle call.session_participant_updated events', () => {
+        const state = new CallState();
+        state.updateFromCallResponse({
+          // @ts-expect-error incomplete data
+          session: { participants: [], participants_count_by_role: {} },
+        });
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({
+          type: 'call.session_participant_count_updated',
+          anonymous_participant_count: 10,
+          participants_count_by_role: { user: 5, host: 3, admin: 1 },
+        });
+
+        expect(state.session?.anonymous_participant_count).toBe(10);
+        expect(state.session?.participants_count_by_role).toEqual({
+          user: 5,
+          host: 3,
+          admin: 1,
+        });
+        expect(state.participantCount).toBe(9);
+        expect(state.anonymousParticipantCount).toBe(10);
+      });
+
+      it('should not update the participant counts when call is joined', () => {
+        const state = new CallState();
+        state.updateFromCallResponse({
+          // @ts-expect-error incomplete data
+          session: { participants: [], participants_count_by_role: {} },
+        });
+        state.setCallingState(CallingState.JOINED);
+
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({
+          type: 'call.session_participant_count_updated',
+          anonymous_participant_count: 10,
+          participants_count_by_role: { user: 5, host: 3, admin: 1 },
+        });
+
+        expect(state.session?.anonymous_participant_count).toBe(10);
+        expect(state.session?.participants_count_by_role).toEqual({
+          user: 5,
+          host: 3,
+          admin: 1,
+        });
+        expect(state.participantCount).toBe(0);
+        expect(state.anonymousParticipantCount).toBe(0);
+
+        // simulate SFU heartbeat
+        state.setParticipantCount(3);
+        state.setAnonymousParticipantCount(2);
+        expect(state.participantCount).toBe(3);
+        expect(state.anonymousParticipantCount).toBe(2);
+      });
+    });
+  });
+
+  describe('orphaned tracks', () => {
+    it('registers orphaned tracks', () => {
+      const state = new CallState();
+      state.registerOrphanedTrack({
+        id: '123:TRACK_TYPE_VIDEO',
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.AUDIO,
+      });
+      expect(state['orphanedTracks'].length).toBe(1);
+    });
+
+    it('removes orphaned tracks once assigned', () => {
+      const state = new CallState();
+      state.registerOrphanedTrack({
+        id: '123:TRACK_TYPE_VIDEO',
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.VIDEO,
+      });
+      const orphans = state.takeOrphanedTracks('123');
+      expect(orphans.length).toBe(1);
+      expect(state['orphanedTracks'].length).toBe(0);
+    });
+
+    it('removes orphaned tracks', () => {
+      const state = new CallState();
+      const id = '123:TRACK_TYPE_VIDEO';
+      state.registerOrphanedTrack({
+        id,
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.VIDEO,
+      });
+      expect(state['orphanedTracks'].length).toBe(1);
+      state.removeOrphanedTrack(id);
+      expect(state['orphanedTracks'].length).toBe(0);
     });
   });
 });

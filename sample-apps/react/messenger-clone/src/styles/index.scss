@@ -5,6 +5,7 @@
 @import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
 
 @import "layout";
+@import "./Avatar.scss";
 @import "./CallPanel.scss";
 @import "./ChannelPreview.scss";
 @import "./QuickDial.scss";

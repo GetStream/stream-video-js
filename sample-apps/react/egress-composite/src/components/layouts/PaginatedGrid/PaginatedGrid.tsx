@@ -7,7 +7,6 @@ import { useConfigurationContext } from '../../../ConfigurationContext';
 import './PaginatedGrid.scss';
 
 export const PaginatedGrid = () => {
-  // const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts();
   const {
     options: { 'layout.grid.page_size': pageSize = 20 },
   } = useConfigurationContext();
@@ -22,6 +21,7 @@ export const PaginatedGrid = () => {
           />
         }
         excludeLocalParticipant
+        pageArrowsVisible={false}
         groupSize={pageSize}
       />
     </div>

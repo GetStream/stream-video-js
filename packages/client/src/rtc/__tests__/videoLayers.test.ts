@@ -59,7 +59,7 @@ describe('videoLayers', () => {
         height: height / 4,
         maxBitrate: targetBitrate / 4,
         scaleResolutionDownBy: 4,
-        maxFramerate: 20,
+        maxFramerate: 30,
       },
       {
         active: true,
@@ -68,7 +68,7 @@ describe('videoLayers', () => {
         height: height / 2,
         maxBitrate: targetBitrate / 2,
         scaleResolutionDownBy: 2,
-        maxFramerate: 25,
+        maxFramerate: 30,
       },
       {
         active: true,

@@ -15,10 +15,12 @@ import {
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './style.css';
 
-const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
-const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
-const userId = 'REPLACE_WITH_USER_ID'; // the user id can be found in the "Credentials" section
-const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Credentials" section
+// For demo credentials, check out our video calling tutorial:
+// https://getstream.io/video/sdk/react/tutorial/video-calling/
+const apiKey = 'REPLACE_WITH_API_KEY';
+const token = 'REPLACE_WITH_TOKEN';
+const userId = 'REPLACE_WITH_USER_ID';
+const callId = 'REPLACE_WITH_CALL_ID';
 
 const user: User = {
   id: userId,

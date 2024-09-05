@@ -7,10 +7,12 @@ import {
 } from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
+import { CallingState } from './CallingState';
 import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
+  VisibilityState,
 } from '../types';
 import { CallStatsReport } from '../stats';
 import {
@@ -23,6 +25,7 @@ import {
   CallMemberUpdatedPermissionEvent,
   CallReactionEvent,
   CallResponse,
+  CallSessionParticipantCountsUpdatedEvent,
   CallSessionParticipantJoinedEvent,
   CallSessionParticipantLeftEvent,
   CallSessionResponse,
@@ -36,65 +39,16 @@ import {
   UserResponse,
   WSEvent,
 } from '../gen/coordinator';
-import { Pin } from '../gen/video/sfu/models/models';
+import { Timestamp } from '../gen/google/protobuf/timestamp';
+import { ReconnectDetails } from '../gen/video/sfu/event/events';
+import {
+  CallState as SfuCallState,
+  Pin,
+  TrackType,
+} from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
 import { hasScreenShare } from '../helpers/participantUtils';
-
-/**
- * Represents the state of the current call.
- */
-export enum CallingState {
-  /**
-   * The call is in an unknown state.
-   */
-  UNKNOWN = 'unknown',
-  /**
-   * The call is in an idle state.
-   */
-  IDLE = 'idle',
-
-  /**
-   * The call is in the process of ringing.
-   * (User hasn't accepted nor rejected the call yet.)
-   */
-  RINGING = 'ringing',
-
-  /**
-   * The call is in the process of joining.
-   */
-  JOINING = 'joining',
-
-  /**
-   * The call is currently active.
-   */
-  JOINED = 'joined',
-
-  /**
-   * The call has been left.
-   */
-  LEFT = 'left',
-
-  /**
-   * The call is in the process of reconnecting.
-   */
-  RECONNECTING = 'reconnecting',
-
-  /**
-   * The call is in the process of migrating from one node to another.
-   */
-  MIGRATING = 'migrating',
-
-  /**
-   * The call has failed to reconnect.
-   */
-  RECONNECTING_FAILED = 'reconnecting-failed',
-
-  /**
-   * The call is in offline mode.
-   */
-  OFFLINE = 'offline',
-}
 
 /**
  * Returns the default egress object - when no egress data is available.
@@ -103,6 +57,13 @@ const defaultEgress: EgressResponse = {
   broadcasting: false,
   hls: { playlist_url: '' },
   rtmps: [],
+};
+
+type OrphanedTrack = {
+  id: string;
+  trackLookupPrefix: string;
+  trackType: TrackType;
+  track: MediaStream;
 };
 
 /**
@@ -154,6 +115,12 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+
+  // These are tracks that were delivered to the Subscriber's onTrack event
+  // that we couldn't associate with a participant yet.
+  // This happens when the participantJoined event hasn't been received yet.
+  // We keep these tracks around until we can associate them with a participant.
+  private orphanedTracks: OrphanedTrack[] = [];
 
   // Derived state
 
@@ -427,7 +394,6 @@ export class CallState {
       'call.closed_caption': undefined,
       'call.deleted': undefined,
       'call.permission_request': undefined,
-      'call.recording_failed': undefined,
       'call.recording_ready': undefined,
       'call.transcription_ready': undefined,
       'call.user_muted': undefined,
@@ -470,10 +436,14 @@ export class CallState {
         this.setCurrentValue(this.recordingSubject, true),
       'call.recording_stopped': () =>
         this.setCurrentValue(this.recordingSubject, false),
+      'call.recording_failed': () =>
+        this.setCurrentValue(this.recordingSubject, false),
       'call.rejected': (e) => this.updateFromCallResponse(e.call),
       'call.ring': (e) => this.updateFromCallResponse(e.call),
       'call.missed': (e) => this.updateFromCallResponse(e.call),
       'call.session_ended': (e) => this.updateFromCallResponse(e.call),
+      'call.session_participant_count_updated':
+        this.updateFromSessionParticipantCountUpdate,
       'call.session_participant_joined':
         this.updateFromSessionParticipantJoined,
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
@@ -910,7 +880,7 @@ export class CallState {
    * @returns all participants, with all patch applied.
    */
   updateParticipants = (patch: StreamVideoParticipantPatches) => {
-    if (Object.keys(patch).length === 0) return;
+    if (Object.keys(patch).length === 0) return this.participants;
     return this.setParticipants((participants) =>
       participants.map((p) => {
         const thePatch = patch[p.sessionId];
@@ -981,6 +951,48 @@ export class CallState {
   };
 
   /**
+   * Adds an orphaned track to the call state.
+   *
+   * @internal
+   *
+   * @param orphanedTrack the orphaned track to add.
+   */
+  registerOrphanedTrack = (orphanedTrack: OrphanedTrack) => {
+    this.orphanedTracks.push(orphanedTrack);
+  };
+
+  /**
+   * Removes an orphaned track from the call state.
+   *
+   * @internal
+   *
+   * @param id the ID of the orphaned track to remove.
+   */
+  removeOrphanedTrack = (id: string) => {
+    this.orphanedTracks = this.orphanedTracks.filter((o) => o.id !== id);
+  };
+
+  /**
+   * Takes all orphaned tracks with the given track lookup prefix.
+   * All orphaned tracks with the given track lookup prefix are removed from the call state.
+   *
+   * @internal
+   *
+   * @param trackLookupPrefix the track lookup prefix to match the orphaned tracks by.
+   */
+  takeOrphanedTracks = (trackLookupPrefix: string): OrphanedTrack[] => {
+    const orphans = this.orphanedTracks.filter(
+      (orphan) => orphan.trackLookupPrefix === trackLookupPrefix,
+    );
+    if (orphans.length > 0) {
+      this.orphanedTracks = this.orphanedTracks.filter(
+        (orphan) => orphan.trackLookupPrefix !== trackLookupPrefix,
+      );
+    }
+    return orphans;
+  };
+
+  /**
    * Updates the call state with the data received from the server.
    *
    * @internal
@@ -1005,10 +1017,56 @@ export class CallState {
     this.setCurrentValue(this.egressSubject, call.egress);
     this.setCurrentValue(this.ingressSubject, call.ingress);
     this.setCurrentValue(this.recordingSubject, call.recording);
-    this.setCurrentValue(this.sessionSubject, call.session);
+    const s = this.setCurrentValue(this.sessionSubject, call.session);
+    this.updateParticipantCountFromSession(s);
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
+  };
+
+  /**
+   * Updates the call state with the data received from the SFU server.
+   *
+   * @internal
+   *
+   * @param callState the call state from the SFU server.
+   * @param currentSessionId the session ID of the current user.
+   * @param reconnectDetails optional reconnect details.
+   */
+  updateFromSfuCallState = (
+    callState: SfuCallState,
+    currentSessionId: string,
+    reconnectDetails?: ReconnectDetails,
+  ) => {
+    const { participants, participantCount, startedAt, pins } = callState;
+    const localPublishedTracks =
+      reconnectDetails?.announcedTracks.map((t) => t.trackType) ?? [];
+    this.setParticipants(() => {
+      const participantLookup = this.getParticipantLookupBySessionId();
+      return participants.map<StreamVideoParticipant>((p) => {
+        // We need to preserve the local state of the participant
+        // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
+        // as it doesn't exist on the server.
+        const existingParticipant = participantLookup[p.sessionId];
+        const isLocalParticipant = p.sessionId === currentSessionId;
+        return Object.assign({}, existingParticipant, p, {
+          isLocalParticipant,
+          publishedTracks: isLocalParticipant
+            ? localPublishedTracks
+            : p.publishedTracks,
+          viewportVisibilityState:
+            existingParticipant?.viewportVisibilityState ?? {
+              videoTrack: VisibilityState.UNKNOWN,
+              screenShareTrack: VisibilityState.UNKNOWN,
+            },
+        } satisfies Partial<StreamVideoParticipant>);
+      });
+    });
+
+    this.setParticipantCount(participantCount?.total || 0);
+    this.setAnonymousParticipantCount(participantCount?.anonymous || 0);
+    this.setStartedAt(startedAt ? Timestamp.toDate(startedAt) : new Date());
+    this.setServerSidePins(pins);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {
@@ -1053,18 +1111,39 @@ export class CallState {
     }));
   };
 
+  private updateParticipantCountFromSession = (
+    session: CallSessionResponse | undefined,
+  ) => {
+    // when in JOINED state, we should use the participant count coming through
+    // the SFU healthcheck event, as it's more accurate.
+    if (!session || this.callingState === CallingState.JOINED) return;
+    const byRoleCount = Object.values(
+      session.participants_count_by_role,
+    ).reduce((total, countByRole) => total + countByRole, 0);
+    const participantCount = Math.max(byRoleCount, session.participants.length);
+    this.setParticipantCount(participantCount);
+    this.setAnonymousParticipantCount(session.anonymous_participant_count || 0);
+  };
+
+  private updateFromSessionParticipantCountUpdate = (
+    event: CallSessionParticipantCountsUpdatedEvent,
+  ) => {
+    const s = this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) return session;
+      return {
+        ...session,
+        anonymous_participant_count: event.anonymous_participant_count,
+        participants_count_by_role: event.participants_count_by_role,
+      };
+    });
+    this.updateParticipantCountFromSession(s);
+  };
+
   private updateFromSessionParticipantLeft = (
     event: CallSessionParticipantLeftEvent,
   ) => {
-    this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) {
-        this.logger(
-          'warn',
-          `Received call.session_participant_left event but no session is available.`,
-          event,
-        );
-        return session;
-      }
+    const s = this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) return session;
       const { participants, participants_count_by_role } = session;
       const { user, user_session_id } = event.participant;
       return {
@@ -1081,20 +1160,14 @@ export class CallState {
         },
       };
     });
+    this.updateParticipantCountFromSession(s);
   };
 
   private updateFromSessionParticipantJoined = (
     event: CallSessionParticipantJoinedEvent,
   ) => {
-    this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) {
-        this.logger(
-          'warn',
-          `Received call.session_participant_joined event but no session is available.`,
-          event,
-        );
-        return session;
-      }
+    const s = this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) return session;
       const { participants, participants_count_by_role } = session;
       const { user, user_session_id } = event.participant;
       // It could happen that the backend delivers the same participant more than once.
@@ -1126,6 +1199,7 @@ export class CallState {
         },
       };
     });
+    this.updateParticipantCountFromSession(s);
   };
 
   private updateMembers = (

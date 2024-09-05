@@ -41,6 +41,7 @@ const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   pinsUpdated: undefined,
   callEnded: undefined,
   participantUpdated: undefined,
+  participantMigrationComplete: undefined,
 };
 
 export const isSfuEvent = (
@@ -55,11 +56,14 @@ export class Dispatcher {
     Record<SfuEventKinds, CallEventListener<any>[] | undefined>
   > = {};
 
-  dispatch = <K extends SfuEventKinds>(message: DispatchableMessage<K>) => {
+  dispatch = <K extends SfuEventKinds>(
+    message: DispatchableMessage<K>,
+    logTag: string = '0',
+  ) => {
     const eventKind = message.eventPayload.oneofKind;
     if (!eventKind) return;
     const payload = message.eventPayload[eventKind];
-    this.logger('debug', `Dispatching ${eventKind}`, payload);
+    this.logger('debug', `Dispatching ${eventKind}, tag=${logTag}`, payload);
     const listeners = this.subscribers[eventKind];
     if (!listeners) return;
     for (const fn of listeners) {

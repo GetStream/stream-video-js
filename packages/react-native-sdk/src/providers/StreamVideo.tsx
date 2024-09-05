@@ -1,7 +1,7 @@
 import {
-  StreamVideoProvider,
-  StreamVideoProps,
   StreamI18nProviderProps,
+  StreamVideoProps,
+  StreamVideoProvider,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
@@ -40,20 +40,16 @@ export const StreamVideo = (
    */
   useEffect(() => {
     let prevIsOnline = true;
-    const unsubscribe = NetInfo.addEventListener((state) => {
+    return NetInfo.addEventListener((state) => {
       const { isConnected, isInternetReachable } = state;
       const isOnline = isConnected === true && isInternetReachable !== false;
       if (isOnline === prevIsOnline) {
         return;
       }
       prevIsOnline = isOnline;
-      // @ts-expect-error - due to being incompatible with DOM event type
-      client.streamClient.wsConnection?.onlineStatusChanged({
-        type: isOnline ? 'online' : 'offline',
-      });
+      const type = isOnline ? 'online' : 'offline';
+      client.streamClient.updateNetworkConnectionStatus({ type });
     });
-
-    return unsubscribe;
   }, [client]);
 
   return (

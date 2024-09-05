@@ -79,7 +79,10 @@ export default function createStoreContext<
 
       persistStateKeys.forEach((key) => {
         const value = storeRef.current[key];
-        mmkvStorage.set(key, JSON.stringify(value));
+
+        if (value !== undefined) {
+          mmkvStorage.set(key, JSON.stringify(value));
+        }
       });
     }).current;
 

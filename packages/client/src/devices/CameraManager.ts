@@ -64,7 +64,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         this.logger('warn', 'could not apply target resolution', error);
       }
     }
-    if (this.state.status === 'enabled' && this.state.mediaStream) {
+    if (this.enabled && this.state.mediaStream) {
       const [videoTrack] = this.state.mediaStream.getVideoTracks();
       if (!videoTrack) return;
       const { width, height } = videoTrack.getSettings();

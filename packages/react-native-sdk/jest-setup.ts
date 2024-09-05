@@ -27,6 +27,10 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => ({
   OS: 'ios',
   select: jest.fn((selector) => selector.ios),
   Version: '16.2',
+  constants: {
+    osVersion: '16.2',
+    systemName: 'iOS',
+  },
 }));
 
 // Mock the notifee module using the mock provided by @notifee/react-native itself

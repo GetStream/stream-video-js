@@ -1,3 +1,4 @@
+import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it } from 'vitest';
 import { CallState } from '../../store';
 import { VisibilityState } from '../../types';
@@ -72,6 +73,80 @@ describe('Participant events', () => {
       });
 
       expect(state.participants).toEqual([]);
+    });
+  });
+
+  describe('orphaned tracks reconciliation', () => {
+    it('participantJoined should reconcile orphaned tracks if any', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.VIDEO,
+        track: mediaStream,
+      });
+      const onParticipantJoined = watchParticipantJoined(state);
+      onParticipantJoined({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      const p = state.findParticipantBySessionId('session-id');
+      expect(p).toBeDefined();
+      expect(p?.videoStream).toBe(mediaStream);
+      expect(state.takeOrphanedTracks('track-lookup-prefix')).toHaveLength(0);
+    });
+
+    it('trackPublished should reconcile orphaned tracks if any', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.AUDIO,
+        track: mediaStream,
+      });
+      const onTrackPublished = watchTrackPublished(state);
+      onTrackPublished({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      const p = state.findParticipantBySessionId('session-id');
+      expect(p).toBeDefined();
+      expect(p?.audioStream).toBe(mediaStream);
+      expect(state.takeOrphanedTracks('track-lookup-prefix')).toHaveLength(0);
+    });
+
+    it('trackUnpublished should reconcile orphaned tracks if any', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.SCREEN_SHARE,
+        track: mediaStream,
+      });
+      const onTrackUnPublished = watchTrackUnpublished(state);
+      onTrackUnPublished({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      const p = state.findParticipantBySessionId('session-id');
+      expect(p).toBeDefined();
+      expect(p?.screenShareStream).toBe(mediaStream);
+      expect(state.takeOrphanedTracks('track-lookup-prefix')).toHaveLength(0);
     });
   });
 

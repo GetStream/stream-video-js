@@ -10,14 +10,17 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
-import { useIsInPiPMode } from '../../../hooks';
+import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props for the CallParticipantsGrid component.
  */
 export type CallParticipantsGridProps = ParticipantViewComponentProps &
-  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
+  Pick<
+    CallContentProps,
+    'supportedReactions' | 'CallParticipantsList' | 'disablePictureInPicture'
+  > &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
@@ -44,6 +47,7 @@ export const CallParticipantsGrid = ({
   showLocalParticipant = false,
   supportedReactions,
   landscape,
+  disablePictureInPicture,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
@@ -60,7 +64,7 @@ export const CallParticipantsGrid = ({
     flexDirection: landscape ? 'row' : 'column',
   };
 
-  const isInPiPMode = useIsInPiPMode();
+  const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
 
   const showFloatingView =
     !isInPiPMode &&
