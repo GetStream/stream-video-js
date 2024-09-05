@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.3.0...@stream-io/video-react-sdk-1.3.1) (2024-09-05)
+
+
+### Bug Fixes
+
+* **composite:** hide the local participant for call recordings ([#1475](https://github.com/GetStream/stream-video-js/issues/1475)) ([f20ab9b](https://github.com/GetStream/stream-video-js/commit/f20ab9b6dc9a85d6d4d832d94ca1b369ba909658))
+
 ## [1.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.2.23...@stream-io/video-react-sdk-1.3.0) (2024-09-03)
 
 ### Dependency Updates
