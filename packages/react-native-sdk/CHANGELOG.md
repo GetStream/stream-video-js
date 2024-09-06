@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.2...@stream-io/video-react-native-sdk-1.0.3) (2024-09-06)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.2.3`
+
+### Bug Fixes
+
+* set min ios version to 13.0 for the podspecs ([b6d8c16](https://github.com/GetStream/stream-video-js/commit/b6d8c163b66f75e12d0316abe46eebc6b017c29a))
+
 ## [1.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.1...@stream-io/video-react-native-sdk-1.0.2) (2024-09-05)
 
 ### Dependency Updates
