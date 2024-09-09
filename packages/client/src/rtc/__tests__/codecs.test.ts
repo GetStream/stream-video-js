@@ -80,28 +80,11 @@ describe('codecs', () => {
 // prettier-ignore
 const videoCodecsFirefox: RTCRtpCapabilities = {
   codecs: [
-    {
-      mimeType: 'video/VP8',
-      sdpFmtpLine: 'max-fs=12288;max-fr=60',
-      clockRate: 90000,
-    },
+    { mimeType: 'video/VP8', sdpFmtpLine: 'max-fs=12288;max-fr=60', clockRate: 90000 },
     { mimeType: 'video/rtx', clockRate: 90000 },
-    {
-      mimeType: 'video/VP9',
-      sdpFmtpLine: 'max-fs=12288;max-fr=60',
-      clockRate: 90000,,
-    },
-    {
-      mimeType: 'video/H264',
-      sdpFmtpLine:
-        'profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1',
-      clockRa,te: 90000,
-    },
-    {
-      mimeType: 'video/H264',
-      sdpFmtpLine: 'profile-level-id=42e01f;level-asymmetry-allowed=1',
-      clockR,ate: 90000,
-    },
+    { mimeType: 'video/VP9', sdpFmtpLine: 'max-fs=12288;max-fr=60', clockRate: 90000 },
+    { mimeType: 'video/H264', sdpFmtpLine: 'profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1', clockRate: 90000 },
+    { mimeType: 'video/H264', sdpFmtpLine: 'profile-level-id=42e01f;level-asymmetry-allowed=1', clockRate: 90000 },
     { mimeType: 'video/ulpfec', clockRate: 90000 },
     { mimeType: 'video/red', clockRate: 90000 },
   ],
@@ -116,37 +99,17 @@ const videoCodecsFirefox: RTCRtpCapabilities = {
 // prettier-ignore
 const videoCodecs: RTCRtpCapabilities = {
   codecs: [
-    {
-      mimeType: 'video/H264',
-      sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f',
-      clockRate: 90000,
-    },
+    { mimeType: 'video/H264', sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f', clockRate: 90000 },
     { mimeType: 'video/rtx', clockRate: 90000 },
-    {
-      mimeType: 'video/H264',
-      sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f',
-      clockRate: 90000,
-    },
-    {
-      mimeType: 'video/H264',
-      sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=640c1f',
-      clockRate: 90000,
-    },
-    {
-      mimeType: 'video/H264',
-      sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f',
-      clockRate: 90000,
-    },
+    { mimeType: 'video/H264', sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f', clockRate: 90000 },
+    { mimeType: 'video/H264', sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=640c1f', clockRate: 90000 },
+    { mimeType: 'video/H264', sdpFmtpLine: 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f', clockRate: 90000 },
     { mimeType: 'video/VP8', clockRate: 90000 },
     { mimeType: 'video/VP9', sdpFmtpLine: 'profile-id=0', clockRate: 90000 },
     { mimeType: 'video/VP9', sdpFmtpLine: 'profile-id=2', clockRate: 90000 },
     { mimeType: 'video/red', clockRate: 90000 },
     { mimeType: 'video/ulpfec', clockRate: 90000 },
-    {
-      mimeType: 'video/flexfec-03',
-      sdpFmtpLine: 'repair-window=10000000',
-      clockRate: 90000,
-    },
+    { mimeType: 'video/flexfec-03', sdpFmtpLine: 'repair-window=10000000', clockRate: 90000 },
   ],
   headerExtensions: [
     { uri: 'urn:ietf:params:rtp-hdrext:toffset' },
@@ -166,11 +129,7 @@ const videoCodecs: RTCRtpCapabilities = {
 // prettier-ignore
 const audioCodecs: RTCRtpCapabilities = {
   codecs: [
-    {
-      mimeType: 'audio/opus',
-      sdpFmtpLine: 'minptime=10;useinbandfec=1',
-      clockRate: 48000,
-    },
+    { mimeType: 'audio/opus', sdpFmtpLine: 'minptime=10;useinbandfec=1', clockRate: 48000 },
     { mimeType: 'audio/red', sdpFmtpLine: '=111/111', clockRate: 48000 },
     { mimeType: 'audio/G722', clockRate: 8000, channels: 1 },
     { mimeType: 'audio/PCMU', clockRate: 8000, channels: 1 },
