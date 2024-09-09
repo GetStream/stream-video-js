@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.1...@stream-io/video-client-1.6.2) (2024-09-09)
+
+
+### Bug Fixes
+
+* prioritize h264 baseline profile ([#1482](https://github.com/GetStream/stream-video-js/issues/1482)) ([3ea3c5e](https://github.com/GetStream/stream-video-js/commit/3ea3c5ecf57b50d3f909d59a96811f636b07d8aa))
+
 ## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.0...@stream-io/video-client-1.6.1) (2024-09-05)
 
 
