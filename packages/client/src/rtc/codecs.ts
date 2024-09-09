@@ -1,54 +1,86 @@
-import { getLogger } from '../logger';
-
+/**
+ * Returns back a list of sorted codecs, with the preferred codec first.
+ *
+ * @param kind the kind of codec to get.
+ * @param preferredCodec the codec to prioritize (vp8, h264, vp9, av1...).
+ * @param codecToRemove the codec to exclude from the list.
+ */
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
   codecToRemove?: string,
 ): RTCRtpCodecCapability[] | undefined => {
-  const logger = getLogger(['codecs']);
-  if (!('getCapabilities' in RTCRtpReceiver)) {
-    logger('warn', 'RTCRtpReceiver.getCapabilities is not supported');
-    return;
-  }
-  const cap = RTCRtpReceiver.getCapabilities(kind);
-  if (!cap) return;
-  const matched: RTCRtpCodecCapability[] = [];
-  const partialMatched: RTCRtpCodecCapability[] = [];
-  const unmatched: RTCRtpCodecCapability[] = [];
-  cap.codecs.forEach((c) => {
-    const codec = c.mimeType.toLowerCase();
-    logger('debug', `Found supported codec: ${codec}`);
-    const shouldRemoveCodec =
-      codecToRemove && codec === `${kind}/${codecToRemove.toLowerCase()}`;
-    if (shouldRemoveCodec) return;
-    const matchesCodec = codec === `${kind}/${preferredCodec.toLowerCase()}`;
-    if (!matchesCodec) {
-      unmatched.push(c);
-      return;
-    }
-    // for h264 codecs that have sdpFmtpLine available, use only if the
-    // profile-level-id is 42e01f for cross-browser compatibility
-    if (codec === 'h264') {
-      if (c.sdpFmtpLine && c.sdpFmtpLine.includes('profile-level-id=42e01f')) {
-        matched.push(c);
-      } else {
-        partialMatched.push(c);
-      }
-      return;
-    }
-    matched.push(c);
-  });
+  if (!('getCapabilities' in RTCRtpReceiver)) return;
 
-  return [...matched, ...partialMatched, ...unmatched];
+  const capabilities = RTCRtpReceiver.getCapabilities(kind);
+  if (!capabilities) return;
+
+  const preferred: RTCRtpCodecCapability[] = [];
+  const partiallyPreferred: RTCRtpCodecCapability[] = [];
+  const unpreferred: RTCRtpCodecCapability[] = [];
+
+  const preferredCodecMimeType = `${kind}/${preferredCodec.toLowerCase()}`;
+  const codecToRemoveMimeType =
+    codecToRemove && `${kind}/${codecToRemove.toLowerCase()}`;
+
+  for (const codec of capabilities.codecs) {
+    const codecMimeType = codec.mimeType.toLowerCase();
+
+    const shouldRemoveCodec = codecMimeType === codecToRemoveMimeType;
+    if (shouldRemoveCodec) continue; // skip this codec
+
+    const isPreferredCodec = codecMimeType === preferredCodecMimeType;
+    if (!isPreferredCodec) {
+      unpreferred.push(codec);
+      continue;
+    }
+
+    // h264 is a special case, we want to prioritize the baseline codec with
+    // profile-level-id is 42e01f and packetization-mode=0 for maximum
+    // cross-browser compatibility.
+    // this branch covers the other cases, such as vp8.
+    if (codecMimeType !== 'video/h264') {
+      preferred.push(codec);
+      continue;
+    }
+
+    const sdpFmtpLine = codec.sdpFmtpLine;
+    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42e01f')) {
+      // this is not the baseline h264 codec, prioritize it lower
+      partiallyPreferred.push(codec);
+      continue;
+    }
+
+    // packetization-mode mode is optional; when not present it defaults to 0:
+    // https://datatracker.ietf.org/doc/html/rfc6184#section-6.2
+    if (
+      sdpFmtpLine.includes('packetization-mode=0') ||
+      !sdpFmtpLine.includes('packetization-mode')
+    ) {
+      preferred.unshift(codec);
+    } else {
+      preferred.push(codec);
+    }
+  }
+
+  // return a sorted list of codecs, with the preferred codecs first
+  return [...preferred, ...partiallyPreferred, ...unpreferred];
 };
 
+/**
+ * Returns a generic SDP for the given direction.
+ * We use this SDP to send it as part of our JoinRequest so that the SFU
+ * can use it to determine client's codec capabilities.
+ *
+ * @param direction the direction of the transceiver.
+ */
 export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
   const tempPc = new RTCPeerConnection();
   tempPc.addTransceiver('video', { direction });
   tempPc.addTransceiver('audio', { direction });
 
   const offer = await tempPc.createOffer();
-  let sdp = offer.sdp ?? '';
+  const sdp = offer.sdp ?? '';
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop?.();
