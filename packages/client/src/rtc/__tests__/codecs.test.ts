@@ -89,17 +89,18 @@ const videoCodecsFirefox: RTCRtpCapabilities = {
     {
       mimeType: 'video/VP9',
       sdpFmtpLine: 'max-fs=12288;max-fr=60',
-      clockRate: 90000,
+      clockRate: 90000,,
     },
     {
       mimeType: 'video/H264',
-      sdpFmtpLine: 'profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1',
-      clockRate: 90000,
+      sdpFmtpLine:
+        'profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1',
+      clockRa,te: 90000,
     },
     {
       mimeType: 'video/H264',
       sdpFmtpLine: 'profile-level-id=42e01f;level-asymmetry-allowed=1',
-      clockRate: 90000,
+      clockR,ate: 90000,
     },
     { mimeType: 'video/ulpfec', clockRate: 90000 },
     { mimeType: 'video/red', clockRate: 90000 },
@@ -151,9 +152,7 @@ const videoCodecs: RTCRtpCapabilities = {
     { uri: 'urn:ietf:params:rtp-hdrext:toffset' },
     { uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' },
     { uri: 'urn:3gpp:video-orientation' },
-    {
-      uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
-    },
+    { uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01' },
     { uri: 'http://www.webrtc.org/experiments/rtp-hdrext/playout-delay' },
     { uri: 'http://www.webrtc.org/experiments/rtp-hdrext/video-content-type' },
     { uri: 'http://www.webrtc.org/experiments/rtp-hdrext/video-timing' },
@@ -164,19 +163,20 @@ const videoCodecs: RTCRtpCapabilities = {
   ],
 };
 
+// prettier-ignore
 const audioCodecs: RTCRtpCapabilities = {
   codecs: [
     {
-      clockRate: 48000,
       mimeType: 'audio/opus',
       sdpFmtpLine: 'minptime=10;useinbandfec=1',
+      clockRate: 48000,
     },
-    { clockRate: 48000, mimeType: 'audio/red', sdpFmtpLine: '=111/111' },
-    { channels: 1, clockRate: 8000, mimeType: 'audio/G722' },
-    { channels: 1, clockRate: 8000, mimeType: 'audio/PCMU' },
-    { channels: 1, clockRate: 8000, mimeType: 'audio/PCMA' },
-    { channels: 1, clockRate: 8000, mimeType: 'audio/CN' },
-    { channels: 1, clockRate: 8000, mimeType: 'audio/telephone-event' },
+    { mimeType: 'audio/red', sdpFmtpLine: '=111/111', clockRate: 48000 },
+    { mimeType: 'audio/G722', clockRate: 8000, channels: 1 },
+    { mimeType: 'audio/PCMU', clockRate: 8000, channels: 1 },
+    { mimeType: 'audio/PCMA', clockRate: 8000, channels: 1 },
+    { mimeType: 'audio/CN', clockRate: 8000, channels: 1 },
+    { mimeType: 'audio/telephone-event', clockRate: 8000, channels: 1 },
   ],
   headerExtensions: [
     { uri: 'urn:ietf:params:rtp-hdrext:ssrc-audio-level' },
