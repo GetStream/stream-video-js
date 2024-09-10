@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.2.3...@stream-io/video-filters-react-native-0.2.4) (2024-09-10)
+
+
+### Bug Fixes
+
+* broken ios autolinking on react native 0.68 ([#1483](https://github.com/GetStream/stream-video-js/issues/1483)) ([734a361](https://github.com/GetStream/stream-video-js/commit/734a3615bc185fc17c7d7afc812c662a9bec92e7))
+
 ## [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.2.2...@stream-io/video-filters-react-native-0.2.3) (2024-09-06)
 
 
