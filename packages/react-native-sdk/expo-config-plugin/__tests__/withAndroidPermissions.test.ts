@@ -27,7 +27,6 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
       expect.arrayContaining([
         'android.permission.POST_NOTIFICATIONS',
         'android.permission.FOREGROUND_SERVICE',
-        'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
         'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION',
         'android.permission.BLUETOOTH',
         'android.permission.BLUETOOTH_CONNECT',

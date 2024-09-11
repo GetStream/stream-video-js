@@ -14,9 +14,6 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
       'android.permission.POST_NOTIFICATIONS',
       'android.permission.FOREGROUND_SERVICE'
     );
-    if (props?.ringingPushNotifications) {
-      permissions.push('android.permission.FOREGROUND_SERVICE_DATA_SYNC');
-    }
     if (props?.enableScreenshare) {
       permissions.push(
         'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION'

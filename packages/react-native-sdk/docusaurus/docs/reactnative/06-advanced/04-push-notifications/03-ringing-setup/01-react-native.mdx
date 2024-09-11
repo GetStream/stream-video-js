@@ -77,13 +77,12 @@ Add the following in `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <!-- We declare the permissions to for using foreground service -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
 <service
     android:name="app.notifee.core.ForegroundService"
     tools:replace="android:foregroundServiceType"
     android:stopWithTask="true"
-    android:foregroundServiceType="dataSync" />
+    android:foregroundServiceType="shortService" />
 ```
 
 ### Request for notification permissions
