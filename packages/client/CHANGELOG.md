@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.2...@stream-io/video-client-1.6.3) (2024-09-11)
+
+
+### Bug Fixes
+
+* client instance removal used a wrong key ([#1484](https://github.com/GetStream/stream-video-js/issues/1484)) ([edff5d7](https://github.com/GetStream/stream-video-js/commit/edff5d7ca0cc241a3929da3b752073883f29da32))
+
 ## [1.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.1...@stream-io/video-client-1.6.2) (2024-09-09)
 
 

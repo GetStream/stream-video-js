@@ -320,6 +320,7 @@ export class StreamVideoClient {
       return;
     }
     const userId = this.streamClient.user?.id;
+    const apiKey = this.streamClient.key;
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
     this.disconnectionPromise = this.connectionPromise
       ? this.connectionPromise.then(() => disconnectUser())
@@ -329,7 +330,7 @@ export class StreamVideoClient {
     );
     await this.disconnectionPromise;
     if (userId) {
-      StreamVideoClient._instanceMap.delete(userId);
+      StreamVideoClient._instanceMap.delete(apiKey + userId);
     }
     this.eventHandlersToUnregister.forEach((unregister) => unregister());
     this.eventHandlersToUnregister = [];
