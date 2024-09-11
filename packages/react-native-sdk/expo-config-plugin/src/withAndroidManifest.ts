@@ -20,9 +20,9 @@ function getNotifeeService() {
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
-        android:foregroundServiceType="dataSync" />
+        android:foregroundServiceType="shortService" />
  */
-  const foregroundServiceType = 'dataSync';
+  const foregroundServiceType = 'shortService';
   let head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
     stopWithTask: 'true',
