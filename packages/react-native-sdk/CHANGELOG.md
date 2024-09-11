@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.6...@stream-io/video-react-native-sdk-1.0.7) (2024-09-11)
+
+
+### Bug Fixes
+
+* replace dataSync with shortService for android foreground service type ([#1485](https://github.com/GetStream/stream-video-js/issues/1485)) ([2681535](https://github.com/GetStream/stream-video-js/commit/26815357f66b43f94e1d939fb30a6cdb85c77a5f))
+
 ## [1.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.5...@stream-io/video-react-native-sdk-1.0.6) (2024-09-11)
 
 ### Dependency Updates
