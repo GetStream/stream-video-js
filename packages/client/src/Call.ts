@@ -9,11 +9,6 @@ import {
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
 import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
 import {
-  hasScreenShare,
-  hasScreenShareAudio,
-  hasVideo,
-} from './helpers/participantUtils';
-import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
 } from './events/callEventHandlers';
@@ -85,24 +80,12 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
-  DebounceType,
   JoinCallData,
   PublishOptions,
-  StreamVideoParticipant,
-  StreamVideoParticipantPatches,
-  SubscriptionChanges,
   TrackMuteType,
   VideoTrackType,
 } from './types';
-import {
-  BehaviorSubject,
-  debounce,
-  map,
-  Subject,
-  takeWhile,
-  timer,
-} from 'rxjs';
-import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
+import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import {
   ReconnectDetails,
   VideoLayerSetting,
@@ -196,7 +179,7 @@ export class Call {
   /**
    * The DynascaleManager instance.
    */
-  readonly dynascaleManager = new DynascaleManager(this);
+  readonly dynascaleManager: DynascaleManager;
 
   subscriber?: Subscriber;
   publisher?: Publisher;
@@ -217,11 +200,6 @@ export class Call {
    * @private
    */
   private readonly dispatcher = new Dispatcher();
-
-  private trackSubscriptionsSubject = new BehaviorSubject<{
-    type: DebounceType;
-    data: TrackSubscriptionDetails[];
-  }>({ type: DebounceType.MEDIUM, data: [] });
 
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
@@ -304,6 +282,7 @@ export class Call {
     this.microphone = new MicrophoneManager(this);
     this.speaker = new SpeakerManager(this);
     this.screenShare = new ScreenShareManager(this);
+    this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
   }
 
   private async setup() {
@@ -320,19 +299,6 @@ export class Call {
       this.leaveCallHooks.add(registerEventHandlers(this, this.dispatcher));
       this.registerEffects();
       this.registerReconnectHandlers();
-
-      this.leaveCallHooks.add(
-        createSubscription(
-          this.trackSubscriptionsSubject.pipe(
-            debounce((v) => timer(v.type)),
-            map((v) => v.data),
-          ),
-          (subscriptions) =>
-            this.sfuClient?.updateSubscriptions(subscriptions).catch((err) => {
-              this.logger('debug', `Failed to update track subscriptions`, err);
-            }),
-        ),
-      );
 
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
@@ -582,6 +548,7 @@ export class Call {
 
       await this.sfuClient?.leaveAndClose(reason);
       this.sfuClient = undefined;
+      this.dynascaleManager.setSfuClient(undefined);
 
       this.state.setCallingState(CallingState.LEFT);
 
@@ -811,6 +778,7 @@ export class Call {
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
+    this.dynascaleManager.setSfuClient(sfuClient);
 
     const clientDetails = getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -903,11 +871,10 @@ export class Call {
     const strategy = this.reconnectStrategy;
     const performingRejoin = strategy === WebsocketReconnectStrategy.REJOIN;
     const announcedTracks = this.publisher?.getAnnouncedTracks() || [];
-    const subscribedTracks = getCurrentValue(this.trackSubscriptionsSubject);
     return {
       strategy,
       announcedTracks,
-      subscriptions: subscribedTracks.data || [],
+      subscriptions: this.dynascaleManager.trackSubscriptions,
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
@@ -1356,7 +1323,7 @@ export class Call {
   private restoreSubscribedTracks = () => {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
-    this.updateSubscriptions(remoteParticipants, DebounceType.FAST);
+    this.dynascaleManager.applyTrackSubscriptions(undefined);
   };
 
   /**
@@ -1518,87 +1485,6 @@ export class Call {
     return this.sfuClient?.stopNoiseCancellation().catch((err) => {
       this.logger('warn', 'Failed to notify stop of noise cancellation', err);
     });
-  };
-
-  /**
-   * Update track subscription configuration for one or more participants.
-   * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
-   * You can only subscribe for tracks after the participant started publishing the given kind of track.
-   *
-   * @param trackType the kind of subscription to update.
-   * @param changes the list of subscription changes to do.
-   * @param type the debounce type to use for the update.
-   */
-  updateSubscriptionsPartial = (
-    trackType: VideoTrackType,
-    changes: SubscriptionChanges,
-    type: DebounceType = DebounceType.SLOW,
-  ) => {
-    const participants = this.state.updateParticipants(
-      Object.entries(changes).reduce<StreamVideoParticipantPatches>(
-        (acc, [sessionId, change]) => {
-          if (change.dimension) {
-            change.dimension.height = Math.ceil(change.dimension.height);
-            change.dimension.width = Math.ceil(change.dimension.width);
-          }
-          const prop: keyof StreamVideoParticipant | undefined =
-            trackType === 'videoTrack'
-              ? 'videoDimension'
-              : trackType === 'screenShareTrack'
-                ? 'screenShareDimension'
-                : undefined;
-          if (prop) {
-            acc[sessionId] = {
-              [prop]: change.dimension,
-            };
-          }
-          return acc;
-        },
-        {},
-      ),
-    );
-
-    this.updateSubscriptions(participants, type);
-  };
-
-  private updateSubscriptions = (
-    participants: StreamVideoParticipant[],
-    type: DebounceType = DebounceType.SLOW,
-  ) => {
-    const subscriptions: TrackSubscriptionDetails[] = [];
-    for (const p of participants) {
-      // we don't want to subscribe to our own tracks
-      if (p.isLocalParticipant) continue;
-
-      // NOTE: audio tracks don't have to be requested explicitly
-      // as the SFU will implicitly subscribe us to all of them,
-      // once they become available.
-      if (p.videoDimension && hasVideo(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.VIDEO,
-          dimension: p.videoDimension,
-        });
-      }
-      if (p.screenShareDimension && hasScreenShare(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.SCREEN_SHARE,
-          dimension: p.screenShareDimension,
-        });
-      }
-      if (hasScreenShareAudio(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.SCREEN_SHARE_AUDIO,
-        });
-      }
-    }
-    // schedule update
-    this.trackSubscriptionsSubject.next({ type, data: subscriptions });
   };
 
   /**
