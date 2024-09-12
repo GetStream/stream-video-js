@@ -7,7 +7,6 @@ import {
 } from 'rxjs';
 import { RxUtils } from '../store';
 import { BrowserPermission } from './BrowserPermission';
-import { disposeOfMediaStream } from './devices';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
@@ -21,9 +20,6 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     undefined,
   );
   protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
-    undefined,
-  );
-  protected matchingDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
   protected defaultConstraintsSubject = new BehaviorSubject<C | undefined>(
@@ -45,14 +41,6 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * An Observable that emits the currently selected device
    */
   selectedDevice$ = this.selectedDeviceSubject
-    .asObservable()
-    .pipe(distinctUntilChanged());
-
-  /**
-   * An Observable that emits the device that matches current constraints. This
-   * is the device that will be used unless user explicitly selects another one.
-   */
-  matchingDevice$ = this.matchingDeviceSubject
     .asObservable()
     .pipe(distinctUntilChanged());
 
@@ -124,13 +112,6 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
-   * Indicates whether permission to access this input device has been granted
-   */
-  get hasBrowserPermission() {
-    return this.getCurrentValue(this.hasBrowserPermission$);
-  }
-
-  /**
    * Gets the current value of an observable, or undefined if the observable has
    * not emitted a value yet.
    *
@@ -181,14 +162,6 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
-   * @internal
-   * @param deviceId the device id to set.
-   */
-  setMatchingDevice(deviceId: string | undefined) {
-    this.setCurrentValue(this.matchingDeviceSubject, deviceId);
-  }
-
-  /**
    * Gets the default constraints for the device.
    */
   get defaultConstraints() {
@@ -221,17 +194,4 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   protected abstract getDeviceIdFromStream(
     stream: MediaStream,
   ): string | undefined;
-
-  async updateMatchingDevice(
-    getStream: (constraints: C) => Promise<MediaStream>,
-  ) {
-    if (this.selectedDevice !== undefined) {
-      this.setMatchingDevice(this.selectedDevice);
-    } else if (this.hasBrowserPermission && this.defaultConstraints) {
-      const stream = await getStream(this.defaultConstraints);
-      const deviceId = this.getDeviceIdFromStream(stream);
-      this.setMatchingDevice(deviceId);
-      disposeOfMediaStream(stream);
-    }
-  }
 }

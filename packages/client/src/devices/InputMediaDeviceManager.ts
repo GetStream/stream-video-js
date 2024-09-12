@@ -231,12 +231,6 @@ export abstract class InputMediaDeviceManager<
     });
   }
 
-  protected async updateMatchingDevice() {
-    this.state.updateMatchingDevice((constraints) =>
-      this.getStream(constraints),
-    );
-  }
-
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
