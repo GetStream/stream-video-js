@@ -138,7 +138,12 @@ describe('videoLayers', () => {
   describe('getComputedMaxBitrate', () => {
     it('should scale target bitrate down if resolution is smaller than target resolution', () => {
       const targetResolution = { width: 1920, height: 1080, bitrate: 3000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 1280, 720);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        1280,
+        720,
+        undefined,
+      );
       expect(scaledBitrate).toBe(1333333);
     });
 
@@ -148,7 +153,12 @@ describe('videoLayers', () => {
       const targetBitrates = ['f', 'h', 'q'].map((rid) => {
         const width = targetResolution.width / downscaleFactor;
         const height = targetResolution.height / downscaleFactor;
-        const bitrate = getComputedMaxBitrate(targetResolution, width, height);
+        const bitrate = getComputedMaxBitrate(
+          targetResolution,
+          width,
+          height,
+          undefined,
+        );
         downscaleFactor *= 2;
         return {
           rid,
@@ -166,25 +176,45 @@ describe('videoLayers', () => {
 
     it('should not scale target bitrate if resolution is larger than target resolution', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 2560, 1440);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        2560,
+        1440,
+        undefined,
+      );
       expect(scaledBitrate).toBe(1000000);
     });
 
     it('should not scale target bitrate if resolution is equal to target resolution', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 1280, 720);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        1280,
+        720,
+        undefined,
+      );
       expect(scaledBitrate).toBe(1000000);
     });
 
     it('should handle 0 width and height', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 0, 0);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        0,
+        0,
+        undefined,
+      );
       expect(scaledBitrate).toBe(0);
     });
 
     it('should handle 4k target resolution', () => {
       const targetResolution = { width: 3840, height: 2160, bitrate: 15000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 1280, 720);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        1280,
+        720,
+        undefined,
+      );
       expect(scaledBitrate).toBe(1666667);
     });
   });

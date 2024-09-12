@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import {
   BackgroundFiltersProvider,
-  Browsers,
   Call,
   CallingState,
   CallRequest,
@@ -26,7 +25,6 @@ import { useSettings } from '../../context/SettingsContext';
 import {
   useAppEnvironment,
   useIsDemoEnvironment,
-  useIsProntoEnvironment,
 } from '../../context/AppEnvironmentContext';
 import { TourProvider } from '../../context/TourContext';
 import appTranslations from '../../translations';
@@ -53,7 +51,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   // support for connecting to any application using an API key and user token
   const apiKeyOverride = !!router.query['api_key'];
 
-  const isProntoEnvironment = useIsProntoEnvironment();
   const isDemoEnvironment = useIsDemoEnvironment();
   useEffect(() => {
     if (!isDemoEnvironment) return;
@@ -155,10 +152,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   useEffect(() => {
     if (!client) return;
     const _call = client.call(callType, callId);
-    if (isProntoEnvironment && Browsers.isSafari()) {
-      console.log('Setting preferred codec to h264');
-      _call.camera.setPreferredCodec('h264');
-    }
     setCall(_call);
 
     // @ts-ignore - for debugging
@@ -172,7 +165,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         window.call = undefined;
       }
     };
-  }, [callId, callType, client, isProntoEnvironment]);
+  }, [callId, callType, client]);
 
   useEffect(() => {
     if (!call) return;
