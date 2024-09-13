@@ -4,6 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { PublishOptions } from '../types';
 
 type PreferredCodec = 'vp8' | 'h264' | string;
 
@@ -20,8 +21,27 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    */
   preferredCodec: PreferredCodec | undefined;
 
+  /**
+   * The preferred bitrate for encoding the video.
+   *
+   * @internal internal use only, not part of the public API.
+   */
+  preferredBitrate: number | undefined;
+
   constructor(call: Call) {
     super(call, new CameraManagerState(), TrackType.VIDEO);
+  }
+
+  /**
+   * The publish options for the camera.
+   *
+   * @internal internal use only, not part of the public API.
+   */
+  get publishOptions(): PublishOptions {
+    return {
+      preferredCodec: this.preferredCodec,
+      preferredBitrate: this.preferredBitrate,
+    };
   }
 
   /**
@@ -88,6 +108,16 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     this.preferredCodec = codec;
   }
 
+  /**
+   * Sets the preferred bitrate for encoding the video.
+   *
+   * @internal internal use only, not part of the public API.
+   * @param bitrate the bitrate to use for encoding the video.
+   */
+  setPreferredBitrate(bitrate: number | undefined) {
+    this.preferredBitrate = bitrate;
+  }
+
   protected getDevices(): Observable<MediaDeviceInfo[]> {
     return getVideoDevices();
   }
@@ -107,9 +137,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream, {
-      preferredCodec: this.preferredCodec,
-    });
+    return this.call.publishVideoStream(stream, this.publishOptions);
   }
 
   protected stopPublishStream(stopTracks: boolean): Promise<void> {

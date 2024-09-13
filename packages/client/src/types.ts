@@ -148,6 +148,7 @@ export type SubscriptionChanges = {
 
 export type PublishOptions = {
   preferredCodec?: string | null;
+  preferredBitrate?: number;
   screenShareSettings?: ScreenShareSettings;
 };
 

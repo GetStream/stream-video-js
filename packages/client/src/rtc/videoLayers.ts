@@ -25,16 +25,23 @@ const defaultBitratePerRid: Record<string, number> = {
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
+ * @param preferredBitrate the preferred bitrate for the video track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
+  preferredBitrate: number | undefined,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width: w = 0, height: h = 0 } = settings;
 
-  const maxBitrate = getComputedMaxBitrate(targetResolution, w, h);
+  const maxBitrate = getComputedMaxBitrate(
+    targetResolution,
+    w,
+    h,
+    preferredBitrate,
+  );
   let downscaleFactor = 1;
   ['f', 'h', 'q'].forEach((rid) => {
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
@@ -68,22 +75,29 @@ export const findOptimalVideoLayers = (
  * @param targetResolution the target resolution.
  * @param currentWidth the current width of the track.
  * @param currentHeight the current height of the track.
+ * @param preferredBitrate the preferred bitrate for the track.
  */
 export const getComputedMaxBitrate = (
   targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
+  preferredBitrate: number | undefined,
 ): number => {
   // if the current resolution is lower than the target resolution,
   // we want to proportionally reduce the target bitrate
-  const { width: targetWidth, height: targetHeight } = targetResolution;
+  const {
+    width: targetWidth,
+    height: targetHeight,
+    bitrate: targetBitrate,
+  } = targetResolution;
+  const bitrate = preferredBitrate || targetBitrate;
   if (currentWidth < targetWidth || currentHeight < targetHeight) {
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;
     const reductionFactor = currentPixels / targetPixels;
-    return Math.round(targetResolution.bitrate * reductionFactor);
+    return Math.round(bitrate * reductionFactor);
   }
-  return targetResolution.bitrate;
+  return bitrate;
 };
 
 /**
