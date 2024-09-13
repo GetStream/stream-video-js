@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.3...@stream-io/video-client-1.6.4) (2024-09-13)
+
+
+### Bug Fixes
+
+* allow video target bitrate override ([#1487](https://github.com/GetStream/stream-video-js/issues/1487)) ([bfe34a3](https://github.com/GetStream/stream-video-js/commit/bfe34a3609182da5bbb03331978d86569cada098))
+
 ## [1.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.2...@stream-io/video-client-1.6.3) (2024-09-11)
 
 
