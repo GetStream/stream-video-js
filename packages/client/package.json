@@ -11,6 +11,7 @@
   "exports": {
     "types": "./dist/index.d.ts",
     "browser": "./dist/index.browser.es.js",
+    "react-native": "./dist/index.browser.es.js",
     "node": {
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
