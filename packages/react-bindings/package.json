@@ -6,11 +6,19 @@
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
     "build": "NODE_ENV=production rollup -c"
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "src",

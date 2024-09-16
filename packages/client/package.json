@@ -8,6 +8,14 @@
   "react-native": "dist/index.browser.es.js",
   "types": "dist/index.d.ts",
   "license": "See license in LICENSE",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "browser": "./dist/index.browser.es.js",
+    "node": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -w -c",

@@ -6,6 +6,13 @@
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
@@ -16,6 +23,7 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/video-filters-web"
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "tf",

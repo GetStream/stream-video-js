@@ -6,6 +6,15 @@
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/css/*": "./dist/css/*",
+    "./stylesheet.css":  "./dist/css/index.css"
+  },
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
@@ -27,6 +36,7 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "sideEffects": ["*.css"],
   "dependencies": {
     "@floating-ui/react": "^0.26.5",
     "@stream-io/video-client": "workspace:*",
