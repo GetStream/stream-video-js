@@ -1,4 +1,4 @@
-import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
+import type { SfuEvents } from '@stream-io/video-client';
 
 type BinaryType = 'arraybuffer' | 'blob';
 export type RTCDataChannelState = 'closed' | 'closing' | 'connecting' | 'open';
@@ -112,7 +112,7 @@ export interface RTCDataChannel extends EventTarget {
   ): void;
 }
 
-export type EventHandler = (event: SfuEvent) => void;
+export type EventHandler = (event: SfuEvents.SfuEvent) => void;
 
 export type GuestMeetingScreenParams = {
   guestUserId: string;
