@@ -252,7 +252,7 @@ const transform = (
 
       const codec = stats.find(
         (s) => s.type === 'codec' && s.id === rtcStreamStats.codecId,
-      ) as { mimeType: string } | undefined; // FIXME OL: incorrect type!
+      ) as RTCRtpCodec | undefined;
 
       const transport = stats.find(
         (s) => s.type === 'transport' && s.id === rtcStreamStats.transportId,
@@ -303,6 +303,7 @@ const getEmptyStats = (stats?: StatsReport): AggregatedStatsReport => {
     highestFrameWidth: 0,
     highestFrameHeight: 0,
     highestFramesPerSecond: 0,
+    codec: '',
     timestamp: Date.now(),
   };
 };
@@ -346,6 +347,8 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     report.averageRoundTripTimeInMs = Math.round(
       (report.averageRoundTripTimeInMs / streams.length) * 1000,
     );
+    // we take the first codec we find, as it should be the same for all streams
+    report.codec = streams[0].codec || '';
   }
 
   const qualityLimitationReason = [

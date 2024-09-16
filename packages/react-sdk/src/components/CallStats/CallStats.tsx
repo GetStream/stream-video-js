@@ -11,42 +11,26 @@ import { useFloating, useHover, useInteractions } from '@floating-ui/react';
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 import { Icon } from '../Icon';
 
-export enum Statuses {
+enum Statuses {
   GOOD = 'Good',
   OK = 'Ok',
   BAD = 'Bad',
 }
-export type Status = Statuses.GOOD | Statuses.OK | Statuses.BAD;
 
-const statsStatus = ({
-  value,
-  lowBound,
-  highBound,
-}: {
-  value: number;
-  lowBound: number;
-  highBound: number;
-}): Status => {
-  if (value <= lowBound) {
-    return Statuses.GOOD;
-  }
+type Status = Statuses.GOOD | Statuses.OK | Statuses.BAD;
 
-  if (value >= lowBound && value <= highBound) {
-    return Statuses.OK;
-  }
-
-  if (value >= highBound) {
-    return Statuses.BAD;
-  }
-
-  return Statuses.GOOD;
-};
-
-export const CallStats = (props: {
+export type CallStatsProps = {
   latencyLowBound?: number;
   latencyHighBound?: number;
-}) => {
-  const { latencyLowBound = 75, latencyHighBound = 400 } = props;
+  showCodecInfo?: boolean;
+};
+
+export const CallStats = (props: CallStatsProps) => {
+  const {
+    latencyLowBound = 75,
+    latencyHighBound = 400,
+    showCodecInfo = false,
+  } = props;
   const [latencyBuffer, setLatencyBuffer] = useState<
     Array<{ x: number; y: number }>
   >(() => {
@@ -156,7 +140,7 @@ export const CallStats = (props: {
               }}
             />
             <StatCard
-              label={t('Publish resolution')}
+              label={`${t('Publish resolution')}${showCodecInfo ? formatCodec(callStatsReport) : ''}`}
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
@@ -261,6 +245,21 @@ export const StatCard = (props: {
   );
 };
 
+const statsStatus = ({
+  value,
+  lowBound,
+  highBound,
+}: {
+  value: number;
+  lowBound: number;
+  highBound: number;
+}): Status => {
+  if (value <= lowBound) return Statuses.GOOD;
+  if (value >= lowBound && value <= highBound) return Statuses.OK;
+  if (value >= highBound) return Statuses.BAD;
+  return Statuses.GOOD;
+};
+
 const toFrameSize = (stats: AggregatedStatsReport) => {
   const {
     highestFrameWidth: w,
@@ -275,6 +274,13 @@ const toFrameSize = (stats: AggregatedStatsReport) => {
     }
   }
   return size;
+};
+
+const formatCodec = (callStatsReport: CallStatsReport): string => {
+  const { codec } = callStatsReport.publisherStats;
+  if (!codec) return '';
+  const [, name] = codec.split('/');
+  return name ? ` (${name})` : '';
 };
 
 const calculatePublishBitrate = (
