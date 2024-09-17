@@ -1,17 +1,21 @@
-import { lazy, Suspense, useMemo } from 'react';
-import type { ChartData, ChartOptions } from 'chart.js';
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  ChartData,
+  ChartOptions,
+  LinearScale,
+  LineElement,
+  PointElement,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { useMemo } from 'react';
 
-const Line = lazy(() =>
-  import('chart.js')
-    .then(({ CategoryScale, Chart, LinearScale, LineElement, PointElement }) =>
-      Chart.register(CategoryScale, LinearScale, LineElement, PointElement),
-    )
-    .then(() =>
-      import('react-chartjs-2').then((module) => ({ default: module.Line })),
-    ),
-);
+// NOTE: this is a side effect by definition, but this component is
+// isolated in a separate chunk, and it won't affect the rest of the app.
+// See CallStats.tsx for more details.
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement);
 
-export const CallStatsLatencyChart = (props: {
+const CallStatsLatencyChart = (props: {
   values: Array<{ x: number; y: number }>;
 }) => {
   const { values } = props;
@@ -37,16 +41,16 @@ export const CallStatsLatencyChart = (props: {
   const options = useMemo(() => getLineOptions(max), [max]);
   return (
     <div className="str-video__call-stats-line-chart-container">
-      <Suspense fallback={null}>
-        <Line
-          options={options}
-          data={data}
-          className="str-video__call-stats__latencychart"
-        />
-      </Suspense>
+      <Line
+        options={options}
+        data={data}
+        className="str-video__call-stats__latencychart"
+      />
     </div>
   );
 };
+
+export default CallStatsLatencyChart;
 
 const getLineOptions = (max: number): ChartOptions<'line'> => ({
   maintainAspectRatio: false,
