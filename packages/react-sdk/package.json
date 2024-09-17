@@ -13,7 +13,7 @@
       "types": "./dist/index.d.ts"
     },
     "./dist/css/*": "./dist/css/*",
-    "./stylesheet.css":  "./dist/css/index.css"
+    "./stylesheet.css": "./dist/css/index.css"
   },
   "scripts": {
     "clean": "rimraf dist",
@@ -36,7 +36,9 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "dependencies": {
     "@floating-ui/react": "^0.26.24",
     "@stream-io/video-client": "workspace:*",
@@ -52,7 +54,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-typescript": "^11.1.6",
     "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
@@ -61,7 +63,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rimraf": "^5.0.7",
-    "rollup": "^3.29.4",
+    "rollup": "^4.21.3",
     "typescript": "^5.5.2"
   }
 }
