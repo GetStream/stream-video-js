@@ -10,7 +10,7 @@
     ".": {
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js",
-      "react-native": "./dist/index.browser.es.js",
+      "react-native": "./dist/index.es.js",
       "types": "./dist/index.d.ts"
     }
   },
