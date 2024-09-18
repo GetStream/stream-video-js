@@ -14,7 +14,8 @@
     "react-native": "./dist/index.browser.es.js",
     "node": {
       "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs.js",
+      "default": "./dist/index.cjs.js"
     },
     "default": "./dist/index.browser.es.js"
   },
