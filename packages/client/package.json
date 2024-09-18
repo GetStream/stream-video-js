@@ -15,7 +15,8 @@
     "node": {
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
-    }
+    },
+    "default": "./dist/index.browser.es.js"
   },
   "scripts": {
     "clean": "rimraf dist",
