@@ -47,7 +47,6 @@ export class StreamClient {
   axiosInstance: AxiosInstance;
   baseURL?: string;
   browser: boolean;
-  cleaningIntervalRef?: NodeJS.Timeout;
   clientID?: string;
   key: string;
   listeners: Partial<
@@ -323,11 +322,6 @@ export class StreamClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   closeConnection = async (timeout?: number) => {
-    if (this.cleaningIntervalRef != null) {
-      clearInterval(this.cleaningIntervalRef);
-      this.cleaningIntervalRef = undefined;
-    }
-
     await Promise.all([
       this.wsConnection?.disconnect(timeout),
       this.wsFallback?.disconnect(timeout),
