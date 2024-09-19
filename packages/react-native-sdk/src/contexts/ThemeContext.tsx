@@ -5,7 +5,7 @@ import React, {
   useMemo,
 } from 'react';
 
-import merge from 'lodash.merge';
+import merge from 'lodash/merge';
 
 import { defaultTheme, Theme } from '../theme/theme';
 
