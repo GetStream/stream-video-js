@@ -8,9 +8,9 @@
   "license": "See license in LICENSE",
   "exports": {
     ".": {
+      "react-native": "./dist/index.es.js",
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js",
-      "react-native": "./dist/index.es.js",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.es.js"
     }
