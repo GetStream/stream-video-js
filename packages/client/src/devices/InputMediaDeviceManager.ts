@@ -223,7 +223,7 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    withCancellation(this.statusChangeConcurrencyTag, async () => {
+    await withCancellation(this.statusChangeConcurrencyTag, async () => {
       if (this.enabled) {
         await this.muteStream();
         await this.unmuteStream();
