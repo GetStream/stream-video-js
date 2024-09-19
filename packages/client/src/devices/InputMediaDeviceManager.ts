@@ -223,10 +223,11 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    if (this.enabled) {
-      await this.muteStream();
-      await this.unmuteStream();
-    }
+    withCancellation(this.statusChangeConcurrencyTag, async () => {
+      if (this.enabled) {
+        await this.muteStream();
+        await this.unmuteStream();
+    });
   }
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
@@ -394,17 +395,21 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream, await rootStream);
+      const handleTrackEnded = async () => {
+        await this.statusChangeSettled();
+        if (this.enabled) {
+          this.isTrackStoppedDueToTrackEnd = true;
+          setTimeout(() => {
+            this.isTrackStoppedDueToTrackEnd = false;
+          }, 2000);
+          await this.disable();
+        }
+      };
       this.getTracks().forEach((track) => {
-        track.addEventListener('ended', async () => {
-          await this.statusChangeSettled();
-          if (this.enabled) {
-            this.isTrackStoppedDueToTrackEnd = true;
-            setTimeout(() => {
-              this.isTrackStoppedDueToTrackEnd = false;
-            }, 2000);
-            await this.disable();
-          }
-        });
+        track.addEventListener('ended', handleTrackEnded);
+        this.subscriptions.push(() =>
+          track.removeEventListener('ended', handleTrackEnded),
+        );
       });
     }
   }
