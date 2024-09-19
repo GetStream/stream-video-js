@@ -227,6 +227,7 @@ export abstract class InputMediaDeviceManager<
       if (this.enabled) {
         await this.muteStream();
         await this.unmuteStream();
+      }
     });
   }
 
