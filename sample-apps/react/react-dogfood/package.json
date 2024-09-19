@@ -14,7 +14,7 @@
     "@next/third-parties": "^14.2.12",
     "@sentry/nextjs": "^8.30.0",
     "@stream-io/audio-filters-web": "workspace:^",
-    "@stream-io/node-sdk": "^0.4.2",
+    "@stream-io/node-sdk": "^0.4.3",
     "@stream-io/video-filters-web": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",

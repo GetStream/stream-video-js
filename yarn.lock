@@ -7214,15 +7214,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/node-sdk@npm:^0.4.2":
-  version: 0.4.2
-  resolution: "@stream-io/node-sdk@npm:0.4.2"
+"@stream-io/node-sdk@npm:^0.4.3":
+  version: 0.4.3
+  resolution: "@stream-io/node-sdk@npm:0.4.3"
   dependencies:
     "@types/jsonwebtoken": ^9.0.3
     "@types/node": ^20.11.24
     jsonwebtoken: ^9.0.2
     uuid: ^9.0.1
-  checksum: ddaee09ac32fd9a53404e90f3b25e2325deb2f8cd3044d077851da77275434441429bf5f3784f57c562fd0d366829f77083a40cab9ff4d7f985b214bebfc534f
+  checksum: 1e4e6b78f9789c0d2ba6fe91f453d22998bebf9b7df053b5216b1f2c3c88682e6ccaf2f662740d6938595ed44550e9b1ae2595283b89d4780869ceaf4ac5c727
   languageName: node
   linkType: hard
 
@@ -7287,7 +7287,7 @@ __metadata:
     "@rollup/plugin-replace": ^5.0.7
     "@rollup/plugin-typescript": ^11.1.6
     "@stream-io/audio-filters-web": "workspace:^"
-    "@stream-io/node-sdk": ^0.4.2
+    "@stream-io/node-sdk": ^0.4.3
     "@types/sdp-transform": ^2.4.7
     "@types/ua-parser-js": ^0.7.37
     "@types/ws": ^8.5.7
@@ -7394,7 +7394,7 @@ __metadata:
     "@next/third-parties": ^14.2.12
     "@sentry/nextjs": ^8.30.0
     "@stream-io/audio-filters-web": "workspace:^"
-    "@stream-io/node-sdk": ^0.4.2
+    "@stream-io/node-sdk": ^0.4.3
     "@stream-io/video-filters-web": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
