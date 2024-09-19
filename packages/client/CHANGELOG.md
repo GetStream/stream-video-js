@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.5...@stream-io/video-client-1.7.0) (2024-09-19)
+
+
+### Features
+
+* React SDK cold-start optimizations ([#1488](https://github.com/GetStream/stream-video-js/issues/1488)) ([972e579](https://github.com/GetStream/stream-video-js/commit/972e5792b5a131a212b1031ade76dcb383897a46))
+
 ## [1.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.4...@stream-io/video-client-1.6.5) (2024-09-19)
 
 
