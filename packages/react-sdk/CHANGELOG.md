@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.3.6...@stream-io/video-react-sdk-1.4.0) (2024-09-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.7.0`
+* `@stream-io/video-filters-web` updated to version `0.1.4`
+* `@stream-io/video-react-bindings` updated to version `1.0.6`
+* `@stream-io/audio-filters-web` updated to version `0.2.2`
+
+### Features
+
+* React SDK cold-start optimizations ([#1488](https://github.com/GetStream/stream-video-js/issues/1488)) ([972e579](https://github.com/GetStream/stream-video-js/commit/972e5792b5a131a212b1031ade76dcb383897a46))
+
 ## [1.3.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.3.5...@stream-io/video-react-sdk-1.3.6) (2024-09-19)
 
 ### Dependency Updates
