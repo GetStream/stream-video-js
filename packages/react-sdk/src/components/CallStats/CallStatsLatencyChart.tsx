@@ -10,9 +10,12 @@ import {
 import { Line } from 'react-chartjs-2';
 import { useMemo } from 'react';
 
+// NOTE: this is a side effect by definition, but this component is
+// isolated in a separate chunk, and it won't affect the rest of the app.
+// See CallStats.tsx for more details.
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement);
 
-export const CallStatsLatencyChart = (props: {
+const CallStatsLatencyChart = (props: {
   values: Array<{ x: number; y: number }>;
 }) => {
   const { values } = props;
@@ -35,46 +38,7 @@ export const CallStatsLatencyChart = (props: {
     ],
   };
 
-  const options = useMemo<ChartOptions<'line'>>(() => {
-    return {
-      maintainAspectRatio: false,
-      animation: {
-        duration: 0,
-      },
-      elements: {
-        line: {
-          borderWidth: 1,
-        },
-        point: {
-          radius: 2,
-        },
-      },
-      scales: {
-        y: {
-          position: 'right',
-          stacked: true,
-          min: 0,
-          max: Math.max(180, Math.ceil((max + 10) / 10) * 10),
-          grid: {
-            display: true,
-            color: '#979ca0',
-          },
-          ticks: {
-            stepSize: 30,
-          },
-        },
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            display: false,
-          },
-        },
-      },
-    };
-  }, [max]);
-
+  const options = useMemo(() => getLineOptions(max), [max]);
   return (
     <div className="str-video__call-stats-line-chart-container">
       <Line
@@ -85,3 +49,28 @@ export const CallStatsLatencyChart = (props: {
     </div>
   );
 };
+
+export default CallStatsLatencyChart;
+
+const getLineOptions = (max: number): ChartOptions<'line'> => ({
+  maintainAspectRatio: false,
+  animation: { duration: 0 },
+  elements: {
+    line: { borderWidth: 1 },
+    point: { radius: 2 },
+  },
+  scales: {
+    y: {
+      position: 'right',
+      stacked: true,
+      min: 0,
+      max: Math.max(180, Math.ceil((max + 10) / 10) * 10),
+      grid: { display: true, color: '#979ca0' },
+      ticks: { stepSize: 30 },
+    },
+    x: {
+      grid: { display: false },
+      ticks: { display: false },
+    },
+  },
+});

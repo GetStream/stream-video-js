@@ -5,20 +5,34 @@ import json from '@rollup/plugin-json';
 import pkg from './package.json' with { type: 'json' };
 
 /**
+ * @type {import('rollup').OutputOptions['chunkFileNames']}
+ */
+const chunkFileNames = (chunkInfo) => {
+  if (chunkInfo.name.includes('CallStatsLatencyChart')) {
+    return 'latency-chart-[hash].[format].js';
+  }
+  return '[name]-[hash].[format].js';
+};
+
+/**
  * @type {import('rollup').RollupOptions}
  */
 const config = {
   input: 'index.ts',
   output: [
     {
-      file: 'dist/index.es.js',
+      dir: 'dist',
+      entryFileNames: 'index.es.js',
       format: 'es',
       sourcemap: true,
+      chunkFileNames,
     },
     {
-      file: 'dist/index.cjs.js',
+      dir: 'dist',
+      entryFileNames: 'index.cjs.js',
       format: 'cjs',
       sourcemap: true,
+      chunkFileNames,
     },
   ],
   external: [
