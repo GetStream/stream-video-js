@@ -7207,7 +7207,7 @@ __metadata:
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     sass: ^1.69.5
-    stream-chat: ^8.40.8
+    stream-chat: ^8.40.9
     stream-chat-react: 12.0.0
     typescript: ^5.5.2
     vite: ^5.4.6
@@ -7423,7 +7423,7 @@ __metadata:
     sass: ^1.69.5
     source-map-loader: ^5.0.0
     starwars-names: ^1.6.0
-    stream-chat: ^8.40.8
+    stream-chat: ^8.40.9
     stream-chat-react: 12.0.0
     yargs: ^17.7.2
   languageName: unknown
@@ -7646,7 +7646,7 @@ __metadata:
     react: ^18.3.1
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
-    stream-chat: ^8.40.8
+    stream-chat: ^8.40.9
     stream-chat-react: 12.0.0
     tailwindcss: ^3.2.4
     typescript: ^5.5.2
@@ -24138,9 +24138,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^8.40.8":
-  version: 8.40.8
-  resolution: "stream-chat@npm:8.40.8"
+"stream-chat@npm:^8.40.9":
+  version: 8.40.9
+  resolution: "stream-chat@npm:8.40.9"
   dependencies:
     "@babel/runtime": ^7.16.3
     "@types/jsonwebtoken": ~9.0.0
@@ -24151,7 +24151,7 @@ __metadata:
     isomorphic-ws: ^4.0.1
     jsonwebtoken: ~9.0.0
     ws: ^7.5.10
-  checksum: 92f0776ac4809057f45080708277a0b9c5067719b14d5fcd3c028b7e9bac979ecd3650a1e8d7c696ff9d6589b95d2b29af92a912cf56304a274b3dbc12cca9a4
+  checksum: bcea1e8058c974c1166e3129bc05b07425cd237b8b9357663e8e21c087b5fc8cb945e5d7668445236fbcc991d3bcb14604dfbc947f3114ecafdbc7a1097966ed
   languageName: node
   linkType: hard
 
