@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.4...@stream-io/video-client-1.6.5) (2024-09-19)
+
+
+### Bug Fixes
+
+* race condition in `applySettingsToStream` ([#1489](https://github.com/GetStream/stream-video-js/issues/1489)) ([bf2ad90](https://github.com/GetStream/stream-video-js/commit/bf2ad90224d88592d4ea27ea8d0683efe98771f7))
+
 ## [1.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.3...@stream-io/video-client-1.6.4) (2024-09-13)
 
 
