@@ -4,9 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { PublishOptions } from '../types';
-
-type PreferredCodec = 'vp8' | 'h264' | string;
+import { PreferredCodec, PublishOptions } from '../types';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -15,33 +13,19 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   };
 
   /**
-   * The preferred codec for encoding the video.
+   * The options to use when publishing the video stream.
    *
-   * @internal internal use only, not part of the public API.
+   * @internal
    */
-  preferredCodec: PreferredCodec | undefined;
+  publishOptions: PublishOptions | undefined;
 
   /**
-   * The preferred bitrate for encoding the video.
+   * Constructs a new CameraManager.
    *
-   * @internal internal use only, not part of the public API.
+   * @param call the call instance.
    */
-  preferredBitrate: number | undefined;
-
   constructor(call: Call) {
     super(call, new CameraManagerState(), TrackType.VIDEO);
-  }
-
-  /**
-   * The publish options for the camera.
-   *
-   * @internal internal use only, not part of the public API.
-   */
-  get publishOptions(): PublishOptions {
-    return {
-      preferredCodec: this.preferredCodec,
-      preferredBitrate: this.preferredBitrate,
-    };
   }
 
   /**
@@ -104,18 +88,36 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    * @internal internal use only, not part of the public API.
    * @param codec the codec to use for encoding the video.
    */
-  setPreferredCodec(codec: 'vp8' | 'h264' | string | undefined) {
-    this.preferredCodec = codec;
+  setPreferredCodec(codec: PreferredCodec | undefined) {
+    this.updatePublishOptions({ preferredCodec: codec });
   }
 
   /**
-   * Sets the preferred bitrate for encoding the video.
+   * Updates the preferred publish options for the video stream.
    *
-   * @internal internal use only, not part of the public API.
-   * @param bitrate the bitrate to use for encoding the video.
+   * @internal
+   * @param options the options to use.
    */
-  setPreferredBitrate(bitrate: number | undefined) {
-    this.preferredBitrate = bitrate;
+  updatePublishOptions(options: PublishOptions) {
+    this.publishOptions = { ...this.publishOptions, ...options };
+  }
+
+  /**
+   * Returns the capture resolution of the camera.
+   */
+  getCaptureResolution() {
+    const { mediaStream } = this.state;
+    if (!mediaStream) return;
+
+    const [videoTrack] = mediaStream.getVideoTracks();
+    if (!videoTrack) return;
+
+    const settings = videoTrack.getSettings();
+    return {
+      width: settings.width,
+      height: settings.height,
+      frameRate: settings.frameRate,
+    };
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {

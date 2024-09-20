@@ -49,6 +49,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
   const isProntoEnvironment = useIsProntoEnvironment();
   const videoCodecOverride = router.query['video_codec'] as string | undefined;
+  const bitrateOverride = router.query['bitrate'] as string | undefined;
+  const bitrateFactorOverride = router.query['bitrate_factor'] as
+    | string
+    | undefined;
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
@@ -59,15 +63,22 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         const preferredCodec = videoCodecOverride || prontoDefaultCodec;
 
         const videoSettings = call.state.settings?.video;
-        const frameHeight = videoSettings?.target_resolution.height || 1080;
+        const frameHeight =
+          call.camera.getCaptureResolution()?.width ??
+          videoSettings?.target_resolution.height ??
+          1080;
 
-        const preferredBitrate = getPreferredBitrate(
+        const preferredBitrate = bitrateOverride
+          ? parseInt(bitrateOverride, 10)
+          : getPreferredBitrate(preferredCodec, frameHeight);
+
+        call.camera.updatePublishOptions({
           preferredCodec,
-          frameHeight,
-        );
-
-        call.camera.setPreferredBitrate(preferredBitrate);
-        call.camera.setPreferredCodec(preferredCodec);
+          preferredBitrate,
+          bitrateDownscaleFactor: bitrateFactorOverride
+            ? parseInt(bitrateFactorOverride, 10)
+            : 2, // default to 2
+        });
 
         await call.join({ create: true });
         setShow('active-call');
@@ -77,7 +88,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, isProntoEnvironment, videoCodecOverride],
+    [
+      bitrateFactorOverride,
+      bitrateOverride,
+      call,
+      isProntoEnvironment,
+      videoCodecOverride,
+    ],
   );
 
   const onLeave = useCallback(

@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { decodeBase64 } from 'stream-chat';
 
 export const DevMenu = () => {
+  const call = useCall();
   return (
     <ul className="rd__dev-menu">
       <li className="rd__dev-menu__item">
@@ -57,7 +57,7 @@ export const DevMenu = () => {
         </a>
       </li>
       <li className="rd__dev-menu__item">
-        <Link
+        <a
           className="rd__link rd__link--faux-button rd__link--align-left"
           href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/call-recordings`}
           target="_blank"
@@ -65,8 +65,24 @@ export const DevMenu = () => {
         >
           <Icon className="rd__link__icon" icon="film-roll" />
           Recordings
-        </Link>
+        </a>
       </li>
+
+      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <a
+        className="rd__link rd__link--faux-button rd__link--align-left"
+        href={`https://pronto-staging.getstream.io/join/${call?.id}?type=${call?.type}`}
+        rel="noreferrer"
+      >
+        Switch to Pronto Staging
+      </a>
+      <a
+        className="rd__link rd__link--faux-button rd__link--align-left"
+        href={`https://pronto.getstream.io/join/${call?.id}?type=${call?.type}`}
+        rel="noreferrer"
+      >
+        Switch to Pronto
+      </a>
     </ul>
   );
 };
@@ -138,61 +154,6 @@ const GoOrStopLive = () => {
     </button>
   );
 };
-
-// const MigrateToNewSfu = () => {
-//   const call = useCall();
-//   return (
-//     <button className="rd__button rd__button--align-left"
-//       hidden
-//       onClick={() => {
-//         if (!call) return;
-//         call['dispatcher'].dispatch({
-//           eventPayload: {
-//             oneofKind: 'goAway',
-//             goAway: {
-//               reason: SfuModels.GoAwayReason.REBALANCE,
-//             },
-//           },
-//         });
-//       }}
-//     >
-//       <ListItemIcon>
-//         <SwitchAccessShortcutIcon
-//           fontSize="small"
-//           sx={{
-//             transform: 'rotate(90deg)',
-//           }}
-//         />
-//       </ListItemIcon>
-//       <ListItemText>Migrate to a new SFU</ListItemText>
-//     </button>
-//   );
-// };
-//
-
-// const EmulateSFUShuttingDown = () => {
-//   const call = useCall();
-//   return (
-//     <button className="rd__button rd__button--align-left"
-//       onClick={() => {
-//         if (!call) return;
-//         call['dispatcher'].dispatch({
-//           eventPayload: {
-//             oneofKind: 'error',
-//             error: {
-//               code: SfuModels.ErrorCode.SFU_SHUTTING_DOWN,
-//             },
-//           },
-//         });
-//       }}
-//     >
-//       <ListItemIcon>
-//         <PowerSettingsNewIcon fontSize="small" />
-//       </ListItemIcon>
-//       <ListItemText>Emulate SFU shutdown</ListItemText>
-//     </button>
-//   );
-// };
 
 const ConnectToLocalSfu = (props: { port?: number; sfuId?: string }) => {
   const { port = 3031, sfuId = 'SFU-1' } = props;

@@ -259,16 +259,11 @@ export class Publisher {
       const screenShareBitrate =
         settings?.screensharing.target_resolution?.bitrate;
 
-      const { preferredBitrate, preferredCodec, screenShareSettings } = opts;
       const videoEncodings =
         trackType === TrackType.VIDEO
-          ? findOptimalVideoLayers(track, targetResolution, preferredBitrate)
+          ? findOptimalVideoLayers(track, targetResolution, opts)
           : trackType === TrackType.SCREEN_SHARE
-            ? findOptimalScreenSharingLayers(
-                track,
-                screenShareSettings,
-                screenShareBitrate,
-              )
+            ? findOptimalScreenSharingLayers(track, opts, screenShareBitrate)
             : undefined;
 
       // listen for 'ended' event on the track as it might be ended abruptly
@@ -293,6 +288,7 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
+      const { preferredCodec } = opts;
       const codec =
         isReactNative() && trackType === TrackType.VIDEO && !preferredCodec
           ? getRNOptimalCodec()
@@ -713,16 +709,9 @@ export class Publisher {
           const publishOpts = this.publishOptionsPerTrackType.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
-              ? findOptimalVideoLayers(
-                  track,
-                  targetResolution,
-                  publishOpts?.preferredBitrate,
-                )
+              ? findOptimalVideoLayers(track, targetResolution, publishOpts)
               : trackType === TrackType.SCREEN_SHARE
-                ? findOptimalScreenSharingLayers(
-                    track,
-                    publishOpts?.screenShareSettings,
-                  )
+                ? findOptimalScreenSharingLayers(track, publishOpts)
                 : [];
           this.trackLayersCache[trackType] = optimalLayers;
         } else {

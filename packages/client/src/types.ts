@@ -146,9 +146,16 @@ export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
 
+/**
+ * A preferred codec to use when publishing a video track.
+ * @internal
+ */
+export type PreferredCodec = 'vp8' | 'h264' | string;
+
 export type PublishOptions = {
-  preferredCodec?: string | null;
+  preferredCodec?: PreferredCodec | null;
   preferredBitrate?: number;
+  bitrateDownscaleFactor?: number;
   screenShareSettings?: ScreenShareSettings;
 };
 
