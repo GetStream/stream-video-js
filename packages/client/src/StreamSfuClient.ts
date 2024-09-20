@@ -483,8 +483,7 @@ export class StreamSfuClient {
    * @param message the message to send.
    */
   private send = async (message: SfuRequest) => {
-    // wait for the signal ws to be open
-    await this.signalReady;
+    await this.signalReady; // wait for the signal ws to be open
     const msgJson = SfuRequest.toJson(message);
     if (this.signalWs.readyState !== WebSocket.OPEN) {
       this.logger('debug', 'Signal WS is not open. Skipping message', msgJson);
