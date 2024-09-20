@@ -2283,10 +2283,10 @@ export class Call {
    * @param sessionIds optionally specify session ids of the participants this
    * preference has effect on. Affects all participants by default.
    */
-  setPreferredIncomingVideoResolution(
+  setPreferredIncomingVideoResolution = (
     resolution: VideoResolution | undefined,
     sessionIds?: string[],
-  ) {
+  ) => {
     this.dynascaleManager.setVideoTrackSubscriptionOverrides(
       resolution
         ? {
@@ -2297,15 +2297,15 @@ export class Call {
       sessionIds,
     );
     this.dynascaleManager.applyTrackSubscriptions();
-  }
+  };
 
   /**
    * Enables or disables incoming video from other call participants.
    */
-  setIncomingVideoEnabled(enabled: boolean) {
+  setIncomingVideoEnabled = (enabled: boolean) => {
     this.dynascaleManager.setVideoTrackSubscriptionOverrides(
       enabled ? undefined : { enabled: false },
     );
     this.dynascaleManager.applyTrackSubscriptions();
-  }
+  };
 }
