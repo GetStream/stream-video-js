@@ -24,6 +24,7 @@ import {
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
 import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
+import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4, sleep } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
@@ -65,6 +66,11 @@ export type StreamSfuClientConstructor = {
    * Callback for when the WebSocket connection is closed.
    */
   onSignalClose?: () => void;
+
+  /**
+   * The StreamClient instance to use for the connection.
+   */
+  streamClient: StreamClient;
 };
 
 /**
@@ -112,12 +118,14 @@ export class StreamSfuClient {
   private lastMessageTimestamp?: Date;
   private readonly restoreWebSocketConcurrencyTag = Symbol('recoverWebSocket');
   private readonly unsubscribeIceTrickle: () => void;
+  private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: (() => void) | undefined;
   private readonly logger: Logger;
   private readonly logTag: string;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout?: number;
+  private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   /**
    * Promise that resolves when the JoinResponse is received.
    * Rejects after a certain threshold if the response is not received.
@@ -163,6 +171,7 @@ export class StreamSfuClient {
     logTag,
     joinResponseTimeout = 5000,
     onSignalClose,
+    streamClient,
   }: StreamSfuClientConstructor) {
     this.dispatcher = dispatcher;
     this.sessionId = sessionId || generateUUIDv4();
@@ -191,6 +200,16 @@ export class StreamSfuClient {
     // once the remoteDescription is known and set.
     this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (iceTrickle) => {
       this.iceTrickleBuffer.push(iceTrickle);
+    });
+
+    // listen to network changes to handle offline state
+    // we shouldn't attempt to recover websocket connection when offline
+    this.unsubscribeNetworkChanged = streamClient.on('network.changed', (e) => {
+      if (!e.online) {
+        this.networkAvailableTask = promiseWithResolvers();
+      } else {
+        this.networkAvailableTask?.resolve();
+      }
     });
 
     this.createWebSocket();
@@ -226,6 +245,7 @@ export class StreamSfuClient {
 
   private restoreWebSocket = () => {
     withoutConcurrency(this.restoreWebSocketConcurrencyTag, async () => {
+      await this.networkAvailableTask?.promise;
       this.logger('debug', 'Restoring SFU WS connection');
       this.cleanUpWebSocket();
       await sleep(500);
@@ -260,6 +280,7 @@ export class StreamSfuClient {
   dispose = () => {
     this.logger('debug', 'Disposing SFU client');
     this.unsubscribeIceTrickle();
+    this.unsubscribeNetworkChanged();
     clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
     clearTimeout(this.migrateAwayTimeout);
