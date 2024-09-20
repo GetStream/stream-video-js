@@ -477,11 +477,6 @@ export class StreamSfuClient {
     );
   };
 
-  /**
-   * Sends a message to the SFU via the WebSocket connection.
-   *
-   * @param message the message to send.
-   */
   private send = async (message: SfuRequest) => {
     await this.signalReady; // wait for the signal ws to be open
     const msgJson = SfuRequest.toJson(message);

@@ -8,6 +8,7 @@ import { CallState } from '../../store';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { StreamClient } from '../../coordinator/connection/client';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -27,6 +28,7 @@ describe('Subscriber', () => {
     sfuClient = new StreamSfuClient({
       dispatcher,
       sessionId: 'sessionId',
+      streamClient: new StreamClient('abc'),
       logTag: 'logTag',
       credentials: {
         server: {
