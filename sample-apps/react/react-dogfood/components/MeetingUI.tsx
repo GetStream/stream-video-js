@@ -64,7 +64,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
         const videoSettings = call.state.settings?.video;
         const frameHeight =
-          call.camera.getCaptureResolution()?.width ??
+          call.camera.getCaptureResolution()?.height ??
           videoSettings?.target_resolution.height ??
           1080;
 
