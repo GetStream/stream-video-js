@@ -9,16 +9,16 @@
         "baseBranch": "main",
         "preset": {
           "name": "conventionalcommits",
-          "preMajor": true,
+          "preMajor": false,
           "types": [
-            {"type": "feat", "section": "Features"},
-            {"type": "fix", "section": "Bug Fixes"},
-            {"type": "chore", "hidden": false},
-            {"type": "docs", "hidden": true},
-            {"type": "style", "hidden": true},
-            {"type": "refactor", "hidden": true},
-            {"type": "perf", "section": "Features"},
-            {"type": "test", "hidden": true}
+            { "type": "feat", "section": "Features" },
+            { "type": "fix", "section": "Bug Fixes" },
+            { "type": "chore", "hidden": false },
+            { "type": "docs", "hidden": true },
+            { "type": "style", "hidden": true },
+            { "type": "refactor", "hidden": true },
+            { "type": "perf", "section": "Features" },
+            { "type": "test", "hidden": true }
           ]
         },
         "trackDeps": true,
