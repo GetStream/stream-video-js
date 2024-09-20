@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.1...@stream-io/video-client-1.7.2) (2024-09-20)
+
+
+### Bug Fixes
+
+* overridable bitrate and bitrate downscale factor ([#1493](https://github.com/GetStream/stream-video-js/issues/1493)) ([cce5d8e](https://github.com/GetStream/stream-video-js/commit/cce5d8e641a9182a1779952e4e62aa16ec21ab92))
+
 ## [1.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.0...@stream-io/video-client-1.7.1) (2024-09-20)
 
 
