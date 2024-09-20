@@ -464,6 +464,7 @@ export class StreamSfuClient {
    * @param timeout an optional timeout in milliseconds for sending the message.
    */
   private send = async (message: SfuRequest, timeout: number = 0) => {
+    // wait for the signal ws to be open
     if (timeout > 0) {
       await Promise.race([
         this.signalReady,
@@ -472,28 +473,14 @@ export class StreamSfuClient {
         }),
       ]);
     } else {
-      await this.signalReady; // wait for the signal ws to be open
+      await this.signalReady;
     }
     const msgJson = SfuRequest.toJson(message);
     if (this.signalWs.readyState !== WebSocket.OPEN) {
       this.logger('debug', 'Signal WS is not open. Skipping message', msgJson);
       return;
     }
-    return new Promise<void>((resolve, reject) => {
-      const timeoutId =
-        timeout > 0
-          ? setTimeout(() => reject(new Error('Timeout sending msg')), timeout)
-          : undefined;
-      try {
-        this.logger('debug', `Sending message to: ${this.edgeName}`, msgJson);
-        this.signalWs.send(SfuRequest.toBinary(message));
-        resolve();
-      } catch (err) {
-        reject(err);
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    });
+    this.signalWs.send(SfuRequest.toBinary(message));
   };
 
   private keepAlive = () => {
