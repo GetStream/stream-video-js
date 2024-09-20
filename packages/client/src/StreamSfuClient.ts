@@ -464,7 +464,16 @@ export class StreamSfuClient {
    * @param timeout an optional timeout in milliseconds for sending the message.
    */
   private send = async (message: SfuRequest, timeout: number = 0) => {
-    await this.signalReady; // wait for the signal ws to be open
+    if (timeout > 0) {
+      await Promise.race([
+        this.signalReady,
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout sending msg')), timeout);
+        }),
+      ]);
+    } else {
+      await this.signalReady; // wait for the signal ws to be open
+    }
     const msgJson = SfuRequest.toJson(message);
     if (this.signalWs.readyState !== WebSocket.OPEN) {
       this.logger('debug', 'Signal WS is not open. Skipping message', msgJson);
