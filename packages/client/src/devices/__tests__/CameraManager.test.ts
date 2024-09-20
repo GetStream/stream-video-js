@@ -82,9 +82,7 @@ describe('CameraManager', () => {
 
     expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
-      {
-        preferredCodec: undefined,
-      },
+      undefined,
     );
   });
 
