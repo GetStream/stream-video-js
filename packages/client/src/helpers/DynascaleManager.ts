@@ -79,6 +79,37 @@ export class DynascaleManager {
   videoTrackSubscriptionOverrides$ =
     this.videoTrackSubscriptionOverridesSubject.asObservable();
 
+  incomingVideoSettings$ = this.videoTrackSubscriptionOverrides$.pipe(
+    map((overrides) => {
+      const { [globalOverrideKey]: globalSettings, ...participants } =
+        overrides;
+      return {
+        enabled: globalSettings?.enabled !== false,
+        preferredResolution: globalSettings?.enabled
+          ? globalSettings.dimension
+          : undefined,
+        participants: Object.fromEntries(
+          Object.entries(participants).map(
+            ([sessionId, participantOverride]) => [
+              sessionId,
+              {
+                enabled: participantOverride?.enabled !== false,
+                preferredResolution: participantOverride?.enabled
+                  ? participantOverride.dimension
+                  : undefined,
+              },
+            ],
+          ),
+        ),
+        isParticipantVideoEnabled: (sessionId: string) =>
+          overrides[sessionId]?.enabled ??
+          overrides[globalOverrideKey]?.enabled ??
+          true,
+      };
+    }),
+    shareReplay(1),
+  );
+
   /**
    * Creates a new DynascaleManager instance.
    *
@@ -137,13 +168,14 @@ export class DynascaleManager {
   }
 
   setVideoTrackSubscriptionOverrides(
-    override: VideoTrackSubscriptionOverride,
+    override: VideoTrackSubscriptionOverride | undefined,
     sessionIds?: string[],
   ) {
     if (!sessionIds) {
-      return setCurrentValue(this.videoTrackSubscriptionOverridesSubject, {
-        [globalOverrideKey]: override,
-      });
+      return setCurrentValue(
+        this.videoTrackSubscriptionOverridesSubject,
+        override ? { [globalOverrideKey]: override } : {},
+      );
     }
 
     return setCurrentValue(

@@ -13,6 +13,7 @@ import {
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
@@ -100,6 +101,9 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       trackType,
     });
 
+    const { useIncomingVideoSettings } = useCallStateHooks();
+    const { isParticipantVideoEnabled } = useIncomingVideoSettings();
+
     const participantViewContextValue = useMemo(
       () => ({
         participant,
@@ -167,6 +171,11 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             participant={participant}
             trackType={trackType}
             refs={videoRefs}
+            enabled={
+              isLocalParticipant ||
+              trackType !== 'videoTrack' ||
+              isParticipantVideoEnabled(participant.sessionId)
+            }
             autoPlay
           />
           {isComponentType(ParticipantViewUI) ? (

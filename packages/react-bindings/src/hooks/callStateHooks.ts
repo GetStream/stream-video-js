@@ -467,3 +467,15 @@ export const useScreenShareState = () => {
     optimisticIsMute,
   };
 };
+
+/**
+ * Returns incoming video settings for the current call, including
+ * global and per-participant manual video quality overrides.
+ */
+export const useIncomingVideoSettings = () => {
+  const call = useCall() as Call;
+  const settings = useObservableValue(
+    call.dynascaleManager.incomingVideoSettings$,
+  );
+  return settings;
+};

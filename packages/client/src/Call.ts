@@ -74,6 +74,7 @@ import type {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
+  VideoResolution,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
@@ -2272,4 +2273,39 @@ export class Call {
       imageElement.removeEventListener('error', handleError);
     };
   };
+
+  /**
+   * Specify preference for incoming video resolution. The preference will
+   * be matched as close as possible, but actual resolution will depend
+   * on the video source quality and client network conditions.
+   *
+   * @param resolution preferred resolution, or `undefined` to clear preference
+   * @param sessionIds optionally specify session ids of the participants this
+   * preference has effect on. Affects all participants by default.
+   */
+  setPreferredIncomingVideoResolution(
+    resolution: VideoResolution | undefined,
+    sessionIds?: string[],
+  ) {
+    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+      resolution
+        ? {
+            enabled: true,
+            dimension: resolution,
+          }
+        : undefined,
+      sessionIds,
+    );
+    this.dynascaleManager.applyTrackSubscriptions();
+  }
+
+  /**
+   * Enables or disables incoming video from other call participants.
+   */
+  setIncomingVideoEnabled(enabled: boolean) {
+    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+      enabled ? undefined : { enabled: false },
+    );
+    this.dynascaleManager.applyTrackSubscriptions();
+  }
 }

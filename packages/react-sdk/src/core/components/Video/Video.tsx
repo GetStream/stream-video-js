@@ -21,6 +21,12 @@ import { useCall } from '@stream-io/video-react-bindings';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   /**
+   * Pass false to disable rendering video and render fallback
+   * even if the participant has published video.
+   */
+  enabled?: boolean;
+
+  /**
    * The track type to display.
    */
   trackType: VideoTrackType | 'none';
@@ -54,6 +60,7 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
 };
 
 export const Video = ({
+  enabled,
   trackType,
   participant,
   className,
@@ -139,7 +146,7 @@ export const Video = ({
     trackType === 'none' ||
     viewportVisibilityState?.[trackType] === VisibilityState.INVISIBLE;
 
-  const hasNoVideoOrInvisible = !isPublishingTrack || isInvisible;
+  const hasNoVideoOrInvisible = !enabled || !isPublishingTrack || isInvisible;
   const mirrorVideo = isLocalParticipant && trackType === 'videoTrack';
   const isScreenShareTrack = trackType === 'screenShareTrack';
   return (
