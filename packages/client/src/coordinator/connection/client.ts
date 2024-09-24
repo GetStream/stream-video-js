@@ -540,8 +540,15 @@ export class StreamClient {
       await Promise.all([
         this.tokenManager.tokenReady(),
         this.guestUserCreatePromise,
-        this.connectionIdPromise,
       ]);
+      try {
+        await this.connectionIdPromise;
+      } catch (e) {
+        // in case connection id was rejected
+        // reconnection maybe in progress
+        // we can wait for healthy connection to resolve, which rejects when 15s timeout is reached
+        await this.wsConnection?._waitForHealthy();
+      }
     }
     const requestConfig = this._enrichAxiosOptions(options);
     try {
