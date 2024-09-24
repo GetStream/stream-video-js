@@ -10,6 +10,7 @@ import {
   renderVolumeControl,
 } from './device-selector';
 import { isMobile } from './mobile';
+import { ClosedCaptionManager } from './closed-captions';
 
 const searchParams = new URLSearchParams(window.location.search);
 const extractPayloadFromToken = (token: string) => {
@@ -50,6 +51,8 @@ call.screenShare.setSettings({
   maxBitrate: 1500000,
 });
 
+let closedCaptionManager: ClosedCaptionManager | undefined;
+
 call.join({ create: true }).then(async () => {
   // render mic and camera controls
   const controls = renderControls(call);
@@ -73,9 +76,17 @@ call.join({ create: true }).then(async () => {
   }
 
   container.appendChild(renderVolumeControl(call));
+
+  closedCaptionManager = new ClosedCaptionManager(call);
+  container.appendChild(closedCaptionManager.renderToggleElement());
+
+  const captionContainer = document.getElementById('closed-captions');
+  captionContainer?.appendChild(closedCaptionManager.renderCaptionContainer());
 });
 
 window.addEventListener('beforeunload', () => {
+  // Make sure to remove your event listeners when you leave a call
+  closedCaptionManager?.cleanup();
   call.leave();
 });
 
