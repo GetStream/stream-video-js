@@ -8,6 +8,7 @@ import {
 import {
   addConnectionEventListeners,
   convertErrorToJson,
+  isPromisePending,
   KnownCodes,
   randomId,
   removeConnectionEventListeners,
@@ -337,6 +338,15 @@ export class StableWSConnection {
         await this.client.tokenManager.loadToken();
       }
 
+      let mustSetupConnectionIdPromise = true;
+      if (this.client.connectionIdPromise) {
+        if (await isPromisePending(this.client.connectionIdPromise)) {
+          mustSetupConnectionIdPromise = false;
+        }
+      }
+      if (mustSetupConnectionIdPromise) {
+        this.client._setupConnectionIdPromise();
+      }
       this._setupConnectionPromise();
       const wsURL = this._buildUrl();
       this._log(`_connect() - Connecting to ${wsURL}`, {
@@ -369,6 +379,7 @@ export class StableWSConnection {
         return response;
       }
     } catch (err) {
+      await this.client._setupConnectionIdPromise();
       this.isConnecting = false;
       // @ts-ignore
       this._log(`_connect() - Error - `, err);
