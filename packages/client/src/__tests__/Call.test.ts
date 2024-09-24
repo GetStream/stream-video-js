@@ -210,6 +210,46 @@ describe('state updates in reponse to coordinator API', () => {
     await call.leave();
   });
 
+  it('should query call members', async () => {
+    await call.getOrCreate({
+      data: {
+        members: [
+          { user_id: 'sara', role: 'admin' },
+          { user_id: 'jane' },
+          { user_id: 'jack' },
+        ],
+      },
+    });
+
+    // default sorting
+    let result = await call.queryMembers();
+
+    expect(result.members.length).toBe(3);
+
+    // sorting and pagination
+    const queryMembersReq = {
+      sort: [{ field: 'user_id', direction: 1 }],
+      limit: 2,
+    };
+    result = await call.queryMembers(queryMembersReq);
+
+    expect(result.members.length).toBe(2);
+    expect(result.members[0].user_id).toBe('jack');
+    expect(result.members[1].user_id).toBe('jane');
+
+    // loading next page
+    result = await call.queryMembers({ ...queryMembersReq, next: result.next });
+
+    expect(result.members.length).toBe(1);
+
+    result = await call.queryMembers({
+      filter_conditions: { role: { $eq: 'admin' } },
+    });
+
+    expect(result.members.length).toBe(1);
+    expect(result.members[0].user_id).toBe('sara');
+  });
+
   afterEach(async () => {
     await serverClient.video.call(call.type, call.id).delete({ hard: true });
   });
