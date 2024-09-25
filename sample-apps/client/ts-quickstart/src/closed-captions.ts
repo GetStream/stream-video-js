@@ -7,9 +7,19 @@ import {
 export class ClosedCaptionManager {
   status: 'on' | 'off' = 'off';
   private unsubscribe?: () => void;
-  private captionRefreshInterval?: ReturnType<typeof setInterval>;
+  private captionTimeout?: ReturnType<typeof setTimeout>;
   private captions: (CallClosedCaption & { speaker_name?: string })[] = [];
   private captionContainer?: HTMLElement;
+  /**
+   * A single caption can stay visible on the screen for this duration
+   *
+   * This is the maximum duration, new captions can push a caption out of the screen sooner
+   */
+  private captionTimeoutMs = 2700;
+  /**
+   * The maximum number of captions that can be visible on the screen
+   */
+  private numberOfCaptionsVisible = 2;
 
   constructor(private call: Call) {}
 
@@ -55,13 +65,14 @@ export class ClosedCaptionManager {
           const speakerName = speaker?.name || speaker?.userId;
           this.captions.push({ ...caption, speaker_name: speakerName });
           this.updateDisplayedCaptions();
+          this.captionTimeout = setTimeout(() => {
+            this.captions = this.captions.slice(1);
+            this.updateDisplayedCaptions();
+            this.captionTimeout = undefined;
+          }, this.captionTimeoutMs);
         }
       },
     );
-    this.captionRefreshInterval = setInterval(() => {
-      this.captions = this.captions.slice(1);
-      this.updateDisplayedCaptions();
-    }, 2700);
   }
 
   hideCaptions() {
@@ -71,7 +82,7 @@ export class ClosedCaptionManager {
 
   cleanup() {
     this.unsubscribe?.();
-    clearInterval(this.captionRefreshInterval);
+    clearTimeout(this.captionTimeout);
   }
 
   private updateDisplayedCaptions() {
@@ -81,9 +92,11 @@ export class ClosedCaptionManager {
       );
       return;
     }
-    const displayedCaptions = this.captions.slice(-2);
+    const displayedCaptions = this.captions.slice(
+      -1 * this.numberOfCaptionsVisible,
+    );
     this.captionContainer.innerHTML = displayedCaptions
       .map((c) => `<b>${c.speaker_name}:</b> ${c.text}`)
-      .join('\n');
+      .join('<br>');
   }
 }
