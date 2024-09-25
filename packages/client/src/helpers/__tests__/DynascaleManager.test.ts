@@ -237,11 +237,9 @@ describe('DynascaleManager', () => {
         publishedTracks: [TrackType.VIDEO],
       });
 
-      expect(updateSubscription).toHaveBeenCalledWith(
-        'videoTrack',
-        { 'session-id': { dimension: undefined } },
-        DebounceType.FAST,
-      );
+      expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
+        'session-id': { dimension: undefined },
+      });
 
       cleanup?.();
 
@@ -426,11 +424,9 @@ describe('DynascaleManager', () => {
       // @ts-ignore simulate resize
       resizeObserverCallback();
 
-      expect(updateSubscription).toHaveBeenCalledWith(
-        'videoTrack',
-        { 'session-id': { dimension: { width: 101, height: 101 } } },
-        DebounceType.SLOW,
-      );
+      expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
+        'session-id': { dimension: { width: 101, height: 101 } },
+      });
 
       cleanup?.();
 
