@@ -48,6 +48,7 @@ import {
 
 import { StepNames, useTourContext } from '../context/TourContext';
 import { useNotificationSounds } from '../hooks/useNotificationSounds';
+import { IncomingVideoSettingsButton } from './IncomingVideoSettingsButton';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -65,7 +66,7 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useCallCallingState } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const {
     current: currentTourStep,
@@ -261,6 +262,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ScreenShareButton />
             </div>
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <IncomingVideoSettingsButton />
+              </div>
+            )}
             <RecordCallConfirmationButton />
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />

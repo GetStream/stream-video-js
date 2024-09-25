@@ -14,7 +14,7 @@
 
   background-color: var(--str-video__button-primary-base);
 
-  &:hover {
+  &:not([disabled]):hover {
     background-color: var(--str-video__button-primary-hover);
     cursor: pointer;
   }
@@ -51,7 +51,7 @@
       font-size: 12px;
       padding: 0.5rem;
 
-      &:hover {
+      &:not([disabled]):hover {
         cursor: pointer;
       }
     }

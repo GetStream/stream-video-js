@@ -108,7 +108,9 @@
   white-space: nowrap;
 }
 
-.str-video__composite-button__button-group:hover {
+.str-video__composite-button__button-group:not(
+    .str-video__composite-button__button-group--disabled
+  ):hover {
   background-color: var(
     --str-video__composite-button__button-group-hover--background-color
   );

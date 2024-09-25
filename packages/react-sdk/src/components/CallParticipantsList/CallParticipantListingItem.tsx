@@ -11,10 +11,8 @@ import { IconButton } from '../Button';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 import { WithTooltip } from '../Tooltip';
 import { Avatar } from '../Avatar';
-import {
-  ParticipantActionsContextMenu,
-  ParticipantViewContext,
-} from '../../core/';
+import { ParticipantActionsContextMenu } from '../../core/components/ParticipantView/ParticipantActionsContextMenu';
+import { ParticipantViewContext } from '../../core/components/ParticipantView/ParticipantViewContext';
 
 type CallParticipantListingItemProps = {
   /** Participant object be rendered */

@@ -11,9 +11,9 @@ import { useParticipantViewContext } from './ParticipantViewContext';
 import {
   GenericMenu,
   GenericMenuButtonItem,
-  Icon,
   useMenuContext,
-} from '../../../components';
+} from '../../../components/Menu';
+import { Icon } from '../../../components/Icon';
 
 export const ParticipantActionsContextMenu = () => {
   const { participant, participantViewElement, videoElement } =
