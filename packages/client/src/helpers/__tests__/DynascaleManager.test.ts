@@ -9,7 +9,7 @@ import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
-import { DebounceType, VisibilityState } from '../../types';
+import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
 
