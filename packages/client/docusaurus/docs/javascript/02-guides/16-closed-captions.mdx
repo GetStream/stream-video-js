@@ -24,7 +24,7 @@ console.log(call.state.settings?.transcription.closed_caption_mode);
 
 ## Closed caption events
 
-If closed captions are enabled for a given call, you'll receive the captions in the `call.closed_caption` WebSocket events. Below, you can find an example payload:
+If closed captions are enabled for a given call, you'll receive the captions in the `call.closed_caption` events. Below, you can find an example payload:
 
 ```
 {
@@ -56,58 +56,54 @@ import {
 } from '@stream-io/video-client';
 
 // The captions queue
-captions: (CallClosedCaption & { speaker_name?: string })[] = [];
+let captions: (CallClosedCaption & { speaker_name?: string })[] = [];
 // The maximum number of captions that can be visible on the screen
-numberOfCaptionsVisible = 2;
+const numberOfCaptionsVisible = 2;
 // A single caption can stay visible on the screen for this duration
 // This is the maximum duration, new captions can push a caption out of the screen sooner
-captionTimeoutMs = 2700;
+const captionTimeoutMs = 2700;
 
 // Subscribe to call.closed_caption events
-call.on(
-    'call.closed_caption',
-    (event: ClosedCaptionEvent) => {
-        const caption = event.closed_caption;
-        // It's possible to receive the same caption twice, so make sure to filter duplicates
-        const isDuplicate = captions.find(
-            (c) =>
-            c.speaker_id === caption.speaker_id &&
-            c.start_time === caption.start_time,
-        );
-        if (!isDuplicate) {
-            // Look up the speaker's name based on the user id
-            const speaker = call.state.participants.find(
-            (p) => p.userId === caption.speaker_id,
-            );
-            const speakerName = speaker?.name || speaker?.userId;
-            // Add the caption to the queue
-            captions.push({ ...caption, speaker_name: speakerName });
-            // Update the UI
-            updateDisplayedCaptions();
-            // We specify a maximum amount of time a caption can be visible
-            // after that, we remove it from the screen (unless a newer caption has already pushed it out)
-            captionTimeout = setTimeout(() => {
-                captions = captions.slice(1);
-                updateDisplayedCaptions();
-                captionTimeout = undefined;
-            }, captionTimeoutMs);
-        }
-    });
+call.on('call.closed_caption', (event: ClosedCaptionEvent) => {
+  const caption = event.closed_caption;
+  // It's possible to receive the same caption twice, so make sure to filter duplicates
+  const isDuplicate = captions.find(
+    (c) =>
+      c.speaker_id === caption.speaker_id &&
+      c.start_time === caption.start_time,
+  );
+  if (!isDuplicate) {
+    // Look up the speaker's name based on the user id
+    const speaker = call.state.participants.find(
+      (p) => p.userId === caption.speaker_id,
+    );
+    const speakerName = speaker?.name || speaker?.userId;
+    // Add the caption to the queue
+    captions.push({ ...caption, speaker_name: speakerName });
+    // Update the UI
+    updateDisplayedCaptions();
+    // We specify a maximum amount of time a caption can be visible
+    // after that, we remove it from the screen (unless a newer caption has already pushed it out)
+    captionTimeout = setTimeout(() => {
+      captions = captions.slice(1);
+      updateDisplayedCaptions();
+      captionTimeout = undefined;
+    }, captionTimeoutMs);
+  }
+});
 
 const updateDisplayedCaptions = () => {
-    // The default implementation shows the last two captions
-    const displayedCaptions = captions.slice(
-        -1 * numberOfCaptionsVisible,
-    );
-    const captionsHTML = displayedCaptions
-        .map((c) => `<b>${c.speaker_name}:</b> ${c.text}`)
-        .join('<br>');
-    // Update the UI
-}
+  // The default implementation shows the last two captions
+  const displayedCaptions = captions.slice(-1 * numberOfCaptionsVisible);
+  const captionsHTML = displayedCaptions
+    .map((c) => `<b>${c.speaker_name}:</b> ${c.text}`)
+    .join('<br>');
+  // Update the UI
+};
 ```
 
 :::note
-Since the closed caption WebSocket event contains `start_time` and `end_time` fields, you can subtract the two to know how long it took the speaker to say the caption. You can then use this duration to control how long the text is visible on the screen. This is useful to ensure the captions are as real-time as possible, but that might not leave enough time for participants to read the text.
+Since the closed caption event contains `start_time` and `end_time` fields, you can subtract the two to know how long it took the speaker to say the caption. You can then use this duration to control how long the text is visible on the screen. This is useful to ensure the captions are as real-time as possible, but that might not leave enough time for participants to read the text.
 :::
 
 ## See it in action
