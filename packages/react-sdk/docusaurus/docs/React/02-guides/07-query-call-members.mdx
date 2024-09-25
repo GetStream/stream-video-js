@@ -8,15 +8,15 @@ import FilterConditions from '../../../shared/_filter-operators.mdx';
 import CallMemberFilters from '../../../shared/video/_call-member-filters.mdx';
 import CallMemberSort from '../../../shared/video/_call-member-sort-fields.mdx';
 
-When you create or join a call you get a list of call members, however this can return at most 25 members:
+When you create or join a call you get a list of call members, however this can return at most 100 members:
 
 ```typescript
-// The maximum limit is 25
+// The maximum limit is 100
 // The default limit is 25
-await call.getOrCreate({ members_limit: 25 });
+await call.getOrCreate({ members_limit: 100 });
 
 // or
-await call.join({ members_limit: 25 });
+await call.join({ members_limit: 100 });
 ```
 
 To get the complete list of call members the Stream API allows you to query, filter and sort members of a call using a paginated list.
