@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.2...@stream-io/video-client-1.7.3) (2024-09-24)
+
+
+### Bug Fixes
+
+* do not always error out api calls when web socket initially failed ([#1495](https://github.com/GetStream/stream-video-js/issues/1495)) ([7cdb62e](https://github.com/GetStream/stream-video-js/commit/7cdb62e75cad56098ee81eabbcc63382f93fd218))
+
+## [1.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.1...@stream-io/video-client-1.7.2) (2024-09-20)
+
+
+### Bug Fixes
+
+* overridable bitrate and bitrate downscale factor ([#1493](https://github.com/GetStream/stream-video-js/issues/1493)) ([cce5d8e](https://github.com/GetStream/stream-video-js/commit/cce5d8e641a9182a1779952e4e62aa16ec21ab92))
+
+## [1.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.0...@stream-io/video-client-1.7.1) (2024-09-20)
+
+
+### Bug Fixes
+
+* don't attempt to recover broken WebSockets when there isn't a network connection ([#1490](https://github.com/GetStream/stream-video-js/issues/1490)) ([d576f48](https://github.com/GetStream/stream-video-js/commit/d576f48c7f819d48008359a3c30fe5d1a3372145))
+
 ## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.5...@stream-io/video-client-1.7.0) (2024-09-19)
 
 

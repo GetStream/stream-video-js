@@ -772,6 +772,7 @@ export class Call {
             logTag: String(this.sfuClientTag++),
             dispatcher: this.dispatcher,
             credentials: this.credentials,
+            streamClient: this.streamClient,
             // a new session_id is necessary for the REJOIN strategy.
             // we use the previous session_id if available
             sessionId: performingRejoin ? undefined : previousSessionId,

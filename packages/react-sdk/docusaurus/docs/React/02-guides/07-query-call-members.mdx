@@ -1,0 +1,58 @@
+---
+id: querying-call-members
+title: Querying Call Members
+description: How to query call members
+---
+
+import FilterConditions from '../../../shared/_filter-operators.mdx';
+import CallMemberFilters from '../../../shared/video/_call-member-filters.mdx';
+import CallMemberSort from '../../../shared/video/_call-member-sort-fields.mdx';
+
+When you create or join a call you get a list of call members, however this can return at most 25 members:
+
+```typescript
+// The maximum limit is 25
+// The default limit is 25
+await call.getOrCreate({ members_limit: 25 });
+
+// or
+await call.join({ members_limit: 25 });
+```
+
+To get the complete list of call members the Stream API allows you to query, filter and sort members of a call using a paginated list.
+
+## Examples
+
+Below are a few examples of how to use this API:
+
+```typescript
+const result = await call.queryMembers();
+
+// sorting and pagination
+const queryMembersReq = {
+  sort: [{ field: 'user_id', direction: 1 }],
+  limit: 2,
+};
+const result = await call.queryMembers(queryMembersReq);
+
+// loading the next page
+const result = await call.queryMembers({
+  ...queryMembersReq,
+  next: result.next,
+});
+
+// filtering
+const result = await call.queryMembers({
+  filter_conditions: { role: { $eq: 'admin' } },
+});
+```
+
+## Sort options
+
+<CallMemberSort />
+
+## Filter options
+
+<CallMemberFilters />
+
+<FilterConditions />

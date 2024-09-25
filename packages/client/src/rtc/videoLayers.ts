@@ -1,4 +1,4 @@
-import { ScreenShareSettings } from '../types';
+import { PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
@@ -25,17 +25,17 @@ const defaultBitratePerRid: Record<string, number> = {
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
- * @param preferredBitrate the preferred bitrate for the video track.
+ * @param publishOptions the publish options for the track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
-  preferredBitrate: number | undefined,
+  publishOptions?: PublishOptions,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width: w = 0, height: h = 0 } = settings;
-
+  const { preferredBitrate, bitrateDownscaleFactor = 2 } = publishOptions || {};
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
     w,
@@ -43,6 +43,7 @@ export const findOptimalVideoLayers = (
     preferredBitrate,
   );
   let downscaleFactor = 1;
+  let bitrateFactor = 1;
   ['f', 'h', 'q'].forEach((rid) => {
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
     // when deciding which layer to disable when CPU or bandwidth is constrained.
@@ -53,11 +54,12 @@ export const findOptimalVideoLayers = (
       width: Math.round(w / downscaleFactor),
       height: Math.round(h / downscaleFactor),
       maxBitrate:
-        Math.round(maxBitrate / downscaleFactor) || defaultBitratePerRid[rid],
+        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
       scaleResolutionDownBy: downscaleFactor,
       maxFramerate: 30,
     });
     downscaleFactor *= 2;
+    bitrateFactor *= bitrateDownscaleFactor;
   });
 
   // for simplicity, we start with all layers enabled, then this function
@@ -135,9 +137,10 @@ const withSimulcastConstraints = (
 
 export const findOptimalScreenSharingLayers = (
   videoTrack: MediaStreamTrack,
-  preferences?: ScreenShareSettings,
+  publishOptions?: PublishOptions,
   defaultMaxBitrate = 3000000,
 ): OptimalVideoLayer[] => {
+  const { screenShareSettings: preferences } = publishOptions || {};
   const settings = videoTrack.getSettings();
   return [
     {

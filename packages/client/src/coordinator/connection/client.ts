@@ -359,12 +359,7 @@ export class StreamClient {
       return Promise.resolve();
     }
 
-    this.connectionIdPromise = new Promise<string | undefined>(
-      (resolve, reject) => {
-        this.resolveConnectionId = resolve;
-        this.rejectConnectionId = reject;
-      },
-    );
+    this._setupConnectionIdPromise();
 
     this.clientID = `${this.userID}--${randomId()}`;
     this.wsPromise = this.connect();
@@ -428,12 +423,7 @@ export class StreamClient {
     tokenOrProvider: TokenOrProvider,
   ) => {
     addConnectionEventListeners(this.updateNetworkConnectionStatus);
-    this.connectionIdPromise = new Promise<string | undefined>(
-      (resolve, reject) => {
-        this.resolveConnectionId = resolve;
-        this.rejectConnectionId = reject;
-      },
-    );
+    this._setupConnectionIdPromise();
 
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
@@ -487,6 +477,19 @@ export class StreamClient {
     );
   };
 
+  /**
+   * sets up the this.connectionIdPromise
+   */
+  _setupConnectionIdPromise = async () => {
+    /** a promise that is resolved once connection id is set */
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
+  };
+
   _logApiRequest = (
     type: string,
     url: string,
@@ -534,8 +537,17 @@ export class StreamClient {
       await Promise.all([
         this.tokenManager.tokenReady(),
         this.guestUserCreatePromise,
-        this.connectionIdPromise,
       ]);
+      // we need to wait for presence of connection id before making requests
+      try {
+        await this.connectionIdPromise;
+      } catch (e) {
+        // in case connection id was rejected
+        // reconnection maybe in progress
+        // we can wait for healthy connection to resolve, which rejects when 15s timeout is reached
+        await this.wsConnection?._waitForHealthy();
+        await this.connectionIdPromise;
+      }
     }
     const requestConfig = this._enrichAxiosOptions(options);
     try {
