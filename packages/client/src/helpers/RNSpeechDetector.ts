@@ -8,15 +8,18 @@ export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});
   private pc2 = new RTCPeerConnection({});
   private intervalId: NodeJS.Timeout | undefined;
+  private audioStream: MediaStream | undefined;
 
   /**
    * Starts the speech detection.
    */
   public async start() {
     try {
+      this.cleanupAudioStream();
       const audioStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
+      this.audioStream = audioStream;
 
       this.pc1.addEventListener('icecandidate', async (e) => {
         await this.pc2.addIceCandidate(
@@ -96,5 +99,19 @@ export class RNSpeechDetector {
     return () => {
       clearInterval(this.intervalId);
     };
+  }
+
+  private cleanupAudioStream() {
+    if (!this.audioStream) {
+      return;
+    }
+    this.audioStream.getTracks().forEach((track) => track.stop());
+    if (
+      // @ts-expect-error release() is present in react-native-webrtc
+      typeof this.audioStream.release === 'function'
+    ) {
+      // @ts-expect-error called to dispose the stream in RN
+      this.audioStream.release();
+    }
   }
 }
