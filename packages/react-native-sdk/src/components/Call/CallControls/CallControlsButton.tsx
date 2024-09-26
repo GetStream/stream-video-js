@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { Theme } from '../../../theme/theme';
+import { Theme, defaultTheme } from '../../../theme/theme';
 
 interface CallControlsButtonProps {
   /**
@@ -73,7 +73,7 @@ export const CallControlsButton = (
       height: size || buttonSizes.sm,
       width: size || buttonSizes.sm,
       borderRadius: (size || buttonSizes.sm) / 2,
-      borderColor: colors.content_bg,
+      borderColor: defaultTheme.darkColors.border,
     },
     styleProp?.container ?? null,
     container,

@@ -53,7 +53,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
           return [
             styles.button,
             {
-              backgroundColor: colors.dark_gray,
+              backgroundColor: colors.background,
               opacity: pressed ? 0.2 : 1,
             },
             screenshareOverlay.button,

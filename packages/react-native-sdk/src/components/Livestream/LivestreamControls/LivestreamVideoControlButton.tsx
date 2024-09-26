@@ -34,7 +34,7 @@ export const LivestreamVideoControlButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.dark_gray,
+          backgroundColor: colors.background,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },

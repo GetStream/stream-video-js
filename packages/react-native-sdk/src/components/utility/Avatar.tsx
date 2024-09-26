@@ -88,7 +88,7 @@ export const Avatar = (props: AvatarProps) => {
         <Text
           style={[
             styles.text,
-            { fontSize: size / 2, color: colors.bars },
+            { fontSize: size / 2, color: colors.bar },
             typefaces.heading6,
             avatar.text,
             styleProp?.text,

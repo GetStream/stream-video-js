@@ -47,7 +47,9 @@ export const ToggleCameraFaceButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={direction === 'back' ? colors.overlay_dark : colors.static_white}
+        color={
+          direction === 'back' ? colors.overlay_medium : colors.static_white
+        }
         disabled={optimisticIsMute}
         style={toggleCameraFaceButton}
       >

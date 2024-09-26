@@ -1,33 +1,19 @@
 import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
-import { colors } from './colors';
-import { ColorScheme, FontStyle, FontTypes } from './types';
+import { colors, darkColors } from './colors';
+import { ColorScheme, DimensionType, FontStyle, FontTypes } from './types';
 
 export type Theme = {
   variants: {
-    buttonSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
-    iconSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
-    avatarSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
+    buttonSizes: DimensionType;
+    iconSizes: DimensionType;
+    avatarSizes: DimensionType;
+    fontSizes: DimensionType;
+    spacingSizes: DimensionType;
   };
   typefaces: Record<FontTypes, FontStyle>;
+
   colors: ColorScheme;
+  darkColors: ColorScheme;
   avatar: {
     container: ViewStyle;
     image: ImageStyle;
@@ -304,6 +290,20 @@ export const defaultTheme: Theme = {
       lg: 160,
       xl: 180,
     },
+    spacingSizes: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+    },
+    fontSizes: {
+      xs: 8,
+      sm: 12,
+      md: 16,
+      lg: 20,
+      xl: 24,
+    },
   },
   typefaces: {
     heading4: {
@@ -336,6 +336,7 @@ export const defaultTheme: Theme = {
     },
   },
   colors: colors,
+  darkColors: darkColors,
   avatar: {
     container: {},
     image: {},

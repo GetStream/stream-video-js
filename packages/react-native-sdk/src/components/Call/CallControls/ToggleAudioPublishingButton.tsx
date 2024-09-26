@@ -41,7 +41,7 @@ export const ToggleAudioPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
-        color={!optimisticIsMute ? colors.static_white : colors.overlay_dark}
+        color={!optimisticIsMute ? colors.static_white : colors.overlay_medium}
         style={toggleAudioPublishingButton}
       >
         {!optimisticIsMute ? (

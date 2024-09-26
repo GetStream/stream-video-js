@@ -45,7 +45,7 @@ export const ToggleVideoPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={!optimisticIsMute ? colors.static_white : colors.overlay_dark}
+        color={!optimisticIsMute ? colors.static_white : colors.overlay_medium}
       >
         {!optimisticIsMute ? (
           <Video color={colors.static_black} />

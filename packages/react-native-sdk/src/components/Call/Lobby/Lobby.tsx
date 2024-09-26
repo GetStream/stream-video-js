@@ -174,7 +174,7 @@ const ParticipantStatus = () => {
       style={[
         styles.participantStatusContainer,
         {
-          backgroundColor: colors.static_overlay,
+          backgroundColor: colors.overlay_heavy,
         },
         lobby.participantStatusContainer,
       ]}

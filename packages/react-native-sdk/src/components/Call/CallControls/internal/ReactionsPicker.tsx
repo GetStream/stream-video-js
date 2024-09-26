@@ -12,14 +12,15 @@ import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { ReactionsButtonProps } from '../ReactionsButton';
 import { defaultEmojiReactions } from '../../../../constants';
+import { defaultTheme } from '../../../..';
 
 type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {
   reactionsButtonLayoutRectangle?: LayoutRectangle;
   onRequestedClose: () => void;
 };
 
-const TOP_PADDING = 4;
-const REACTION_MARGIN_BOTTOM = 4;
+const TOP_PADDING = defaultTheme.variants.spacingSizes.xs;
+const REACTION_MARGIN_BOTTOM = defaultTheme.variants.spacingSizes.xs;
 
 export const ReactionsPicker = ({
   supportedReactions = defaultEmojiReactions,
@@ -121,7 +122,7 @@ export const ReactionsPicker = ({
               reactionItemStyle,
               {
                 // temporary background color until we have theming
-                backgroundColor: colors.overlay,
+                backgroundColor: colors.overlay_light,
               },
               reactionsPicker.reactionItem,
             ]}

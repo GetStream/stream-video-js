@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import {
   Avatar,
-  colorPallet,
+  defaultTheme,
   hasAudio,
   hasScreenShare,
   hasVideo,
@@ -212,22 +212,22 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
           <View
             style={[styles.svgContainerStyle, styles.screenShareIconContainer]}
           >
-            <ScreenShare color={colorPallet.dark.info} />
+            <ScreenShare color={defaultTheme.darkColors.info} />
           </View>
         )}
         {isAudioMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <MicOff color={colorPallet.dark.error} />
+            <MicOff color={defaultTheme.darkColors.error} />
           </View>
         )}
         {isVideoMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <VideoSlash color={colorPallet.dark.error} />
+            <VideoSlash color={defaultTheme.darkColors.error} />
           </View>
         )}
         {!participantIsLocalParticipant && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <ArrowRight color={colorPallet.dark.text_high_emphasis} />
+            <ArrowRight color={defaultTheme.darkColors.text_high_emphasis} />
           </View>
         )}
       </View>
@@ -238,12 +238,12 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
 const styles = StyleSheet.create({
   backDropBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colorPallet.dark.overlay,
+    backgroundColor: defaultTheme.colors.overlay_light,
     zIndex: Z_INDEX.IN_BACK,
   },
   content: {
     zIndex: Z_INDEX.IN_FRONT,
-    backgroundColor: colorPallet.dark.bars,
+    backgroundColor: defaultTheme.darkColors.bar,
     borderRadius: 15,
     marginHorizontal: 16,
   },
@@ -259,13 +259,13 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colorPallet.dark.text_high_emphasis,
+    color: defaultTheme.darkColors.text_high_emphasis,
   },
   closePressable: {
     padding: 8,
     borderRadius: 5,
     marginRight: 16,
-    backgroundColor: colorPallet.light.static_grey,
+    backgroundColor: defaultTheme.colors.static_grey,
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -287,14 +287,14 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: colorPallet.dark.primary,
+    backgroundColor: defaultTheme.darkColors.primary,
     borderRadius: 24,
     padding: 8,
     marginHorizontal: 8,
   },
   buttonText: {
     textAlign: 'center',
-    color: colorPallet.dark.static_white,
+    color: defaultTheme.darkColors.static_white,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomColor: colorPallet.dark.borders,
+    borderBottomColor: defaultTheme.darkColors.border,
     borderBottomWidth: 1,
   },
   participantInfo: {
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   name: {
     marginLeft: 8,
-    color: colorPallet.dark.text_high_emphasis,
+    color: defaultTheme.darkColors.text_high_emphasis,
     flexShrink: 1,
     fontSize: 16,
     fontWeight: '500',
@@ -328,6 +328,6 @@ const styles = StyleSheet.create({
   modal: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colorPallet.dark.overlay,
+    backgroundColor: defaultTheme.colors.overlay_light,
   },
 });

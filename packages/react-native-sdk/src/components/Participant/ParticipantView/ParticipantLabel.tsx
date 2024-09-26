@@ -67,7 +67,7 @@ export const ParticipantLabel = ({
       <View
         style={[
           styles.container,
-          { backgroundColor: colors.static_overlay },
+          { backgroundColor: colors.overlay_heavy },
           container,
         ]}
         testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
@@ -103,7 +103,7 @@ export const ParticipantLabel = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.static_overlay },
+        { backgroundColor: colors.overlay_heavy },
         container,
       ]}
     >

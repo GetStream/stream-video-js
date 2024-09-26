@@ -5,20 +5,22 @@ export type ColorScheme = {
   primary: ColorValue;
   error: ColorValue;
   info: ColorValue;
-  static_black: ColorValue;
-  static_white: ColorValue;
-  static_overlay: ColorValue;
-  static_grey: ColorValue;
   disabled: ColorValue;
+
+  background: ColorValue;
+  border: ColorValue;
+  bar: ColorValue;
   text_low_emphasis: ColorValue;
   text_high_emphasis: ColorValue;
-  controls_bg: ColorValue;
-  borders: ColorValue;
-  overlay: ColorValue;
-  overlay_dark: ColorValue;
-  bars: ColorValue;
-  content_bg: ColorValue;
-  dark_gray: ColorValue;
+
+  overlay_light: ColorValue;
+  overlay_medium: ColorValue;
+  overlay_heavy: ColorValue;
+
+  static_black: ColorValue;
+  static_white: ColorValue;
+  static_grey: ColorValue;
+
   // allow any other color
   [key: string]: ColorValue;
 };
@@ -36,6 +38,14 @@ export type FontTypes =
 export type FontStyle = {
   fontSize: TextStyle['fontSize'];
   fontWeight: TextStyle['fontWeight'];
+};
+
+export type DimensionType = {
+  xs: number;
+  sm: number;
+  md: number;
+  lg: number;
+  xl: number;
 };
 
 export type FontsScheme = Record<FontTypes, FontStyle>;
