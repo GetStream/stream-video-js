@@ -1,6 +1,6 @@
 import {
   Avatar,
-  defaultTheme,
+  colorPalette,
   hasAudio,
   hasVideo,
   OwnCapability,
@@ -99,7 +99,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserVideoOption = participantPublishesVideo
     ? {
-        icon: <VideoSlash color={defaultTheme.darkColors.text_high_emphasis} />,
+        icon: <VideoSlash color={colorPalette.dark.text_high_emphasis} />,
         title: 'Mute Video',
         onPressHandler: muteUserVideo,
       }
@@ -107,7 +107,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserAudioOption = participantPublishesAudio
     ? {
-        icon: <MicOff color={defaultTheme.darkColors.text_high_emphasis} />,
+        icon: <MicOff color={colorPalette.dark.text_high_emphasis} />,
         title: 'Mute Audio',
         onPressHandler: muteUserAudio,
       }
@@ -122,42 +122,38 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
       ? [
           {
             icon: (
-              <VideoDisabled
-                color={defaultTheme.darkColors.text_high_emphasis}
-              />
+              <VideoDisabled color={colorPalette.dark.text_high_emphasis} />
             ),
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <MicOff color={defaultTheme.darkColors.text_high_emphasis} />,
+            icon: <MicOff color={colorPalette.dark.text_high_emphasis} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Mic color={defaultTheme.darkColors.text_high_emphasis} />,
+            icon: <Mic color={colorPalette.dark.text_high_emphasis} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Video color={defaultTheme.darkColors.text_high_emphasis} />,
+            icon: <Video color={colorPalette.dark.text_high_emphasis} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: (
-              <ScreenShare color={defaultTheme.darkColors.text_high_emphasis} />
-            ),
+            icon: <ScreenShare color={colorPalette.dark.text_high_emphasis} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
-            icon: <Cross color={defaultTheme.darkColors.text_high_emphasis} />,
+            icon: <Cross color={colorPalette.dark.text_high_emphasis} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -169,7 +165,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasBlockUserCapability
       ? [
           {
-            icon: <Cross color={defaultTheme.darkColors.text_high_emphasis} />,
+            icon: <Cross color={colorPalette.dark.text_high_emphasis} />,
             title: 'Block',
             onPressHandler: blockUser,
           },
@@ -179,7 +175,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
   const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
     ? {
-        icon: <Pin color={defaultTheme.darkColors.text_high_emphasis} />,
+        icon: <Pin color={colorPalette.dark.text_high_emphasis} />,
         title: participant.pin ? 'Unpin' : 'Pin',
         onPressHandler: toggleParticipantPinnedAt,
       }
@@ -209,10 +205,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross
-              color={defaultTheme.darkColors.primary}
-              style={styles.crossIcon}
-            />
+            <Cross color={colorPalette.dark.primary} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -249,7 +242,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    backgroundColor: defaultTheme.darkColors.bar,
+    backgroundColor: colorPalette.dark.bar,
     borderRadius: 15,
     marginHorizontal: 32,
   },
@@ -267,7 +260,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     fontWeight: '500',
-    color: defaultTheme.darkColors.text_high_emphasis,
+    color: colorPalette.dark.text_high_emphasis,
   },
   option: {
     paddingHorizontal: 24,
@@ -281,12 +274,12 @@ const styles = StyleSheet.create({
   },
   title: {
     marginLeft: 16,
-    color: defaultTheme.darkColors.text_high_emphasis,
+    color: colorPalette.dark.text_high_emphasis,
     fontSize: 16,
     fontWeight: '400',
   },
   borderBottom: {
-    borderBottomColor: defaultTheme.darkColors.border,
+    borderBottomColor: colorPalette.dark.border,
     borderBottomWidth: 1,
   },
   crossIcon: {
@@ -296,6 +289,6 @@ const styles = StyleSheet.create({
   closePressable: {
     padding: 8,
     borderRadius: 5,
-    backgroundColor: defaultTheme.colors.static_grey,
+    backgroundColor: colorPalette.light.static_grey,
   },
 });

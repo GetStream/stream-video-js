@@ -10,7 +10,7 @@ import { AuthenticationProgress } from '../../components/AuthenticatingProgress'
 import { Channel as ChannelType } from 'stream-chat';
 import { MeetingStackParamList, StreamChatGenerics } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { defaultTheme, useI18n } from '@stream-io/video-react-native-sdk';
+import { colorPalette, useI18n } from '@stream-io/video-react-native-sdk';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -91,18 +91,18 @@ const styles = StyleSheet.create({
   header: {
     padding: 10,
     flexDirection: 'row',
-    backgroundColor: defaultTheme.darkColors.static_black,
+    backgroundColor: colorPalette.dark.static_black,
   },
-  headerText: { flex: 1, color: defaultTheme.darkColors.static_white },
+  headerText: { flex: 1, color: colorPalette.dark.static_white },
   notedButton: {
-    backgroundColor: defaultTheme.colors.primary,
+    backgroundColor: colorPalette.light.primary,
     justifyContent: 'center',
     padding: 10,
     borderRadius: 10,
     marginLeft: 10,
   },
   notedButtonText: {
-    color: defaultTheme.darkColors.static_white,
+    color: colorPalette.dark.static_white,
     fontWeight: '500',
   },
 });

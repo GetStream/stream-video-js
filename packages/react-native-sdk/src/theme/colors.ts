@@ -6,7 +6,7 @@ const opacityToHex = (opacity: number) => {
     .padStart(2, '0');
 };
 
-const colors = {
+const lightColors = {
   primary: palette.blue500,
   error: palette.red400,
   info: palette.green500,
@@ -48,4 +48,9 @@ const darkColors = {
   static_black: palette.grey950,
 };
 
-export { colors, darkColors };
+const colorPalette = {
+  light: lightColors,
+  dark: darkColors,
+};
+
+export { colorPalette, lightColors, darkColors };

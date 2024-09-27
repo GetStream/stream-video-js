@@ -1,5 +1,5 @@
 import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
-import { colors, darkColors } from './colors';
+import { lightColors } from './colors';
 import { ColorScheme, DimensionType, FontStyle, FontTypes } from './types';
 
 export type Theme = {
@@ -13,7 +13,6 @@ export type Theme = {
   typefaces: Record<FontTypes, FontStyle>;
 
   colors: ColorScheme;
-  darkColors: ColorScheme;
   avatar: {
     container: ViewStyle;
     image: ImageStyle;
@@ -335,8 +334,7 @@ export const defaultTheme: Theme = {
       fontWeight: '400',
     },
   },
-  colors: colors,
-  darkColors: darkColors,
+  colors: lightColors,
   avatar: {
     container: {},
     image: {},
