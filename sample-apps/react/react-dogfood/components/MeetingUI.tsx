@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
+import { isFirefox } from 'mobile-device-detect';
 import Gleap from 'gleap';
 import {
   CallingState,
@@ -59,7 +60,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const prontoDefaultCodec = isProntoEnvironment ? 'h264' : 'vp8';
+        const prontoDefaultCodec =
+          isProntoEnvironment && !isFirefox ? 'h264' : 'vp8';
         const preferredCodec = videoCodecOverride || prontoDefaultCodec;
 
         const videoSettings = call.state.settings?.video;
