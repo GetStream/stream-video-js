@@ -123,40 +123,23 @@ there are few more states that you should handle.
 To understand these values better, here is a hypothetical example of how these values can be mapped:
 
 ```tsx
-import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { CallingState, useCallStateHooks, CallContent } from '@stream-io/video-react-native-sdk';
+
+const call = useCall();
+const isCallCreatedByMe = call?.isCreatedByMe;
 
 const { useCallCallingState } = useCallStateHooks();
 const callingState = useCallCallingState();
 
 switch (callingState) {
-  case CallingState.UNKNOWN:
-  case CallingState.IDLE:
-    return <LobbyScreen />;
-
   case CallingState.RINGING:
-    return <IncomingCallScreen />;
-
-  case CallingState.JOINING:
-    return <LoadingCallScreen />;
-
-  case CallingState.JOINED:
-    return <ActiveCallScreen />;
-
+    return isCallCreatedByMe
+      ? <OutgoingCallFullScreenComponent /> : <IncomingCallFullScreenComponent />
   case CallingState.LEFT:
-    return <HaveANiceDayScreen />;
-
-  case CallingState.RECONNECTING:
-  case CallingState.MIGRATING:
-    return <RestoringConnectionScreen />;
-
-  case CallingState.RECONNECTING_FAILED:
-    return <GeneralConnectionErrorScreen />;
-
-  case CallingState.OFFLINE:
-    return <NoConnectionScreen />;
-
+    return <CallLeftIndicatorFullScreenComponent />
+  case CallingState.IDLE:
+    return <CallPreparingFullScreenComponent />
   default:
-    const exhaustiveCheck: never = callingState;
-    throw new Error(`Unknown calling state: ${exhaustiveCheck}`);
+    return <CallContent />
 }
 ```
