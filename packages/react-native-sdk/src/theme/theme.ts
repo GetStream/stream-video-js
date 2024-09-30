@@ -1,6 +1,7 @@
 import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
 import { lightColors } from './colors';
 import { ColorScheme, DimensionType, FontStyle, FontTypes } from './types';
+import { ColorValue } from 'react-native';
 
 export type Theme = {
   variants: {
@@ -11,7 +12,17 @@ export type Theme = {
     spacingSizes: DimensionType;
   };
   typefaces: Record<FontTypes, FontStyle>;
-
+  defaults: {
+    color: ColorValue;
+    backgroundColor: ColorValue;
+    margin: number;
+    padding: number;
+    fontSize: number;
+    fontWeight: TextStyle['fontWeight'];
+    borderRadius: ViewStyle['borderRadius'];
+    borderColor: ColorValue;
+    borderWidth: ViewStyle['borderWidth'];
+  };
   colors: ColorScheme;
   avatar: {
     container: ViewStyle;
@@ -264,6 +275,10 @@ export type Theme = {
     buttonIcon: ViewStyle;
     buttonText: TextStyle;
   };
+  getValue: (component: string, prop: string) => ColorValue | string;
+
+  // Index signature for additional dynamic properties
+  [component: string]: any;
 };
 
 export const defaultTheme: Theme = {
@@ -333,6 +348,17 @@ export const defaultTheme: Theme = {
       fontSize: 10,
       fontWeight: '400',
     },
+  },
+  defaults: {
+    color: lightColors.primary,
+    backgroundColor: lightColors.background,
+    margin: 10,
+    padding: 10,
+    fontSize: 16,
+    fontWeight: '500',
+    borderRadius: 10,
+    borderColor: lightColors.primary,
+    borderWidth: 1,
   },
   colors: lightColors,
   avatar: {
@@ -583,5 +609,33 @@ export const defaultTheme: Theme = {
     button: {},
     buttonIcon: {},
     buttonText: {},
+  },
+  getValue: function (component: string, prop: string) {
+    if (this[component] && this[component][prop]) {
+      return this[component][prop];
+    }
+
+    switch (prop) {
+      case 'color':
+        return this.defaults.color;
+      case 'backgroundColor':
+        return this.defaults.backgroundColor;
+      case 'margin':
+        return this.defaults.margin;
+      case 'padding':
+        return this.defaults.padding;
+      case 'fontSize':
+        return this.defaults.fontSize;
+      case 'fontWeight':
+        return this.defaults.fontWeight;
+      case 'borderRadius':
+        return this.defaults.borderRadius;
+      case 'borderColor':
+        return this.defaults.borderColor;
+      case 'borderWidth':
+        return this.defaults.borderWidth;
+      default:
+        throw new Error(`Invalid component or prop: ${component}.${prop}`);
+    }
   },
 };
