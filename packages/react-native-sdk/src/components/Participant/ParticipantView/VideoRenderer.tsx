@@ -188,10 +188,10 @@ export const VideoRenderer = ({
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
     const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
-
     call.state.updateParticipantTracks(trackType, {
       [sessionId]: { dimension },
     });
+    call.dynascaleManager.applyTrackSubscriptions();
 
     if (dimension) {
       subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
@@ -245,6 +245,7 @@ export const VideoRenderer = ({
         dimension,
       },
     });
+    call.dynascaleManager.applyTrackSubscriptions();
     subscribedVideoLayoutRef.current = dimension;
     pendingVideoLayoutRef.current = undefined;
   };
