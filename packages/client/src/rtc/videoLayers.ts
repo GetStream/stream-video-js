@@ -4,6 +4,8 @@ import { TargetResolutionResponse } from '../gen/shims';
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
   height: number;
+  // NOTE OL: should be part of RTCRtpEncodingParameters
+  scalabilityMode?: string;
 };
 
 const DEFAULT_BITRATE = 1250000;
@@ -34,7 +36,7 @@ export const findOptimalVideoLayers = (
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
-  const { width: w = 0, height: h = 0 } = settings;
+  const { width = 0, height = 0 } = settings;
   const {
     preferredCodec,
     scalabilityMode,
@@ -43,35 +45,36 @@ export const findOptimalVideoLayers = (
   } = publishOptions || {};
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
-    w,
-    h,
+    width,
+    height,
     preferredBitrate,
   );
   let downscaleFactor = 1;
   let bitrateFactor = 1;
-  (preferredCodec === 'vp9' || preferredCodec === 'av1'
-    ? ['q']
-    : ['f', 'h', 'q']
-  ).forEach((rid) => {
-    // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
-    // when deciding which layer to disable when CPU or bandwidth is constrained.
-    // Encodings should be ordered in increasing spatial resolution order.
-    optimalVideoLayers.unshift({
+  const isSvcCodec = preferredCodec === 'vp9' || preferredCodec === 'av1';
+  const layers = isSvcCodec ? ['q'] : ['f', 'h', 'q'];
+  for (const rid of layers) {
+    const layer: OptimalVideoLayer = {
       active: true,
       rid,
-      width: Math.round(w / downscaleFactor),
-      height: Math.round(h / downscaleFactor),
+      width: Math.round(width / downscaleFactor),
+      height: Math.round(height / downscaleFactor),
       maxBitrate:
         Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
       scaleResolutionDownBy: downscaleFactor,
       maxFramerate: 30,
-      ...(preferredCodec === 'vp9' || preferredCodec === 'av1'
-        ? { scalabilityMode: scalabilityMode || 'L3T3' }
-        : null),
-    });
+    };
+    if (isSvcCodec) {
+      layer.scalabilityMode = scalabilityMode || 'L3T3_KEY';
+    }
+
+    // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
+    // when deciding which layer to disable when CPU or bandwidth is constrained.
+    // Encodings should be ordered in increasing spatial resolution order.
+    optimalVideoLayers.unshift(layer);
     downscaleFactor *= 2;
     bitrateFactor *= bitrateDownscaleFactor;
-  });
+  }
 
   // for simplicity, we start with all layers enabled, then this function
   // will clear/reassign the layers that are not needed
