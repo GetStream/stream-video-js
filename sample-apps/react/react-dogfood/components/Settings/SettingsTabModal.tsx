@@ -149,6 +149,10 @@ export const SettingsTabModalMenu = (props: {
           title={t('Select a Speaker')}
         />
         <IncomingVideoSettingsDropdown title={t('Incoming video quality')} />
+        <div className="rd__tab-panel__note">
+          Actual incoming video quality depends on a number of factors, such as
+          the quality of the source video, and network conditions.
+        </div>
       </TabWrapper>
       <TabWrapper icon="video-effects" label="Effects" inMeeting>
         <VideoEffectsSettings />
