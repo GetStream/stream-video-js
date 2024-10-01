@@ -1,25 +1,26 @@
 import { ColorValue, TextStyle } from 'react-native';
 
-// TODO: check if this is used somewhere and remove if not
 export type ColorScheme = {
   primary: ColorValue;
   error: ColorValue;
   info: ColorValue;
   disabled: ColorValue;
 
-  background: ColorValue;
-  border: ColorValue;
-  bar: ColorValue;
+  base1: ColorValue;
+  base2: ColorValue;
+  base3: ColorValue;
+  base4: ColorValue;
+
+  background1: ColorValue;
+  background2: ColorValue;
+  background3: ColorValue;
+  background4: ColorValue;
+  background5: ColorValue;
+  background6: ColorValue;
+
   text_low_emphasis: ColorValue;
+  text_medium_emphasis: ColorValue;
   text_high_emphasis: ColorValue;
-
-  overlay_light: ColorValue;
-  overlay_medium: ColorValue;
-  overlay_heavy: ColorValue;
-
-  static_black: ColorValue;
-  static_white: ColorValue;
-  static_grey: ColorValue;
 
   // allow any other color
   [key: string]: ColorValue;

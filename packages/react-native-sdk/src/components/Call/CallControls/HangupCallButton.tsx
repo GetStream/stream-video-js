@@ -72,7 +72,7 @@ export const HangUpCallButton = ({
       size={size}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
-      <PhoneDown color={colors.static_white} />
+      <PhoneDown color={colors.base1} />
     </CallControlsButton>
   );
 };

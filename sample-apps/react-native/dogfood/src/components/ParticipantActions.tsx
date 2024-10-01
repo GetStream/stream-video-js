@@ -1,6 +1,5 @@
 import {
   Avatar,
-  colorPalette,
   hasAudio,
   hasVideo,
   OwnCapability,
@@ -18,8 +17,9 @@ import { Video } from '../assets/Video';
 import { VideoDisabled } from '../assets/VideoDisabled';
 import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { generateParticipantTitle } from '../utils';
+import { Theme, useTheme } from 'stream-chat-react-native';
 
 type CallParticipantOptionType = {
   title: string;
@@ -37,6 +37,10 @@ type ParticipantActionsType = {
 export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
+  const {
+    theme: { colors },
+  } = useTheme();
+  const styles = useStyles();
   const { t } = useI18n();
   const { useHasPermissions } = useCallStateHooks();
   const userHasMuteUsersCapability = useHasPermissions(
@@ -99,7 +103,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserVideoOption = participantPublishesVideo
     ? {
-        icon: <VideoSlash color={colorPalette.dark.text_high_emphasis} />,
+        icon: <VideoSlash color={colors.base1} />,
         title: 'Mute Video',
         onPressHandler: muteUserVideo,
       }
@@ -107,7 +111,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserAudioOption = participantPublishesAudio
     ? {
-        icon: <MicOff color={colorPalette.dark.text_high_emphasis} />,
+        icon: <MicOff color={colors.base1} />,
         title: 'Mute Audio',
         onPressHandler: muteUserAudio,
       }
@@ -121,39 +125,37 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasUpdateCallPermissionsCapability
       ? [
           {
-            icon: (
-              <VideoDisabled color={colorPalette.dark.text_high_emphasis} />
-            ),
+            icon: <VideoDisabled color={colors.base1} />,
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <MicOff color={colorPalette.dark.text_high_emphasis} />,
+            icon: <MicOff color={colors.base1} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Mic color={colorPalette.dark.text_high_emphasis} />,
+            icon: <Mic color={colors.base1} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Video color={colorPalette.dark.text_high_emphasis} />,
+            icon: <Video color={colors.base1} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <ScreenShare color={colorPalette.dark.text_high_emphasis} />,
+            icon: <ScreenShare color={colors.base1} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
-            icon: <Cross color={colorPalette.dark.text_high_emphasis} />,
+            icon: <Cross color={colors.base1} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -165,7 +167,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasBlockUserCapability
       ? [
           {
-            icon: <Cross color={colorPalette.dark.text_high_emphasis} />,
+            icon: <Cross color={colors.base1} />,
             title: 'Block',
             onPressHandler: blockUser,
           },
@@ -175,7 +177,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
   const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
     ? {
-        icon: <Pin color={colorPalette.dark.text_high_emphasis} />,
+        icon: <Pin color={colors.base1} />,
         title: participant.pin ? 'Unpin' : 'Pin',
         onPressHandler: toggleParticipantPinnedAt,
       }
@@ -205,7 +207,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross color={colorPalette.dark.primary} style={styles.crossIcon} />
+            <Cross color={colors.primary} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -236,59 +238,66 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   );
 };
 
-const styles = StyleSheet.create({
-  outerContainer: {
-    justifyContent: 'center',
-    flex: 1,
-  },
-  modalContainer: {
-    backgroundColor: colorPalette.dark.bar,
-    borderRadius: 15,
-    marginHorizontal: 32,
-  },
-  participantInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 12,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  name: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: '500',
-    color: colorPalette.dark.text_high_emphasis,
-  },
-  option: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    height: 20,
-    width: 20,
-  },
-  title: {
-    marginLeft: 16,
-    color: colorPalette.dark.text_high_emphasis,
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  borderBottom: {
-    borderBottomColor: colorPalette.dark.border,
-    borderBottomWidth: 1,
-  },
-  crossIcon: {
-    height: 15,
-    width: 15,
-  },
-  closePressable: {
-    padding: 8,
-    borderRadius: 5,
-    backgroundColor: colorPalette.light.static_grey,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        outerContainer: {
+          justifyContent: 'center',
+          flex: 1,
+        },
+        modalContainer: {
+          backgroundColor: theme.colors.background5,
+          borderRadius: 15,
+          marginHorizontal: 32,
+        },
+        participantInfo: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          padding: 12,
+        },
+        userInfo: {
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        name: {
+          marginLeft: 8,
+          fontSize: 16,
+          fontWeight: '500',
+          color: theme.colors.base1,
+        },
+        option: {
+          paddingHorizontal: 24,
+          paddingVertical: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        iconContainer: {
+          height: 20,
+          width: 20,
+        },
+        title: {
+          marginLeft: 16,
+          color: theme.colors.base1,
+          fontSize: 16,
+          fontWeight: '400',
+        },
+        borderBottom: {
+          borderBottomColor: theme.colors.background1,
+          borderBottomWidth: 1,
+        },
+        crossIcon: {
+          height: 15,
+          width: 15,
+        },
+        closePressable: {
+          padding: 8,
+          borderRadius: 5,
+          backgroundColor: theme.colors.base3,
+        },
+      }),
+    [theme],
+  );
+};

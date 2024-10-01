@@ -27,7 +27,7 @@ export const LiveIndicator = ({}: LiveIndicatorProps) => {
       <Text
         style={[
           styles.label,
-          { color: colors.static_white },
+          { color: colors.base1 },
           typefaces.subtitleBold,
           liveIndicator.label,
         ]}

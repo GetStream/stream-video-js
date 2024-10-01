@@ -30,7 +30,7 @@ export const ParticipantVideoFallback = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.static_grey,
+          backgroundColor: colors.base3,
         },
         participantVideoFallback.container,
       ]}
@@ -39,7 +39,7 @@ export const ParticipantVideoFallback = ({
         <Text
           style={[
             {
-              color: colors.static_white,
+              color: colors.base1,
             },
             typefaces.bodyBold,
             participantVideoFallback.label,

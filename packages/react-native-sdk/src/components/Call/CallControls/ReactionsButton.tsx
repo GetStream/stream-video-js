@@ -71,7 +71,7 @@ export const ReactionsButton = ({
           onPress={reactionsButtonHandler}
           onLayout={onReactionsButtonLayout}
         >
-          <Reaction color={colors.static_black} />
+          <Reaction color={colors.base4} />
         </CallControlsButton>
       </Restricted>
       {showReactionsPicker && (

@@ -52,9 +52,9 @@ export const LivestreamVideoControlButton = () => {
         ]}
       >
         {!optimisticIsMute ? (
-          <Video color={colors.static_white} />
+          <Video color={colors.base1} />
         ) : (
-          <VideoSlash color={colors.static_white} />
+          <VideoSlash color={colors.base1} />
         )}
       </View>
     </Pressable>

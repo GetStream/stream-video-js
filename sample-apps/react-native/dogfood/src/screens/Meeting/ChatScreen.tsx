@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import {
   Channel,
@@ -10,7 +10,7 @@ import { AuthenticationProgress } from '../../components/AuthenticatingProgress'
 import { Channel as ChannelType } from 'stream-chat';
 import { MeetingStackParamList, StreamChatGenerics } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colorPalette, useI18n } from '@stream-io/video-react-native-sdk';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -22,6 +22,7 @@ type ChatScreenProps = NativeStackScreenProps<
 >;
 
 const ChannelHeader = () => {
+  const styles = useStyles();
   const chatLabelNoted = useAppGlobalStoreValue(
     (store) => store.chatLabelNoted,
   );
@@ -87,22 +88,29 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
-    padding: 10,
-    flexDirection: 'row',
-    backgroundColor: colorPalette.dark.static_black,
-  },
-  headerText: { flex: 1, color: colorPalette.dark.static_white },
-  notedButton: {
-    backgroundColor: colorPalette.light.primary,
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 10,
-    marginLeft: 10,
-  },
-  notedButtonText: {
-    color: colorPalette.dark.static_white,
-    fontWeight: '500',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        header: {
+          padding: 10,
+          flexDirection: 'row',
+          backgroundColor: theme.colors.base4,
+        },
+        headerText: { flex: 1, color: theme.colors.base1 },
+        notedButton: {
+          backgroundColor: theme.colors.primary,
+          justifyContent: 'center',
+          padding: 10,
+          borderRadius: 10,
+          marginLeft: 10,
+        },
+        notedButtonText: {
+          color: theme.colors.base1,
+          fontWeight: '500',
+        },
+      }),
+    [theme],
+  );
+};

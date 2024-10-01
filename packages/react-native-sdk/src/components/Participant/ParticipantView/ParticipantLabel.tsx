@@ -67,7 +67,7 @@ export const ParticipantLabel = ({
       <View
         style={[
           styles.container,
-          { backgroundColor: colors.overlay_heavy },
+          { backgroundColor: colors.background6 },
           container,
         ]}
         testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
@@ -82,12 +82,12 @@ export const ParticipantLabel = ({
             screenShareIconContainer,
           ]}
         >
-          <ScreenShareIndicator color={colors.static_white} />
+          <ScreenShareIndicator color={colors.base1} />
         </View>
         <Text
           style={[
             styles.userNameLabel,
-            { color: colors.static_white },
+            { color: colors.base1 },
             typefaces.caption,
             userNameLabel,
           ]}
@@ -103,14 +103,14 @@ export const ParticipantLabel = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.overlay_heavy },
+        { backgroundColor: colors.background4 },
         container,
       ]}
     >
       <Text
         style={[
           styles.userNameLabel,
-          { color: colors.static_white },
+          { color: colors.base1 },
           typefaces.caption,
           userNameLabel,
         ]}
@@ -158,7 +158,7 @@ export const ParticipantLabel = ({
           ]}
           onPress={unPinParticipantHandler}
         >
-          <PinVertical color={colors.static_white} />
+          <PinVertical color={colors.base1} />
         </Pressable>
       )}
     </View>

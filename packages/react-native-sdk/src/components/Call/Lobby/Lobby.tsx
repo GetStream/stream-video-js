@@ -90,7 +90,7 @@ export const Lobby = ({
       style={[
         styles.container,
         landscapeStyles,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.base3 },
         lobby.container,
       ]}
     >
@@ -99,7 +99,7 @@ export const Lobby = ({
           <Text
             style={[
               styles.heading,
-              { color: colors.static_white },
+              { color: colors.base1 },
               typefaces.heading4,
               lobby.heading,
             ]}
@@ -174,7 +174,7 @@ const ParticipantStatus = () => {
       style={[
         styles.participantStatusContainer,
         {
-          backgroundColor: colors.overlay_heavy,
+          backgroundColor: colors.background6,
         },
         lobby.participantStatusContainer,
       ]}
@@ -182,7 +182,7 @@ const ParticipantStatus = () => {
       <Text
         style={[
           styles.userNameLabel,
-          { color: colors.static_white },
+          { color: colors.base1 },
           typefaces.caption,
           lobby.userNameLabel,
         ]}

@@ -1,17 +1,18 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Avatar,
-  colorPalette,
   hasAudio,
   hasScreenShare,
   hasVideo,
   OwnCapability,
   Restricted,
   StreamVideoParticipant,
+  Theme,
   useCall,
   useCallStateHooks,
   useConnectedUser,
   useI18n,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import {
   Alert,
@@ -57,6 +58,7 @@ export const ParticipantsInfoList = ({
   isCallParticipantsInfoVisible,
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
+  const styles = useStyles();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useI18n();
@@ -178,6 +180,10 @@ type ParticipantInfoType = {
 };
 
 const ParticipantInfoItem = (props: ParticipantInfoType) => {
+  const {
+    theme: { colors },
+  } = useTheme();
+  const styles = useStyles();
   const { participant, setSelectedParticipant } = props;
   const connectedUser = useConnectedUser();
   const participantIsLocalParticipant =
@@ -212,22 +218,22 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
           <View
             style={[styles.svgContainerStyle, styles.screenShareIconContainer]}
           >
-            <ScreenShare color={colorPalette.dark.info} />
+            <ScreenShare color={colors.info} />
           </View>
         )}
         {isAudioMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <MicOff color={colorPalette.dark.error} />
+            <MicOff color={colors.error} />
           </View>
         )}
         {isVideoMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <VideoSlash color={colorPalette.dark.error} />
+            <VideoSlash color={colors.error} />
           </View>
         )}
         {!participantIsLocalParticipant && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <ArrowRight color={colorPalette.dark.text_high_emphasis} />
+            <ArrowRight color={colors.base1} />
           </View>
         )}
       </View>
@@ -235,99 +241,106 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
   );
 };
 
-const styles = StyleSheet.create({
-  backDropBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colorPalette.light.overlay_light,
-    zIndex: Z_INDEX.IN_BACK,
-  },
-  content: {
-    zIndex: Z_INDEX.IN_FRONT,
-    backgroundColor: colorPalette.dark.bar,
-    borderRadius: 15,
-    marginHorizontal: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  leftHeaderElement: {
-    marginLeft: 16,
-  },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colorPalette.dark.text_high_emphasis,
-  },
-  closePressable: {
-    padding: 8,
-    borderRadius: 5,
-    marginRight: 16,
-    backgroundColor: colorPalette.light.static_grey,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-  },
-  screenShareIconContainer: {
-    height: 25,
-    width: 25,
-  },
-  genericIconContainer: {
-    height: 20,
-    width: 20,
-  },
-  crossIcon: {
-    height: 15,
-    width: 15,
-  },
-  button: {
-    flex: 1,
-    backgroundColor: colorPalette.dark.primary,
-    borderRadius: 24,
-    padding: 8,
-    marginHorizontal: 8,
-  },
-  buttonText: {
-    textAlign: 'center',
-    color: colorPalette.dark.static_white,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  participant: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomColor: colorPalette.dark.border,
-    borderBottomWidth: 1,
-  },
-  participantInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 1,
-  },
-  name: {
-    marginLeft: 8,
-    color: colorPalette.dark.text_high_emphasis,
-    flexShrink: 1,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  icons: {
-    flexDirection: 'row',
-  },
-  svgContainerStyle: {
-    marginLeft: 8,
-  },
-  modal: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colorPalette.light.overlay_light,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        backDropBackground: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: theme.colors.background3,
+          zIndex: Z_INDEX.IN_BACK,
+        },
+        content: {
+          zIndex: Z_INDEX.IN_FRONT,
+          backgroundColor: theme.colors.background5,
+          borderRadius: 15,
+          marginHorizontal: 16,
+        },
+        header: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 12,
+        },
+        leftHeaderElement: {
+          marginLeft: 16,
+        },
+        headerText: {
+          fontSize: 16,
+          fontWeight: '600',
+          color: theme.base1,
+        },
+        closePressable: {
+          padding: 8,
+          borderRadius: 5,
+          marginRight: 16,
+          backgroundColor: theme.base3,
+        },
+        buttonGroup: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingVertical: 12,
+          paddingHorizontal: 4,
+        },
+        screenShareIconContainer: {
+          height: 25,
+          width: 25,
+        },
+        genericIconContainer: {
+          height: 20,
+          width: 20,
+        },
+        crossIcon: {
+          height: 15,
+          width: 15,
+        },
+        button: {
+          flex: 1,
+          backgroundColor: theme.colors.primary,
+          borderRadius: 24,
+          padding: 8,
+          marginHorizontal: 8,
+        },
+        buttonText: {
+          textAlign: 'center',
+          color: theme.colors.base1,
+          fontSize: 16,
+          fontWeight: '500',
+        },
+        participant: {
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottomColor: theme.colors.background1,
+          borderBottomWidth: 1,
+        },
+        participantInfo: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          flexShrink: 1,
+        },
+        name: {
+          marginLeft: 8,
+          color: theme.colors.base1,
+          flexShrink: 1,
+          fontSize: 16,
+          fontWeight: '500',
+        },
+        icons: {
+          flexDirection: 'row',
+        },
+        svgContainerStyle: {
+          marginLeft: 8,
+        },
+        modal: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background3,
+        },
+      }),
+    [theme],
+  );
+};

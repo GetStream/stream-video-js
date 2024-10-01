@@ -36,7 +36,7 @@ export const ViewerLivestreamControls = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.overlay_heavy,
+          backgroundColor: colors.background6,
         },
         viewerLivestreamControls.container,
       ]}

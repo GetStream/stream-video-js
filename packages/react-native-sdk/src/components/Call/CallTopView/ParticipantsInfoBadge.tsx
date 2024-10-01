@@ -70,7 +70,7 @@ export const ParticipantsInfoBadge = ({
           participantInfoBadge.participantsIconContainer,
         ]}
       >
-        <Participants color={colors.static_white} />
+        <Participants color={colors.base1} />
       </View>
       <View
         style={[
@@ -86,7 +86,7 @@ export const ParticipantsInfoBadge = ({
           style={[
             styles.participantCountText,
             {
-              color: colors.static_white,
+              color: colors.base1,
             },
             typefaces.subtitle,
             participantInfoBadge.participantsCountText,

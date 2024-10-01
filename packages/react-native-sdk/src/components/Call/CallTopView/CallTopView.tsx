@@ -91,7 +91,7 @@ export const CallTopView = ({
               ]}
               onPress={onBackPressed}
             >
-              <Back color={colors.static_white} />
+              <Back color={colors.base1} />
             </Pressable>
           )}
         </View>
@@ -99,7 +99,7 @@ export const CallTopView = ({
           {title ? (
             <Text
               style={[
-                { color: colors.static_white },
+                { color: colors.base1 },
                 typefaces.subtitleBold,
                 callTopView.title,
               ]}
@@ -111,7 +111,7 @@ export const CallTopView = ({
             isCallReconnecting && (
               <Text
                 style={[
-                  { color: colors.static_white },
+                  { color: colors.base1 },
                   typefaces.subtitleBold,
                   callTopView.title,
                 ]}

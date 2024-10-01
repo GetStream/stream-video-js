@@ -1,4 +1,5 @@
 import { palette } from './constants';
+import { ColorScheme } from './types';
 
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
@@ -6,51 +7,31 @@ const opacityToHex = (opacity: number) => {
     .padStart(2, '0');
 };
 
-const lightColors = {
+const colors: ColorScheme = {
   primary: palette.blue500,
   error: palette.red400,
   info: palette.green500,
   disabled: palette.grey600,
 
-  background: palette.grey800,
-  border: palette.grey300,
-  bar: palette.grey50,
-  text_low_emphasis: palette.grey500,
-  text_high_emphasis: palette.grey950,
+  base1: palette.grey50,
+  base2: palette.grey300,
+  base3: palette.grey700,
+  base4: palette.grey950,
 
-  overlay_light: palette.grey950 + opacityToHex(0.4),
-  overlay_medium: palette.grey950 + opacityToHex(0.6),
-  overlay_heavy: palette.grey950 + opacityToHex(0.85),
+  background1: palette.grey950 + opacityToHex(0.05), // old dark.conent_bg
+  background2: palette.grey800,
+  background3: palette.grey950 + opacityToHex(0.4), // overlay_light
+  background4: palette.grey950 + opacityToHex(0.6), // overlay_medium
+  background5: palette.grey900,
+  background6: palette.grey950 + opacityToHex(0.85), // overlay_heavy
 
-  static_white: palette.grey50,
-  static_grey: palette.grey700,
-  static_black: palette.grey950,
-};
-
-const darkColors = {
-  primary: palette.blue500,
-  error: palette.red400,
-  info: palette.green500,
-  disabled: palette.grey600,
-
-  background: palette.grey800,
-  border: palette.grey950 + opacityToHex(0.05),
-  bar: palette.grey900,
-  text_low_emphasis: palette.grey500,
-  text_high_emphasis: palette.grey50,
-
-  overlay_light: palette.grey950 + opacityToHex(0.4),
-  overlay_medium: palette.grey950 + opacityToHex(0.6),
-  overlay_heavy: palette.grey950 + opacityToHex(0.85),
-
-  static_white: palette.grey50,
-  static_grey: palette.grey700,
-  static_black: palette.grey950,
+  text_low_emphasis: palette.grey50,
+  text_medium_emphasis: palette.grey500,
+  text_high_emphasis: palette.grey950 + opacityToHex(0.5),
 };
 
 const colorPalette = {
-  light: lightColors,
-  dark: darkColors,
+  colors,
 };
 
-export { colorPalette, lightColors, darkColors };
+export { colorPalette, colors };

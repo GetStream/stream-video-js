@@ -78,7 +78,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
       ]}
     >
       <View style={{ height: iconSizes.md, width: iconSizes.md }}>
-        <VideoSlash color={colors.static_white} />
+        <VideoSlash color={colors.base1} />
       </View>
     </View>
   );
@@ -171,7 +171,7 @@ export const FloatingParticipantView = ({
                   styles.participantViewContainer,
                   participantViewStyle,
                   {
-                    shadowColor: colors.static_black,
+                    shadowColor: colors.base4,
                   },
                   floatingParticipantsView.participantViewContainer,
                 ]}
