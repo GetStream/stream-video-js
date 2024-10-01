@@ -27,7 +27,7 @@ npm install @stream-io/audio-filters-web
 
 ## Integration
 
-In the following code snippet, we show how to check if platform is supported, initialize the plugin and enable/disable it.
+In the following code snippet, we show how to check if а platform is supported, initialize the plugin, and enable/disable it.
 
 ```typescript
 import { NoiseCancellation } from '@stream-io/audio-filters-web';
@@ -60,4 +60,20 @@ noiseCancellation.enable(); // will enable NC (requires the plugin to be registe
 const off = noiseCancellation.on('change', (v) => {
   console.log(`Noise Cancellation is ${v ? 'enabled' : 'disabled'}`);
 });
+```
+
+In action, the most straight-forward integration should look like this:
+
+```typescript
+import { NoiseCancellation } from '@stream-io/audio-filters-web';
+
+const call = client.call(type, id);
+await call.get(); // or call.getOrCreate()
+
+const noiseCancellation = new NoiseCancellation();
+const isSupported = await noiseCancellation.isSupported();
+if (isSupported) {
+  await noiseCancellation.init();
+  await call.microphone.enableNoiseCancellation(noiseCancellation);
+}
 ```
