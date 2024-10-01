@@ -2,6 +2,7 @@ import {
   CompositeButton,
   DropDownSelect,
   DropDownSelectOption,
+  Icon,
   useCall,
   useCallStateHooks,
   useI18n,
@@ -34,6 +35,7 @@ export const IncomingVideoSettingsButton = () => {
       menuPlacement="top"
       disabled
     >
+      <Icon icon="quality" />
       {t(`quality/short/${currentSetting}`)}
     </CompositeButton>
   );
@@ -50,6 +52,7 @@ export const IncomingVideoSettingsDropdown = ({ title }: { title: string }) => {
         {title}
       </div>
       <DropDownSelect
+        icon="quality"
         defaultSelectedIndex={currentIndex}
         defaultSelectedLabel={t(`quality/long/${currentSetting}`)}
         handleSelect={onChange}
@@ -58,7 +61,6 @@ export const IncomingVideoSettingsDropdown = ({ title }: { title: string }) => {
           return (
             <DropDownSelectOption
               key={value}
-              icon=""
               label={t(`quality/long/${value}`)}
               selected={value === currentSetting}
             />
