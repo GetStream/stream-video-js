@@ -135,6 +135,21 @@ describe('videoLayers', () => {
     expect(layers[2].rid).toBe('f');
   });
 
+  it('should announce only one layer for SVC codecs', () => {
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({
+      width: 1280,
+      height: 720,
+    });
+    const layers = findOptimalVideoLayers(track, undefined, {
+      preferredCodec: 'vp9',
+      scalabilityMode: 'L3T3',
+    });
+    expect(layers.length).toBe(1);
+    expect(layers[0].rid).toBe('q');
+    expect(layers[0].scalabilityMode).toBe('L3T3');
+  });
+
   describe('getComputedMaxBitrate', () => {
     it('should scale target bitrate down if resolution is smaller than target resolution', () => {
       const targetResolution = { width: 1920, height: 1080, bitrate: 3000000 };
