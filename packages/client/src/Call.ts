@@ -2278,7 +2278,8 @@ export class Call {
   /**
    * Specify preference for incoming video resolution. The preference will
    * be matched as close as possible, but actual resolution will depend
-   * on the video source quality and client network conditions.
+   * on the video source quality and client network conditions. Will enable
+   * incoming video, if previously disabled.
    *
    * @param resolution preferred resolution, or `undefined` to clear preference
    * @param sessionIds optionally specify session ids of the participants this
@@ -2301,7 +2302,8 @@ export class Call {
   };
 
   /**
-   * Enables or disables incoming video from other call participants.
+   * Enables or disables incoming video from all remote call participants,
+   * and removes any preference for preferred resolution.
    */
   setIncomingVideoEnabled = (enabled: boolean) => {
     this.dynascaleManager.setVideoTrackSubscriptionOverrides(

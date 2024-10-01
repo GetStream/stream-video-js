@@ -1,10 +1,13 @@
 import {
   CompositeButton,
+  DropDownSelect,
+  DropDownSelectOption,
   useCall,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
+import { useCallback } from 'react';
 
 const incomingVideoSettings = [
   'auto',
@@ -19,37 +22,50 @@ const incomingVideoSettings = [
 type IncomingVideoSetting = (typeof incomingVideoSettings)[number];
 
 export const IncomingVideoSettingsButton = () => {
-  const call = useCall();
-  const { useIncomingVideoSettings } = useCallStateHooks();
-  const { enabled, preferredResolution } = useIncomingVideoSettings();
   const { t } = useI18n();
-  const currentSetting = getIncomingVideoSetting(enabled, preferredResolution);
-
-  const handleChange = (setting: IncomingVideoSetting) => {
-    if (setting === 'auto' || setting === 'off') {
-      call?.setIncomingVideoEnabled(setting === 'auto');
-      return;
-    }
-
-    call?.setPreferredIncomingVideoResolution(
-      getIncomingVideoResolution(setting),
-    );
-  };
+  const { currentSetting, onChange } = useIncomingVideoSettingsSelector();
 
   return (
     <CompositeButton
       className="rd__incoming-video-settings__button"
       Menu={
-        <IncomingVideoSettingsMenu
-          value={currentSetting}
-          onChange={handleChange}
-        />
+        <IncomingVideoSettingsMenu value={currentSetting} onChange={onChange} />
       }
       menuPlacement="top"
       disabled
     >
       {t(`quality/short/${currentSetting}`)}
     </CompositeButton>
+  );
+};
+
+export const IncomingVideoSettingsDropdown = ({ title }: { title: string }) => {
+  const { t } = useI18n();
+  const { currentSetting, currentIndex, onChange } =
+    useIncomingVideoSettingsSelector();
+
+  return (
+    <div className="str-video__device-settings__device-kind">
+      <div className="str-video__device-settings__device-selector-title">
+        {title}
+      </div>
+      <DropDownSelect
+        defaultSelectedIndex={currentIndex}
+        defaultSelectedLabel={t(`quality/long/${currentSetting}`)}
+        handleSelect={onChange}
+      >
+        {incomingVideoSettings.map((value) => {
+          return (
+            <DropDownSelectOption
+              key={value}
+              icon=""
+              label={t(`quality/long/${value}`)}
+              selected={value === currentSetting}
+            />
+          );
+        })}
+      </DropDownSelect>
+    </div>
   );
 };
 
@@ -78,6 +94,39 @@ const IncomingVideoSettingsMenu = (props: {
     </div>
   );
 };
+
+function useIncomingVideoSettingsSelector() {
+  const call = useCall();
+  const { useIncomingVideoSettings } = useCallStateHooks();
+  const { enabled, preferredResolution } = useIncomingVideoSettings();
+  const currentSetting = getIncomingVideoSetting(enabled, preferredResolution);
+  const currentIndex = incomingVideoSettings.indexOf(currentSetting);
+
+  const onChange = useCallback(
+    (settingOrIndex: IncomingVideoSetting | number) => {
+      const setting: IncomingVideoSetting =
+        typeof settingOrIndex === 'number'
+          ? incomingVideoSettings[settingOrIndex]
+          : settingOrIndex;
+
+      if (setting === 'auto' || setting === 'off') {
+        call?.setIncomingVideoEnabled(setting === 'auto');
+        return;
+      }
+
+      call?.setPreferredIncomingVideoResolution(
+        getIncomingVideoResolution(setting),
+      );
+    },
+    [call],
+  );
+
+  return {
+    currentSetting,
+    currentIndex,
+    onChange,
+  };
+}
 
 function getIncomingVideoSetting(
   enabled: boolean,

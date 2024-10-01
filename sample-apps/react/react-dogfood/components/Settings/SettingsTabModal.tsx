@@ -30,6 +30,7 @@ import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
+import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -135,20 +136,19 @@ export const SettingsTabModalMenu = (props: {
   return (
     <SettingsTabModal {...tabModalProps}>
       <TabWrapper icon="device-settings" label={t('Device settings')} inMeeting>
-        <>
-          <DeviceSelectorVideo
-            visualType="dropdown"
-            title={t('Select a Camera')}
-          />
-          <DeviceSelectorAudioInput
-            visualType="dropdown"
-            title={t('Select a Mic')}
-          />
-          <DeviceSelectorAudioOutput
-            visualType="dropdown"
-            title={t('Select a Speaker')}
-          />
-        </>
+        <DeviceSelectorVideo
+          visualType="dropdown"
+          title={t('Select a Camera')}
+        />
+        <DeviceSelectorAudioInput
+          visualType="dropdown"
+          title={t('Select a Mic')}
+        />
+        <DeviceSelectorAudioOutput
+          visualType="dropdown"
+          title={t('Select a Speaker')}
+        />
+        <IncomingVideoSettingsDropdown title={t('Incoming video quality')} />
       </TabWrapper>
       <TabWrapper icon="video-effects" label="Effects" inMeeting>
         <VideoEffectsSettings />
