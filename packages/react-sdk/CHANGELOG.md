@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.4.3...@stream-io/video-react-sdk-1.4.4) (2024-10-01)
+
+
+### Bug Fixes
+
+* React v17 compatibility ([#1503](https://github.com/GetStream/stream-video-js/issues/1503)) ([a1797cf](https://github.com/GetStream/stream-video-js/commit/a1797cf1d62b1a74f0101bbd185b2cc0e1176575))
+
 ## [1.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.4.2...@stream-io/video-react-sdk-1.4.3) (2024-09-24)
 
 ### Dependency Updates
