@@ -11,7 +11,7 @@ import { useCallback } from 'react';
 
 const incomingVideoSettings = [
   'auto',
-  '2060p',
+  '2160p',
   '1080p',
   '720p',
   '480p',
@@ -135,8 +135,8 @@ function getIncomingVideoSetting(
   switch (true) {
     case !enabled:
       return 'off';
-    case preferredResolution && preferredResolution.height >= 2060:
-      return '2060p';
+    case preferredResolution && preferredResolution.height >= 2160:
+      return '2160p';
     case preferredResolution && preferredResolution.height >= 1080:
       return '1080p';
     case preferredResolution && preferredResolution.height >= 720:
@@ -154,8 +154,8 @@ function getIncomingVideoResolution(
   setting: Exclude<IncomingVideoSetting, 'auto' | 'off'>,
 ) {
   switch (setting) {
-    case '2060p':
-      return { width: 3940, height: 2060 };
+    case '2160p':
+      return { width: 3840, height: 2160 };
     case '1080p':
       return { width: 1920, height: 1080 };
     case '720p':
