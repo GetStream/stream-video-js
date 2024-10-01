@@ -110,6 +110,7 @@ a starting point:
 import {
   SpeakerLayout,
   StreamCall,
+  StreamTheme,
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -142,13 +143,13 @@ const App = () => {
   }
 
   return (
-    <div className="str-video">
+    <StreamTheme>
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <SpeakerLayout />
         </StreamCall>
       </StreamVideo>
-    </div>
+    </StreamTheme>
   );
 };
 ```
