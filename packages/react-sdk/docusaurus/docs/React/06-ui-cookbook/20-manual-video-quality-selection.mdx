@@ -78,10 +78,6 @@ To modify the current setting, the following two methods are available on the Ca
 - `setIncomingVideoEnabled` - enables or disables incoming video, clearing any preferred resolution.
 - `setPreferredIncomingVideoResolution` - sets the preference for the incoming video resolution, enabling video if it was previously disabled.
 
-:::note
-It's also possible to set a preferred resolution per call participant. There's an optional second parameter to the `setPreferredIncomingVideoResolution`, accepting an array of participant session ids. However, in this cookbook we assume that the preferences apply to all call participants.
-:::
-
 To combine these two settings into a single control, we'll need to do some mapping:
 
 ```typescript
@@ -131,6 +127,21 @@ function incomingVideoResolutionToSetting(
   }
 }
 ```
+
+It's also possible to set a preferred resolution per call participant. There's an optional second parameter to the `setPreferredIncomingVideoResolution`, accepting an array of participant session ids:
+
+```typescript
+const { useParticipants } = useCallStateHooks();
+const participants = useParticipants();
+const [dominantParticipant] = participants;
+
+call.setPreferredIncomingVideoResolution(
+  incomingVideoSettingToResolution('1080p'),
+  [dominantParticipant.sessionId],
+);
+```
+
+However, in this cookbook we assume that the preferences apply to all call participants.
 
 ## Building Incoming Video Quality Selector
 
