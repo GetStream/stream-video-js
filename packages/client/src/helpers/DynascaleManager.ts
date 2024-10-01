@@ -167,10 +167,10 @@ export class DynascaleManager {
     return getCurrentValue(this.videoTrackSubscriptionOverrides$);
   }
 
-  setVideoTrackSubscriptionOverrides(
+  setVideoTrackSubscriptionOverrides = (
     override: VideoTrackSubscriptionOverride | undefined,
     sessionIds?: string[],
-  ) {
+  ) => {
     if (!sessionIds) {
       return setCurrentValue(
         this.videoTrackSubscriptionOverridesSubject,
@@ -185,7 +185,7 @@ export class DynascaleManager {
         ...Object.fromEntries(sessionIds.map((id) => [id, override])),
       }),
     );
-  }
+  };
 
   applyTrackSubscriptions = (
     debounceType: DebounceType = DebounceType.SLOW,
