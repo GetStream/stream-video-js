@@ -2,6 +2,69 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.2...@stream-io/video-client-1.7.3) (2024-09-24)
+
+
+### Bug Fixes
+
+* do not always error out api calls when web socket initially failed ([#1495](https://github.com/GetStream/stream-video-js/issues/1495)) ([7cdb62e](https://github.com/GetStream/stream-video-js/commit/7cdb62e75cad56098ee81eabbcc63382f93fd218))
+
+## [1.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.1...@stream-io/video-client-1.7.2) (2024-09-20)
+
+
+### Bug Fixes
+
+* overridable bitrate and bitrate downscale factor ([#1493](https://github.com/GetStream/stream-video-js/issues/1493)) ([cce5d8e](https://github.com/GetStream/stream-video-js/commit/cce5d8e641a9182a1779952e4e62aa16ec21ab92))
+
+## [1.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.0...@stream-io/video-client-1.7.1) (2024-09-20)
+
+
+### Bug Fixes
+
+* don't attempt to recover broken WebSockets when there isn't a network connection ([#1490](https://github.com/GetStream/stream-video-js/issues/1490)) ([d576f48](https://github.com/GetStream/stream-video-js/commit/d576f48c7f819d48008359a3c30fe5d1a3372145))
+
+## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.5...@stream-io/video-client-1.7.0) (2024-09-19)
+
+
+### Features
+
+* React SDK cold-start optimizations ([#1488](https://github.com/GetStream/stream-video-js/issues/1488)) ([972e579](https://github.com/GetStream/stream-video-js/commit/972e5792b5a131a212b1031ade76dcb383897a46))
+
+## [1.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.4...@stream-io/video-client-1.6.5) (2024-09-19)
+
+
+### Bug Fixes
+
+* race condition in `applySettingsToStream` ([#1489](https://github.com/GetStream/stream-video-js/issues/1489)) ([bf2ad90](https://github.com/GetStream/stream-video-js/commit/bf2ad90224d88592d4ea27ea8d0683efe98771f7))
+
+## [1.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.3...@stream-io/video-client-1.6.4) (2024-09-13)
+
+
+### Bug Fixes
+
+* allow video target bitrate override ([#1487](https://github.com/GetStream/stream-video-js/issues/1487)) ([bfe34a3](https://github.com/GetStream/stream-video-js/commit/bfe34a3609182da5bbb03331978d86569cada098))
+
+## [1.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.2...@stream-io/video-client-1.6.3) (2024-09-11)
+
+
+### Bug Fixes
+
+* client instance removal used a wrong key ([#1484](https://github.com/GetStream/stream-video-js/issues/1484)) ([edff5d7](https://github.com/GetStream/stream-video-js/commit/edff5d7ca0cc241a3929da3b752073883f29da32))
+
+## [1.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.1...@stream-io/video-client-1.6.2) (2024-09-09)
+
+
+### Bug Fixes
+
+* prioritize h264 baseline profile ([#1482](https://github.com/GetStream/stream-video-js/issues/1482)) ([3ea3c5e](https://github.com/GetStream/stream-video-js/commit/3ea3c5ecf57b50d3f909d59a96811f636b07d8aa))
+
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.6.0...@stream-io/video-client-1.6.1) (2024-09-05)
+
+
+### Bug Fixes
+
+* update state.endedAt after the SFU terminates the call ([#1477](https://github.com/GetStream/stream-video-js/issues/1477)) ([135b11f](https://github.com/GetStream/stream-video-js/commit/135b11f2e29f486f2f43b9ac2a84848d0fd0b5b4))
+
 ## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.5.2...@stream-io/video-client-1.6.0) (2024-09-03)
 
 

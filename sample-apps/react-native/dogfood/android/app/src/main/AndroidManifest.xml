@@ -30,7 +30,6 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
@@ -73,7 +72,7 @@
         <service
             android:name="app.notifee.core.ForegroundService"
             tools:replace="android:foregroundServiceType"
-            android:foregroundServiceType="dataSync"
+            android:foregroundServiceType="shortService"
             android:stopWithTask="true" />
     </application>
 </manifest>

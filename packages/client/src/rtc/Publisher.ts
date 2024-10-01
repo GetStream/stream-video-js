@@ -13,7 +13,7 @@ import {
   findOptimalVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { getPreferredCodecs } from './codecs';
+import { getPreferredCodecs, getRNOptimalCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
@@ -22,7 +22,6 @@ import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
-import { getOSInfo } from '../client-details';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 
@@ -264,25 +263,8 @@ export class Publisher {
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution, opts)
           : trackType === TrackType.SCREEN_SHARE
-            ? findOptimalScreenSharingLayers(
-                track,
-                opts.screenShareSettings,
-                screenShareBitrate,
-              )
+            ? findOptimalScreenSharingLayers(track, opts, screenShareBitrate)
             : undefined;
-
-      let preferredCodec = opts.preferredCodec;
-      if (!preferredCodec && trackType === TrackType.VIDEO && isReactNative()) {
-        const osName = getOSInfo()?.name.toLowerCase();
-        if (osName === 'ipados') {
-          // in ipads it was noticed that if vp8 codec is used
-          // then the bytes sent is 0 in the outbound-rtp
-          // so we are forcing h264 codec for ipads
-          preferredCodec = 'H264';
-        } else if (osName === 'android') {
-          preferredCodec = 'VP8';
-        }
-      }
 
       // listen for 'ended' event on the track as it might be ended abruptly
       // by an external factor as permission revokes, device disconnected, etc.
@@ -306,9 +288,15 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
+      const { preferredCodec } = opts;
+      const codec =
+        isReactNative() && trackType === TrackType.VIDEO && !preferredCodec
+          ? getRNOptimalCodec()
+          : preferredCodec;
+
       const codecPreferences =
         'setCodecPreferences' in transceiver
-          ? this.getCodecPreferences(trackType, preferredCodec)
+          ? this.getCodecPreferences(trackType, codec)
           : undefined;
       if (codecPreferences) {
         this.logger(
@@ -721,12 +709,9 @@ export class Publisher {
           const publishOpts = this.publishOptionsPerTrackType.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
-              ? findOptimalVideoLayers(track, targetResolution, undefined)
+              ? findOptimalVideoLayers(track, targetResolution, publishOpts)
               : trackType === TrackType.SCREEN_SHARE
-                ? findOptimalScreenSharingLayers(
-                    track,
-                    publishOpts?.screenShareSettings,
-                  )
+                ? findOptimalScreenSharingLayers(track, publishOpts)
                 : [];
           this.trackLayersCache[trackType] = optimalLayers;
         } else {

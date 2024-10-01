@@ -699,6 +699,14 @@ export class CallState {
   }
 
   /**
+   * Sets the time when this call has been ended.
+   * @param endedAt the time when this call has been ended.
+   */
+  setEndedAt = (endedAt: Patch<Date | undefined>) => {
+    return this.setCurrentValue(this.endedAtSubject, endedAt);
+  };
+
+  /**
    * Will provide the time when this call has been scheduled to start.
    */
   get startsAt() {
@@ -1008,10 +1016,7 @@ export class CallState {
       this.startsAtSubject,
       call.starts_at ? new Date(call.starts_at) : undefined,
     );
-    this.setCurrentValue(
-      this.endedAtSubject,
-      call.ended_at ? new Date(call.ended_at) : undefined,
-    );
+    this.setEndedAt(call.ended_at ? new Date(call.ended_at) : undefined);
     this.setCurrentValue(this.createdBySubject, call.created_by);
     this.setCurrentValue(this.customSubject, call.custom);
     this.setCurrentValue(this.egressSubject, call.egress);

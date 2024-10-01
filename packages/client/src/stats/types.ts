@@ -29,6 +29,7 @@ export type AggregatedStatsReport = {
   highestFrameWidth: number;
   highestFrameHeight: number;
   highestFramesPerSecond: number;
+  codec: string;
   timestamp: number;
   rawReport: StatsReport;
 };

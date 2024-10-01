@@ -45,10 +45,10 @@ public class MainApplication extends Application implements ReactApplication {
 Add service named `app.notifee.core.ForegroundService`.
 
 ```xml
-<service android:name="app.notifee.core.ForegroundService" android:stopWithTask="true" android:foregroundServiceType="microphone"/>
+<service android:name="app.notifee.core.ForegroundService" android:stopWithTask="true" android:foregroundServiceType="shortService"/>
 ```
 
-The `@stream-io/video-react-native-sdk` also adds the appropriate android permissions such as `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `BLUETOOTH`, `BLUETOOTH_ADMIN` and `BLUETOOTH_CONNECT` to the `AndroidManifest.xml`.
+The `@stream-io/video-react-native-sdk` also adds the appropriate android permissions such as `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `BLUETOOTH`, `BLUETOOTH_ADMIN` and `BLUETOOTH_CONNECT` to the `AndroidManifest.xml`.
 
 ### iOS
 

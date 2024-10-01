@@ -1,52 +1,35 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import {
   AggregatedStatsReport,
   CallStatsReport,
 } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-
 import { useFloating, useHover, useInteractions } from '@floating-ui/react';
-
-import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 import { Icon } from '../Icon';
 
-export enum Statuses {
+const CallStatsLatencyChart = lazy(() => import('./CallStatsLatencyChart'));
+
+enum Status {
   GOOD = 'Good',
   OK = 'Ok',
   BAD = 'Bad',
 }
-export type Status = Statuses.GOOD | Statuses.OK | Statuses.BAD;
 
-const statsStatus = ({
-  value,
-  lowBound,
-  highBound,
-}: {
-  value: number;
-  lowBound: number;
-  highBound: number;
-}): Status => {
-  if (value <= lowBound) {
-    return Statuses.GOOD;
-  }
-
-  if (value >= lowBound && value <= highBound) {
-    return Statuses.OK;
-  }
-
-  if (value >= highBound) {
-    return Statuses.BAD;
-  }
-
-  return Statuses.GOOD;
-};
-
-export const CallStats = (props: {
+export type CallStatsProps = {
   latencyLowBound?: number;
   latencyHighBound?: number;
-}) => {
-  const { latencyLowBound = 75, latencyHighBound = 400 } = props;
+  showCodecInfo?: boolean;
+  LatencyChartSuspenseFallback?: ReactNode;
+};
+
+export const CallStats = (props: CallStatsProps) => {
+  const {
+    latencyLowBound = 75,
+    latencyHighBound = 400,
+    showCodecInfo = false,
+    LatencyChartSuspenseFallback = null,
+  } = props;
   const [latencyBuffer, setLatencyBuffer] = useState<
     Array<{ x: number; y: number }>
   >(() => {
@@ -116,7 +99,9 @@ export const CallStats = (props: {
           </div>
 
           <div className="str-video__call-stats__latencychart">
-            <CallStatsLatencyChart values={latencyBuffer} />
+            <Suspense fallback={LatencyChartSuspenseFallback}>
+              <CallStatsLatencyChart values={latencyBuffer} />
+            </Suspense>
           </div>
 
           <div className="str-video__call-stats__header">
@@ -156,7 +141,7 @@ export const CallStats = (props: {
               }}
             />
             <StatCard
-              label={t('Publish resolution')}
+              label={`${t('Publish resolution')}${showCodecInfo ? formatCodec(callStatsReport) : ''}`}
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
@@ -180,7 +165,7 @@ export const CallStats = (props: {
   );
 };
 
-export const StatCardExplanation = (props: { description: string }) => {
+const StatCardExplanation = (props: { description: string }) => {
   const { description } = props;
   const [isOpen, setIsOpen] = useState(false);
 
@@ -216,19 +201,14 @@ export const StatCardExplanation = (props: { description: string }) => {
   );
 };
 
-export const StatsTag = ({
-  children,
-  status = Statuses.GOOD,
-}: {
-  children: ReactNode;
-  status: Statuses.GOOD | Statuses.OK | Statuses.BAD;
-}) => {
+const StatsTag = (props: { children: ReactNode; status: Status }) => {
+  const { children, status } = props;
   return (
     <div
       className={clsx('str-video__call-stats__tag', {
-        'str-video__call-stats__tag--good': status === Statuses.GOOD,
-        'str-video__call-stats__tag--ok': status === Statuses.OK,
-        'str-video__call-stats__tag--bad': status === Statuses.BAD,
+        'str-video__call-stats__tag--good': status === Status.GOOD,
+        'str-video__call-stats__tag--ok': status === Status.OK,
+        'str-video__call-stats__tag--bad': status === Status.BAD,
       })}
     >
       <div className="str-video__call-stats__tag__text">{children}</div>
@@ -245,7 +225,7 @@ export const StatCard = (props: {
   const { label, value, description, comparison } = props;
 
   const { t } = useI18n();
-  const status = comparison ? statsStatus(comparison) : undefined;
+  const status = comparison ? toStatus(comparison) : undefined;
 
   return (
     <div className="str-video__call-stats__card">
@@ -256,9 +236,21 @@ export const StatCard = (props: {
         </div>
         <div className="str-video__call-stats__card-value">{value}</div>
       </div>
-      {comparison && status && <StatsTag status={status}>{t(status)}</StatsTag>}
+      {status && <StatsTag status={status}>{t(status)}</StatsTag>}
     </div>
   );
+};
+
+const toStatus = (config: {
+  value: number;
+  lowBound: number;
+  highBound: number;
+}): Status => {
+  const { value, lowBound, highBound } = config;
+  if (value <= lowBound) return Status.GOOD;
+  if (value >= lowBound && value <= highBound) return Status.OK;
+  if (value >= highBound) return Status.BAD;
+  return Status.GOOD;
 };
 
 const toFrameSize = (stats: AggregatedStatsReport) => {
@@ -275,6 +267,13 @@ const toFrameSize = (stats: AggregatedStatsReport) => {
     }
   }
   return size;
+};
+
+const formatCodec = (callStatsReport: CallStatsReport): string => {
+  const { codec } = callStatsReport.publisherStats;
+  if (!codec) return '';
+  const [, name] = codec.split('/');
+  return name ? ` (${name})` : '';
 };
 
 const calculatePublishBitrate = (

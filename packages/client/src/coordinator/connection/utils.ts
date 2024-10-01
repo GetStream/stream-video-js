@@ -111,6 +111,17 @@ export function convertErrorToJson(err: Error) {
 }
 
 /**
+ * Informs if a promise is yet to be resolved or rejected
+ */
+export async function isPromisePending<T>(promise: Promise<T>) {
+  const emptyObj = {};
+  return Promise.race([promise, emptyObj]).then(
+    (value) => (value === emptyObj ? true : false),
+    () => false,
+  );
+}
+
+/**
  * isOnline safely return the navigator.online value for browser env
  * if navigator is not in global object, it always return true
  */

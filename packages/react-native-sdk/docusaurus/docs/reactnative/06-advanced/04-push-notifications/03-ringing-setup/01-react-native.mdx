@@ -25,15 +25,16 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ```bash title=Terminal
 yarn add @react-native-firebase/app
 yarn add @react-native-firebase/messaging
+yarn add @notifee/react-native
 yarn add react-native-callkeep
 yarn add react-native-voip-push-notification
-yarn add @notifee/react-native
 npx pod-install
 ```
 
 So what did we install precisely?
 
 - `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `@notifee/react-native` - is used to customize and display push notifications.
 - `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
 - `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
 
@@ -77,13 +78,12 @@ Add the following in `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <!-- We declare the permissions to for using foreground service -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
 <service
     android:name="app.notifee.core.ForegroundService"
     tools:replace="android:foregroundServiceType"
     android:stopWithTask="true"
-    android:foregroundServiceType="dataSync" />
+    android:foregroundServiceType="shortService" />
 ```
 
 ### Request for notification permissions

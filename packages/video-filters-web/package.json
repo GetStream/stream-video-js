@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-filters-web",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "packageManager": "yarn@3.5.0",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
@@ -16,6 +16,7 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/video-filters-web"
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "tf",
@@ -30,11 +31,11 @@
     "wasm-feature-detect": "^1.6.1"
   },
   "devDependencies": {
-    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/emscripten": "^1.39.10",
     "rimraf": "^5.0.7",
-    "rollup": "^3.29.4",
+    "rollup": "^4.22.0",
     "typescript": "^5.5.2"
   }
 }

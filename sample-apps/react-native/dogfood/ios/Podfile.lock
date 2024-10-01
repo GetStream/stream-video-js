@@ -1108,15 +1108,15 @@ PODS:
   - RNGoogleSignin (11.0.0):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNImageCropPicker (0.40.0):
+  - RNImageCropPicker (0.41.2):
     - React-Core
     - React-RCTImage
-    - RNImageCropPicker/QBImagePickerController (= 0.40.0)
-    - TOCropViewController
-  - RNImageCropPicker/QBImagePickerController (0.40.0):
+    - RNImageCropPicker/QBImagePickerController (= 0.41.2)
+    - TOCropViewController (~> 2.7.4)
+  - RNImageCropPicker/QBImagePickerController (0.41.2):
     - React-Core
     - React-RCTImage
-    - TOCropViewController
+    - TOCropViewController (~> 2.7.4)
   - RNNotifee (7.8.0):
     - React-Core
     - RNNotifee/NotifeeCore (= 7.8.0)
@@ -1140,7 +1140,7 @@ PODS:
   - RNVoipPushNotification (3.3.2):
     - React-Core
   - SocketRocket (0.6.1)
-  - stream-io-video-filters-react-native (0.2.1):
+  - stream-io-video-filters-react-native (0.2.4):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1148,7 +1148,7 @@ PODS:
   - stream-react-native-webrtc (118.1.0):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (0.10.5):
+  - stream-video-react-native (1.0.10):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1468,7 +1468,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: a51b249f3c779e38a5d9ec45cb107d8780b39fb2
   RNGoogleSignin: fc408799f1990a12497a32f64280c0fe353ffcc1
-  RNImageCropPicker: 486e2f7e2b0461ce24321f751410dce1b3b49e6d
+  RNImageCropPicker: 771e2ca319d2cf92e04ebf334ece892ee9a6728f
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
   RNPermissions: 4d64d2c763b20e5db08dfb8f1ef541f95c0d28c1
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
@@ -1477,9 +1477,9 @@ SPEC CHECKSUMS:
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  stream-io-video-filters-react-native: 90f5878de1c3655d2e1617062e12c96824248d4b
+  stream-io-video-filters-react-native: 8c345e6adf5164646696d45f9962c4199b2fe3b9
   stream-react-native-webrtc: 4ccf61161f77c57b9aa45f78cb7f69b7d91f3e9f
-  stream-video-react-native: b7cae2ff25354c68e70215a978943a8ebfa4663a
+  stream-video-react-native: 4731ac81060b8b432e57f9a923769ffa851880a8
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 

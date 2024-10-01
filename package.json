@@ -78,8 +78,8 @@
     "nx": "16.10.0",
     "prettier": "^3.3.2",
     "typescript": "^5.5.2",
-    "vercel": "^37.2.1",
-    "vite": "^4.4.11"
+    "vercel": "^37.4.2",
+    "vite": "^5.4.6"
   },
   "resolutions": {
     "eslint-plugin-prettier": "^5.1.3"

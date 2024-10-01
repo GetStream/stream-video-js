@@ -4,8 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
-
-type PreferredCodec = 'vp8' | 'vp9' | 'av1' | 'h264' | string;
+import { PreferredCodec, PublishOptions } from '../types';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -14,17 +13,17 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   };
 
   /**
-   * The preferred codec for encoding the video.
+   * The options to use when publishing the video stream.
    *
-   * @internal internal use only, not part of the public API.
+   * @internal
    */
-  preferredCodec: PreferredCodec | undefined;
-  /**
-   * The scalability mode to use for the codec.
-   * @internal internal use only, not part of the public API.
-   */
-  scalabilityMode: string | undefined;
+  publishOptions: PublishOptions | undefined;
 
+  /**
+   * Constructs a new CameraManager.
+   *
+   * @param call the call instance.
+   */
   constructor(call: Call) {
     super(call, new CameraManagerState(), TrackType.VIDEO);
   }
@@ -88,11 +87,37 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    *
    * @internal internal use only, not part of the public API.
    * @param codec the codec to use for encoding the video.
-   * @param scalabilityMode the scalability mode to use for the codec.
    */
-  setPreferredCodec(codec: PreferredCodec, scalabilityMode?: string) {
-    this.preferredCodec = codec;
-    this.scalabilityMode = scalabilityMode;
+  setPreferredCodec(codec: PreferredCodec | undefined) {
+    this.updatePublishOptions({ preferredCodec: codec });
+  }
+
+  /**
+   * Updates the preferred publish options for the video stream.
+   *
+   * @internal
+   * @param options the options to use.
+   */
+  updatePublishOptions(options: PublishOptions) {
+    this.publishOptions = { ...this.publishOptions, ...options };
+  }
+
+  /**
+   * Returns the capture resolution of the camera.
+   */
+  getCaptureResolution() {
+    const { mediaStream } = this.state;
+    if (!mediaStream) return;
+
+    const [videoTrack] = mediaStream.getVideoTracks();
+    if (!videoTrack) return;
+
+    const settings = videoTrack.getSettings();
+    return {
+      width: settings.width,
+      height: settings.height,
+      frameRate: settings.frameRate,
+    };
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -114,10 +139,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream, {
-      preferredCodec: this.preferredCodec,
-      scalabilityMode: this.scalabilityMode,
-    });
+    return this.call.publishVideoStream(stream, this.publishOptions);
   }
 
   protected stopPublishStream(stopTracks: boolean): Promise<void> {

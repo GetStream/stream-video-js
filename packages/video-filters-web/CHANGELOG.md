@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.3...@stream-io/video-filters-web-0.1.4) (2024-09-19)
+
+
+### Features
+
+* React SDK cold-start optimizations ([#1488](https://github.com/GetStream/stream-video-js/issues/1488)) ([972e579](https://github.com/GetStream/stream-video-js/commit/972e5792b5a131a212b1031ade76dcb383897a46))
+
 ### [0.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.2...@stream-io/video-filters-web-0.1.3) (2024-07-02)
 
 

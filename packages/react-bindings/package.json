@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-bindings",
-  "version": "1.0.0",
+  "version": "1.0.9",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
@@ -11,6 +11,7 @@
     "start": "rollup -c -w",
     "build": "NODE_ENV=production rollup -c"
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "src",
@@ -34,7 +35,7 @@
     "@types/react": "^18.3.2",
     "react": "^18.3.1",
     "rimraf": "^5.0.7",
-    "rollup": "^3.29.4",
+    "rollup": "^4.22.0",
     "typescript": "^5.5.2"
   }
 }

@@ -1,4 +1,4 @@
-import { PublishOptions, ScreenShareSettings } from '../types';
+import { PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
@@ -25,20 +25,30 @@ const defaultBitratePerRid: Record<string, number> = {
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
- * @param options the publish options.
+ * @param publishOptions the publish options for the track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
-  options: PublishOptions = {},
+  publishOptions?: PublishOptions,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width: w = 0, height: h = 0 } = settings;
-
-  const maxBitrate = getComputedMaxBitrate(targetResolution, w, h);
+  const {
+    preferredCodec,
+    scalabilityMode,
+    preferredBitrate,
+    bitrateDownscaleFactor = 2,
+  } = publishOptions || {};
+  const maxBitrate = getComputedMaxBitrate(
+    targetResolution,
+    w,
+    h,
+    preferredBitrate,
+  );
   let downscaleFactor = 1;
-  const { preferredCodec, scalabilityMode } = options;
+  let bitrateFactor = 1;
   (preferredCodec === 'vp9' || preferredCodec === 'av1'
     ? ['q']
     : ['f', 'h', 'q']
@@ -52,7 +62,7 @@ export const findOptimalVideoLayers = (
       width: Math.round(w / downscaleFactor),
       height: Math.round(h / downscaleFactor),
       maxBitrate:
-        Math.round(maxBitrate / downscaleFactor) || defaultBitratePerRid[rid],
+        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
       scaleResolutionDownBy: downscaleFactor,
       maxFramerate: 30,
       ...(preferredCodec === 'vp9' || preferredCodec === 'av1'
@@ -60,6 +70,7 @@ export const findOptimalVideoLayers = (
         : null),
     });
     downscaleFactor *= 2;
+    bitrateFactor *= bitrateDownscaleFactor;
   });
 
   // for simplicity, we start with all layers enabled, then this function
@@ -77,22 +88,29 @@ export const findOptimalVideoLayers = (
  * @param targetResolution the target resolution.
  * @param currentWidth the current width of the track.
  * @param currentHeight the current height of the track.
+ * @param preferredBitrate the preferred bitrate for the track.
  */
 export const getComputedMaxBitrate = (
   targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
+  preferredBitrate: number | undefined,
 ): number => {
   // if the current resolution is lower than the target resolution,
   // we want to proportionally reduce the target bitrate
-  const { width: targetWidth, height: targetHeight } = targetResolution;
+  const {
+    width: targetWidth,
+    height: targetHeight,
+    bitrate: targetBitrate,
+  } = targetResolution;
+  const bitrate = preferredBitrate || targetBitrate;
   if (currentWidth < targetWidth || currentHeight < targetHeight) {
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;
     const reductionFactor = currentPixels / targetPixels;
-    return Math.round(targetResolution.bitrate * reductionFactor);
+    return Math.round(bitrate * reductionFactor);
   }
-  return targetResolution.bitrate;
+  return bitrate;
 };
 
 /**
@@ -130,9 +148,10 @@ const withSimulcastConstraints = (
 
 export const findOptimalScreenSharingLayers = (
   videoTrack: MediaStreamTrack,
-  preferences?: ScreenShareSettings,
+  publishOptions?: PublishOptions,
   defaultMaxBitrate = 3000000,
 ): OptimalVideoLayer[] => {
+  const { screenShareSettings: preferences } = publishOptions || {};
   const settings = videoTrack.getSettings();
   return [
     {

@@ -804,6 +804,7 @@ export class Call {
             logTag: String(this.sfuClientTag++),
             dispatcher: this.dispatcher,
             credentials: this.credentials,
+            streamClient: this.streamClient,
             // a new session_id is necessary for the REJOIN strategy.
             // we use the previous session_id if available
             sessionId: performingRejoin ? undefined : previousSessionId,
@@ -1324,9 +1325,10 @@ export class Call {
         case TrackType.VIDEO:
           const videoStream = this.camera.state.mediaStream;
           if (videoStream) {
-            await this.publishVideoStream(videoStream, {
-              preferredCodec: this.camera.preferredCodec,
-            });
+            await this.publishVideoStream(
+              videoStream,
+              this.camera.publishOptions,
+            );
           }
           break;
         case TrackType.SCREEN_SHARE:
@@ -2209,9 +2211,10 @@ export class Call {
         this.camera.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.VIDEO)
       ) {
-        await this.publishVideoStream(this.camera.state.mediaStream, {
-          preferredCodec: this.camera.preferredCodec,
-        });
+        await this.publishVideoStream(
+          this.camera.state.mediaStream,
+          this.camera.publishOptions,
+        );
       }
 
       // Start camera if backend config specifies, and there is no local setting

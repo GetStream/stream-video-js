@@ -8,6 +8,7 @@ import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { StreamClient } from '../../coordinator/connection/client';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -41,6 +42,7 @@ describe('Publisher', () => {
     sfuClient = new StreamSfuClient({
       dispatcher,
       sessionId: 'session-id-test',
+      streamClient: new StreamClient('abc'),
       credentials: {
         server: {
           url: 'https://getstream.io/',
