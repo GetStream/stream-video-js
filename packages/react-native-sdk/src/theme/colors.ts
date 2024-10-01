@@ -18,12 +18,12 @@ const colors: ColorScheme = {
   base3: palette.grey700,
   base4: palette.grey950,
 
-  background1: palette.grey950 + opacityToHex(0.05), // old dark.conent_bg
+  background1: palette.grey950 + opacityToHex(0.05),
   background2: palette.grey800,
-  background3: palette.grey950 + opacityToHex(0.4), // overlay_light
-  background4: palette.grey950 + opacityToHex(0.6), // overlay_medium
+  background3: palette.grey950 + opacityToHex(0.4),
+  background4: palette.grey950 + opacityToHex(0.6),
   background5: palette.grey900,
-  background6: palette.grey950 + opacityToHex(0.85), // overlay_heavy
+  background6: palette.grey950 + opacityToHex(0.85),
 
   text_low_emphasis: palette.grey50,
   text_medium_emphasis: palette.grey500,
