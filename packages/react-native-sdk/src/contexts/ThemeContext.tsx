@@ -29,11 +29,10 @@ export type ThemeContextValue = {
 
 export const mergeThemes = (params: MergedThemesParams) => {
   const { style, theme } = params;
-  const finalTheme = (
-    !theme || Object.keys(theme).length === 0
-      ? JSON.parse(JSON.stringify(defaultTheme))
-      : JSON.parse(JSON.stringify(theme))
-  ) as Theme;
+  const isThemeEmpty = !theme || Object.keys(theme).length === 0;
+  const finalTheme = isThemeEmpty
+    ? Object.assign({}, defaultTheme)
+    : (Object.assign({}, theme) as Theme);
 
   if (style) {
     merge(finalTheme, style);

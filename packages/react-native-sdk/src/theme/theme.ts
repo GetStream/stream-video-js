@@ -275,19 +275,25 @@ export type Theme = {
     buttonIcon: ViewStyle;
     buttonText: TextStyle;
   };
-  log: () => void;
-  getValue: (
-    component: string,
-    prop: keyof Theme['defaults'] | string
-  ) => string | number | ColorValue | null;
+
+  /**
+   * Gets a value from the theme object.
+   *
+   * @param {string} componentOrPath - Component name or a dot-separated path.
+   * @param {keyof Theme['defaults'] | string} [prop] - Property name.
+   * @return {string | number | ColorValue | undefined} - Value of the given key or undefined.
+   * @logs {Error} - When the path is invalid.
+   */
+  get: (
+    componentOrPath: string,
+    prop?: keyof Theme['defaults'] | string
+  ) => string | number | ColorValue | undefined;
 
   // Index signature for additional dynamic properties
   [component: string]: any;
 };
 
 export const defaultTheme: Theme = {
-  // TODO: remove this after testing
-  log: () => console.log('test'),
   variants: {
     buttonSizes: {
       xs: 40,
@@ -357,7 +363,7 @@ export const defaultTheme: Theme = {
   },
   defaults: {
     color: colors.primary,
-    backgroundColor: colors.background1,
+    backgroundColor: colors.background2,
     margin: 10,
     padding: 10,
     fontSize: 16,
@@ -616,18 +622,37 @@ export const defaultTheme: Theme = {
     buttonIcon: {},
     buttonText: {},
   },
-  getValue: function (
-    component: string,
-    prop: keyof Theme['defaults'] | string
-  ): string | number | ColorValue | null {
-    if (this[component] && this[component][prop]) {
-      return this[component][prop];
+
+  get: function (
+    componentOrPath: string,
+    prop?: keyof Theme['defaults'] | string
+  ): string | number | ColorValue | undefined {
+    // dot-separated path
+    if (componentOrPath.includes('.')) {
+      const path = componentOrPath.split('.');
+      let value: any = this;
+
+      for (const key of path) {
+        if (value[key] !== undefined) {
+          value = value[key];
+        } else {
+          console.error(`Invalid path: ${componentOrPath}`);
+          return undefined;
+        }
+      }
+
+      return value;
+    }
+
+    // component and prop-based query
+    if (prop && this[componentOrPath] && this[componentOrPath][prop]) {
+      return this[componentOrPath][prop];
     }
 
     const defaultValue = this.defaults[prop as keyof Theme['defaults']];
     if (!defaultValue) {
-      console.error(`Invalid component or prop: ${component}.${prop}`);
-      return null;
+      console.error(`Invalid component or prop: ${componentOrPath}.${prop}`);
+      return undefined;
     }
 
     return defaultValue;

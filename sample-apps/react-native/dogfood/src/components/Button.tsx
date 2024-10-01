@@ -25,8 +25,7 @@ export const Button = ({
   ...rest
 }: ButtonPropTypes) => {
   const styles = useStyles();
-  const { theme } = useTheme();
-  // theme.log();
+
   return (
     <Pressable
       disabled={disabled}
@@ -49,7 +48,6 @@ const useStyles = () => {
       StyleSheet.create({
         button: {
           backgroundColor: theme.colors.primary,
-          // backgroundColor: theme.getValue('button', 'color'),
           justifyContent: 'center',
           borderRadius: 8,
           height: BUTTON_HEIGHT,
