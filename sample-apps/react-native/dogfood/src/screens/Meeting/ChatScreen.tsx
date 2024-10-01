@@ -96,7 +96,7 @@ const useStyles = () => {
         header: {
           padding: 10,
           flexDirection: 'row',
-          backgroundColor: theme.colors.base4,
+          backgroundColor: theme.colors.base5,
         },
         headerText: { flex: 1, color: theme.colors.base1 },
         notedButton: {

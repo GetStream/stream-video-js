@@ -103,7 +103,7 @@ export const ParticipantLabel = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.background4 },
+        { backgroundColor: colors.background6 },
         container,
       ]}
     >

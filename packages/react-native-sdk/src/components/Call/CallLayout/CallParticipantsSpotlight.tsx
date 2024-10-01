@@ -98,7 +98,7 @@ export const CallParticipantsSpotlight = ({
         styles.container,
         landscapeStyles,
         {
-          backgroundColor: colors.background,
+          backgroundColor: colors.background2,
         },
         callParticipantsSpotlight.container,
       ]}

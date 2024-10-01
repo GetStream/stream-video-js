@@ -26,7 +26,7 @@ export const FollowerCount = ({}: FollowerCountProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background2 },
         followerCount.container,
       ]}
     >

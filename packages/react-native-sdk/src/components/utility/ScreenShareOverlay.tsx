@@ -33,7 +33,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.base3 },
+        { backgroundColor: colors.base4 },
         screenshareOverlay.container,
       ]}
     >
@@ -53,7 +53,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
           return [
             styles.button,
             {
-              backgroundColor: colors.background,
+              backgroundColor: colors.background2,
               opacity: pressed ? 0.2 : 1,
             },
             screenshareOverlay.button,

@@ -15,8 +15,9 @@ const colors: ColorScheme = {
 
   base1: palette.grey50,
   base2: palette.grey300,
-  base3: palette.grey700,
-  base4: palette.grey950,
+  base3: palette.grey500,
+  base4: palette.grey700,
+  base5: palette.grey950,
 
   background1: palette.grey950 + opacityToHex(0.05),
   background2: palette.grey800,
@@ -24,10 +25,6 @@ const colors: ColorScheme = {
   background4: palette.grey950 + opacityToHex(0.6),
   background5: palette.grey900,
   background6: palette.grey950 + opacityToHex(0.85),
-
-  text_low_emphasis: palette.grey50,
-  text_medium_emphasis: palette.grey500,
-  text_high_emphasis: palette.grey950 + opacityToHex(0.5),
 };
 
 const colorPalette = {

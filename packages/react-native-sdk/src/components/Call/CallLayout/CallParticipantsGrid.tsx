@@ -100,7 +100,7 @@ export const CallParticipantsGrid = ({
       style={[
         styles.container,
         landscapeStyles,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background2 },
         callParticipantsGrid.container,
       ]}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}

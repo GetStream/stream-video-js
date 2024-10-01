@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { BUTTON_HEIGHT } from '../constants';
-import { useTheme, Theme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 type ButtonPropTypes = Omit<PressableProps, 'style'> & {
   title: string;
@@ -26,7 +26,7 @@ export const Button = ({
 }: ButtonPropTypes) => {
   const styles = useStyles();
   const { theme } = useTheme();
-  theme.log();
+  // theme.log();
   return (
     <Pressable
       disabled={disabled}

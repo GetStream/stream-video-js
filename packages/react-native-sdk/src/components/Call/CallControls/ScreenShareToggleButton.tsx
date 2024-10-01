@@ -55,9 +55,9 @@ export const ScreenShareToggleButton = ({
       }}
     >
       {hasPublishedScreenShare ? (
-        <StopScreenShare color={colors.base4} />
+        <StopScreenShare color={colors.base5} />
       ) : (
-        <ScreenShare color={colors.base4} />
+        <ScreenShare color={colors.base5} />
       )}
       {Platform.OS === 'ios' && (
         <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />

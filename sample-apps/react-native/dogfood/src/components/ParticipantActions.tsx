@@ -19,7 +19,7 @@ import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useCallback, useMemo } from 'react';
 import { generateParticipantTitle } from '../utils';
-import { Theme, useTheme } from 'stream-chat-react-native';
+import { useTheme } from 'stream-chat-react-native';
 
 type CallParticipantOptionType = {
   title: string;
@@ -285,7 +285,7 @@ const useStyles = () => {
           fontWeight: '400',
         },
         borderBottom: {
-          borderBottomColor: theme.colors.background1,
+          borderBottomColor: theme.colors.base4,
           borderBottomWidth: 1,
         },
         crossIcon: {
@@ -295,7 +295,7 @@ const useStyles = () => {
         closePressable: {
           padding: 8,
           borderRadius: 5,
-          backgroundColor: theme.colors.base3,
+          backgroundColor: theme.colors.base4,
         },
       }),
     [theme],

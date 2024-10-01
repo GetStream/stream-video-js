@@ -45,7 +45,7 @@ export const ToggleAudioPublishingButton = ({
         style={toggleAudioPublishingButton}
       >
         {!optimisticIsMute ? (
-          <Mic color={colors.base1} />
+          <Mic color={colors.base2} />
         ) : (
           <MicOff color={colors.base1} />
         )}

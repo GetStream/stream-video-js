@@ -30,7 +30,7 @@ export const ParticipantVideoFallback = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.base3,
+          backgroundColor: colors.base4,
         },
         participantVideoFallback.container,
       ]}

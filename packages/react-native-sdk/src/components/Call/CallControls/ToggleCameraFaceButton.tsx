@@ -54,7 +54,7 @@ export const ToggleCameraFaceButton = ({
         <CameraSwitch
           color={
             direction === 'front' || direction === undefined
-              ? colors.base4
+              ? colors.base5
               : colors.base1
           }
         />

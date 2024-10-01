@@ -171,7 +171,7 @@ export const FloatingParticipantView = ({
                   styles.participantViewContainer,
                   participantViewStyle,
                   {
-                    shadowColor: colors.base4,
+                    shadowColor: colors.base5,
                   },
                   floatingParticipantsView.participantViewContainer,
                 ]}

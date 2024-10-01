@@ -42,18 +42,18 @@ export const ToggleAudioPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={!optimisticIsMute ? colors.base1 : colors.base4}
+      color={!optimisticIsMute ? colors.base1 : colors.base5}
       size={buttonSizes.md}
       style={{
         container: {
-          shadowColor: !optimisticIsMute ? colors.base1 : colors.base4,
+          shadowColor: !optimisticIsMute ? colors.base1 : colors.base5,
           ...toggleAudioPreviewButton.container,
         },
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >
       {!optimisticIsMute ? (
-        <Mic color={colors.base4} />
+        <Mic color={colors.base5} />
       ) : (
         <MicOff color={colors.base1} />
       )}

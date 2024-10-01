@@ -36,7 +36,7 @@ export const ChatButton = ({
   return (
     <CallControlsButton onPress={onPressHandler} style={chatButton}>
       <UnreadBadgeCountIndicator count={unreadBadgeCount} />
-      <Chat color={colors.base4} />
+      <Chat color={colors.base5} />
     </CallControlsButton>
   );
 };

@@ -120,7 +120,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.background },
+        { backgroundColor: colors.background2 },
         durationBadge.container,
       ]}
     >

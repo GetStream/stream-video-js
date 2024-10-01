@@ -90,7 +90,7 @@ export const Lobby = ({
       style={[
         styles.container,
         landscapeStyles,
-        { backgroundColor: colors.base3 },
+        { backgroundColor: colors.base4 },
         lobby.container,
       ]}
     >
@@ -109,7 +109,7 @@ export const Lobby = ({
           <Text
             style={[
               styles.subHeading,
-              { color: colors.text_low_emphasis },
+              { color: colors.base3 },
               typefaces.subtitle,
             ]}
           >

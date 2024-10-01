@@ -60,7 +60,7 @@ export const ViewerLeaveStreamButton = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.background,
+          backgroundColor: colors.background2,
         },
         viewerLeaveStreamButton.container,
       ]}

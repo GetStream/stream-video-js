@@ -76,7 +76,7 @@ export const ParticipantsInfoBadge = ({
         style={[
           styles.participantCountContainer,
           {
-            backgroundColor: colors.text_low_emphasis,
+            backgroundColor: colors.base3,
           },
           participantInfoBadge.participantCountContainer,
         ]}

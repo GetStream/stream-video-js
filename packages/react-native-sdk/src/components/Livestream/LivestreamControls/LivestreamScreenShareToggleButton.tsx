@@ -34,7 +34,7 @@ export const LivestreamScreenShareToggleButton = () => {
         {
           backgroundColor: hasPublishedScreenShare
             ? colors.error
-            : colors.background,
+            : colors.background2,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },

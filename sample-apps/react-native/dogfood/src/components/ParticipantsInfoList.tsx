@@ -275,7 +275,7 @@ const useStyles = () => {
           padding: 8,
           borderRadius: 5,
           marginRight: 16,
-          backgroundColor: theme.base3,
+          backgroundColor: theme.base4,
         },
         buttonGroup: {
           flexDirection: 'row',
@@ -314,7 +314,7 @@ const useStyles = () => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottomColor: theme.colors.background1,
+          borderBottomColor: theme.colors.base4,
           borderBottomWidth: 1,
         },
         participantInfo: {

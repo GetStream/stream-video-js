@@ -115,7 +115,7 @@ const Background = () => {
       <View
         style={[
           styles.background,
-          { backgroundColor: colors.base3 },
+          { backgroundColor: colors.base4 },
           outgoingCall.background,
         ]}
       />
@@ -125,7 +125,7 @@ const Background = () => {
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.base3 },
+        { backgroundColor: colors.base4 },
         outgoingCall.background,
       ]}
     >

@@ -128,7 +128,7 @@ const Background: React.FunctionComponent<{
         }}
         style={[
           styles.background,
-          { backgroundColor: colors.base3 },
+          { backgroundColor: colors.base4 },
           incomingCall.background,
         ]}
       >
@@ -140,7 +140,7 @@ const Background: React.FunctionComponent<{
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.base3 },
+        { backgroundColor: colors.base4 },
         incomingCall.background,
       ]}
     >

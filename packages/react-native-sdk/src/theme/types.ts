@@ -8,8 +8,8 @@ export type ColorScheme = {
 
   base1: ColorValue;
   base2: ColorValue;
-  base3: ColorValue;
   base4: ColorValue;
+  base5: ColorValue;
 
   background1: ColorValue;
   background2: ColorValue;
@@ -17,10 +17,6 @@ export type ColorScheme = {
   background4: ColorValue;
   background5: ColorValue;
   background6: ColorValue;
-
-  text_low_emphasis: ColorValue;
-  text_medium_emphasis: ColorValue;
-  text_high_emphasis: ColorValue;
 
   // allow any other color
   [key: string]: ColorValue;

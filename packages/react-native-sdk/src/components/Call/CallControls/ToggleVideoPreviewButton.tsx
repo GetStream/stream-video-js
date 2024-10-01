@@ -47,18 +47,18 @@ export const ToggleVideoPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={!optimisticIsMute ? colors.base1 : colors.base4}
+      color={!optimisticIsMute ? colors.base1 : colors.base5}
       size={buttonSizes.md}
       style={{
         container: {
-          shadowColor: !optimisticIsMute ? colors.base1 : colors.base4,
+          shadowColor: !optimisticIsMute ? colors.base1 : colors.base5,
           ...toggleVideoPreviewButton.container,
         },
         svgContainer: toggleVideoPreviewButton.svgContainer,
       }}
     >
       {!optimisticIsMute ? (
-        <Video color={colors.base4} />
+        <Video color={colors.base5} />
       ) : (
         <VideoSlash color={colors.base1} />
       )}

@@ -48,7 +48,7 @@ export const ToggleVideoPublishingButton = ({
         color={!optimisticIsMute ? colors.base1 : colors.background4}
       >
         {!optimisticIsMute ? (
-          <Video color={colors.base4} />
+          <Video color={colors.base5} />
         ) : (
           <VideoSlash color={colors.base1} />
         )}
