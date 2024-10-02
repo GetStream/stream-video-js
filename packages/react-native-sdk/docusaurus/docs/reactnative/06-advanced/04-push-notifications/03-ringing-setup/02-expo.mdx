@@ -134,6 +134,8 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
 - For iOS only, since `firebase-ios-sdk` requires `use_frameworks` then you want to configure `expo-build-properties` by adding `"useFrameworks": "static"`.
 :::
 
+If Expo EAS build is not used, please do `npx expo prebuild --clean` to generate the native directories again after adding the config plugins. 
+
 ## Optional: Disable Firebase initialisation on iOS
 
 React Native Firebase Messaging automatically registers the device with APNs to receive remote messages. But since we do not use Firebase on iOS, we can disable it via the `firebase.json` file that we can newly create:
