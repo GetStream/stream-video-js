@@ -102,6 +102,14 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
       ],
       // highlight-next-line
       "@config-plugins/react-native-callkeep",
+      [
+        // highlight-next-line
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
+          "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
+        }
+      ],
       // highlight-next-line
       "@react-native-firebase/app",
       [
