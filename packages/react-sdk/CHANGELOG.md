@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.4.5...@stream-io/video-react-sdk-1.5.0) (2024-10-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.0`
+* `@stream-io/video-styling` updated to version `1.1.0`
+
+### Features
+
+* manual video quality selection ([#1486](https://github.com/GetStream/stream-video-js/issues/1486)) ([3a754af](https://github.com/GetStream/stream-video-js/commit/3a754afa1bd13d038b1023520ec8a5296ad2669e))
+
 ## [1.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.4.4...@stream-io/video-react-sdk-1.4.5) (2024-10-02)
 
 ### Dependency Updates
