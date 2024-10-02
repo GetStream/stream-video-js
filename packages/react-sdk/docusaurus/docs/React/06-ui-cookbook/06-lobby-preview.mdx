@@ -24,7 +24,7 @@ To do that, we follow these steps:
 For the token generation, you can use our [Token Generator](https://getstream.io/chat/docs/token_generator/).
 :::
 
-### The call data
+## The call data
 
 We would like to show some basic information about the call, when users arrive to the lobby. For example:
 
@@ -112,7 +112,7 @@ Learn how to build a toggle button for call preview pages in [Call controls tuto
 We build our custom sound detector in the [dedicated tutorial about Audio Volume Indicator](../audio-volume-indicator).
 :::
 
-### Device selection
+## Device selection
 
 Switching devices is done through a set of utility methods or hooks.
 We speak a bit more about the function and the pre-built components in the [media devices guide](../../guides/camera-and-microphone).
@@ -193,7 +193,7 @@ export const AudioOutputDeviceSelector = () => {
 };
 ```
 
-### Participants in a call
+## Participants in a call
 
 We can retrieve the list of members, that already joined the call (participants), by inspecting the call session object (`session.participants`).
 The object is provided and maintained up-to-date by `useCallSession` hook.
@@ -226,6 +226,6 @@ export const ParticipantsPreview = () => {
 };
 ```
 
-### Joining the call button
+## Joining the call button
 
 Lastly, to join a call we simply invoke `call.join()`. Learn more about the topic in the dedicated [Joining & Creating Calls guide](../../guides/joining-and-creating-calls).

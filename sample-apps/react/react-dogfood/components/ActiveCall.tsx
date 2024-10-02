@@ -27,6 +27,7 @@ import { ChatUI } from './ChatUI';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ClosedCaptions, ClosedCaptionsSidebar } from './ClosedCaptions';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { IncomingVideoSettingsButton } from './IncomingVideoSettings';
 import { ToggleEffectsButton } from './ToggleEffectsButton';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { ToggleFeedbackButton } from './ToggleFeedbackButton';
@@ -65,7 +66,7 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useCallCallingState } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const {
     current: currentTourStep,
@@ -261,6 +262,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ScreenShareButton />
             </div>
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <IncomingVideoSettingsButton />
+              </div>
+            )}
             <RecordCallConfirmationButton />
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />

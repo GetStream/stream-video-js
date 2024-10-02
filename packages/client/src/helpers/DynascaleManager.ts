@@ -1,4 +1,3 @@
-import { Call } from '../Call';
 import {
   AudioTrackType,
   DebounceType,
@@ -6,8 +5,9 @@ import {
   VideoTrackType,
   VisibilityState,
 } from '../types';
-import { VideoDimension } from '../gen/video/sfu/models/models';
+import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
 import {
+  BehaviorSubject,
   combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
@@ -18,7 +18,16 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
 import { isFirefox, isSafari } from './browsers';
-import { hasScreenShare, hasVideo } from './participantUtils';
+import {
+  hasScreenShare,
+  hasScreenShareAudio,
+  hasVideo,
+} from './participantUtils';
+import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
+import type { CallState } from '../store';
+import type { StreamSfuClient } from '../StreamSfuClient';
+import { SpeakerManager } from '../devices';
+import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -27,6 +36,20 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   videoTrack: VisibilityState.UNKNOWN,
   screenShareTrack: VisibilityState.UNKNOWN,
 } as const;
+
+type VideoTrackSubscriptionOverride =
+  | {
+      enabled: true;
+      dimension: VideoDimension;
+    }
+  | { enabled: false };
+
+const globalOverrideKey = Symbol('globalOverrideKey');
+
+interface VideoTrackSubscriptionOverrides {
+  [sessionId: string]: VideoTrackSubscriptionOverride | undefined;
+  [globalOverrideKey]?: VideoTrackSubscriptionOverride;
+}
 
 /**
  * A manager class that handles dynascale related tasks like:
@@ -45,16 +68,150 @@ export class DynascaleManager {
   readonly viewportTracker = new ViewportTracker();
 
   private logger = getLogger(['DynascaleManager']);
-  private call: Call;
+  private callState: CallState;
+  private speaker: SpeakerManager;
+  private sfuClient: StreamSfuClient | undefined;
+  private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
+
+  private videoTrackSubscriptionOverridesSubject =
+    new BehaviorSubject<VideoTrackSubscriptionOverrides>({});
+
+  videoTrackSubscriptionOverrides$ =
+    this.videoTrackSubscriptionOverridesSubject.asObservable();
+
+  incomingVideoSettings$ = this.videoTrackSubscriptionOverrides$.pipe(
+    map((overrides) => {
+      const { [globalOverrideKey]: globalSettings, ...participants } =
+        overrides;
+      return {
+        enabled: globalSettings?.enabled !== false,
+        preferredResolution: globalSettings?.enabled
+          ? globalSettings.dimension
+          : undefined,
+        participants: Object.fromEntries(
+          Object.entries(participants).map(
+            ([sessionId, participantOverride]) => [
+              sessionId,
+              {
+                enabled: participantOverride?.enabled !== false,
+                preferredResolution: participantOverride?.enabled
+                  ? participantOverride.dimension
+                  : undefined,
+              },
+            ],
+          ),
+        ),
+        isParticipantVideoEnabled: (sessionId: string) =>
+          overrides[sessionId]?.enabled ??
+          overrides[globalOverrideKey]?.enabled ??
+          true,
+      };
+    }),
+    shareReplay(1),
+  );
 
   /**
    * Creates a new DynascaleManager instance.
    *
    * @param call the call to manage.
    */
-  constructor(call: Call) {
-    this.call = call;
+  constructor(callState: CallState, speaker: SpeakerManager) {
+    this.callState = callState;
+    this.speaker = speaker;
   }
+
+  setSfuClient(sfuClient: StreamSfuClient | undefined) {
+    this.sfuClient = sfuClient;
+  }
+
+  get trackSubscriptions() {
+    const subscriptions: TrackSubscriptionDetails[] = [];
+    for (const p of this.callState.remoteParticipants) {
+      // NOTE: audio tracks don't have to be requested explicitly
+      // as the SFU will implicitly subscribe us to all of them,
+      // once they become available.
+      if (p.videoDimension && hasVideo(p)) {
+        const override =
+          this.videoTrackSubscriptionOverrides[p.sessionId] ??
+          this.videoTrackSubscriptionOverrides[globalOverrideKey];
+
+        if (override?.enabled !== false) {
+          subscriptions.push({
+            userId: p.userId,
+            sessionId: p.sessionId,
+            trackType: TrackType.VIDEO,
+            dimension: override?.dimension ?? p.videoDimension,
+          });
+        }
+      }
+      if (p.screenShareDimension && hasScreenShare(p)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackType: TrackType.SCREEN_SHARE,
+          dimension: p.screenShareDimension,
+        });
+      }
+      if (hasScreenShareAudio(p)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackType: TrackType.SCREEN_SHARE_AUDIO,
+        });
+      }
+    }
+    return subscriptions;
+  }
+
+  get videoTrackSubscriptionOverrides() {
+    return getCurrentValue(this.videoTrackSubscriptionOverrides$);
+  }
+
+  setVideoTrackSubscriptionOverrides = (
+    override: VideoTrackSubscriptionOverride | undefined,
+    sessionIds?: string[],
+  ) => {
+    if (!sessionIds) {
+      return setCurrentValue(
+        this.videoTrackSubscriptionOverridesSubject,
+        override ? { [globalOverrideKey]: override } : {},
+      );
+    }
+
+    return setCurrentValue(
+      this.videoTrackSubscriptionOverridesSubject,
+      (overrides) => ({
+        ...overrides,
+        ...Object.fromEntries(sessionIds.map((id) => [id, override])),
+      }),
+    );
+  };
+
+  applyTrackSubscriptions = (
+    debounceType: DebounceType = DebounceType.SLOW,
+  ) => {
+    if (this.pendingSubscriptionsUpdate) {
+      clearTimeout(this.pendingSubscriptionsUpdate);
+    }
+
+    const updateSubscriptions = () => {
+      this.pendingSubscriptionsUpdate = null;
+      this.sfuClient
+        ?.updateSubscriptions(this.trackSubscriptions)
+        .catch((err: unknown) => {
+          this.logger('debug', `Failed to update track subscriptions`, err);
+        });
+    };
+
+    if (debounceType) {
+      this.pendingSubscriptionsUpdate = setTimeout(
+        updateSubscriptions,
+        debounceType,
+      );
+    } else {
+      updateSubscriptions();
+    }
+  };
 
   /**
    * Will begin tracking the given element for visibility changes within the
@@ -71,7 +228,7 @@ export class DynascaleManager {
     trackType: VideoTrackType,
   ) => {
     const cleanup = this.viewportTracker.observe(element, (entry) => {
-      this.call.state.updateParticipant(sessionId, (participant) => {
+      this.callState.updateParticipant(sessionId, (participant) => {
         const previousVisibilityState =
           participant.viewportVisibilityState ??
           DEFAULT_VIEWPORT_VISIBILITY_STATE;
@@ -97,7 +254,7 @@ export class DynascaleManager {
       // reset visibility state to UNKNOWN upon cleanup
       // so that the layouts that are not actively observed
       // can still function normally (runtime layout switching)
-      this.call.state.updateParticipant(sessionId, (participant) => {
+      this.callState.updateParticipant(sessionId, (participant) => {
         const previousVisibilityState =
           participant.viewportVisibilityState ??
           DEFAULT_VIEWPORT_VISIBILITY_STATE;
@@ -142,7 +299,7 @@ export class DynascaleManager {
     trackType: VideoTrackType,
   ) => {
     const boundParticipant =
-      this.call.state.findParticipantBySessionId(sessionId);
+      this.callState.findParticipantBySessionId(sessionId);
     if (!boundParticipant) return;
 
     const requestTrackWithDimensions = (
@@ -157,14 +314,13 @@ export class DynascaleManager {
         this.logger('debug', `Ignoring 0x0 dimension`, boundParticipant);
         dimension = undefined;
       }
-      this.call.updateSubscriptionsPartial(
-        trackType,
-        { [sessionId]: { dimension } },
-        debounceType,
-      );
+      this.callState.updateParticipantTracks(trackType, {
+        [sessionId]: { dimension },
+      });
+      this.applyTrackSubscriptions(debounceType);
     };
 
-    const participant$ = this.call.state.participants$.pipe(
+    const participant$ = this.callState.participants$.pipe(
       map(
         (participants) =>
           participants.find(
@@ -324,10 +480,10 @@ export class DynascaleManager {
     sessionId: string,
     trackType: AudioTrackType,
   ) => {
-    const participant = this.call.state.findParticipantBySessionId(sessionId);
+    const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
 
-    const participant$ = this.call.state.participants$.pipe(
+    const participant$ = this.callState.participants$.pipe(
       map(
         (participants) =>
           participants.find(
@@ -364,7 +520,7 @@ export class DynascaleManager {
             // audio output device shall be set after the audio element is played
             // otherwise, the browser will not pick it up, and will always
             // play audio through the system's default device
-            const { selectedDevice } = this.call.speaker.state;
+            const { selectedDevice } = this.speaker.state;
             if (selectedDevice && 'setSinkId' in audioElement) {
               audioElement.setSinkId(selectedDevice);
             }
@@ -374,14 +530,14 @@ export class DynascaleManager {
 
     const sinkIdSubscription = !('setSinkId' in audioElement)
       ? null
-      : this.call.speaker.state.selectedDevice$.subscribe((deviceId) => {
+      : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
           if (deviceId) {
             audioElement.setSinkId(deviceId);
           }
         });
 
     const volumeSubscription = combineLatest([
-      this.call.speaker.state.volume$,
+      this.speaker.state.volume$,
       participant$.pipe(distinctUntilKeyChanged('audioVolume')),
     ]).subscribe(([volume, p]) => {
       audioElement.volume = p.audioVolume ?? volume;

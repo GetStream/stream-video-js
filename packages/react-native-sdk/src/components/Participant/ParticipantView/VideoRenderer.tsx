@@ -53,7 +53,9 @@ export const VideoRenderer = ({
     theme: { videoRenderer },
   } = useTheme();
   const call = useCall();
-  const { useCallCallingState, useCameraState } = useCallStateHooks();
+  const { useCallCallingState, useCameraState, useIncomingVideoSettings } =
+    useCallStateHooks();
+  const { isParticipantVideoEnabled } = useIncomingVideoSettings();
   const callingState = useCallCallingState();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
@@ -77,7 +79,10 @@ export const VideoRenderer = ({
     : videoStream) as unknown as MediaStream | undefined;
 
   const canShowVideo =
-    !!videoStreamToRender && isVisible && isPublishingVideoTrack;
+    !!videoStreamToRender &&
+    isVisible &&
+    isPublishingVideoTrack &&
+    isParticipantVideoEnabled(participant.sessionId);
 
   const mirror =
     isLocalParticipant && !isScreenSharing && direction === 'front';
@@ -183,10 +188,10 @@ export const VideoRenderer = ({
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
     const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
-
-    call.updateSubscriptionsPartial(trackType, {
+    call.state.updateParticipantTracks(trackType, {
       [sessionId]: { dimension },
     });
+    call.dynascaleManager.applyTrackSubscriptions();
 
     if (dimension) {
       subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
@@ -235,11 +240,12 @@ export const VideoRenderer = ({
     ) {
       return;
     }
-    call.updateSubscriptionsPartial(trackType, {
+    call.state.updateParticipantTracks(trackType, {
       [sessionId]: {
         dimension,
       },
     });
+    call.dynascaleManager.applyTrackSubscriptions();
     subscribedVideoLayoutRef.current = dimension;
     pendingVideoLayoutRef.current = undefined;
   };
