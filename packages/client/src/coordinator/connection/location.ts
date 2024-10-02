@@ -3,6 +3,7 @@ import { getLogger } from '../../logger';
 export const getLocationHint = async (
   hintUrl = `https://hint.stream-io-video.com/`,
   timeout = 2000,
+  maxAttempts = 3,
 ): Promise<string> => {
   const logger = getLogger(['location-hint']);
 
@@ -25,7 +26,7 @@ export const getLocationHint = async (
     } finally {
       clearTimeout(timeoutId);
     }
-  } while (locationHint === 'ERR' && ++attempt < 3);
+  } while (locationHint === 'ERR' && ++attempt < maxAttempts);
 
   return locationHint;
 };
