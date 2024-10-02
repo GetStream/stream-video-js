@@ -84,6 +84,8 @@ Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.c
 }
 ```
 
+If Expo EAS build is not used, please do `npx expo prebuild --clean` to generate the native directories again after adding the config plugins. 
+
 :::infoINFO
 Permissions need to be granted by the user as well. Requests for Camera and Microphone usage are automatically asked when the stream is first requested by the app. But other permissions like `BLUETOOTH_CONNECT` in Android need to be requested manually. However, we recommend that all necessary permissions be manually asked at an appropriate place in your app for the best user experience.
 
