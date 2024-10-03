@@ -287,7 +287,7 @@ export type Theme = {
   get: (
     componentOrPath: string,
     prop?: keyof Theme['defaults'] | string
-  ) => string | number | ColorValue | undefined;
+  ) => Theme | string | number | ColorValue | undefined;
 
   // Index signature for additional dynamic properties
   [component: string]: any;
@@ -626,11 +626,11 @@ export const defaultTheme: Theme = {
   get: function (
     componentOrPath: string,
     prop?: keyof Theme['defaults'] | string
-  ): string | number | ColorValue | undefined {
+  ): Theme | string | number | ColorValue | undefined {
     // dot-separated path
     if (componentOrPath.includes('.')) {
       const path = componentOrPath.split('.');
-      let value: any = this;
+      let value = this;
 
       for (const key of path) {
         if (value[key] !== undefined) {
