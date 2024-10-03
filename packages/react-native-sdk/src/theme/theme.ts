@@ -630,18 +630,18 @@ export const defaultTheme: Theme = {
     // dot-separated path
     if (componentOrPath.includes('.')) {
       const path = componentOrPath.split('.');
-      let value = this;
+      let themeValue: Theme = this;
 
       for (const key of path) {
-        if (value[key] !== undefined) {
-          value = value[key];
+        if (themeValue[key] !== undefined) {
+          themeValue = themeValue[key];
         } else {
           console.error(`Invalid path: ${componentOrPath}`);
           return undefined;
         }
       }
 
-      return value;
+      return themeValue;
     }
 
     // component and prop-based query
