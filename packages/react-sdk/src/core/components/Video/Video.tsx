@@ -18,6 +18,8 @@ import {
   VideoPlaceholderProps,
 } from './DefaultVideoPlaceholder';
 import { useCall } from '@stream-io/video-react-bindings';
+import { usePictureInPictureState } from '../../hooks/usePictureInPictureState';
+import { DefaultPictureInPicturePlaceholder } from './DefaultPictureInPicturePlaceholder';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   /**
@@ -89,6 +91,7 @@ export const Video = ({
   // start with true, will flip once the video starts playing
   const [isVideoPaused, setIsVideoPaused] = useState(true);
   const [isWideMode, setIsWideMode] = useState(true);
+  const isPiP = usePictureInPictureState(videoElement ?? undefined);
 
   const stream =
     trackType === 'videoTrack'
@@ -174,6 +177,12 @@ export const Video = ({
             setVideoElement(element);
             refs?.setVideoElement?.(element);
           }}
+        />
+      )}
+      {isPiP && (
+        <DefaultPictureInPicturePlaceholder
+          style={{ position: 'absolute' }}
+          participant={participant}
         />
       )}
       {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}
