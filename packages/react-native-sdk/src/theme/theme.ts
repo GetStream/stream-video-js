@@ -630,7 +630,7 @@ export const defaultTheme: Theme = {
     // dot-separated path
     if (componentOrPath.includes('.')) {
       const path = componentOrPath.split('.');
-      let value = undefined;
+      let value;
 
       for (const key of path) {
         if (value ? value[key] !== undefined : this[key] !== undefined) {
