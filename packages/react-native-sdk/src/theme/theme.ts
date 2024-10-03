@@ -626,22 +626,22 @@ export const defaultTheme: Theme = {
   get: function (
     componentOrPath: string,
     prop?: keyof Theme['defaults'] | string
-  ): Theme | string | number | ColorValue | undefined {
+  ): string | number | ColorValue | undefined {
     // dot-separated path
     if (componentOrPath.includes('.')) {
       const path = componentOrPath.split('.');
-      let themeValue: Theme = this;
+      let value = undefined;
 
       for (const key of path) {
-        if (themeValue[key] !== undefined) {
-          themeValue = themeValue[key];
+        if (value ? value[key] !== undefined : this[key] !== undefined) {
+          value = value ? value[key] : this[key];
         } else {
           console.error(`Invalid path: ${componentOrPath}`);
           return undefined;
         }
       }
 
-      return themeValue;
+      return value;
     }
 
     // component and prop-based query
