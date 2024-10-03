@@ -218,7 +218,7 @@ const SettingSelectionItem = ({
   );
 };
 
-/* This  button that opens the modal along with the modal component */
+/* This button that opens the modal along with the modal component */
 export const IncomingVideoQualitySelectorButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
@@ -263,6 +263,7 @@ export const IncomingVideoQualitySelectorButton = () => {
           </View>
         </Pressable>
       </Modal>
+      {/* This is the button to open/close the modal */}
       <Button
         title="Change Incoming Video Quality"
         onPress={() => setModalVisible(true)}
