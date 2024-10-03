@@ -42,6 +42,11 @@ export type SpeakerLayoutProps = {
    */
   excludeLocalParticipant?: boolean;
   /**
+   * When set to `false` disables mirroring of the local partipant's video.
+   * @default true
+   */
+  mirrorLocalParticipantVideo?: boolean;
+  /**
    * Turns on/off the pagination arrows.
    * @default true
    */
@@ -58,6 +63,7 @@ export const SpeakerLayout = ({
   VideoPlaceholder,
   participantsBarPosition = 'bottom',
   participantsBarLimit,
+  mirrorLocalParticipantVideo = true,
   excludeLocalParticipant = false,
   pageArrowsVisible = true,
 }: SpeakerLayoutProps) => {
@@ -117,6 +123,8 @@ export const SpeakerLayout = ({
     );
   }
 
+  const mirror = mirrorLocalParticipantVideo ? undefined : false;
+
   if (!call) return null;
 
   return (
@@ -134,6 +142,7 @@ export const SpeakerLayout = ({
             <ParticipantView
               participant={participantInSpotlight}
               muteAudio={true}
+              mirror={mirror}
               trackType={
                 isSpeakerScreenSharing ? 'screenShareTrack' : 'videoTrack'
               }
@@ -164,6 +173,7 @@ export const SpeakerLayout = ({
                       participant={participantInSpotlight}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      mirror={mirror}
                       muteAudio={true}
                     />
                   </div>
@@ -177,6 +187,7 @@ export const SpeakerLayout = ({
                       participant={participant}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      mirror={mirror}
                       muteAudio={true}
                     />
                   </div>
