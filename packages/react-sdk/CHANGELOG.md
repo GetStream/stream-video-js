@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.5.0...@stream-io/video-react-sdk-1.6.0) (2024-10-03)
+
+
+### Features
+
+* add a prop to control mirroring of local participant video ([#1506](https://github.com/GetStream/stream-video-js/issues/1506)) ([ca12dc3](https://github.com/GetStream/stream-video-js/commit/ca12dc3ba34f6dec117ae6fe75d7dbe00f297fe4))
+
 ## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.4.5...@stream-io/video-react-sdk-1.5.0) (2024-10-02)
 
 ### Dependency Updates
