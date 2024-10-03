@@ -7,7 +7,6 @@ import {
   OwnCapability,
   Restricted,
   StreamVideoParticipant,
-  Theme,
   useCall,
   useCallStateHooks,
   useConnectedUser,
