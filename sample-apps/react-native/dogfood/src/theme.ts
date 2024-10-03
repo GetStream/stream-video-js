@@ -32,20 +32,3 @@ export const appTheme = {
     IN_FRONT: 2,
   },
 };
-
-export const customTheme: DeepPartial<Theme> = {
-  callControls: {
-    container: {
-      backgroundColor: 'red',
-    },
-  },
-  colors: {
-    light_gray: '#979797',
-    light_blue: '#669FFF',
-  },
-  variants: {
-    spacingSizes: {
-      xl: 40,
-    },
-  },
-};
