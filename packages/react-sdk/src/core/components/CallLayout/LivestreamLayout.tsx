@@ -45,6 +45,12 @@ export type LivestreamLayoutProps = {
   showSpeakerName?: boolean;
 
   /**
+   * When set to `false` disables mirroring of the local partipant's video.
+   * @default true
+   */
+  mirrorLocalParticipantVideo?: boolean;
+
+  /**
    * The props to pass to the floating participant element.
    */
   floatingParticipantProps?: LivestreamLayoutProps & {
@@ -116,6 +122,9 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
           )}
           participant={currentSpeaker}
           ParticipantViewUI={FloatingParticipantOverlay || Overlay}
+          mirror={
+            props.mirrorLocalParticipantVideo !== false ? undefined : false
+          }
           muteAudio // audio is rendered by ParticipantsAudio
         />
       )}

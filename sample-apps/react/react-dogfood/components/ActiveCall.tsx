@@ -66,7 +66,7 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount, useCallCallingState } = useCallStateHooks();
+  const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const {
     current: currentTourStep,

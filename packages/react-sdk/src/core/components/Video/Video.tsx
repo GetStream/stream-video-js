@@ -25,7 +25,11 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
    * even if the participant has published video.
    */
   enabled?: boolean;
-
+  /**
+   * Forces the video to be mirrored or unmirrored. By default, video track
+   * from the local participant is mirrored, and all other videos are not mirrored.
+   */
+  mirror?: boolean;
   /**
    * The track type to display.
    */
@@ -61,6 +65,7 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
 
 export const Video = ({
   enabled,
+  mirror,
   trackType,
   participant,
   className,
@@ -147,7 +152,10 @@ export const Video = ({
     viewportVisibilityState?.[trackType] === VisibilityState.INVISIBLE;
 
   const hasNoVideoOrInvisible = !enabled || !isPublishingTrack || isInvisible;
-  const mirrorVideo = isLocalParticipant && trackType === 'videoTrack';
+  const mirrorVideo =
+    mirror === undefined
+      ? isLocalParticipant && trackType === 'videoTrack'
+      : mirror;
   const isScreenShareTrack = trackType === 'screenShareTrack';
   return (
     <>
