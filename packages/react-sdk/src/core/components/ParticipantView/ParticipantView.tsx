@@ -43,6 +43,12 @@ export type ParticipantViewProps = {
   trackType?: VideoTrackType | 'none';
 
   /**
+   * Forces participant's video to be mirrored or unmirrored. By default, video track
+   * from the local participant is mirrored, and all other videos are not mirrored.
+   */
+  mirror?: boolean;
+
+  /**
    * This prop is only useful for advanced use-cases (for example, building your own layout).
    * When set to `true` it will mute the give participant's audio stream on the client side.
    * The local participant is always muted.
@@ -69,6 +75,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     {
       participant,
       trackType = 'videoTrack',
+      mirror,
       muteAudio,
       refs: { setVideoElement, setVideoPlaceholderElement } = {},
       className,
@@ -176,6 +183,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
               trackType !== 'videoTrack' ||
               isParticipantVideoEnabled(participant.sessionId)
             }
+            mirror={mirror}
             autoPlay
           />
           {isComponentType(ParticipantViewUI) ? (

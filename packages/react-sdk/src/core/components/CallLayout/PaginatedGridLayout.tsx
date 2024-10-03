@@ -20,11 +20,12 @@ type PaginatedGridLayoutGroupProps = {
    * The group of participants to render.
    */
   group: Array<StreamVideoParticipant>;
-} & Pick<ParticipantViewProps, 'VideoPlaceholder'> &
+} & Pick<ParticipantViewProps, 'VideoPlaceholder' | 'mirror'> &
   Required<Pick<ParticipantViewProps, 'ParticipantViewUI'>>;
 
 const PaginatedGridLayoutGroup = ({
   group,
+  mirror,
   VideoPlaceholder,
   ParticipantViewUI,
 }: PaginatedGridLayoutGroupProps) => {
@@ -43,6 +44,7 @@ const PaginatedGridLayoutGroup = ({
           key={participant.sessionId}
           participant={participant}
           muteAudio
+          mirror={mirror}
           VideoPlaceholder={VideoPlaceholder}
           ParticipantViewUI={ParticipantViewUI}
         />
@@ -64,6 +66,12 @@ export type PaginatedGridLayoutProps = {
   excludeLocalParticipant?: boolean;
 
   /**
+   * When set to `false` disables mirroring of the local partipant's video.
+   * @default true
+   */
+  mirrorLocalParticipantVideo?: boolean;
+
+  /**
    * Turns on/off the pagination arrows.
    * @default true
    */
@@ -76,6 +84,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
       ? props.groupSize || GROUP_SIZE
       : GROUP_SIZE,
     excludeLocalParticipant = false,
+    mirrorLocalParticipantVideo = true,
     pageArrowsVisible = true,
     VideoPlaceholder,
     ParticipantViewUI = DefaultParticipantViewUI,
@@ -121,6 +130,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   }, [page, pageCount]);
 
   const selectedGroup = participantGroups[page];
+  const mirror = mirrorLocalParticipantVideo ? undefined : false;
 
   if (!call) return null;
 
@@ -143,6 +153,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
         {selectedGroup && (
           <PaginatedGridLayoutGroup
             group={selectedGroup}
+            mirror={mirror}
             VideoPlaceholder={VideoPlaceholder}
             ParticipantViewUI={ParticipantViewUI}
           />
