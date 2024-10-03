@@ -1,5 +1,3 @@
-import { Theme, DeepPartial } from '@stream-io/video-react-native-sdk';
-
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
     .toString(16)
