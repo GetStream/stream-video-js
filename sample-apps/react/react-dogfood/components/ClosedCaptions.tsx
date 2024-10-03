@@ -27,32 +27,13 @@ const useDeduplicatedQueue = (initialQueue: CallClosedCaption[] = []) => {
 };
 
 export const ClosedCaptions = () => {
-  const call = useCall();
-  const [queue, addToQueue, setQueue] = useDeduplicatedQueue();
-
-  useEffect(() => {
-    if (!call) return;
-    return call.on('call.closed_caption', (e) => {
-      if (e.type !== 'call.closed_caption') return;
-      if (e.closed_caption.text.trim() === '') return;
-      addToQueue(e.closed_caption);
-    });
-  }, [call, addToQueue]);
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setQueue((prevQueue) =>
-        prevQueue.length !== 0 ? prevQueue.slice(1) : prevQueue,
-      );
-    }, 2700);
-    return () => clearTimeout(id);
-  }, [queue, setQueue]);
-
+  const { useCallClosedCaptions } = useCallStateHooks();
+  const closedCaptions = useCallClosedCaptions();
   const userNameMapping = useUserIdToUserNameMapping();
 
   return (
     <div className="rd__closed-captions">
-      {queue.slice(-2).map(({ speaker_id, text, start_time }) => (
+      {closedCaptions.map(({ speaker_id, text, start_time }) => (
         <p
           className="rd__closed-captions__line"
           key={`${speaker_id}-${start_time}`}
@@ -60,7 +41,7 @@ export const ClosedCaptions = () => {
           <span className="rd__closed-captions__speaker">
             {userNameMapping[speaker_id] || speaker_id}:
           </span>
-          <span className="rd__closed-captions__text"> {text}</span>
+          <span className="rd__closed-captions__text">{text}</span>
         </p>
       ))}
     </div>
@@ -74,8 +55,6 @@ export const ClosedCaptionsSidebar = () => {
   useEffect(() => {
     if (!call) return;
     return call.on('call.closed_caption', (e) => {
-      if (e.type !== 'call.closed_caption') return;
-      if (e.closed_caption.text.trim() === '') return;
       addToQueue(e.closed_caption);
     });
   }, [call, addToQueue]);

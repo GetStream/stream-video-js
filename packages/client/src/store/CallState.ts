@@ -19,6 +19,7 @@ import {
 import { CallStatsReport } from '../stats';
 import {
   BlockedUserEvent,
+  CallClosedCaption,
   CallHLSBroadcastingStartedEvent,
   CallIngressResponse,
   CallMemberAddedEvent,
@@ -32,6 +33,7 @@ import {
   CallSessionParticipantLeftEvent,
   CallSessionResponse,
   CallSettingsResponse,
+  ClosedCaptionEvent,
   EgressResponse,
   MemberResponse,
   OwnCapability,
@@ -66,6 +68,21 @@ type OrphanedTrack = {
   trackLookupPrefix: string;
   trackType: TrackType;
   track: MediaStream;
+};
+
+type ClosedCaptionsConfig = {
+  /**
+   * The time in milliseconds to keep a closed caption in the queue.
+   * Default is 2700 ms.
+   */
+  retentionTime?: number;
+  /**
+   * The maximum number of closed captions to keep in the queue.
+   * When the queue is full, the oldest closed caption will be removed.
+   *
+   * Default is 2.
+   */
+  queueSize?: number;
 };
 
 /**
@@ -117,6 +134,7 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+  private closedCaptionsSubject = new BehaviorSubject<CallClosedCaption[]>([]);
 
   // These are tracks that were delivered to the Subscriber's onTrack event
   // that we couldn't associate with a participant yet.
@@ -285,6 +303,11 @@ export class CallState {
    */
   thumbnails$: Observable<ThumbnailResponse | undefined>;
 
+  /**
+   * The queue of closed captions.
+   */
+  closedCaptions$: Observable<CallClosedCaption[]>;
+
   readonly logger = getLogger(['CallState']);
 
   /**
@@ -293,6 +316,12 @@ export class CallState {
    * @private
    */
   private sortParticipantsBy = defaultSortPreset;
+
+  /**
+   * The closed captions configuration.
+   * @private
+   */
+  private closedCaptionsConfig: ClosedCaptionsConfig = {};
 
   private readonly eventHandlers: {
     [EventType in WSEvent['type']]:
@@ -357,6 +386,7 @@ export class CallState {
     this.settings$ = this.settingsSubject.asObservable();
     this.endedBy$ = this.endedBySubject.asObservable();
     this.thumbnails$ = this.thumbnailsSubject.asObservable();
+    this.closedCaptions$ = this.closedCaptionsSubject.asObservable();
 
     /**
      * Performs shallow comparison of two arrays.
@@ -393,7 +423,6 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
-      'call.closed_caption': undefined,
       'call.deleted': undefined,
       'call.permission_request': undefined,
       'call.recording_ready': undefined,
@@ -415,6 +444,7 @@ export class CallState {
       // events that update call state:
       'call.accepted': (e) => this.updateFromCallResponse(e.call),
       'call.blocked_user': this.blockUser,
+      'call.closed_caption': this.updateClosedCaptions,
       'call.created': (e) => this.updateFromCallResponse(e.call),
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
@@ -793,6 +823,13 @@ export class CallState {
   }
 
   /**
+   * Returns the current queue of closed captions.
+   */
+  get closedCaptions() {
+    return this.getCurrentValue(this.closedCaptions$);
+  }
+
+  /**
    * Will try to find the participant with the given sessionId in the current call.
    *
    * @param sessionId the sessionId of the participant to find.
@@ -1038,6 +1075,15 @@ export class CallState {
       );
     }
     return orphans;
+  };
+
+  /**
+   * Updates the closed captions configuration.
+   *
+   * @param config the new closed captions configuration.
+   */
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsConfig>) => {
+    this.closedCaptionsConfig = { ...this.closedCaptionsConfig, ...config };
   };
 
   /**
@@ -1298,5 +1344,26 @@ export class CallState {
     if (event.user.id === this.localParticipant?.userId) {
       this.setCurrentValue(this.ownCapabilitiesSubject, event.own_capabilities);
     }
+  };
+
+  private updateClosedCaptions = (event: ClosedCaptionEvent) => {
+    this.setCurrentValue(this.closedCaptionsSubject, (current) => {
+      const { closed_caption } = event;
+
+      const key = (c: CallClosedCaption) => `${c.speaker_id}/${c.start_time}`;
+      const newCcKey = key(closed_caption);
+      const isDuplicate = current.some((caption) => key(caption) === newCcKey);
+      if (isDuplicate) return current;
+
+      const { retentionTime = 2700, queueSize = 2 } = this.closedCaptionsConfig;
+      // TODO: we should probably cancel the timeout call is left
+      // schedule the removal of the closed caption after the retention time
+      setTimeout(() => {
+        this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
+          captions.filter((caption) => caption !== closed_caption),
+        );
+      }, retentionTime);
+      return [...current, closed_caption].slice(-queueSize);
+    });
   };
 }
