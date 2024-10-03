@@ -1,0 +1,111 @@
+---
+id: closed-captions
+title: Closed captions
+description: How to add closed captions to your calls
+---
+
+The Stream API supports adding real-time closed captions (subtitles for participants) to your calls. This guide shows you how to implement this feature on the client side.
+
+## Call and call type settings
+
+The closed caption feature can be controlled with the following options:
+
+- `available`: the feature is available for your call and can be enabled.
+- `disabled`: the feature is not available for your call. In this case, it's a good idea to "hide" any UI element you have related to closed captions.
+- `auto-on`: the feature is available and will be enabled automatically once the user is connected to the call.
+
+This setting can be set on the call or call type level.
+
+You can check the current value like this:
+
+```typescript
+console.log(call.state.settings?.transcription.closed_caption_mode);
+```
+
+## Closed caption events
+
+If closed captions are enabled for a given call, you'll receive the captions in the `call.closed_caption` events. Below, you can find an example payload:
+
+```
+{
+  "type": "call.closed_caption",
+  "created_at": "2024-09-25T12:22:25.067005915Z",
+  "call_cid": "default:test",
+  "closed_caption": {
+      "text": "Thank you, guys, for listening.",
+      // When did the speaker start speaking
+      "start_time": "2024-09-25T12:22:21.310735726Z",
+      // When did the speaker finish saying the caption
+      "end_time": "2024-09-25T12:22:24.310735726Z",
+      "speaker_id": "zitaszuperagetstreamio"
+  }
+}
+```
+
+## Displaying the captions
+
+When displaying closed captions, we should make sure that they are real-time (showing a sentence from 30 seconds ago has very little use in a conversation) and visible for enough time that participants can read them.
+
+Below is an example implementation:
+
+```typescript
+import {
+  Call,
+  CallClosedCaption,
+  ClosedCaptionEvent,
+} from '@stream-io/video-client';
+
+// The captions queue
+let captions: (CallClosedCaption & { speaker_name?: string })[] = [];
+// The maximum number of captions that can be visible on the screen
+const numberOfCaptionsVisible = 2;
+// A single caption can stay visible on the screen for this duration
+// This is the maximum duration, new captions can push a caption out of the screen sooner
+const captionTimeoutMs = 2700;
+
+// Subscribe to call.closed_caption events
+call.on('call.closed_caption', (event: ClosedCaptionEvent) => {
+  const caption = event.closed_caption;
+  // It's possible to receive the same caption twice, so make sure to filter duplicates
+  const isDuplicate = captions.find(
+    (c) =>
+      c.speaker_id === caption.speaker_id &&
+      c.start_time === caption.start_time,
+  );
+  if (!isDuplicate) {
+    // Look up the speaker's name based on the user id
+    const speaker = call.state.participants.find(
+      (p) => p.userId === caption.speaker_id,
+    );
+    const speakerName = speaker?.name || speaker?.userId;
+    // Add the caption to the queue
+    captions.push({ ...caption, speaker_name: speakerName });
+    // Update the UI
+    updateDisplayedCaptions();
+    // We specify a maximum amount of time a caption can be visible
+    // after that, we remove it from the screen (unless a newer caption has already pushed it out)
+    captionTimeout = setTimeout(() => {
+      captions = captions.slice(1);
+      updateDisplayedCaptions();
+      captionTimeout = undefined;
+    }, captionTimeoutMs);
+  }
+});
+
+const updateDisplayedCaptions = () => {
+  // The default implementation shows the last two captions
+  const displayedCaptions = captions.slice(-1 * numberOfCaptionsVisible);
+  const captionsHTML = displayedCaptions
+    .map((c) => `<b>${c.speaker_name}:</b> ${c.text}`)
+    .join('<br>');
+  // Update the UI
+};
+```
+
+:::note
+Since the closed caption event contains `start_time` and `end_time` fields, you can subtract the two to know how long it took the speaker to say the caption. You can then use this duration to control how long the text is visible on the screen. This is useful to ensure the captions are as real-time as possible, but that might not leave enough time for participants to read the text.
+:::
+
+## See it in action
+
+To see it all in action check out our TypeScript sample application on [GitHub](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/client/ts-quickstart) or in [Codesandbox](https://codesandbox.io/p/sandbox/eloquent-glitter-99th3v).
