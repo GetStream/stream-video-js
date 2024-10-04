@@ -1009,7 +1009,6 @@ describe('CallState', () => {
 
     it('should remove stale captions from the queue', () => {
       const state = new CallState();
-      state.updateClosedCaptionSettings({ retentionTimeInMs: 100 });
       vi.useFakeTimers();
       // @ts-expect-error incomplete data
       state.updateFromEvent({
@@ -1025,6 +1024,28 @@ describe('CallState', () => {
       expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
 
       vi.runAllTimers();
+      expect(state.closedCaptions.length).toBe(0);
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
+    });
+
+    it('should remove stale captions from the queue after timer runs', () => {
+      const state = new CallState();
+      state.updateClosedCaptionSettings({ retentionTimeInMs: 100 });
+      vi.useFakeTimers();
+      // @ts-expect-error incomplete data
+      state.updateFromEvent({
+        type: 'call.closed_caption',
+        closed_caption: {
+          speaker_id: `123`,
+          text: `Hello world`,
+          start_time: '2021-01-01T00:00:00.000Z',
+          end_time: '2021-01-01T00:02:00.000Z',
+        },
+      });
+      expect(state.closedCaptions.length).toBe(1);
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
+
+      vi.advanceTimersByTime(101);
       expect(state.closedCaptions.length).toBe(0);
       expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
     });
