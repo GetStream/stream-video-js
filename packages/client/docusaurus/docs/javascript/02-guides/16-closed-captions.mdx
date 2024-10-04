@@ -37,7 +37,14 @@ console.log(call.state.settings?.transcription.closed_caption_mode);
 
 ## Enabling and disabling closed caption events
 
-TODO
+If you set `closed_caption_mode` to `available` you need to enable closed caption events when you want to see captions:
+
+```typescript
+await this.call.startClosedCaptions();
+
+// to disable them
+await this.call.stopClosedCaptions();
+```
 
 ## Displaying the captions
 

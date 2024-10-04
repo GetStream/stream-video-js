@@ -35,15 +35,17 @@ export class ClosedCaptionManager {
     return this.captionContainer;
   }
 
-  showCaptions() {
+  async showCaptions() {
     this.status = 'on';
+    await this.call.startClosedCaptions();
     this.unsubscribe = this.call.state.closedCaptions$.subscribe((captions) => {
       this.updateDisplayedCaptions(captions);
     }).unsubscribe;
   }
 
-  hideCaptions() {
+  async hideCaptions() {
     this.status = 'off';
+    await this.call.stopClosedCaptions();
     this.cleanup();
   }
 
