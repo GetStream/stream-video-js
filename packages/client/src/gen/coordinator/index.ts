@@ -48,6 +48,12 @@ export interface APIError {
    * @memberof APIError
    */
   more_info: string;
+  /**
+   * Flag that indicates if the error is unrecoverable, requests that return unrecoverable errors should not be retried, this error only applies to the request that caused it
+   * @type {boolean}
+   * @memberof APIError
+   */
+  unrecoverable?: boolean;
 }
 /**
  *
@@ -1457,7 +1463,6 @@ export interface CallSessionEndedEvent {
    */
   type: string;
 }
-
 /**
  * This event is sent when the participant counts in a call session are updated
  * @export
@@ -4303,9 +4308,11 @@ export const OwnCapability = {
   SEND_AUDIO: 'send-audio',
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
+  START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
   START_RECORD_CALL: 'start-record-call',
   START_TRANSCRIPTION_CALL: 'start-transcription-call',
   STOP_BROADCAST_CALL: 'stop-broadcast-call',
+  STOP_CLOSED_CAPTIONS_CALL: 'stop-closed-captions-call',
   STOP_RECORD_CALL: 'stop-record-call',
   STOP_TRANSCRIPTION_CALL: 'stop-transcription-call',
   UPDATE_CALL: 'update-call',
@@ -4718,7 +4725,6 @@ export interface PrivacySettings {
    */
   typing_indicators?: TypingIndicators;
 }
-
 /**
  *
  * @export
@@ -4820,7 +4826,6 @@ export interface PushNotificationSettingsResponse {
    */
   disabled_until?: string;
 }
-
 /**
  *
  * @export
@@ -5493,6 +5498,19 @@ export interface SortParamRequest {
 /**
  *
  * @export
+ * @interface StartClosedCaptionsResponse
+ */
+export interface StartClosedCaptionsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof StartClosedCaptionsResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface StartHLSBroadcastingResponse
  */
 export interface StartHLSBroadcastingResponse {
@@ -5592,6 +5610,19 @@ export interface StatsOptions {
    * @memberof StatsOptions
    */
   reporting_interval_ms: number;
+}
+/**
+ *
+ * @export
+ * @interface StopClosedCaptionsResponse
+ */
+export interface StopClosedCaptionsResponse {
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof StopClosedCaptionsResponse
+   */
+  duration: string;
 }
 /**
  *
@@ -6375,7 +6406,6 @@ export interface UserMuteResponse {
    */
   user?: UserResponse;
 }
-
 /**
  *
  * @export

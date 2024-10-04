@@ -55,12 +55,14 @@ import type {
   SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
+  StartClosedCaptionsResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
+  StopClosedCaptionsResponse,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
@@ -1699,7 +1701,27 @@ export class Call {
   };
 
   /**
-   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   * Starts the closed captions of the call.
+   */
+  startClosedCaptions = async (): Promise<StartClosedCaptionsResponse> => {
+    return this.streamClient.post<StartClosedCaptionsResponse>(
+      `${this.streamClientBasePath}/start_closed_captions`,
+    );
+  };
+
+  /**
+   * Stops the closed captions of the call.
+   */
+  stopClosedCaptions = async (): Promise<StopClosedCaptionsResponse> => {
+    return this.streamClient.post<StopClosedCaptionsResponse>(
+      `${this.streamClientBasePath}/stop_closed_captions`,
+    );
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call.
+   * The call settings object contains information about which permissions can be requested during a call
+   * (for example, a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
     data: RequestPermissionRequest,
