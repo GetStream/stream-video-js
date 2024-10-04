@@ -70,12 +70,12 @@ type OrphanedTrack = {
   track: MediaStream;
 };
 
-type ClosedCaptionsConfig = {
+export type ClosedCaptionsSettings = {
   /**
    * The time in milliseconds to keep a closed caption in the queue.
    * Default is 2700 ms.
    */
-  retentionTime?: number;
+  retentionTimeInMs?: number;
   /**
    * The maximum number of closed captions to keep in the queue.
    * When the queue is full, the oldest closed caption will be removed.
@@ -312,16 +312,14 @@ export class CallState {
 
   /**
    * A list of comparators that are used to sort the participants.
-   *
-   * @private
    */
   private sortParticipantsBy = defaultSortPreset;
 
   /**
    * The closed captions configuration.
-   * @private
    */
-  private closedCaptionsConfig: ClosedCaptionsConfig = {};
+  private closedCaptionsSettings: ClosedCaptionsSettings = {};
+  private closedCaptionsCleanupTasks = new Map<string, NodeJS.Timeout>();
 
   private readonly eventHandlers: {
     [EventType in WSEvent['type']]:
@@ -493,6 +491,16 @@ export class CallState {
       'call.updated': (e) => this.updateFromCallResponse(e.call),
     };
   }
+
+  /**
+   * Runs the cleanup tasks.
+   */
+  dispose = () => {
+    for (const [ccKey, taskId] of this.closedCaptionsCleanupTasks.entries()) {
+      clearTimeout(taskId);
+      this.closedCaptionsCleanupTasks.delete(ccKey);
+    }
+  };
 
   /**
    * Sets the list of criteria that are used to sort the participants.
@@ -877,7 +885,6 @@ export class CallState {
 
     const thePatch = typeof patch === 'function' ? patch(participant) : patch;
     const updatedParticipant: StreamVideoParticipant = {
-      // FIXME OL: this is not a deep merge, we might want to revisit this
       ...participant,
       ...thePatch,
     };
@@ -949,7 +956,6 @@ export class CallState {
    *
    * @param trackType the kind of subscription to update.
    * @param changes the list of subscription changes to do.
-   * @param type the debounce type to use for the update.
    */
   updateParticipantTracks = (
     trackType: VideoTrackType,
@@ -1078,12 +1084,12 @@ export class CallState {
   };
 
   /**
-   * Updates the closed captions configuration.
+   * Updates the closed captions settings.
    *
-   * @param config the new closed captions configuration.
+   * @param config the new closed captions settings.
    */
-  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsConfig>) => {
-    this.closedCaptionsConfig = { ...this.closedCaptionsConfig, ...config };
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
+    this.closedCaptionsSettings = { ...this.closedCaptionsSettings, ...config };
   };
 
   /**
@@ -1347,23 +1353,41 @@ export class CallState {
   };
 
   private updateClosedCaptions = (event: ClosedCaptionEvent) => {
-    this.setCurrentValue(this.closedCaptionsSubject, (current) => {
+    this.setCurrentValue(this.closedCaptionsSubject, (queue) => {
       const { closed_caption } = event;
 
-      const key = (c: CallClosedCaption) => `${c.speaker_id}/${c.start_time}`;
-      const newCcKey = key(closed_caption);
-      const isDuplicate = current.some((caption) => key(caption) === newCcKey);
-      if (isDuplicate) return current;
+      const keyOf = (c: CallClosedCaption) => `${c.speaker_id}/${c.start_time}`;
+      const currentKey = keyOf(closed_caption);
 
-      const { retentionTime = 2700, queueSize = 2 } = this.closedCaptionsConfig;
-      // TODO: we should probably cancel the timeout call is left
+      const duplicate = queue.some((caption) => keyOf(caption) === currentKey);
+      if (duplicate) return queue;
+
+      const { retentionTimeInMs = 2700, queueSize = 2 } =
+        this.closedCaptionsSettings;
+
+      const nextQueue = [...queue, closed_caption];
+
       // schedule the removal of the closed caption after the retention time
-      setTimeout(() => {
-        this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
-          captions.filter((caption) => caption !== closed_caption),
-        );
-      }, retentionTime);
-      return [...current, closed_caption].slice(-queueSize);
+      if (retentionTimeInMs > 0) {
+        const taskId = setTimeout(() => {
+          this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
+            captions.filter((caption) => caption !== closed_caption),
+          );
+          this.closedCaptionsCleanupTasks.delete(currentKey);
+        }, retentionTimeInMs);
+        this.closedCaptionsCleanupTasks.set(currentKey, taskId);
+
+        // cancel the cleanup tasks for the closed captions that are no longer in the queue
+        for (let i = 0; i < nextQueue.length - queueSize; i++) {
+          const key = keyOf(nextQueue[i]);
+          const task = this.closedCaptionsCleanupTasks.get(key);
+          clearTimeout(task);
+          this.closedCaptionsCleanupTasks.delete(key);
+        }
+      }
+
+      // trim the queue
+      return nextQueue.slice(-queueSize);
     });
   };
 }

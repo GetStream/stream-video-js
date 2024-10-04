@@ -967,4 +967,81 @@ describe('CallState', () => {
       expect(state['orphanedTracks'].length).toBe(0);
     });
   });
+
+  describe('closed captions', () => {
+    it('should add closed captions to the queue', () => {
+      const state = new CallState();
+      // @ts-expect-error incomplete data
+      state.updateFromEvent({
+        type: 'call.closed_caption',
+        closed_caption: {
+          speaker_id: '123',
+          text: 'Hello world',
+          start_time: '2021-01-01T00:00:00.000Z',
+          end_time: '2021-01-01T00:02:00.000Z',
+        },
+      });
+      expect(state.closedCaptions.length).toBe(1);
+    });
+
+    it('should maintain predefined queue size', () => {
+      const state = new CallState();
+      state.updateClosedCaptionSettings({ queueSize: 2 });
+      for (let i = 0; i < 5; i++) {
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({
+          type: 'call.closed_caption',
+          closed_caption: {
+            speaker_id: `123-${i}`,
+            text: `Hello world ${i}`,
+            start_time: '2021-01-01T00:00:00.000Z',
+            end_time: '2021-01-01T00:02:00.000Z',
+          },
+        });
+      }
+      expect(state.closedCaptions.length).toBe(2);
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(2);
+    });
+
+    it('should remove stale captions from the queue', () => {
+      const state = new CallState();
+      state.updateClosedCaptionSettings({ retentionTimeInMs: 100 });
+      vi.useFakeTimers();
+      // @ts-expect-error incomplete data
+      state.updateFromEvent({
+        type: 'call.closed_caption',
+        closed_caption: {
+          speaker_id: `123`,
+          text: `Hello world`,
+          start_time: '2021-01-01T00:00:00.000Z',
+          end_time: '2021-01-01T00:02:00.000Z',
+        },
+      });
+      expect(state.closedCaptions.length).toBe(1);
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
+
+      vi.runAllTimers();
+      expect(state.closedCaptions.length).toBe(0);
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
+    });
+
+    it('dispose cancels all cleanup tasks', () => {
+      const state = new CallState();
+      // @ts-expect-error incomplete data
+      state.updateFromEvent({
+        type: 'call.closed_caption',
+        closed_caption: {
+          speaker_id: `123`,
+          text: `Hello world`,
+          start_time: '2021-01-01T00:00:00.000Z',
+          end_time: '2021-01-01T00:02:00.000Z',
+        },
+      });
+      expect(state.closedCaptions.length).toBe(1);
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
+
+      state.dispose();
+      expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
+    });
+  });
 });

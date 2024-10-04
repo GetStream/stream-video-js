@@ -15,6 +15,7 @@ import {
 import {
   CallingState,
   CallState,
+  ClosedCaptionsSettings,
   StreamVideoWriteableStateStore,
 } from './store';
 import {
@@ -552,6 +553,7 @@ export class Call {
       this.dynascaleManager.setSfuClient(undefined);
 
       this.state.setCallingState(CallingState.LEFT);
+      this.state.dispose();
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
@@ -1527,6 +1529,15 @@ export class Call {
    */
   setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
     return this.state.setSortParticipantsBy(criteria);
+  };
+
+  /**
+   * Updates the closed caption settings.
+   *
+   * @param config the closed caption settings to apply
+   */
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
+    this.state.updateClosedCaptionSettings(config);
   };
 
   /**
