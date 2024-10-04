@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.0...@stream-io/video-react-sdk-1.6.1) (2024-10-04)
+
+
+### Bug Fixes
+
+* video should be enabled by default ([7340041](https://github.com/GetStream/stream-video-js/commit/73400414d472d39701fd31b54ac927a8a8865151))
+
 ## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.5.0...@stream-io/video-react-sdk-1.6.0) (2024-10-03)
 
 
