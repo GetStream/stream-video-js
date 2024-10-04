@@ -1001,6 +1001,10 @@ describe('CallState', () => {
       }
       expect(state.closedCaptions.length).toBe(2);
       expect(state['closedCaptionsCleanupTasks'].size).toBe(2);
+      expect(state.closedCaptions.map((cc) => cc.text)).toEqual([
+        'Hello world 3',
+        'Hello world 4',
+      ]);
     });
 
     it('should remove stale captions from the queue', () => {
