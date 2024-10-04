@@ -55,7 +55,7 @@ call.state.closedCaptions$.subscribe((captions) =>
   updateDisplayedCaptions(captions),
 );
 
-const updateDisplayedCaptions(captions: CallClosedCaption[]) {
+const updateDisplayedCaptions(captions: StreamCallClosedCaption[]) {
   const innerHTML = captions
     .map((caption) => `<b>${caption.speaker_name}:</b> ${caption.text}`)
     .join('<br>');
