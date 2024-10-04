@@ -394,6 +394,20 @@ If you want to display a full-screen notification for the incoming call when the
   />
 ```
 
+In `AndroidManifest.xml` add the following permission before the `<application>` section.
+
+```xml
+<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+```
+
+:::infoNOTE
+For apps installed on phones running versions Android 13 or lower, the `USE_FULL_SCREEN_INTENT` permission is enabled by default.
+
+For all apps being installed on Android 14 and above, the Google Play Store revokes the `USE_FULL_SCREEN_INTENT` for apps that do not have calling or alarm functionalities. Which means, while submitting your app to the play store, if you do **declare that 'Making and receiving calls' is a 'core' functionality** in your app, this permission is granted by default on Android 14 and above.
+
+If the `USE_FULL_SCREEN_INTENT` permission is not granted, he notification will show up as an expanded heads up notification on the lockscreen.
+:::
+
 ## Troubleshooting
 
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.

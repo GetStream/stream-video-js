@@ -279,6 +279,18 @@ import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 await StreamVideoRN.onPushLogout();
 ```
 
+## Optional: On Android show full-screen incoming call view when phone is locked
+
+Passing `true` to `ringingPushNotifications.showWhenLockedAndroid` will add the `USE_FULL_SCREEN_INTENT` permission to the android app and add the necessary configurations to the `MainActivity`.
+
+:::infoNOTE
+For apps installed on phones running versions Android 13 or lower, the `USE_FULL_SCREEN_INTENT` permission is enabled by default.
+
+For all apps being installed on Android 14 and above, the Google Play Store revokes the `USE_FULL_SCREEN_INTENT` for apps that do not have calling or alarm functionalities. Which means, while submitting your app to the play store, if you do **declare that 'Making and receiving calls' is a 'core' functionality** in your app, this permission is granted by default on Android 14 and above.
+
+If the `USE_FULL_SCREEN_INTENT` permission is not granted, he notification will show up as an expanded heads up notification on the lockscreen.
+:::
+
 ## Troubleshooting
 
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
