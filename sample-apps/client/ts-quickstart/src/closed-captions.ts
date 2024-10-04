@@ -5,11 +5,7 @@ export class ClosedCaptionManager {
   private unsubscribe?: () => void;
   private captionContainer?: HTMLElement;
 
-  constructor(private call: Call) {
-    this.call.updateClosedCaptionSettings({
-      queueSize: 5,
-    });
-  }
+  constructor(private call: Call) {}
 
   renderToggleElement() {
     const button = document.createElement('button');
