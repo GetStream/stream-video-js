@@ -1000,7 +1000,7 @@ describe('CallState', () => {
         });
       }
       expect(state.closedCaptions.length).toBe(2);
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(2);
+      expect(state['closedCaptionsTasks'].size).toBe(2);
       expect(state.closedCaptions.map((cc) => cc.text)).toEqual([
         'Hello world 3',
         'Hello world 4',
@@ -1021,11 +1021,11 @@ describe('CallState', () => {
         },
       });
       expect(state.closedCaptions.length).toBe(1);
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
+      expect(state['closedCaptionsTasks'].size).toBe(1);
 
       vi.runAllTimers();
       expect(state.closedCaptions.length).toBe(0);
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
+      expect(state['closedCaptionsTasks'].size).toBe(0);
     });
 
     it('should remove stale captions from the queue after timer runs', () => {
@@ -1043,11 +1043,40 @@ describe('CallState', () => {
         },
       });
       expect(state.closedCaptions.length).toBe(1);
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
+      expect(state['closedCaptionsTasks'].size).toBe(1);
 
       vi.advanceTimersByTime(101);
       expect(state.closedCaptions.length).toBe(0);
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
+      expect(state['closedCaptionsTasks'].size).toBe(0);
+    });
+
+    it('should enrich closed captions with speaker name', () => {
+      const state = new CallState();
+      state.updateFromEvent({
+        type: 'call.session_started',
+        call: {
+          session: {
+            // @ts-expect-error incomplete data
+            participants: [{ user: { id: '123', name: 'Alice' } }],
+            participants_count_by_role: { user: 1 },
+          },
+        },
+      });
+
+      // @ts-expect-error incomplete data
+      state.updateFromEvent({
+        type: 'call.closed_caption',
+        closed_caption: {
+          speaker_id: `123`,
+          text: `Hello world`,
+          start_time: '2021-01-01T00:00:00.000Z',
+          end_time: '2021-01-01T00:02:00.000Z',
+        },
+      });
+
+      const closedCaptions = state.closedCaptions;
+      expect(closedCaptions.length).toBe(1);
+      expect(closedCaptions[0].speaker_name).toBe('Alice');
     });
 
     it('dispose cancels all cleanup tasks', () => {
@@ -1063,10 +1092,10 @@ describe('CallState', () => {
         },
       });
       expect(state.closedCaptions.length).toBe(1);
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(1);
+      expect(state['closedCaptionsTasks'].size).toBe(1);
 
       state.dispose();
-      expect(state['closedCaptionsCleanupTasks'].size).toBe(0);
+      expect(state['closedCaptionsTasks'].size).toBe(0);
     });
   });
 });

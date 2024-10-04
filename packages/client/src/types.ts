@@ -3,6 +3,7 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
+  CallClosedCaption,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
@@ -120,6 +121,28 @@ export type ParticipantPin = {
    * Timestamp when the participant is pinned.
    */
   pinnedAt: number;
+};
+
+export type ClosedCaptionsSettings = {
+  /**
+   * The time in milliseconds to keep a closed caption in the queue.
+   * Default is 2700 ms.
+   */
+  retentionTimeInMs?: number;
+  /**
+   * The maximum number of closed captions to keep in the queue.
+   * When the queue is full, the oldest closed caption will be removed.
+   *
+   * Default is 2.
+   */
+  queueSize?: number;
+};
+
+export type StreamCallClosedCaption = CallClosedCaption & {
+  /**
+   * Derived speaker name for convenience.
+   */
+  speaker_name: string;
 };
 
 /**

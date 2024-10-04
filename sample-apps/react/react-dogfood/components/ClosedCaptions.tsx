@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  CallClosedCaption,
+  StreamCallClosedCaption,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -8,70 +8,48 @@ import {
 export const ClosedCaptions = () => {
   const { useCallClosedCaptions } = useCallStateHooks();
   const closedCaptions = useCallClosedCaptions();
-  const userNameMapping = useUserIdToUserNameMapping();
   return (
     <div className="rd__closed-captions">
-      <ClosedCaptionList
-        queue={closedCaptions}
-        userNameMapping={userNameMapping}
-      />
+      <ClosedCaptionList queue={closedCaptions} />
     </div>
   );
 };
 
 export const ClosedCaptionsSidebar = () => {
   const call = useCall();
-  const userNameMapping = useUserIdToUserNameMapping();
-  const [queue, addToQueue] = useState<CallClosedCaption[]>([]);
+  const [queue, addToQueue] = useState<StreamCallClosedCaption[]>([]);
   useEffect(() => {
     if (!call) return;
     return call.on('call.closed_caption', (e) => {
-      addToQueue((q) => [...q, e.closed_caption]);
+      const { closed_caption: cc } = e;
+      const participant = call.state.sessionParticipantsByUserId[cc.speaker_id];
+      const speaker_name = participant?.user.name || cc.speaker_id;
+      addToQueue((q) => [...q, { ...cc, speaker_name }]);
     });
   }, [call]);
   return (
     <div className="rd__closed-captions-sidebar">
       <h3>Closed Captions</h3>
       <div className="rd__closed-captions-sidebar__container">
-        <ClosedCaptionList queue={queue} userNameMapping={userNameMapping} />
+        <ClosedCaptionList queue={queue} />
       </div>
     </div>
   );
 };
 
-const ClosedCaptionList = (props: {
-  queue: CallClosedCaption[];
-  userNameMapping: ReturnType<typeof useUserIdToUserNameMapping>;
-}) => {
-  const { queue, userNameMapping } = props;
+const ClosedCaptionList = (props: { queue: StreamCallClosedCaption[] }) => {
+  const { queue } = props;
   return (
     <>
-      {queue.map(({ speaker_id, text, start_time }) => (
+      {queue.map(({ speaker_name, text, start_time }) => (
         <p
           className="rd__closed-captions__line"
-          key={`${speaker_id}-${start_time}`}
+          key={`${speaker_name}-${start_time}`}
         >
-          <span className="rd__closed-captions__speaker">
-            {userNameMapping[speaker_id] || speaker_id}:
-          </span>
+          <span className="rd__closed-captions__speaker">{speaker_name}:</span>
           <span className="rd__closed-captions__text">{text}</span>
         </p>
       ))}
     </>
   );
-};
-
-const useUserIdToUserNameMapping = () => {
-  const { useCallSession } = useCallStateHooks();
-  const session = useCallSession();
-  return useMemo(() => {
-    if (!session) return {};
-    return session.participants.reduce<Record<string, string | undefined>>(
-      (result, participant) => {
-        result[participant.user.id] = participant.user.name;
-        return result;
-      },
-      {},
-    );
-  }, [session]);
 };

@@ -15,7 +15,6 @@ import {
 import {
   CallingState,
   CallState,
-  ClosedCaptionsSettings,
   StreamVideoWriteableStateStore,
 } from './store';
 import {
@@ -84,6 +83,7 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  ClosedCaptionsSettings,
   JoinCallData,
   PublishOptions,
   TrackMuteType,
@@ -1534,15 +1534,6 @@ export class Call {
   };
 
   /**
-   * Updates the closed caption settings.
-   *
-   * @param config the closed caption settings to apply
-   */
-  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
-    this.state.updateClosedCaptionSettings(config);
-  };
-
-  /**
    * Updates the list of video layers to publish.
    *
    * @internal
@@ -1716,6 +1707,15 @@ export class Call {
     return this.streamClient.post<StopClosedCaptionsResponse>(
       `${this.streamClientBasePath}/stop_closed_captions`,
     );
+  };
+
+  /**
+   * Updates the closed caption settings.
+   *
+   * @param config the closed caption settings to apply
+   */
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
+    this.state.updateClosedCaptionSettings(config);
   };
 
   /**
