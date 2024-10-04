@@ -276,19 +276,6 @@ export type Theme = {
     buttonText: TextStyle;
   };
 
-  /**
-   * Gets a value from the theme object.
-   *
-   * @param {string} componentOrPath - Component name or a dot-separated path.
-   * @param {keyof Theme['defaults'] | string} [prop] - Property name.
-   * @return {string | number | ColorValue | undefined} - Value of the given key or undefined.
-   * @logs {Error} - When the path is invalid.
-   */
-  get: (
-    componentOrPath: string,
-    prop?: keyof Theme['defaults'] | string
-  ) => Theme | string | number | ColorValue | undefined;
-
   // Index signature for additional dynamic properties
   [component: string]: any;
 };
@@ -621,40 +608,5 @@ export const defaultTheme: Theme = {
     button: {},
     buttonIcon: {},
     buttonText: {},
-  },
-
-  get: function (
-    componentOrPath: string,
-    prop?: keyof Theme['defaults'] | string
-  ): string | number | ColorValue | undefined {
-    // dot-separated path
-    if (componentOrPath.includes('.')) {
-      const path = componentOrPath.split('.');
-      let value;
-
-      for (const key of path) {
-        if (value ? value[key] !== undefined : this[key] !== undefined) {
-          value = value ? value[key] : this[key];
-        } else {
-          console.error(`Invalid path: ${componentOrPath}`);
-          return undefined;
-        }
-      }
-
-      return value;
-    }
-
-    // component and prop-based query
-    if (prop && this[componentOrPath] && this[componentOrPath][prop]) {
-      return this[componentOrPath][prop];
-    }
-
-    const defaultValue = this.defaults[prop as keyof Theme['defaults']];
-    if (!defaultValue) {
-      console.error(`Invalid component or prop: ${componentOrPath}.${prop}`);
-      return undefined;
-    }
-
-    return defaultValue;
   },
 };
