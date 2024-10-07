@@ -48,6 +48,8 @@ call.updateClosedCaptionSettings({
 ## Check if closed captions are enabled
 
 ```tsx
+import { useCallStateHooks } from '@stream-io/react-native-video-sdk';
+
 const { useIsCallCaptioningInProgress } = useCallStateHooks();
 const isCaptioningInProgress = useIsCallCaptioningInProgress();
 
@@ -90,9 +92,11 @@ When the SDK provided behavior isn't enough, you can always subscribe to the clo
 This is how you can do it:
 
 ```tsx
+import { type CallClosedCaption } from '@stream-io/video-react-native-sdk';
+
 const call = client.call(type, id);
-const unsubscribe = call.on('call.closed_caption', (event) => {
-  console.log('Closed caption event:', event);
+const unsubscribe = call.on('call.closed_caption', (e: CallClosedCaption) => {
+  console.log('Closed caption event:', e);
 });
 
 unsubscribe(); // don't forget to unsubscribe
