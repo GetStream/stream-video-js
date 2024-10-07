@@ -9,9 +9,11 @@ import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { CallingState } from './CallingState';
 import {
-  StreamVideoParticipant,
-  StreamVideoParticipantPatch,
-  StreamVideoParticipantPatches,
+  type StreamVideoParticipant,
+  type StreamVideoParticipantPatch,
+  type StreamVideoParticipantPatches,
+  type SubscriptionChanges,
+  VideoTrackType,
   VisibilityState,
 } from '../types';
 import { CallStatsReport } from '../stats';
@@ -900,6 +902,44 @@ export class CallState {
         }
         return p;
       }),
+    );
+  };
+
+  /**
+   * Update track subscription configuration for one or more participants.
+   * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
+   * You can only subscribe for tracks after the participant started publishing the given kind of track.
+   *
+   * @param trackType the kind of subscription to update.
+   * @param changes the list of subscription changes to do.
+   * @param type the debounce type to use for the update.
+   */
+  updateParticipantTracks = (
+    trackType: VideoTrackType,
+    changes: SubscriptionChanges,
+  ) => {
+    return this.updateParticipants(
+      Object.entries(changes).reduce<StreamVideoParticipantPatches>(
+        (acc, [sessionId, change]) => {
+          if (change.dimension) {
+            change.dimension.height = Math.ceil(change.dimension.height);
+            change.dimension.width = Math.ceil(change.dimension.width);
+          }
+          const prop: keyof StreamVideoParticipant | undefined =
+            trackType === 'videoTrack'
+              ? 'videoDimension'
+              : trackType === 'screenShareTrack'
+                ? 'screenShareDimension'
+                : undefined;
+          if (prop) {
+            acc[sessionId] = {
+              [prop]: change.dimension,
+            };
+          }
+          return acc;
+        },
+        {},
+      ),
     );
   };
 

@@ -31,6 +31,7 @@ export const CompositeButton = forwardRef<
   IconButtonWithMenuProps
 >(function CompositeButton(
   {
+    disabled,
     caption,
     children,
     className,
@@ -63,6 +64,7 @@ export const CompositeButton = forwardRef<
             active && variant === 'primary',
           'str-video__composite-button__button-group--active-secondary':
             active && variant === 'secondary',
+          'str-video__composite-button__button-group--disabled': disabled,
         })}
       >
         <button
@@ -72,6 +74,7 @@ export const CompositeButton = forwardRef<
             e.preventDefault();
             onClick?.(e);
           }}
+          disabled={disabled}
           {...restButtonProps}
         >
           {children}

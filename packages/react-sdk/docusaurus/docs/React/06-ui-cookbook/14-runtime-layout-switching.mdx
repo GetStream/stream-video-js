@@ -34,8 +34,8 @@ const LayoutMap = {
 export const Stage = () => {
   const [selectedLayout, setSelectedLayout] =
     useState<keyof typeof LayoutMap>('PaginatedGrid');
-  const { useHasOngoingScreenshare } = useCallStateHooks();
-  const hasOngoingScreenshare = useHasOngoingScreenshare();
+  const { useHasOngoingScreenShare } = useCallStateHooks();
+  const hasOngoingScreenshare = useHasOngoingScreenShare();
 
   const LayoutComponent = LayoutMap[selectedLayout].component;
   const componentProps = LayoutMap[selectedLayout].props;

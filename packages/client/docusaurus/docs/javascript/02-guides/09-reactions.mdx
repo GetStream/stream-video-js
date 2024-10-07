@@ -1,6 +1,6 @@
 ---
-title: Reactions & Custom Events
-description: How reactions and custom events work
+title: Reactions
+description: How reactions work
 ---
 
 Reactions allow call participants to send emojis in real-time.
@@ -50,6 +50,8 @@ const { participants } = call.state;
 const reactions = participants.map((p) => p.reaction);
 ```
 
+You can also subscribe to the `call.reaction_new` WebSocket event to receive reactions. For more information, check out our [Events guide](../../advanced/events).
+
 ### Clearing reactions
 
 If you're using the [participant state](../../guides/call-and-participant-state/#observe-participant-state) for receiving reactions, you can also clear the latest reaction using the `resetReaction` method:
@@ -62,39 +64,3 @@ call.resetReaction(participants[0].sessionId);
 ```
 
 This is a local action, it won't send any WebSocket messages. It's helpful if you only want to display reactions for a set period of time.
-
-## Custom events
-
-### Sending custom events
-
-You can use the `sendCustomEvent` method of the `Call` instance to send custom events:
-
-```typescript
-const call: Call;
-
-await call.sendCustomEvent({
-  type: 'draw',
-  x: 10,
-  y: 30,
-});
-```
-
-The `custom` property can contain any data.
-
-### Receiving custom events
-
-Custom events are only delivered to clients that are [watching the call](../../advanced/events/#call-events).
-
-To receive custom events, you need to subscribe to the `custom` WebSocket event:
-
-```typescript
-const call: Call;
-
-call.on('custom', (event: StreamCallEvent) => {
-  if (event.type === 'custom') {
-    console.log(`Custom event: ${event.custom.type}`);
-  }
-});
-```
-
-For more information, check out our [Events guide](../../advanced/events).

@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.0...@stream-io/video-react-native-sdk-1.1.1) (2024-10-04)
+
+
+### Bug Fixes
+
+* clarify about USE_FULL_SCREEN_INTENT android permission ([#1510](https://github.com/GetStream/stream-video-js/issues/1510)) ([ec61b32](https://github.com/GetStream/stream-video-js/commit/ec61b32449c89885b87fe972a38d25503bab0c0f))
+
+## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.14...@stream-io/video-react-native-sdk-1.1.0) (2024-10-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.0`
+
+### Features
+
+* manual video quality selection ([#1486](https://github.com/GetStream/stream-video-js/issues/1486)) ([3a754af](https://github.com/GetStream/stream-video-js/commit/3a754afa1bd13d038b1023520ec8a5296ad2669e))
+
+## [1.0.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.13...@stream-io/video-react-native-sdk-1.0.14) (2024-10-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.7.4`
+* `@stream-io/video-react-bindings` updated to version `1.0.10`
 ## [1.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.0.12...@stream-io/video-react-native-sdk-1.0.13) (2024-09-24)
 
 ### Dependency Updates
