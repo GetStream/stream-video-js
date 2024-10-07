@@ -36,8 +36,8 @@ For the purposes of this article, make sure that closed captions are either `ava
 ## Enabling, disabling and tweaking closed captions
 
 ```tsx
-await call.startTranscription(); // enable closed captions
-await call.stopTranscription(); // disable closed captions
+await call.startClosedCaptions(); // enable closed captions
+await call.stopClosedCaptions(); // disable closed captions
 
 call.updateClosedCaptionSettings({
   retentionTimeInMs: 2700, // the duration a caption can stay in the queue
@@ -48,7 +48,7 @@ call.updateClosedCaptionSettings({
 ## Check if closed captions are enabled
 
 ```tsx
-import { useCallStateHooks } from '@stream-io/react-native-video-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 const { useIsCallCaptioningInProgress } = useCallStateHooks();
 const isCaptioningInProgress = useIsCallCaptioningInProgress();
@@ -64,7 +64,7 @@ Once enabled, the SDK will expose the closed caption events to your application 
 This is how it can be used:
 
 ```tsx
-import { useCallStateHooks } from '@stream-io/react-native-video-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 export const ClosedCaptions = () => {
   const { useCallClosedCaptions } = useCallStateHooks();
@@ -99,5 +99,5 @@ const unsubscribe = call.on('call.closed_caption', (e: CallClosedCaption) => {
   console.log('Closed caption event:', e);
 });
 
-unsubscribe(); // don't forget to unsubscribe
+unsubscribe(); // remember to unsubscribe
 ```

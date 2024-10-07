@@ -1,6 +1,6 @@
 ---
 id: closed-captions
-title: Closed captions
+title: Closed Captions
 description: How to add closed captions to your calls
 ---
 
@@ -35,15 +35,36 @@ You can check the current value like this:
 console.log(call.state.settings?.transcription.closed_caption_mode);
 ```
 
-## Enabling and disabling closed caption events
+## Enabling, disabling and tweaking closed captions
 
 If you set `closed_caption_mode` to `available` you need to enable closed caption events when you want to see captions:
 
 ```typescript
-await this.call.startClosedCaptions();
+await call.startTranscription(); // enable closed captions
+await call.stopTranscription(); // disable closed captions
 
-// to disable them
-await this.call.stopClosedCaptions();
+call.updateClosedCaptionSettings({
+  retentionTimeInMs: 2700, // the duration a caption can stay in the queue
+  queueSize: 2, // number of captions that can be stored in the queue
+});
+```
+
+## Check if closed captions are enabled
+
+```tsx
+const call = client.call(type, id);
+const isCaptioningInProgress = call.state.captioning;
+
+console.log(
+  `Closed captions are ${isCaptioningInProgress ? 'enabled' : 'disabled'}`,
+);
+
+// alternatively, you can listen to the captioning state changes
+call.state.captioning$.subscribe((isCaptioningInProgress) => {
+  console.log(
+    `Closed captions are ${isCaptioningInProgress ? 'enabled' : 'disabled'}`,
+  );
+});
 ```
 
 ## Displaying the captions
@@ -51,15 +72,19 @@ await this.call.stopClosedCaptions();
 You can access the most recent captions using the call state:
 
 ```typescript
-call.state.closedCaptions$.subscribe((captions) =>
+import { StreamCallClosedCaption } from '@stream-io/video-client';
+
+const subscription = call.state.closedCaptions$.subscribe((captions) =>
   updateDisplayedCaptions(captions),
 );
 
-const updateDisplayedCaptions(captions: StreamCallClosedCaption[]) {
+const updateDisplayedCaptions = (captions: StreamCallClosedCaption[]) => {
   const innerHTML = captions
     .map((caption) => `<b>${caption.speaker_name}:</b> ${caption.text}`)
     .join('<br>');
-}
+};
+
+subscription.unsubscribe(); // remember to unsubscribe
 ```
 
 This is how an example closed caption looks like:
@@ -74,19 +99,6 @@ This is how an example closed caption looks like:
   "speaker_id": "zitaszuperagetstreamio",
   "speaker_name": "Zita"
 }
-```
-
-## Closed caption configuration
-
-You can tweak the caption display logic using `updateClosedCaptionSettings` method:
-
-```typescript
-call.updateClosedCaptionSettings({
-  // The maximum number of closed captions to keep in the queue, default is 2
-  queueSize: 2,
-  // The time in milliseconds to keep a closed caption in the queue, default is 2700ms
-  retentionTimeInMs: 2700,
-});
 ```
 
 ## See it in action

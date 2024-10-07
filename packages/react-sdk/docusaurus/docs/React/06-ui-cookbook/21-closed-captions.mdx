@@ -1,14 +1,16 @@
 ---
 id: closed-captions
-title: Closed captions
+title: Closed Captions
 description: How to add closed captions to your calls
 ---
 
-The Stream API supports adding real-time closed captions (subtitles for participants) to your calls. This guide shows you how you can build it on top of our React SDK.
+The Stream API supports adding real-time closed captions (subtitles for participants) to your calls.
+This guide shows you how you can build it on top of our React SDK.
 
 ## Prerequisites
 
-Make sure that the closed caption feature is enabled in your app's dashboard. The closed caption feature can be set on the call type level, and the available options are:
+Make sure that the closed caption feature is enabled in your app's dashboard.
+The closed caption feature can be set on the call type level, and the available options are:
 
 - `available`: the feature is available for your call and can be enabled.
 - `disabled`: the feature is not available for your call. In this case, it's a good idea to "hide" any UI element you have related to closed captions.
@@ -31,94 +33,51 @@ await call.getOrCreate({
 
 For the purposes of this article, make sure that closed captions are either `available` or `auto-on`.
 
-## Enabling and disabling closed caption events
-
-TKTKTK
-
-## Subscribing to closed caption events
-
-Let's start by building a custom hook that subscribes to and stores closed caption events.
-
-When displaying closed captions, we should make sure that they are real-time (showing a sentence from 30 seconds ago has very little use in a conversation) and visible for enough time that participants can read them. Finally, it makes sense to limit the total number of captions visible on the screen at once.
-
-Below is an example implementation:
+## Enabling, disabling and tweaking closed captions
 
 ```tsx
-import {
-  Call,
-  CallClosedCaption,
-  ClosedCaptionEvent,
-} from '@stream-io/video-client';
+await call.startClosedCaptions(); // enable closed captions
+await call.stopClosedCaptions(); // disable closed captions
 
-// The maximum number of captions that can be visible on the screen
-const numberOfCaptionsVisible = 2;
-// A single caption can stay visible on the screen for this duration
-// This is the maximum duration, new captions can push a caption out of the screen sooner
-const captionTimeoutMs = 2700;
-
-function useClosedCaptions() {
-  const call = useCall();
-  // The captions queue
-  const [captions, setCaptions] = useState<CallClosedCaption[]>([]);
-
-  useEffect(() => {
-    if (!call) return;
-
-    // Subscribe to call.closed_caption events
-    return call.on('call.closed_caption', (e: ClosedCaptionEvent) => {
-      setCaptions((prevCaptions) => {
-        const caption = event.closed_caption;
-
-        // It's possible to receive the same caption twice, so make sure to filter duplicates
-        const isDuplicate = prevCaptions.find(
-          (c) =>
-            c.speaker_id === caption.speaker_id &&
-            c.start_time === caption.start_time,
-        );
-
-        return isDuplicate
-          ? prevCaptions
-          : [...prevCaptions, caption].slice(-numberOfCaptionsVisible);
-      });
-    });
-  }, [call]);
-
-  useEffect(() => {
-    // After a specified amount of time, the caption is removed.
-    // This timeout restarts every time the captions update.
-    const id = setTimeout(() => {
-      setCaptions((prevCaptions) =>
-        prevCaptions.length > 0 ? prevCaptions.slice(1) : prevCaptions,
-      );
-    }, captionTimeoutMs);
-    return () => clearTimeout(id);
-  }, [caption]);
-
-  return captions;
-}
+call.updateClosedCaptionSettings({
+  retentionTimeInMs: 2700, // the duration a caption can stay in the queue
+  queueSize: 2, // number of captions that can be stored in the queue
+});
 ```
 
-:::note
-Since the closed caption event contains `start_time` and `end_time` fields, you can subtract the two to know how long it took the speaker to say the caption. You can then use this duration to control how long the text is visible on the screen. This is useful to ensure the captions are as real-time as possible, but that might not leave enough time for participants to read the text.
-:::
-
-## Displaying captions
-
-Finally, we are ready to implement a component that renders captions:
+## Check if closed captions are enabled
 
 ```tsx
-export const ClosedCaptions = () => {
-  const captions = useClosedCaptions();
-  const { useCallSession } = useCallStateHooks();
-  const { participants } = useCallSession();
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
+const { useIsCallCaptioningInProgress } = useCallStateHooks();
+const isCaptioningInProgress = useIsCallCaptioningInProgress();
+
+console.log(
+  `Closed captions are ${isCaptioningInProgress ? 'enabled' : 'disabled'}`,
+);
+```
+
+## Rendering closed captions
+
+Once enabled, the SDK will expose the closed caption events to your application via a special `useCallClosedCaptions` hook.
+This is how it can be used:
+
+```tsx
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+export const ClosedCaptions = () => {
+  const { useCallClosedCaptions } = useCallStateHooks();
+  const closedCaptions = useCallClosedCaptions();
   return (
     <div className="closed-captions">
-      {captions.map(({ speaker_id, text, start_time }) => (
-        <p className="closed-caption" key={`${speaker_id}-${start_time}`}>
-          {participants.find((p) => p.user.id === speaker_id)?.user.name ||
-            speaker_id}
-          : {text}
+      {closedCaptions.map(({ speaker_name, text, start_time }) => (
+        <p
+          className="closed-captions__item"
+          key={`${speaker_name}-${start_time}`}
+        >
+          <span className="closed-captions__speaker">{speaker_name}:</span>
+          <span className="closed-captions__text">{text}</span>
         </p>
       ))}
     </div>
@@ -126,13 +85,20 @@ export const ClosedCaptions = () => {
 };
 ```
 
-And now by adding this component inside of the `StreamCall`, we get closed captions:
+And now we can add this newly created component somewhere in our call UI.
 
-```jsx
-<StreamVideo client={client}>
-  <StreamCall call={call}>
-    <SpeakerLayout />
-    <ClosedCaptions />
-  </StreamCall>
-</StreamVideo>
+## Advanced usage
+
+When the SDK provided behavior isn't enough, you can always subscribe to the closed caption events and build your own logic.
+This is how you can do it:
+
+```tsx
+import { type CallClosedCaption } from '@stream-io/video-react-sdk';
+
+const call = client.call(type, id);
+const unsubscribe = call.on('call.closed_caption', (e: CallClosedCaption) => {
+  console.log('Closed caption event:', e);
+});
+
+unsubscribe(); // remember to unsubscribe
 ```
