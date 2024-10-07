@@ -114,7 +114,7 @@ export const HostStartStreamButton = ({
         styles.container,
         {
           backgroundColor: isAwaitingResponse
-            ? colors.dark_gray
+            ? colors.background2
             : liveOrBroadcasting
               ? colors.error
               : colors.primary,
@@ -144,7 +144,7 @@ export const HostStartStreamButton = ({
         style={[
           styles.text,
           typefaces.subtitleBold,
-          { color: colors.static_white },
+          { color: colors.base1 },
           hostStartStreamButton.text,
         ]}
       >

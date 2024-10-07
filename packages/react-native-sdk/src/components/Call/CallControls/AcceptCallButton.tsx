@@ -61,7 +61,7 @@ export const AcceptCallButton = ({
       size={buttonSizes.lg}
       style={acceptCallButton}
     >
-      <Phone color={colors.static_white} />
+      <Phone color={colors.base1} />
     </CallControlsButton>
   );
 };

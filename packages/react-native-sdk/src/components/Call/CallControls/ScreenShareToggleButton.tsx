@@ -48,16 +48,16 @@ export const ScreenShareToggleButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={hasPublishedScreenShare ? colors.error : colors.static_white}
+      color={hasPublishedScreenShare ? colors.error : colors.base1}
       style={{
         container: screenShareToggleButton.container,
         svgContainer: screenShareToggleButton.svgContainer,
       }}
     >
       {hasPublishedScreenShare ? (
-        <StopScreenShare color={colors.static_black} />
+        <StopScreenShare color={colors.base5} />
       ) : (
-        <ScreenShare color={colors.static_black} />
+        <ScreenShare color={colors.base5} />
       )}
       {Platform.OS === 'ios' && (
         <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />

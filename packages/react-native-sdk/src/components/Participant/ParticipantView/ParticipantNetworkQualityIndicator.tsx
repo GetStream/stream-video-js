@@ -29,9 +29,9 @@ const useConnectionQualitySignalColors = (
     case SfuModels.ConnectionQuality.EXCELLENT:
       return [colors.primary, colors.primary, colors.primary];
     case SfuModels.ConnectionQuality.GOOD:
-      return [colors.primary, colors.primary, colors.static_white];
+      return [colors.primary, colors.primary, colors.base1];
     case SfuModels.ConnectionQuality.POOR:
-      return [colors.error, colors.static_white, colors.static_white];
+      return [colors.error, colors.base1, colors.base1];
     default:
       return null;
   }
@@ -57,7 +57,7 @@ export const ParticipantNetworkQualityIndicator = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.static_overlay,
+          backgroundColor: colors.background6,
           height: iconSizes.lg,
           width: iconSizes.lg,
         },

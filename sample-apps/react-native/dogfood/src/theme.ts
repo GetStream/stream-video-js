@@ -4,6 +4,7 @@ const opacityToHex = (opacity: number) => {
     .padStart(2, '0');
 };
 
+// TODO add type Theme to this object
 export const appTheme = {
   colors: {
     static_grey: '#272A30',

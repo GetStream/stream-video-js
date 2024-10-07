@@ -69,7 +69,7 @@ export const RejectCallButton = ({
       // svgContainerStyle={theme.icon.lg}
       style={rejectCallButton}
     >
-      <PhoneDown color={colors.static_white} />
+      <PhoneDown color={colors.base1} />
     </CallControlsButton>
   );
 };

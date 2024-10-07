@@ -51,7 +51,7 @@ export const ViewerLivestreamTopView = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.static_overlay },
+        { backgroundColor: colors.background6 },
         viewerLivestreamTopView.container,
       ]}
       onLayout={onLayout}

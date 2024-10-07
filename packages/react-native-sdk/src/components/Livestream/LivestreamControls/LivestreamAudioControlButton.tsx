@@ -28,7 +28,7 @@ export const LivestreamAudioControlButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.dark_gray,
+          backgroundColor: colors.background2,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -46,9 +46,9 @@ export const LivestreamAudioControlButton = () => {
         ]}
       >
         {!optimisticIsMute ? (
-          <Mic color={colors.static_white} />
+          <Mic color={colors.base2} />
         ) : (
-          <MicOff color={colors.static_white} />
+          <MicOff color={colors.base1} />
         )}
       </View>
     </Pressable>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   PressableProps,
@@ -8,8 +8,8 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
-import { appTheme } from '../theme';
 import { BUTTON_HEIGHT } from '../constants';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 type ButtonPropTypes = Omit<PressableProps, 'style'> & {
   title: string;
@@ -24,6 +24,8 @@ export const Button = ({
   titleStyle,
   ...rest
 }: ButtonPropTypes) => {
+  const styles = useStyles();
+
   return (
     <Pressable
       disabled={disabled}
@@ -39,21 +41,28 @@ export const Button = ({
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: appTheme.colors.primary,
-    justifyContent: 'center',
-    borderRadius: 8,
-    height: BUTTON_HEIGHT,
-    paddingHorizontal: appTheme.spacing.lg,
-  },
-  buttonText: {
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    textAlign: 'center',
-    fontSize: 17,
-  },
-  disabledButtonStyle: {
-    backgroundColor: appTheme.colors.disabled,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        button: {
+          backgroundColor: theme.colors.primary,
+          justifyContent: 'center',
+          borderRadius: 8,
+          height: BUTTON_HEIGHT,
+          paddingHorizontal: theme.variants.spacingSizes.md,
+        },
+        buttonText: {
+          color: theme.colors.static_white,
+          fontWeight: theme.typefaces.heading6.fontWeight,
+          textAlign: 'center',
+          fontSize: 17,
+        },
+        disabledButtonStyle: {
+          backgroundColor: theme.colors.disabled,
+        },
+      }),
+    [theme],
+  );
+};

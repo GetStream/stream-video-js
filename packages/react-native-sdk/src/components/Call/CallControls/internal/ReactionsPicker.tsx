@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   LayoutRectangle,
   Pressable,
@@ -18,20 +18,20 @@ type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {
   onRequestedClose: () => void;
 };
 
-const TOP_PADDING = 4;
-const REACTION_MARGIN_BOTTOM = 4;
-
 export const ReactionsPicker = ({
   supportedReactions = defaultEmojiReactions,
   reactionsButtonLayoutRectangle,
   onRequestedClose,
 }: ReactionPickerProps) => {
   const {
-    theme: { colors, reactionsPicker },
+    theme: { colors, reactionsPicker, variants },
   } = useTheme();
+  const styles = useStyles();
   const call = useCall();
   const size = reactionsButtonLayoutRectangle?.width ?? 0;
   const reactionItemSize = size * 0.8;
+  const TOP_PADDING = variants.spacingSizes.xs;
+  const REACTION_MARGIN_BOTTOM = variants.spacingSizes.xs;
 
   const popupHeight =
     // the top padding
@@ -104,7 +104,7 @@ export const ReactionsPicker = ({
           styles.reactionsPopup,
           reactionsPopupStyle,
           {
-            backgroundColor: colors.static_grey,
+            backgroundColor: colors.base4,
           },
           reactionsPicker.reactionsPopup,
         ]}
@@ -120,8 +120,7 @@ export const ReactionsPicker = ({
               styles.reactionItem,
               reactionItemStyle,
               {
-                // temporary background color until we have theming
-                backgroundColor: colors.overlay,
+                backgroundColor: colors.background3,
               },
               reactionsPicker.reactionItem,
             ]}
@@ -159,7 +158,7 @@ export const ReactionsPicker = ({
         style={[
           reactionsButtonDimmerStyle,
           {
-            backgroundColor: colors.static_grey,
+            backgroundColor: colors.base4,
           },
           reactionsPicker.reactionsButtonDimmer,
         ]}
@@ -169,22 +168,29 @@ export const ReactionsPicker = ({
   );
 };
 
-const styles = StyleSheet.create({
-  reactionsPopup: {
-    position: 'absolute',
-    alignItems: 'center',
-    paddingTop: TOP_PADDING,
-  },
-  reactionsButtonDimmer: {
-    position: 'absolute',
-    opacity: 0.5,
-  },
-  reactionItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: REACTION_MARGIN_BOTTOM,
-  },
-  reactionText: {
-    fontSize: 18.5,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        reactionsPopup: {
+          position: 'absolute',
+          alignItems: 'center',
+          paddingTop: theme.variants.spacingSizes.xs,
+        },
+        reactionsButtonDimmer: {
+          position: 'absolute',
+          opacity: 0.5,
+        },
+        reactionItem: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: theme.variants.spacingSizes.xs,
+        },
+        reactionText: {
+          fontSize: 18.5,
+        },
+      }),
+    [theme]
+  );
+};

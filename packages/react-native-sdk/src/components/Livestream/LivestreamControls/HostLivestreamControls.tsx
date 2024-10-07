@@ -45,7 +45,7 @@ export const HostLivestreamControls = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.static_overlay },
+        { backgroundColor: colors.background6 },
         hostLivestreamControls.container,
       ]}
       onLayout={onLayout}

@@ -75,7 +75,7 @@ export const IncomingCall = ({
           <Text
             style={[
               styles.incomingCallText,
-              { color: colors.static_white },
+              { color: colors.base1 },
               typefaces.heading6,
               incomingCall.incomingCallText,
             ]}
@@ -128,7 +128,7 @@ const Background: React.FunctionComponent<{
         }}
         style={[
           styles.background,
-          { backgroundColor: colors.static_grey },
+          { backgroundColor: colors.base4 },
           incomingCall.background,
         ]}
       >
@@ -140,7 +140,7 @@ const Background: React.FunctionComponent<{
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.base4 },
         incomingCall.background,
       ]}
     >

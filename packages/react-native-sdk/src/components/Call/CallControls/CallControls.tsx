@@ -40,7 +40,7 @@ export const CallControls = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.base4 },
         callControls.container,
         landscapeStyles,
         style,

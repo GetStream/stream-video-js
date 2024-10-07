@@ -60,7 +60,7 @@ export const ViewerLeaveStreamButton = ({
       style={[
         styles.container,
         {
-          backgroundColor: colors.dark_gray,
+          backgroundColor: colors.background2,
         },
         viewerLeaveStreamButton.container,
       ]}
@@ -79,7 +79,7 @@ export const ViewerLeaveStreamButton = ({
         style={[
           styles.text,
           typefaces.subtitleBold,
-          { color: colors.static_white },
+          { color: colors.base1 },
           viewerLeaveStreamButton.text,
         ]}
       >

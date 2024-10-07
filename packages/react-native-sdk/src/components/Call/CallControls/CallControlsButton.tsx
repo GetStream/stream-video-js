@@ -66,14 +66,12 @@ export const CallControlsButton = (
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
-      backgroundColor: disabled
-        ? colors.disabled
-        : colorProp || colors.static_white,
+      backgroundColor: disabled ? colors.disabled : colorProp || colors.base1,
       opacity: pressed ? 0.2 : 1,
       height: size || buttonSizes.sm,
       width: size || buttonSizes.sm,
       borderRadius: (size || buttonSizes.sm) / 2,
-      borderColor: colors.content_bg,
+      borderColor: colors.background1,
     },
     styleProp?.container ?? null,
     container,

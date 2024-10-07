@@ -1,32 +1,28 @@
 import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
 import { colors } from './colors';
-import { ColorScheme, FontStyle, FontTypes } from './types';
+import { ColorScheme, DimensionType, FontStyle, FontTypes } from './types';
+import { ColorValue } from 'react-native';
 
 export type Theme = {
   variants: {
-    buttonSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
-    iconSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
-    avatarSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
+    buttonSizes: DimensionType;
+    iconSizes: DimensionType;
+    avatarSizes: DimensionType;
+    fontSizes: DimensionType;
+    spacingSizes: DimensionType;
   };
   typefaces: Record<FontTypes, FontStyle>;
+  defaults: {
+    color: ColorValue;
+    backgroundColor: ColorValue;
+    margin: number;
+    padding: number;
+    fontSize: number;
+    fontWeight: TextStyle['fontWeight'];
+    borderRadius: ViewStyle['borderRadius'];
+    borderColor: ColorValue;
+    borderWidth: ViewStyle['borderWidth'];
+  };
   colors: ColorScheme;
   avatar: {
     container: ViewStyle;
@@ -279,6 +275,9 @@ export type Theme = {
     buttonIcon: ViewStyle;
     buttonText: TextStyle;
   };
+
+  // Index signature for additional dynamic properties
+  [component: string]: any;
 };
 
 export const defaultTheme: Theme = {
@@ -303,6 +302,20 @@ export const defaultTheme: Theme = {
       md: 100,
       lg: 160,
       xl: 180,
+    },
+    spacingSizes: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+    },
+    fontSizes: {
+      xs: 8,
+      sm: 12,
+      md: 16,
+      lg: 20,
+      xl: 24,
     },
   },
   typefaces: {
@@ -334,6 +347,17 @@ export const defaultTheme: Theme = {
       fontSize: 10,
       fontWeight: '400',
     },
+  },
+  defaults: {
+    color: colors.primary,
+    backgroundColor: colors.background2,
+    margin: 10,
+    padding: 10,
+    fontSize: 16,
+    fontWeight: '500',
+    borderRadius: 10,
+    borderColor: colors.primary,
+    borderWidth: 1,
   },
   colors: colors,
   avatar: {
