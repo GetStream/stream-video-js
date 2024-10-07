@@ -29,6 +29,7 @@ export const useToggleCallRecording = () => {
       }
     } catch (e) {
       console.error(`Failed start recording`, e);
+      throw e;
     }
   }, [call, isCallRecordingInProgress]);
 
