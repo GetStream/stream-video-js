@@ -102,6 +102,7 @@ export class CallState {
     CallSettingsResponse | undefined
   >(undefined);
   private transcribingSubject = new BehaviorSubject<boolean>(false);
+  private captioningSubject = new BehaviorSubject<boolean>(false);
   private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
     undefined,
   );
@@ -291,6 +292,11 @@ export class CallState {
   transcribing$: Observable<boolean>;
 
   /**
+   * Will provide the closed captioning state of this call.
+   */
+  captioning$: Observable<boolean>;
+
+  /**
    * Will provide the user who ended this call.
    */
   endedBy$: Observable<UserResponse | undefined>;
@@ -429,6 +435,7 @@ export class CallState {
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
+    this.captioning$ = duc(this.captioningSubject);
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -580,6 +587,23 @@ export class CallState {
    */
   setStartedAt = (startedAt: Patch<Date | undefined>) => {
     return this.setCurrentValue(this.startedAtSubject, startedAt);
+  };
+
+  /**
+   * Returns whether closed captions are enabled in the current call.
+   */
+  get captioning() {
+    return this.getCurrentValue(this.captioning$);
+  }
+
+  /**
+   * Sets the closed captioning state of the current call.
+   *
+   * @internal
+   * @param captioning the closed captioning state.
+   */
+  setCaptioning = (captioning: boolean) => {
+    return RxUtils.updateValue(this.captioningSubject, captioning);
   };
 
   /**

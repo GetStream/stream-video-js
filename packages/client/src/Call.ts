@@ -1695,18 +1695,30 @@ export class Call {
    * Starts the closed captions of the call.
    */
   startClosedCaptions = async (): Promise<StartClosedCaptionsResponse> => {
-    return this.streamClient.post<StartClosedCaptionsResponse>(
-      `${this.streamClientBasePath}/start_closed_captions`,
-    );
+    const trx = this.state.setCaptioning(true); // optimistic update
+    try {
+      return await this.streamClient.post<StartClosedCaptionsResponse>(
+        `${this.streamClientBasePath}/start_closed_captions`,
+      );
+    } catch (err) {
+      trx.rollback(); // revert the optimistic update
+      throw err;
+    }
   };
 
   /**
    * Stops the closed captions of the call.
    */
   stopClosedCaptions = async (): Promise<StopClosedCaptionsResponse> => {
-    return this.streamClient.post<StopClosedCaptionsResponse>(
-      `${this.streamClientBasePath}/stop_closed_captions`,
-    );
+    const trx = this.state.setCaptioning(false); // optimistic update
+    try {
+      return await this.streamClient.post<StopClosedCaptionsResponse>(
+        `${this.streamClientBasePath}/stop_closed_captions`,
+      );
+    } catch (err) {
+      trx.rollback(); // revert the optimistic update
+      throw err;
+    }
   };
 
   /**
