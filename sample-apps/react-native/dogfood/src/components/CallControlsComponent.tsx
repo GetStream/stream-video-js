@@ -3,10 +3,10 @@ import {
   ChatButton,
   HangUpCallButton,
   ReactionsButton,
+  ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
-  ScreenShareToggleButton,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
@@ -15,6 +15,7 @@ import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
 import { VideoEffectsButton } from './VideoEffectsButton';
+import { ClosedCaptions } from './ClosedCaptions';
 
 export type CallControlsComponentProps = Pick<
   CallContentProps,
@@ -33,8 +34,10 @@ export const CallControlsComponent = ({
   landscape,
 }: CallControlsComponentProps) => {
   const { bottom } = useSafeAreaInsets();
-  const { useMicrophoneState } = useCallStateHooks();
+  const { useMicrophoneState, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
+  const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
     paddingHorizontal: landscape ? 12 : 0,
@@ -49,6 +52,7 @@ export const CallControlsComponent = ({
           <Text style={styles.label}>You are muted. Unmute to speak.</Text>
         </View>
       )}
+      {isCaptioningInProgress && <ClosedCaptions />}
       <View style={[styles.callControlsWrapper, landscapeStyles]}>
         <ReactionsButton />
         <VideoEffectsButton />

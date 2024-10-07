@@ -67,9 +67,9 @@ export const ParticipantsInfoList = ({
   const inviteHandler = async () => {
     try {
       await Share.share({
-        url: `https://stream-calls-dogfood.vercel.app/join/${call?.id}`,
+        url: `https://pronto.getstream.io/join/${call?.id}`,
         title: 'Stream Calls | Join Call',
-        message: `Join me on the call using this link https://stream-calls-dogfood.vercel.app/join/${call?.id}`,
+        message: `Join me on the call using this link https://pronto.getstream.io/join/${call?.id}`,
       });
     } catch (error: any) {
       console.log(error.message);
