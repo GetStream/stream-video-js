@@ -6,7 +6,6 @@ import React, {
 } from 'react';
 
 import merge from 'lodash/merge';
-import cloneDeep from 'lodash/cloneDeep';
 
 import { defaultTheme, Theme } from '../theme/theme';
 
@@ -30,8 +29,11 @@ export type ThemeContextValue = {
 
 export const mergeThemes = (params: MergedThemesParams) => {
   const { style, theme } = params;
-  const isThemeEmpty = !theme || Object.keys(theme).length === 0;
-  const finalTheme = isThemeEmpty ? cloneDeep(defaultTheme) : cloneDeep(theme);
+  const finalTheme = (
+    !theme || Object.keys(theme).length === 0
+      ? JSON.parse(JSON.stringify(defaultTheme))
+      : JSON.parse(JSON.stringify(theme))
+  ) as Theme;
 
   if (style) {
     merge(finalTheme, style);
