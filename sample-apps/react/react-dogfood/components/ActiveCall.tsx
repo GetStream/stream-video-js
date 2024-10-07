@@ -25,7 +25,11 @@ import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
 import { ChatWrapper } from './ChatWrapper';
 import { ChatUI } from './ChatUI';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
-import { ClosedCaptions, ClosedCaptionsSidebar } from './ClosedCaptions';
+import {
+  ClosedCaptions,
+  ClosedCaptionsSidebar,
+  ToggleClosedCaptionsButton,
+} from './ClosedCaptions';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { IncomingVideoSettingsButton } from './IncomingVideoSettings';
 import { ToggleEffectsButton } from './ToggleEffectsButton';
@@ -239,23 +243,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ToggleNoiseCancellationButton />
             </div>
-            {isPronto && (
-              <div className="str-video__call-controls__desktop">
-                <WithTooltip title={t('Closed Captions')}>
-                  <CompositeButton
-                    active={showClosedCaptions}
-                    variant="primary"
-                    onClick={() => {
-                      setSidebarContent(
-                        showClosedCaptions ? null : 'closed-captions',
-                      );
-                    }}
-                  >
-                    <Icon icon="closed-captions" />
-                  </CompositeButton>
-                </WithTooltip>
-              </div>
-            )}
+            <div className="str-video__call-controls__desktop">
+              <ToggleClosedCaptionsButton />
+            </div>
             <div className="str-video__call-controls__desktop">
               <ReactionsButton />
             </div>
@@ -273,6 +263,23 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <WithTooltip title={t('Closed Captions Queue')}>
+                  <CompositeButton
+                    active={showClosedCaptions}
+                    variant="primary"
+                    onClick={() => {
+                      setSidebarContent(
+                        showClosedCaptions ? null : 'closed-captions',
+                      );
+                    }}
+                  >
+                    <Icon icon="closed-captions" />
+                  </CompositeButton>
+                </WithTooltip>
+              </div>
+            )}
             <div className="str-video__call-controls__desktop">
               <ToggleStatsButton
                 active={showStats}

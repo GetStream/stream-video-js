@@ -500,3 +500,11 @@ export const useCallClosedCaptions = (): StreamCallClosedCaption[] => {
   const { closedCaptions$ } = useCallState();
   return useObservableValue(closedCaptions$);
 };
+
+/**
+ * Returns the current call's closed captions queue.
+ */
+export const useIsCallCaptioningInProgress = (): boolean => {
+  const { captioning$ } = useCallState();
+  return useObservableValue(captioning$);
+};

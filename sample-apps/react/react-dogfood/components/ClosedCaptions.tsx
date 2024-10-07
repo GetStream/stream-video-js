@@ -1,9 +1,40 @@
 import { useEffect, useState } from 'react';
 import {
+  CompositeButton,
+  Icon,
   StreamCallClosedCaption,
   useCall,
   useCallStateHooks,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
+
+export const ToggleClosedCaptionsButton = () => {
+  const call = useCall();
+  const { useIsCallCaptioningInProgress } = useCallStateHooks();
+  const isCaptioned = useIsCallCaptioningInProgress();
+  return (
+    <WithTooltip title="Toggle closed captions">
+      <CompositeButton
+        active={isCaptioned}
+        variant="primary"
+        onClick={async () => {
+          if (!call) return;
+          try {
+            if (isCaptioned) {
+              await call.stopClosedCaptions();
+            } else {
+              await call.startClosedCaptions();
+            }
+          } catch (e) {
+            console.error('Failed to toggle closed captions', e);
+          }
+        }}
+      >
+        <Icon icon="closed-captions" />
+      </CompositeButton>
+    </WithTooltip>
+  );
+};
 
 export const ClosedCaptions = () => {
   const { useCallClosedCaptions } = useCallStateHooks();
