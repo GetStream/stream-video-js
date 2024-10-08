@@ -1,4 +1,4 @@
-import { Call, StreamCallClosedCaption } from '@stream-io/video-client';
+import { Call, CallClosedCaption } from '@stream-io/video-client';
 
 export class ClosedCaptionManager {
   status: 'on' | 'off' = 'off';
@@ -49,7 +49,7 @@ export class ClosedCaptionManager {
     this.unsubscribe?.();
   }
 
-  private updateDisplayedCaptions(captions: StreamCallClosedCaption[]) {
+  private updateDisplayedCaptions(captions: CallClosedCaption[]) {
     if (!this.captionContainer) {
       console.warn(
         'Render caption container before turning on closed captions',
@@ -58,7 +58,7 @@ export class ClosedCaptionManager {
     }
 
     this.captionContainer.innerHTML = captions
-      .map((caption) => `<b>${caption.speaker_name}:</b> ${caption.text}`)
+      .map((caption) => `<b>${caption.user.name}:</b> ${caption.text}`)
       .join('<br>');
   }
 }

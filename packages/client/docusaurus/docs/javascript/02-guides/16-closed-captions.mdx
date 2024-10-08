@@ -72,15 +72,15 @@ call.state.captioning$.subscribe((isCaptioningInProgress) => {
 You can access the most recent captions using the call state:
 
 ```typescript
-import { StreamCallClosedCaption } from '@stream-io/video-client';
+import { CallClosedCaption } from '@stream-io/video-client';
 
 const subscription = call.state.closedCaptions$.subscribe((captions) =>
   updateDisplayedCaptions(captions),
 );
 
-const updateDisplayedCaptions = (captions: StreamCallClosedCaption[]) => {
+const updateDisplayedCaptions = (captions: CallClosedCaption[]) => {
   const innerHTML = captions
-    .map((caption) => `<b>${caption.speaker_name}:</b> ${caption.text}`)
+    .map((caption) => `<b>${caption.user.name}:</b> ${caption.text}`)
     .join('<br>');
 };
 
