@@ -13,7 +13,7 @@ import {
   findOptimalVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { getPreferredCodecs, getRNOptimalCodec } from './codecs';
+import { getPreferredCodecs, getRNOptimalCodec, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
@@ -292,13 +292,17 @@ export class Publisher {
         track.enabled = true;
       }
 
+      const { preferredCodec } = opts;
+      const svcCodec = isSvcCodec(preferredCodec);
       transceiver = this.pc.addTransceiver(track, {
         direction: 'sendonly',
         streams:
           trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
             ? [mediaStream]
             : undefined,
-        sendEncodings: videoEncodings,
+        sendEncodings: svcCodec
+          ? videoEncodings?.filter((l) => l.rid === 'q')
+          : videoEncodings,
       });
 
       this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
@@ -306,7 +310,6 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
-      const { preferredCodec } = opts;
       const codec =
         isReactNative() && trackType === TrackType.VIDEO && !preferredCodec
           ? getRNOptimalCodec()

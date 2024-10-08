@@ -27,6 +27,7 @@ vi.mock('../codecs', () => {
         sdpFmtpLine: 'profile-level-id=42e01f',
       },
     ]),
+    isSvcCodec: vi.fn(() => false),
   };
 });
 

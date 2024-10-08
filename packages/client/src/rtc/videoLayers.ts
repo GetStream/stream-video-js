@@ -1,5 +1,6 @@
 import { PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
+import { isSvcCodec } from './codecs';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -51,9 +52,8 @@ export const findOptimalVideoLayers = (
   );
   let downscaleFactor = 1;
   let bitrateFactor = 1;
-  const isSvcCodec = preferredCodec === 'vp9' || preferredCodec === 'av1';
-  const layers = isSvcCodec ? ['q'] : ['f', 'h', 'q'];
-  for (const rid of layers) {
+  const svcCodec = isSvcCodec(preferredCodec);
+  for (const rid of ['f', 'h', 'q']) {
     const layer: OptimalVideoLayer = {
       active: true,
       rid,
@@ -64,7 +64,7 @@ export const findOptimalVideoLayers = (
       scaleResolutionDownBy: downscaleFactor,
       maxFramerate: 30,
     };
-    if (isSvcCodec) {
+    if (svcCodec) {
       layer.scalabilityMode = scalabilityMode || 'L3T3_KEY';
     }
 

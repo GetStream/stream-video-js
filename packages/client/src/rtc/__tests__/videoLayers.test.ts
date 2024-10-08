@@ -145,9 +145,11 @@ describe('videoLayers', () => {
       preferredCodec: 'vp9',
       scalabilityMode: 'L3T3',
     });
-    expect(layers.length).toBe(1);
-    expect(layers[0].rid).toBe('q');
+    expect(layers.length).toBe(3);
     expect(layers[0].scalabilityMode).toBe('L3T3');
+    expect(layers[0].rid).toBe('q');
+    expect(layers[1].rid).toBe('h');
+    expect(layers[2].rid).toBe('f');
   });
 
   describe('getComputedMaxBitrate', () => {
