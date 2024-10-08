@@ -8,8 +8,11 @@ export const ClosedCaptions = () => {
   const closedCaptions = useCallClosedCaptions();
   return (
     <View style={styles.rootContainer}>
-      {closedCaptions.map(({ speaker_name, text }) => (
-        <View style={styles.closedCaptionItem} key={`${speaker_name}/${text}`}>
+      {closedCaptions.map(({ speaker_name, start_time, text }) => (
+        <View
+          style={styles.closedCaptionItem}
+          key={`${speaker_name}/${start_time}`}
+        >
           <Text style={styles.speakerName}>{speaker_name}:</Text>
           <Text style={styles.closedCaption}>{text}</Text>
         </View>

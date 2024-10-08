@@ -7,6 +7,8 @@ description: How to add closed captions to your calls
 The Stream API supports adding real-time closed captions (subtitles for participants) to your calls.
 This guide shows you how you can build it on top of our React Native SDK.
 
+![Preview of the Closed Captions component](../assets/05-ui-cookbook/21-closed-captions/cc-preview.png)
+
 ## Prerequisites
 
 Make sure that the closed caption feature is enabled in your app's dashboard.
@@ -64,6 +66,7 @@ Once enabled, the SDK will expose the closed caption events to your application 
 This is how it can be used:
 
 ```tsx
+import { StyleSheet, Text, View } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 export const ClosedCaptions = () => {
@@ -71,8 +74,11 @@ export const ClosedCaptions = () => {
   const closedCaptions = useCallClosedCaptions();
   return (
     <View style={styles.rootContainer}>
-      {closedCaptions.map(({ speaker_name, text }) => (
-        <View style={styles.closedCaptionItem} key={`${speaker_name}/${text}`}>
+      {closedCaptions.map(({ speaker_name, start_time, text }) => (
+        <View
+          style={styles.closedCaptionItem}
+          key={`${speaker_name}/${start_time}`}
+        >
           <Text style={styles.speakerName}>{speaker_name}:</Text>
           <Text style={styles.closedCaption}>{text}</Text>
         </View>
