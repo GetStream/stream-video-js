@@ -7,7 +7,6 @@ import {
   watchCallEnded,
   watchCallGrantsUpdated,
   watchCallRejected,
-  watchChangePublishQuality,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
   watchLiveEnded,
@@ -46,7 +45,6 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
 
     watchLiveEnded(dispatcher, call),
     watchSfuErrorReports(dispatcher),
-    watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),
     watchParticipantCountChanged(dispatcher, state),
 

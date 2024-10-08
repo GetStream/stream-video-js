@@ -64,7 +64,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!call) throw new Error('No active call found');
       try {
         const prontoDefaultCodec =
-          isProntoEnvironment && !isFirefox ? 'h264' : 'vp8';
+          isProntoEnvironment && !isFirefox ? 'vp9' : 'vp8';
         const preferredCodec = videoCodecOverride || prontoDefaultCodec;
 
         const videoSettings = call.state.settings?.video;
