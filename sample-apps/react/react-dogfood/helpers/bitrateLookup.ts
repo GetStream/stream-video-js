@@ -14,8 +14,8 @@ const lookup: Record<PreferredCodec, Record<number, number> | undefined> = {
     360: 350_000,
   },
   vp9: {
-    1080: 1_200_000,
-    720: 750_000,
+    1080: 1_250_000,
+    720: 900_000,
     540: 450_000,
     360: 275_000,
   },
