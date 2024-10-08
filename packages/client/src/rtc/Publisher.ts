@@ -301,7 +301,9 @@ export class Publisher {
             ? [mediaStream]
             : undefined,
         sendEncodings: svcCodec
-          ? videoEncodings?.filter((l) => l.rid === 'q')
+          ? videoEncodings
+              ?.filter((l) => l.rid === 'f')
+              .map((l) => ({ ...l, rid: 'q' }))
           : videoEncodings,
       });
 
