@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
+  CallClosedCaption,
   CompositeButton,
   Icon,
-  StreamCallClosedCaption,
+  OwnCapability,
   useCall,
   useCallStateHooks,
   WithTooltip,
@@ -10,12 +11,18 @@ import {
 
 export const ToggleClosedCaptionsButton = () => {
   const call = useCall();
-  const { useIsCallCaptioningInProgress } = useCallStateHooks();
+  const { useIsCallCaptioningInProgress, useHasPermissions } =
+    useCallStateHooks();
   const isCaptioned = useIsCallCaptioningInProgress();
+  const canToggle = useHasPermissions(
+    OwnCapability.START_CLOSED_CAPTIONS_CALL,
+    OwnCapability.STOP_CLOSED_CAPTIONS_CALL,
+  );
   return (
     <WithTooltip title="Toggle closed captions">
       <CompositeButton
         active={isCaptioned}
+        disabled={!canToggle}
         variant="primary"
         onClick={async () => {
           if (!call) return;
@@ -48,14 +55,11 @@ export const ClosedCaptions = () => {
 
 export const ClosedCaptionsSidebar = () => {
   const call = useCall();
-  const [queue, addToQueue] = useState<StreamCallClosedCaption[]>([]);
+  const [queue, addToQueue] = useState<CallClosedCaption[]>([]);
   useEffect(() => {
     if (!call) return;
     return call.on('call.closed_caption', (e) => {
-      const { closed_caption: cc } = e;
-      const participant = call.state.sessionParticipantsByUserId[cc.speaker_id];
-      const speaker_name = participant?.user.name || cc.speaker_id;
-      addToQueue((q) => [...q, { ...cc, speaker_name }]);
+      addToQueue((q) => [...q, e.closed_caption]);
     });
   }, [call]);
   return (
@@ -68,19 +72,12 @@ export const ClosedCaptionsSidebar = () => {
   );
 };
 
-const ClosedCaptionList = (props: { queue: StreamCallClosedCaption[] }) => {
+const ClosedCaptionList = (props: { queue: CallClosedCaption[] }) => {
   const { queue } = props;
-  return (
-    <>
-      {queue.map(({ speaker_name, text, start_time }) => (
-        <p
-          className="rd__closed-captions__line"
-          key={`${speaker_name}-${start_time}`}
-        >
-          <span className="rd__closed-captions__speaker">{speaker_name}:</span>
-          <span className="rd__closed-captions__text">{text}</span>
-        </p>
-      ))}
-    </>
-  );
+  return queue.map(({ user, text, start_time }) => (
+    <p className="rd__closed-captions__line" key={`${user.id}-${start_time}`}>
+      <span className="rd__closed-captions__speaker">{user.name}:</span>
+      <span className="rd__closed-captions__text">{text}</span>
+    </p>
+  ));
 };

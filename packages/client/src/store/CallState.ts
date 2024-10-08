@@ -10,7 +10,6 @@ import * as RxUtils from './rxUtils';
 import { CallingState } from './CallingState';
 import {
   type ClosedCaptionsSettings,
-  type StreamCallClosedCaption,
   type StreamVideoParticipant,
   type StreamVideoParticipantPatch,
   type StreamVideoParticipantPatches,
@@ -28,7 +27,6 @@ import {
   CallMemberRemovedEvent,
   CallMemberUpdatedEvent,
   CallMemberUpdatedPermissionEvent,
-  CallParticipantResponse,
   CallReactionEvent,
   CallResponse,
   CallSessionParticipantCountsUpdatedEvent,
@@ -123,9 +121,7 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
-  private closedCaptionsSubject = new BehaviorSubject<
-    StreamCallClosedCaption[]
-  >([]);
+  private closedCaptionsSubject = new BehaviorSubject<CallClosedCaption[]>([]);
 
   // These are tracks that were delivered to the Subscriber's onTrack event
   // that we couldn't associate with a participant yet.
@@ -275,13 +271,6 @@ export class CallState {
   session$: Observable<CallSessionResponse | undefined>;
 
   /**
-   * Returns the session participants indexed by their user ID.
-   */
-  sessionParticipantsByUserId$: Observable<
-    Record<string, CallParticipantResponse>
-  >;
-
-  /**
    * Will provide the settings of this call.
    */
   settings$: Observable<CallSettingsResponse | undefined>;
@@ -309,7 +298,7 @@ export class CallState {
   /**
    * The queue of closed captions.
    */
-  closedCaptions$: Observable<StreamCallClosedCaption[]>;
+  closedCaptions$: Observable<CallClosedCaption[]>;
 
   readonly logger = getLogger(['CallState']);
 
@@ -389,20 +378,6 @@ export class CallState {
     this.thumbnails$ = this.thumbnailsSubject.asObservable();
     this.closedCaptions$ = this.closedCaptionsSubject.asObservable();
 
-    // look-up cache for session participants
-    this.sessionParticipantsByUserId$ = this.session$.pipe(
-      map((session) => {
-        if (!session) return {};
-        return session.participants.reduce<
-          Record<string, CallParticipantResponse>
-        >((target, participant) => {
-          target[participant.user.id] = participant;
-          return target;
-        }, {});
-      }),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
     /**
      * Performs shallow comparison of two arrays.
      * Expects primitive values: [1, 2, 3] is equal to [2, 1, 3].
@@ -460,7 +435,13 @@ export class CallState {
       // events that update call state:
       'call.accepted': (e) => this.updateFromCallResponse(e.call),
       'call.blocked_user': this.blockUser,
-      'call.closed_caption': this.updateClosedCaptions,
+      'call.closed_caption': this.updateFromClosedCaptions,
+      'call.closed_captions_started': () => {
+        this.setCurrentValue(this.captioningSubject, true);
+      },
+      'call.closed_captions_stopped': () => {
+        this.setCurrentValue(this.captioningSubject, false);
+      },
       'call.created': (e) => this.updateFromCallResponse(e.call),
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
@@ -838,13 +819,6 @@ export class CallState {
   }
 
   /**
-   * Will provide the session participants of this call indexed by their user ID.
-   */
-  get sessionParticipantsByUserId() {
-    return this.getCurrentValue(this.sessionParticipantsByUserId$);
-  }
-
-  /**
    * Will provide the settings of this call.
    */
   get settings() {
@@ -1160,6 +1134,7 @@ export class CallState {
     this.updateParticipantCountFromSession(s);
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
+    this.setCurrentValue(this.captioningSubject, call.captioning);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
   };
 
@@ -1394,7 +1369,7 @@ export class CallState {
     }
   };
 
-  private updateClosedCaptions = (event: ClosedCaptionEvent) => {
+  private updateFromClosedCaptions = (event: ClosedCaptionEvent) => {
     this.setCurrentValue(this.closedCaptionsSubject, (queue) => {
       const { closed_caption } = event;
 
@@ -1404,23 +1379,15 @@ export class CallState {
       const duplicate = queue.some((caption) => keyOf(caption) === currentKey);
       if (duplicate) return queue;
 
+      const nextQueue = [...queue, closed_caption];
+
       const { retentionTimeInMs = 2700, queueSize = 2 } =
         this.closedCaptionsSettings || {};
-
-      const participant =
-        this.sessionParticipantsByUserId[closed_caption.speaker_id];
-      const speaker_name = participant?.user.name || closed_caption.speaker_id;
-      const nextClosedCaption: StreamCallClosedCaption = {
-        ...event.closed_caption,
-        speaker_name,
-      };
-      const nextQueue = [...queue, nextClosedCaption];
-
       // schedule the removal of the closed caption after the retention time
       if (retentionTimeInMs > 0) {
         const taskId = setTimeout(() => {
           this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
-            captions.filter((caption) => caption !== nextClosedCaption),
+            captions.filter((caption) => caption !== closed_caption),
           );
           this.closedCaptionsTasks.delete(currentKey);
         }, retentionTimeInMs);

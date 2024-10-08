@@ -60,6 +60,11 @@ console.log(
 
 ## Rendering closed captions
 
+In the next two sections, we will show you how to render closed captions in your call UI and
+how to toggle the closed captions on and off.
+
+### Closed Captions UI
+
 Once enabled, the SDK will expose the closed caption events to your application via a special `useCallClosedCaptions` hook.
 This is how it can be used:
 
@@ -71,12 +76,9 @@ export const ClosedCaptions = () => {
   const closedCaptions = useCallClosedCaptions();
   return (
     <div className="closed-captions">
-      {closedCaptions.map(({ speaker_name, text, start_time }) => (
-        <p
-          className="closed-captions__item"
-          key={`${speaker_name}-${start_time}`}
-        >
-          <span className="closed-captions__speaker">{speaker_name}:</span>
+      {closedCaptions.map(({ user, text, start_time }) => (
+        <p className="closed-captions__item" key={`${user.id}-${start_time}`}>
+          <span className="closed-captions__speaker">{user.name}:</span>
           <span className="closed-captions__text">{text}</span>
         </p>
       ))}
@@ -85,7 +87,50 @@ export const ClosedCaptions = () => {
 };
 ```
 
-And now we can add this newly created component somewhere in our call UI.
+### Toggling closed captions
+
+Only users with the permission to start or stop closed captions can toggle closed captions on and off.
+This can be set up in the Stream Dashboard, under the Permissions section.
+
+Here is how you can create a button that toggles closed captions depending on user permissions:
+
+```tsx
+import {
+  useCall,
+  useCallStateHooks,
+  OwnCapability,
+} from '@stream-io/video-react-sdk';
+
+export const ToggleClosedCaptionsButton = () => {
+  const call = useCall();
+  const { useIsCallCaptioningInProgress, useHasPermissions } =
+    useCallStateHooks();
+
+  const isCaptioningInProgress = useIsCallCaptioningInProgress();
+  const canToggleClosedCaptions = useHasPermissions(
+    OwnCapability.START_CLOSED_CAPTIONS_CALL,
+    OwnCapability.STOP_CLOSED_CAPTIONS_CALL,
+  );
+
+  return (
+    <button
+      disabled={!canToggleClosedCaptions}
+      type="button"
+      onClick={() => {
+        if (isCaptioningInProgress) {
+          call.stopClosedCaptions();
+        } else {
+          call.startClosedCaptions();
+        }
+      }}
+    >
+      {isCaptioningInProgress ? 'Disable' : 'Enable'} closed captions
+    </button>
+  );
+};
+```
+
+And now we can add these newly created components somewhere in our call UI.
 
 ## Advanced usage
 

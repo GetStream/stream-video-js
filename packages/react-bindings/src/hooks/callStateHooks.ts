@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import {
   Call,
+  CallClosedCaption,
   CallIngressResponse,
-  CallParticipantResponse,
   CallSessionResponse,
   CallSettingsResponse,
   CallState,
@@ -11,7 +11,6 @@ import {
   EgressResponse,
   MemberResponse,
   OwnCapability,
-  StreamCallClosedCaption,
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
@@ -152,17 +151,6 @@ export const useCallIngress = (): CallIngressResponse | undefined => {
 export const useCallSession = (): CallSessionResponse | undefined => {
   const { session$ } = useCallState();
   return useObservableValue(session$);
-};
-
-/**
- * Returns a look-up table of call participants by their user ID.
- */
-export const useCallSessionParticipantsByUserId = (): Record<
-  string,
-  CallParticipantResponse
-> => {
-  const { sessionParticipantsByUserId$ } = useCallState();
-  return useObservableValue(sessionParticipantsByUserId$);
 };
 
 /**
@@ -496,7 +484,7 @@ export const useIncomingVideoSettings = () => {
 /**
  * Returns the current call's closed captions queue.
  */
-export const useCallClosedCaptions = (): StreamCallClosedCaption[] => {
+export const useCallClosedCaptions = (): CallClosedCaption[] => {
   const { closedCaptions$ } = useCallState();
   return useObservableValue(closedCaptions$);
 };

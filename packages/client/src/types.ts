@@ -3,7 +3,6 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  CallClosedCaption,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
@@ -136,13 +135,6 @@ export type ClosedCaptionsSettings = {
    * Default is 2.
    */
   queueSize?: number;
-};
-
-export type StreamCallClosedCaption = CallClosedCaption & {
-  /**
-   * Derived speaker name for convenience.
-   */
-  speaker_name: string;
 };
 
 /**

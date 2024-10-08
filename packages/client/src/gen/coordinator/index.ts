@@ -426,6 +426,62 @@ export interface CallClosedCaption {
    * @memberof CallClosedCaption
    */
   text: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallClosedCaption
+   */
+  user: UserResponse;
+}
+/**
+ * This event is sent when call closed caption has started
+ * @export
+ * @interface CallClosedCaptionsStartedEvent
+ */
+export interface CallClosedCaptionsStartedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaptionsStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaptionsStartedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.closed_captions_started" in this case
+   * @type {string}
+   * @memberof CallClosedCaptionsStartedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call closed captions has stopped
+ * @export
+ * @interface CallClosedCaptionsStoppedEvent
+ */
+export interface CallClosedCaptionsStoppedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaptionsStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaptionsStoppedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.transcription_stopped" in this case
+   * @type {string}
+   * @memberof CallClosedCaptionsStoppedEvent
+   */
+  type: string;
 }
 /**
  * This event is sent when a call is created. Clients receiving this event should check if the ringing
@@ -1256,6 +1312,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   blocked_user_ids: Array<string>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  captioning: boolean;
   /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
@@ -5813,7 +5875,7 @@ export interface TranscriptionSettingsRequest {
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  closed_caption_mode?: string;
+  closed_caption_mode?: TranscriptionSettingsRequestClosedCaptionModeEnum;
   /**
    *
    * @type {Array<string>}
@@ -5827,6 +5889,17 @@ export interface TranscriptionSettingsRequest {
    */
   mode: TranscriptionSettingsRequestModeEnum;
 }
+
+/**
+ * @export
+ */
+export const TranscriptionSettingsRequestClosedCaptionModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type TranscriptionSettingsRequestClosedCaptionModeEnum =
+  (typeof TranscriptionSettingsRequestClosedCaptionModeEnum)[keyof typeof TranscriptionSettingsRequestClosedCaptionModeEnum];
 
 /**
  * @export
@@ -5850,7 +5923,7 @@ export interface TranscriptionSettingsResponse {
    * @type {string}
    * @memberof TranscriptionSettingsResponse
    */
-  closed_caption_mode: string;
+  closed_caption_mode: TranscriptionSettingsResponseClosedCaptionModeEnum;
   /**
    *
    * @type {Array<string>}
@@ -5864,6 +5937,17 @@ export interface TranscriptionSettingsResponse {
    */
   mode: TranscriptionSettingsResponseModeEnum;
 }
+
+/**
+ * @export
+ */
+export const TranscriptionSettingsResponseClosedCaptionModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type TranscriptionSettingsResponseClosedCaptionModeEnum =
+  (typeof TranscriptionSettingsResponseClosedCaptionModeEnum)[keyof typeof TranscriptionSettingsResponseClosedCaptionModeEnum];
 
 /**
  * @export
@@ -7362,6 +7446,8 @@ export type WSEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
   | ({ type: 'call.closed_caption' } & ClosedCaptionEvent)
+  | ({ type: 'call.closed_captions_started' } & CallClosedCaptionsStartedEvent)
+  | ({ type: 'call.closed_captions_stopped' } & CallClosedCaptionsStoppedEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.deleted' } & CallDeletedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)

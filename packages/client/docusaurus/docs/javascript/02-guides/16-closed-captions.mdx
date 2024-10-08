@@ -92,12 +92,17 @@ This is how an example closed caption looks like:
 ```json
 {
   "text": "Thank you, guys, for listening.",
-  // When did the speaker start speaking
+  "// When did the speaker start speaking": "",
   "start_time": "2024-09-25T12:22:21.310735726Z",
-  // When did the speaker finish saying the caption
+  "// When did the speaker finish saying the caption": "",
   "end_time": "2024-09-25T12:22:24.310735726Z",
   "speaker_id": "zitaszuperagetstreamio",
-  "speaker_name": "Zita"
+  "user": {
+    "id": "zitaszuperagetstreamio",
+    "name": "Zita",
+    "role": "host",
+    "// other user properties": ""
+  }
 }
 ```
 

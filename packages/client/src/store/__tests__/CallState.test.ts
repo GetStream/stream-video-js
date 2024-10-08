@@ -971,9 +971,9 @@ describe('CallState', () => {
   describe('closed captions', () => {
     it('should add closed captions to the queue', () => {
       const state = new CallState();
-      // @ts-expect-error incomplete data
       state.updateFromEvent({
         type: 'call.closed_caption',
+        // @ts-expect-error incomplete data
         closed_caption: {
           speaker_id: '123',
           text: 'Hello world',
@@ -988,9 +988,9 @@ describe('CallState', () => {
       const state = new CallState();
       state.updateClosedCaptionSettings({ queueSize: 2 });
       for (let i = 0; i < 5; i++) {
-        // @ts-expect-error incomplete data
         state.updateFromEvent({
           type: 'call.closed_caption',
+          // @ts-expect-error incomplete data
           closed_caption: {
             speaker_id: `123-${i}`,
             text: `Hello world ${i}`,
@@ -1010,9 +1010,9 @@ describe('CallState', () => {
     it('should remove stale captions from the queue', () => {
       const state = new CallState();
       vi.useFakeTimers();
-      // @ts-expect-error incomplete data
       state.updateFromEvent({
         type: 'call.closed_caption',
+        // @ts-expect-error incomplete data
         closed_caption: {
           speaker_id: `123`,
           text: `Hello world`,
@@ -1032,9 +1032,9 @@ describe('CallState', () => {
       const state = new CallState();
       state.updateClosedCaptionSettings({ retentionTimeInMs: 100 });
       vi.useFakeTimers();
-      // @ts-expect-error incomplete data
       state.updateFromEvent({
         type: 'call.closed_caption',
+        // @ts-expect-error incomplete data
         closed_caption: {
           speaker_id: `123`,
           text: `Hello world`,
@@ -1050,45 +1050,15 @@ describe('CallState', () => {
       expect(state['closedCaptionsTasks'].size).toBe(0);
     });
 
-    it('should enrich closed captions with speaker name', () => {
-      const state = new CallState();
-      state.updateFromEvent({
-        type: 'call.session_started',
-        call: {
-          session: {
-            // @ts-expect-error incomplete data
-            participants: [{ user: { id: '123', name: 'Alice' } }],
-            participants_count_by_role: { user: 1 },
-          },
-        },
-      });
-
-      // @ts-expect-error incomplete data
-      state.updateFromEvent({
-        type: 'call.closed_caption',
-        closed_caption: {
-          speaker_id: `123`,
-          text: `Hello world`,
-          start_time: '2021-01-01T00:00:00.000Z',
-          end_time: '2021-01-01T00:02:00.000Z',
-        },
-      });
-
-      const closedCaptions = state.closedCaptions;
-      expect(closedCaptions.length).toBe(1);
-      expect(closedCaptions[0].speaker_name).toBe('Alice');
-    });
-
     it('dispose cancels all cleanup tasks', () => {
       const state = new CallState();
-      // @ts-expect-error incomplete data
       state.updateFromEvent({
         type: 'call.closed_caption',
+        // @ts-expect-error incomplete data
         closed_caption: {
           speaker_id: `123`,
           text: `Hello world`,
           start_time: '2021-01-01T00:00:00.000Z',
-          end_time: '2021-01-01T00:02:00.000Z',
         },
       });
       expect(state.closedCaptions.length).toBe(1);

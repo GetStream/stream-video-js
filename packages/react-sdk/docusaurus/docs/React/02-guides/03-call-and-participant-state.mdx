@@ -76,7 +76,6 @@ Here is an excerpt of the available call state hooks:
 | `useCallIngress`                     | The ingress information of the call.                                                                          |
 | `useCallMembers`                     | The list of call members                                                                                      |
 | `useCallSession`                     | The information for the current call session.                                                                 |
-| `useCallSessionParticipantsByUserId` | The participants of the call session, mapped by the user_id property.                                         |
 | `useCallSettings`                    | The settings of the call.                                                                                     |
 | `useCallStartedAt`                   | The actual start time of the current call session.                                                            |
 | `useCallStartsAt`                    | The scheduled start time of the call.                                                                         |
@@ -87,10 +86,11 @@ Here is an excerpt of the available call state hooks:
 | `useDominantSpeaker`                 | The participant that is the current dominant speaker of the call.                                             |
 | `useHasOngoingScreenShare`           | It will return `true` if at least one participant is sharing their screen.                                    |
 | `useHasPermissions`                  | Returns `true` if the local participant has all the given permissions.                                        |
+| `useIncomingVideoSettings`           | The state of manual overrides to incoming video quality.                                                      |
 | `useIsCallCaptioningInProgress`      | It's `true` if the call is being close-captioned.                                                             |
 | `useIsCallHLSBroadcastingInProgress` | It's `true` if the call is being broadcasted in HLS mode.                                                     |
 | `useIsCallLive`                      | It's `true` if the call is currently live.                                                                    |
-| `useIsCallRecordingInProgress`       | It's' `true` if the call is being recorded.                                                                   |
+| `useIsCallRecordingInProgress`       | It's `true` if the call is being recorded.                                                                    |
 | `useIsCallTranscribingInProgress`    | It's `true` if the call is being transcribed.                                                                 |
 | `useMicrophoneState`                 | The microphone state of the local participant.                                                                |
 | `useOwnCapabilities`                 | The capabilities of the local participant.                                                                    |
