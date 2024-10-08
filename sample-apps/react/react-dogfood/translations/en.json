@@ -8,5 +8,20 @@
   "Recordings": "Recordings",
   "Search, share & download call recordings": "Search, share & download call recordings",
   "Settings": "Settings",
-  "Stream Meetings": "Stream Meetings"
+  "Stream Meetings": "Stream Meetings",
+  "Incoming video quality": "Incoming Video Quality",
+  "quality/long/auto": "Auto quality",
+  "quality/long/2160p": "4K 2160p",
+  "quality/long/1080p": "Full HD 1080p",
+  "quality/long/720p": "HD 720p",
+  "quality/long/480p": "SD 480p",
+  "quality/long/144p": "Data saver 144p",
+  "quality/long/off": "Disable video",
+  "quality/short/auto": "Auto",
+  "quality/short/2160p": "2160p",
+  "quality/short/1080p": "1080p",
+  "quality/short/720p": "720p",
+  "quality/short/480p": "480p",
+  "quality/short/144p": "144p",
+  "quality/short/off": "Video off"
 }

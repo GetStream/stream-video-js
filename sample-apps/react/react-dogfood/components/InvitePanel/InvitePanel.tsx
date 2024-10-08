@@ -90,7 +90,7 @@ export const InvitePanel = () => {
       <div className="rd__invite__qr">
         <h2 className="rd__invite__qr-header">Test on mobile</h2>
         <p className="rd__invite__qr-description">
-          To test on a mobile device, can the QR Code below:
+          To test on a mobile device, scan the QR Code below:
         </p>
         <div
           className="rd__invite__qr-container"

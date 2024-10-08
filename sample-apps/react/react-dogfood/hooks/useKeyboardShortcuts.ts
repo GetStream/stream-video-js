@@ -3,7 +3,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import hotkeys from 'hotkeys-js';
 

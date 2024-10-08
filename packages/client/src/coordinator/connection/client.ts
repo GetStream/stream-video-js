@@ -110,6 +110,7 @@ export class StreamClient {
       this.locationHint = getLocationHint(
         options?.locationHintUrl,
         options?.locationHintTimeout,
+        options?.locationHintMaxAttempts,
       );
     }
 

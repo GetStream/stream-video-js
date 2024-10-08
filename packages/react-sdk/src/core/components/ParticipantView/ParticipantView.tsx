@@ -13,6 +13,7 @@ import {
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
@@ -42,6 +43,12 @@ export type ParticipantViewProps = {
   trackType?: VideoTrackType | 'none';
 
   /**
+   * Forces participant's video to be mirrored or unmirrored. By default, video track
+   * from the local participant is mirrored, and all other videos are not mirrored.
+   */
+  mirror?: boolean;
+
+  /**
    * This prop is only useful for advanced use-cases (for example, building your own layout).
    * When set to `true` it will mute the give participant's audio stream on the client side.
    * The local participant is always muted.
@@ -68,6 +75,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     {
       participant,
       trackType = 'videoTrack',
+      mirror,
       muteAudio,
       refs: { setVideoElement, setVideoPlaceholderElement } = {},
       className,
@@ -99,6 +107,9 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       trackedElement,
       trackType,
     });
+
+    const { useIncomingVideoSettings } = useCallStateHooks();
+    const { isParticipantVideoEnabled } = useIncomingVideoSettings();
 
     const participantViewContextValue = useMemo(
       () => ({
@@ -167,6 +178,12 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             participant={participant}
             trackType={trackType}
             refs={videoRefs}
+            enabled={
+              isLocalParticipant ||
+              trackType !== 'videoTrack' ||
+              isParticipantVideoEnabled(participant.sessionId)
+            }
+            mirror={mirror}
             autoPlay
           />
           {isComponentType(ParticipantViewUI) ? (

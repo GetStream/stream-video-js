@@ -20,6 +20,9 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
       );
     }
   }
+  if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
+    permissions.push('android.permission.USE_FULL_SCREEN_INTENT');
+  }
   const config = AndroidConfig.Permissions.withPermissions(
     configuration,
     permissions

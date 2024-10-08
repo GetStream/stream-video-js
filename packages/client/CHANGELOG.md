@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.4...@stream-io/video-client-1.8.0) (2024-10-02)
+
+
+### Features
+
+* manual video quality selection ([#1486](https://github.com/GetStream/stream-video-js/issues/1486)) ([3a754af](https://github.com/GetStream/stream-video-js/commit/3a754afa1bd13d038b1023520ec8a5296ad2669e))
+
+## [1.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.3...@stream-io/video-client-1.7.4) (2024-10-02)
+
+
+### Bug Fixes
+
+* retryable location hint ([#1505](https://github.com/GetStream/stream-video-js/issues/1505)) ([087417f](https://github.com/GetStream/stream-video-js/commit/087417f926b3d43a5bcb814ac9bb5951c1e63479))
+
 ## [1.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.2...@stream-io/video-client-1.7.3) (2024-09-24)
 
 

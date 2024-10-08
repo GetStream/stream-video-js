@@ -162,7 +162,7 @@ const Select = (props: {
 export type DropDownSelectOptionProps = {
   label: string;
   selected?: boolean;
-  icon: string;
+  icon?: string;
 };
 
 export const DropDownSelectOption = (props: DropDownSelectOptionProps) => {
@@ -179,7 +179,7 @@ export const DropDownSelectOption = (props: DropDownSelectOptionProps) => {
         onClick: () => handleSelect(index),
       })}
     >
-      <Icon className="str-video__dropdown-icon" icon={icon} />
+      {icon && <Icon className="str-video__dropdown-icon" icon={icon} />}
       <span className="str-video__dropdown-label">{label}</span>
     </div>
   );

@@ -130,6 +130,10 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    */
   locationHintTimeout?: number;
   /**
+   * The maximum number of attempts to request a location hint.
+   */
+  locationHintMaxAttempts?: number;
+  /**
    * When true, user will be persisted on client. Otherwise if `connectUser` call fails, then you need to
    * call `connectUser` again to retry.
    * This is mainly useful for chat application working in offline mode, where you will need client.user to

@@ -102,6 +102,14 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
       ],
       // highlight-next-line
       "@config-plugins/react-native-callkeep",
+      [
+        // highlight-next-line
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
+          "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
+        }
+      ],
       // highlight-next-line
       "@react-native-firebase/app",
       [
@@ -125,6 +133,8 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
 - The `showWhenLockedAndroid` field is used to display a full-screen notification for the incoming call when the phone is locked. Pass true to enable it.
 - For iOS only, since `firebase-ios-sdk` requires `use_frameworks` then you want to configure `expo-build-properties` by adding `"useFrameworks": "static"`.
 :::
+
+If Expo EAS build is not used, please do `npx expo prebuild --clean` to generate the native directories again after adding the config plugins. 
 
 ## Optional: Disable Firebase initialisation on iOS
 
@@ -268,6 +278,18 @@ import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
 await StreamVideoRN.onPushLogout();
 ```
+
+## Optional: On Android show full-screen incoming call view when phone is locked
+
+Passing `true` to `ringingPushNotifications.showWhenLockedAndroid` will add the `USE_FULL_SCREEN_INTENT` permission to the android app and add the necessary configurations to the `MainActivity`.
+
+:::infoNOTE
+For apps installed on phones running versions Android 13 or lower, the `USE_FULL_SCREEN_INTENT` permission is enabled by default.
+
+For all apps being installed on Android 14 and above, the Google Play Store revokes the `USE_FULL_SCREEN_INTENT` for apps that do not have calling or alarm functionalities. Which means, while submitting your app to the play store, if you do **declare that 'Making and receiving calls' is a 'core' functionality** in your app, this permission is granted by default on Android 14 and above.
+
+If the `USE_FULL_SCREEN_INTENT` permission is not granted, the notification will show up as an expanded heads up notification on the lock screen.
+:::
 
 ## Troubleshooting
 
