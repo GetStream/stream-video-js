@@ -17,7 +17,8 @@ vi.mock('../../StreamSfuClient', () => {
   };
 });
 
-vi.mock('../codecs', () => {
+vi.mock('../codecs', async () => {
+  const codecs = await vi.importActual('../codecs');
   return {
     getPreferredCodecs: vi.fn((): RTCRtpCodecCapability[] => [
       {
@@ -27,7 +28,7 @@ vi.mock('../codecs', () => {
         sdpFmtpLine: 'profile-level-id=42e01f',
       },
     ]),
-    isSvcCodec: vi.fn(() => false),
+    isSvcCodec: codecs.isSvcCodec,
   };
 });
 
@@ -410,6 +411,55 @@ describe('Publisher', () => {
       expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
         {
           rid: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+    });
+
+    it('supports empty rid in SVC', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          codecs: [
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP9' },
+          ],
+          encodings: [
+            {
+              rid: undefined, // empty rid
+              active: true,
+              // @ts-expect-error not in the standard lib yet
+              scalabilityMode: 'L3T3_KEY',
+            },
+          ],
+        });
+
+      // inject the transceiver
+      publisher['transceiverRegistry'][TrackType.VIDEO] = transceiver;
+
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
           active: true,
           maxBitrate: 50,
           scaleResolutionDownBy: 1,
