@@ -452,7 +452,7 @@ export class Publisher {
     }
 
     const [codecInUse] = params.codecs;
-    const usesSvcCodec = isSvcCodec(codecInUse.mimeType);
+    const usesSvcCodec = codecInUse && isSvcCodec(codecInUse.mimeType);
 
     let changed = false;
     for (const encoder of params.encodings) {

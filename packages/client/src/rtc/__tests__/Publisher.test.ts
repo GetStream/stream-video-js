@@ -278,4 +278,145 @@ describe('Publisher', () => {
       expect(publisher.restartIce).toHaveBeenCalled();
     });
   });
+
+  describe('changePublishQuality', () => {
+    it('can dynamically activate/deactivate simulcast layers', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          codecs: [
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP8' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP9' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/H264' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/AV1' },
+          ],
+          encodings: [
+            { rid: 'q', active: true },
+            { rid: 'h', active: true },
+            { rid: 'f', active: true },
+          ],
+        });
+
+      // inject the transceiver
+      publisher['transceiverRegistry'][TrackType.VIDEO] = transceiver;
+
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 100,
+          scaleResolutionDownBy: 4,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+        {
+          name: 'h',
+          active: false,
+          maxBitrate: 150,
+          scaleResolutionDownBy: 2,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+        {
+          name: 'f',
+          active: true,
+          maxBitrate: 200,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
+          rid: 'q',
+          active: true,
+          maxBitrate: 100,
+          scaleResolutionDownBy: 4,
+          maxFramerate: 30,
+        },
+        {
+          rid: 'h',
+          active: false,
+          maxBitrate: 150,
+          scaleResolutionDownBy: 2,
+          maxFramerate: 30,
+        },
+        {
+          rid: 'f',
+          active: true,
+          maxBitrate: 200,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+        },
+      ]);
+    });
+
+    it('can dynamically update scalability mode in SVC', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          codecs: [
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP9' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/AV1' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP8' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/H264' },
+          ],
+          encodings: [
+            {
+              rid: 'q',
+              active: true,
+              maxBitrate: 100,
+              // @ts-expect-error not in the standard lib yet
+              scalabilityMode: 'L3T3_KEY',
+            },
+          ],
+        });
+
+      // inject the transceiver
+      publisher['transceiverRegistry'][TrackType.VIDEO] = transceiver;
+
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
+          rid: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+    });
+  });
 });
