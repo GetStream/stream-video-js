@@ -3,7 +3,7 @@ import { mockClientWithUser } from '../mocks/client';
 import mockParticipant from '../mocks/participant';
 import { ButtonTestIds, ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
-import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
+import { fireEvent, render, screen } from '../utils/RNTLTools';
 import { OwnCapability } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../../src/constants';
 import { CallControls } from '../../src/components/Call/CallControls/CallControls';

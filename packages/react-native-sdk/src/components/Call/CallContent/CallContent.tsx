@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { SafeAreaView, StyleSheet, View, ViewStyle } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import {
