@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.3...@stream-io/video-react-sdk-1.6.4) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.2`
+## [1.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.2...@stream-io/video-react-sdk-1.6.3) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.1`
+## [1.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.1...@stream-io/video-react-sdk-1.6.2) (2024-10-07)
+
+
+### Bug Fixes
+
+* edge case with participant bar rendering ([#1512](https://github.com/GetStream/stream-video-js/issues/1512)) ([2c1c345](https://github.com/GetStream/stream-video-js/commit/2c1c3459c531c8b083f095c9ecc37235a89127c1))
+
 ## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.0...@stream-io/video-react-sdk-1.6.1) (2024-10-04)
 
 
