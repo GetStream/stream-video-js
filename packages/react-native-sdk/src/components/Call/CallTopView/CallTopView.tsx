@@ -7,10 +7,6 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import {
-  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
-  ParticipantsInfoBadgeProps,
-} from './ParticipantsInfoBadge';
 import { Back } from '../../../icons/Back';
 import { TopViewBackground } from '../../../icons';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
@@ -24,11 +20,6 @@ export type CallTopViewProps = {
    */
   onBackPressed?: () => void;
   /**
-   * Handler to be called when the Participant icon is pressed in the CallTopView.
-   * @returns
-   */
-  onParticipantInfoPress?: () => void;
-  /**
    * Title to be rendered at the center of the Header.
    */
   title?: string;
@@ -36,18 +27,12 @@ export type CallTopViewProps = {
    * Style to override the container of the CallTopView.
    */
   style?: StyleProp<ViewStyle>;
-  /**
-   * Component to customize the ParticipantInfoBadge of the CallTopView.
-   */
-  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps> | null;
 };
 
 export const CallTopView = ({
   onBackPressed,
-  onParticipantInfoPress,
   title,
   style: styleProp,
-  ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
   const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
   const [callTopViewWidth, setCallTopViewWidth] = useState<number>(0);
@@ -119,13 +104,6 @@ export const CallTopView = ({
                 {t('Reconnecting...')}
               </Text>
             )
-          )}
-        </View>
-        <View style={[styles.rightElement, callTopView.rightElement]}>
-          {ParticipantsInfoBadge && (
-            <ParticipantsInfoBadge
-              onParticipantInfoPress={onParticipantInfoPress}
-            />
           )}
         </View>
       </View>

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { SafeAreaView, StyleSheet, View, ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import {
@@ -71,10 +71,7 @@ export type CallContentProps = Pick<
   HangUpCallButtonProps,
   'onHangupCallHandler'
 > &
-  Pick<
-    CallTopViewProps,
-    'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
-  > &
+  Pick<CallTopViewProps, 'onBackPressed'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -101,7 +98,6 @@ export type CallContentProps = Pick<
 
 export const CallContent = ({
   onBackPressed,
-  onParticipantInfoPress,
   onHangupCallHandler,
   CallParticipantsList,
   CallTopView = DefaultCallTopView,
@@ -113,7 +109,6 @@ export const CallContent = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView,
-  ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
   landscape = false,
@@ -146,6 +141,7 @@ export const CallContent = ({
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+  const styles = useStyles();
 
   const showFloatingView =
     !showSpotlightLayout &&
@@ -201,10 +197,6 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
   return (
     <>
       {!disablePictureInPicture && (
@@ -212,56 +204,75 @@ export const CallContent = ({
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
         />
       )}
-      <View style={[styles.container, landscapeStyles, callContent.container]}>
-        <View style={[styles.container, callContent.callParticipantsContainer]}>
+      <View style={styles.mainContainer}>
+        <View style={styles.unsafeArea} />
+        <SafeAreaView style={[styles.safeArea, callContent.container]}>
           <View
-            style={[styles.view, callContent.topContainer]}
-            // "box-none" disallows the container view to be not take up touches
-            // and allows only the top and floating view (its child views) to take up the touches
-            pointerEvents="box-none"
+            style={[styles.callContent, callContent.callParticipantsContainer]}
           >
-            {!isInPiPMode && CallTopView && (
-              <CallTopView
-                onBackPressed={onBackPressed}
-                onParticipantInfoPress={onParticipantInfoPress}
-                ParticipantsInfoBadge={ParticipantsInfoBadge}
-              />
-            )}
-            {showFloatingView && FloatingParticipantView && (
-              <FloatingParticipantView
-                participant={
-                  isRemoteParticipantInFloatingView
-                    ? remoteParticipants[0]
-                    : localParticipant
-                }
-                onPressHandler={handleFloatingViewParticipantSwitch}
-                supportedReactions={supportedReactions}
-                {...participantViewProps}
-              />
+            <View
+              style={[styles.view, callContent.topContainer]}
+              // "box-none" disallows the container view to be not take up touches
+              // and allows only the top and floating view (its child views) to take up the touches
+              pointerEvents="box-none"
+            >
+              {!isInPiPMode && CallTopView && (
+                <CallTopView onBackPressed={onBackPressed} />
+              )}
+              {showFloatingView && FloatingParticipantView && (
+                <FloatingParticipantView
+                  participant={
+                    isRemoteParticipantInFloatingView
+                      ? remoteParticipants[0]
+                      : localParticipant
+                  }
+                  onPressHandler={handleFloatingViewParticipantSwitch}
+                  supportedReactions={supportedReactions}
+                  {...participantViewProps}
+                />
+              )}
+            </View>
+            {showSpotlightLayout ? (
+              <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+            ) : (
+              <CallParticipantsGrid {...callParticipantsGridProps} />
             )}
           </View>
-          {showSpotlightLayout ? (
-            <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-          ) : (
-            <CallParticipantsGrid {...callParticipantsGridProps} />
-          )}
-        </View>
 
-        {!isInPiPMode && CallControls && (
-          <CallControls
-            onHangupCallHandler={onHangupCallHandler}
-            landscape={landscape}
-          />
-        )}
+          {!isInPiPMode && CallControls && (
+            <CallControls
+              onHangupCallHandler={onHangupCallHandler}
+              landscape={landscape}
+            />
+          )}
+        </SafeAreaView>
       </View>
     </>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  view: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        mainContainer: { flex: 1 },
+        callContent: { flex: 1 },
+        safeArea: { flex: 1 },
+        unsafeArea: {
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // TODO: should be replaced with safeAreaInsets.bottom for all devices on ios and android
+          height: 34,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        view: {
+          ...StyleSheet.absoluteFillObject,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+      }),
+    [theme]
+  );
+};

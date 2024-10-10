@@ -6,6 +6,7 @@ import { ColorValue } from 'react-native';
 export type Theme = {
   variants: {
     buttonSizes: DimensionType;
+    roundButtonSizes: DimensionType;
     iconSizes: DimensionType;
     avatarSizes: DimensionType;
     fontSizes: DimensionType;
@@ -18,6 +19,7 @@ export type Theme = {
     margin: number;
     padding: number;
     fontSize: number;
+    iconSize: number;
     fontWeight: TextStyle['fontWeight'];
     borderRadius: ViewStyle['borderRadius'];
     borderColor: ColorValue;
@@ -87,6 +89,14 @@ export type Theme = {
     videoFallback: ViewStyle;
   };
   chatButton: {
+    container: ViewStyle;
+    svgContainer: ViewStyle;
+  };
+  moreActionsButton: {
+    container: ViewStyle;
+    svgContainer: ViewStyle;
+  };
+  recordCallButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
@@ -282,6 +292,13 @@ export type Theme = {
 
 export const defaultTheme: Theme = {
   variants: {
+    roundButtonSizes: {
+      xs: 16,
+      sm: 24,
+      md: 36,
+      lg: 44,
+      xl: 56,
+    },
     buttonSizes: {
       xs: 40,
       sm: 50,
@@ -355,7 +372,8 @@ export const defaultTheme: Theme = {
     padding: 10,
     fontSize: 16,
     fontWeight: '500',
-    borderRadius: 10,
+    borderRadius: 32,
+    iconSize: 28,
     borderColor: colors.primary,
     borderWidth: 1,
   },
@@ -386,6 +404,14 @@ export const defaultTheme: Theme = {
     label: {},
   },
   chatButton: {
+    container: {},
+    svgContainer: {},
+  },
+  moreActionsButton: {
+    container: {},
+    svgContainer: {},
+  },
+  recordCallButton: {
     container: {},
     svgContainer: {},
   },

@@ -1,7 +1,7 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
-import { Mic, MicOff } from '../../../icons';
+import { IconWrapper, Mic, MicOff } from '../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 
 /**
@@ -26,6 +26,7 @@ export const ToggleAudioPreviewButton = ({
       colors,
       toggleAudioPreviewButton,
       variants: { buttonSizes },
+      defaults,
     },
   } = useTheme();
   const { useMicrophoneState } = useCallStateHooks();
@@ -42,21 +43,24 @@ export const ToggleAudioPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={!optimisticIsMute ? colors.base1 : colors.base5}
+      color={
+        !optimisticIsMute
+          ? colors.buttonSecondaryDefault
+          : colors.buttonSecondaryWarningDefault
+      }
       size={buttonSizes.md}
       style={{
-        container: {
-          shadowColor: !optimisticIsMute ? colors.base1 : colors.base5,
-          ...toggleAudioPreviewButton.container,
-        },
+        container: { ...toggleAudioPreviewButton.container },
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >
-      {!optimisticIsMute ? (
-        <Mic color={colors.base5} />
-      ) : (
-        <MicOff color={colors.base1} />
-      )}
+      <IconWrapper>
+        {!optimisticIsMute ? (
+          <Mic color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+        ) : (
+          <MicOff color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+        )}
+      </IconWrapper>
     </CallControlsButton>
   );
 };

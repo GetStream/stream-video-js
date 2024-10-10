@@ -14,3 +14,6 @@ export * from './LobbyControls';
 export * from './IncomingCallControls';
 export * from './OutgoingCallControls';
 export * from './ScreenShareToggleButton';
+export * from './ParticipantsButton';
+export * from './MoreActionsButton';
+export * from './RecordCallButton';

@@ -1,16 +1,10 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import {
-  MicOff,
-  PinVertical,
-  ScreenShareIndicator,
-  VideoSlash,
-} from '../../../icons';
+import { PinVertical, ScreenShareIndicator } from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
-import { hasAudio, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -36,8 +30,6 @@ export const ParticipantLabel = ({
       participantLabel: {
         container,
         userNameLabel,
-        audioMutedIconContainer,
-        videoMutedIconContainer,
         pinIconContainer,
         screenShareIconContainer,
       },
@@ -50,8 +42,6 @@ export const ParticipantLabel = ({
 
   const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
-  const isAudioMuted = !hasAudio(participant);
-  const isVideoMuted = !hasVideo(participant);
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);
@@ -118,34 +108,6 @@ export const ParticipantLabel = ({
       >
         {participantLabel}
       </Text>
-      {isAudioMuted && (
-        <View
-          style={[
-            styles.audioMutedIconContainer,
-            {
-              height: iconSizes.xs,
-              width: iconSizes.xs,
-            },
-            audioMutedIconContainer,
-          ]}
-        >
-          <MicOff color={colors.error} />
-        </View>
-      )}
-      {isVideoMuted && (
-        <View
-          style={[
-            styles.videoMutedIconContainer,
-            {
-              height: iconSizes.xs,
-              width: iconSizes.xs,
-            },
-            videoMutedIconContainer,
-          ]}
-        >
-          <VideoSlash color={colors.error} />
-        </View>
-      )}
       {isPinningEnabled && (
         <Pressable
           style={[

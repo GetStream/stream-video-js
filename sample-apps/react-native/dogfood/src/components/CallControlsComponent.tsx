@@ -1,66 +1,58 @@
 import {
   CallContentProps,
   ChatButton,
-  HangUpCallButton,
-  ReactionsButton,
+  ParticipantsButton,
+  MoreActionsButton,
+  RecordCallButton,
   ToggleAudioPublishingButton,
-  ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
-  ScreenShareToggleButton,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { appTheme } from '../theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
-import { VideoEffectsButton } from './VideoEffectsButton';
 
 export type CallControlsComponentProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
   onChatOpenHandler?: () => void;
-  onHangupCallHandler?: () => void;
+  onParticipantInfoPress: () => void;
   unreadCountIndicator?: number;
   landscape?: boolean;
 };
 
 export const CallControlsComponent = ({
   onChatOpenHandler,
-  onHangupCallHandler,
   unreadCountIndicator,
   landscape,
+  onParticipantInfoPress,
 }: CallControlsComponentProps) => {
-  const { bottom } = useSafeAreaInsets();
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'column-reverse' : 'row',
-    paddingHorizontal: landscape ? 12 : 0,
-    paddingVertical: landscape ? 0 : 12,
-    paddingBottom: landscape ? 0 : Math.max(bottom, appTheme.spacing.lg),
-  };
 
   return (
-    <View>
+    <View style={styles.container}>
       {isSpeakingWhileMuted && (
         <View style={styles.speakingLabelContainer}>
           <Text style={styles.label}>You are muted. Unmute to speak.</Text>
         </View>
       )}
-      <View style={[styles.callControlsWrapper, landscapeStyles]}>
-        <ReactionsButton />
-        <VideoEffectsButton />
-        <ChatButton
-          onPressHandler={onChatOpenHandler}
-          unreadBadgeCount={unreadCountIndicator}
-        />
-        <ScreenShareToggleButton />
-        <ToggleVideoPublishingButton />
-        <ToggleAudioPublishingButton />
-        <ToggleCameraFaceButton />
-        <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      <View style={[styles.callControlsWrapper]}>
+        <View style={styles.left}>
+          <MoreActionsButton />
+          <ToggleAudioPublishingButton />
+          <ToggleVideoPublishingButton />
+          <RecordCallButton />
+        </View>
+        <View style={styles.right}>
+          <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
+          <ChatButton
+            onPressHandler={onChatOpenHandler}
+            unreadBadgeCount={unreadCountIndicator}
+          />
+        </View>
       </View>
     </View>
   );
@@ -77,8 +69,27 @@ const styles = StyleSheet.create({
     color: appTheme.colors.static_white,
   },
   callControlsWrapper: {
-    justifyContent: 'space-evenly',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
     zIndex: Z_INDEX.IN_FRONT,
-    backgroundColor: appTheme.colors.static_grey,
+  },
+  container: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: 'black',
+    height: 76,
+  },
+  left: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  right: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 6,
   },
 });

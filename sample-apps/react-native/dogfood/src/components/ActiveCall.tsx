@@ -22,7 +22,6 @@ export const ActiveCall = ({
   onChatOpenHandler,
   onBackPressed,
   onCallEnded,
-  onHangupCallHandler,
   unreadCountIndicator,
 }: ActiveCallProps) => {
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
@@ -44,14 +43,14 @@ export const ActiveCall = ({
     ({ landscape }: CallControlProps) => {
       return (
         <CallControlsComponent
-          onHangupCallHandler={onHangupCallHandler}
+          onParticipantInfoPress={onOpenCallParticipantsInfo}
           onChatOpenHandler={onChatOpenHandler}
           unreadCountIndicator={unreadCountIndicator}
           landscape={landscape}
         />
       );
     },
-    [onChatOpenHandler, onHangupCallHandler, unreadCountIndicator],
+    [onChatOpenHandler, onOpenCallParticipantsInfo, unreadCountIndicator],
   );
 
   if (!call) {
