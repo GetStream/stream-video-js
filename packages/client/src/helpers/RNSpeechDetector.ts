@@ -106,14 +106,7 @@ export class RNSpeechDetector {
     if (!this.audioStream) {
       return;
     }
-    this.audioStream.getTracks().forEach((track) => {
-      track.stop();
-      // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the track
-      if (typeof track.release === 'function') {
-        // @ts-expect-error
-        track.release();
-      }
-    });
+    this.audioStream.getTracks().forEach((track) => track.stop());
     if (
       // @ts-expect-error release() is present in react-native-webrtc
       typeof this.audioStream.release === 'function'
