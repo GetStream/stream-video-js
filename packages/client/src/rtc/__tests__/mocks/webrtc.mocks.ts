@@ -45,6 +45,8 @@ const RTCRtpTransceiverMock = vi.fn((): Partial<RTCRtpTransceiver> => {
     sender: {
       track: null,
       replaceTrack: vi.fn(),
+      getParameters: vi.fn(),
+      setParameters: vi.fn(),
     },
     setCodecPreferences: vi.fn(),
   };

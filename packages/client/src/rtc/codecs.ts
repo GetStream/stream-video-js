@@ -103,3 +103,19 @@ export const getRNOptimalCodec = () => {
   if (osName === 'android') return 'vp8';
   return undefined;
 };
+
+/**
+ * Returns whether the codec is an SVC codec.
+ *
+ * @param codecOrMimeType the codec to check.
+ */
+export const isSvcCodec = (codecOrMimeType: string | undefined) => {
+  if (!codecOrMimeType) return false;
+  codecOrMimeType = codecOrMimeType.toLowerCase();
+  return (
+    codecOrMimeType === 'vp9' ||
+    codecOrMimeType === 'av1' ||
+    codecOrMimeType === 'video/vp9' ||
+    codecOrMimeType === 'video/av1'
+  );
+};

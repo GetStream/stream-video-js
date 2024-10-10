@@ -683,43 +683,13 @@ export interface AudioLevelChanged {
   audioLevels: AudioLevel[];
 }
 /**
- * @generated from protobuf message stream.video.sfu.event.AudioMediaRequest
- */
-export interface AudioMediaRequest {
-  /**
-   * @generated from protobuf field: int32 channel_count = 1;
-   */
-  channelCount: number;
-}
-/**
  * @generated from protobuf message stream.video.sfu.event.AudioSender
  */
 export interface AudioSender {
   /**
-   * @generated from protobuf field: stream.video.sfu.event.AudioMediaRequest media_request = 1;
-   */
-  mediaRequest?: AudioMediaRequest;
-  /**
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
   codec?: Codec;
-}
-/**
- * @generated from protobuf message stream.video.sfu.event.VideoMediaRequest
- */
-export interface VideoMediaRequest {
-  /**
-   * @generated from protobuf field: int32 ideal_height = 1;
-   */
-  idealHeight: number;
-  /**
-   * @generated from protobuf field: int32 ideal_width = 2;
-   */
-  idealWidth: number;
-  /**
-   * @generated from protobuf field: int32 ideal_frame_rate = 3;
-   */
-  idealFrameRate: number;
 }
 /**
  * VideoLayerSetting is used to specify various parameters of a particular encoding in simulcast.
@@ -746,10 +716,6 @@ export interface VideoLayerSetting {
    */
   scaleResolutionDownBy: number;
   /**
-   * @generated from protobuf field: stream.video.sfu.event.VideoLayerSetting.Priority priority = 5;
-   */
-  priority: VideoLayerSetting_Priority;
-  /**
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 6;
    */
   codec?: Codec;
@@ -757,36 +723,15 @@ export interface VideoLayerSetting {
    * @generated from protobuf field: uint32 max_framerate = 7;
    */
   maxFramerate: number;
-}
-/**
- * @generated from protobuf enum stream.video.sfu.event.VideoLayerSetting.Priority
- */
-export enum VideoLayerSetting_Priority {
   /**
-   * @generated from protobuf enum value: PRIORITY_HIGH_UNSPECIFIED = 0;
+   * @generated from protobuf field: string scalability_mode = 8;
    */
-  HIGH_UNSPECIFIED = 0,
-  /**
-   * @generated from protobuf enum value: PRIORITY_LOW = 1;
-   */
-  LOW = 1,
-  /**
-   * @generated from protobuf enum value: PRIORITY_MEDIUM = 2;
-   */
-  MEDIUM = 2,
-  /**
-   * @generated from protobuf enum value: PRIORITY_VERY_LOW = 3;
-   */
-  VERY_LOW = 3,
+  scalabilityMode: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.VideoSender
  */
 export interface VideoSender {
-  /**
-   * @generated from protobuf field: stream.video.sfu.event.VideoMediaRequest media_request = 1;
-   */
-  mediaRequest?: VideoMediaRequest;
   /**
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
@@ -1537,32 +1482,9 @@ class AudioLevelChanged$Type extends MessageType<AudioLevelChanged> {
  */
 export const AudioLevelChanged = new AudioLevelChanged$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class AudioMediaRequest$Type extends MessageType<AudioMediaRequest> {
-  constructor() {
-    super('stream.video.sfu.event.AudioMediaRequest', [
-      {
-        no: 1,
-        name: 'channel_count',
-        kind: 'scalar',
-        T: 5 /*ScalarType.INT32*/,
-      },
-    ]);
-  }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.event.AudioMediaRequest
- */
-export const AudioMediaRequest = new AudioMediaRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class AudioSender$Type extends MessageType<AudioSender> {
   constructor() {
     super('stream.video.sfu.event.AudioSender', [
-      {
-        no: 1,
-        name: 'media_request',
-        kind: 'message',
-        T: () => AudioMediaRequest,
-      },
       { no: 2, name: 'codec', kind: 'message', T: () => Codec },
     ]);
   }
@@ -1571,30 +1493,6 @@ class AudioSender$Type extends MessageType<AudioSender> {
  * @generated MessageType for protobuf message stream.video.sfu.event.AudioSender
  */
 export const AudioSender = new AudioSender$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class VideoMediaRequest$Type extends MessageType<VideoMediaRequest> {
-  constructor() {
-    super('stream.video.sfu.event.VideoMediaRequest', [
-      {
-        no: 1,
-        name: 'ideal_height',
-        kind: 'scalar',
-        T: 5 /*ScalarType.INT32*/,
-      },
-      { no: 2, name: 'ideal_width', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
-      {
-        no: 3,
-        name: 'ideal_frame_rate',
-        kind: 'scalar',
-        T: 5 /*ScalarType.INT32*/,
-      },
-    ]);
-  }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.event.VideoMediaRequest
- */
-export const VideoMediaRequest = new VideoMediaRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
   constructor() {
@@ -1608,22 +1506,18 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
         kind: 'scalar',
         T: 2 /*ScalarType.FLOAT*/,
       },
-      {
-        no: 5,
-        name: 'priority',
-        kind: 'enum',
-        T: () => [
-          'stream.video.sfu.event.VideoLayerSetting.Priority',
-          VideoLayerSetting_Priority,
-          'PRIORITY_',
-        ],
-      },
       { no: 6, name: 'codec', kind: 'message', T: () => Codec },
       {
         no: 7,
         name: 'max_framerate',
         kind: 'scalar',
         T: 13 /*ScalarType.UINT32*/,
+      },
+      {
+        no: 8,
+        name: 'scalability_mode',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
       },
     ]);
   }
@@ -1636,12 +1530,6 @@ export const VideoLayerSetting = new VideoLayerSetting$Type();
 class VideoSender$Type extends MessageType<VideoSender> {
   constructor() {
     super('stream.video.sfu.event.VideoSender', [
-      {
-        no: 1,
-        name: 'media_request',
-        kind: 'message',
-        T: () => VideoMediaRequest,
-      },
       { no: 2, name: 'codec', kind: 'message', T: () => Codec },
       {
         no: 3,

@@ -87,10 +87,7 @@ import {
   VideoTrackType,
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
-import {
-  ReconnectDetails,
-  VideoLayerSetting,
-} from './gen/video/sfu/event/events';
+import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
   TrackType,
@@ -1527,16 +1524,6 @@ export class Call {
    */
   setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
     return this.state.setSortParticipantsBy(criteria);
-  };
-
-  /**
-   * Updates the list of video layers to publish.
-   *
-   * @internal
-   * @param enabledLayers the list of layers to enable.
-   */
-  updatePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
-    return this.publisher?.updateVideoPublishQuality(enabledLayers);
   };
 
   /**

@@ -54,6 +54,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const bitrateFactorOverride = router.query['bitrate_factor'] as
     | string
     | undefined;
+  const scalabilityMode = router.query['scalability_mode'] as
+    | string
+    | undefined;
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
@@ -61,7 +64,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!call) throw new Error('No active call found');
       try {
         const prontoDefaultCodec =
-          isProntoEnvironment && !isFirefox ? 'h264' : 'vp8';
+          isProntoEnvironment && !isFirefox ? 'vp9' : 'vp8';
         const preferredCodec = videoCodecOverride || prontoDefaultCodec;
 
         const videoSettings = call.state.settings?.video;
@@ -76,6 +79,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
         call.camera.updatePublishOptions({
           preferredCodec,
+          scalabilityMode,
           preferredBitrate,
           bitrateDownscaleFactor: bitrateFactorOverride
             ? parseInt(bitrateFactorOverride, 10)
@@ -95,6 +99,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       bitrateOverride,
       call,
       isProntoEnvironment,
+      scalabilityMode,
       videoCodecOverride,
     ],
   );

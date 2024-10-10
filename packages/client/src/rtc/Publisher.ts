@@ -13,7 +13,7 @@ import {
   findOptimalVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { getPreferredCodecs, getRNOptimalCodec } from './codecs';
+import { getPreferredCodecs, getRNOptimalCodec, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
@@ -24,6 +24,7 @@ import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
@@ -94,6 +95,7 @@ export class Publisher {
   private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
+  private readonly unsubscribeChangePublishQuality: () => void;
   private readonly onUnrecoverableError?: () => void;
 
   private isIceRestarting = false;
@@ -141,6 +143,21 @@ export class Publisher {
         this.onUnrecoverableError?.();
       });
     });
+
+    this.unsubscribeChangePublishQuality = dispatcher.on(
+      'changePublishQuality',
+      ({ videoSenders }) => {
+        withoutConcurrency('publisher.changePublishQuality', async () => {
+          for (const videoSender of videoSenders) {
+            const { layers } = videoSender;
+            const enabledLayers = layers.filter((l) => l.active);
+            await this.changePublishQuality(enabledLayers);
+          }
+        }).catch((err) => {
+          this.logger('warn', 'Failed to change publish quality', err);
+        });
+      },
+    );
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
@@ -188,6 +205,7 @@ export class Publisher {
    */
   detachEventHandlers = () => {
     this.unsubscribeOnIceRestart();
+    this.unsubscribeChangePublishQuality();
 
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -274,13 +292,19 @@ export class Publisher {
         track.enabled = true;
       }
 
+      const { preferredCodec } = opts;
+      const usesSvcCodec = isSvcCodec(preferredCodec);
       transceiver = this.pc.addTransceiver(track, {
         direction: 'sendonly',
         streams:
           trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
             ? [mediaStream]
             : undefined,
-        sendEncodings: videoEncodings,
+        sendEncodings: usesSvcCodec
+          ? videoEncodings
+              ?.filter((l) => l.rid === 'f')
+              .map((l) => ({ ...l, rid: 'q' })) // downgrade the highest layer to 'q'
+          : videoEncodings,
       });
 
       this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
@@ -288,7 +312,6 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
       this.publishOptionsPerTrackType.set(trackType, opts);
 
-      const { preferredCodec } = opts;
       const codec =
         isReactNative() && trackType === TrackType.VIDEO && !preferredCodec
           ? getRNOptimalCodec()
@@ -406,7 +429,7 @@ export class Publisher {
     });
   };
 
-  updateVideoPublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
+  private changePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
     this.logger(
       'info',
       'Update publish quality, requested layers by SFU:',
@@ -428,79 +451,64 @@ export class Publisher {
       return;
     }
 
+    const [codecInUse] = params.codecs;
+    const usesSvcCodec = codecInUse && isSvcCodec(codecInUse.mimeType);
+
     let changed = false;
-    let enabledRids = enabledLayers
-      .filter((ly) => ly.active)
-      .map((ly) => ly.name);
-    params.encodings.forEach((enc) => {
+    for (const encoder of params.encodings) {
+      const layer = usesSvcCodec
+        ? // for SVC, we only have one layer (q) and often rid is omitted
+          enabledLayers[0]
+        : // for non-SVC, we need to find the layer by rid (simulcast)
+          enabledLayers.find((l) => l.name === encoder.rid);
+
       // flip 'active' flag only when necessary
-      const shouldEnable = enabledRids.includes(enc.rid!);
-      if (shouldEnable !== enc.active) {
-        enc.active = shouldEnable;
+      const shouldActivate = layer?.active;
+      if (shouldActivate !== encoder.active) {
+        encoder.active = shouldActivate;
         changed = true;
       }
-      if (shouldEnable) {
-        let layer = enabledLayers.find((vls) => vls.name === enc.rid);
-        if (layer !== undefined) {
-          if (
-            layer.scaleResolutionDownBy >= 1 &&
-            layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
-          ) {
-            this.logger(
-              'debug',
-              '[dynascale]: setting scaleResolutionDownBy from server',
-              'layer',
-              layer.name,
-              'scale-resolution-down-by',
-              layer.scaleResolutionDownBy,
-            );
-            enc.scaleResolutionDownBy = layer.scaleResolutionDownBy;
-            changed = true;
-          }
 
-          if (layer.maxBitrate > 0 && layer.maxBitrate !== enc.maxBitrate) {
-            this.logger(
-              'debug',
-              '[dynascale] setting max-bitrate from the server',
-              'layer',
-              layer.name,
-              'max-bitrate',
-              layer.maxBitrate,
-            );
-            enc.maxBitrate = layer.maxBitrate;
-            changed = true;
-          }
+      // skip the rest of the settings if the layer is disabled or not found
+      if (!layer) continue;
 
-          if (
-            layer.maxFramerate > 0 &&
-            layer.maxFramerate !== enc.maxFramerate
-          ) {
-            this.logger(
-              'debug',
-              '[dynascale]: setting maxFramerate from server',
-              'layer',
-              layer.name,
-              'max-framerate',
-              layer.maxFramerate,
-            );
-            enc.maxFramerate = layer.maxFramerate;
-            changed = true;
-          }
-        }
+      const {
+        maxFramerate,
+        scaleResolutionDownBy,
+        maxBitrate,
+        scalabilityMode,
+      } = layer;
+      if (
+        scaleResolutionDownBy >= 1 &&
+        scaleResolutionDownBy !== encoder.scaleResolutionDownBy
+      ) {
+        encoder.scaleResolutionDownBy = scaleResolutionDownBy;
+        changed = true;
       }
-    });
+      if (maxBitrate > 0 && maxBitrate !== encoder.maxBitrate) {
+        encoder.maxBitrate = maxBitrate;
+        changed = true;
+      }
+      if (maxFramerate > 0 && maxFramerate !== encoder.maxFramerate) {
+        encoder.maxFramerate = maxFramerate;
+        changed = true;
+      }
+      // @ts-expect-error scalabilityMode is not in the typedefs yet
+      if (scalabilityMode && scalabilityMode !== encoder.scalabilityMode) {
+        // @ts-expect-error scalabilityMode is not in the typedefs yet
+        encoder.scalabilityMode = scalabilityMode;
+        changed = true;
+      }
+    }
 
     const activeLayers = params.encodings.filter((e) => e.active);
-    if (changed) {
-      await videoSender.setParameters(params);
-      this.logger(
-        'info',
-        `Update publish quality, enabled rids: `,
-        activeLayers,
-      );
-    } else {
-      this.logger('info', `Update publish quality, no change: `, activeLayers);
+    if (!changed) {
+      this.logger('info', `Update publish quality, no change:`, activeLayers);
+      return;
     }
+
+    await videoSender.setParameters(params);
+    this.logger('info', `Update publish quality, enabled rids:`, activeLayers);
   };
 
   /**
