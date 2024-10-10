@@ -2,7 +2,7 @@ import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import { Mic, MicOff } from '../../../icons';
+import { IconWrapper, Mic, MicOff } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -26,7 +26,7 @@ export const ToggleAudioPublishingButton = ({
   const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const {
-    theme: { colors, toggleAudioPublishingButton },
+    theme: { colors, toggleAudioPublishingButton, defaults },
   } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
@@ -41,14 +41,23 @@ export const ToggleAudioPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
-        color={!optimisticIsMute ? colors.base1 : colors.background4}
+        color={
+          !optimisticIsMute
+            ? colors.buttonSecondaryDefault
+            : colors.iconAlertWarning
+        }
         style={toggleAudioPublishingButton}
       >
-        {!optimisticIsMute ? (
-          <Mic color={colors.base2} />
-        ) : (
-          <MicOff color={colors.base1} />
-        )}
+        <IconWrapper>
+          {!optimisticIsMute ? (
+            <Mic color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+          ) : (
+            <MicOff
+              color={colors.iconPrimaryDefault}
+              size={defaults.iconSize}
+            />
+          )}
+        </IconWrapper>
       </CallControlsButton>
     </Restricted>
   );

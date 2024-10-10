@@ -1,6 +1,5 @@
 import React, { ComponentType } from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { MicOff } from '../../../icons';
 import {
   useCallStateHooks,
   useConnectedUser,
@@ -158,17 +157,10 @@ export const Lobby = ({
 
 const ParticipantStatus = () => {
   const {
-    theme: {
-      colors,
-      typefaces,
-      lobby,
-      variants: { iconSizes },
-    },
+    theme: { colors, typefaces, lobby },
   } = useTheme();
   const connectedUser = useConnectedUser();
-  const { useMicrophoneState } = useCallStateHooks();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { status: micStatus } = useMicrophoneState();
   return (
     <View
       style={[
@@ -190,20 +182,6 @@ const ParticipantStatus = () => {
       >
         {participantLabel}
       </Text>
-      {(!micStatus || micStatus === 'disabled') && (
-        <View
-          style={[
-            styles.audioMutedIconContainer,
-            {
-              height: iconSizes.xs,
-              width: iconSizes.xs,
-            },
-            lobby.audioMutedIconContainer,
-          ]}
-        >
-          <MicOff color={colors.error} />
-        </View>
-      )}
     </View>
   );
 };

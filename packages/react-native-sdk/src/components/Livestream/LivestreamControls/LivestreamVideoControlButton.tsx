@@ -17,6 +17,7 @@ export const LivestreamVideoControlButton = () => {
       colors,
       variants: { iconSizes, buttonSizes },
       livestreamVideoControlButton,
+      defaults,
     },
   } = useTheme();
 
@@ -52,9 +53,9 @@ export const LivestreamVideoControlButton = () => {
         ]}
       >
         {!optimisticIsMute ? (
-          <Video color={colors.base1} />
+          <Video color={colors.base1} size={defaults.iconSize} />
         ) : (
-          <VideoSlash color={colors.base1} />
+          <VideoSlash color={colors.base1} size={defaults.iconSize} />
         )}
       </View>
     </Pressable>

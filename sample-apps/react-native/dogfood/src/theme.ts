@@ -1,3 +1,6 @@
+import { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
     .toString(16)
@@ -29,4 +32,18 @@ export const appTheme = {
     IN_MIDDLE: 1,
     IN_FRONT: 2,
   },
+};
+
+export const useCustomTheme = (): DeepPartial<Theme> => {
+  const { top, right, bottom, left } = useSafeAreaInsets();
+  return {
+    variants: {
+      insets: {
+        top,
+        right,
+        bottom,
+        left,
+      },
+    },
+  } as DeepPartial<Theme['variants']>;
 };

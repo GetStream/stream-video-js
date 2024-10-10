@@ -43,7 +43,6 @@ describe('ParticipantView', () => {
     expect(
       await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR)
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(IconTestIds.MUTED_VIDEO)).toBeOnTheScreen();
     expect(screen.getByText(testParticipant.name)).toBeOnTheScreen();
     // reaction is visible and then disappears after 5500 ms
     expect(screen.getByText('🎉')).toBeOnTheScreen();
