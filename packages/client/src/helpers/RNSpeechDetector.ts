@@ -58,6 +58,7 @@ export class RNSpeechDetector {
   public stop() {
     this.pc1.close();
     this.pc2.close();
+    this.cleanupAudioStream();
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
