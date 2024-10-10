@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { RecordCall } from '../../../icons/RecordCall';
-import { IconWrapper } from '../../../icons';
+import {
+  CallControlsButton,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
+import { IconWrapper, RecordCall } from '@stream-io/video-react-native-sdk/src/icons';
 
 /**
  * The props for the Record Call Button in the Call Controls.

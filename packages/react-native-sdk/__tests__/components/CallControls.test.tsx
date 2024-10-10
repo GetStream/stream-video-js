@@ -7,7 +7,6 @@ import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
 import { OwnCapability } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../../src/constants';
 import { CallControls } from '../../src/components/Call/CallControls/CallControls';
-import { ChatButton } from '../../src/components/Call/CallControls/ChatButton';
 import { HangUpCallButton } from '../../src/components/Call/CallControls/HangupCallButton';
 import { ReactionsButton } from '../../src/components/Call/CallControls/ReactionsButton';
 
@@ -17,48 +16,6 @@ jest.useFakeTimers();
 enum P_IDS {
   LOCAL_1 = 'local-1',
 }
-
-describe('ChatButton', () => {
-  it('should render an unread badge indicator when the value is defined in the chatButton prop', async () => {
-    const call = mockCall(mockClientWithUser(), [
-      mockParticipant({
-        isLocalParticipant: true,
-        sessionId: P_IDS.LOCAL_1,
-        userId: P_IDS.LOCAL_1,
-      }),
-    ]);
-
-    render(<ChatButton onPressHandler={jest.fn()} unreadBadgeCount={1} />, {
-      call,
-    });
-
-    const indicator = await screen.findByText('1');
-
-    expect(indicator).toBeVisible();
-  });
-
-  it('should not render an unread badge indicator when the value is 0 in the chatButton prop', async () => {
-    const call = mockCall(mockClientWithUser(), [
-      mockParticipant({
-        isLocalParticipant: true,
-        sessionId: P_IDS.LOCAL_1,
-        userId: P_IDS.LOCAL_1,
-      }),
-    ]);
-
-    render(<ChatButton onPressHandler={jest.fn()} unreadBadgeCount={0} />, {
-      call,
-    });
-
-    await waitFor(() =>
-      expect(() =>
-        screen.getByTestId(ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR)
-      ).toThrow(
-        /Unable to find an element with testID: chat-unread-badge-count-indicator/i
-      )
-    );
-  });
-});
 
 describe('ReactionsButton', () => {
   it('render reaction button in call controls component', async () => {

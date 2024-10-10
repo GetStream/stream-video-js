@@ -1,17 +1,17 @@
 import {
   CallContentProps,
-  ChatButton,
-  ParticipantsButton,
-  MoreActionsButton,
-  RecordCallButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { appTheme } from '../theme';
-import { Z_INDEX } from '../constants';
+import { appTheme } from '../../theme';
+import { Z_INDEX } from '../../constants';
+import { MoreActionsButton } from './MoreActionsButton';
+import { ParticipantsButton } from './ParticipantsButton';
+import { ChatButton } from './ChatButton';
+import { RecordCallButton } from './RecordCallButton';
 
 export type CallControlsComponentProps = Pick<
   CallContentProps,
@@ -20,13 +20,11 @@ export type CallControlsComponentProps = Pick<
   onChatOpenHandler?: () => void;
   onParticipantInfoPress: () => void;
   unreadCountIndicator?: number;
-  landscape?: boolean;
 };
 
 export const CallControlsComponent = ({
   onChatOpenHandler,
   unreadCountIndicator,
-  landscape,
   onParticipantInfoPress,
 }: CallControlsComponentProps) => {
   const { useMicrophoneState } = useCallStateHooks();

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { IconWrapper, More } from '../../../icons';
-import { useTheme } from '../../../contexts/ThemeContext';
+import {
+  CallControlsButton,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
+import { IconWrapper, More } from '@stream-io/video-react-native-sdk/src/icons';
 
 /**
  * The props for the More Actions Button in the Call Controls.

@@ -10,7 +10,7 @@ import { ParticipantsInfoList } from './ParticipantsInfoList';
 import {
   CallControlsComponent,
   CallControlsComponentProps,
-} from './CallControlsComponent';
+} from './CallControlls/CallControlsComponent';
 import { useOrientation } from '../hooks/useOrientation';
 
 type ActiveCallProps = CallControlsComponentProps & {

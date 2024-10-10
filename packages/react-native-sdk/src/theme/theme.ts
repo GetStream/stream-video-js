@@ -99,14 +99,6 @@ export type Theme = {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
-  moreActionsButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  recordCallButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
   callParticipantsGrid: {
     container: ViewStyle;
   };
@@ -417,14 +409,6 @@ export const defaultTheme: Theme = {
     label: {},
   },
   chatButton: {
-    container: {},
-    svgContainer: {},
-  },
-  moreActionsButton: {
-    container: {},
-    svgContainer: {},
-  },
-  recordCallButton: {
     container: {},
     svgContainer: {},
   },

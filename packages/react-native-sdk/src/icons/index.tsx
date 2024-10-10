@@ -23,3 +23,4 @@ export * from './EndStreamIcon';
 export * from './LeaveStreamIcon';
 export * from './More';
 export * from './IconWrapper';
+export * from './RecordCall';

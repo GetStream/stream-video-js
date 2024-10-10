@@ -1,8 +1,13 @@
 import React from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { IconWrapper, Participants } from '../../../icons';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { BadgeCountIndicator } from './BadgeCountIndicator';
+import {
+  CallControlsButton,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
+import {
+  IconWrapper,
+  Participants,
+} from '@stream-io/video-react-native-sdk/src/icons';
+import { BadgeCountIndicator } from '@stream-io/video-react-native-sdk/src';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
