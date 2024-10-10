@@ -99,6 +99,13 @@ export type DimensionType = {
   xl: number;
 };
 
+export type Insets = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 export type FontsScheme = Record<FontTypes, FontStyle>;
 
 export type Theme = ColorType;

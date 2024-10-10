@@ -253,6 +253,7 @@ export const CallContent = ({
 
 const useStyles = () => {
   const { theme } = useTheme();
+
   return useMemo(
     () =>
       StyleSheet.create({
@@ -264,8 +265,7 @@ const useStyles = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          // TODO: should be replaced with safeAreaInsets.bottom for all devices on ios and android
-          height: 34,
+          height: theme.variants.insets.bottom,
           backgroundColor: theme.colors.sheetPrimary,
         },
         view: {

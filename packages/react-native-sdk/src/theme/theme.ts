@@ -1,6 +1,12 @@
 import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
 import { colors } from './colors';
-import { ColorScheme, DimensionType, FontStyle, FontTypes } from './types';
+import {
+  ColorScheme,
+  DimensionType,
+  FontStyle,
+  FontTypes,
+  Insets,
+} from './types';
 import { ColorValue } from 'react-native';
 
 export type Theme = {
@@ -11,6 +17,7 @@ export type Theme = {
     avatarSizes: DimensionType;
     fontSizes: DimensionType;
     spacingSizes: DimensionType;
+    insets: Insets;
   };
   typefaces: Record<FontTypes, FontStyle>;
   defaults: {
@@ -333,6 +340,12 @@ export const defaultTheme: Theme = {
       md: 16,
       lg: 20,
       xl: 24,
+    },
+    insets: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
     },
   },
   typefaces: {
