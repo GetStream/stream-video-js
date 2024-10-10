@@ -522,7 +522,7 @@ export class Publisher {
 
   private getCodecPreferences = (
     trackType: TrackType,
-    preferredCodec?: string | null,
+    preferredCodec?: string,
   ) => {
     if (trackType === TrackType.VIDEO) {
       return getPreferredCodecs('video', preferredCodec || 'vp8');
