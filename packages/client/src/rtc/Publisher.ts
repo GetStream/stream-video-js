@@ -316,6 +316,11 @@ export class Publisher {
       if (previousTrack && previousTrack !== track) {
         previousTrack.stop();
         previousTrack.removeEventListener('ended', handleTrackEnded);
+        // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the track
+        if (typeof previousTrack.release === 'function') {
+          // @ts-expect-error
+          track.release();
+        }
         track.addEventListener('ended', handleTrackEnded);
       }
       if (!track.enabled) {
@@ -337,16 +342,18 @@ export class Publisher {
     const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
-    if (
-      transceiver &&
-      transceiver.sender.track &&
-      (stopTrack
-        ? transceiver.sender.track.readyState === 'live'
-        : transceiver.sender.track.enabled)
-    ) {
-      stopTrack
-        ? transceiver.sender.track.stop()
-        : (transceiver.sender.track.enabled = false);
+    const track = transceiver?.sender.track;
+    if (track && (stopTrack ? track.readyState === 'live' : track.enabled)) {
+      if (stopTrack) {
+        track.stop();
+        // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the track
+        if (typeof track.release === 'function') {
+          // @ts-expect-error
+          track.release();
+        }
+      } else {
+        track.enabled = false;
+      }
       // We don't need to notify SFU if unpublishing in response to remote soft mute
       if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
         await this.notifyTrackMuteStateChanged(undefined, trackType, true);
@@ -399,7 +406,13 @@ export class Publisher {
   private stopPublishing = () => {
     this.logger('debug', 'Stopping publishing all tracks');
     this.pc.getSenders().forEach((s) => {
-      s.track?.stop();
+      const track = s.track;
+      track?.stop();
+      // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the track
+      if (typeof track?.release === 'function') {
+        // @ts-expect-error
+        track.release();
+      }
       if (this.pc.signalingState !== 'closed') {
         this.pc.removeTrack(s);
       }
