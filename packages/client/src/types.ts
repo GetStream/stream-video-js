@@ -153,10 +153,27 @@ export type SubscriptionChanges = {
 export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1' | string;
 
 export type PublishOptions = {
-  preferredCodec?: PreferredCodec | null;
+  /**
+   * The preferred codec to use when publishing the video stream.
+   */
+  preferredCodec?: PreferredCodec;
+  /**
+   * The preferred scalability to use when publishing the video stream.
+   * Applicable only for SVC codecs.
+   */
   scalabilityMode?: string;
+  /**
+   * The preferred bitrate to use when publishing the video stream.
+   */
   preferredBitrate?: number;
+  /**
+   * The preferred downscale factor to use when publishing the video stream
+   * in simulcast mode (non-SVC).
+   */
   bitrateDownscaleFactor?: number;
+  /**
+   * Screen share settings.
+   */
   screenShareSettings?: ScreenShareSettings;
 };
 

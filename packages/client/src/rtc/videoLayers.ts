@@ -57,23 +57,30 @@ export const findOptimalVideoLayers = (
     const layer: OptimalVideoLayer = {
       active: true,
       rid,
-      width: Math.round(width / downscaleFactor),
-      height: Math.round(height / downscaleFactor),
-      maxBitrate:
-        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
-      scaleResolutionDownBy: downscaleFactor,
+      width,
+      height,
+      maxBitrate,
       maxFramerate: 30,
     };
     if (svcCodec) {
+      // for SVC codecs, we need to set the scalability mode, and the
+      // codec will handle the rest (layers, temporal layers, etc.)
       layer.scalabilityMode = scalabilityMode || 'L3T3_KEY';
+    } else {
+      // for non-SVC codecs, we need to downscale proportionally (simulcast)
+      layer.width = Math.round(width / downscaleFactor);
+      layer.height = Math.round(height / downscaleFactor);
+      const bitrate = Math.round(maxBitrate / bitrateFactor);
+      layer.maxBitrate = bitrate || defaultBitratePerRid[rid];
+      layer.scaleResolutionDownBy = downscaleFactor;
+      downscaleFactor *= 2;
+      bitrateFactor *= bitrateDownscaleFactor;
     }
 
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
     // when deciding which layer to disable when CPU or bandwidth is constrained.
     // Encodings should be ordered in increasing spatial resolution order.
     optimalVideoLayers.unshift(layer);
-    downscaleFactor *= 2;
-    bitrateFactor *= bitrateDownscaleFactor;
   }
 
   // for simplicity, we start with all layers enabled, then this function

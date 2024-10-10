@@ -107,8 +107,15 @@ export const getRNOptimalCodec = () => {
 /**
  * Returns whether the codec is an SVC codec.
  *
- * @param codec the codec to check.
+ * @param codecOrMimeType the codec to check.
  */
-export const isSvcCodec = (codec: string | undefined | null) => {
-  return codec === 'vp9' || codec === 'av1';
+export const isSvcCodec = (codecOrMimeType: string | undefined) => {
+  if (!codecOrMimeType) return false;
+  codecOrMimeType = codecOrMimeType.toLowerCase();
+  return (
+    codecOrMimeType === 'vp9' ||
+    codecOrMimeType === 'av1' ||
+    codecOrMimeType === 'video/vp9' ||
+    codecOrMimeType === 'video/av1'
+  );
 };

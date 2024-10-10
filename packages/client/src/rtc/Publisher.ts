@@ -293,17 +293,17 @@ export class Publisher {
       }
 
       const { preferredCodec } = opts;
-      const svcCodec = isSvcCodec(preferredCodec);
+      const usesSvcCodec = isSvcCodec(preferredCodec);
       transceiver = this.pc.addTransceiver(track, {
         direction: 'sendonly',
         streams:
           trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
             ? [mediaStream]
             : undefined,
-        sendEncodings: svcCodec
+        sendEncodings: usesSvcCodec
           ? videoEncodings
               ?.filter((l) => l.rid === 'f')
-              .map((l) => ({ ...l, rid: 'q' }))
+              .map((l) => ({ ...l, rid: 'q' })) // downgrade the highest layer to 'q'
           : videoEncodings,
       });
 
@@ -451,20 +451,26 @@ export class Publisher {
       return;
     }
 
+    const [codecInUse] = params.codecs;
+    const usesSvcCodec = isSvcCodec(codecInUse.mimeType);
+
     let changed = false;
     for (const encoder of params.encodings) {
-      const layer = enabledLayers.find((vls) => vls.name === encoder.rid);
-      if (!layer) continue;
+      const layer = usesSvcCodec
+        ? // for SVC, we only have one layer (q) and often rid is omitted
+          enabledLayers[0]
+        : // for non-SVC, we need to find the layer by rid (simulcast)
+          enabledLayers.find((l) => l.name === encoder.rid);
 
       // flip 'active' flag only when necessary
-      const shouldActivate = layer.active;
+      const shouldActivate = layer?.active;
       if (shouldActivate !== encoder.active) {
         encoder.active = shouldActivate;
         changed = true;
       }
 
-      // skip the rest of the settings if the layer is disabled
-      if (!shouldActivate) continue;
+      // skip the rest of the settings if the layer is disabled or not found
+      if (!layer) continue;
 
       const {
         maxFramerate,
