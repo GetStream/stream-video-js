@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.0...@stream-io/video-client-1.8.1) (2024-10-10)
+
+
+### Bug Fixes
+
+* mic not fully released in some cases  ([#1515](https://github.com/GetStream/stream-video-js/issues/1515)) ([b7bf90b](https://github.com/GetStream/stream-video-js/commit/b7bf90b9b1a83fb80d01a82ebee8754343963ae5))
+
 ## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.7.4...@stream-io/video-client-1.8.0) (2024-10-02)
 
 
