@@ -463,7 +463,7 @@ export class Publisher {
           enabledLayers.find((l) => l.name === encoder.rid);
 
       // flip 'active' flag only when necessary
-      const shouldActivate = layer?.active;
+      const shouldActivate = !!layer?.active;
       if (shouldActivate !== encoder.active) {
         encoder.active = shouldActivate;
         changed = true;
