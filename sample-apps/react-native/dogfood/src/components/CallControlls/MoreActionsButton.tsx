@@ -36,7 +36,9 @@ export const MoreActionsButton = ({
     <CallControlsButton
       onPress={() => {
         // TODO: Implement PBE-5870 [Demo App] Component for "More" menu items
-        if (onPressHandler) onPressHandler();
+        if (onPressHandler) {
+          onPressHandler();
+        }
         setIsPressed(!isPressed);
       }}
       style={moreActionsButton}

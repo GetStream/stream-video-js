@@ -1,9 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  useCall,
-  CallContent,
-  CallControlProps,
-} from '@stream-io/video-react-native-sdk';
+import { useCall, CallContent } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -29,9 +25,9 @@ export const ActiveCall = ({
   const call = useCall();
   const currentOrientation = useOrientation();
 
-  const onOpenCallParticipantsInfo = () => {
+  const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
-  };
+  }, []);
 
   useEffect(() => {
     return call?.on('call.ended', () => {
@@ -39,19 +35,15 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const CustomControlsComponent = useCallback(
-    ({ landscape }: CallControlProps) => {
-      return (
-        <CallControlsComponent
-          onParticipantInfoPress={onOpenCallParticipantsInfo}
-          onChatOpenHandler={onChatOpenHandler}
-          unreadCountIndicator={unreadCountIndicator}
-          landscape={landscape}
-        />
-      );
-    },
-    [onChatOpenHandler, onOpenCallParticipantsInfo, unreadCountIndicator],
-  );
+  const CustomControlsComponent = useCallback(() => {
+    return (
+      <CallControlsComponent
+        onParticipantInfoPress={onOpenCallParticipantsInfo}
+        onChatOpenHandler={onChatOpenHandler}
+        unreadCountIndicator={unreadCountIndicator}
+      />
+    );
+  }, [onChatOpenHandler, onOpenCallParticipantsInfo, unreadCountIndicator]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -61,7 +53,6 @@ export const ActiveCall = ({
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
         onBackPressed={onBackPressed}
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
         CallControls={CustomControlsComponent}
         landscape={currentOrientation === 'landscape'}
       />

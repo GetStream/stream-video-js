@@ -3,7 +3,10 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { IconWrapper, RecordCall } from '@stream-io/video-react-native-sdk/src/icons';
+import {
+  IconWrapper,
+  RecordCall,
+} from '@stream-io/video-react-native-sdk/src/icons';
 
 /**
  * The props for the Record Call Button in the Call Controls.
@@ -34,7 +37,9 @@ export const RecordCallButton = ({ onPressHandler }: RecordCallButtonProps) => {
     <CallControlsButton
       size={variants.roundButtonSizes.lg}
       onPress={() => {
-        if (onPressHandler) onPressHandler();
+        if (onPressHandler) {
+          onPressHandler();
+        }
         setIsRecording(!isRecording);
       }}
       color={buttonColor}

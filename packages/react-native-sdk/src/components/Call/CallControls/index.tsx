@@ -13,5 +13,4 @@ export * from './LobbyControls';
 export * from './IncomingCallControls';
 export * from './OutgoingCallControls';
 export * from './ScreenShareToggleButton';
-export * from '../../../../../../sample-apps/react-native/dogfood/src/components/CallControlls/RecordCallButton';
 export * from './BadgeCountIndicator';

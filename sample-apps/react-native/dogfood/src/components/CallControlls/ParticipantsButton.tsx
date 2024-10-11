@@ -58,7 +58,7 @@ export const ParticipantsButton = ({
   // TODO: PBE-5873 [Demo App] On click implement showing the Participant List
   return (
     <CallControlsButton onPress={onParticipantInfoPress} style={chatButton}>
-      <BadgeCountIndicator count={participantCount} />
+      <BadgeCountIndicator count={count} />
       <IconWrapper>
         <Participants
           color={colors.iconPrimaryDefault}

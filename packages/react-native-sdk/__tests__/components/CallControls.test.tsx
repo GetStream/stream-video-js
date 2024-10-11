@@ -6,7 +6,7 @@ import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen } from '../utils/RNTLTools';
 import { OwnCapability } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../../src/constants';
-import { CallControls } from '../../src/components/Call/CallControls/CallControls';
+import { CallControls } from '../../src';
 import { HangUpCallButton } from '../../src/components/Call/CallControls/HangupCallButton';
 import { ReactionsButton } from '../../src/components/Call/CallControls/ReactionsButton';
 
