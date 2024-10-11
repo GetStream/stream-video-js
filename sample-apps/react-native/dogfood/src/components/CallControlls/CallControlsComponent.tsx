@@ -18,7 +18,7 @@ export type CallControlsComponentProps = Pick<
   'supportedReactions'
 > & {
   onChatOpenHandler?: () => void;
-  onParticipantInfoPress: () => void;
+  onParticipantInfoPress?: () => void;
   unreadCountIndicator?: number;
 };
 
