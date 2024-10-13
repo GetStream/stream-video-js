@@ -23,4 +23,5 @@ export * from './EndStreamIcon';
 export * from './LeaveStreamIcon';
 export * from './More';
 export * from './IconWrapper';
+export * from './Audio';
 export * from './RecordCall';
