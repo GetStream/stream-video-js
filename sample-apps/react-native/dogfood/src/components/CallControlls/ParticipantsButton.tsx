@@ -7,9 +7,9 @@ import {
   IconWrapper,
   Participants,
 } from '@stream-io/video-react-native-sdk/src/icons';
-import { BadgeCountIndicator } from '@stream-io/video-react-native-sdk/src';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
+import { BadgeCountIndicator } from './BadgeCountIndicator';
 
 /**
  * The props for the Participants Button in the Call Controls.

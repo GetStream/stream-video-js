@@ -3,8 +3,8 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { BadgeCountIndicator } from '@stream-io/video-react-native-sdk/src';
 import { Chat, IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { BadgeCountIndicator } from './BadgeCountIndicator';
 
 /**
  * The props for the Chat Button in the Call Controls.
