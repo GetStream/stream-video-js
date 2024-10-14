@@ -122,6 +122,21 @@ export type ParticipantPin = {
   pinnedAt: number;
 };
 
+export type ClosedCaptionsSettings = {
+  /**
+   * The time in milliseconds to keep a closed caption in the queue.
+   * Default is 2700 ms.
+   */
+  retentionTimeInMs?: number;
+  /**
+   * The maximum number of closed captions to keep in the queue.
+   * When the queue is full, the oldest closed caption will be removed.
+   *
+   * Default is 2.
+   */
+  queueSize?: number;
+};
+
 /**
  * A partial representation of the StreamVideoParticipant.
  */
