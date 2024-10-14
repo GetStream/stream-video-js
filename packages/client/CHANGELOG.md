@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.8.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.2...@stream-io/video-client-1.8.3) (2024-10-10)
+
+
+### Bug Fixes
+
+* do not release track if track was not removed from stream ([#1517](https://github.com/GetStream/stream-video-js/issues/1517)) ([5bfc528](https://github.com/GetStream/stream-video-js/commit/5bfc52850c36ffe0de37e47066538a8a14dc9e01))
+
+## [1.8.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.1...@stream-io/video-client-1.8.2) (2024-10-10)
+
+
+### Bug Fixes
+
+* add track release for react-native whenever track stop is called ([#1516](https://github.com/GetStream/stream-video-js/issues/1516)) ([5074510](https://github.com/GetStream/stream-video-js/commit/50745101d28d0339592c22ca02b076040ad3bdeb))
+
 ## [1.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.0...@stream-io/video-client-1.8.1) (2024-10-10)
 
 
