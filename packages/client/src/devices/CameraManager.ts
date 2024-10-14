@@ -102,24 +102,6 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     this.publishOptions = { ...this.publishOptions, ...options };
   }
 
-  /**
-   * Returns the capture resolution of the camera.
-   */
-  getCaptureResolution() {
-    const { mediaStream } = this.state;
-    if (!mediaStream) return;
-
-    const [videoTrack] = mediaStream.getVideoTracks();
-    if (!videoTrack) return;
-
-    const settings = videoTrack.getSettings();
-    return {
-      width: settings.width,
-      height: settings.height,
-      frameRate: settings.frameRate,
-    };
-  }
-
   protected getDevices(): Observable<MediaDeviceInfo[]> {
     return getVideoDevices();
   }

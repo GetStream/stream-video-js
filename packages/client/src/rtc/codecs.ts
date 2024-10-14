@@ -1,4 +1,7 @@
 import { getOSInfo } from '../client-details';
+import { isReactNative } from '../helpers/platforms';
+import { isFirefox, isSafari } from '../helpers/browsers';
+import type { PreferredCodec } from '../types';
 
 /**
  * Returns back a list of sorted codecs, with the preferred codec first.
@@ -92,16 +95,18 @@ export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
 };
 
 /**
- * Returns the optimal codec for RN.
+ * Returns the optimal video codec for the device.
  */
-export const getRNOptimalCodec = () => {
-  const osName = getOSInfo()?.name.toLowerCase();
-  // in ipads it was noticed that if vp8 codec is used
-  // then the bytes sent is 0 in the outbound-rtp
-  // so we are forcing h264 codec for ipads
-  if (osName === 'ipados') return 'h264';
-  if (osName === 'android') return 'vp8';
-  return undefined;
+export const getOptimalVideoCodec = (): PreferredCodec => {
+  if (isReactNative()) {
+    const osName = getOSInfo()?.name.toLowerCase();
+    if (osName === 'ios' || osName === 'ipados') return 'h264';
+    if (osName === 'android') return 'vp8'; // TODO switch to vp9
+    return 'vp8';
+  }
+  if (isSafari()) return 'h264';
+  if (isFirefox()) return 'vp8';
+  return 'vp8'; // TODO switch to vp9
 };
 
 /**

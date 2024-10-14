@@ -13,11 +13,10 @@ import {
   findOptimalVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { getPreferredCodecs, getRNOptimalCodec, isSvcCodec } from './codecs';
+import { getOptimalVideoCodec, getPreferredCodecs, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
-import { isReactNative } from '../helpers/platforms';
 import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
@@ -46,21 +45,9 @@ export class Publisher {
   private readonly logger: Logger;
   private pc: RTCPeerConnection;
   private readonly state: CallState;
-
-  private readonly transceiverRegistry: {
-    [key in TrackType]: RTCRtpTransceiver | undefined;
-  } = {
-    [TrackType.AUDIO]: undefined,
-    [TrackType.VIDEO]: undefined,
-    [TrackType.SCREEN_SHARE]: undefined,
-    [TrackType.SCREEN_SHARE_AUDIO]: undefined,
-    [TrackType.UNSPECIFIED]: undefined,
-  };
-
-  private readonly publishOptionsPerTrackType = new Map<
-    TrackType,
-    PublishOptions
-  >();
+  private readonly transceiverCache = new Map<TrackType, RTCRtpTransceiver>();
+  private readonly trackLayersCache = new Map<TrackType, OptimalVideoLayer[]>();
+  private readonly publishOptsForTrack = new Map<TrackType, PublishOptions>();
 
   /**
    * An array maintaining the order how transceivers were added to the peer connection.
@@ -78,16 +65,6 @@ export class Publisher {
     [TrackType.VIDEO]: 'video',
     [TrackType.SCREEN_SHARE]: 'video',
     [TrackType.SCREEN_SHARE_AUDIO]: 'audio',
-    [TrackType.UNSPECIFIED]: undefined,
-  };
-
-  private readonly trackLayersCache: {
-    [key in TrackType]: OptimalVideoLayer[] | undefined;
-  } = {
-    [TrackType.AUDIO]: undefined,
-    [TrackType.VIDEO]: undefined,
-    [TrackType.SCREEN_SHARE]: undefined,
-    [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
 
@@ -184,14 +161,8 @@ export class Publisher {
   close = ({ stopTracks }: { stopTracks: boolean }) => {
     if (stopTracks) {
       this.stopPublishing();
-      Object.keys(this.transceiverRegistry).forEach((trackType) => {
-        // @ts-ignore
-        this.transceiverRegistry[trackType] = undefined;
-      });
-      Object.keys(this.trackLayersCache).forEach((trackType) => {
-        // @ts-ignore
-        this.trackLayersCache[trackType] = undefined;
-      });
+      this.transceiverCache.clear();
+      this.trackLayersCache.clear();
     }
 
     this.detachEventHandlers();
@@ -249,7 +220,7 @@ export class Publisher {
       .getTransceivers()
       .find(
         (t) =>
-          t === this.transceiverRegistry[trackType] &&
+          t === this.transceiverCache.get(trackType) &&
           t.sender.track &&
           t.sender.track?.kind === this.trackKindMapping[trackType],
       );
@@ -303,18 +274,18 @@ export class Publisher {
         sendEncodings: usesSvcCodec
           ? videoEncodings
               ?.filter((l) => l.rid === 'f')
-              .map((l) => ({ ...l, rid: 'q' })) // downgrade the highest layer to 'q'
+              .map((l) => ({ ...l, rid: 'q' })) // announce the 'f' layer as 'q'
           : videoEncodings,
       });
 
       this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
       this.transceiverInitOrder.push(trackType);
-      this.transceiverRegistry[trackType] = transceiver;
-      this.publishOptionsPerTrackType.set(trackType, opts);
+      this.transceiverCache.set(trackType, transceiver);
+      this.publishOptsForTrack.set(trackType, opts);
 
       const codec =
-        isReactNative() && trackType === TrackType.VIDEO && !preferredCodec
-          ? getRNOptimalCodec()
+        trackType === TrackType.VIDEO && !preferredCodec
+          ? getOptimalVideoCodec()
           : preferredCodec;
 
       const codecPreferences =
@@ -359,7 +330,9 @@ export class Publisher {
   unpublishStream = async (trackType: TrackType, stopTrack: boolean) => {
     const transceiver = this.pc
       .getTransceivers()
-      .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
+      .find(
+        (t) => t === this.transceiverCache.get(trackType) && t.sender.track,
+      );
     if (
       transceiver &&
       transceiver.sender.track &&
@@ -383,7 +356,7 @@ export class Publisher {
    * @param trackType the track type to check.
    */
   isPublishing = (trackType: TrackType): boolean => {
-    const transceiver = this.transceiverRegistry[trackType];
+    const transceiver = this.transceiverCache.get(trackType);
     if (!transceiver || !transceiver.sender) return false;
     const track = transceiver.sender.track;
     return !!track && track.readyState === 'live' && track.enabled;
@@ -436,7 +409,7 @@ export class Publisher {
       enabledLayers,
     );
 
-    const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
+    const videoSender = this.transceiverCache.get(TrackType.VIDEO)?.sender;
     if (!videoSender) {
       this.logger('warn', 'Update publish quality, no video sender found.');
       return;
@@ -631,7 +604,7 @@ export class Publisher {
   };
 
   private enableHighQualityAudio = (sdp: string) => {
-    const transceiver = this.transceiverRegistry[TrackType.SCREEN_SHARE_AUDIO];
+    const transceiver = this.transceiverCache.get(TrackType.SCREEN_SHARE_AUDIO);
     if (!transceiver) return sdp;
 
     const mid = this.extractMid(transceiver, sdp, TrackType.SCREEN_SHARE_AUDIO);
@@ -704,27 +677,25 @@ export class Publisher {
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)
       .map<TrackInfo>((transceiver) => {
-        const trackType: TrackType = Number(
-          Object.keys(this.transceiverRegistry).find(
-            (key) =>
-              this.transceiverRegistry[key as any as TrackType] === transceiver,
-          ),
-        );
+        let trackType!: TrackType;
+        this.transceiverCache.forEach((value, key) => {
+          if (value === transceiver) trackType = key;
+        });
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
         const isTrackLive = track.readyState === 'live';
         if (isTrackLive) {
-          const publishOpts = this.publishOptionsPerTrackType.get(trackType);
+          const publishOpts = this.publishOptsForTrack.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
               ? findOptimalVideoLayers(track, targetResolution, publishOpts)
               : trackType === TrackType.SCREEN_SHARE
                 ? findOptimalScreenSharingLayers(track, publishOpts)
                 : [];
-          this.trackLayersCache[trackType] = optimalLayers;
+          this.trackLayersCache.set(trackType, optimalLayers);
         } else {
           // we report the last known optimal layers for ended tracks
-          optimalLayers = this.trackLayersCache[trackType] || [];
+          optimalLayers = this.trackLayersCache.get(trackType) || [];
           this.logger(
             'debug',
             `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,

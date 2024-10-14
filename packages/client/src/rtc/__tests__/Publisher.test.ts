@@ -28,6 +28,7 @@ vi.mock('../codecs', async () => {
         sdpFmtpLine: 'profile-level-id=42e01f',
       },
     ]),
+    getOptimalVideoCodec: codecs.getOptimalVideoCodec,
     isSvcCodec: codecs.isSvcCodec,
   };
 });
@@ -307,7 +308,7 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverRegistry'][TrackType.VIDEO] = transceiver;
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
 
       await publisher['changePublishQuality']([
         {
@@ -393,7 +394,7 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverRegistry'][TrackType.VIDEO] = transceiver;
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
 
       await publisher['changePublishQuality']([
         {
@@ -443,7 +444,7 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverRegistry'][TrackType.VIDEO] = transceiver;
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
 
       await publisher['changePublishQuality']([
         {

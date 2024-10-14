@@ -1,6 +1,7 @@
 import { PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 import { isSvcCodec } from './codecs';
+import { getOptimalBitrate } from './bitrateLookup';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -41,14 +42,13 @@ export const findOptimalVideoLayers = (
   const {
     preferredCodec,
     scalabilityMode,
-    preferredBitrate,
     bitrateDownscaleFactor = 2,
   } = publishOptions || {};
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
     width,
     height,
-    preferredBitrate,
+    publishOptions,
   );
   let downscaleFactor = 1;
   let bitrateFactor = 1;
@@ -65,7 +65,7 @@ export const findOptimalVideoLayers = (
     if (svcCodec) {
       // for SVC codecs, we need to set the scalability mode, and the
       // codec will handle the rest (layers, temporal layers, etc.)
-      layer.scalabilityMode = scalabilityMode || 'L3T3_KEY';
+      layer.scalabilityMode = scalabilityMode || 'L3T2_KEY';
     } else {
       // for non-SVC codecs, we need to downscale proportionally (simulcast)
       layer.width = Math.round(width / downscaleFactor);
@@ -98,13 +98,13 @@ export const findOptimalVideoLayers = (
  * @param targetResolution the target resolution.
  * @param currentWidth the current width of the track.
  * @param currentHeight the current height of the track.
- * @param preferredBitrate the preferred bitrate for the track.
+ * @param publishOptions the publish options.
  */
 export const getComputedMaxBitrate = (
   targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
-  preferredBitrate: number | undefined,
+  publishOptions: PublishOptions | undefined,
 ): number => {
   // if the current resolution is lower than the target resolution,
   // we want to proportionally reduce the target bitrate
@@ -113,7 +113,14 @@ export const getComputedMaxBitrate = (
     height: targetHeight,
     bitrate: targetBitrate,
   } = targetResolution;
-  const bitrate = preferredBitrate || targetBitrate;
+  const { preferredBitrate, preferredCodec } = publishOptions || {};
+  const frameHeight =
+    currentWidth > currentHeight ? currentHeight : currentWidth;
+  const bitrate =
+    preferredBitrate ||
+    (preferredCodec
+      ? getOptimalBitrate(preferredCodec, frameHeight)
+      : targetBitrate);
   if (currentWidth < targetWidth || currentHeight < targetHeight) {
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;

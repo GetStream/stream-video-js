@@ -22,7 +22,6 @@ import {
 import { ActiveCall } from './ActiveCall';
 import { Feedback } from './Feedback/Feedback';
 import { DefaultAppHeader } from './DefaultAppHeader';
-import { getPreferredBitrate } from '../helpers/bitrateLookup';
 import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 const contents = {
@@ -66,16 +65,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         const prontoDefaultCodec =
           isProntoEnvironment && !isFirefox ? 'vp9' : 'vp8';
         const preferredCodec = videoCodecOverride || prontoDefaultCodec;
-
-        const videoSettings = call.state.settings?.video;
-        const frameHeight =
-          call.camera.getCaptureResolution()?.height ??
-          videoSettings?.target_resolution.height ??
-          1080;
-
         const preferredBitrate = bitrateOverride
           ? parseInt(bitrateOverride, 10)
-          : getPreferredBitrate(preferredCodec, frameHeight);
+          : undefined;
 
         call.camera.updatePublishOptions({
           preferredCodec,
