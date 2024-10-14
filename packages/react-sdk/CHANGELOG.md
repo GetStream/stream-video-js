@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.5...@stream-io/video-react-sdk-1.6.6) (2024-10-14)
+
+
+### Bug Fixes
+
+* check for user capabilities before rendering call control buttons ([#1513](https://github.com/GetStream/stream-video-js/issues/1513)) ([9b11219](https://github.com/GetStream/stream-video-js/commit/9b1121966d3e3f7610fbbca386b8837563203e86))
+
 ## [1.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.4...@stream-io/video-react-sdk-1.6.5) (2024-10-10)
 
 ### Dependency Updates
