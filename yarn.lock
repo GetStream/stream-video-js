@@ -4581,6 +4581,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@notifee/react-native@npm:^9.1.1":
+  version: 9.1.1
+  resolution: "@notifee/react-native@npm:9.1.1"
+  peerDependencies:
+    react-native: "*"
+  checksum: 93d7efcb1a622cb6f53af99bd0b6856e2cf30ec684e74d8c91715dee5135cf7ea165eef26a7a5acc0e7b13db91c68982a4d22f186019322ed01c162fa02f5d03
+  languageName: node
+  linkType: hard
+
 "@npmcli/fs@npm:^1.0.0":
   version: 1.1.1
   resolution: "@npmcli/fs@npm:1.1.1"
@@ -7998,7 +8007,7 @@ __metadata:
     "@babel/core": ^7.25.2
     "@config-plugins/react-native-callkeep": ^6.0.0
     "@config-plugins/react-native-webrtc": ^9.0.0
-    "@notifee/react-native": ^7.8.0
+    "@notifee/react-native": ^9.1.1
     "@react-native-async-storage/async-storage": 1.23.1
     "@react-native-community/netinfo": 11.3.1
     "@react-native-firebase/app": 19.2.2
