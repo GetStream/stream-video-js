@@ -162,6 +162,12 @@ export type PublishOptions = {
    */
   preferredCodec?: PreferredCodec;
   /**
+   * Force the codec to use when publishing the video stream.
+   * This will override the preferred codec and the internal codec selection logic.
+   * Use with caution.
+   */
+  forceCodec?: PreferredCodec;
+  /**
    * The preferred scalability to use when publishing the video stream.
    * Applicable only for SVC codecs.
    */

@@ -241,7 +241,8 @@ export class Publisher {
     opts: PublishOptions,
     mediaStream: MediaStream,
   ) => {
-    const codecInUse = getOptimalVideoCodec(opts.preferredCodec);
+    const { forceCodec, preferredCodec } = opts;
+    const codecInUse = forceCodec || getOptimalVideoCodec(preferredCodec);
     const videoEncodings = this.computeLayers(trackType, track, opts);
     const transceiver = this.pc.addTransceiver(track, {
       direction: 'sendonly',

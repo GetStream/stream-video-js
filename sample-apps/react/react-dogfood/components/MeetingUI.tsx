@@ -62,14 +62,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const prontoDefaultCodec = 'vp9';
-        const preferredCodec = videoCodecOverride || prontoDefaultCodec;
         const preferredBitrate = bitrateOverride
           ? parseInt(bitrateOverride, 10)
           : undefined;
 
         call.updatePublishOptions({
-          preferredCodec,
+          preferredCodec: 'vp9',
+          forceCodec: videoCodecOverride,
           scalabilityMode,
           preferredBitrate,
           bitrateDownscaleFactor: bitrateFactorOverride
