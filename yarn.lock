@@ -7239,6 +7239,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/react-native-webrtc@npm:124.0.0-rc.1":
+  version: 124.0.0-rc.1
+  resolution: "@stream-io/react-native-webrtc@npm:124.0.0-rc.1"
+  dependencies:
+    base64-js: 1.5.1
+    debug: 4.3.4
+    event-target-shim: 6.0.2
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: d39e7652518d9f3dd904b947667ff1e9d0d35d0603e8e4b262f2d20e326328335a19e8e252881e17af9a1c0c4446f356c4aa6dc4744be2ecc5911e0ae2be3f25
+  languageName: node
+  linkType: hard
+
 "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial":
   version: 0.0.0-use.local
   resolution: "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
@@ -7455,7 +7468,7 @@ __metadata:
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
     "@stream-io/flat-list-mvcp": ^0.10.3
-    "@stream-io/react-native-webrtc": 118.1.0
+    "@stream-io/react-native-webrtc": 124.0.0-rc.1
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/eslint": ^8.56.10
