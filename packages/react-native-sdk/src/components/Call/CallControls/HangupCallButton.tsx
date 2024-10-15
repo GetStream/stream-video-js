@@ -42,7 +42,7 @@ export const HangUpCallButton = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
-    theme: { colors, hangupCallButton },
+    theme: { colors, hangupCallButton, variants },
   } = useTheme();
 
   const onPress = async () => {
@@ -72,15 +72,12 @@ export const HangUpCallButton = ({
       size={size}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
-      <PhoneDown color={colors.base1} />
+      {/* <IconWrapper> */}
+      <PhoneDown
+        color={colors.iconPrimaryDefault}
+        size={variants.iconSizes.md}
+      />
+      {/* </IconWrapper> */}
     </CallControlsButton>
   );
 };
-
-// TODO: Check if this style is needed
-// This was passed to CallControlsButton as style prop
-// const styles = StyleSheet.create({
-//   button: {
-//     shadowColor: theme.light.error,
-//   },
-// });

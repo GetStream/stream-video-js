@@ -9,7 +9,8 @@ import {
   ViewStyle,
 } from 'react-native';
 import { BUTTON_HEIGHT } from '../constants';
-import { useTheme } from '@stream-io/video-react-native-sdk';
+import { defaultTheme, useTheme } from '@stream-io/video-react-native-sdk';
+import { Theme } from 'stream-chat-react-native';
 
 type ButtonPropTypes = Omit<PressableProps, 'style'> & {
   title: string;
@@ -42,27 +43,28 @@ export const Button = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const appTheme = useTheme()?.theme || defaultTheme;
+
   return useMemo(
     () =>
       StyleSheet.create({
         button: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: appTheme.colors.primary,
           justifyContent: 'center',
           borderRadius: 8,
           height: BUTTON_HEIGHT,
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingHorizontal: appTheme.variants.spacingSizes.md,
         },
         buttonText: {
-          color: theme.colors.static_white,
-          fontWeight: theme.typefaces.heading6.fontWeight,
+          color: appTheme.colors.static_white,
+          fontWeight: appTheme.typefaces.heading6.fontWeight,
           textAlign: 'center',
           fontSize: 17,
         },
         disabledButtonStyle: {
-          backgroundColor: theme.colors.disabled,
+          backgroundColor: appTheme.colors.disabled,
         },
       }),
-    [theme],
+    [appTheme],
   );
 };

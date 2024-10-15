@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,15 +7,15 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import {
-  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
-  ParticipantsInfoBadgeProps,
-} from './ParticipantsInfoBadge';
+import { ParticipantsInfoBadgeProps } from './ParticipantsInfoBadge';
 import { Back } from '../../../icons/Back';
-import { TopViewBackground } from '../../../icons';
+import { CallDuration, TopViewBackground } from '../../../icons';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { HangUpCallButton } from '..';
+import { colors } from '../../..';
+import { DurationBadge } from './DurationBadge';
 
 export type CallTopViewProps = {
   /**
@@ -24,10 +24,10 @@ export type CallTopViewProps = {
    */
   onBackPressed?: () => void;
   /**
-   * Handler to be called when the Participant icon is pressed in the CallTopView.
-   * @returns
+   * Handler to be called when the hangup button is pressed in the CallTopView.
+   * @returns void
    */
-  onParticipantInfoPress?: () => void;
+  onHangupCallHandler?: () => void;
   /**
    * Title to be rendered at the center of the Header.
    */
@@ -44,10 +44,9 @@ export type CallTopViewProps = {
 
 export const CallTopView = ({
   onBackPressed,
-  onParticipantInfoPress,
-  title,
+  onHangupCallHandler,
+  title = 'test',
   style: styleProp,
-  ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
   const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
   const [callTopViewWidth, setCallTopViewWidth] = useState<number>(0);
@@ -59,6 +58,7 @@ export const CallTopView = ({
       callTopView,
     },
   } = useTheme();
+  const styles = useStyles();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
@@ -96,67 +96,67 @@ export const CallTopView = ({
           )}
         </View>
         <View style={[styles.centerElement, callTopView.centerElement]}>
-          {title ? (
-            <Text
-              style={[
-                { color: colors.base1 },
-                typefaces.subtitleBold,
-                callTopView.title,
-              ]}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
-          ) : (
-            isCallReconnecting && (
-              <Text
-                style={[
-                  { color: colors.base1 },
-                  typefaces.subtitleBold,
-                  callTopView.title,
-                ]}
-              >
-                {t('Reconnecting...')}
-              </Text>
-            )
-          )}
+          <View style={styles.centerWrapper}>
+            <DurationBadge />
+          </View>
         </View>
-        <View style={[styles.rightElement, callTopView.rightElement]}>
-          {ParticipantsInfoBadge && (
-            <ParticipantsInfoBadge
-              onParticipantInfoPress={onParticipantInfoPress}
-            />
-          )}
+        <View style={styles.rightElement}>
+          <HangUpCallButton onHangupCallHandler={onHangupCallHandler} />
         </View>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  content: {
-    position: 'absolute',
-    top: 0,
-    flexDirection: 'row',
-    paddingTop: 24,
-    paddingBottom: 12,
-    alignItems: 'center',
-  },
-  backIconContainer: {
-    // Added to compensate the participant badge surface area
-    marginLeft: 8,
-  },
-  leftElement: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  centerElement: {
-    flex: 1,
-    alignItems: 'center',
-    flexGrow: 3,
-  },
-  rightElement: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        content: {
+          position: 'absolute',
+          top: 0,
+          flexDirection: 'row',
+          paddingTop: 24,
+          paddingBottom: 12,
+          alignItems: 'center',
+        },
+        backIconContainer: {
+          // Added to compensate the participant badge surface area
+          marginLeft: 8,
+        },
+        leftElement: {
+          flex: 1,
+          alignItems: 'flex-start',
+        },
+        centerElement: {
+          flex: 1,
+          alignItems: 'center',
+          flexGrow: 3,
+        },
+        rightElement: {
+          flex: 1,
+          alignItems: 'flex-end',
+        },
+        centerWrapper: {
+          backgroundColor: colors.buttonSecondaryDefault,
+          borderRadius: 8,
+          width: 60,
+          display: 'flex',
+          flexDirection: 'row',
+          height: 32,
+          padding: 6,
+          justifyContent: 'center',
+          alignItems: 'center',
+          // gap: 4,
+        },
+        timer: {
+          color: colors.typePrimary,
+          fontSize: 13,
+          fontWeight: '600',
+        },
+      }),
+    [theme]
+  );
+};

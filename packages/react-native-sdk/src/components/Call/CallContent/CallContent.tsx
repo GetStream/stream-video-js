@@ -71,10 +71,7 @@ export type CallContentProps = Pick<
   HangUpCallButtonProps,
   'onHangupCallHandler'
 > &
-  Pick<
-    CallTopViewProps,
-    'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
-  > &
+  Pick<CallTopViewProps, 'onBackPressed'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -101,7 +98,6 @@ export type CallContentProps = Pick<
 
 export const CallContent = ({
   onBackPressed,
-  onParticipantInfoPress,
   onHangupCallHandler,
   CallParticipantsList,
   CallTopView = DefaultCallTopView,
@@ -113,7 +109,6 @@ export const CallContent = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView,
-  ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
   landscape = false,
@@ -220,24 +215,35 @@ export const CallContent = ({
             // and allows only the top and floating view (its child views) to take up the touches
             pointerEvents="box-none"
           >
-            {!isInPiPMode && CallTopView && (
-              <CallTopView
-                onBackPressed={onBackPressed}
-                onParticipantInfoPress={onParticipantInfoPress}
-                ParticipantsInfoBadge={ParticipantsInfoBadge}
-              />
-            )}
-            {showFloatingView && FloatingParticipantView && (
-              <FloatingParticipantView
-                participant={
-                  isRemoteParticipantInFloatingView
-                    ? remoteParticipants[0]
-                    : localParticipant
-                }
-                onPressHandler={handleFloatingViewParticipantSwitch}
-                supportedReactions={supportedReactions}
-                {...participantViewProps}
-              />
+            <View
+              style={[styles.view, callContent.topContainer]}
+              // "box-none" disallows the container view to be not take up touches
+              // and allows only the top and floating view (its child views) to take up the touches
+              pointerEvents="box-none"
+            >
+              {!isInPiPMode && CallTopView && (
+                <CallTopView
+                  onBackPressed={onBackPressed}
+                  onHangupCallHandler={onHangupCallHandler}
+                />
+              )}
+              {showFloatingView && FloatingParticipantView && (
+                <FloatingParticipantView
+                  participant={
+                    isRemoteParticipantInFloatingView
+                      ? remoteParticipants[0]
+                      : localParticipant
+                  }
+                  onPressHandler={handleFloatingViewParticipantSwitch}
+                  supportedReactions={supportedReactions}
+                  {...participantViewProps}
+                />
+              )}
+            </View>
+            {showSpotlightLayout ? (
+              <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+            ) : (
+              <CallParticipantsGrid {...callParticipantsGridProps} />
             )}
           </View>
           {showSpotlightLayout ? (

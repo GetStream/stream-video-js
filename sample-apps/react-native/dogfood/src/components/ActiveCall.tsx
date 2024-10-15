@@ -15,14 +15,15 @@ import { useOrientation } from '../hooks/useOrientation';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
+  onHangupCallHandler?: () => void;
   onCallEnded: () => void;
 };
 
 export const ActiveCall = ({
   onChatOpenHandler,
   onBackPressed,
-  onCallEnded,
   onHangupCallHandler,
+  onCallEnded,
   unreadCountIndicator,
 }: ActiveCallProps) => {
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
@@ -62,7 +63,7 @@ export const ActiveCall = ({
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
         onBackPressed={onBackPressed}
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
+        onHangupCallHandler={onHangupCallHandler}
         CallControls={CustomControlsComponent}
         landscape={currentOrientation === 'landscape'}
       />
