@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
-import { isFirefox } from 'mobile-device-detect';
 import Gleap from 'gleap';
 import {
   CallingState,
@@ -23,7 +22,6 @@ import {
 import { ActiveCall } from './ActiveCall';
 import { Feedback } from './Feedback/Feedback';
 import { DefaultAppHeader } from './DefaultAppHeader';
-import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 const contents = {
   'error-join': {
@@ -48,7 +46,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
-  const isProntoEnvironment = useIsProntoEnvironment();
   const videoCodecOverride = router.query['video_codec'] as
     | PreferredCodec
     | undefined;
@@ -65,14 +62,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const prontoDefaultCodec =
-          isProntoEnvironment && !isFirefox ? 'vp9' : 'vp8';
+        const prontoDefaultCodec = 'vp9';
         const preferredCodec = videoCodecOverride || prontoDefaultCodec;
         const preferredBitrate = bitrateOverride
           ? parseInt(bitrateOverride, 10)
           : undefined;
 
-        call.camera.updatePublishOptions({
+        call.updatePublishOptions({
           preferredCodec,
           scalabilityMode,
           preferredBitrate,
@@ -93,7 +89,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       bitrateFactorOverride,
       bitrateOverride,
       call,
-      isProntoEnvironment,
       scalabilityMode,
       videoCodecOverride,
     ],

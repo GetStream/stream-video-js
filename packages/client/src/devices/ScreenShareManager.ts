@@ -80,9 +80,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
   }
 
   protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishScreenShareStream(stream, {
-      screenShareSettings: this.state.settings,
-    });
+    return this.call.publishScreenShareStream(stream);
   }
 
   protected async stopPublishStream(stopTracks: boolean): Promise<void> {

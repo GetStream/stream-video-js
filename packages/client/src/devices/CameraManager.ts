@@ -4,20 +4,13 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { PreferredCodec, PublishOptions } from '../types';
+import { PreferredCodec } from '../types';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
     width: 1280,
     height: 720,
   };
-
-  /**
-   * The options to use when publishing the video stream.
-   *
-   * @internal
-   */
-  publishOptions: PublishOptions | undefined;
 
   /**
    * Constructs a new CameraManager.
@@ -86,20 +79,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    * Sets the preferred codec for encoding the video.
    *
    * @internal internal use only, not part of the public API.
+   * @deprecated use {@link call.updatePublishOptions} instead.
    * @param codec the codec to use for encoding the video.
    */
   setPreferredCodec(codec: PreferredCodec | undefined) {
-    this.updatePublishOptions({ preferredCodec: codec });
-  }
-
-  /**
-   * Updates the preferred publish options for the video stream.
-   *
-   * @internal
-   * @param options the options to use.
-   */
-  updatePublishOptions(options: PublishOptions) {
-    this.publishOptions = { ...this.publishOptions, ...options };
+    this.call.updatePublishOptions({ preferredCodec: codec });
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -121,7 +105,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream, this.publishOptions);
+    return this.call.publishVideoStream(stream);
   }
 
   protected stopPublishStream(stopTracks: boolean): Promise<void> {
