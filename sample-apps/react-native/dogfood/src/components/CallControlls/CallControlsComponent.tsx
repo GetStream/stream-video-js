@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     height: 76,
   },
   left: {
-    flex: 1,
+    flex: 2.5,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
