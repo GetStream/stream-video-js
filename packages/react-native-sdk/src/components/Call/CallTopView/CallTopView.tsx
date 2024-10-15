@@ -16,22 +16,14 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { HangUpCallButton } from '..';
 import { colors } from '../../..';
 import { DurationBadge } from './DurationBadge';
+import { TopLeftControls } from './TopLeftControls';
 
 export type CallTopViewProps = {
-  /**
-   * Handler to be called when the back button is pressed in the CallTopView.
-   * @returns void
-   */
-  onBackPressed?: () => void;
   /**
    * Handler to be called when the hangup button is pressed in the CallTopView.
    * @returns void
    */
   onHangupCallHandler?: () => void;
-  /**
-   * Title to be rendered at the center of the Header.
-   */
-  title?: string;
   /**
    * Style to override the container of the CallTopView.
    */
@@ -43,9 +35,7 @@ export type CallTopViewProps = {
 };
 
 export const CallTopView = ({
-  onBackPressed,
   onHangupCallHandler,
-  title = 'test',
   style: styleProp,
 }: CallTopViewProps) => {
   const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
@@ -78,22 +68,7 @@ export const CallTopView = ({
       <TopViewBackground height={callTopViewHeight} width={callTopViewWidth} />
       <View style={[styles.content, callTopView.content]} onLayout={onLayout}>
         <View style={styles.leftElement}>
-          {onBackPressed && (
-            <Pressable
-              style={({ pressed }) => [
-                styles.backIconContainer,
-                {
-                  opacity: pressed ? 0.2 : 1,
-                  height: iconSizes.md,
-                  width: iconSizes.md,
-                },
-                callTopView.backIconContainer,
-              ]}
-              onPress={onBackPressed}
-            >
-              <Back color={colors.base1} />
-            </Pressable>
-          )}
+          <TopLeftControls />
         </View>
         <View style={[styles.centerElement, callTopView.centerElement]}>
           <View style={styles.centerWrapper}>
@@ -116,6 +91,7 @@ const useStyles = () => {
       StyleSheet.create({
         content: {
           position: 'absolute',
+          backgroundColor: 'black',
           top: 0,
           flexDirection: 'row',
           paddingTop: 24,
