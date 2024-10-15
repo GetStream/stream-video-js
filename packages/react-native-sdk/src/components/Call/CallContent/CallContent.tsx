@@ -141,7 +141,6 @@ export const CallContent = ({
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
-  const styles = useStyles();
 
   const showFloatingView =
     !showSpotlightLayout &&
@@ -246,19 +245,11 @@ export const CallContent = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: { flex: 1 },
-        content: { flex: 1 },
-        view: {
-          ...StyleSheet.absoluteFillObject,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-      }),
-    [theme]
-  );
-};
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { flex: 1 },
+  view: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+});
