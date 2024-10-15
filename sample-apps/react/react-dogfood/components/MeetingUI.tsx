@@ -7,6 +7,7 @@ import {
   defaultSortPreset,
   LoadingIndicator,
   noopComparator,
+  PreferredCodec,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
@@ -48,7 +49,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const callState = useCallCallingState();
 
   const isProntoEnvironment = useIsProntoEnvironment();
-  const videoCodecOverride = router.query['video_codec'] as string | undefined;
+  const videoCodecOverride = router.query['video_codec'] as
+    | PreferredCodec
+    | undefined;
   const bitrateOverride = router.query['bitrate'] as string | undefined;
   const bitrateFactorOverride = router.query['bitrate_factor'] as
     | string

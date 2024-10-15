@@ -43,10 +43,10 @@ const bitrateLookupTable: Record<
 };
 
 export const getOptimalBitrate = (
-  codec: string,
+  codec: PreferredCodec,
   frameHeight: number,
 ): number => {
-  const codecLookup = bitrateLookupTable[codec.toLowerCase()];
+  const codecLookup = bitrateLookupTable[codec];
   if (!codecLookup) throw new Error(`Unknown codec: ${codec}`);
 
   let bitrate = codecLookup[frameHeight];

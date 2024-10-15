@@ -139,11 +139,7 @@ describe('Publisher', () => {
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(newTrack);
 
     expect(track.stop).toHaveBeenCalled();
-    expect(track.removeEventListener).toHaveBeenCalledWith(
-      'ended',
-      expect.any(Function),
-    );
-    expect(newTrack.addEventListener).toHaveBeenCalledWith(
+    expect(newTrack.addEventListener).not.toHaveBeenCalledWith(
       'ended',
       expect.any(Function),
     );
@@ -157,7 +153,7 @@ describe('Publisher', () => {
     );
   });
 
-  it('can publish and un-pubish with just enabling and disabling tracks', async () => {
+  it('can publish and un-publish with just enabling and disabling tracks', async () => {
     const mediaStream = new MediaStream();
     const track = new MediaStreamTrack();
     mediaStream.addTrack(track);

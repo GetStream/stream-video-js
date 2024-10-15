@@ -97,16 +97,42 @@ export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
 /**
  * Returns the optimal video codec for the device.
  */
-export const getOptimalVideoCodec = (): PreferredCodec => {
+export const getOptimalVideoCodec = (
+  preferredCodec: PreferredCodec | undefined,
+): PreferredCodec => {
   if (isReactNative()) {
-    const osName = getOSInfo()?.name.toLowerCase();
-    if (osName === 'ios' || osName === 'ipados') return 'h264';
-    if (osName === 'android') return 'vp8'; // TODO switch to vp9
-    return 'vp8';
+    const os = getOSInfo()?.name.toLowerCase();
+    if (os === 'android') return preferredOr(preferredCodec, 'vp9');
+    if (os === 'ios' || os === 'ipados') return 'h264';
+    return preferredOr(preferredCodec, 'h264');
   }
   if (isSafari()) return 'h264';
   if (isFirefox()) return 'vp8';
-  return 'vp8'; // TODO switch to vp9
+  return preferredOr(preferredCodec, 'vp8');
+};
+
+/**
+ * Determines if the platform supports the preferred codec.
+ * If not, it returns the fallback codec.
+ */
+const preferredOr = (
+  codec: PreferredCodec | undefined,
+  fallback: PreferredCodec,
+): PreferredCodec => {
+  if (!codec) return fallback;
+  if (!('getCapabilities' in RTCRtpSender)) return fallback;
+  const capabilities = RTCRtpSender.getCapabilities('video');
+  if (!capabilities) return fallback;
+
+  // Safari and Firefox do not have a good support encoding to SVC codecs,
+  // so we disable it for them.
+  if (isSvcCodec(codec) && (isSafari() || isFirefox())) return fallback;
+
+  const { codecs } = capabilities;
+  const codecMimeType = `video/${codec}`.toLowerCase();
+  return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType)
+    ? codec
+    : fallback;
 };
 
 /**

@@ -150,8 +150,12 @@ export type SubscriptionChanges = {
  * A preferred codec to use when publishing a video track.
  * @internal
  */
-export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1' | string;
+export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1';
 
+/**
+ * A collection of track publication options.
+ * @internal
+ */
 export type PublishOptions = {
   /**
    * The preferred codec to use when publishing the video stream.

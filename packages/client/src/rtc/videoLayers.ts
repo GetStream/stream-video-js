@@ -1,4 +1,4 @@
-import { PublishOptions } from '../types';
+import { PreferredCodec, PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 import { isSvcCodec } from './codecs';
 import { getOptimalBitrate } from './bitrateLookup';
@@ -24,35 +24,46 @@ const defaultBitratePerRid: Record<string, number> = {
 };
 
 /**
+ * In SVC, we need to send only one video encoding (layer).
+ * this layer will have the additional spatial and temporal layers
+ * defined via the scalabilityMode property.
+ *
+ * @param layers the layers to process.
+ */
+export const toSvcEncodings = (layers: OptimalVideoLayer[] | undefined) => {
+  // we take the `f` layer, and we rename it to `q`.
+  return layers?.filter((l) => l.rid === 'f').map((l) => ({ ...l, rid: 'q' }));
+};
+
+/**
  * Determines the most optimal video layers for simulcasting
  * for the given track.
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
+ * @param codecInUse the codec in use.
  * @param publishOptions the publish options for the track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
+  codecInUse?: PreferredCodec,
   publishOptions?: PublishOptions,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width = 0, height = 0 } = settings;
-  const {
-    preferredCodec,
-    scalabilityMode,
-    bitrateDownscaleFactor = 2,
-  } = publishOptions || {};
+  const { scalabilityMode, bitrateDownscaleFactor = 2 } = publishOptions || {};
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
     width,
     height,
+    codecInUse,
     publishOptions,
   );
   let downscaleFactor = 1;
   let bitrateFactor = 1;
-  const svcCodec = isSvcCodec(preferredCodec);
+  const svcCodec = isSvcCodec(codecInUse);
   for (const rid of ['f', 'h', 'q']) {
     const layer: OptimalVideoLayer = {
       active: true,
@@ -98,13 +109,15 @@ export const findOptimalVideoLayers = (
  * @param targetResolution the target resolution.
  * @param currentWidth the current width of the track.
  * @param currentHeight the current height of the track.
+ * @param codecInUse the codec in use.
  * @param publishOptions the publish options.
  */
 export const getComputedMaxBitrate = (
   targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
-  publishOptions: PublishOptions | undefined,
+  codecInUse?: PreferredCodec,
+  publishOptions?: PublishOptions,
 ): number => {
   // if the current resolution is lower than the target resolution,
   // we want to proportionally reduce the target bitrate
@@ -113,14 +126,12 @@ export const getComputedMaxBitrate = (
     height: targetHeight,
     bitrate: targetBitrate,
   } = targetResolution;
-  const { preferredBitrate, preferredCodec } = publishOptions || {};
+  const { preferredBitrate } = publishOptions || {};
   const frameHeight =
     currentWidth > currentHeight ? currentHeight : currentWidth;
   const bitrate =
     preferredBitrate ||
-    (preferredCodec
-      ? getOptimalBitrate(preferredCodec, frameHeight)
-      : targetBitrate);
+    (codecInUse ? getOptimalBitrate(codecInUse, frameHeight) : targetBitrate);
   if (currentWidth < targetWidth || currentHeight < targetHeight) {
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;
