@@ -51,8 +51,6 @@ export const CallTopView = ({
   const styles = useStyles();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const { t } = useI18n();
-  const isCallReconnecting = callingState === CallingState.RECONNECTING;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -63,7 +61,7 @@ export const CallTopView = ({
   };
 
   return (
-    <View style={[styleProp, callTopView.container]}>
+    <View style={[styles.container, styleProp, callTopView.container]}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
       <TopViewBackground height={callTopViewHeight} width={callTopViewWidth} />
       <View style={[styles.content, callTopView.content]} onLayout={onLayout}>
@@ -89,22 +87,28 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
+        container: {
+          // borderWidth: 2,
+          // borderColor: 'red',
+        },
         content: {
           position: 'absolute',
           backgroundColor: 'black',
           top: 0,
           flexDirection: 'row',
-          paddingTop: 24,
-          paddingBottom: 12,
+          paddingTop: 2,
+          paddingBottom: 2,
+          paddingRight: 12,
+          paddingLeft: 12,
           alignItems: 'center',
-        },
-        backIconContainer: {
-          // Added to compensate the participant badge surface area
-          marginLeft: 8,
+          // borderWidth: 2,
+          // borderColor: 'red',
         },
         leftElement: {
-          flex: 1,
+          flex: 2,
           alignItems: 'flex-start',
+          // borderWidth: 2,
+          // borderColor: 'red',
         },
         centerElement: {
           flex: 1,
@@ -112,7 +116,7 @@ const useStyles = () => {
           flexGrow: 3,
         },
         rightElement: {
-          flex: 1,
+          flex: 2,
           alignItems: 'flex-end',
         },
         centerWrapper: {
@@ -125,7 +129,6 @@ const useStyles = () => {
           padding: 6,
           justifyContent: 'center',
           alignItems: 'center',
-          // gap: 4,
         },
         timer: {
           color: colors.typePrimary,

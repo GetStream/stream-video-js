@@ -71,7 +71,6 @@ export type CallContentProps = Pick<
   HangUpCallButtonProps,
   'onHangupCallHandler'
 > &
-  Pick<CallTopViewProps, 'onBackPressed'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -97,7 +96,6 @@ export type CallContentProps = Pick<
   };
 
 export const CallContent = ({
-  onBackPressed,
   onHangupCallHandler,
   CallParticipantsList,
   CallTopView = DefaultCallTopView,
@@ -209,41 +207,26 @@ export const CallContent = ({
       )}
       <View style={[styles.container, landscapeStyles, callContent.container]}>
         <View style={[styles.container, callContent.callParticipantsContainer]}>
+          {!isInPiPMode && CallTopView && (
+            <CallTopView onHangupCallHandler={onHangupCallHandler} />
+          )}
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches
             // and allows only the top and floating view (its child views) to take up the touches
             pointerEvents="box-none"
           >
-            <View
-              style={[styles.view, callContent.topContainer]}
-              // "box-none" disallows the container view to be not take up touches
-              // and allows only the top and floating view (its child views) to take up the touches
-              pointerEvents="box-none"
-            >
-              {!isInPiPMode && CallTopView && (
-                <CallTopView
-                  onBackPressed={onBackPressed}
-                  onHangupCallHandler={onHangupCallHandler}
-                />
-              )}
-              {showFloatingView && FloatingParticipantView && (
-                <FloatingParticipantView
-                  participant={
-                    isRemoteParticipantInFloatingView
-                      ? remoteParticipants[0]
-                      : localParticipant
-                  }
-                  onPressHandler={handleFloatingViewParticipantSwitch}
-                  supportedReactions={supportedReactions}
-                  {...participantViewProps}
-                />
-              )}
-            </View>
-            {showSpotlightLayout ? (
-              <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-            ) : (
-              <CallParticipantsGrid {...callParticipantsGridProps} />
+            {showFloatingView && FloatingParticipantView && (
+              <FloatingParticipantView
+                participant={
+                  isRemoteParticipantInFloatingView
+                    ? remoteParticipants[0]
+                    : localParticipant
+                }
+                onPressHandler={handleFloatingViewParticipantSwitch}
+                supportedReactions={supportedReactions}
+                {...participantViewProps}
+              />
             )}
           </View>
           {showSpotlightLayout ? (
@@ -267,6 +250,7 @@ export const CallContent = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   view: {
+    // backgroundColor: 'red',
     ...StyleSheet.absoluteFillObject,
     zIndex: Z_INDEX.IN_FRONT,
   },

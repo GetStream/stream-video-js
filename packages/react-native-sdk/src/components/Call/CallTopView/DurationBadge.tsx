@@ -8,9 +8,7 @@ export const DurationBadge = () => {
   const {
     theme: {
       colors,
-      typefaces,
       variants: { iconSizes },
-      callTopView,
     },
   } = useTheme();
   const [duration, setDuration] = useState(0);
@@ -32,8 +30,10 @@ export const DurationBadge = () => {
   const timestamp = `${minutes}:${seconds}`;
 
   return (
-    <View style={styles.centerWrapper}>
-      <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
+    <View style={styles.container}>
+      <View style={styles.icon}>
+        <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
+      </View>
       <Text style={styles.timer}>{timestamp}</Text>
     </View>
   );
@@ -45,47 +45,25 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
-        content: {
-          position: 'absolute',
-          top: 0,
-          flexDirection: 'row',
-          paddingTop: 24,
-          paddingBottom: 12,
-          alignItems: 'center',
-        },
-        backIconContainer: {
-          // Added to compensate the participant badge surface area
-          marginLeft: 8,
-        },
-        leftElement: {
-          flex: 1,
-          alignItems: 'flex-start',
-        },
-        centerElement: {
-          flex: 1,
-          alignItems: 'center',
-          flexGrow: 3,
-        },
-        rightElement: {
-          flex: 1,
-          alignItems: 'flex-end',
-        },
-        centerWrapper: {
+        container: {
           backgroundColor: theme.colors.buttonSecondaryDefault,
           borderRadius: 8,
-          width: 90,
           display: 'flex',
           flexDirection: 'row',
           height: 32,
-          padding: 6,
+          paddingLeft: 20,
+          paddingRight: 20,
           justifyContent: 'center',
           alignItems: 'center',
-          // gap: 4,
+        },
+        icon: {
+          marginTop: 3,
         },
         timer: {
           color: theme.colors.typePrimary,
           fontSize: 13,
           fontWeight: '600',
+          width: 40,
         },
       }),
     [theme]

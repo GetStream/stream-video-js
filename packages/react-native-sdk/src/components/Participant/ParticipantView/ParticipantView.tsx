@@ -167,6 +167,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'transparent',
+    margin: 8,
+    borderRadius: 16,
   },
   footerContainer: {
     flexDirection: 'row',

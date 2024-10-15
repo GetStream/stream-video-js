@@ -252,9 +252,7 @@ export const CallParticipantsList = ({
 };
 
 const styles = StyleSheet.create({
-  flexed: {
-    flex: 1,
-  },
+  flexed: { flex: 1 },
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
     marginHorizontal: 8,

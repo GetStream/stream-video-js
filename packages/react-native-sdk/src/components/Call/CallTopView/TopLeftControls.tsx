@@ -8,17 +8,16 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Grid } from '../../../icons/Grid';
-import { FlipCamera } from '../../../icons/FlipCamera';
-import { useTheme } from '../../..';
-import { Effects } from '../../../icons/Effects';
+import { FlipCameraButton, VideoEffectsButton, useTheme } from '../../..';
+import { ToggleViewButton } from '../CallControls/ToggleViewButton';
 
 export const TopLeftControls = () => {
   const styles = useStyles();
   return (
     <View style={styles.content}>
-      <Grid size={22} color={'white'} />
-      <FlipCamera size={22} color={'white'} />
-      <Effects size={22} color={'white'} />
+      <ToggleViewButton onPressHandler={() => {}} />
+      <FlipCameraButton onPressHandler={() => {}} />
+      <VideoEffectsButton onPressHandler={() => {}} />
     </View>
   );
 };
@@ -30,10 +29,13 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         content: {
-          display: 'flex',
+          // display: 'flex',
           flexDirection: 'row',
-          padding: 5,
+          // padding: 5,
           gap: 6,
+          // width: 200,
+          // borderWidth: 2,
+          // borderColor: 'red',
         },
         // backIconContainer: {
         //   // Added to compensate the participant badge surface area
