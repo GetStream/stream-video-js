@@ -3,7 +3,8 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { IconWrapper, More } from '@stream-io/video-react-native-sdk/src/icons';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import MoreActions from '../../assets/MoreActions';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -45,7 +46,10 @@ export const MoreActionsButton = ({
       color={buttonColor}
     >
       <IconWrapper>
-        <More color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+        <MoreActions
+          color={colors.iconPrimaryDefault}
+          size={defaults.iconSize}
+        />
       </IconWrapper>
     </CallControlsButton>
   );

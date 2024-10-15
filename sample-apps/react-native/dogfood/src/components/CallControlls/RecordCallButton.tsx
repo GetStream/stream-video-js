@@ -3,10 +3,8 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import {
-  IconWrapper,
-  RecordCall,
-} from '@stream-io/video-react-native-sdk/src/icons';
+import RecordCall from '../../assets/RecordCall';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 
 /**
  * The props for the Record Call Button in the Call Controls.

@@ -3,10 +3,8 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import {
-  IconWrapper,
-  Audio,
-} from '@stream-io/video-react-native-sdk/src/icons';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import Audio from '../../assets/Audio';
 
 /**
  * The props for the Audio Button in the Call Controls.

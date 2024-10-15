@@ -3,13 +3,11 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import {
-  IconWrapper,
-  Participants,
-} from '@stream-io/video-react-native-sdk/src/icons';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
+import Participants from '../../assets/Participants';
 
 /**
  * The props for the Participants Button in the Call Controls.
