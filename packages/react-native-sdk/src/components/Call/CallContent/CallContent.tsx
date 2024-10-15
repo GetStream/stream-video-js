@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import {
@@ -204,48 +204,43 @@ export const CallContent = ({
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
         />
       )}
-      <View style={styles.mainContainer}>
-        <View style={styles.unsafeArea} />
-        <SafeAreaView style={[styles.safeArea, callContent.container]}>
+      <View style={[styles.container, callContent.container]}>
+        <View style={[styles.content, callContent.callParticipantsContainer]}>
           <View
-            style={[styles.callContent, callContent.callParticipantsContainer]}
+            style={[styles.view, callContent.topContainer]}
+            // "box-none" disallows the container view to be not take up touches
+            // and allows only the top and floating view (its child views) to take up the touches
+            pointerEvents="box-none"
           >
-            <View
-              style={[styles.view, callContent.topContainer]}
-              // "box-none" disallows the container view to be not take up touches
-              // and allows only the top and floating view (its child views) to take up the touches
-              pointerEvents="box-none"
-            >
-              {!isInPiPMode && CallTopView && (
-                <CallTopView onBackPressed={onBackPressed} />
-              )}
-              {showFloatingView && FloatingParticipantView && (
-                <FloatingParticipantView
-                  participant={
-                    isRemoteParticipantInFloatingView
-                      ? remoteParticipants[0]
-                      : localParticipant
-                  }
-                  onPressHandler={handleFloatingViewParticipantSwitch}
-                  supportedReactions={supportedReactions}
-                  {...participantViewProps}
-                />
-              )}
-            </View>
-            {showSpotlightLayout ? (
-              <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-            ) : (
-              <CallParticipantsGrid {...callParticipantsGridProps} />
+            {!isInPiPMode && CallTopView && (
+              <CallTopView onBackPressed={onBackPressed} />
+            )}
+            {showFloatingView && FloatingParticipantView && (
+              <FloatingParticipantView
+                participant={
+                  isRemoteParticipantInFloatingView
+                    ? remoteParticipants[0]
+                    : localParticipant
+                }
+                onPressHandler={handleFloatingViewParticipantSwitch}
+                supportedReactions={supportedReactions}
+                {...participantViewProps}
+              />
             )}
           </View>
-
-          {!isInPiPMode && CallControls && (
-            <CallControls
-              onHangupCallHandler={onHangupCallHandler}
-              landscape={landscape}
-            />
+          {showSpotlightLayout ? (
+            <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+          ) : (
+            <CallParticipantsGrid {...callParticipantsGridProps} />
           )}
-        </SafeAreaView>
+        </View>
+
+        {!isInPiPMode && CallControls && (
+          <CallControls
+            onHangupCallHandler={onHangupCallHandler}
+            landscape={landscape}
+          />
+        )}
       </View>
     </>
   );
@@ -257,17 +252,8 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
-        mainContainer: { flex: 1 },
-        callContent: { flex: 1 },
-        safeArea: { flex: 1 },
-        unsafeArea: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: theme.variants.insets.bottom,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
+        container: { flex: 1 },
+        content: { flex: 1 },
         view: {
           ...StyleSheet.absoluteFillObject,
           zIndex: Z_INDEX.IN_FRONT,
