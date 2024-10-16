@@ -108,9 +108,9 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
     - [x] Video Rooms Tutorial
     - [x] Audio Rooms Tutorial
     - [x] Livestream Tutorial
-  - [ ] Core
+  - [x] Core
     - [x] Camera & Microphone
-  - [ ] Advanced
+  - [x] Advanced
     - [x] Chat Integration
     - [x] Internationalization
     - [x] Push Notification (validate)
@@ -125,7 +125,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 
 - [x] Expo Support
 
-### 0.5 Milestones
+### Milestones
 
 - [x] Regular Push Notification for Vanilla React Native
 - [x] Ringing and Regular Push Notification for Expo
@@ -138,8 +138,9 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Transcriptions
 - [x] Speaker management
 - [x] PiP on iOS
-- [x] Audio & Video filters
+- [x] Video filters
 - [x] CPU usage improvement
+- [ ] Audio filters and Noise Cancellation
 - [ ] Analytics Integration
 - [ ] Long press to focus
 - [ ] Dynascale 2.0
