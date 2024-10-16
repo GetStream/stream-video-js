@@ -5,10 +5,10 @@ env:
 
 on:
   push:
-  branches:
-    - main
-  paths:
-    - 'packages/**'
+    branches:
+      - main
+    paths:
+      - 'packages/**'
 
   workflow_dispatch:
 
