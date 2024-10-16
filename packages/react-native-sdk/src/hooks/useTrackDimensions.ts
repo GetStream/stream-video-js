@@ -2,7 +2,7 @@ import {
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { useState, useEffect } from 'react';
 
 /**
