@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.6...@stream-io/video-react-sdk-1.6.7) (2024-10-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.4`
+* `@stream-io/video-react-bindings` updated to version `1.1.4`
+* `@stream-io/video-styling` updated to version `1.1.1`
+
+### Bug Fixes
+
+* PiP video placeholder ([#1509](https://github.com/GetStream/stream-video-js/issues/1509)) ([9eb2936](https://github.com/GetStream/stream-video-js/commit/9eb2936379726923ee43491ce965003e0e7f2c37))
+
 ## [1.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.5...@stream-io/video-react-sdk-1.6.6) (2024-10-14)
 
 

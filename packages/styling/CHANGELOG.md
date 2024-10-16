@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.0...@stream-io/video-styling-1.1.1) (2024-10-16)
+
+
+### Bug Fixes
+
+* PiP video placeholder ([#1509](https://github.com/GetStream/stream-video-js/issues/1509)) ([9eb2936](https://github.com/GetStream/stream-video-js/commit/9eb2936379726923ee43491ce965003e0e7f2c37))
+
 ## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.6...@stream-io/video-styling-1.1.0) (2024-10-02)
 
 
