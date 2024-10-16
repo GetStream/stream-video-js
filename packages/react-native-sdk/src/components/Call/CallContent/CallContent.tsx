@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import {
@@ -71,10 +71,7 @@ export type CallContentProps = Pick<
   HangUpCallButtonProps,
   'onHangupCallHandler'
 > &
-  Pick<
-    CallTopViewProps,
-    'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
-  > &
+  Pick<CallTopViewProps, 'onBackPressed'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -101,7 +98,6 @@ export type CallContentProps = Pick<
 
 export const CallContent = ({
   onBackPressed,
-  onParticipantInfoPress,
   onHangupCallHandler,
   CallParticipantsList,
   CallTopView = DefaultCallTopView,
@@ -113,7 +109,6 @@ export const CallContent = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView,
-  ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
   landscape = false,
@@ -201,10 +196,6 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
   return (
     <>
       {!disablePictureInPicture && (
@@ -212,8 +203,8 @@ export const CallContent = ({
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
         />
       )}
-      <View style={[styles.container, landscapeStyles, callContent.container]}>
-        <View style={[styles.container, callContent.callParticipantsContainer]}>
+      <View style={[styles.container, callContent.container]}>
+        <View style={[styles.content, callContent.callParticipantsContainer]}>
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches
@@ -221,11 +212,7 @@ export const CallContent = ({
             pointerEvents="box-none"
           >
             {!isInPiPMode && CallTopView && (
-              <CallTopView
-                onBackPressed={onBackPressed}
-                onParticipantInfoPress={onParticipantInfoPress}
-                ParticipantsInfoBadge={ParticipantsInfoBadge}
-              />
+              <CallTopView onBackPressed={onBackPressed} />
             )}
             {showFloatingView && FloatingParticipantView && (
               <FloatingParticipantView
@@ -260,6 +247,7 @@ export const CallContent = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  content: { flex: 1 },
   view: {
     ...StyleSheet.absoluteFillObject,
     zIndex: Z_INDEX.IN_FRONT,

@@ -66,6 +66,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
       colors,
       floatingParticipantsView,
       variants: { iconSizes },
+      defaults,
     },
   } = useTheme();
 
@@ -78,7 +79,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
       ]}
     >
       <View style={{ height: iconSizes.md, width: iconSizes.md }}>
-        <VideoSlash color={colors.base1} />
+        <VideoSlash color={colors.base1} size={defaults.iconSize} />
       </View>
     </View>
   );

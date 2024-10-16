@@ -57,8 +57,9 @@ export const CallControlsButton = (
 
   const {
     theme: {
-      variants: { buttonSizes },
       colors,
+      defaults,
+      variants: { roundButtonSizes },
       callControlsButton: { container },
     },
   } = useTheme();
@@ -66,17 +67,19 @@ export const CallControlsButton = (
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
-      backgroundColor: disabled ? colors.disabled : colorProp || colors.base1,
+      backgroundColor: disabled
+        ? colors.buttonPrimaryDisabled
+        : colorProp || colors.buttonSecondaryDefault,
       opacity: pressed ? 0.2 : 1,
-      height: size || buttonSizes.sm,
-      width: size || buttonSizes.sm,
-      borderRadius: (size || buttonSizes.sm) / 2,
-      borderColor: colors.background1,
+      height: size || roundButtonSizes.lg,
+      width: size || roundButtonSizes.lg,
+      borderRadius: defaults.borderRadius,
     },
     styleProp?.container ?? null,
     container,
   ];
 
+  const childrenSize = (size || roundButtonSizes.lg) / 2 - 5;
   return (
     <Pressable
       disabled={disabled}
@@ -87,10 +90,7 @@ export const CallControlsButton = (
     >
       <View
         style={[
-          {
-            height: (size || buttonSizes.sm) / 2 - 5,
-            width: (size || buttonSizes.sm) / 2 - 5,
-          },
+          { height: childrenSize, width: childrenSize },
           styleProp?.svgContainer ?? null,
         ]}
       >
