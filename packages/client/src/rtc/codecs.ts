@@ -1,4 +1,7 @@
 import { getOSInfo } from '../client-details';
+import { isReactNative } from '../helpers/platforms';
+import { isFirefox, isSafari } from '../helpers/browsers';
+import type { PreferredCodec } from '../types';
 
 /**
  * Returns back a list of sorted codecs, with the preferred codec first.
@@ -92,14 +95,58 @@ export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
 };
 
 /**
- * Returns the optimal codec for RN.
+ * Returns the optimal video codec for the device.
  */
-export const getRNOptimalCodec = () => {
-  const osName = getOSInfo()?.name.toLowerCase();
-  // in ipads it was noticed that if vp8 codec is used
-  // then the bytes sent is 0 in the outbound-rtp
-  // so we are forcing h264 codec for ipads
-  if (osName === 'ipados') return 'h264';
-  if (osName === 'android') return 'vp8';
-  return undefined;
+export const getOptimalVideoCodec = (
+  preferredCodec: PreferredCodec | undefined,
+): PreferredCodec => {
+  if (isReactNative()) {
+    const os = getOSInfo()?.name.toLowerCase();
+    if (os === 'android') return preferredOr(preferredCodec, 'vp8');
+    if (os === 'ios' || os === 'ipados') return 'h264';
+    return preferredOr(preferredCodec, 'h264');
+  }
+  if (isSafari()) return 'h264';
+  if (isFirefox()) return 'vp8';
+  return preferredOr(preferredCodec, 'vp8');
+};
+
+/**
+ * Determines if the platform supports the preferred codec.
+ * If not, it returns the fallback codec.
+ */
+const preferredOr = (
+  codec: PreferredCodec | undefined,
+  fallback: PreferredCodec,
+): PreferredCodec => {
+  if (!codec) return fallback;
+  if (!('getCapabilities' in RTCRtpSender)) return fallback;
+  const capabilities = RTCRtpSender.getCapabilities('video');
+  if (!capabilities) return fallback;
+
+  // Safari and Firefox do not have a good support encoding to SVC codecs,
+  // so we disable it for them.
+  if (isSvcCodec(codec) && (isSafari() || isFirefox())) return fallback;
+
+  const { codecs } = capabilities;
+  const codecMimeType = `video/${codec}`.toLowerCase();
+  return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType)
+    ? codec
+    : fallback;
+};
+
+/**
+ * Returns whether the codec is an SVC codec.
+ *
+ * @param codecOrMimeType the codec to check.
+ */
+export const isSvcCodec = (codecOrMimeType: string | undefined) => {
+  if (!codecOrMimeType) return false;
+  codecOrMimeType = codecOrMimeType.toLowerCase();
+  return (
+    codecOrMimeType === 'vp9' ||
+    codecOrMimeType === 'av1' ||
+    codecOrMimeType === 'video/vp9' ||
+    codecOrMimeType === 'video/av1'
+  );
 };

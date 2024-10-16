@@ -87,10 +87,7 @@ import {
   VideoTrackType,
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
-import {
-  ReconnectDetails,
-  VideoLayerSetting,
-} from './gen/video/sfu/event/events';
+import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
   TrackType,
@@ -202,6 +199,7 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
+  private publishOptions?: PublishOptions;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -1292,19 +1290,12 @@ export class Call {
           break;
         case TrackType.VIDEO:
           const videoStream = this.camera.state.mediaStream;
-          if (videoStream) {
-            await this.publishVideoStream(
-              videoStream,
-              this.camera.publishOptions,
-            );
-          }
+          if (videoStream) await this.publishVideoStream(videoStream);
           break;
         case TrackType.SCREEN_SHARE:
           const screenShareStream = this.screenShare.state.mediaStream;
           if (screenShareStream) {
-            await this.publishScreenShareStream(screenShareStream, {
-              screenShareSettings: this.screenShare.getSettings(),
-            });
+            await this.publishScreenShareStream(screenShareStream);
           }
           break;
         // screen share audio can't exist without a screen share, so we handle it there
@@ -1336,12 +1327,8 @@ export class Call {
    * The previous video stream will be stopped.
    *
    * @param videoStream the video stream to publish.
-   * @param opts the options to use when publishing the stream.
    */
-  publishVideoStream = async (
-    videoStream: MediaStream,
-    opts: PublishOptions = {},
-  ) => {
+  publishVideoStream = async (videoStream: MediaStream) => {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
@@ -1363,7 +1350,7 @@ export class Call {
       videoStream,
       videoTrack,
       TrackType.VIDEO,
-      opts,
+      this.publishOptions,
     );
   };
 
@@ -1407,12 +1394,8 @@ export class Call {
    * The previous screen-share stream will be stopped.
    *
    * @param screenShareStream the screen-share stream to publish.
-   * @param opts the options to use when publishing the stream.
    */
-  publishScreenShareStream = async (
-    screenShareStream: MediaStream,
-    opts: PublishOptions = {},
-  ) => {
+  publishScreenShareStream = async (screenShareStream: MediaStream) => {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
@@ -1431,6 +1414,9 @@ export class Call {
     if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
       this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
     }
+    const opts: PublishOptions = {
+      screenShareSettings: this.screenShare.getSettings(),
+    };
     await this.publisher.publishStream(
       screenShareStream,
       screenShareTrack,
@@ -1466,6 +1452,16 @@ export class Call {
     );
     await this.publisher?.unpublishStream(trackType, stopTrack);
   };
+
+  /**
+   * Updates the preferred publishing options
+   *
+   * @internal
+   * @param options the options to use.
+   */
+  updatePublishOptions(options: PublishOptions) {
+    this.publishOptions = { ...this.publishOptions, ...options };
+  }
 
   /**
    * Notifies the SFU that a noise cancellation process has started.
@@ -1527,16 +1523,6 @@ export class Call {
    */
   setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
     return this.state.setSortParticipantsBy(criteria);
-  };
-
-  /**
-   * Updates the list of video layers to publish.
-   *
-   * @internal
-   * @param enabledLayers the list of layers to enable.
-   */
-  updatePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
-    return this.publisher?.updateVideoPublishQuality(enabledLayers);
   };
 
   /**
@@ -2098,10 +2084,7 @@ export class Call {
         this.camera.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.VIDEO)
       ) {
-        await this.publishVideoStream(
-          this.camera.state.mediaStream,
-          this.camera.publishOptions,
-        );
+        await this.publishVideoStream(this.camera.state.mediaStream);
       }
 
       // Start camera if backend config specifies, and there is no local setting

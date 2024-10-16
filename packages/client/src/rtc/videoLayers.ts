@@ -1,9 +1,14 @@
-import { PublishOptions } from '../types';
+import { PreferredCodec, PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
+import { isSvcCodec } from './codecs';
+import { getOptimalBitrate } from './bitrateLookup';
+import { VideoQuality } from '../gen/video/sfu/models/models';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
   height: number;
+  // NOTE OL: should be part of RTCRtpEncodingParameters
+  scalabilityMode?: string;
 };
 
 const DEFAULT_BITRATE = 1250000;
@@ -20,47 +25,86 @@ const defaultBitratePerRid: Record<string, number> = {
 };
 
 /**
+ * In SVC, we need to send only one video encoding (layer).
+ * this layer will have the additional spatial and temporal layers
+ * defined via the scalabilityMode property.
+ *
+ * @param layers the layers to process.
+ */
+export const toSvcEncodings = (layers: OptimalVideoLayer[] | undefined) => {
+  // we take the `f` layer, and we rename it to `q`.
+  return layers?.filter((l) => l.rid === 'f').map((l) => ({ ...l, rid: 'q' }));
+};
+
+/**
+ * Converts the rid to a video quality.
+ */
+export const ridToVideoQuality = (rid: string): VideoQuality => {
+  return rid === 'q'
+    ? VideoQuality.LOW_UNSPECIFIED
+    : rid === 'h'
+      ? VideoQuality.MID
+      : VideoQuality.HIGH; // default to HIGH
+};
+
+/**
  * Determines the most optimal video layers for simulcasting
  * for the given track.
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
+ * @param codecInUse the codec in use.
  * @param publishOptions the publish options for the track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
+  codecInUse?: PreferredCodec,
   publishOptions?: PublishOptions,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
-  const { width: w = 0, height: h = 0 } = settings;
-  const { preferredBitrate, bitrateDownscaleFactor = 2 } = publishOptions || {};
+  const { width = 0, height = 0 } = settings;
+  const { scalabilityMode, bitrateDownscaleFactor = 2 } = publishOptions || {};
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
-    w,
-    h,
-    preferredBitrate,
+    width,
+    height,
+    codecInUse,
+    publishOptions,
   );
   let downscaleFactor = 1;
   let bitrateFactor = 1;
-  ['f', 'h', 'q'].forEach((rid) => {
+  const svcCodec = isSvcCodec(codecInUse);
+  for (const rid of ['f', 'h', 'q']) {
+    const layer: OptimalVideoLayer = {
+      active: true,
+      rid,
+      width,
+      height,
+      maxBitrate,
+      maxFramerate: 30,
+    };
+    if (svcCodec) {
+      // for SVC codecs, we need to set the scalability mode, and the
+      // codec will handle the rest (layers, temporal layers, etc.)
+      layer.scalabilityMode = scalabilityMode || 'L3T2_KEY';
+    } else {
+      // for non-SVC codecs, we need to downscale proportionally (simulcast)
+      layer.width = Math.round(width / downscaleFactor);
+      layer.height = Math.round(height / downscaleFactor);
+      const bitrate = Math.round(maxBitrate / bitrateFactor);
+      layer.maxBitrate = bitrate || defaultBitratePerRid[rid];
+      layer.scaleResolutionDownBy = downscaleFactor;
+      downscaleFactor *= 2;
+      bitrateFactor *= bitrateDownscaleFactor;
+    }
+
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
     // when deciding which layer to disable when CPU or bandwidth is constrained.
     // Encodings should be ordered in increasing spatial resolution order.
-    optimalVideoLayers.unshift({
-      active: true,
-      rid,
-      width: Math.round(w / downscaleFactor),
-      height: Math.round(h / downscaleFactor),
-      maxBitrate:
-        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
-      scaleResolutionDownBy: downscaleFactor,
-      maxFramerate: 30,
-    });
-    downscaleFactor *= 2;
-    bitrateFactor *= bitrateDownscaleFactor;
-  });
+    optimalVideoLayers.unshift(layer);
+  }
 
   // for simplicity, we start with all layers enabled, then this function
   // will clear/reassign the layers that are not needed
@@ -77,13 +121,15 @@ export const findOptimalVideoLayers = (
  * @param targetResolution the target resolution.
  * @param currentWidth the current width of the track.
  * @param currentHeight the current height of the track.
- * @param preferredBitrate the preferred bitrate for the track.
+ * @param codecInUse the codec in use.
+ * @param publishOptions the publish options.
  */
 export const getComputedMaxBitrate = (
   targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
-  preferredBitrate: number | undefined,
+  codecInUse?: PreferredCodec,
+  publishOptions?: PublishOptions,
 ): number => {
   // if the current resolution is lower than the target resolution,
   // we want to proportionally reduce the target bitrate
@@ -92,7 +138,12 @@ export const getComputedMaxBitrate = (
     height: targetHeight,
     bitrate: targetBitrate,
   } = targetResolution;
-  const bitrate = preferredBitrate || targetBitrate;
+  const { preferredBitrate } = publishOptions || {};
+  const frameHeight =
+    currentWidth > currentHeight ? currentHeight : currentWidth;
+  const bitrate =
+    preferredBitrate ||
+    (codecInUse ? getOptimalBitrate(codecInUse, frameHeight) : targetBitrate);
   if (currentWidth < targetWidth || currentHeight < targetHeight) {
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;

@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
-import { isFirefox } from 'mobile-device-detect';
 import Gleap from 'gleap';
 import {
   CallingState,
   defaultSortPreset,
   LoadingIndicator,
   noopComparator,
+  PreferredCodec,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
@@ -22,8 +22,6 @@ import {
 import { ActiveCall } from './ActiveCall';
 import { Feedback } from './Feedback/Feedback';
 import { DefaultAppHeader } from './DefaultAppHeader';
-import { getPreferredBitrate } from '../helpers/bitrateLookup';
-import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 const contents = {
   'error-join': {
@@ -48,10 +46,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
-  const isProntoEnvironment = useIsProntoEnvironment();
-  const videoCodecOverride = router.query['video_codec'] as string | undefined;
+  const videoCodecOverride = router.query['video_codec'] as
+    | PreferredCodec
+    | undefined;
   const bitrateOverride = router.query['bitrate'] as string | undefined;
   const bitrateFactorOverride = router.query['bitrate_factor'] as
+    | string
+    | undefined;
+  const scalabilityMode = router.query['scalability_mode'] as
     | string
     | undefined;
 
@@ -60,22 +62,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const prontoDefaultCodec =
-          isProntoEnvironment && !isFirefox ? 'h264' : 'vp8';
-        const preferredCodec = videoCodecOverride || prontoDefaultCodec;
-
-        const videoSettings = call.state.settings?.video;
-        const frameHeight =
-          call.camera.getCaptureResolution()?.height ??
-          videoSettings?.target_resolution.height ??
-          1080;
-
         const preferredBitrate = bitrateOverride
           ? parseInt(bitrateOverride, 10)
-          : getPreferredBitrate(preferredCodec, frameHeight);
+          : undefined;
 
-        call.camera.updatePublishOptions({
-          preferredCodec,
+        call.updatePublishOptions({
+          preferredCodec: 'vp9',
+          forceCodec: videoCodecOverride,
+          scalabilityMode,
           preferredBitrate,
           bitrateDownscaleFactor: bitrateFactorOverride
             ? parseInt(bitrateFactorOverride, 10)
@@ -94,7 +88,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       bitrateFactorOverride,
       bitrateOverride,
       call,
-      isProntoEnvironment,
+      scalabilityMode,
       videoCodecOverride,
     ],
   );
