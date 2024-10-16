@@ -19,8 +19,6 @@ export function useTrackDimensions(
     height: 0,
   });
   const call = useCall();
-  const { useCallStatsReport } = useCallStateHooks();
-  const callStatsReport = useCallStatsReport();
   const { isLocalParticipant, sessionId, videoStream, screenShareStream } =
     participant;
   useEffect(() => {
@@ -50,22 +48,27 @@ export function useTrackDimensions(
   }, [call, isLocalParticipant, screenShareStream, trackType, videoStream]);
 
   useEffect(() => {
-    const reportForTracks = callStatsReport?.participants[sessionId];
-    const trackStats = reportForTracks
-      ?.flatMap((report) => report.streams)
-      .filter((track) => track.kind === 'video');
-    if (!trackStats) return;
-    const stat = trackStats[0];
-    if (stat) {
-      const { frameWidth = 0, frameHeight = 0 } = stat;
-      setTrackDimensions((prev) => {
-        if (prev.width !== frameWidth || prev.height !== frameHeight) {
-          return { width: frameWidth, height: frameHeight };
-        }
-        return prev;
-      });
-    }
-  }, [callStatsReport, sessionId]);
+    if (!call) return;
+    const sub = call.state.callStatsReport$.subscribe((report) => {
+      if (!report) return;
+      const reportForTracks = report.participants[sessionId];
+      const trackStats = reportForTracks
+        ?.flatMap((r) => r.streams)
+        .filter((track) => track.kind === 'video');
+      if (!trackStats) return;
+      const stat = trackStats[0];
+      if (stat) {
+        const { frameWidth = 0, frameHeight = 0 } = stat;
+        setTrackDimensions((prev) => {
+          if (prev.width !== frameWidth || prev.height !== frameHeight) {
+            return { width: frameWidth, height: frameHeight };
+          }
+          return prev;
+        });
+      }
+    });
+    return () => sub.unsubscribe();
+  }, [call, sessionId]);
 
   return trackDimensions;
 }
