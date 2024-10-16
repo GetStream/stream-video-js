@@ -21,15 +21,8 @@ export function useTrackDimensions(
   const call = useCall();
   const { isLocalParticipant, sessionId, videoStream, screenShareStream } =
     participant;
-  useEffect(() => {
-    if (!call) return;
-    if (isLocalParticipant) return;
-    call.startReportingStatsFor(sessionId);
-    return () => {
-      call.stopReportingStatsFor(sessionId);
-    };
-  }, [call, sessionId, isLocalParticipant]);
 
+  // for local participant we can get from track.getSettings()
   useEffect(() => {
     if (call && isLocalParticipant) {
       const stream =
@@ -47,6 +40,18 @@ export function useTrackDimensions(
     }
   }, [call, isLocalParticipant, screenShareStream, trackType, videoStream]);
 
+  // start reporting stats for the remote participant
+  useEffect(() => {
+    if (!call) return;
+    if (isLocalParticipant) return;
+    call.startReportingStatsFor(sessionId);
+    return () => {
+      call.stopReportingStatsFor(sessionId);
+    };
+  }, [call, sessionId, isLocalParticipant]);
+
+  // for remote participants track.getSettings() is not supported it returns an empty object
+  // so we need to rely on call stats to get the dimensions
   useEffect(() => {
     if (!call) return;
     const sub = call.state.callStatsReport$.subscribe((report) => {
