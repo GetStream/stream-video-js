@@ -4,11 +4,11 @@ env:
   STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
 
 on:
-  # push:
-  #  branches:
-  #    - main
-  #  paths:
-  #    - 'packages/**'
+  push:
+  branches:
+    - main
+  paths:
+    - 'packages/**'
 
   workflow_dispatch:
 
