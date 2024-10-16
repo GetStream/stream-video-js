@@ -2,9 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../../icons';
 import { useTheme } from '../../..';
+import RecordCall from '../../../icons/RecordCall';
+import { IconWrapper } from '../../../icons/IconWrapper';
 
 // TODO: move to dogfood app
-export const DurationBadge = () => {
+export const DurationBadge = (props: any) => {
   const {
     theme: {
       colors,
@@ -20,7 +22,7 @@ export const DurationBadge = () => {
       clearInterval(id);
     };
   }, []);
-  const styles = useStyles();
+  const styles = useStyles(props);
 
   // Format duration to MM:SS
   const minutes = Math.floor(duration / 60)
@@ -28,18 +30,24 @@ export const DurationBadge = () => {
     .padStart(2, '0');
   const seconds = (duration % 60).toString().padStart(2, '0');
   const timestamp = `${minutes}:${seconds}`;
+  const text = props.inProgress ? 'Recording in progress...' : timestamp;
+  const icon = false ? (
+    <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
+  ) : (
+    <RecordCall color={colors.iconAlertWarning} size={iconSizes.md} />
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.icon}>
-        <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
-      </View>
-      <Text style={styles.timer}>{timestamp}</Text>
+      <IconWrapper>
+        <View style={styles.icon}>{icon}</View>
+      </IconWrapper>
+      <Text style={styles.text}>{text}</Text>
     </View>
   );
 };
 
-const useStyles = () => {
+const useStyles = (props: any) => {
   const { theme } = useTheme();
 
   return useMemo(
@@ -48,22 +56,23 @@ const useStyles = () => {
         container: {
           backgroundColor: theme.colors.buttonSecondaryDefault,
           borderRadius: 8,
-          display: 'flex',
           flexDirection: 'row',
-          height: 32,
-          paddingLeft: 20,
-          paddingRight: 20,
+          height: 36,
+          paddingHorizontal: 12, // Use equal padding on both sides
           justifyContent: 'center',
           alignItems: 'center',
+          width: props.inProgress ? 200 : 80,
+          gap: 7,
         },
-        icon: {
-          marginTop: 3,
-        },
-        timer: {
+        text: {
           color: theme.colors.typePrimary,
           fontSize: 13,
           fontWeight: '600',
-          width: 40,
+          marginLeft: 3, // Add some space between icon and text
+          flexShrink: 0, // Allow text to shrink if needed
+        },
+        icon: {
+          marginTop: 3,
         },
       }),
     [theme]

@@ -51,6 +51,7 @@ export const CallTopView = ({
   const styles = useStyles();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const [inProgress, setInProgress] = useState(true);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -66,11 +67,11 @@ export const CallTopView = ({
       <TopViewBackground height={callTopViewHeight} width={callTopViewWidth} />
       <View style={[styles.content, callTopView.content]} onLayout={onLayout}>
         <View style={styles.leftElement}>
-          <TopLeftControls />
+          <TopLeftControls inProgress={inProgress} />
         </View>
         <View style={[styles.centerElement, callTopView.centerElement]}>
           <View style={styles.centerWrapper}>
-            <DurationBadge />
+            <DurationBadge inProgress={inProgress} />
           </View>
         </View>
         <View style={styles.rightElement}>
@@ -105,7 +106,7 @@ const useStyles = () => {
           // borderColor: 'red',
         },
         leftElement: {
-          flex: 2,
+          flex: 1,
           alignItems: 'flex-start',
           // borderWidth: 2,
           // borderColor: 'red',
@@ -113,10 +114,9 @@ const useStyles = () => {
         centerElement: {
           flex: 1,
           alignItems: 'center',
-          flexGrow: 3,
         },
         rightElement: {
-          flex: 2,
+          flex: 1,
           alignItems: 'flex-end',
         },
         centerWrapper: {
