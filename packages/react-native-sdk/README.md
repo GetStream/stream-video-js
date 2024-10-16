@@ -136,10 +136,10 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Speaking while muted
 - [x] Demo app on play-store and app-store
 - [x] Transcriptions
-- [ ] Speaker management (needs docs)
-- [ ] PiP on iOS
-- [ ] Audio & Video filters
-- [ ] CPU usage improvement
+- [x] Speaker management
+- [x] PiP on iOS
+- [x] Audio & Video filters
+- [x] CPU usage improvement
 - [ ] Analytics Integration
 - [ ] Long press to focus
 - [ ] Dynascale 2.0
