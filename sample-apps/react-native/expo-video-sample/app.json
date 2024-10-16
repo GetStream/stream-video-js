@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
@@ -59,7 +61,7 @@
           "android": {
             "minSdkVersion": 24,
             "extraMavenRepos": [
-              "../../node_modules/@notifee/react-native/android/libs"
+              "../../../node_modules/@notifee/react-native/android/libs"
             ]
           },
           "ios": {
