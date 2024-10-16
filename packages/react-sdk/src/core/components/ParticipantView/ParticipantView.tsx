@@ -68,7 +68,7 @@ export type ParticipantViewProps = {
    * Custom class applied to the root DOM element.
    */
   className?: string;
-} & Pick<VideoProps, 'VideoPlaceholder'>;
+} & Pick<VideoProps, 'VideoPlaceholder' | 'PictureInPicturePlaceholder'>;
 
 export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
   function ParticipantView(
@@ -80,6 +80,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       refs: { setVideoElement, setVideoPlaceholderElement } = {},
       className,
       VideoPlaceholder,
+      PictureInPicturePlaceholder,
       ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
     },
     ref,
@@ -175,6 +176,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           )}
           <Video
             VideoPlaceholder={VideoPlaceholder}
+            PictureInPicturePlaceholder={PictureInPicturePlaceholder}
             participant={participant}
             trackType={trackType}
             refs={videoRefs}

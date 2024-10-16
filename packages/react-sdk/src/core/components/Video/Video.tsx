@@ -18,6 +18,11 @@ import {
   VideoPlaceholderProps,
 } from './DefaultVideoPlaceholder';
 import { useCall } from '@stream-io/video-react-bindings';
+import { usePictureInPictureState } from '../../hooks/usePictureInPictureState';
+import {
+  DefaultPictureInPicturePlaceholder,
+  PictureInPicturePlaceholderProps,
+} from './DefaultPictureInPicturePlaceholder';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   /**
@@ -47,6 +52,15 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
    */
   VideoPlaceholder?: ComponentType<VideoPlaceholderProps> | null;
   /**
+   * Override the default UI that's dispayed in place of the video when it's playing
+   * in picture-in-picture. Set it to `null` if you wish to display the browser's default
+   * placeholder.
+   *
+   * @default DefaultPictureInPicturePlaceholder
+   */
+  PictureInPicturePlaceholder?: ComponentType<PictureInPicturePlaceholderProps> | null;
+  /**
+  /**
    * An object with setRef functions
    * meant for exposing some of the internal elements of this component.
    */
@@ -61,6 +75,9 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
      * @param element the video placeholder element.
      */
     setVideoPlaceholderElement?: (element: HTMLDivElement | null) => void;
+    setPictureInPicturePlaceholderElement?: (
+      element: HTMLDivElement | null,
+    ) => void;
   };
 };
 
@@ -71,6 +88,7 @@ export const Video = ({
   participant,
   className,
   VideoPlaceholder = DefaultVideoPlaceholder,
+  PictureInPicturePlaceholder = DefaultPictureInPicturePlaceholder,
   refs,
   ...rest
 }: VideoProps) => {
@@ -90,6 +108,7 @@ export const Video = ({
   // start with true, will flip once the video starts playing
   const [isVideoPaused, setIsVideoPaused] = useState(true);
   const [isWideMode, setIsWideMode] = useState(true);
+  const isPiP = usePictureInPictureState(videoElement ?? undefined);
 
   const stream =
     trackType === 'videoTrack'
@@ -175,6 +194,12 @@ export const Video = ({
             setVideoElement(element);
             refs?.setVideoElement?.(element);
           }}
+        />
+      )}
+      {isPiP && (
+        <DefaultPictureInPicturePlaceholder
+          style={{ position: 'absolute' }}
+          participant={participant}
         />
       )}
       {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}

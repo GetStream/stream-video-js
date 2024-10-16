@@ -5,6 +5,7 @@ import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { PreferredCodec } from '../types';
+import { isMobile } from '../compatibility';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -27,10 +28,14 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    * @param direction the direction of the camera to select.
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
-    this.state.setDirection(direction);
-    // Providing both device id and direction doesn't work, so we deselect the device
-    this.state.setDevice(undefined);
-    await this.applySettingsToStream();
+    if (isMobile()) {
+      this.state.setDirection(direction);
+      // Providing both device id and direction doesn't work, so we deselect the device
+      this.state.setDevice(undefined);
+      await this.applySettingsToStream();
+    } else {
+      this.logger('warn', 'Camera direction ignored for desktop devices');
+    }
   }
 
   /**
@@ -97,7 +102,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     constraints.height = this.targetResolution.height;
     // We can't set both device id and facing mode
     // Device id has higher priority
-    if (!constraints.deviceId && this.state.direction) {
+    if (!constraints.deviceId && this.state.direction && isMobile()) {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }

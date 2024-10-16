@@ -36,6 +36,13 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../compatibility.ts', () => {
+  console.log('MOCKING mobile device');
+  return {
+    isMobile: () => true,
+  };
+});
+
 describe('CameraManager', () => {
   let manager: CameraManager;
 

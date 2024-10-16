@@ -5,16 +5,16 @@ import {
   type BaseVideoPlaceholderProps,
 } from './BaseVideoPlaceholder';
 
-export type VideoPlaceholderProps = BaseVideoPlaceholderProps;
+export type PictureInPicturePlaceholderProps = BaseVideoPlaceholderProps;
 
-export const DefaultVideoPlaceholder = forwardRef<
+export const DefaultPictureInPicturePlaceholder = forwardRef<
   HTMLDivElement,
-  VideoPlaceholderProps
->(function DefaultVideoPlaceholder(props, ref) {
+  PictureInPicturePlaceholderProps
+>(function DefaultPictureInPicturePlaceholder(props, ref) {
   const { t } = useI18n();
   return (
     <BaseVideoPlaceholder ref={ref} {...props}>
-      {t('Video is disabled')}
+      {t('Video is playing in a popup')}
     </BaseVideoPlaceholder>
   );
 });

@@ -20,13 +20,17 @@ type PaginatedGridLayoutGroupProps = {
    * The group of participants to render.
    */
   group: Array<StreamVideoParticipant>;
-} & Pick<ParticipantViewProps, 'VideoPlaceholder' | 'mirror'> &
+} & Pick<
+  ParticipantViewProps,
+  'VideoPlaceholder' | 'PictureInPicturePlaceholder' | 'mirror'
+> &
   Required<Pick<ParticipantViewProps, 'ParticipantViewUI'>>;
 
 const PaginatedGridLayoutGroup = ({
   group,
   mirror,
   VideoPlaceholder,
+  PictureInPicturePlaceholder,
   ParticipantViewUI,
 }: PaginatedGridLayoutGroupProps) => {
   return (
@@ -46,6 +50,7 @@ const PaginatedGridLayoutGroup = ({
           muteAudio
           mirror={mirror}
           VideoPlaceholder={VideoPlaceholder}
+          PictureInPicturePlaceholder={PictureInPicturePlaceholder}
           ParticipantViewUI={ParticipantViewUI}
         />
       ))}
