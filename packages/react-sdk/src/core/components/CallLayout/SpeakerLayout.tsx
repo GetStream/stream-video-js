@@ -51,7 +51,10 @@ export type SpeakerLayoutProps = {
    * @default true
    */
   pageArrowsVisible?: boolean;
-} & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
+} & Pick<
+  ParticipantViewProps,
+  'VideoPlaceholder' | 'PictureInPicturePlaceholder'
+>;
 
 const DefaultParticipantViewUIBar = () => (
   <DefaultParticipantViewUI menuPlacement="top-end" />
@@ -61,6 +64,7 @@ export const SpeakerLayout = ({
   ParticipantViewUIBar = DefaultParticipantViewUIBar,
   ParticipantViewUISpotlight = DefaultParticipantViewUI,
   VideoPlaceholder,
+  PictureInPicturePlaceholder,
   participantsBarPosition = 'bottom',
   participantsBarLimit,
   mirrorLocalParticipantVideo = true,
@@ -148,6 +152,7 @@ export const SpeakerLayout = ({
               }
               ParticipantViewUI={ParticipantViewUISpotlight}
               VideoPlaceholder={VideoPlaceholder}
+              PictureInPicturePlaceholder={PictureInPicturePlaceholder}
             />
           )}
         </div>
@@ -173,6 +178,7 @@ export const SpeakerLayout = ({
                       participant={participantInSpotlight}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      PictureInPicturePlaceholder={PictureInPicturePlaceholder}
                       mirror={mirror}
                       muteAudio={true}
                     />
@@ -187,6 +193,7 @@ export const SpeakerLayout = ({
                       participant={participant}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      PictureInPicturePlaceholder={PictureInPicturePlaceholder}
                       mirror={mirror}
                       muteAudio={true}
                     />
