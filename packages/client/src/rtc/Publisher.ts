@@ -1,24 +1,27 @@
-import * as SDP from 'sdp-transform';
 import { StreamSfuClient } from '../StreamSfuClient';
 import {
   PeerType,
   TrackInfo,
   TrackType,
   VideoLayer,
-  VideoQuality,
 } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
 import {
   findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
   OptimalVideoLayer,
+  ridToVideoQuality,
   toSvcEncodings,
 } from './videoLayers';
 import { getOptimalVideoCodec, getPreferredCodecs, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
-import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
+import {
+  enableHighQualityAudio,
+  extractMid,
+  toggleDtx,
+} from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
@@ -66,24 +69,10 @@ export class Publisher {
   private readonly onUnrecoverableError?: () => void;
 
   private isIceRestarting = false;
-
-  /**
-   * The SFU client instance to use for publishing and signaling.
-   */
-  sfuClient: StreamSfuClient;
+  private sfuClient: StreamSfuClient;
 
   /**
    * Constructs a new `Publisher` instance.
-   *
-   * @param connectionConfig the connection configuration to use.
-   * @param sfuClient the SFU client to use.
-   * @param state the call state to use.
-   * @param dispatcher the dispatcher to use.
-   * @param isDtxEnabled whether DTX is enabled.
-   * @param isRedEnabled whether RED is enabled.
-   * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
-   * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
-   * @param logTag the log tag to use.
    */
   constructor({
     connectionConfig,
@@ -535,23 +524,22 @@ export class Publisher {
    */
   private negotiate = async (options?: RTCOfferOptions) => {
     const offer = await this.pc.createOffer(options);
-    let sdp = this.mungeCodecs(offer.sdp);
-    if (sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-      sdp = this.enableHighQualityAudio(sdp);
+    if (offer.sdp) {
+      offer.sdp = toggleDtx(offer.sdp, this.isDtxEnabled);
+      if (this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
+        offer.sdp = this.enableHighQualityAudio(offer.sdp);
+      }
     }
-
-    // set the munged SDP back to the offer
-    offer.sdp = sdp;
 
     const trackInfos = this.getAnnouncedTracks(offer.sdp);
     if (trackInfos.length === 0) {
       throw new Error(`Can't negotiate without announcing any tracks`);
     }
 
-    this.isIceRestarting = options?.iceRestart ?? false;
-    await this.pc.setLocalDescription(offer);
-
     try {
+      this.isIceRestarting = options?.iceRestart ?? false;
+      await this.pc.setLocalDescription(offer);
+
       const { response } = await this.sfuClient.setPublisher({
         sdp: offer.sdp || '',
         tracks: trackInfos,
@@ -579,58 +567,11 @@ export class Publisher {
     const transceiver = this.transceiverCache.get(TrackType.SCREEN_SHARE_AUDIO);
     if (!transceiver) return sdp;
 
-    const mid = this.extractMid(transceiver, sdp, TrackType.SCREEN_SHARE_AUDIO);
-    return enableHighQualityAudio(sdp, mid);
-  };
-
-  private mungeCodecs = (sdp?: string) => {
-    if (sdp) {
-      sdp = toggleDtx(sdp, this.isDtxEnabled);
-    }
-    return sdp;
-  };
-
-  private extractMid = (
-    transceiver: RTCRtpTransceiver,
-    sdp: string | undefined,
-    trackType: TrackType,
-  ): string => {
-    if (transceiver.mid) return transceiver.mid;
-
-    if (!sdp) {
-      this.logger('warn', 'No SDP found. Returning empty mid');
-      return '';
-    }
-
-    this.logger(
-      'debug',
-      `No 'mid' found for track. Trying to find it from the Offer SDP`,
+    const transceiverInitIndex = this.transceiverInitOrder.indexOf(
+      TrackType.SCREEN_SHARE_AUDIO,
     );
-
-    const track = transceiver.sender.track!;
-    const parsedSdp = SDP.parse(sdp);
-    const media = parsedSdp.media.find((m) => {
-      return (
-        m.type === track.kind &&
-        // if `msid` is not present, we assume that the track is the first one
-        (m.msid?.includes(track.id) ?? true)
-      );
-    });
-    if (typeof media?.mid === 'undefined') {
-      this.logger(
-        'debug',
-        `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find it heuristically`,
-      );
-
-      const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
-      if (heuristicMid !== -1) {
-        return String(heuristicMid);
-      }
-
-      this.logger('debug', 'No heuristic mid found. Returning empty mid');
-      return '';
-    }
-    return String(media.mid);
+    const mid = extractMid(transceiver, transceiverInitIndex, sdp);
+    return enableHighQualityAudio(sdp, mid);
   };
 
   /**
@@ -669,7 +610,7 @@ export class Publisher {
           rid: optimalLayer.rid || '',
           bitrate: optimalLayer.maxBitrate || 0,
           fps: optimalLayer.maxFramerate || 0,
-          quality: this.ridToVideoQuality(optimalLayer.rid || ''),
+          quality: ridToVideoQuality(optimalLayer.rid || ''),
           videoDimension: {
             width: optimalLayer.width,
             height: optimalLayer.height,
@@ -683,13 +624,13 @@ export class Publisher {
 
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
-
+        const transceiverInitIndex =
+          this.transceiverInitOrder.indexOf(trackType);
         return {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: this.extractMid(transceiver, sdp, trackType),
-
+          mid: extractMid(transceiver, transceiverInitIndex, sdp),
           stereo: isStereo,
           dtx: isAudioTrack && this.isDtxEnabled,
           red: isAudioTrack && this.isRedEnabled,
@@ -749,13 +690,5 @@ export class Publisher {
 
   private onSignalingStateChange = () => {
     this.logger('debug', `Signaling state changed`, this.pc.signalingState);
-  };
-
-  private ridToVideoQuality = (rid: string): VideoQuality => {
-    return rid === 'q'
-      ? VideoQuality.LOW_UNSPECIFIED
-      : rid === 'h'
-        ? VideoQuality.MID
-        : VideoQuality.HIGH; // default to HIGH
   };
 }

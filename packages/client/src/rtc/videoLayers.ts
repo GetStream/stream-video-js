@@ -2,6 +2,7 @@ import { PreferredCodec, PublishOptions } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 import { isSvcCodec } from './codecs';
 import { getOptimalBitrate } from './bitrateLookup';
+import { VideoQuality } from '../gen/video/sfu/models/models';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -33,6 +34,17 @@ const defaultBitratePerRid: Record<string, number> = {
 export const toSvcEncodings = (layers: OptimalVideoLayer[] | undefined) => {
   // we take the `f` layer, and we rename it to `q`.
   return layers?.filter((l) => l.rid === 'f').map((l) => ({ ...l, rid: 'q' }));
+};
+
+/**
+ * Converts the rid to a video quality.
+ */
+export const ridToVideoQuality = (rid: string): VideoQuality => {
+  return rid === 'q'
+    ? VideoQuality.LOW_UNSPECIFIED
+    : rid === 'h'
+      ? VideoQuality.MID
+      : VideoQuality.HIGH; // default to HIGH
 };
 
 /**
