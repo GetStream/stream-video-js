@@ -3637,6 +3637,12 @@ export interface GoLiveRequest {
    * @type {boolean}
    * @memberof GoLiveRequest
    */
+  start_rtmp_broadcasts?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
   start_transcription?: boolean;
   /**
    *
@@ -3959,6 +3965,25 @@ export interface ListDevicesResponse {
    *
    * @type {string}
    * @memberof ListDevicesResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface ListRTMPBroadcastsResponse
+ */
+export interface ListRTMPBroadcastsResponse {
+  /**
+   *
+   * @type {Array<RTMPBroadcast>}
+   * @memberof ListRTMPBroadcastsResponse
+   */
+  broadcasts: Array<RTMPBroadcast>;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof ListRTMPBroadcastsResponse
    */
   duration: string;
 }
@@ -5044,6 +5069,85 @@ export interface QueryCallsResponse {
   prev?: string;
 }
 /**
+ *
+ * @export
+ * @interface RTMPBroadcast
+ */
+export interface RTMPBroadcast {
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  error?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  error_message?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  password?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  status: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  stream_key: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  stream_url: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPBroadcast
+   */
+  username?: string;
+}
+/**
  * RTMP input settings
  * @export
  * @interface RTMPIngress
@@ -5512,6 +5616,56 @@ export interface StartHLSBroadcastingResponse {
 /**
  *
  * @export
+ * @interface StartRTMPBroadcastsRequest
+ */
+export interface StartRTMPBroadcastsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  password?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  stream_key?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  stream_url?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartRTMPBroadcastsRequest
+   */
+  username?: string;
+}
+/**
+ *
+ * @export
+ * @interface StartRTMPBroadcastsResponse
+ */
+export interface StartRTMPBroadcastsResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StartRTMPBroadcastsResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface StartRecordingRequest
  */
 export interface StartRecordingRequest {
@@ -5622,6 +5776,32 @@ export interface StopLiveResponse {
    * Duration of the request in milliseconds
    * @type {string}
    * @memberof StopLiveResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StopRTMPBroadcastsRequest
+ */
+export interface StopRTMPBroadcastsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StopRTMPBroadcastsRequest
+   */
+  name?: string;
+}
+/**
+ *
+ * @export
+ * @interface StopRTMPBroadcastsResponse
+ */
+export interface StopRTMPBroadcastsResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopRTMPBroadcastsResponse
    */
   duration: string;
 }

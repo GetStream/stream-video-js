@@ -39,6 +39,7 @@ import type {
   JoinCallRequest,
   JoinCallResponse,
   ListRecordingsResponse,
+  ListRTMPBroadcastsResponse,
   ListTranscriptionsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
@@ -57,12 +58,16 @@ import type {
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StartRTMPBroadcastsRequest,
+  StartRTMPBroadcastsResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
+  StopRTMPBroadcastsRequest,
+  StopRTMPBroadcastsResponse,
   StopTranscriptionResponse,
   UnblockUserRequest,
   UnblockUserResponse,
@@ -663,6 +668,27 @@ export class Call {
     await this.applyDeviceConfig(false);
 
     return response;
+  };
+
+  startRTMPBroadcast = async (data: StartRTMPBroadcastsRequest) => {
+    console.log('Niv is VERY VERY 1232 awesome >>>>')
+    return this.streamClient.post<StartRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/start_rtmp_broadcasts`,
+      data,
+    );
+  };
+
+  stopRTMPBroadcast = async (data: StopRTMPBroadcastsRequest) => {
+    return this.streamClient.post<StopRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/stop_rtmp_broadcasts`,
+      data,
+    );
+  };
+
+  listRTMPBroadcasts = async () => {
+    return this.streamClient.get<ListRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/list_rtmp_broadcasts`,
+    );
   };
 
   /**
