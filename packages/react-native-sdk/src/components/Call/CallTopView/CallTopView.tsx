@@ -71,7 +71,7 @@ export const CallTopView = ({
           </View>
         </View>
         <View style={styles.rightElement}>
-          <HangUpCallButton onHangupCallHandler={onHangupCallHandler} />
+          <HangUpCallButton onPressHandler={onHangupCallHandler} />
         </View>
       </View>
     </View>
@@ -84,13 +84,10 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
-        container: {
-          // borderWidth: 2,
-          // borderColor: 'red',
-        },
+        container: {},
         content: {
           position: 'absolute',
-          backgroundColor: 'black',
+          backgroundColor: theme.colors.sheetPrimary,
           top: 0,
           flexDirection: 'row',
           paddingTop: 2,

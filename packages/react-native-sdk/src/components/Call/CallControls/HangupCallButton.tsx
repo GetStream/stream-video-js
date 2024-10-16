@@ -52,9 +52,9 @@ export const HangUpCallButton = ({
       return;
     }
     try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
+      // if (callingState === CallingState.LEFT) {
+      //   return;
+      // }
       await call?.leave();
       if (onHangupCallHandler) {
         onHangupCallHandler();

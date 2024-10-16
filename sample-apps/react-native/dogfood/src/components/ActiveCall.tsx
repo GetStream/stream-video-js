@@ -4,7 +4,7 @@ import {
   CallContent,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import {
@@ -59,6 +59,8 @@ export const ActiveCall = ({
 
   return (
     <View style={styles.container}>
+      {/* <StatusBar barStyle="light-content" backgroundColor="black" /> */}
+      <View style={styles.topUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
           onBackPressed={onBackPressed}
@@ -71,7 +73,7 @@ export const ActiveCall = ({
           setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
         />
       </SafeAreaView>
-      <View style={styles.unsafeArea} />
+      <View style={styles.bottomUnsafeArea} />
     </View>
   );
 };
@@ -85,7 +87,16 @@ const useStyles = () => {
         container: { flex: 1 },
         callContent: { flex: 1 },
         safeArea: { flex: 1, paddingBottom: theme.variants.insets.bottom },
-        unsafeArea: {
+        topUnsafeArea: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: theme.variants.insets.top,
+          backgroundColor: theme.colors.sheetPrimary, // Change to your desired color
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+        bottomUnsafeArea: {
           position: 'absolute',
           left: 0,
           right: 0,

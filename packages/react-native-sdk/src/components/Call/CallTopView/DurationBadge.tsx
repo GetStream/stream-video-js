@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../../icons';
 import { useTheme } from '../../..';
-import RecordCall from '../../../icons/RecordCall';
+// import RecordCall from '../../../icons/RecordCall';
 import { IconWrapper } from '../../../icons/IconWrapper';
 
 // TODO: move to dogfood app
@@ -34,7 +34,7 @@ export const DurationBadge = (props: any) => {
   const icon = false ? (
     <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
   ) : (
-    <RecordCall color={colors.iconAlertWarning} size={iconSizes.md} />
+    <CallDuration color={colors.iconAlertWarning} size={iconSizes.md} />
   );
 
   return (

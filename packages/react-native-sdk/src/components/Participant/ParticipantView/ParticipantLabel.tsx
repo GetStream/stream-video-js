@@ -6,6 +6,7 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
 import { useTheme } from '../../../contexts/ThemeContext';
+import SpeechIndicator from './SpeechIndicator';
 
 /**
  * Props for the ParticipantLabel component.
@@ -65,10 +66,7 @@ export const ParticipantLabel = ({
         <View
           style={[
             styles.screenShareIconContainer,
-            {
-              height: iconSizes.md,
-              width: iconSizes.md,
-            },
+            { height: iconSizes.md, width: iconSizes.md },
             screenShareIconContainer,
           ]}
         >
@@ -93,29 +91,31 @@ export const ParticipantLabel = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.background6 },
+        { backgroundColor: 'rgba(12, 13, 14, 0.65)' },
         container,
       ]}
     >
-      <Text
-        style={[
-          styles.userNameLabel,
-          { color: colors.base1 },
-          typefaces.caption,
-          userNameLabel,
-        ]}
-        numberOfLines={1}
-      >
-        {participantLabel}
-      </Text>
+      <View style={styles.wrapper}>
+        <Text
+          style={[
+            styles.userNameLabel,
+            { color: colors.base1 },
+            typefaces.subtitle,
+            userNameLabel,
+          ]}
+          numberOfLines={1}
+        >
+          {participantLabel}
+        </Text>
+        <View style={styles.indicatorWrapper}>
+          <SpeechIndicator />
+        </View>
+      </View>
       {isPinningEnabled && (
         <Pressable
           style={[
             styles.pinIconContainer,
-            {
-              height: iconSizes.xs,
-              width: iconSizes.xs,
-            },
+            { height: iconSizes.xs, width: iconSizes.xs },
             pinIconContainer,
           ]}
           onPress={unPinParticipantHandler}
@@ -128,11 +128,18 @@ export const ParticipantLabel = ({
 };
 
 const styles = StyleSheet.create({
+  indicatorWrapper: {
+    marginLeft: 7,
+  },
+  wrapper: {
+    flexDirection: 'row',
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 8,
-    borderRadius: 5,
+    borderTopRightRadius: 5,
+    marginBottom: -2,
     flexShrink: 1,
     zIndex: Z_INDEX.IN_FRONT,
   },

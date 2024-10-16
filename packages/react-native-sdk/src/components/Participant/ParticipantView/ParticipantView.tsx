@@ -163,7 +163,6 @@ export const ParticipantView = ({
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
-    padding: 4,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'transparent',

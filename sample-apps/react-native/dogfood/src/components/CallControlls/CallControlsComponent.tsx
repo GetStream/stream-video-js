@@ -3,8 +3,9 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCallStateHooks,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { appTheme } from '../../theme';
 import { Z_INDEX } from '../../constants';
@@ -30,6 +31,7 @@ export const CallControlsComponent = ({
 }: CallControlsComponentProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
+  const styles = useStyles();
 
   return (
     <View style={styles.container}>
@@ -58,38 +60,46 @@ export const CallControlsComponent = ({
   );
 };
 
-const styles = StyleSheet.create({
-  speakingLabelContainer: {
-    backgroundColor: appTheme.colors.static_overlay,
-    paddingVertical: 10,
-    width: '100%',
-  },
-  label: {
-    textAlign: 'center',
-    color: appTheme.colors.static_white,
-  },
-  callControlsWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-  container: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: 'black',
-    height: 76,
-  },
-  left: {
-    flex: 2.5,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  right: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 6,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        speakingLabelContainer: {
+          backgroundColor: appTheme.colors.static_overlay,
+          paddingVertical: 10,
+          width: '100%',
+        },
+        label: {
+          textAlign: 'center',
+          color: appTheme.colors.static_white,
+        },
+        callControlsWrapper: {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+        container: {
+          paddingVertical: 16,
+          paddingHorizontal: 16,
+          backgroundColor: theme.colors.sheetPrimary,
+          height: 76,
+        },
+        left: {
+          flex: 2.5,
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          gap: 6,
+        },
+        right: {
+          flex: 1,
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          gap: 6,
+        },
+      }),
+    [theme],
+  );
+};
