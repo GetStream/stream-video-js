@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
 import {
@@ -194,10 +194,6 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
   return (
     <>
       {!disablePictureInPicture && (
@@ -205,7 +201,7 @@ export const CallContent = ({
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
         />
       )}
-      <View style={[styles.container, landscapeStyles, callContent.container]}>
+      <View style={[styles.container, callContent.container]}>
         <View style={[styles.container, callContent.callParticipantsContainer]}>
           {!isInPiPMode && CallTopView && (
             <CallTopView onHangupCallHandler={onHangupCallHandler} />
@@ -249,6 +245,7 @@ export const CallContent = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  content: { flex: 1 },
   view: {
     // backgroundColor: 'red',
     ...StyleSheet.absoluteFillObject,

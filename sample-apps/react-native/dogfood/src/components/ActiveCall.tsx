@@ -1,17 +1,18 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   useCall,
   CallContent,
-  CallControlProps,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import {
   CallControlsComponent,
   CallControlsComponentProps,
-} from './CallControlsComponent';
+} from './CallControlls/CallControlsComponent';
 import { useOrientation } from '../hooks/useOrientation';
+import { Z_INDEX } from '../constants';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
@@ -30,10 +31,11 @@ export const ActiveCall = ({
     useState<boolean>(false);
   const call = useCall();
   const currentOrientation = useOrientation();
+  const styles = useStyles();
 
-  const onOpenCallParticipantsInfo = () => {
+  const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
-  };
+  }, []);
 
   useEffect(() => {
     return call?.on('call.ended', () => {
@@ -41,42 +43,61 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const CustomControlsComponent = useCallback(
-    ({ landscape }: CallControlProps) => {
-      return (
-        <CallControlsComponent
-          onHangupCallHandler={onHangupCallHandler}
-          onChatOpenHandler={onChatOpenHandler}
-          unreadCountIndicator={unreadCountIndicator}
-          landscape={landscape}
-        />
-      );
-    },
-    [onChatOpenHandler, onHangupCallHandler, unreadCountIndicator],
-  );
+  const CustomControlsComponent = useCallback(() => {
+    return (
+      <CallControlsComponent
+        onParticipantInfoPress={onOpenCallParticipantsInfo}
+        onChatOpenHandler={onChatOpenHandler}
+        unreadCountIndicator={unreadCountIndicator}
+      />
+    );
+  }, [onChatOpenHandler, onOpenCallParticipantsInfo, unreadCountIndicator]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <CallContent
-        onBackPressed={onBackPressed}
-        onHangupCallHandler={onHangupCallHandler}
-        CallControls={CustomControlsComponent}
-        landscape={currentOrientation === 'landscape'}
-      />
-      <ParticipantsInfoList
-        isCallParticipantsInfoVisible={isCallParticipantsVisible}
-        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-      />
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <CallContent
+          onBackPressed={onBackPressed}
+          onHangupCallHandler={onHangupCallHandler}
+          CallControls={CustomControlsComponent}
+          landscape={currentOrientation === 'landscape'}
+        />
+        <ParticipantsInfoList
+          isCallParticipantsInfoVisible={isCallParticipantsVisible}
+          setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
+        />
+      </SafeAreaView>
+      <View style={styles.unsafeArea} />
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1 },
+        callContent: { flex: 1 },
+        safeArea: { flex: 1, paddingBottom: theme.variants.insets.bottom },
+        unsafeArea: {
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: theme.variants.insets.bottom,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        view: {
+          ...StyleSheet.absoluteFillObject,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+      }),
+    [theme],
+  );
+};

@@ -16,6 +16,7 @@ export enum ComponentTestIds {
   PARTICIPANT_SCREEN_SHARING = 'participant-screen-sharing',
   REACTIONS_PICKER = 'reactions-picker',
   CHAT_UNREAD_BADGE_COUNT_INDICATOR = 'chat-unread-badge-count-indicator',
+  BADGE_COUNT_INDICATOR = 'badge-count-indicator',
 }
 
 export enum ButtonTestIds {

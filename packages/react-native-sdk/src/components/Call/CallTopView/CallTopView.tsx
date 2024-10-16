@@ -28,10 +28,6 @@ export type CallTopViewProps = {
    * Style to override the container of the CallTopView.
    */
   style?: StyleProp<ViewStyle>;
-  /**
-   * Component to customize the ParticipantInfoBadge of the CallTopView.
-   */
-  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps> | null;
 };
 
 export const CallTopView = ({
