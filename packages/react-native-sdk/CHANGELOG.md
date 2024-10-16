@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.6...@stream-io/video-react-native-sdk-1.2.0) (2024-10-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.5`
+
+### Features
+
+* **svc-codec:** VP9 and AV1 support ([#1434](https://github.com/GetStream/stream-video-js/issues/1434)) ([c9c8530](https://github.com/GetStream/stream-video-js/commit/c9c8530d48c9206dc3803e6aa6cc1859fd433920))
+
 ## [1.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.5...@stream-io/video-react-native-sdk-1.1.6) (2024-10-16)
 
 ### Dependency Updates
