@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.4...@stream-io/video-client-1.9.0) (2024-10-16)
+
+
+### Features
+
+* **svc-codec:** VP9 and AV1 support ([#1434](https://github.com/GetStream/stream-video-js/issues/1434)) ([c9c8530](https://github.com/GetStream/stream-video-js/commit/c9c8530d48c9206dc3803e6aa6cc1859fd433920))
+
 ## [1.8.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.3...@stream-io/video-client-1.8.4) (2024-10-16)
 
 
