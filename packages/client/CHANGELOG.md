@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.8.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.3...@stream-io/video-client-1.8.4) (2024-10-16)
+
+
+### Bug Fixes
+
+* ignore camera direction for desktop devices ([#1521](https://github.com/GetStream/stream-video-js/issues/1521)) ([562b5cc](https://github.com/GetStream/stream-video-js/commit/562b5cca77264330d08dff5305eccc489970076a))
+
 ## [1.8.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.2...@stream-io/video-client-1.8.3) (2024-10-10)
 
 
