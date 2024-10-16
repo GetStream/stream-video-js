@@ -14,6 +14,7 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -60,6 +61,7 @@ export const VideoRenderer = ({
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { direction } = useCameraState();
+  const videoDimensions = useTrackDimensions(participant, trackType);
   const {
     isLocalParticipant,
     sessionId,
@@ -260,7 +262,12 @@ export const VideoRenderer = ({
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
-          objectFit={objectFit ?? (isScreenSharing ? 'contain' : 'cover')}
+          objectFit={
+            objectFit ??
+            (videoDimensions.width > videoDimensions.height
+              ? 'contain'
+              : 'cover')
+          }
           zOrder={videoZOrder}
         />
       ) : (
