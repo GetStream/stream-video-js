@@ -42,7 +42,7 @@ export type SpeakerLayoutProps = {
    */
   excludeLocalParticipant?: boolean;
   /**
-   * When set to `false` disables mirroring of the local partipant's video.
+   * When set to `false` disables mirroring of the local participant's video.
    * @default true
    */
   mirrorLocalParticipantVideo?: boolean;
@@ -131,6 +131,9 @@ export const SpeakerLayout = ({
 
   if (!call) return null;
 
+  const renderParticipantsBar =
+    participantsBarPosition &&
+    (participantsWithAppliedLimit.length > 0 || isSpeakerScreenSharing);
   return (
     <div className="str-video__speaker-layout__wrapper">
       <ParticipantsAudio participants={remoteParticipants} />
@@ -156,7 +159,7 @@ export const SpeakerLayout = ({
             />
           )}
         </div>
-        {participantsWithAppliedLimit.length > 0 && participantsBarPosition && (
+        {renderParticipantsBar && (
           <div
             ref={setButtonsWrapperElement}
             className="str-video__speaker-layout__participants-bar-buttons-wrapper"

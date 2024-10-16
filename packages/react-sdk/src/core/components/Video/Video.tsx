@@ -28,6 +28,7 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   /**
    * Pass false to disable rendering video and render fallback
    * even if the participant has published video.
+   * @default true
    */
   enabled?: boolean;
   /**
@@ -81,7 +82,7 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
 };
 
 export const Video = ({
-  enabled,
+  enabled = true,
   mirror,
   trackType,
   participant,

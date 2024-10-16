@@ -2,6 +2,45 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.5...@stream-io/video-react-sdk-1.6.6) (2024-10-14)
+
+
+### Bug Fixes
+
+* check for user capabilities before rendering call control buttons ([#1513](https://github.com/GetStream/stream-video-js/issues/1513)) ([9b11219](https://github.com/GetStream/stream-video-js/commit/9b1121966d3e3f7610fbbca386b8837563203e86))
+
+## [1.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.4...@stream-io/video-react-sdk-1.6.5) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.3`
+## [1.6.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.3...@stream-io/video-react-sdk-1.6.4) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.2`
+## [1.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.2...@stream-io/video-react-sdk-1.6.3) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.1`
+## [1.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.1...@stream-io/video-react-sdk-1.6.2) (2024-10-07)
+
+
+### Bug Fixes
+
+* edge case with participant bar rendering ([#1512](https://github.com/GetStream/stream-video-js/issues/1512)) ([2c1c345](https://github.com/GetStream/stream-video-js/commit/2c1c3459c531c8b083f095c9ecc37235a89127c1))
+
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.6.0...@stream-io/video-react-sdk-1.6.1) (2024-10-04)
+
+
+### Bug Fixes
+
+* video should be enabled by default ([7340041](https://github.com/GetStream/stream-video-js/commit/73400414d472d39701fd31b54ac927a8a8865151))
+
 ## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.5.0...@stream-io/video-react-sdk-1.6.0) (2024-10-03)
 
 

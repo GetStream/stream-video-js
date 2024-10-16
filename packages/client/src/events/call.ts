@@ -76,9 +76,8 @@ export const watchCallEnded = (call: Call) => {
   return function onCallEnded() {
     const { callingState } = call.state;
     if (
-      callingState === CallingState.RINGING ||
-      callingState === CallingState.JOINED ||
-      callingState === CallingState.JOINING
+      callingState !== CallingState.IDLE &&
+      callingState !== CallingState.LEFT
     ) {
       call.leave({ reason: 'call.ended event received' }).catch((err) => {
         call.logger('error', 'Failed to leave call after call.ended ', err);
