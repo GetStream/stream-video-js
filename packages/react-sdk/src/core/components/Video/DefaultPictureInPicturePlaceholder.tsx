@@ -10,7 +10,7 @@ export type PictureInPicturePlaceholderProps = BaseVideoPlaceholderProps;
 export const DefaultPictureInPicturePlaceholder = forwardRef<
   HTMLDivElement,
   PictureInPicturePlaceholderProps
->(function DefaultVideoPlaceholder(props, ref) {
+>(function DefaultPictureInPicturePlaceholder(props, ref) {
   const { t } = useI18n();
   return (
     <BaseVideoPlaceholder ref={ref} {...props}>
