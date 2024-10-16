@@ -102,7 +102,7 @@ export const getOptimalVideoCodec = (
 ): PreferredCodec => {
   if (isReactNative()) {
     const os = getOSInfo()?.name.toLowerCase();
-    if (os === 'android') return preferredOr(preferredCodec, 'vp9');
+    if (os === 'android') return preferredOr(preferredCodec, 'vp8');
     if (os === 'ios' || os === 'ipados') return 'h264';
     return preferredOr(preferredCodec, 'h264');
   }
