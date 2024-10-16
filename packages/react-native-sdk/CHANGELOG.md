@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.4...@stream-io/video-react-native-sdk-1.1.5) (2024-10-16)
+
+
+### Bug Fixes
+
+* **react-native:** set objectFit based on actual video track dimensions ([#1520](https://github.com/GetStream/stream-video-js/issues/1520)) ([44ef7d2](https://github.com/GetStream/stream-video-js/commit/44ef7d2e69a910be45b2d3a7643c3f58e0f29803))
+
 ## [1.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.3...@stream-io/video-react-native-sdk-1.1.4) (2024-10-10)
 
 ### Dependency Updates
