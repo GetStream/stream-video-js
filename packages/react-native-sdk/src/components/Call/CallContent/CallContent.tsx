@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
-
-import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
 import {
   CallParticipantsGrid,
   CallParticipantsGridProps,
@@ -48,7 +43,7 @@ type CallContentComponentProps = ParticipantViewComponentProps &
     /**
      * Component to customize the CallTopView component.
      */
-    CallTopView?: React.ComponentType<CallTopViewProps> | null;
+    CallTopView?: React.ComponentType<any> | null;
     /**
      * Component to customize the CallControls component.
      */
@@ -71,7 +66,6 @@ export type CallContentProps = Pick<
   HangUpCallButtonProps,
   'onHangupCallHandler'
 > &
-  Pick<CallTopViewProps, 'onBackPressed'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -97,10 +91,9 @@ export type CallContentProps = Pick<
   };
 
 export const CallContent = ({
-  onBackPressed,
   onHangupCallHandler,
   CallParticipantsList,
-  CallTopView = DefaultCallTopView,
+  CallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -204,16 +197,16 @@ export const CallContent = ({
         />
       )}
       <View style={[styles.container, callContent.container]}>
-        <View style={[styles.content, callContent.callParticipantsContainer]}>
+        <View style={[styles.container, callContent.callParticipantsContainer]}>
+          {!isInPiPMode && CallTopView && (
+            <CallTopView onHangupCallHandler={onHangupCallHandler} />
+          )}
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches
             // and allows only the top and floating view (its child views) to take up the touches
             pointerEvents="box-none"
           >
-            {!isInPiPMode && CallTopView && (
-              <CallTopView onBackPressed={onBackPressed} />
-            )}
             {showFloatingView && FloatingParticipantView && (
               <FloatingParticipantView
                 participant={

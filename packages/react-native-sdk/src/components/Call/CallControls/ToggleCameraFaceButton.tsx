@@ -2,7 +2,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { CameraSwitch } from '../../../icons';
+import { CameraSwitch, IconWrapper } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -28,7 +28,7 @@ export const ToggleCameraFaceButton = ({
   const isVideoEnabledInCall = callSettings?.video.enabled;
 
   const {
-    theme: { colors, toggleCameraFaceButton },
+    theme: { colors, toggleCameraFaceButton, defaults },
   } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
@@ -47,17 +47,23 @@ export const ToggleCameraFaceButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={direction === 'back' ? colors.background4 : colors.base1}
+        color={colors.sheetPrimary}
+        disabledColor={colors.sheetPrimary}
         disabled={optimisticIsMute}
         style={toggleCameraFaceButton}
       >
-        <CameraSwitch
-          color={
-            direction === 'front' || direction === undefined
-              ? colors.base5
-              : colors.base1
-          }
-        />
+        <IconWrapper>
+          <CameraSwitch
+            size={defaults.iconSize}
+            color={
+              optimisticIsMute
+                ? colors.buttonPrimaryDisabled
+                : direction === 'front' || direction === undefined
+                  ? colors.iconPrimaryDefault
+                  : colors.buttonPrimaryDefault
+            }
+          />
+        </IconWrapper>
       </CallControlsButton>
     </Restricted>
   );

@@ -44,10 +44,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
       >
         <MenuIcon />
       </button>
-      <Avatar
-        image={displayImage}
-        name={displayTitle}
-      />
+      <Avatar image={displayImage} name={displayTitle} />
       <div className="str-chat__header-livestream-left str-chat__channel-header-end">
         <p className="str-chat__header-livestream-left--title str-chat__channel-header-title">
           {displayTitle}{' '}

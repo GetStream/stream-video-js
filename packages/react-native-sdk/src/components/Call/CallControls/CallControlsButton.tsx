@@ -19,6 +19,10 @@ interface CallControlsButtonProps {
    */
   color?: ColorValue;
   /**
+   * The background color of the disabled button.
+   */
+  disabledColor?: ColorValue;
+  /**
    * Boolean to enable/disable the button
    */
   disabled?: boolean;
@@ -49,6 +53,7 @@ export const CallControlsButton = (
     children,
     disabled,
     color: colorProp,
+    disabledColor: disabledColorProp,
     style: styleProp,
     size,
     testID,
@@ -68,7 +73,7 @@ export const CallControlsButton = (
     styles.container,
     {
       backgroundColor: disabled
-        ? colors.buttonPrimaryDisabled
+        ? disabledColorProp || colors.buttonPrimaryDisabled
         : colorProp || colors.buttonSecondaryDefault,
       opacity: pressed ? 0.2 : 1,
       height: size || roundButtonSizes.lg,

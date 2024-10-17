@@ -100,7 +100,7 @@ export const CallParticipantsGrid = ({
       style={[
         styles.container,
         landscapeStyles,
-        { backgroundColor: colors.background2 },
+        { backgroundColor: colors.sheetPrimary },
         callParticipantsGrid.container,
       ]}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
@@ -118,7 +118,5 @@ export const CallParticipantsGrid = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
 });

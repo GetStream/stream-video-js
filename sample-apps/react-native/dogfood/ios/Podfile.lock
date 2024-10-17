@@ -916,7 +916,7 @@ PODS:
     - React-Core
   - react-native-netinfo (11.3.0):
     - React-Core
-  - react-native-safe-area-context (4.8.2):
+  - react-native-safe-area-context (4.10.5):
     - React-Core
   - react-native-video (6.0.0-beta.5):
     - React-Core
@@ -1126,15 +1126,16 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (2.0.3):
     - React-Core
-  - RNReanimated (3.7.0):
+  - RNReanimated (3.10.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNScreens (3.29.0):
+  - RNScreens (3.31.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
+    - React-RCTImage
   - RNSVG (13.9.0):
     - React-Core
   - RNVoipPushNotification (3.3.2):
@@ -1148,7 +1149,7 @@ PODS:
   - stream-react-native-webrtc (118.1.0):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (1.1.1):
+  - stream-video-react-native (1.1.6):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1439,7 +1440,7 @@ SPEC CHECKSUMS:
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-mmkv: 7da5e18e55c04a9af9a7e0ab9792a1e8d33765a1
   react-native-netinfo: 299dad906cdbf3b67bcc6f693c807f98bdd127cc
-  react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
+  react-native-safe-area-context: a240ad4b683349e48b1d51fed1611138d1bdad97
   react-native-video: df7d8a4c8568ed4a31b28e6cd2bfa4a98b186e36
   React-nativeconfig: ca8b90c736cf3be019cb332ca42d93dd95b32e05
   React-NativeModulesApple: 1fdffcce7772e274baeab33a1900f45feba86cbd
@@ -1472,14 +1473,14 @@ SPEC CHECKSUMS:
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
   RNPermissions: 4d64d2c763b20e5db08dfb8f1ef541f95c0d28c1
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
-  RNReanimated: ea7e98bf4f1167ca3cd3c348604d34dc4294e848
-  RNScreens: 2b73f5eb2ac5d94fbd61fa4be0bfebd345716825
+  RNReanimated: 8cd12e58bbedca2b0b62a3c3872d3629fc2e1583
+  RNScreens: 35f3344904f6bba888c0e61532278436e275de3c
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-io-video-filters-react-native: 8c345e6adf5164646696d45f9962c4199b2fe3b9
   stream-react-native-webrtc: 4ccf61161f77c57b9aa45f78cb7f69b7d91f3e9f
-  stream-video-react-native: ff287d6bc897fffdf7b07ed3828e53bbf74bf576
+  stream-video-react-native: 5f9c3101cff99715e6a6139b24a8f43539421e2b
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
