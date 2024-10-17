@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { CallDuration } from '../../../icons';
-import { useTheme } from '../../..';
-// import RecordCall from '../../../icons/RecordCall';
-import { IconWrapper } from '../../../icons/IconWrapper';
+import { CallDuration } from '../../assets/CallDuration';
+import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
-// TODO: move to dogfood app
 export const DurationBadge = (props: any) => {
   const {
     theme: {
@@ -31,10 +30,10 @@ export const DurationBadge = (props: any) => {
   const seconds = (duration % 60).toString().padStart(2, '0');
   const timestamp = `${minutes}:${seconds}`;
   const text = props.inProgress ? 'Recording in progress...' : timestamp;
-  const icon = false ? (
+  const icon = true ? (
     <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
   ) : (
-    <CallDuration color={colors.iconAlertWarning} size={iconSizes.md} />
+    <RecordCall color={colors.iconAlertWarning} size={iconSizes.md} />
   );
 
   return (
@@ -58,23 +57,25 @@ const useStyles = (props: any) => {
           borderRadius: 8,
           flexDirection: 'row',
           height: 36,
-          paddingHorizontal: 12, // Use equal padding on both sides
+          paddingLeft: 17,
+          paddingRight: 5,
           justifyContent: 'center',
           alignItems: 'center',
           width: props.inProgress ? 200 : 80,
-          gap: 7,
         },
         text: {
           color: theme.colors.typePrimary,
           fontSize: 13,
           fontWeight: '600',
-          marginLeft: 3, // Add some space between icon and text
-          flexShrink: 0, // Allow text to shrink if needed
+          flexShrink: 0,
+          marginLeft: 10,
+          minWidth: 41,
         },
         icon: {
-          marginTop: 3,
+          marginTop: 2,
+          marginRight: 5,
         },
       }),
-    [theme]
+    [theme],
   );
 };

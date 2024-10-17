@@ -108,7 +108,7 @@ export const ParticipantLabel = ({
           {participantLabel}
         </Text>
         <View style={styles.indicatorWrapper}>
-          <SpeechIndicator />
+          <SpeechIndicator isSpeaking={participant.isDominantSpeaker} />
         </View>
       </View>
       {isPinningEnabled && (
@@ -137,7 +137,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    padding: 5,
+    maxHeight: 30,
     borderTopRightRadius: 5,
     marginBottom: -2,
     flexShrink: 1,
@@ -145,6 +146,7 @@ const styles = StyleSheet.create({
   },
   userNameLabel: {
     flexShrink: 1,
+    marginTop: 2,
   },
   screenShareIconContainer: {
     marginRight: 8,

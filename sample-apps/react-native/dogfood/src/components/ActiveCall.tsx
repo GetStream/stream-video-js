@@ -13,6 +13,7 @@ import {
 } from './CallControlls/CallControlsComponent';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
+import { CustomCallTopView } from './CallControlls/CallTopView';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
@@ -32,6 +33,7 @@ export const ActiveCall = ({
   const call = useCall();
   const currentOrientation = useOrientation();
   const styles = useStyles();
+  const { theme: colors } = useTheme();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -59,12 +61,16 @@ export const ActiveCall = ({
 
   return (
     <View style={styles.container}>
-      {/* <StatusBar barStyle="light-content" backgroundColor="black" /> */}
+      <StatusBar
+        barStyle="light-content" // TODO: handle this based on theme
+        backgroundColor={colors.sheetPrimary}
+      />
       <View style={styles.topUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
           onBackPressed={onBackPressed}
           onHangupCallHandler={onHangupCallHandler}
+          CallTopView={CustomCallTopView}
           CallControls={CustomControlsComponent}
           landscape={currentOrientation === 'landscape'}
         />

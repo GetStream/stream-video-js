@@ -13,5 +13,3 @@ export * from './LobbyControls';
 export * from './IncomingCallControls';
 export * from './OutgoingCallControls';
 export * from './ScreenShareToggleButton';
-export * from './FlipCameraButton';
-export * from './VideoEffectsButton';

@@ -19,5 +19,4 @@ export * from './StartStreamIcon';
 export * from './StopScreenShare';
 export * from './EndStreamIcon';
 export * from './LeaveStreamIcon';
-export * from './CallDuration';
 export * from './IconWrapper';

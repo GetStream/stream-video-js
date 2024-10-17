@@ -1,12 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 
-export const SpeechIndicator = () => {
-  // const { participant } = useParticipantViewContext();
-  // const { isSpeaking, isDominantSpeaker } = participant;
-  const isSpeaking = false;
-  const isDominantSpeaker = true;
+/**
+ * Props for the SpeechIndicator component.
+ */
+export type SpeechIndicatorProps = {
+  /**
+   * Indicates whether the participant is speaking.
+   * If true, the animation will run, otherwise the bars will remain static.
+   */
+  isSpeaking: boolean;
+};
 
+/**
+ * The SpeechIndicator component displays animated bars to indicate speech activity.
+ * The bars animate when `isSpeaking` is true, mimicking a sound meter.
+ */
+export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
   const animationValues = [
     useRef(new Animated.Value(0.6)).current,
     useRef(new Animated.Value(0.6)).current,
@@ -38,12 +48,12 @@ export const SpeechIndicator = () => {
     }
   }, [isSpeaking, animationValues]);
 
-  const barStyle = (animatedValue: any) => ({
+  const barStyle = (animatedValue: Animated.Value) => ({
     transform: [{ scaleY: animatedValue }],
   });
 
   return (
-    <View style={[styles.container, isDominantSpeaker && styles.dominant]}>
+    <View style={[styles.container]}>
       {animationValues.map((animatedValue, index) => (
         <Animated.View
           key={index}
@@ -77,9 +87,6 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#005fff', // Default color, can be replaced with a theme color
     borderRadius: 2,
-  },
-  dominant: {
-    // backgroundColor: 'rgba(0, 255, 0, 0.2)', // Optional style for dominant speaker
   },
 });
 

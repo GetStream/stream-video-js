@@ -7,14 +7,14 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { ParticipantsInfoBadgeProps } from './ParticipantsInfoBadge';
-import { Back } from '../../../icons/Back';
-import { CallDuration, TopViewBackground } from '../../../icons';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { TopViewBackground } from '@stream-io/video-react-native-sdk/src/icons';
 import { CallingState } from '@stream-io/video-client';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { HangUpCallButton } from '..';
-import { colors } from '../../..';
+import { HangUpCallButton } from '@stream-io/video-react-native-sdk/src/components/Call';
+import {
+  colors,
+  useCallStateHooks,
+} from '@stream-io/video-react-native-sdk/src';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 import { DurationBadge } from './DurationBadge';
 import { TopLeftControls } from './TopLeftControls';
 
@@ -30,7 +30,7 @@ export type CallTopViewProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-export const CallTopView = ({
+export const CustomCallTopView = ({
   onHangupCallHandler,
   style: styleProp,
 }: CallTopViewProps) => {
@@ -47,7 +47,7 @@ export const CallTopView = ({
   const styles = useStyles();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const [inProgress, setInProgress] = useState(true);
+  const [inProgress, setInProgress] = useState(false);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -129,6 +129,6 @@ const useStyles = () => {
           fontWeight: '600',
         },
       }),
-    [theme]
+    [theme],
   );
 };

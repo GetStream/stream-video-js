@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
-
-import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
+import { CallTopViewProps } from '../CallTopView';
 import {
   CallParticipantsGrid,
   CallParticipantsGridProps,
@@ -98,7 +94,7 @@ export type CallContentProps = Pick<
 export const CallContent = ({
   onHangupCallHandler,
   CallParticipantsList,
-  CallTopView = DefaultCallTopView,
+  CallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -247,7 +243,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1 },
   view: {
-    // backgroundColor: 'red',
     ...StyleSheet.absoluteFillObject,
     zIndex: Z_INDEX.IN_FRONT,
   },

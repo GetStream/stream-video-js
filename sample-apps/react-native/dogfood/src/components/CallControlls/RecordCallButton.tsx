@@ -3,7 +3,7 @@ import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import RecordCall from '../../assets/RecordCall';
+import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 
 /**
