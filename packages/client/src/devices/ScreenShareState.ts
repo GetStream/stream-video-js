@@ -20,12 +20,7 @@ export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaS
    */
   settings$ = this.settingsSubject.asObservable();
 
-  /**
-   * @internal
-   */
-  protected getDeviceIdFromStream = (
-    stream: MediaStream,
-  ): string | undefined => {
+  getDeviceIdFromStream = (stream: MediaStream): string | undefined => {
     const [track] = stream.getTracks();
     return track?.getSettings().deviceId;
   };

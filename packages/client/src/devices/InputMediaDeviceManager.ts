@@ -7,7 +7,7 @@ import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { deviceIds$ } from './devices';
+import { deviceIds$, disposeOfMediaStream } from './devices';
 import {
   settled,
   withCancellation,
@@ -61,6 +61,24 @@ export abstract class InputMediaDeviceManager<
    */
   listDevices() {
     return this.getDevices();
+  }
+
+  async queryCurrentDeviceId(): Promise<string | undefined> {
+    if (this.state.selectedDevice) {
+      return this.state.selectedDevice;
+    }
+
+    const temporaryStream = await this.getStream(
+      this.getConstraints({
+        ...this.state.defaultConstraints,
+        deviceId: this.state.selectedDevice,
+      } as C),
+    );
+
+    const deviceId = this.state.getDeviceIdFromStream(temporaryStream);
+    disposeOfMediaStream(temporaryStream);
+    console.log('>>> Current device id', deviceId);
+    return deviceId;
   }
 
   /**
@@ -226,12 +244,17 @@ export abstract class InputMediaDeviceManager<
     await withCancellation(this.statusChangeConcurrencyTag, async () => {
       if (this.enabled) {
         await this.muteStream();
-        await this.unmuteStream();
+        await this.unmuteStream(); // also updates current device
+      } else {
+        // if stream is muted, update current device manually
+        this.state.setDevice(await this.queryCurrentDeviceId());
       }
     });
   }
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
+
+  protected abstract getConstraints(defaultConstraints: C): C;
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
@@ -306,10 +329,10 @@ export abstract class InputMediaDeviceManager<
       this.unmuteTracks();
     } else {
       const defaultConstraints = this.state.defaultConstraints;
-      const constraints: MediaTrackConstraints = {
+      const constraints: C = this.getConstraints({
         ...defaultConstraints,
         deviceId: this.state.selectedDevice,
-      };
+      } as C);
 
       /**
        * Chains two media streams together.
@@ -370,7 +393,7 @@ export abstract class InputMediaDeviceManager<
 
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
-      rootStream = this.getStream(constraints as C);
+      rootStream = this.getStream(constraints);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>

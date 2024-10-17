@@ -95,6 +95,23 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     return getVideoDevices();
   }
 
+  protected getConstraints(
+    defaultConstraints: MediaTrackConstraints,
+  ): MediaTrackConstraints {
+    const constraints: MediaTrackConstraints = {
+      ...defaultConstraints,
+      width: this.targetResolution.width,
+      height: this.targetResolution.height,
+    };
+    // We can't set both device id and facing mode
+    // Device id has higher priority
+    if (!constraints.deviceId && this.state.direction) {
+      constraints.facingMode =
+        this.state.direction === 'front' ? 'user' : 'environment';
+    }
+    return constraints;
+  }
+
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
