@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
-import { CallTopViewProps } from '../CallTopView';
 import {
   CallParticipantsGrid,
   CallParticipantsGridProps,
@@ -44,7 +43,7 @@ type CallContentComponentProps = ParticipantViewComponentProps &
     /**
      * Component to customize the CallTopView component.
      */
-    CallTopView?: React.ComponentType<CallTopViewProps> | null;
+    CallTopView?: React.ComponentType<any> | null;
     /**
      * Component to customize the CallControls component.
      */

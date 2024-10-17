@@ -22,7 +22,7 @@ export const LayoutSwitcherButton = ({
   onPressHandler,
 }: LayoutSwitcherButtonProps) => {
   const {
-    theme: { colors, LayoutSwitcherButton, defaults, variants },
+    theme: { colors, defaults, variants },
   } = useTheme();
   const [toggleLayoutMenu, setToggleLayoutMenu] = useState(false);
   const buttonColor = toggleLayoutMenu
@@ -39,7 +39,6 @@ export const LayoutSwitcherButton = ({
         setToggleLayoutMenu(!toggleLayoutMenu);
       }}
       color={colors.sheetPrimary}
-      style={LayoutSwitcherButton}
     >
       <IconWrapper>
         <Grid color={buttonColor} size={defaults.iconSize} />

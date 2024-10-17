@@ -23,7 +23,7 @@ export type RecordCallButtonProps = {
  */
 export const RecordCallButton = ({ onPressHandler }: RecordCallButtonProps) => {
   const {
-    theme: { colors, recordCallButton, defaults, variants },
+    theme: { colors, recordCallButton, variants },
   } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
   const buttonColor = isRecording

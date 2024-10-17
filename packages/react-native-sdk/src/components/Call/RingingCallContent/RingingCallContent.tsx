@@ -6,7 +6,6 @@ import {
   CallContent as DefaultCallContent,
   CallContentProps,
 } from '../CallContent';
-import { CallTopViewProps } from '../CallTopView';
 import {
   IncomingCall as DefaultIncomingCall,
   IncomingCallProps,
@@ -44,7 +43,7 @@ export type RingingCallContentProps = {
   /**
    * Prop to customize the CallTopView component in the RingingCallContent.
    */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
+  CallTopView?: React.ComponentType<any> | null;
   /**
    * Prop to override the component shown when the call is left.
    */

@@ -29,17 +29,12 @@ export const TopControls = ({
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const {
-    theme: {
-      colors,
-      typefaces,
-      variants: { iconSizes },
-      callTopView,
-    },
+    theme: { callTopView },
   } = useTheme();
   const styles = useStyles();
 
   // TODO: replace this with real data implement PBE-5871 [Demo App] Call Recording flow
-  const [isCallRecorded, setIsCallRecorded] = useState(false);
+  const [isCallRecorded] = useState(false);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;

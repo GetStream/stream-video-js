@@ -19,11 +19,14 @@ export type SpeechIndicatorProps = {
  */
 export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
   const styles = useStyles();
-  const animationValues = [
-    useRef(new Animated.Value(0.6)).current,
-    useRef(new Animated.Value(0.6)).current,
-    useRef(new Animated.Value(0.6)).current,
-  ];
+  const animatedValue1 = useRef(new Animated.Value(0.6)).current;
+  const animatedValue2 = useRef(new Animated.Value(0.6)).current;
+  const animatedValue3 = useRef(new Animated.Value(0.6)).current;
+
+  const animationValues = useMemo(
+    () => [animatedValue1, animatedValue2, animatedValue3],
+    [animatedValue1, animatedValue2, animatedValue3]
+  );
 
   useEffect(() => {
     if (isSpeaking) {

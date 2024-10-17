@@ -48,6 +48,7 @@ export const Button = ({
 const useStyles = () => {
   let appTheme: Theme;
   try {
+    /* eslint-disable react-hooks/rules-of-hooks */
     appTheme = useTheme()?.theme;
   } catch (e) {
     appTheme = defaultTheme;
