@@ -504,7 +504,6 @@ export class Call {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
       if (callingState === CallingState.LEFT) {
-        // TODO: check why this error is happening
         throw new Error('Cannot leave call that has already been left.');
       }
 

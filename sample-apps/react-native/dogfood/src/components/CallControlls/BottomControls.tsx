@@ -15,7 +15,7 @@ import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
 import { AudioButton } from './AudioButton';
 
-export type CallControlsComponentProps = Pick<
+export type BottomControlsProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
@@ -28,7 +28,7 @@ export const CallControlsComponent = ({
   onChatOpenHandler,
   unreadCountIndicator,
   onParticipantInfoPress,
-}: CallControlsComponentProps) => {
+}: BottomControlsProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
   const styles = useStyles();
@@ -68,7 +68,7 @@ const useStyles = () => {
       StyleSheet.create({
         speakingLabelContainer: {
           backgroundColor: appTheme.colors.static_overlay,
-          paddingVertical: 10,
+          // paddingVertical: 10,
           width: '100%',
         },
         label: {
@@ -82,8 +82,8 @@ const useStyles = () => {
           zIndex: Z_INDEX.IN_FRONT,
         },
         container: {
-          paddingVertical: 16,
-          paddingHorizontal: 16,
+          paddingVertical: theme.variants.spacingSizes.md,
+          paddingHorizontal: theme.variants.spacingSizes.md,
           backgroundColor: theme.colors.sheetPrimary,
           height: 76,
         },
@@ -91,13 +91,13 @@ const useStyles = () => {
           flex: 2.5,
           flexDirection: 'row',
           alignItems: 'flex-start',
-          gap: 6,
+          gap: theme.variants.spacingSizes.xs,
         },
         right: {
           flex: 1,
           flexDirection: 'row',
           justifyContent: 'flex-end',
-          gap: 6,
+          gap: theme.variants.spacingSizes.xs,
         },
       }),
     [theme],

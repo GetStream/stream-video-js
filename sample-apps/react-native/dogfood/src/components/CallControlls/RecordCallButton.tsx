@@ -46,7 +46,7 @@ export const RecordCallButton = ({ onPressHandler }: RecordCallButtonProps) => {
       <IconWrapper>
         <RecordCall
           color={colors.iconPrimaryDefault}
-          size={defaults.iconSize}
+          size={variants.roundButtonSizes.sm}
         />
       </IconWrapper>
     </CallControlsButton>

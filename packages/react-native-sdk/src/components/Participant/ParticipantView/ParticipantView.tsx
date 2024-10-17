@@ -1,4 +1,4 @@
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useMemo } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import {
   StreamVideoParticipant,
@@ -112,6 +112,7 @@ export const ParticipantView = ({
   const {
     theme: { colors, participantView },
   } = useTheme();
+  const styles = useStyles();
   const { isSpeaking, userId } = participant;
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
@@ -160,21 +161,28 @@ export const ParticipantView = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'transparent',
-    margin: 8,
-    borderRadius: 16,
-  },
-  footerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  highligtedContainer: {
-    borderWidth: 2,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          justifyContent: 'space-between',
+          overflow: 'hidden',
+          borderWidth: 2,
+          borderColor: 'transparent',
+          margin: theme.variants.spacingSizes.sm,
+          borderRadius: 16,
+        },
+        footerContainer: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+        highligtedContainer: {
+          borderWidth: 2,
+        },
+      }),
+    [theme]
+  );
+};

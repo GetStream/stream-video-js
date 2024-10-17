@@ -36,12 +36,8 @@ export const ToggleCameraFaceButton = ({
       return;
     }
 
-    // TODO: investigate camera on off issues and flip operation not working
-    try {
-      await camera.flip();
-    } catch (e) {
-      console.error(e);
-    }
+    // TODO: investigate issue with the camera flip
+    await camera.flip();
   };
 
   if (!isVideoEnabledInCall) {

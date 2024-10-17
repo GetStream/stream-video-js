@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
+import { useTheme } from '../../..';
 
 /**
  * Props for the SpeechIndicator component.
@@ -17,6 +18,7 @@ export type SpeechIndicatorProps = {
  * The bars animate when `isSpeaking` is true, mimicking a sound meter.
  */
 export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
+  const styles = useStyles();
   const animationValues = [
     useRef(new Animated.Value(0.6)).current,
     useRef(new Animated.Value(0.6)).current,
@@ -67,27 +69,34 @@ export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 25,
-    width: 25,
-    borderRadius: 5,
-    gap: 1,
-    backgroundColor: 'rgba(12, 13, 14, 0.65)',
-    padding: 5,
-  },
-  smallBar: {
-    height: '30%', // Smaller default height when animation is not running
-  },
-  bar: {
-    width: 3,
-    height: '100%',
-    backgroundColor: '#005fff', // Default color, can be replaced with a theme color
-    borderRadius: 2,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          height: theme.variants.roundButtonSizes.sm,
+          width: theme.variants.roundButtonSizes.sm,
+          borderRadius: 5,
+          gap: 1,
+          backgroundColor: theme.colors.sheetOverlay,
+          padding: 5,
+        },
+        smallBar: {
+          height: '30%', // Smaller default height when animation is not running
+        },
+        bar: {
+          width: 3,
+          height: '100%',
+          backgroundColor: theme.colors.iconPrimaryAccent,
+          borderRadius: 2,
+        },
+      }),
+    [theme]
+  );
+};
 
 export default SpeechIndicator;

@@ -69,7 +69,7 @@ export const ParticipantNetworkQualityIndicator = ({
       style={[
         styles.container,
         {
-          backgroundColor: 'rgba(12, 13, 14, 0.65)',
+          backgroundColor: colors.sheetOverlay,
           height: iconSizes.lg,
           width: iconSizes.lg,
         },

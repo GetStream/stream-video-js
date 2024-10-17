@@ -9,13 +9,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import {
   CallControlsComponent,
-  CallControlsComponentProps,
-} from './CallControlls/CallControlsComponent';
+  BottomControlsProps,
+} from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
-import { CustomCallTopView } from './CallControlls/CallTopView';
+import { TopControls } from './CallControlls/TopControls';
 
-type ActiveCallProps = CallControlsComponentProps & {
+type ActiveCallProps = BottomControlsProps & {
   onBackPressed?: () => void;
   onHangupCallHandler?: () => void;
   onCallEnded: () => void;
@@ -62,7 +62,7 @@ export const ActiveCall = ({
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle="light-content" // TODO: handle this based on theme
+        barStyle={'light-content'}
         backgroundColor={colors.sheetPrimary}
       />
       <View style={styles.topUnsafeArea} />
@@ -70,7 +70,7 @@ export const ActiveCall = ({
         <CallContent
           onBackPressed={onBackPressed}
           onHangupCallHandler={onHangupCallHandler}
-          CallTopView={CustomCallTopView}
+          CallTopView={TopControls}
           CallControls={CustomControlsComponent}
           landscape={currentOrientation === 'landscape'}
         />
@@ -99,7 +99,7 @@ const useStyles = () => {
           left: 0,
           right: 0,
           height: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary, // Change to your desired color
+          backgroundColor: theme.colors.sheetPrimary,
           zIndex: Z_INDEX.IN_FRONT,
         },
         bottomUnsafeArea: {

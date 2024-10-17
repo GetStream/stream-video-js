@@ -35,6 +35,7 @@ const colors: ColorScheme = {
   iconPrimaryDefault: '#eff0f1',
   iconAlertSuccess: '#00e2a1',
   sheetPrimary: '#000000',
+  sheetOverlay: '#0c0d0ea6',
 
   buttonPrimaryDisabled: '#1b2c43',
   buttonPrimaryHover: '#4c8fff',
@@ -71,7 +72,6 @@ const colors: ColorScheme = {
   iconPrimaryHover: '#e3e4e5',
   iconPrimaryOnAccent: '#eff0f1',
   iconPrimaryPressed: '#656b72',
-  sheetOverlay: '#0c0d0ea6',
   sheetSecondary: '#101213',
   sheetTertiary: '#19232d',
   typeAccent: '#00e2a1',

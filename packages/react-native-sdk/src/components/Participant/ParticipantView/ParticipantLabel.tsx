@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { PinVertical, ScreenShareIndicator } from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
@@ -36,6 +36,7 @@ export const ParticipantLabel = ({
       },
     },
   } = useTheme();
+  const styles = useStyles();
   const { name, userId, pin, sessionId, isLocalParticipant } = participant;
   const call = useCall();
   const { t } = useI18n();
@@ -58,7 +59,7 @@ export const ParticipantLabel = ({
       <View
         style={[
           styles.container,
-          { backgroundColor: colors.background6 },
+          { backgroundColor: colors.sheetOverlay },
           container,
         ]}
         testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
@@ -70,12 +71,12 @@ export const ParticipantLabel = ({
             screenShareIconContainer,
           ]}
         >
-          <ScreenShareIndicator color={colors.base1} />
+          <ScreenShareIndicator color={colors.iconPrimaryDefault} />
         </View>
         <Text
           style={[
             styles.userNameLabel,
-            { color: colors.base1 },
+            { color: colors.iconPrimaryDefault },
             typefaces.caption,
             userNameLabel,
           ]}
@@ -91,7 +92,7 @@ export const ParticipantLabel = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: 'rgba(12, 13, 14, 0.65)' },
+        { backgroundColor: colors.sheetOverlay },
         container,
       ]}
     >
@@ -99,7 +100,7 @@ export const ParticipantLabel = ({
         <Text
           style={[
             styles.userNameLabel,
-            { color: colors.base1 },
+            { color: colors.iconPrimaryDefault },
             typefaces.subtitle,
             userNameLabel,
           ]}
@@ -120,44 +121,51 @@ export const ParticipantLabel = ({
           ]}
           onPress={unPinParticipantHandler}
         >
-          <PinVertical color={colors.base1} />
+          <PinVertical color={colors.iconPrimaryDefault} />
         </Pressable>
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  indicatorWrapper: {
-    marginLeft: 7,
-  },
-  wrapper: {
-    flexDirection: 'row',
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 5,
-    maxHeight: 30,
-    borderTopRightRadius: 5,
-    marginBottom: -2,
-    flexShrink: 1,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-  userNameLabel: {
-    flexShrink: 1,
-    marginTop: 2,
-  },
-  screenShareIconContainer: {
-    marginRight: 8,
-  },
-  audioMutedIconContainer: {
-    marginLeft: 4,
-  },
-  videoMutedIconContainer: {
-    marginLeft: 4,
-  },
-  pinIconContainer: {
-    marginLeft: 4,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        indicatorWrapper: {
+          marginLeft: theme.variants.spacingSizes.sm,
+        },
+        wrapper: {
+          flexDirection: 'row',
+        },
+        container: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: theme.variants.spacingSizes.sm,
+          maxHeight: 30,
+          borderTopRightRadius: 5,
+          marginBottom: -2,
+          flexShrink: 1,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+        userNameLabel: {
+          flexShrink: 1,
+          marginTop: 2,
+        },
+        screenShareIconContainer: {
+          marginRight: theme.variants.spacingSizes.sm,
+        },
+        audioMutedIconContainer: {
+          marginLeft: theme.variants.spacingSizes.xs,
+        },
+        videoMutedIconContainer: {
+          marginLeft: theme.variants.spacingSizes.xs,
+        },
+        pinIconContainer: {
+          marginLeft: theme.variants.spacingSizes.xs,
+        },
+      }),
+    [theme]
+  );
+};

@@ -5,23 +5,45 @@ import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCa
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 
-export const DurationBadge = (props: any) => {
+/**
+ * Props for the CallStatusBadge component.
+ */
+interface CallStatusBadgeProps {
+  /**
+   * Indicates if the call is currently being recorded.
+   * When true, it shows "Recording in progress..." and a specific icon.
+   * When false, it shows the elapsed time.
+   */
+  isCallRecorded: boolean;
+}
+
+/**
+ * CallStatusBadge component to display the current status of a call.
+ * It shows either a recording message or the elapsed time, with an accompanying icon.
+ *
+ * @param {CallStatusBadgeProps} props - The props for the component.
+ */
+export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
+  isCallRecorded,
+}) => {
   const {
     theme: {
       colors,
       variants: { iconSizes },
     },
   } = useTheme();
+
   const [duration, setDuration] = useState(0);
+
+  // Increment the duration every second
   useEffect(() => {
     const id = setInterval(() => {
       setDuration((d) => d + 1);
     }, 1000);
-    return () => {
-      clearInterval(id);
-    };
+    return () => clearInterval(id);
   }, []);
-  const styles = useStyles(props);
+
+  const styles = useStyles(isCallRecorded);
 
   // Format duration to MM:SS
   const minutes = Math.floor(duration / 60)
@@ -29,11 +51,12 @@ export const DurationBadge = (props: any) => {
     .padStart(2, '0');
   const seconds = (duration % 60).toString().padStart(2, '0');
   const timestamp = `${minutes}:${seconds}`;
-  const text = props.inProgress ? 'Recording in progress...' : timestamp;
-  const icon = true ? (
-    <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
-  ) : (
+  const text = isCallRecorded ? 'Recording in progress...' : timestamp;
+
+  const icon = isCallRecorded ? (
     <RecordCall color={colors.iconAlertWarning} size={iconSizes.md} />
+  ) : (
+    <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
   );
 
   return (
@@ -46,7 +69,7 @@ export const DurationBadge = (props: any) => {
   );
 };
 
-const useStyles = (props: any) => {
+const useStyles = (isCallRecorded: boolean) => {
   const { theme } = useTheme();
 
   return useMemo(
@@ -61,11 +84,11 @@ const useStyles = (props: any) => {
           paddingRight: 5,
           justifyContent: 'center',
           alignItems: 'center',
-          width: props.inProgress ? 200 : 80,
+          width: isCallRecorded ? 200 : 80,
         },
         text: {
           color: theme.colors.typePrimary,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: '600',
           flexShrink: 0,
           marginLeft: 10,
@@ -76,6 +99,6 @@ const useStyles = (props: any) => {
           marginRight: 5,
         },
       }),
-    [theme],
+    [theme, isCallRecorded],
   );
 };

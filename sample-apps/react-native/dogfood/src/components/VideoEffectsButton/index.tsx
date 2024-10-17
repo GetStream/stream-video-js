@@ -6,7 +6,6 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useState } from 'react';
-import { AutoAwesome } from '../../assets/AutoAwesome';
 import {
   Image,
   Modal,
