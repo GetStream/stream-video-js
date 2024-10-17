@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.0...@stream-io/video-react-native-sdk-1.2.1) (2024-10-17)
+
+
+### Bug Fixes
+
+* allow specifying publish options in PN config ([#1524](https://github.com/GetStream/stream-video-js/issues/1524)) ([a2ae74e](https://github.com/GetStream/stream-video-js/commit/a2ae74e8097bf1e58d040e4a7696ecadfc435843)), closes [#1434](https://github.com/GetStream/stream-video-js/issues/1434)
+
 ## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.6...@stream-io/video-react-native-sdk-1.2.0) (2024-10-16)
 
 ### Dependency Updates
