@@ -205,6 +205,12 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return getAudioDevices();
   }
 
+  protected getConstraints(
+    defaultConstraints: MediaTrackConstraints,
+  ): MediaTrackConstraints {
+    return defaultConstraints;
+  }
+
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {

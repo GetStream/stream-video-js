@@ -1,6 +1,7 @@
 import {
   BehaviorSubject,
   distinctUntilChanged,
+  merge,
   Observable,
   of,
   shareReplay,
@@ -168,6 +169,8 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     return this.getCurrentValue(this.defaultConstraints$);
   }
 
+  abstract getDeviceIdFromStream(stream: MediaStream): string | undefined;
+
   /**
    * Sets the default constraints for the device.
    *
@@ -190,8 +193,4 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * @return the updated value.
    */
   protected setCurrentValue = RxUtils.setCurrentValue;
-
-  protected abstract getDeviceIdFromStream(
-    stream: MediaStream,
-  ): string | undefined;
 }

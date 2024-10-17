@@ -39,7 +39,7 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
     this.setCurrentValue(this.speakingWhileMutedSubject, isSpeaking);
   }
 
-  protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
+  getDeviceIdFromStream(stream: MediaStream): string | undefined {
     const [track] = stream.getAudioTracks();
     return track?.getSettings().deviceId;
   }
