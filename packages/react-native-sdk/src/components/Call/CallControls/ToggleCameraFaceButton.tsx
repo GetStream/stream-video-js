@@ -36,7 +36,6 @@ export const ToggleCameraFaceButton = ({
       return;
     }
 
-    // TODO: investigate issue with the camera flip
     await camera.flip();
   };
 
