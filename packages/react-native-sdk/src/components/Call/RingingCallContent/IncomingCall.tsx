@@ -13,10 +13,6 @@ import {
 } from '@stream-io/video-react-bindings';
 import { UserInfo } from './UserInfo';
 import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
-import {
   IncomingCallControls as DefaultIncomingCallControls,
   IncomingCallControlsProps,
 } from '../CallControls';
@@ -30,7 +26,7 @@ export type IncomingCallProps = IncomingCallControlsProps & {
   /**
    * Prop to customize the CallTopView component in the IncomingCall component.
    */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
+  CallTopView?: React.ComponentType<any> | null;
   /**
    * Prop to customize the IncomingCall controls.
    */
@@ -49,7 +45,7 @@ export type IncomingCallProps = IncomingCallControlsProps & {
 export const IncomingCall = ({
   onAcceptCallHandler,
   onRejectCallHandler,
-  CallTopView = DefaultCallTopView,
+  CallTopView,
   IncomingCallControls = DefaultIncomingCallControls,
   landscape,
 }: IncomingCallProps) => {

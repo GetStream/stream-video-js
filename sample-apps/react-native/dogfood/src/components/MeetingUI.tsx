@@ -128,6 +128,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     return (
       <ActiveCall
         onCallEnded={onCallEnded}
+        onHangupCallHandler={onHangupCallHandler}
         onChatOpenHandler={onChatOpenHandler}
         unreadCountIndicator={unreadCountIndicator}
         onBackPressed={onHangupCallHandler}
