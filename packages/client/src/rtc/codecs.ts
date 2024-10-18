@@ -15,9 +15,9 @@ export const getPreferredCodecs = (
   preferredCodec: string,
   codecToRemove?: string,
 ): RTCRtpCodecCapability[] | undefined => {
-  if (!('getCapabilities' in RTCRtpReceiver)) return;
+  if (!('getCapabilities' in RTCRtpSender)) return;
 
-  const capabilities = RTCRtpReceiver.getCapabilities(kind);
+  const capabilities = RTCRtpSender.getCapabilities(kind);
   if (!capabilities) return;
 
   const preferred: RTCRtpCodecCapability[] = [];

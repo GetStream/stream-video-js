@@ -199,29 +199,17 @@ export interface VideoLayer {
  */
 export interface Codec {
   /**
-   * @generated from protobuf field: uint32 payload_type = 1;
+   * @generated from protobuf field: string mime_type = 1;
    */
-  payloadType: number;
+  mimeType: string;
   /**
-   * @generated from protobuf field: string name = 2;
+   * @generated from protobuf field: string scalability_mode = 2;
    */
-  name: string;
+  scalabilityMode: string;
   /**
-   * @generated from protobuf field: string fmtp_line = 3;
+   * @generated from protobuf field: string fmtp = 3;
    */
-  fmtpLine: string;
-  /**
-   * @generated from protobuf field: uint32 clock_rate = 4;
-   */
-  clockRate: number;
-  /**
-   * @generated from protobuf field: string encoding_parameters = 5;
-   */
-  encodingParameters: string;
-  /**
-   * @generated from protobuf field: repeated string feedbacks = 6;
-   */
-  feedbacks: string[];
+  fmtp: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.ICETrickle
@@ -278,6 +266,10 @@ export interface TrackInfo {
    * @generated from protobuf field: bool muted = 10;
    */
   muted: boolean;
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.Codec preferred_codecs = 11;
+   */
+  preferredCodecs: Codec[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -959,33 +951,14 @@ export const VideoLayer = new VideoLayer$Type();
 class Codec$Type extends MessageType<Codec> {
   constructor() {
     super('stream.video.sfu.models.Codec', [
+      { no: 1, name: 'mime_type', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
-        no: 1,
-        name: 'payload_type',
-        kind: 'scalar',
-        T: 13 /*ScalarType.UINT32*/,
-      },
-      { no: 2, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 3, name: 'fmtp_line', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      {
-        no: 4,
-        name: 'clock_rate',
-        kind: 'scalar',
-        T: 13 /*ScalarType.UINT32*/,
-      },
-      {
-        no: 5,
-        name: 'encoding_parameters',
+        no: 2,
+        name: 'scalability_mode',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
-      {
-        no: 6,
-        name: 'feedbacks',
-        kind: 'scalar',
-        repeat: 2 /*RepeatType.UNPACKED*/,
-        T: 9 /*ScalarType.STRING*/,
-      },
+      { no: 3, name: 'fmtp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }
@@ -1044,6 +1017,13 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 8, name: 'stereo', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 10, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      {
+        no: 11,
+        name: 'preferred_codecs',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => Codec,
+      },
     ]);
   }
 }

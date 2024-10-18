@@ -114,7 +114,6 @@ describe('Publisher', () => {
 
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);
-    expect(transceiver.setCodecPreferences).toHaveBeenCalled();
     expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
       TrackType.VIDEO,
       false,
@@ -187,7 +186,6 @@ describe('Publisher', () => {
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(track.enabled).toBe(true);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);
-    expect(transceiver.setCodecPreferences).toHaveBeenCalled();
     expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
       TrackType.VIDEO,
       false,
