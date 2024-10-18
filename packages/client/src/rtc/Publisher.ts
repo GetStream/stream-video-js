@@ -1,5 +1,6 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import {
+  Codec,
   PeerType,
   TrackInfo,
   TrackType,
@@ -17,11 +18,7 @@ import { getOptimalVideoCodec, getPreferredCodecs, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
-import {
-  enableHighQualityAudio,
-  extractMid,
-  toggleDtx,
-} from '../helpers/sdp-munging';
+import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
@@ -34,8 +31,6 @@ export type PublisherConstructorOpts = {
   state: CallState;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
-  isDtxEnabled: boolean;
-  isRedEnabled: boolean;
   onUnrecoverableError?: () => void;
   logTag: string;
 };
@@ -52,6 +47,8 @@ export class Publisher {
   private readonly transceiverCache = new Map<TrackType, RTCRtpTransceiver>();
   private readonly trackLayersCache = new Map<TrackType, OptimalVideoLayer[]>();
   private readonly publishOptsForTrack = new Map<TrackType, PublishOptions>();
+  private readonly codecsForTrack = new Map<TrackType, string>();
+  private readonly scalabilityModeForTrack = new Map<TrackType, string>();
 
   /**
    * An array maintaining the order how transceivers were added to the peer connection.
@@ -61,8 +58,6 @@ export class Publisher {
    * @internal
    */
   private readonly transceiverInitOrder: TrackType[] = [];
-  private readonly isDtxEnabled: boolean;
-  private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
@@ -79,8 +74,6 @@ export class Publisher {
     sfuClient,
     dispatcher,
     state,
-    isDtxEnabled,
-    isRedEnabled,
     onUnrecoverableError,
     logTag,
   }: PublisherConstructorOpts) {
@@ -88,8 +81,6 @@ export class Publisher {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
-    this.isDtxEnabled = isDtxEnabled;
-    this.isRedEnabled = isRedEnabled;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
@@ -211,7 +202,7 @@ export class Publisher {
         );
       };
       track.addEventListener('ended', handleTrackEnded);
-      this.addTransceiver(trackType, track, opts, mediaStream);
+      this.addTransceiver(trackType, track, opts);
     } else {
       await this.updateTransceiver(transceiver, track);
     }
@@ -228,46 +219,27 @@ export class Publisher {
     trackType: TrackType,
     track: MediaStreamTrack,
     opts: PublishOptions,
-    mediaStream: MediaStream,
   ) => {
     const { forceCodec, preferredCodec } = opts;
     const codecInUse = forceCodec || getOptimalVideoCodec(preferredCodec);
     const videoEncodings = this.computeLayers(trackType, track, opts);
+    const sendEncodings = isSvcCodec(codecInUse)
+      ? toSvcEncodings(videoEncodings)
+      : videoEncodings;
     const transceiver = this.pc.addTransceiver(track, {
       direction: 'sendonly',
-      streams:
-        trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
-          ? [mediaStream]
-          : undefined,
-      sendEncodings: isSvcCodec(codecInUse)
-        ? toSvcEncodings(videoEncodings)
-        : videoEncodings,
+      sendEncodings,
     });
 
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverInitOrder.push(trackType);
     this.transceiverCache.set(trackType, transceiver);
     this.publishOptsForTrack.set(trackType, opts);
-
-    // handle codec preferences
-    if (!('setCodecPreferences' in transceiver)) return;
-
-    const codecPreferences = this.getCodecPreferences(
+    this.codecsForTrack.set(trackType, codecInUse);
+    this.scalabilityModeForTrack.set(
       trackType,
-      trackType === TrackType.VIDEO ? codecInUse : undefined,
+      sendEncodings?.[0]?.scalabilityMode || '',
     );
-    if (!codecPreferences) return;
-
-    try {
-      this.logger(
-        'info',
-        `Setting ${TrackType[trackType]} codec preferences`,
-        codecPreferences,
-      );
-      transceiver.setCodecPreferences(codecPreferences);
-    } catch (err) {
-      this.logger('warn', `Couldn't set codec preferences`, err);
-    }
   };
 
   /**
@@ -370,7 +342,8 @@ export class Publisher {
       enabledLayers,
     );
 
-    const videoSender = this.transceiverCache.get(TrackType.VIDEO)?.sender;
+    const trackType = TrackType.VIDEO;
+    const videoSender = this.transceiverCache.get(trackType)?.sender;
     if (!videoSender) {
       this.logger('warn', 'Update publish quality, no video sender found.');
       return;
@@ -431,6 +404,7 @@ export class Publisher {
       if (scalabilityMode && scalabilityMode !== encoder.scalabilityMode) {
         // @ts-expect-error scalabilityMode is not in the typedefs yet
         encoder.scalabilityMode = scalabilityMode;
+        this.scalabilityModeForTrack.set(trackType, scalabilityMode);
         changed = true;
       }
     }
@@ -462,13 +436,7 @@ export class Publisher {
       return getPreferredCodecs('video', preferredCodec || 'vp8');
     }
     if (trackType === TrackType.AUDIO) {
-      const defaultAudioCodec = this.isRedEnabled ? 'red' : 'opus';
-      const codecToRemove = !this.isRedEnabled ? 'red' : undefined;
-      return getPreferredCodecs(
-        'audio',
-        preferredCodec ?? defaultAudioCodec,
-        codecToRemove,
-      );
+      return getPreferredCodecs('audio', 'opus');
     }
   };
 
@@ -524,11 +492,8 @@ export class Publisher {
    */
   private negotiate = async (options?: RTCOfferOptions) => {
     const offer = await this.pc.createOffer(options);
-    if (offer.sdp) {
-      offer.sdp = toggleDtx(offer.sdp, this.isDtxEnabled);
-      if (this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-        offer.sdp = this.enableHighQualityAudio(offer.sdp);
-      }
+    if (offer.sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
+      offer.sdp = this.enableHighQualityAudio(offer.sdp);
     }
 
     const trackInfos = this.getAnnouncedTracks(offer.sdp);
@@ -617,24 +582,40 @@ export class Publisher {
           },
         }));
 
-        const isAudioTrack = [
-          TrackType.AUDIO,
-          TrackType.SCREEN_SHARE_AUDIO,
-        ].includes(trackType);
+        const isAudioTrack =
+          trackType === TrackType.AUDIO ||
+          trackType === TrackType.SCREEN_SHARE_AUDIO;
+
+        const audioSettings = this.state.settings?.audio;
+        const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
 
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverInitIndex =
           this.transceiverInitOrder.indexOf(trackType);
+
+        const codecInUse =
+          trackType === TrackType.VIDEO
+            ? this.codecsForTrack.get(trackType)
+            : undefined;
+        const preferredCodecs = this.getCodecPreferences(trackType, codecInUse);
         return {
           trackId: track.id,
-          layers: layers,
+          layers,
           trackType,
           mid: extractMid(transceiver, transceiverInitIndex, sdp),
           stereo: isStereo,
-          dtx: isAudioTrack && this.isDtxEnabled,
-          red: isAudioTrack && this.isRedEnabled,
+          dtx: isAudioTrack && isDtxEnabled,
+          red: isAudioTrack && isRedEnabled,
           muted: !isTrackLive,
+          preferredCodecs: (preferredCodecs || []).map<Codec>((codec) => ({
+            mimeType: codec.mimeType,
+            fmtp: codec.sdpFmtpLine || '',
+            scalabilityMode: isSvcCodec(codec.mimeType)
+              ? this.scalabilityModeForTrack.get(trackType) || ''
+              : '',
+          })),
         };
       });
   };
