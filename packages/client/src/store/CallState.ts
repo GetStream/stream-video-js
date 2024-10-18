@@ -117,6 +117,7 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+  private durationSubject = new BehaviorSubject<number>(0);
 
   // These are tracks that were delivered to the Subscriber's onTrack event
   // that we couldn't associate with a participant yet.
@@ -285,6 +286,11 @@ export class CallState {
    */
   thumbnails$: Observable<ThumbnailResponse | undefined>;
 
+  /**
+   * Will provide the count of seconds since the call started.
+   */
+  duration$: Observable<number>;
+
   readonly logger = getLogger(['CallState']);
 
   /**
@@ -390,6 +396,11 @@ export class CallState {
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
+
+    this.duration$ = duc(this.durationSubject);
+    setInterval(() => {
+      this.setDuration((d) => d + 1);
+    }, 1000);
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -513,6 +524,23 @@ export class CallState {
    */
   setParticipantCount = (count: Patch<number>) => {
     return this.setCurrentValue(this.participantCountSubject, count);
+  };
+
+  /**
+   * The number of seconds since the start of the call.
+   */
+  get duration() {
+    return this.getCurrentValue(this.duration$);
+  }
+
+  /**
+   * Sets the number of seconds since the start of the call.
+   *
+   * @internal
+   * @param duration the duration of the call in seconds.
+   */
+  setDuration = (duration: Patch<number>) => {
+    return this.setCurrentValue(this.durationSubject, duration);
   };
 
   /**

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
 
 /**
  * Props for the CallStatusBadge component.
@@ -33,15 +33,8 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
     },
   } = useTheme();
 
-  const [duration, setDuration] = useState(0);
-
-  // Increment the duration every second
-  useEffect(() => {
-    const id = setInterval(() => {
-      setDuration((d) => d + 1);
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
+  const { useCallDuration } = useCallStateHooks();
+  const duration = useCallDuration();
 
   const styles = useStyles(isCallRecorded);
 
