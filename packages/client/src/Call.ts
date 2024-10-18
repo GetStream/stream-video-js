@@ -955,16 +955,11 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         this.publisher.close({ stopTracks: false });
       }
-      const audioSettings = this.state.settings?.audio;
-      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
       this.publisher = new Publisher({
         sfuClient,
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
-        isDtxEnabled,
-        isRedEnabled,
         logTag: String(this.sfuClientTag),
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {

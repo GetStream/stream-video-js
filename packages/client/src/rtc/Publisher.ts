@@ -18,11 +18,7 @@ import { getOptimalVideoCodec, getPreferredCodecs, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
-import {
-  enableHighQualityAudio,
-  extractMid,
-  toggleDtx,
-} from '../helpers/sdp-munging';
+import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
@@ -35,8 +31,6 @@ export type PublisherConstructorOpts = {
   state: CallState;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
-  isDtxEnabled: boolean;
-  isRedEnabled: boolean;
   onUnrecoverableError?: () => void;
   logTag: string;
 };
@@ -64,8 +58,6 @@ export class Publisher {
    * @internal
    */
   private readonly transceiverInitOrder: TrackType[] = [];
-  private readonly isDtxEnabled: boolean;
-  private readonly isRedEnabled: boolean;
 
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
@@ -82,8 +74,6 @@ export class Publisher {
     sfuClient,
     dispatcher,
     state,
-    isDtxEnabled,
-    isRedEnabled,
     onUnrecoverableError,
     logTag,
   }: PublisherConstructorOpts) {
@@ -91,8 +81,6 @@ export class Publisher {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
-    this.isDtxEnabled = isDtxEnabled;
-    this.isRedEnabled = isRedEnabled;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
@@ -448,13 +436,7 @@ export class Publisher {
       return getPreferredCodecs('video', preferredCodec || 'vp8');
     }
     if (trackType === TrackType.AUDIO) {
-      const defaultAudioCodec = this.isRedEnabled ? 'red' : 'opus';
-      const codecToRemove = !this.isRedEnabled ? 'red' : undefined;
-      return getPreferredCodecs(
-        'audio',
-        preferredCodec ?? defaultAudioCodec,
-        codecToRemove,
-      );
+      return getPreferredCodecs('audio', 'opus');
     }
   };
 
@@ -510,11 +492,8 @@ export class Publisher {
    */
   private negotiate = async (options?: RTCOfferOptions) => {
     const offer = await this.pc.createOffer(options);
-    if (offer.sdp) {
-      offer.sdp = toggleDtx(offer.sdp, this.isDtxEnabled);
-      if (this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-        offer.sdp = this.enableHighQualityAudio(offer.sdp);
-      }
+    if (offer.sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
+      offer.sdp = this.enableHighQualityAudio(offer.sdp);
     }
 
     const trackInfos = this.getAnnouncedTracks(offer.sdp);
@@ -607,6 +586,10 @@ export class Publisher {
           trackType === TrackType.AUDIO ||
           trackType === TrackType.SCREEN_SHARE_AUDIO;
 
+        const audioSettings = this.state.settings?.audio;
+        const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
+
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverInitIndex =
@@ -623,8 +606,8 @@ export class Publisher {
           trackType,
           mid: extractMid(transceiver, transceiverInitIndex, sdp),
           stereo: isStereo,
-          dtx: isAudioTrack && this.isDtxEnabled,
-          red: isAudioTrack && this.isRedEnabled,
+          dtx: isAudioTrack && isDtxEnabled,
+          red: isAudioTrack && isRedEnabled,
           muted: !isTrackLive,
           preferredCodecs: (preferredCodecs || []).map<Codec>((codec) => ({
             mimeType: codec.mimeType,
