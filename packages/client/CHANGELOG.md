@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.9.0...@stream-io/video-client-1.9.1) (2024-10-18)
+
+
+### Bug Fixes
+
+* **svc:** announce downscaled layers in setPublisher ([#1526](https://github.com/GetStream/stream-video-js/issues/1526)) ([96cadd0](https://github.com/GetStream/stream-video-js/commit/96cadd05e995392eac4ec300828d07b287d691a0))
+
 ## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.8.4...@stream-io/video-client-1.9.0) (2024-10-16)
 
 
