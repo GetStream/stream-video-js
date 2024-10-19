@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Grid } from '@stream-io/video-react-native-sdk/src/icons/Grid';
 import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import LayoutSwitcherModal from './LayoutSwitcherModal';
+import { ColorValue, LayoutChangeEvent } from 'react-native';
+import { Grid } from '../../assets/Grid';
+import { SpotLight } from '../../assets/Spotlight';
+import { FullScreen } from '../../assets/FullScreen';
 
 export type LayoutSwitcherButtonProps = {
   /**
@@ -12,6 +16,19 @@ export type LayoutSwitcherButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
+};
+
+const getIcon = (selectedButton: string, color: ColorValue, size: number) => {
+  switch (selectedButton) {
+    case 'grid':
+      return <Grid color={color} size={size} />;
+    case 'spotlight':
+      return <SpotLight color={color} size={size} />;
+    case 'fullscreen':
+      return <FullScreen color={color} size={size} />;
+    default:
+      return 'grid';
+  }
 };
 
 /**
@@ -24,25 +41,55 @@ export const LayoutSwitcherButton = ({
   const {
     theme: { colors, defaults, variants },
   } = useTheme();
-  const [toggleLayoutMenu, setToggleLayoutMenu] = useState(false);
-  const buttonColor = toggleLayoutMenu
+
+  const [selectedButton, setSelectedButton] = useState<string>('grid');
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const buttonColor = isPopupVisible
     ? colors.iconPrimaryAccent
     : colors.iconPrimaryDefault;
+
+  const handlePress = () => setIsPopupVisible(true);
+  const handleClosePopup = () => setIsPopupVisible(false);
+
+  const handleButtonSelection = (buttonName: string) => {
+    setSelectedButton(buttonName);
+  };
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setAnchorPosition({ x, y: y + height, width, height });
+  };
 
   return (
     <CallControlsButton
       size={variants.iconSizes.lg}
+      onLayout={handleLayout}
       onPress={() => {
+        handlePress();
         if (onPressHandler) {
           onPressHandler();
         }
-        setToggleLayoutMenu(!toggleLayoutMenu);
+        setIsPopupVisible(!isPopupVisible);
       }}
       color={colors.sheetPrimary}
     >
       <IconWrapper>
-        <Grid color={buttonColor} size={defaults.iconSize} />
+        {getIcon(selectedButton, buttonColor, variants.iconSizes.lg)}
       </IconWrapper>
+      <LayoutSwitcherModal
+        isVisible={isPopupVisible}
+        anchorPosition={anchorPosition}
+        onClose={handleClosePopup}
+        onSelectButton={handleButtonSelection}
+        selectedButton={selectedButton}
+      />
     </CallControlsButton>
   );
 };
