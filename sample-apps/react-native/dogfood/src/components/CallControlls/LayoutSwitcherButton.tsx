@@ -43,7 +43,7 @@ export const LayoutSwitcherButton = ({
   } = useTheme();
 
   const [selectedButton, setSelectedButton] = useState<string>('grid');
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState<{
     x: number;
     y: number;
@@ -51,12 +51,12 @@ export const LayoutSwitcherButton = ({
     height: number;
   } | null>(null);
 
-  const buttonColor = isPopupVisible
+  const buttonColor = isModalVisible
     ? colors.iconPrimaryAccent
     : colors.iconPrimaryDefault;
 
-  const handlePress = () => setIsPopupVisible(true);
-  const handleClosePopup = () => setIsPopupVisible(false);
+  const handleOpenModal = () => setIsModalVisible(true);
+  const handleCloseModal = () => setIsModalVisible(false);
 
   const handleButtonSelection = (buttonName: string) => {
     setSelectedButton(buttonName);
@@ -72,11 +72,11 @@ export const LayoutSwitcherButton = ({
       size={variants.iconSizes.lg}
       onLayout={handleLayout}
       onPress={() => {
-        handlePress();
+        handleOpenModal();
         if (onPressHandler) {
           onPressHandler();
         }
-        setIsPopupVisible(!isPopupVisible);
+        setIsModalVisible(!isModalVisible);
       }}
       color={colors.sheetPrimary}
     >
@@ -84,9 +84,9 @@ export const LayoutSwitcherButton = ({
         {getIcon(selectedButton, buttonColor, variants.iconSizes.lg)}
       </IconWrapper>
       <LayoutSwitcherModal
-        isVisible={isPopupVisible}
+        isVisible={isModalVisible}
         anchorPosition={anchorPosition}
-        onClose={handleClosePopup}
+        onClose={handleCloseModal}
         onSelectButton={handleButtonSelection}
         selectedButton={selectedButton}
       />

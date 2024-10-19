@@ -153,6 +153,8 @@ const useStyles = () => {
         buttonText: {
           color: 'white',
           textAlign: 'center',
+          fontWeight: '600',
+          marginTop: 2,
           marginLeft: theme.variants.spacingSizes.xs,
         },
       }),
