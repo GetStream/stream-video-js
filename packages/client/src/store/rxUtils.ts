@@ -1,4 +1,4 @@
-import { combineLatest, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 type FunctionPatch<T> = (currentValue: T) => T;
@@ -56,6 +56,28 @@ export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
 
   subject.next(next);
   return next;
+};
+
+/**
+ * Updates the value of the provided Subject and returns the previous value
+ * and a function to roll back the update.
+ * This is useful when you want to optimistically update a value
+ * and roll back the update if an error occurs.
+ *
+ * @param subject the subject to update.
+ * @param update the update to apply to the subject.
+ */
+export const updateValue = <T>(
+  subject: BehaviorSubject<T>,
+  update: Patch<T>,
+) => {
+  const lastValue = subject.getValue();
+  const value = setCurrentValue(subject, update);
+  return {
+    lastValue,
+    value,
+    rollback: () => setCurrentValue(subject, lastValue),
+  };
 };
 
 /**

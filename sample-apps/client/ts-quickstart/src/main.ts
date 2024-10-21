@@ -10,6 +10,7 @@ import {
   renderVolumeControl,
 } from './device-selector';
 import { isMobile } from './mobile';
+import { ClosedCaptionManager } from './closed-captions';
 
 const searchParams = new URLSearchParams(window.location.search);
 const extractPayloadFromToken = (token: string) => {
@@ -50,32 +51,42 @@ call.screenShare.setSettings({
   maxBitrate: 1500000,
 });
 
-call.join({ create: true }).then(async () => {
-  // render mic and camera controls
-  const controls = renderControls(call);
-  const container = document.getElementById('call-controls')!;
-  container.appendChild(controls.audioButton);
-  container.appendChild(controls.videoButton);
-  container.appendChild(controls.screenShareButton);
+const container = document.getElementById('call-controls')!;
 
-  container.appendChild(renderAudioDeviceSelector(call));
+// render mic and camera controls
+const controls = renderControls(call);
+container.appendChild(controls.audioButton);
+container.appendChild(controls.videoButton);
+container.appendChild(controls.screenShareButton);
 
-  // render device selectors
-  if (isMobile.any()) {
-    container.appendChild(controls.flipButton);
-  } else {
-    container.appendChild(renderVideoDeviceSelector(call));
-  }
+container.appendChild(renderAudioDeviceSelector(call));
 
-  const audioOutputSelector = renderAudioOutputSelector(call);
-  if (audioOutputSelector) {
-    container.appendChild(audioOutputSelector);
-  }
+// render device selectors
+if (isMobile.any()) {
+  container.appendChild(controls.flipButton);
+} else {
+  container.appendChild(renderVideoDeviceSelector(call));
+}
 
-  container.appendChild(renderVolumeControl(call));
-});
+const audioOutputSelector = renderAudioOutputSelector(call);
+if (audioOutputSelector) {
+  container.appendChild(audioOutputSelector);
+}
+
+container.appendChild(renderVolumeControl(call));
+
+// Closed caption controls
+const closedCaptionManager = new ClosedCaptionManager(call);
+container.appendChild(closedCaptionManager.renderToggleElement());
+
+const captionContainer = document.getElementById('closed-captions');
+captionContainer?.appendChild(closedCaptionManager.renderCaptionContainer());
+
+call.join({ create: true });
 
 window.addEventListener('beforeunload', () => {
+  // Make sure to remove your event listeners when you leave a call
+  closedCaptionManager?.cleanup();
   call.leave();
 });
 
