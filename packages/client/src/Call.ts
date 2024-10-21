@@ -515,6 +515,7 @@ export class Call {
         };
         await waitUntilCallJoined();
       }
+
       if (reject && this.ringing) {
         // I'm the one who started the call, so I should cancel it.
         const hasOtherParticipants = this.state.remoteParticipants.length > 0;
