@@ -109,6 +109,7 @@ export const ParticipantsInfoList = ({
       transparent
       visible={isCallParticipantsInfoVisible}
       onRequestClose={onCloseCallParticipantsVisible}
+      supportedOrientations={['portrait', 'landscape']}
     >
       <>
         {/*independent background, needed due to desired opacity only

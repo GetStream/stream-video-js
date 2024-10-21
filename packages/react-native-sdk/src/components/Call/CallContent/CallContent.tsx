@@ -68,9 +68,9 @@ export type CallContentProps = Pick<
 > &
   CallContentComponentProps & {
     /**
-     * This switches the participant's layout between the grid and the spotlight mode.
+     * This switches the participant's layout between the grid, spotlight and fullscreen mode.
      */
-    layout?: 'grid' | 'spotlight';
+    layout?: 'grid' | 'spotlight' | 'fullscreen';
     /**
      * Reactions that are to be supported in the call
      */
