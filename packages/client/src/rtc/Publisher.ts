@@ -436,7 +436,7 @@ export class Publisher {
       return getPreferredCodecs('video', preferredCodec || 'vp8');
     }
     if (trackType === TrackType.AUDIO) {
-      return getPreferredCodecs('audio', 'opus');
+      return getPreferredCodecs('audio', preferredCodec || 'opus');
     }
   };
 
@@ -595,11 +595,13 @@ export class Publisher {
         const transceiverInitIndex =
           this.transceiverInitOrder.indexOf(trackType);
 
-        const codecInUse =
-          trackType === TrackType.VIDEO
-            ? this.codecsForTrack.get(trackType)
-            : undefined;
-        const preferredCodecs = this.getCodecPreferences(trackType, codecInUse);
+        let codecToUse: string | undefined = undefined;
+        if (trackType === TrackType.VIDEO) {
+          codecToUse = this.codecsForTrack.get(trackType);
+        } else if (trackType === TrackType.AUDIO) {
+          codecToUse = isRedEnabled ? 'red' : 'opus';
+        }
+        const preferredCodecs = this.getCodecPreferences(trackType, codecToUse);
         return {
           trackId: track.id,
           layers,
