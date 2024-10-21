@@ -21,9 +21,6 @@ export type TopControlsProps = {
 export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
-  const {
-    theme: { callTopView },
-  } = useTheme();
   const styles = useStyles();
 
   // TODO: replace this with real data implement PBE-5871 [Demo App] Call Recording flow
@@ -62,7 +59,6 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
 
 const useStyles = () => {
   const { theme } = useTheme();
-
   return useMemo(
     () =>
       StyleSheet.create({

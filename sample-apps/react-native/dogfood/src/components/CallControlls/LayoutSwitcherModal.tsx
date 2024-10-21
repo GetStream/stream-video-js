@@ -11,6 +11,7 @@ import { useTheme } from '@stream-io/video-react-native-sdk';
 import { Grid } from '../../assets/Grid';
 import { FullScreen } from '../../assets/FullScreen';
 import { SpotLight } from '../../assets/Spotlight';
+import { useLayout } from '../../contexts/LayoutContext';
 
 interface AnchorPosition {
   x: number;
@@ -22,20 +23,17 @@ interface PopupComponentProps {
   anchorPosition?: AnchorPosition | null;
   isVisible: boolean;
   onClose: () => void;
-  selectedButton: string;
-  onSelectButton: (buttonName: string) => void;
 }
 
 const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
   isVisible,
   onClose,
   anchorPosition,
-  onSelectButton,
-  selectedButton,
 }) => {
   const { theme } = useTheme();
   const styles = useStyles();
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+  const { selectedLayout, onLayoutSelection } = useLayout();
 
   useEffect(() => {
     if (isVisible && anchorPosition) {
@@ -79,9 +77,9 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           <TouchableOpacity
             style={[
               styles.button,
-              selectedButton === 'grid' && styles.selectedButton,
+              selectedLayout === 'grid' && styles.selectedButton,
             ]}
-            onPress={() => onSelectButton('grid')}
+            onPress={() => onLayoutSelection('grid')}
           >
             <Grid
               size={theme.variants.iconSizes.md}
@@ -92,9 +90,9 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           <TouchableOpacity
             style={[
               styles.button,
-              selectedButton === 'spotlight' && styles.selectedButton,
+              selectedLayout === 'spotlight' && styles.selectedButton,
             ]}
-            onPress={() => onSelectButton('spotlight')}
+            onPress={() => onLayoutSelection('spotlight')}
           >
             <SpotLight
               size={theme.variants.iconSizes.md}
@@ -105,9 +103,9 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           <TouchableOpacity
             style={[
               styles.button,
-              selectedButton === 'fullscreen' && styles.selectedButton,
+              selectedLayout === 'fullscreen' && styles.selectedButton,
             ]}
-            onPress={() => onSelectButton('fullscreen')}
+            onPress={() => onLayoutSelection('fullscreen')}
           >
             <FullScreen
               size={theme.variants.iconSizes.md}

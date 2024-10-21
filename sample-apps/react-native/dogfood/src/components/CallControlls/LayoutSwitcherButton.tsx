@@ -9,6 +9,7 @@ import { ColorValue, LayoutChangeEvent } from 'react-native';
 import { Grid } from '../../assets/Grid';
 import { SpotLight } from '../../assets/Spotlight';
 import { FullScreen } from '../../assets/FullScreen';
+import { useLayout } from '../../contexts/LayoutContext';
 
 export type LayoutSwitcherButtonProps = {
   /**
@@ -42,7 +43,7 @@ export const LayoutSwitcherButton = ({
     theme: { colors, defaults, variants },
   } = useTheme();
 
-  const [selectedButton, setSelectedButton] = useState<string>('grid');
+  const { selectedLayout } = useLayout();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState<{
     x: number;
@@ -57,10 +58,6 @@ export const LayoutSwitcherButton = ({
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
-
-  const handleButtonSelection = (buttonName: string) => {
-    setSelectedButton(buttonName);
-  };
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { x, y, width, height } = event.nativeEvent.layout;
@@ -81,14 +78,12 @@ export const LayoutSwitcherButton = ({
       color={colors.sheetPrimary}
     >
       <IconWrapper>
-        {getIcon(selectedButton, buttonColor, variants.iconSizes.lg)}
+        {getIcon(selectedLayout, buttonColor, variants.iconSizes.lg)}
       </IconWrapper>
       <LayoutSwitcherModal
         isVisible={isModalVisible}
         anchorPosition={anchorPosition}
         onClose={handleCloseModal}
-        onSelectButton={handleButtonSelection}
-        selectedButton={selectedButton}
       />
     </CallControlsButton>
   );

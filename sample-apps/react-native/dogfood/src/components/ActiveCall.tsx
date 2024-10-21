@@ -14,6 +14,7 @@ import {
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
+import { useLayout } from '../contexts/LayoutContext';
 
 type ActiveCallProps = BottomControlsProps & {
   onHangupCallHandler?: () => void;
@@ -32,6 +33,7 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const styles = useStyles();
   const { theme: colors } = useTheme();
+  const { selectedLayout } = useLayout();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -67,11 +69,12 @@ export const ActiveCall = ({
       <View style={styles.leftUnsafeArea} />
       <View style={styles.rightUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <TopControls />
         <CallContent
           onHangupCallHandler={onHangupCallHandler}
-          CallTopView={TopControls}
           CallControls={CustomControlsComponent}
           landscape={currentOrientation === 'landscape'}
+          layout={selectedLayout}
         />
         <ParticipantsInfoList
           isCallParticipantsInfoVisible={isCallParticipantsVisible}
