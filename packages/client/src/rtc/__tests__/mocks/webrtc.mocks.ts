@@ -69,3 +69,10 @@ const RTCRtpReceiverMock = vi.fn((): Partial<typeof RTCRtpReceiver> => {
   };
 });
 vi.stubGlobal('RTCRtpReceiver', RTCRtpReceiverMock);
+
+const RTCRtpSenderMock = vi.fn((): Partial<typeof RTCRtpSender> => {
+  return {
+    getCapabilities: vi.fn(),
+  };
+});
+vi.stubGlobal('RTCRtpSender', RTCRtpSenderMock);
