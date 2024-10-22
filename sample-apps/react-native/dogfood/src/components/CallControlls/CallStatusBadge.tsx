@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
@@ -33,16 +33,24 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
     },
   } = useTheme();
 
-  const { useCallDuration } = useCallStateHooks();
-  const duration = useCallDuration();
+  // TODO: replace this with useDuration when that https://github.com/GetStream/stream-video-js/pull/1528 is merged
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  useEffect(() => {
+    const startedAt = new Date().getTime();
+    setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    const intervalId = setInterval(() => {
+      setElapsedSeconds((prevSeconds) => prevSeconds + 1);
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const styles = useStyles(isCallRecorded);
 
   // Format duration to MM:SS
-  const minutes = Math.floor(duration / 60)
+  const minutes = Math.floor(elapsedSeconds / 60)
     .toString()
     .padStart(2, '0');
-  const seconds = (duration % 60).toString().padStart(2, '0');
+  const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
   const timestamp = `${minutes}:${seconds}`;
   const text = isCallRecorded ? 'Recording in progress...' : timestamp;
 
