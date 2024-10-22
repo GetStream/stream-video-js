@@ -49,18 +49,14 @@ const formatTime = (timeInSeconds: number) => {
   return `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds}`;
 };
 
-const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
+const Elapsed = () => {
   const [elapsed, setElapsed] = useState<string>();
-  const startedAtDate = useMemo(
-    () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
-    [startedAt],
-  );
-  const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
-  const durationInSeconds = useDuration(elapsedSeconds);
+  const { useCallDuration } = useCallStateHooks();
+  const duration = useCallDuration();
 
   useEffect(() => {
-    setElapsed(formatTime(durationInSeconds));
-  }, [durationInSeconds]);
+    setElapsed(formatTime(duration));
+  }, [duration]);
 
   return (
     <div className="rd__header__elapsed">
@@ -75,9 +71,8 @@ export const ActiveCallHeader = ({
   selectedLayout,
   onMenuItemClick,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
-  const { useCallCallingState, useCallSession } = useCallStateHooks();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const session = useCallSession();
   const isOffline = callingState === CallingState.OFFLINE;
   const isMigrating = callingState === CallingState.MIGRATING;
   const isJoining = callingState === CallingState.JOINING;
@@ -112,7 +107,7 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
-          <Elapsed startedAt={session?.started_at} />
+          <Elapsed />
           <LatencyIndicator />
         </div>
         <div className="rd__call-header__leave">

@@ -117,6 +117,7 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+  private durationSubject = new BehaviorSubject<number>(0);
 
   // These are tracks that were delivered to the Subscriber's onTrack event
   // that we couldn't associate with a participant yet.
@@ -285,6 +286,12 @@ export class CallState {
    */
   thumbnails$: Observable<ThumbnailResponse | undefined>;
 
+  /**
+   * Will provide the count of seconds since the call started.
+   */
+  duration$: Observable<number>;
+  durationInterval: NodeJS.Timeout | undefined;
+
   readonly logger = getLogger(['CallState']);
 
   /**
@@ -390,6 +397,8 @@ export class CallState {
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
+    this.duration$ = duc(this.durationSubject);
+    this.durationInterval = undefined;
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -465,6 +474,16 @@ export class CallState {
   }
 
   /**
+   * Runs the cleanup tasks.
+   */
+  dispose = () => {
+    if (this.durationInterval) {
+      clearInterval(this.durationInterval);
+      this.durationInterval = undefined;
+    }
+  };
+
+  /**
    * Sets the list of criteria that are used to sort the participants.
    * To disable sorting, you can pass `noopComparator()`.
    *
@@ -513,6 +532,23 @@ export class CallState {
    */
   setParticipantCount = (count: Patch<number>) => {
     return this.setCurrentValue(this.participantCountSubject, count);
+  };
+
+  /**
+   * The number of seconds since the start of the call.
+   */
+  get duration() {
+    return this.getCurrentValue(this.duration$);
+  }
+
+  /**
+   * Sets the number of seconds since the start of the call.
+   *
+   * @internal
+   * @param duration the duration of the call in seconds.
+   */
+  setDuration = (duration: Patch<number>) => {
+    return this.setCurrentValue(this.durationSubject, duration);
   };
 
   /**
@@ -1064,6 +1100,7 @@ export class CallState {
     this.setCurrentValue(this.recordingSubject, call.recording);
     const s = this.setCurrentValue(this.sessionSubject, call.session);
     this.updateParticipantCountFromSession(s);
+    this.updateDuration(s);
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
@@ -1168,6 +1205,21 @@ export class CallState {
     const participantCount = Math.max(byRoleCount, session.participants.length);
     this.setParticipantCount(participantCount);
     this.setAnonymousParticipantCount(session.anonymous_participant_count || 0);
+  };
+
+  private updateDuration = (session: CallSessionResponse | undefined) => {
+    if (session?.live_started_at && !this.durationInterval) {
+      this.setDuration(0);
+      this.durationInterval = setInterval(
+        () => this.setDuration((prev) => prev + 1),
+        1000,
+      );
+    }
+
+    if (session?.ended_at && this.durationInterval) {
+      clearInterval(this.durationInterval);
+      this.durationInterval = undefined;
+    }
   };
 
   private updateFromSessionParticipantCountUpdate = (
