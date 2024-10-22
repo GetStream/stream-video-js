@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 /**
  * Props for the CallStatusBadge component.
