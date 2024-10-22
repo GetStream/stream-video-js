@@ -34,17 +34,16 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
   const styles = useStyles();
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const { selectedLayout, onLayoutSelection } = useLayout();
+  const topInset = theme.variants.insets.top;
+  const leftInset = theme.variants.insets.left;
 
   useEffect(() => {
     if (isVisible && anchorPosition) {
       const windowHeight = Dimensions.get('window').height;
       const windowWidth = Dimensions.get('window').width;
 
-      let top =
-        anchorPosition.y +
-        anchorPosition.height / 2 +
-        theme.variants.insets.top;
-      let left = anchorPosition.x + theme.variants.insets.left;
+      let top = anchorPosition.y + anchorPosition.height / 2 + topInset;
+      let left = anchorPosition.x + leftInset;
 
       // Ensure the popup stays within the screen bounds
       if (top + 150 > windowHeight) {
@@ -56,9 +55,11 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
 
       setPopupPosition({ top, left });
     }
-  }, [isVisible, anchorPosition]);
+  }, [isVisible, anchorPosition, topInset, leftInset]);
 
-  if (!isVisible || !anchorPosition) return null;
+  if (!isVisible || !anchorPosition) {
+    return null;
+  }
 
   return (
     <Modal

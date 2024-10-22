@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';

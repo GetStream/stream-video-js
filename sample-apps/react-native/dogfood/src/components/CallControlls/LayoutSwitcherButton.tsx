@@ -40,7 +40,7 @@ export const LayoutSwitcherButton = ({
   onPressHandler,
 }: LayoutSwitcherButtonProps) => {
   const {
-    theme: { colors, defaults, variants },
+    theme: { colors, variants },
   } = useTheme();
 
   const { selectedLayout } = useLayout();
