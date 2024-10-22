@@ -10,22 +10,6 @@ import {
 } from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
 
-/**
- * An event responder which handles the `changePublishQuality` event.
- */
-export const watchChangePublishQuality = (
-  dispatcher: Dispatcher,
-  call: Call,
-) => {
-  return dispatcher.on('changePublishQuality', (e) => {
-    const { videoSenders } = e;
-    videoSenders.forEach((videoSender) => {
-      const { layers } = videoSender;
-      call.updatePublishQuality(layers.filter((l) => l.active));
-    });
-  });
-};
-
 export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
   state: CallState,

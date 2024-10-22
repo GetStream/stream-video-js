@@ -118,21 +118,15 @@ const getOpusFmtp = (sdp: string): Fmtp | undefined => {
  */
 export const toggleDtx = (sdp: string, enable: boolean): string => {
   const opusFmtp = getOpusFmtp(sdp);
-  if (opusFmtp) {
-    const matchDtx = /usedtx=(\d)/.exec(opusFmtp.config);
-    const requiredDtxConfig = `usedtx=${enable ? '1' : '0'}`;
-    if (matchDtx) {
-      const newFmtp = opusFmtp.original.replace(
-        /usedtx=(\d)/,
-        requiredDtxConfig,
-      );
-      return sdp.replace(opusFmtp.original, newFmtp);
-    } else {
-      const newFmtp = `${opusFmtp.original};${requiredDtxConfig}`;
-      return sdp.replace(opusFmtp.original, newFmtp);
-    }
-  }
-  return sdp;
+  if (!opusFmtp) return sdp;
+
+  const matchDtx = /usedtx=(\d)/.exec(opusFmtp.config);
+  const requiredDtxConfig = `usedtx=${enable ? '1' : '0'}`;
+  const newFmtp = matchDtx
+    ? opusFmtp.original.replace(/usedtx=(\d)/, requiredDtxConfig)
+    : `${opusFmtp.original};${requiredDtxConfig}`;
+
+  return sdp.replace(opusFmtp.original, newFmtp);
 };
 
 /**
@@ -180,4 +174,33 @@ export const enableHighQualityAudio = (
   }
 
   return SDP.write(parsedSdp);
+};
+
+/**
+ * Extracts the mid from the transceiver or the SDP.
+ *
+ * @param transceiver the transceiver.
+ * @param transceiverInitIndex the index of the transceiver in the transceiver's init array.
+ * @param sdp the SDP.
+ */
+export const extractMid = (
+  transceiver: RTCRtpTransceiver,
+  transceiverInitIndex: number,
+  sdp: string | undefined,
+): string => {
+  if (transceiver.mid) return transceiver.mid;
+  if (!sdp) return '';
+
+  const track = transceiver.sender.track!;
+  const parsedSdp = SDP.parse(sdp);
+  const media = parsedSdp.media.find((m) => {
+    return (
+      m.type === track.kind &&
+      // if `msid` is not present, we assume that the track is the first one
+      (m.msid?.includes(track.id) ?? true)
+    );
+  });
+  if (typeof media?.mid !== 'undefined') return String(media.mid);
+  if (transceiverInitIndex === -1) return '';
+  return String(transceiverInitIndex);
 };

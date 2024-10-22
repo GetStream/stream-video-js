@@ -4,7 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { PreferredCodec, PublishOptions } from '../types';
+import { PreferredCodec } from '../types';
 import { isMobile } from '../compatibility';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
@@ -12,13 +12,6 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     width: 1280,
     height: 720,
   };
-
-  /**
-   * The options to use when publishing the video stream.
-   *
-   * @internal
-   */
-  publishOptions: PublishOptions | undefined;
 
   /**
    * Constructs a new CameraManager.
@@ -70,10 +63,10 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         this.logger('warn', 'could not apply target resolution', error);
       }
     }
-    if (this.enabled) {
-      const { width, height } = this.state
-        .mediaStream!.getVideoTracks()[0]
-        ?.getSettings();
+    if (this.enabled && this.state.mediaStream) {
+      const [videoTrack] = this.state.mediaStream.getVideoTracks();
+      if (!videoTrack) return;
+      const { width, height } = videoTrack.getSettings();
       if (
         width !== this.targetResolution.width ||
         height !== this.targetResolution.height
@@ -91,38 +84,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    * Sets the preferred codec for encoding the video.
    *
    * @internal internal use only, not part of the public API.
+   * @deprecated use {@link call.updatePublishOptions} instead.
    * @param codec the codec to use for encoding the video.
    */
   setPreferredCodec(codec: PreferredCodec | undefined) {
-    this.updatePublishOptions({ preferredCodec: codec });
-  }
-
-  /**
-   * Updates the preferred publish options for the video stream.
-   *
-   * @internal
-   * @param options the options to use.
-   */
-  updatePublishOptions(options: PublishOptions) {
-    this.publishOptions = { ...this.publishOptions, ...options };
-  }
-
-  /**
-   * Returns the capture resolution of the camera.
-   */
-  getCaptureResolution() {
-    const { mediaStream } = this.state;
-    if (!mediaStream) return;
-
-    const [videoTrack] = mediaStream.getVideoTracks();
-    if (!videoTrack) return;
-
-    const settings = videoTrack.getSettings();
-    return {
-      width: settings.width,
-      height: settings.height,
-      frameRate: settings.frameRate,
-    };
+    this.call.updatePublishOptions({ preferredCodec: codec });
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -144,7 +110,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream, this.publishOptions);
+    return this.call.publishVideoStream(stream);
   }
 
   protected stopPublishStream(stopTracks: boolean): Promise<void> {

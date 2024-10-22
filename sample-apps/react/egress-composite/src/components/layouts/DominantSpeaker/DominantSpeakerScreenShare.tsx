@@ -36,11 +36,6 @@ export const DominantSpeakerScreenShare = () => {
         muteAudio // audio is handled by <ParticipantsAudio />
         ParticipantViewUI={null}
       />
-      <span>
-        {`Presenter: ${
-          screensharingParticipant.name || screensharingParticipant.userId
-        }`}
-      </span>
       <div className="eca__dominant-speaker-screen-share__current-speaker">
         <ParticipantView
           participant={screensharingParticipant}
