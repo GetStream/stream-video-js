@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { TopViewBackground } from '@stream-io/video-react-native-sdk/src/icons';
 import {
   HangUpCallButton,
@@ -21,9 +21,6 @@ export type TopControlsProps = {
 export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
-  const {
-    theme: { callTopView },
-  } = useTheme();
   const styles = useStyles();
 
   // TODO: replace this with real data implement PBE-5871 [Demo App] Call Recording flow
@@ -38,13 +35,10 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
   };
 
   return (
-    <View style={callTopView.container as StyleProp<ViewStyle>}>
+    <View>
       {/* Component for the background of the TopControls. Since it has a Linear Gradient, an SVG is used to render it. */}
       <TopViewBackground height={topControlsHeight} width={topControlsWidth} />
-      <View
-        style={[styles.content, callTopView.content as StyleProp<ViewStyle>]}
-        onLayout={onLayout}
-      >
+      <View style={styles.content} onLayout={onLayout}>
         <View style={styles.leftElement}>
           <View style={styles.leftContent}>
             <LayoutSwitcherButton onPressHandler={() => {}} />
@@ -52,12 +46,7 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
             {!isCallRecorded && <VideoEffectsButton />}
           </View>
         </View>
-        <View
-          style={[
-            styles.centerElement,
-            callTopView.centerElement as StyleProp<ViewStyle>,
-          ]}
-        >
+        <View style={styles.centerElement}>
           <CallStatusBadge isCallRecorded={isCallRecorded} />
         </View>
         <View style={styles.rightElement}>
