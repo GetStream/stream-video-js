@@ -310,6 +310,36 @@ describe('Call ringing events', () => {
       expect(call.leave).not.toHaveBeenCalled();
     });
   });
+
+  describe('call.leave', () => {
+    it('should not call reject when leaving under specific conditions', async () => {
+      const call = fakeCall();
+      call.state.setCallingState(CallingState.JOINED);
+      const rejectSpy = vi
+        .spyOn(call, 'reject')
+        .mockImplementation(async () => {
+          console.log('TEST: reject() called');
+        });
+
+      await call.leave({ reject: false });
+
+      expect(rejectSpy).not.toHaveBeenCalled();
+    });
+
+    it('should call reject when leaving while ringing and reject is true', async () => {
+      const call = fakeCall();
+      call.state.setCallingState(CallingState.RINGING);
+      const rejectSpy = vi
+        .spyOn(call, 'reject')
+        .mockImplementation(async () => {
+          console.log('TEST: reject() called');
+        });
+
+      await call.leave({ reject: true });
+
+      expect(rejectSpy).toHaveBeenCalled();
+    });
+  });
 });
 
 const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {

@@ -516,7 +516,7 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      if (this.ringing) {
+      if (reject && this.ringing) {
         // I'm the one who started the call, so I should cancel it.
         const hasOtherParticipants = this.state.remoteParticipants.length > 0;
         if (
@@ -527,7 +527,7 @@ export class Call {
           // Signals other users that I have cancelled my call to them
           // before they accepted it.
           await this.reject();
-        } else if (reject && callingState === CallingState.RINGING) {
+        } else if (callingState === CallingState.RINGING) {
           // Signals other users that I have rejected the incoming call.
           await this.reject();
         }
