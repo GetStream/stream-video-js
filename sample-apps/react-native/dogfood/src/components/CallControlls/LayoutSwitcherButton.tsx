@@ -5,7 +5,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import LayoutSwitcherModal from './LayoutSwitcherModal';
-import { ColorValue, LayoutChangeEvent } from 'react-native';
+import { ColorValue } from 'react-native';
 import { Grid } from '../../assets/Grid';
 import { SpotLight } from '../../assets/Spotlight';
 import { FullScreen } from '../../assets/FullScreen';
@@ -59,7 +59,7 @@ export const LayoutSwitcherButton = ({
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
 
-  const handleLayout = (event: LayoutChangeEvent) => {
+  const handleLayout = (event: any) => {
     const { x, y, width, height } = event.nativeEvent.layout;
     setAnchorPosition({ x, y: y + height, width, height });
   };
