@@ -2,6 +2,43 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.3...@stream-io/video-react-native-sdk-1.2.4) (2024-10-22)
+
+
+### Bug Fixes
+
+* added workaround for possible multiple createDevice calls on remounting ([#1532](https://github.com/GetStream/stream-video-js/issues/1532)) ([eb3afb4](https://github.com/GetStream/stream-video-js/commit/eb3afb4dc33289cde0639cc109194971d31f51e0))
+
+## [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.2...@stream-io/video-react-native-sdk-1.2.3) (2024-10-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.7`
+## [1.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.1...@stream-io/video-react-native-sdk-1.2.2) (2024-10-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.6`
+## [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.0...@stream-io/video-react-native-sdk-1.2.1) (2024-10-17)
+
+
+### Bug Fixes
+
+* allow specifying publish options in PN config ([#1524](https://github.com/GetStream/stream-video-js/issues/1524)) ([a2ae74e](https://github.com/GetStream/stream-video-js/commit/a2ae74e8097bf1e58d040e4a7696ecadfc435843)), closes [#1434](https://github.com/GetStream/stream-video-js/issues/1434)
+
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.6...@stream-io/video-react-native-sdk-1.2.0) (2024-10-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.5`
+
+### Features
+
+* **svc-codec:** VP9 and AV1 support ([#1434](https://github.com/GetStream/stream-video-js/issues/1434)) ([c9c8530](https://github.com/GetStream/stream-video-js/commit/c9c8530d48c9206dc3803e6aa6cc1859fd433920))
+
 ## [1.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.5...@stream-io/video-react-native-sdk-1.1.6) (2024-10-16)
 
 ### Dependency Updates
