@@ -16,14 +16,12 @@ import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 
 type ActiveCallProps = BottomControlsProps & {
-  onBackPressed?: () => void;
   onHangupCallHandler?: () => void;
   onCallEnded: () => void;
 };
 
 export const ActiveCall = ({
   onChatOpenHandler,
-  onBackPressed,
   onHangupCallHandler,
   onCallEnded,
   unreadCountIndicator,
@@ -68,7 +66,6 @@ export const ActiveCall = ({
       <View style={styles.topUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
-          onBackPressed={onBackPressed}
           onHangupCallHandler={onHangupCallHandler}
           CallTopView={TopControls}
           CallControls={CustomControlsComponent}
