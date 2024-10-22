@@ -2,6 +2,67 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.2...@stream-io/video-react-native-sdk-1.2.3) (2024-10-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.7`
+## [1.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.1...@stream-io/video-react-native-sdk-1.2.2) (2024-10-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.6`
+## [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.0...@stream-io/video-react-native-sdk-1.2.1) (2024-10-17)
+
+
+### Bug Fixes
+
+* allow specifying publish options in PN config ([#1524](https://github.com/GetStream/stream-video-js/issues/1524)) ([a2ae74e](https://github.com/GetStream/stream-video-js/commit/a2ae74e8097bf1e58d040e4a7696ecadfc435843)), closes [#1434](https://github.com/GetStream/stream-video-js/issues/1434)
+
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.6...@stream-io/video-react-native-sdk-1.2.0) (2024-10-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.5`
+
+### Features
+
+* **svc-codec:** VP9 and AV1 support ([#1434](https://github.com/GetStream/stream-video-js/issues/1434)) ([c9c8530](https://github.com/GetStream/stream-video-js/commit/c9c8530d48c9206dc3803e6aa6cc1859fd433920))
+
+## [1.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.5...@stream-io/video-react-native-sdk-1.1.6) (2024-10-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.4`
+* `@stream-io/video-react-bindings` updated to version `1.1.4`
+## [1.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.4...@stream-io/video-react-native-sdk-1.1.5) (2024-10-16)
+
+
+### Bug Fixes
+
+* **react-native:** set objectFit based on actual video track dimensions ([#1520](https://github.com/GetStream/stream-video-js/issues/1520)) ([44ef7d2](https://github.com/GetStream/stream-video-js/commit/44ef7d2e69a910be45b2d3a7643c3f58e0f29803))
+
+## [1.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.3...@stream-io/video-react-native-sdk-1.1.4) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.3`
+## [1.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.2...@stream-io/video-react-native-sdk-1.1.3) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.2`
+## [1.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.1...@stream-io/video-react-native-sdk-1.1.2) (2024-10-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.8.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.1`
 ## [1.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.1.0...@stream-io/video-react-native-sdk-1.1.1) (2024-10-04)
 
 

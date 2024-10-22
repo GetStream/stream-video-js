@@ -7,3 +7,4 @@ export * from './useIsInPiPMode';
 export * from './useAutoEnterPiPEffect';
 export * from './useApplyDefaultMediaStreamSettings';
 export * from './useScreenShareButton';
+export * from './useTrackDimensions';

@@ -1,8 +1,8 @@
 import {
   Call,
+  getLogger,
   RxUtils,
   StreamVideoClient,
-  getLogger,
 } from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
@@ -80,7 +80,7 @@ export const processCallFromPushInBackground = async (
     logger('error', 'failed to create video client', e);
     return;
   }
-  await processCallFromPush(videoClient, call_cid, action);
+  await processCallFromPush(videoClient, call_cid, action, pushConfig);
 };
 
 /**
@@ -93,7 +93,8 @@ export const processCallFromPushInBackground = async (
 export const processCallFromPush = async (
   client: StreamVideoClient,
   call_cid: string,
-  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered'
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
+  pushConfig: PushConfig
 ) => {
   let callFromPush: Call;
   try {
@@ -106,6 +107,9 @@ export const processCallFromPush = async (
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {
     if (action === 'accept') {
+      if (pushConfig.publishOptions) {
+        callFromPush.updatePublishOptions(pushConfig.publishOptions);
+      }
       await callFromPush.join();
     } else if (action === 'decline') {
       await callFromPush.leave({ reject: true });

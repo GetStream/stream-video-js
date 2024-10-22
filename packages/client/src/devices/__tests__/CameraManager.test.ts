@@ -36,6 +36,13 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../compatibility.ts', () => {
+  console.log('MOCKING mobile device');
+  return {
+    isMobile: () => true,
+  };
+});
+
 describe('CameraManager', () => {
   let manager: CameraManager;
 
@@ -82,21 +89,6 @@ describe('CameraManager', () => {
 
     expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
-      undefined,
-    );
-  });
-
-  it('publish stream with preferred codec', async () => {
-    manager['call'].state.setCallingState(CallingState.JOINED);
-    manager.setPreferredCodec('h264');
-
-    await manager.enable();
-
-    expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
-      manager.state.mediaStream,
-      {
-        preferredCodec: 'h264',
-      },
     );
   });
 
