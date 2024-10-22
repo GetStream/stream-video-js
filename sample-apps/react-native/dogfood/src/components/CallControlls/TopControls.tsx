@@ -38,7 +38,7 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
     <View>
       {/* Component for the background of the TopControls. Since it has a Linear Gradient, an SVG is used to render it. */}
       <TopViewBackground height={topControlsHeight} width={topControlsWidth} />
-      <View style={[styles.content]} onLayout={onLayout}>
+      <View style={styles.content} onLayout={onLayout}>
         <View style={styles.leftElement}>
           <View style={styles.leftContent}>
             <LayoutSwitcherButton />
@@ -46,7 +46,7 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
             {!isCallRecorded && <VideoEffectsButton />}
           </View>
         </View>
-        <View style={[styles.centerElement]}>
+        <View style={styles.centerElement}>
           <CallStatusBadge isCallRecorded={isCallRecorded} />
         </View>
         <View style={styles.rightElement}>
