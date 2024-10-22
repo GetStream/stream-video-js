@@ -19,7 +19,7 @@ import {
 } from '../../utils/push/rxSubjects';
 import { RxUtils, getLogger } from '@stream-io/video-client';
 
-let lastVoipToken: string | undefined = '';
+let lastVoipToken = { token: '', userId: '' };
 
 /**
  * This hook is used to do the initial setup of listeners
@@ -32,23 +32,13 @@ export const useIosVoipPushEventsSetupEffect = () => {
     if (Platform.OS !== 'ios' || !pushConfig || !client) {
       return;
     }
-    if (lastVoipToken) {
-      // send token to stream (userId might have switched on the same device)
-      const push_provider_name = pushConfig.ios.pushProviderName;
-      if (!push_provider_name) {
-        return;
-      }
-      client
-        .addVoipDevice(lastVoipToken, 'apn', push_provider_name)
-        .catch((err) => {
-          const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
-          logger('warn', 'Failed to send lastVoipToken to stream', err);
-        });
-    }
     const voipPushNotification = getVoipPushNotificationLib();
     const onTokenReceived = (token: string) => {
-      // send token to stream
-      lastVoipToken = token;
+      const userId = client.streamClient._user?.id ?? '';
+      if (lastVoipToken.token === token && lastVoipToken.userId === userId) {
+        return;
+      }
+      lastVoipToken = { token, userId };
       const push_provider_name = pushConfig.ios.pushProviderName;
       if (!push_provider_name) {
         return;
@@ -59,6 +49,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
       });
       // set the logout callback
       setPushLogoutCallback(async () => {
+        lastVoipToken = { token: '', userId: '' };
         try {
           await client.removeDevice(token);
         } catch (err) {
