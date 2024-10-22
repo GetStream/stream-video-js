@@ -1,20 +1,20 @@
 import { getOSInfo } from '../client-details';
 import { isReactNative } from '../helpers/platforms';
 import { isFirefox, isSafari } from '../helpers/browsers';
+import { TrackType } from '../gen/video/sfu/models/models';
 import type { PreferredCodec } from '../types';
 
 /**
  * Returns back a list of sorted codecs, with the preferred codec first.
  *
- * @param kind the kind of codec to get.
- * @param preferredCodec the codec to prioritize (vp8, h264, vp9, av1...).
+ * @param preferredCodecMimeType the codec to prioritize (video/vp8, video/h264, video/vp9, video/av1...).
  */
 export const getPreferredCodecs = (
-  kind: 'audio' | 'video',
-  preferredCodec: string,
+  preferredCodecMimeType: string,
 ): RTCRtpCodecCapability[] | undefined => {
   if (!('getCapabilities' in RTCRtpSender)) return;
 
+  const [kind] = preferredCodecMimeType.split('/');
   const capabilities = RTCRtpSender.getCapabilities(kind);
   if (!capabilities) return;
 
@@ -22,7 +22,7 @@ export const getPreferredCodecs = (
   const partiallyPreferred: RTCRtpCodecCapability[] = [];
   const unpreferred: RTCRtpCodecCapability[] = [];
 
-  const preferredCodecMimeType = `${kind}/${preferredCodec.toLowerCase()}`;
+  preferredCodecMimeType = preferredCodecMimeType.toLowerCase();
   for (const codec of capabilities.codecs) {
     const codecMimeType = codec.mimeType.toLowerCase();
 
@@ -65,9 +65,26 @@ export const getPreferredCodecs = (
 };
 
 /**
+ * Returns an ordered list of preferred codecs for the given track type.
+ *
+ * @param trackType the type of track.
+ * @param preferredCodec the preferred codec to prioritize.
+ */
+export const getCodecPreferences = (
+  trackType: TrackType,
+  preferredCodec?: string,
+): RTCRtpCodecCapability[] | undefined => {
+  return trackType === TrackType.VIDEO
+    ? getPreferredCodecs(`video/${preferredCodec || 'vp8'}`)
+    : trackType === TrackType.AUDIO
+      ? getPreferredCodecs(`audio/${preferredCodec || 'opus'}`)
+      : undefined;
+};
+
+/**
  * Returns a generic SDP for the given direction.
  * We use this SDP to send it as part of our JoinRequest so that the SFU
- * can use it to determine client's codec capabilities.
+ * can use it to determine the client's codec capabilities.
  *
  * @param direction the direction of the transceiver.
  */
@@ -98,6 +115,8 @@ export const getOptimalVideoCodec = (
     if (os === 'ios' || os === 'ipados') return 'h264';
     return preferredOr(preferredCodec, 'h264');
   }
+  // Safari and Firefox do not have a good support encoding to SVC codecs,
+  // so we disable it for them.
   if (isSafari()) return 'h264';
   if (isFirefox()) return 'vp8';
   return preferredOr(preferredCodec, 'vp8');
@@ -111,20 +130,24 @@ const preferredOr = (
   codec: PreferredCodec | undefined,
   fallback: PreferredCodec,
 ): PreferredCodec => {
-  if (!codec) return fallback;
-  if (!('getCapabilities' in RTCRtpSender)) return fallback;
-  const capabilities = RTCRtpSender.getCapabilities('video');
-  if (!capabilities) return fallback;
+  return codec && isCodecSupported(`video/${codec}`) ? codec : fallback;
+};
 
-  // Safari and Firefox do not have a good support encoding to SVC codecs,
-  // so we disable it for them.
-  if (isSvcCodec(codec) && (isSafari() || isFirefox())) return fallback;
+/**
+ * Returns whether the codec is supported by the platform.
+ *
+ * @param codecMimeType the codec to check.
+ */
+export const isCodecSupported = (codecMimeType: string): boolean => {
+  if (!('getCapabilities' in RTCRtpSender)) return false;
+
+  codecMimeType = codecMimeType.toLowerCase();
+  const [kind] = codecMimeType.split('/');
+  const capabilities = RTCRtpSender.getCapabilities(kind);
+  if (!capabilities) return false;
 
   const { codecs } = capabilities;
-  const codecMimeType = `video/${codec}`.toLowerCase();
-  return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType)
-    ? codec
-    : fallback;
+  return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType);
 };
 
 /**

@@ -5,7 +5,7 @@ import './mocks/webrtc.mocks';
 describe('codecs', () => {
   it('should return preferred audio codec', () => {
     RTCRtpSender.getCapabilities = vi.fn().mockReturnValue(audioCodecs);
-    const codecs = getPreferredCodecs('audio', 'red');
+    const codecs = getPreferredCodecs('audio/red');
     expect(codecs).toBeDefined();
     expect(codecs?.map((c) => c.mimeType)).toEqual([
       'audio/red',
@@ -20,7 +20,7 @@ describe('codecs', () => {
 
   it('should return preferred video codec', () => {
     RTCRtpSender.getCapabilities = vi.fn().mockReturnValue(videoCodecs);
-    const codecs = getPreferredCodecs('video', 'vp8');
+    const codecs = getPreferredCodecs('video/vp8');
     expect(codecs).toBeDefined();
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
@@ -40,7 +40,7 @@ describe('codecs', () => {
 
   it('should pick the baseline H264 codec', () => {
     RTCRtpSender.getCapabilities = vi.fn().mockReturnValue(videoCodecs);
-    const codecs = getPreferredCodecs('video', 'h264');
+    const codecs = getPreferredCodecs('video/h264');
     expect(codecs).toBeDefined();
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
@@ -60,7 +60,7 @@ describe('codecs', () => {
 
   it('should pick the baseline H264 codec with optional packetization-mode', () => {
     RTCRtpSender.getCapabilities = vi.fn().mockReturnValue(videoCodecsFirefox);
-    const codecs = getPreferredCodecs('video', 'h264');
+    const codecs = getPreferredCodecs('video/h264');
     expect(codecs).toBeDefined();
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([

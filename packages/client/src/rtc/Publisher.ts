@@ -14,7 +14,12 @@ import {
   ridToVideoQuality,
   toSvcEncodings,
 } from './videoLayers';
-import { getOptimalVideoCodec, getPreferredCodecs, isSvcCodec } from './codecs';
+import {
+  getCodecPreferences,
+  getOptimalVideoCodec,
+  isCodecSupported,
+  isSvcCodec,
+} from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
@@ -428,18 +433,6 @@ export class Publisher {
     return this.pc.getStats(selector);
   };
 
-  private getCodecPreferences = (
-    trackType: TrackType,
-    preferredCodec?: string,
-  ) => {
-    if (trackType === TrackType.VIDEO) {
-      return getPreferredCodecs('video', preferredCodec || 'vp8');
-    }
-    if (trackType === TrackType.AUDIO) {
-      return getPreferredCodecs('audio', preferredCodec || 'opus');
-    }
-  };
-
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
@@ -588,7 +581,9 @@ export class Publisher {
 
         const audioSettings = this.state.settings?.audio;
         const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
+        const isRedEnabled =
+          !!audioSettings?.redundant_coding_enabled &&
+          isCodecSupported('audio/red');
 
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
@@ -601,7 +596,7 @@ export class Publisher {
         } else if (trackType === TrackType.AUDIO) {
           codecToUse = isRedEnabled ? 'red' : 'opus';
         }
-        const preferredCodecs = this.getCodecPreferences(trackType, codecToUse);
+        const preferredCodecs = getCodecPreferences(trackType, codecToUse);
         return {
           trackId: track.id,
           layers,
