@@ -57,7 +57,10 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   );
   const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
   const durationInSeconds = useDuration(elapsedSeconds);
-  setElapsed(formatTime(durationInSeconds));
+
+  useEffect(() => {
+    setElapsed(formatTime(durationInSeconds));
+  }, [durationInSeconds]);
 
   return (
     <div className="rd__header__elapsed">
