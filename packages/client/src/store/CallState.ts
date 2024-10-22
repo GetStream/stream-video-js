@@ -390,6 +390,7 @@ export class CallState {
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
+
     this.eventHandlers = {
       // these events are not updating the call state:
       'call.closed_caption': undefined,
