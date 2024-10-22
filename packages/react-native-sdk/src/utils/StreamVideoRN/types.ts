@@ -1,4 +1,4 @@
-import { StreamVideoClient } from '@stream-io/video-client';
+import { PublishOptions, StreamVideoClient } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
 
 export type NonRingingPushEvent = 'call.live_started' | 'call.notification';
@@ -11,6 +11,12 @@ export type StreamVideoConfig = {
    */
   push?: {
     isExpo?: boolean;
+    /**
+     * The publish options to be used when joining a call from a push notification.
+     *
+     * @internal
+     */
+    publishOptions?: PublishOptions;
     ios: {
       /**
        * The name for the alias of push provider used for iOS

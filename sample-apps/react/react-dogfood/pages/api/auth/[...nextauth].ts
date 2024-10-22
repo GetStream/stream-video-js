@@ -25,7 +25,7 @@ const StreamDemoAccountProvider: CredentialsConfig<StreamDemoAccountCredentials>
     },
     authorize: async (credentials) => {
       const name = credentials?.name || names.random();
-      const id = name.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+      const id = name.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace(/ /g, '_');
       return {
         id,
         name,
@@ -41,7 +41,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    !isProntoEnvironment && StreamDemoAccountProvider,
+    StreamDemoAccountProvider,
     isProntoEnvironment &&
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -57,10 +57,7 @@ export const authOptions: NextAuthOptions = {
         const isStreamEmployee = email.endsWith('@getstream.io');
         return email_verified && isStreamEmployee;
       }
-      return (
-        !isProntoEnvironment &&
-        account?.provider === StreamDemoAccountProvider.id
-      );
+      return account?.provider === StreamDemoAccountProvider.id;
     },
     async redirect({ baseUrl, url }) {
       // when running the demo on Vercel, we need to patch the baseUrl

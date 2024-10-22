@@ -24,15 +24,15 @@ PODS:
   - GTMAppAuth (4.1.1):
     - AppAuth/Core (~> 1.7)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3)
-  - GTMSessionFetcher/Core (3.4.1)
+  - GTMSessionFetcher/Core (3.5.0)
   - hermes-engine (0.73.4):
     - hermes-engine/Pre-built (= 0.73.4)
   - hermes-engine/Pre-built (0.73.4)
-  - JitsiWebRTC (118.0.0)
+  - JitsiWebRTC (124.0.1)
   - libevent (2.1.12)
-  - MMKV (1.3.5):
-    - MMKVCore (~> 1.3.5)
-  - MMKVCore (1.3.5)
+  - MMKV (1.3.9):
+    - MMKVCore (~> 1.3.9)
+  - MMKVCore (1.3.9)
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
@@ -1146,10 +1146,10 @@ PODS:
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
     - stream-react-native-webrtc
-  - stream-react-native-webrtc (118.1.0):
-    - JitsiWebRTC (~> 118.0.0)
+  - stream-react-native-webrtc (124.0.0-rc.1):
+    - JitsiWebRTC (~> 124.0.0)
     - React-Core
-  - stream-video-react-native (1.1.6):
+  - stream-video-react-native (1.1.4):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1407,12 +1407,12 @@ SPEC CHECKSUMS:
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
-  GTMSessionFetcher: 8000756fc1c19d2e5697b90311f7832d2e33f6cd
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: b2669ce35fc4ac14f523b307aff8896799829fe2
-  JitsiWebRTC: 3a41671ef65a51d7204323814b055a2690b921c7
+  JitsiWebRTC: d0ae5fd6a81e771bfd82c2ee6c6bb542ebd65ee8
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  MMKV: 506311d0494023c2f7e0b62cc1f31b7370fa3cfb
-  MMKVCore: 9e2e5fd529b64a9fe15f1a7afb3d73b2e27b4db9
+  MMKV: 817ba1eea17421547e01e087285606eb270a8dcb
+  MMKVCore: af055b00e27d88cd92fad301c5fecd1ff9b26dd9
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
@@ -1479,8 +1479,8 @@ SPEC CHECKSUMS:
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-io-video-filters-react-native: 8c345e6adf5164646696d45f9962c4199b2fe3b9
-  stream-react-native-webrtc: 4ccf61161f77c57b9aa45f78cb7f69b7d91f3e9f
-  stream-video-react-native: 5f9c3101cff99715e6a6139b24a8f43539421e2b
+  stream-react-native-webrtc: 1380525629fae21f4894535189573fb4ddb7984a
+  stream-video-react-native: 25880e3ff2889deca42fba87f6fa0c434fc6e5fa
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 

@@ -89,7 +89,7 @@ Here are some of the features we support:
 - [ ] Closed captions
 - [ ] Query call session endpoint
 - [ ] Logging 2.0
-- [ ] Hardware-accelerated video encoding on supported platforms
+- [x] Hardware-accelerated video encoding on supported platforms
 - [ ] Dynascale 2.0 (codec switching)
 - [ ] E2E testing platform
 - [ ] Dynascale: turn off incoming video when the browser is in the background

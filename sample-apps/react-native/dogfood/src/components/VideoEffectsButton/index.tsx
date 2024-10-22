@@ -59,6 +59,7 @@ const FilterButton = () => {
         transparent
         visible={modalVisible}
         onRequestClose={closeModal}
+        supportedOrientations={['portrait', 'landscape']}
       >
         <Pressable style={styles.centeredView} onPress={closeModal}>
           <View style={styles.modalView} onStartShouldSetResponder={() => true}>
