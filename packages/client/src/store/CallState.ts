@@ -1209,7 +1209,9 @@ export class CallState {
 
   private updateDuration = (session: CallSessionResponse | undefined) => {
     if (session?.live_started_at && !this.durationInterval) {
-      this.setDuration(0);
+      const startedAt = new Date(session.live_started_at).getTime();
+      const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+      this.setDuration(elapsedSeconds);
       this.durationInterval = setInterval(
         () => this.setDuration((prev) => prev + 1),
         1000,
