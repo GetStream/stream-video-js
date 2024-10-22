@@ -6,7 +6,6 @@ import {
   LoadingIndicator,
   Notification,
   useCallStateHooks,
-  useDuration,
   useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
