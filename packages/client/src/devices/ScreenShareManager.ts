@@ -70,12 +70,19 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return of([]); // there are no devices to be listed for Screen Share
   }
 
+  protected getConstraints(
+    defaultConstraints: DisplayMediaStreamOptions,
+  ): DisplayMediaStreamOptions {
+    if (!this.state.audioEnabled) {
+      return { ...defaultConstraints, audio: false };
+    }
+
+    return defaultConstraints;
+  }
+
   protected getStream(
     constraints: DisplayMediaStreamOptions,
   ): Promise<MediaStream> {
-    if (!this.state.audioEnabled) {
-      constraints.audio = false;
-    }
     return getScreenShareStream(constraints);
   }
 

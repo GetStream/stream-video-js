@@ -57,7 +57,7 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
     }
   }
 
-  protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
+  getDeviceIdFromStream(stream: MediaStream): string | undefined {
     const [track] = stream.getVideoTracks();
     return track?.getSettings().deviceId;
   }
