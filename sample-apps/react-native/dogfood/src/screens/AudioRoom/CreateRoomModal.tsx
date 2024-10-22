@@ -76,6 +76,7 @@ export default function CreateRoomModal(props: Props) {
       transparent={true}
       visible={props.modalVisible}
       onRequestClose={props.onClose}
+      supportedOrientations={['portrait', 'landscape']}
     >
       <Pressable style={styles.centeredView} onPress={props.onClose}>
         <View style={styles.modalView}>

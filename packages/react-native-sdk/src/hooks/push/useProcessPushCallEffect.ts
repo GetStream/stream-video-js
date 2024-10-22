@@ -1,8 +1,8 @@
 import {
   pushAcceptedIncomingCallCId$,
+  pushAndroidBackgroundDeliveredIncomingCallCId$,
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
-  pushAndroidBackgroundDeliveredIncomingCallCId$,
 } from '../../utils/push/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
@@ -91,7 +91,7 @@ const createCallSubscription = (
   return behaviourSubjectWithCallCid
     .pipe(filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
-      await processCallFromPush(client, callCId, action);
+      await processCallFromPush(client, callCId, action, pushConfig);
       if (action === 'accept') {
         pushConfig.navigateAcceptCall();
       } else if (action === 'pressed' || action === 'backgroundDelivered') {

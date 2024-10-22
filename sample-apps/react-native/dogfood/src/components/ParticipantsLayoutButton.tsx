@@ -62,6 +62,7 @@ export const ParticipantsLayoutSwitchButton = ({
         transparent
         visible={modalVisible}
         onRequestClose={closeModal}
+        supportedOrientations={['portrait', 'landscape']}
       >
         <Pressable
           style={styles.centeredView}
