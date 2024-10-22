@@ -49,6 +49,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
       });
       // set the logout callback
       setPushLogoutCallback(async () => {
+        lastVoipToken = { token: '', userId: '' };
         try {
           await client.removeDevice(token);
         } catch (err) {

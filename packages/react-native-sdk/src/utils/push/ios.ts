@@ -150,6 +150,7 @@ export async function initIosNonVoipToken(
     }
     lastApnToken = { token, userId };
     setPushLogoutCallback(async () => {
+      lastApnToken = { token: '', userId: '' };
       try {
         await client.removeDevice(token);
       } catch (err) {

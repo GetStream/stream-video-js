@@ -150,6 +150,7 @@ export async function initAndroidPushToken(
     }
     lastFirebaseToken = { token, userId };
     setPushLogoutCallback(async () => {
+      lastFirebaseToken = { token: '', userId: '' };
       try {
         await client.removeDevice(token);
       } catch (err) {
