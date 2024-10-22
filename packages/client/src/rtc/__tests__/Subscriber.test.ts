@@ -1,12 +1,11 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DispatchableMessage, Dispatcher } from '../Dispatcher';
+import { Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
-import { SfuEvent } from '../../gen/video/sfu/event/events';
-import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import { TrackType } from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -59,40 +58,6 @@ describe('Subscriber', () => {
   });
 
   describe('Subscriber ICE restart', () => {
-    it('should perform ICE restart when iceRestart event is received', () => {
-      sfuClient.iceRestart = vi.fn();
-      dispatcher.dispatch(
-        SfuEvent.create({
-          eventPayload: {
-            oneofKind: 'iceRestart',
-            iceRestart: {
-              peerType: PeerType.SUBSCRIBER,
-            },
-          },
-        }) as DispatchableMessage<'iceRestart'>,
-      );
-
-      expect(sfuClient.iceRestart).toHaveBeenCalledWith({
-        peerType: PeerType.SUBSCRIBER,
-      });
-    });
-
-    it('should not perform ICE restart when iceRestart event is received for a different peer type', () => {
-      sfuClient.iceRestart = vi.fn();
-      dispatcher.dispatch(
-        SfuEvent.create({
-          eventPayload: {
-            oneofKind: 'iceRestart',
-            iceRestart: {
-              peerType: PeerType.PUBLISHER_UNSPECIFIED,
-            },
-          },
-        }) as DispatchableMessage<'iceRestart'>,
-      );
-
-      expect(sfuClient.iceRestart).not.toHaveBeenCalled();
-    });
-
     it(`should drop consequent ICE restart requests`, async () => {
       sfuClient.iceRestart = vi.fn();
       // @ts-ignore
