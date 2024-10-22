@@ -1,17 +1,8 @@
 import './components.scss';
-import { useEffect, useState } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useCallStateHooks, useDuration } from '@stream-io/video-react-sdk';
 
 export const DurationBadge = () => {
-  const [duration, setDuration] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setDuration((d) => d + 1);
-    }, 1000);
-    return () => {
-      clearInterval(id);
-    };
-  }, []);
+  const duration = useDuration();
 
   const timestamp = new Date(duration * 1000).toISOString().slice(11, 19);
   return (

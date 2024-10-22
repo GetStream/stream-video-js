@@ -1,6 +1,7 @@
 import * as CallStateHooks from './callStateHooks';
 
 export * from './store';
+export * from './useDuration';
 
 /**
  * A hook-alike function that exposes all call state hooks.
