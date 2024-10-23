@@ -1,6 +1,6 @@
 import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { StatsOptions } from '../gen/coordinator';
+import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
@@ -8,6 +8,7 @@ import { getWebRTCInfo, LocalClientDetailsType } from '../client-details';
 import { InputDevices } from '../gen/video/sfu/models/models';
 import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
+import { CallState } from '../store';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
@@ -16,6 +17,7 @@ export type SfuStatsReporterOptions = {
   publisher?: Publisher;
   microphone: MicrophoneManager;
   camera: CameraManager;
+  state: CallState;
 };
 
 export class SfuStatsReporter {
@@ -28,6 +30,7 @@ export class SfuStatsReporter {
   private readonly publisher?: Publisher;
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
+  private readonly state: CallState;
 
   private intervalId: NodeJS.Timeout | undefined;
   private subscriptions: Array<() => void> = [];
@@ -45,6 +48,7 @@ export class SfuStatsReporter {
       publisher,
       microphone,
       camera,
+      state,
     }: SfuStatsReporterOptions,
   ) {
     this.sfuClient = sfuClient;
@@ -53,6 +57,7 @@ export class SfuStatsReporter {
     this.publisher = publisher;
     this.microphone = microphone;
     this.camera = camera;
+    this.state = state;
 
     const { sdk, browser } = clientDetails;
     this.sdkName = getSdkName(sdk);
@@ -71,29 +76,36 @@ export class SfuStatsReporter {
     kind: 'mic' | 'camera',
   ) => {
     const { hasBrowserPermission$ } = device.state;
-    const sub = createSubscription(hasBrowserPermission$, (hasPermission) => {
-      if (!hasPermission) {
-        this.inputDevices.set(kind, {
-          currentDevice: '',
-          availableDevices: [],
-          isPermitted: false,
-        });
-        return;
-      }
-      const subscription = createSubscription(
-        combineLatest([device.listDevices(), device.state.selectedDevice$]),
-        ([devices, selectedDeviceId]) => {
-          const selected = devices.find((d) => d.deviceId === selectedDeviceId);
+    const permissionsSubscription = createSubscription(
+      combineLatest([hasBrowserPermission$, this.state.ownCapabilities$]),
+      ([hasPermission, ownCapabilities]) => {
+        const hasCapability =
+          kind === 'mic'
+            ? ownCapabilities.includes(OwnCapability.SEND_AUDIO)
+            : ownCapabilities.includes(OwnCapability.SEND_VIDEO);
+        if (!hasPermission || !hasCapability) {
           this.inputDevices.set(kind, {
-            currentDevice: selected?.label || selectedDeviceId || '',
-            availableDevices: devices.map((d) => d.label),
-            isPermitted: true,
+            currentDevice: '',
+            availableDevices: [],
+            isPermitted: false,
           });
-        },
-      );
-      this.subscriptions.push(subscription);
-    });
-    this.subscriptions.push(sub);
+          return;
+        }
+        const listDevicesSubscription = createSubscription(
+          combineLatest([device.listDevices(), device.state.selectedDevice$]),
+          ([devices, deviceId]) => {
+            const selected = devices.find((d) => d.deviceId === deviceId);
+            this.inputDevices.set(kind, {
+              currentDevice: selected?.label || deviceId || '',
+              availableDevices: devices.map((d) => d.label),
+              isPermitted: true,
+            });
+          },
+        );
+        this.subscriptions.push(listDevicesSubscription);
+      },
+    );
+    this.subscriptions.push(permissionsSubscription);
   };
 
   private run = async () => {

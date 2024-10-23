@@ -995,6 +995,7 @@ export class Call {
         publisher: this.publisher,
         microphone: this.microphone,
         camera: this.camera,
+        state: this.state,
       });
       this.sfuStatsReporter.start();
     }
