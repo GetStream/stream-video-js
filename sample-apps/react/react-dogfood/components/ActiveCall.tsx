@@ -7,10 +7,12 @@ import {
   CancelCallConfirmButton,
   CompositeButton,
   Icon,
+  OwnCapability,
   PermissionRequests,
   ReactionsButton,
   RecordCallConfirmationButton,
   RecordingInProgressNotification,
+  Restricted,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   useCallStateHooks,
@@ -194,7 +196,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
         </div>
         <div className="rd__notifications">
           <RecordingInProgressNotification />
-          <SpeakingWhileMutedNotification />
+          <Restricted
+            requiredGrants={[OwnCapability.SEND_AUDIO]}
+            hasPermissionsOnly
+          >
+            <SpeakingWhileMutedNotification />
+          </Restricted>
         </div>
         <div
           className="str-video__call-controls"

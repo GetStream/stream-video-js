@@ -3,8 +3,11 @@
 // @generated from protobuf file "video/sfu/signal_rpc/signal.proto" (package "stream.video.sfu.signal", syntax proto3)
 // tslint:disable
 import {
+  AndroidState,
+  AppleState,
   Error,
   ICETrickle,
+  InputDevices,
   PeerType,
   TrackInfo,
   TrackType,
@@ -77,6 +80,35 @@ export interface SendStatsRequest {
    * @generated from protobuf field: string sdk_version = 6;
    */
   sdkVersion: string;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.InputDevices audio_devices = 7;
+   */
+  audioDevices?: InputDevices;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.InputDevices video_devices = 8;
+   */
+  videoDevices?: InputDevices;
+  /**
+   * @generated from protobuf oneof: device_state
+   */
+  deviceState:
+    | {
+        oneofKind: 'android';
+        /**
+         * @generated from protobuf field: stream.video.sfu.models.AndroidState android = 9;
+         */
+        android: AndroidState;
+      }
+    | {
+        oneofKind: 'apple';
+        /**
+         * @generated from protobuf field: stream.video.sfu.models.AppleState apple = 10;
+         */
+        apple: AppleState;
+      }
+    | {
+        oneofKind: undefined;
+      };
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendStatsResponse
@@ -363,6 +395,22 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
         name: 'sdk_version',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
+      },
+      { no: 7, name: 'audio_devices', kind: 'message', T: () => InputDevices },
+      { no: 8, name: 'video_devices', kind: 'message', T: () => InputDevices },
+      {
+        no: 9,
+        name: 'android',
+        kind: 'message',
+        oneof: 'deviceState',
+        T: () => AndroidState,
+      },
+      {
+        no: 10,
+        name: 'apple',
+        kind: 'message',
+        oneof: 'deviceState',
+        T: () => AppleState,
       },
     ]);
   }
