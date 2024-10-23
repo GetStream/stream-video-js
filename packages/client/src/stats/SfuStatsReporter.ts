@@ -142,6 +142,7 @@ export class SfuStatsReporter {
   stop = () => {
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
+    this.inputDevices.clear();
     clearInterval(this.intervalId);
     this.intervalId = undefined;
   };
