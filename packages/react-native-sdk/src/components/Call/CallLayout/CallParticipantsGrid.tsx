@@ -12,6 +12,7 @@ import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import { StreamVideoParticipant } from '@stream-io/video-client';
+import { generateMockParticipants } from '.';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -71,11 +72,13 @@ export const CallParticipantsGrid = ({
     remoteParticipants.length > 0 &&
     remoteParticipants.length < 3;
 
-  let participants = showFloatingView
-    ? showLocalParticipant && localParticipant
-      ? [localParticipant]
-      : remoteParticipants
-    : allParticipants;
+  // let participants = showFloatingView
+  //   ? showLocalParticipant && localParticipant
+  //     ? [localParticipant]
+  //     : remoteParticipants
+  //   : allParticipants;
+
+  let participants = generateMockParticipants(6);
 
   if (isInPiPMode) {
     participants =

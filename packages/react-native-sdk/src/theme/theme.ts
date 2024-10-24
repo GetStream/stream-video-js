@@ -17,6 +17,7 @@ export type Theme = {
     avatarSizes: DimensionType;
     fontSizes: DimensionType;
     spacingSizes: DimensionType;
+    borderRadiusSizes: DimensionType;
     insets: Insets;
   };
   typefaces: Record<FontTypes, FontStyle>;
@@ -297,6 +298,13 @@ export const defaultTheme: Theme = {
       md: 36,
       lg: 44,
       xl: 56,
+    },
+    borderRadiusSizes: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
     },
     buttonSizes: {
       xs: 40,

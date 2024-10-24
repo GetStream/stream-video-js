@@ -169,9 +169,8 @@ const useStyles = () => {
         container: {
           justifyContent: 'space-between',
           overflow: 'hidden',
-          borderWidth: 2,
-          borderColor: 'transparent',
-          margin: theme.variants.spacingSizes.sm,
+          // borderWidth: 2,
+          // borderColor: 'transparent',
           borderRadius: 16,
         },
         footerContainer: {

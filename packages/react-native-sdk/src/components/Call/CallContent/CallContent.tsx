@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
@@ -68,9 +68,9 @@ export type CallContentProps = Pick<
 > &
   CallContentComponentProps & {
     /**
-     * This switches the participant's layout between the grid and the spotlight mode.
+     * This switches the participant's layout between the grid, spotlight and fullscreen mode.
      */
-    layout?: 'grid' | 'spotlight';
+    layout?: 'grid' | 'spotlight' | 'fullscreen';
     /**
      * Reactions that are to be supported in the call
      */
@@ -116,6 +116,7 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
+  const styles = useStyles();
   const {
     useCallSettings,
     useHasOngoingScreenShare,
@@ -197,7 +198,7 @@ export const CallContent = ({
         />
       )}
       <View style={[styles.container, callContent.container]}>
-        <View style={[styles.container, callContent.callParticipantsContainer]}>
+        <View style={[styles.content, callContent.callParticipantsContainer]}>
           {!isInPiPMode && CallTopView && (
             <CallTopView onHangupCallHandler={onHangupCallHandler} />
           )}
@@ -238,11 +239,18 @@ export const CallContent = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { flex: 1 },
-  view: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1 },
+        content: { flex: 1 },
+        view: {
+          ...StyleSheet.absoluteFillObject,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+      }),
+    [theme]
+  );
+};

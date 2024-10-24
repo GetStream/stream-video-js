@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   hasScreenShare,
   speakerLayoutSortPreset,
@@ -18,6 +18,7 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
+import { generateMockParticipants } from '.';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -56,17 +57,19 @@ export const CallParticipantsSpotlight = ({
   disablePictureInPicture,
 }: CallParticipantsSpotlightProps) => {
   const {
-    theme: { colors, callParticipantsSpotlight },
+    theme: { callParticipantsSpotlight },
   } = useTheme();
+  const styles = useStyles(landscape);
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
-  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  // const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const allParticipants = generateMockParticipants(5);
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);
-  const isUserAloneInCall = _allParticipants?.length === 1;
+  const isUserAloneInCall = allParticipants?.length === 1;
 
   const isInPiP = useIsInPiPMode(disablePictureInPicture);
 
@@ -97,9 +100,6 @@ export const CallParticipantsSpotlight = ({
       style={[
         styles.container,
         landscapeStyles,
-        {
-          backgroundColor: colors.background2,
-        },
         callParticipantsSpotlight.container,
       ]}
     >
@@ -155,20 +155,33 @@ export const CallParticipantsSpotlight = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  fullScreenSpotlightContainer: {
-    flex: 1,
-  },
-  spotlightContainer: {
-    flex: 2,
-    overflow: 'hidden',
-    borderRadius: 10,
-    marginHorizontal: 8,
-  },
-  callParticipantsListContainer: {
-    flex: 1,
-  },
-});
+const useStyles = (landscape: boolean | undefined) => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          display: 'flex',
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        fullScreenSpotlightContainer: {
+          flex: 1,
+        },
+        spotlightContainer: {
+          flex: landscape ? 3 : 4,
+          overflow: 'hidden',
+          borderRadius: theme.variants.borderRadiusSizes.md,
+          // marginHorizontal: theme.variants.spacingSizes.xs,
+        },
+        callParticipantsListContainer: {
+          flex: 1,
+          flexDirection: 'row',
+          backgroundColor: theme.colors.sheetPrimary,
+          marginLeft: landscape ? theme.variants.spacingSizes.sm : 0,
+          // marginTop: !landscape ? theme.variants.spacingSizes.sm : 0,
+        },
+      }),
+    [theme]
+  );
+};

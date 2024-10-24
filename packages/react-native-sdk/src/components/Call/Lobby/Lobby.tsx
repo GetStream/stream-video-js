@@ -1,4 +1,4 @@
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useMemo } from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import {
   useCallStateHooks,
@@ -63,6 +63,7 @@ export const Lobby = ({
   const {
     theme: { colors, lobby, typefaces },
   } = useTheme();
+  const styles = useStyles();
   const connectedUser = useConnectedUser();
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
@@ -159,6 +160,7 @@ const ParticipantStatus = () => {
   const {
     theme: { colors, typefaces, lobby },
   } = useTheme();
+  const styles = useStyles();
   const connectedUser = useConnectedUser();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
   return (
@@ -186,51 +188,62 @@ const ParticipantStatus = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-  },
-  topContainer: {
-    flex: 2,
-    justifyContent: 'space-evenly',
-    paddingHorizontal: 12,
-  },
-  heading: {
-    textAlign: 'center',
-  },
-  subHeading: {
-    textAlign: 'center',
-  },
-  videoContainer: {
-    height: LOBBY_VIDEO_VIEW_HEIGHT,
-    borderRadius: 20,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    overflow: 'hidden',
-    padding: 8,
-  },
-  topView: {},
-  bottomContainer: {
-    flex: 2,
-    justifyContent: 'space-evenly',
-    paddingHorizontal: 12,
-  },
-  participantStatusContainer: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 5,
-  },
-  avatarContainer: {
-    flex: 2,
-    justifyContent: 'center',
-  },
-  userNameLabel: {
-    flexShrink: 1,
-  },
-  audioMutedIconContainer: {
-    marginLeft: 8,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: 'space-evenly',
+          paddingRight: theme.variants.insets.right,
+          paddingLeft: theme.variants.insets.left,
+          paddingTop: theme.variants.insets.top,
+          paddingBottom: theme.variants.insets.bottom,
+        },
+        topContainer: {
+          flex: 2,
+          justifyContent: 'space-evenly',
+          paddingHorizontal: 12,
+        },
+        heading: {
+          textAlign: 'center',
+        },
+        subHeading: {
+          textAlign: 'center',
+        },
+        videoContainer: {
+          height: LOBBY_VIDEO_VIEW_HEIGHT,
+          borderRadius: 20,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          overflow: 'hidden',
+          padding: 8,
+        },
+        topView: {},
+        bottomContainer: {
+          flex: 2,
+          justifyContent: 'space-evenly',
+          paddingHorizontal: 12,
+        },
+        participantStatusContainer: {
+          alignSelf: 'flex-start',
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: 8,
+          borderRadius: 5,
+        },
+        avatarContainer: {
+          flex: 2,
+          justifyContent: 'center',
+        },
+        userNameLabel: {
+          flexShrink: 1,
+        },
+        audioMutedIconContainer: {
+          marginLeft: 8,
+        },
+      }),
+    [theme]
+  );
+};

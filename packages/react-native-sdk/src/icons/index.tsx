@@ -8,7 +8,6 @@ export * from './Video';
 export * from './VideoSlash';
 export * from './ThreeDots';
 export * from './PinVertical';
-export * from './Spotlight';
 export * from './ScreenShareIndicator';
 export * from './ScreenShare';
 export * from './Reaction';
