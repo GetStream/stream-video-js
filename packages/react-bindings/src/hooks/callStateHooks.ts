@@ -307,6 +307,16 @@ export const useParticipantCount = () => {
 };
 
 /**
+ * Returns the duration of the call in seconds.
+ *
+ * @category Call State
+ */
+export const useCallDuration = () => {
+  const { duration$ } = useCallState();
+  return useObservableValue(duration$);
+};
+
+/**
  * Returns the approximate anonymous participant count of the active call.
  * The regular participants are not included in this count. It is computed on the server.
  *
