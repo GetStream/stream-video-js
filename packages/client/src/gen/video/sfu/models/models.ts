@@ -199,15 +199,15 @@ export interface VideoLayer {
  */
 export interface Codec {
   /**
-   * @generated from protobuf field: string mime_type = 1;
+   * @generated from protobuf field: string mime_type = 10;
    */
   mimeType: string;
   /**
-   * @generated from protobuf field: string scalability_mode = 2;
+   * @generated from protobuf field: string scalability_mode = 11;
    */
   scalabilityMode: string;
   /**
-   * @generated from protobuf field: string fmtp = 3;
+   * @generated from protobuf field: string fmtp = 12;
    */
   fmtp: string;
 }
@@ -951,14 +951,14 @@ export const VideoLayer = new VideoLayer$Type();
 class Codec$Type extends MessageType<Codec> {
   constructor() {
     super('stream.video.sfu.models.Codec', [
-      { no: 1, name: 'mime_type', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 10, name: 'mime_type', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
-        no: 2,
+        no: 11,
         name: 'scalability_mode',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
-      { no: 3, name: 'fmtp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 12, name: 'fmtp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }
