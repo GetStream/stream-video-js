@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.3...@stream-io/video-react-native-sdk-1.2.4) (2024-10-22)
+
+
+### Bug Fixes
+
+* added workaround for possible multiple createDevice calls on remounting ([#1532](https://github.com/GetStream/stream-video-js/issues/1532)) ([eb3afb4](https://github.com/GetStream/stream-video-js/commit/eb3afb4dc33289cde0639cc109194971d31f51e0))
+
 ## [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.2...@stream-io/video-react-native-sdk-1.2.3) (2024-10-21)
 
 ### Dependency Updates
