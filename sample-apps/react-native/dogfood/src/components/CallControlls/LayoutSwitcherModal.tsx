@@ -11,7 +11,7 @@ import { useTheme } from '@stream-io/video-react-native-sdk';
 import { Grid } from '../../assets/Grid';
 import { FullScreen } from '../../assets/FullScreen';
 import { SpotLight } from '../../assets/Spotlight';
-import { useLayout } from '../../contexts/LayoutContext';
+import { Layout, useLayout } from '../../contexts/LayoutContext';
 
 interface AnchorPosition {
   x: number;
@@ -61,6 +61,11 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
     return null;
   }
 
+  const onPressHandler = (layout: Layout) => {
+    onLayoutSelection(layout);
+    onClose();
+  };
+
   return (
     <Modal
       transparent
@@ -80,7 +85,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
               styles.button,
               selectedLayout === 'grid' && styles.selectedButton,
             ]}
-            onPress={() => onLayoutSelection('grid')}
+            onPress={() => onPressHandler('grid')}
           >
             <Grid
               size={theme.variants.iconSizes.md}
@@ -93,7 +98,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
               styles.button,
               selectedLayout === 'spotlight' && styles.selectedButton,
             ]}
-            onPress={() => onLayoutSelection('spotlight')}
+            onPress={() => onPressHandler('spotlight')}
           >
             <SpotLight
               size={theme.variants.iconSizes.md}
@@ -106,7 +111,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
               styles.button,
               selectedLayout === 'fullscreen' && styles.selectedButton,
             ]}
-            onPress={() => onLayoutSelection('fullscreen')}
+            onPress={() => onPressHandler('fullscreen')}
           >
             <FullScreen
               size={theme.variants.iconSizes.md}
