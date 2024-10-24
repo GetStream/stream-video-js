@@ -3,9 +3,9 @@ import {
   useBackgroundFilters,
   BlurIntensity,
   BackgroundFiltersProvider,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useState } from 'react';
-import { AutoAwesome } from '../../assets/AutoAwesome';
 import {
   Image,
   Modal,
@@ -18,6 +18,8 @@ import {
 import { appTheme } from '../../theme';
 import { Button } from '../Button';
 import { useCustomVideoFilters } from './CustomFilters';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { Effects } from '@stream-io/video-react-native-sdk/src/icons/Effects';
 
 type ImageSourceType = ImageURISource | number;
 
@@ -42,6 +44,7 @@ export const VideoEffectsButton = () => (
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
+  const { theme } = useTheme();
   const { disableCustomFilter } = useCustomVideoFilters();
   const { isSupported, disableAllFilters } = useBackgroundFilters();
 
@@ -75,8 +78,17 @@ const FilterButton = () => {
           </View>
         </Pressable>
       </Modal>
-      <CallControlsButton onPress={() => setModalVisible((prev) => !prev)}>
-        <AutoAwesome />
+      <CallControlsButton
+        size={theme.variants.roundButtonSizes.md}
+        color={theme.colors.sheetPrimary}
+        onPress={() => setModalVisible((prev) => !prev)}
+      >
+        <IconWrapper>
+          <Effects
+            color={theme.colors.iconPrimaryDefault}
+            size={theme.defaults.iconSize}
+          />
+        </IconWrapper>
       </CallControlsButton>
     </>
   );

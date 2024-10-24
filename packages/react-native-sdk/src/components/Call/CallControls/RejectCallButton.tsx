@@ -38,7 +38,7 @@ export const RejectCallButton = ({
     theme: {
       colors,
       rejectCallButton,
-      variants: { buttonSizes },
+      variants: { buttonSizes, iconSizes },
     },
   } = useTheme();
   const rejectCallHandler = async () => {
@@ -69,7 +69,7 @@ export const RejectCallButton = ({
       // svgContainerStyle={theme.icon.lg}
       style={rejectCallButton}
     >
-      <PhoneDown color={colors.base1} />
+      <PhoneDown color={colors.iconPrimaryDefault} size={iconSizes.md} />
     </CallControlsButton>
   );
 };

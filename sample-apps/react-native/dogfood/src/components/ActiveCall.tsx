@@ -4,24 +4,25 @@ import {
   CallContent,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import {
   CallControlsComponent,
-  CallControlsComponentProps,
-} from './CallControlls/CallControlsComponent';
+  BottomControlsProps,
+} from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
+import { TopControls } from './CallControlls/TopControls';
 
-type ActiveCallProps = CallControlsComponentProps & {
-  onBackPressed?: () => void;
+type ActiveCallProps = BottomControlsProps & {
+  onHangupCallHandler?: () => void;
   onCallEnded: () => void;
 };
 
 export const ActiveCall = ({
   onChatOpenHandler,
-  onBackPressed,
+  onHangupCallHandler,
   onCallEnded,
   unreadCountIndicator,
 }: ActiveCallProps) => {
@@ -30,6 +31,7 @@ export const ActiveCall = ({
   const call = useCall();
   const currentOrientation = useOrientation();
   const styles = useStyles();
+  const { theme: colors } = useTheme();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -57,9 +59,15 @@ export const ActiveCall = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={'light-content'}
+        backgroundColor={colors.sheetPrimary}
+      />
+      <View style={styles.topUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
-          onBackPressed={onBackPressed}
+          onHangupCallHandler={onHangupCallHandler}
+          CallTopView={TopControls}
           CallControls={CustomControlsComponent}
           landscape={currentOrientation === 'landscape'}
         />
@@ -68,7 +76,7 @@ export const ActiveCall = ({
           setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
         />
       </SafeAreaView>
-      <View style={styles.unsafeArea} />
+      <View style={styles.bottomUnsafeArea} />
     </View>
   );
 };
@@ -82,7 +90,16 @@ const useStyles = () => {
         container: { flex: 1 },
         callContent: { flex: 1 },
         safeArea: { flex: 1, paddingBottom: theme.variants.insets.bottom },
-        unsafeArea: {
+        topUnsafeArea: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: theme.variants.insets.top,
+          backgroundColor: theme.colors.sheetPrimary,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+        bottomUnsafeArea: {
           position: 'absolute',
           left: 0,
           right: 0,

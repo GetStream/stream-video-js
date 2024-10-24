@@ -9,10 +9,6 @@ import {
   OutgoingCallControls as DefaultOutgoingCallControls,
   OutgoingCallControlsProps,
 } from '../CallControls';
-import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
@@ -23,7 +19,7 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
   /**
    * Prop to customize the CallTopView component in the IncomingCall component.
    */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
+  CallTopView?: React.ComponentType<any> | null;
   /**
    * Prop to customize the OutgoingCall controls.
    */
@@ -40,7 +36,7 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  * Used after the user has initiated a call.
  */
 export const OutgoingCall = ({
-  CallTopView = DefaultCallTopView,
+  CallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
   landscape,
 }: OutgoingCallProps) => {
