@@ -7,6 +7,8 @@ export const LogoAndTitleOverlay = () => {
     options: { 'logo.image_url': imageURL, 'title.text': titleText },
   } = useConfigurationContext();
 
+  if (!titleText && !imageURL) return null;
+
   return (
     <div
       data-testid="logo-and-title-overlay"
