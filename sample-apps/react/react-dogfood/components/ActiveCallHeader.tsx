@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from 'react';
 import {
   CallingState,
   CancelCallConfirmButton,
@@ -49,13 +48,9 @@ const formatTime = (timeInSeconds: number) => {
 };
 
 const Elapsed = () => {
-  const [elapsed, setElapsed] = useState<string>();
   const { useCallDuration } = useCallStateHooks();
   const duration = useCallDuration();
-
-  useEffect(() => {
-    setElapsed(formatTime(duration));
-  }, [duration]);
+  const elapsed = formatTime(duration);
 
   return (
     <div className="rd__header__elapsed">

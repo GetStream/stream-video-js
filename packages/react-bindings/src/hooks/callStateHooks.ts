@@ -307,13 +307,23 @@ export const useParticipantCount = () => {
 };
 
 /**
- * Returns the duration of the call in seconds.
+ * Returns the duration of the call session in seconds.
  *
  * @category Call State
  */
-export const useCallDuration = () => {
-  const { duration$ } = useCallState();
-  return useObservableValue(duration$);
+export const useCallSessionDuration = () => {
+  const { sessionDuration$ } = useCallState();
+  return useObservableValue(sessionDuration$);
+};
+
+/**
+ * Returns the duration of the livestream seconds.
+ *
+ * @category Call State
+ */
+export const useCallLiveDuration = () => {
+  const { liveDuration$ } = useCallState();
+  return useObservableValue(liveDuration$);
 };
 
 /**

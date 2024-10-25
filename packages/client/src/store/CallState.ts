@@ -117,7 +117,8 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
-  private durationSubject = new BehaviorSubject<number>(0);
+  private liveDurationSubject = new BehaviorSubject<number>(0);
+  private sessionDurationSubject = new BehaviorSubject<number>(0);
 
   // These are tracks that were delivered to the Subscriber's onTrack event
   // that we couldn't associate with a participant yet.
@@ -287,10 +288,16 @@ export class CallState {
   thumbnails$: Observable<ThumbnailResponse | undefined>;
 
   /**
-   * Will provide the count of seconds since the call started.
+   * Will provide the count of seconds since the session started.
    */
-  duration$: Observable<number>;
-  durationInterval: NodeJS.Timeout | undefined;
+  sessionDuration$: Observable<number>;
+  sessionDurationInterval: NodeJS.Timeout | undefined;
+
+  /**
+   * Will provide the count of seconds since the livestream started.
+   */
+  liveDuration$: Observable<number>;
+  liveDurationInterval: NodeJS.Timeout | undefined;
 
   readonly logger = getLogger(['CallState']);
 
@@ -397,8 +404,10 @@ export class CallState {
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
-    this.duration$ = duc(this.durationSubject);
-    this.durationInterval = undefined;
+    this.sessionDuration$ = duc(this.sessionDurationSubject);
+    this.sessionDurationInterval = undefined;
+    this.liveDuration$ = duc(this.liveDurationSubject);
+    this.liveDurationInterval = undefined;
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -433,6 +442,7 @@ export class CallState {
       'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
       'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
       'call.live_started': (e) => this.updateFromCallResponse(e.call),
+      'call.live_ended': (e) => this.updateFromCallResponse(e.call), // Needs to be implemented on backend
       'call.member_added': this.updateFromMemberAdded,
       'call.member_removed': this.updateFromMemberRemoved,
       'call.member_updated_permission': this.updateMembers,
@@ -477,9 +487,13 @@ export class CallState {
    * Runs the cleanup tasks.
    */
   dispose = () => {
-    if (this.durationInterval) {
-      clearInterval(this.durationInterval);
-      this.durationInterval = undefined;
+    if (this.sessionDurationInterval) {
+      clearInterval(this.sessionDurationInterval);
+      this.sessionDurationInterval = undefined;
+    }
+    if (this.liveDurationInterval) {
+      clearInterval(this.liveDurationInterval);
+      this.liveDurationInterval = undefined;
     }
   };
 
@@ -549,6 +563,40 @@ export class CallState {
    */
   setDuration = (duration: Patch<number>) => {
     return this.setCurrentValue(this.durationSubject, duration);
+  };
+
+  /**
+   * The number of seconds since the start of the call session.
+   */
+  get sessionDuration() {
+    return this.getCurrentValue(this.sessionDuration$);
+  }
+
+  /**
+   * Sets the number of seconds since the start of the call session.
+   *
+   * @internal
+   * @param sessionDuration the duration of the call session in seconds.
+   */
+  setSessionDuration = (duration: Patch<number>) => {
+    return this.setCurrentValue(this.sessionDurationSubject, duration);
+  };
+
+  /**
+   * The number of seconds since the start of the livestream.
+   */
+  get liveDuration() {
+    return this.getCurrentValue(this.liveDuration$);
+  }
+
+  /**
+   * Sets the number of seconds since the start of the livestream.
+   *
+   * @internal
+   * @param liveDuration the duration of the livestream in seconds.
+   */
+  setLiveDuration = (duration: Patch<number>) => {
+    return this.setCurrentValue(this.liveDurationSubject, duration);
   };
 
   /**
@@ -1207,20 +1255,39 @@ export class CallState {
     this.setAnonymousParticipantCount(session.anonymous_participant_count || 0);
   };
 
+  startDurationInterval = (
+    startTime: string,
+    setDurationCallback: (seconds: Patch<number>) => number,
+  ) => {
+    const startedAt = new Date(startTime).getTime();
+    const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+    setDurationCallback(elapsedSeconds);
+    return setInterval(() => setDurationCallback((prev) => prev + 1), 1000);
+  };
+
   private updateDuration = (session: CallSessionResponse | undefined) => {
-    if (session?.live_started_at && !this.durationInterval) {
-      const startedAt = new Date(session.live_started_at).getTime();
-      const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
-      this.setDuration(elapsedSeconds);
-      this.durationInterval = setInterval(
-        () => this.setDuration((prev) => prev + 1),
-        1000,
+    // session duration
+    if (session?.started_at && !this.sessionDurationInterval) {
+      this.sessionDurationInterval = this.startDurationInterval(
+        session.started_at,
+        this.setSessionDuration,
       );
     }
+    if (session?.ended_at && this.sessionDurationInterval) {
+      clearInterval(this.sessionDurationInterval);
+      this.sessionDurationInterval = undefined;
+    }
 
-    if (session?.ended_at && this.durationInterval) {
-      clearInterval(this.durationInterval);
-      this.durationInterval = undefined;
+    // livestream duration
+    if (session?.live_started_at && !this.liveDurationInterval) {
+      this.liveDurationInterval = this.startDurationInterval(
+        session.live_started_at,
+        this.setDuration,
+      );
+    }
+    if (session?.live_ended_at && this.liveDurationInterval) {
+      clearInterval(this.liveDurationInterval);
+      this.liveDurationInterval = undefined;
     }
   };
 
