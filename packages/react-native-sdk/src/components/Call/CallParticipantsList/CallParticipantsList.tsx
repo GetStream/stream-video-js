@@ -184,7 +184,7 @@ export const CallParticipantsList = ({
       };
       return [participantWrapperHorizontal, style];
     }
-    
+
     if (landscape) {
       const landscapeStyle = {
         marginVertical: theme.variants.spacingSizes.xs,
@@ -193,7 +193,7 @@ export const CallParticipantsList = ({
       return [landscapeStyle, style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, landscape]);
+  }, [itemWidth, itemHeight, horizontal, landscape, theme]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,

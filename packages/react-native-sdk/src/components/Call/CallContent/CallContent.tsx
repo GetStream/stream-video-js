@@ -191,8 +191,8 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const renderCallParticipants = (layout: string) => {
-    switch (layout) {
+  const renderCallParticipants = (selectedLayout: string) => {
+    switch (selectedLayout) {
       case 'fullscreen':
         return (
           <CallParticipantsFullscreen {...callParticipantsFullscreenProps} />
