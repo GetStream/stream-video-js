@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
@@ -97,6 +97,7 @@ export type CallContentProps = Pick<
 export const CallContent = ({
   onHangupCallHandler,
   CallParticipantsList,
+  CallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -214,6 +215,9 @@ export const CallContent = ({
       )}
       <View style={[styles.container, callContent.container]}>
         <View style={[styles.content, callContent.callParticipantsContainer]}>
+          {!isInPiPMode && CallTopView && (
+            <CallTopView onHangupCallHandler={onHangupCallHandler} />
+          )}
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches

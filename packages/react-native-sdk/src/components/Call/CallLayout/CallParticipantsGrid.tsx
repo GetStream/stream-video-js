@@ -12,7 +12,7 @@ import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { generateMockParticipants } from '.';
+// import { generateMockParticipants } from '.';
 
 /**
  * Props for the CallParticipantsGrid component.

@@ -18,7 +18,7 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
-import { generateMockParticipants } from '.';
+// import { generateMockParticipants } from '.';
 
 /**
  * Props for the CallParticipantsSpotlight component.

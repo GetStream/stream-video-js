@@ -69,9 +69,9 @@ export const ActiveCall = ({
       <View style={styles.leftUnsafeArea} />
       <View style={styles.rightUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <TopControls />
         <CallContent
           onHangupCallHandler={onHangupCallHandler}
+          CallTopView={TopControls}
           CallControls={CustomControlsComponent}
           landscape={currentOrientation === 'landscape'}
           layout={selectedLayout}
