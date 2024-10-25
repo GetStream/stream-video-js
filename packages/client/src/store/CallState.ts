@@ -1265,7 +1265,7 @@ export class CallState {
     if (session?.live_started_at && !this.liveDurationInterval) {
       this.liveDurationInterval = this.startDurationInterval(
         session.live_started_at,
-        this.setDuration,
+        this.setLiveDuration,
       );
     }
     if (session?.live_ended_at && this.liveDurationInterval) {
