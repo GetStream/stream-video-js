@@ -442,7 +442,8 @@ export class CallState {
       'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
       'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
       'call.live_started': (e) => this.updateFromCallResponse(e.call),
-      'call.live_ended': (e) => this.updateFromCallResponse(e.call), // Needs to be implemented on backend
+      // TODO: uncomment this when it is added on the backend side
+      // 'call.live_ended': (e) => this.updateFromCallResponse(e.call), 
       'call.member_added': this.updateFromMemberAdded,
       'call.member_removed': this.updateFromMemberRemoved,
       'call.member_updated_permission': this.updateMembers,
