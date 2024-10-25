@@ -24,10 +24,6 @@ export type CallParticipantsGridProps = ParticipantViewComponentProps &
   > &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
-     * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
-     */
-    showLocalParticipant?: boolean;
-    /**
      * Check if device is in landscape mode.
      * This will apply the landscape mode styles to the component.
      */
@@ -45,7 +41,6 @@ export const CallParticipantsGrid = ({
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
-  showLocalParticipant = false,
   supportedReactions,
   landscape,
   disablePictureInPicture,
@@ -65,21 +60,11 @@ export const CallParticipantsGrid = ({
     flexDirection: landscape ? 'row' : 'column',
   };
 
+  let participants = allParticipants;
+  // console.log('🚀 ~ participants:', participants);
+  // let participants = generateMockParticipants(4);
+
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
-
-  const showFloatingView =
-    !isInPiPMode &&
-    remoteParticipants.length > 0 &&
-    remoteParticipants.length < 3;
-
-  // let participants = showFloatingView
-  //   ? showLocalParticipant && localParticipant
-  //     ? [localParticipant]
-  //     : remoteParticipants
-  //   : allParticipants;
-
-  let participants = generateMockParticipants(6);
-
   if (isInPiPMode) {
     participants =
       remoteParticipants.length > 0

@@ -149,7 +149,13 @@ export const ParticipantView = ({
           videoZOrder={videoZOrder}
         />
       )}
-      <View style={[styles.footerContainer, participantView.footerContainer]}>
+      <View
+        style={[
+          styles.footerContainer,
+          participantView.footerContainer,
+          !ParticipantLabel && { justifyContent: 'flex-end' },
+        ]}
+      >
         {ParticipantLabel && (
           <ParticipantLabel participant={participant} trackType={trackType} />
         )}

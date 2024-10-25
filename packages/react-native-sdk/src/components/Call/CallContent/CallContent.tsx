@@ -33,6 +33,10 @@ import {
   ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import RTCViewPipIOS from './RTCViewPipIOS';
+import {
+  CallParticipantsFullscreen,
+  CallParticipantsFullscreenProps,
+} from '../CallLayout/CallParticipantsFullscreen';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -93,7 +97,6 @@ export type CallContentProps = Pick<
 export const CallContent = ({
   onHangupCallHandler,
   CallParticipantsList,
-  CallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -133,14 +136,12 @@ export const CallContent = ({
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
-  const hasScreenShare = useHasOngoingScreenShare();
-  const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+  // const hasScreenShare = useHasOngoingScreenShare();
+  const isFullScreen = layout === 'fullscreen';
+  const isSpotlight = layout === 'spotlight';
 
-  const showFloatingView =
-    !showSpotlightLayout &&
-    !isInPiPMode &&
-    remoteParticipants.length > 0 &&
-    remoteParticipants.length < 3;
+  const showFloatingView = isFullScreen && remoteParticipants.length === 1;
+
   const isRemoteParticipantInFloatingView =
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
@@ -175,6 +176,13 @@ export const CallContent = ({
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
     landscape,
+    ParticipantView,
+    CallParticipantsList,
+    supportedReactions,
+  };
+
+  const callParticipantsFullscreenProps: CallParticipantsFullscreenProps = {
+    ...participantViewProps,
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
@@ -199,9 +207,6 @@ export const CallContent = ({
       )}
       <View style={[styles.container, callContent.container]}>
         <View style={[styles.content, callContent.callParticipantsContainer]}>
-          {!isInPiPMode && CallTopView && (
-            <CallTopView onHangupCallHandler={onHangupCallHandler} />
-          )}
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches
@@ -221,7 +226,9 @@ export const CallContent = ({
               />
             )}
           </View>
-          {showSpotlightLayout ? (
+          {isFullScreen ? (
+            <CallParticipantsFullscreen {...callParticipantsFullscreenProps} />
+          ) : isSpotlight ? (
             <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
           ) : (
             <CallParticipantsGrid {...callParticipantsGridProps} />

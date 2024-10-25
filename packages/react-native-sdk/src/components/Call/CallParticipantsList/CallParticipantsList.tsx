@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlatList, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import {
   StreamVideoParticipant,

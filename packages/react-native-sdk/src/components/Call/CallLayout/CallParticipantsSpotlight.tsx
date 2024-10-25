@@ -64,8 +64,8 @@ export const CallParticipantsSpotlight = ({
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
-  // const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
-  const allParticipants = generateMockParticipants(5);
+  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  // const allParticipants = generateMockParticipants(5);
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);
@@ -94,6 +94,9 @@ export const CallParticipantsSpotlight = ({
     marginHorizontal: landscape ? 0 : 8,
   };
 
+  // TODO: implement screen sharing
+  const showShareScreen = false;
+
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
@@ -105,7 +108,7 @@ export const CallParticipantsSpotlight = ({
     >
       {participantInSpotlight &&
         ParticipantView &&
-        (participantInSpotlight.isLocalParticipant && ScreenShareOverlay ? (
+        (showShareScreen && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <ParticipantView
