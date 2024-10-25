@@ -72,7 +72,6 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
 
 const useStyles = (isCallRecorded: boolean) => {
   const { theme } = useTheme();
-
   return useMemo(
     () =>
       StyleSheet.create({
