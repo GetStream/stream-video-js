@@ -52,6 +52,10 @@ export const CallParticipantsFullscreen = ({
       ? [localParticipant]
       : remoteParticipants;
 
+  if (remoteParticipants.length === 0 && localParticipant) {
+    participants = [localParticipant];
+  }
+
   const participantViewProps: CallParticipantsListComponentProps = {
     ParticipantView,
     ParticipantLabel,

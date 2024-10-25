@@ -119,13 +119,8 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
-  const styles = useStyles();
-  const {
-    useCallSettings,
-    useHasOngoingScreenShare,
-    useRemoteParticipants,
-    useLocalParticipant,
-  } = useCallStateHooks();
+  const { useCallSettings, useRemoteParticipants, useLocalParticipant } =
+    useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
@@ -136,10 +131,7 @@ export const CallContent = ({
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
-  // const hasScreenShare = useHasOngoingScreenShare();
   const isFullScreen = layout === 'fullscreen';
-  const isSpotlight = layout === 'spotlight';
-
   const showFloatingView = isFullScreen && remoteParticipants.length === 1;
 
   const isRemoteParticipantInFloatingView =
@@ -198,6 +190,21 @@ export const CallContent = ({
     supportedReactions,
   };
 
+  const renderCallParticipants = (layout: string) => {
+    switch (layout) {
+      case 'fullscreen':
+        return (
+          <CallParticipantsFullscreen {...callParticipantsFullscreenProps} />
+        );
+      case 'spotlight':
+        return (
+          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+        );
+      default:
+        return <CallParticipantsGrid {...callParticipantsGridProps} />;
+    }
+  };
+
   return (
     <>
       {!disablePictureInPicture && (
@@ -226,13 +233,7 @@ export const CallContent = ({
               />
             )}
           </View>
-          {isFullScreen ? (
-            <CallParticipantsFullscreen {...callParticipantsFullscreenProps} />
-          ) : isSpotlight ? (
-            <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-          ) : (
-            <CallParticipantsGrid {...callParticipantsGridProps} />
-          )}
+          {renderCallParticipants(layout)}
         </View>
 
         {!isInPiPMode && CallControls && (
@@ -246,18 +247,11 @@ export const CallContent = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: { flex: 1 },
-        content: { flex: 1 },
-        view: {
-          ...StyleSheet.absoluteFillObject,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-      }),
-    [theme]
-  );
-};
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { flex: 1 },
+  view: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+});

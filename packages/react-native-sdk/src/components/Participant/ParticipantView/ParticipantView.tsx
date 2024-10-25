@@ -153,7 +153,7 @@ export const ParticipantView = ({
         style={[
           styles.footerContainer,
           participantView.footerContainer,
-          !ParticipantLabel && { justifyContent: 'flex-end' },
+          !ParticipantLabel && styles.networkIndicatorOnly,
         ]}
       >
         {ParticipantLabel && (
@@ -175,9 +175,7 @@ const useStyles = () => {
         container: {
           justifyContent: 'space-between',
           overflow: 'hidden',
-          // borderWidth: 2,
-          // borderColor: 'transparent',
-          borderRadius: 16,
+          borderRadius: theme.variants.borderRadiusSizes.md,
         },
         footerContainer: {
           flexDirection: 'row',
@@ -187,6 +185,7 @@ const useStyles = () => {
         highligtedContainer: {
           borderWidth: 2,
         },
+        networkIndicatorOnly: { justifyContent: 'flex-end' },
       }),
     [theme]
   );

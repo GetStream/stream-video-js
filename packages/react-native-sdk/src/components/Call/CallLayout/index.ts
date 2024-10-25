@@ -1,6 +1,7 @@
 export * from './CallParticipantsGrid';
 export * from './CallParticipantsSpotlight';
 
+// TODO: before merge remove this
 export const generateMockParticipants = (count: number) => {
   const mockParticipants = [
     {

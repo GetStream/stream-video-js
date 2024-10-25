@@ -62,7 +62,7 @@ export const CallParticipantsGrid = ({
 
   let participants = allParticipants;
   // console.log('🚀 ~ participants:', participants);
-  // let participants = generateMockParticipants(4);
+  // let participants = generateMockParticipants(9);
 
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
   if (isInPiPMode) {

@@ -85,6 +85,7 @@ export const CallParticipantsList = ({
   numberOfColumns = landscape ? 3 : 2,
 }: CallParticipantsListProps) => {
   const styles = useStyles();
+  const { theme } = useTheme();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -171,14 +172,25 @@ export const CallParticipantsList = ({
     const style = {
       width: itemWidth,
       height: itemHeight,
-      marginHorizontal: 4,
-      marginVertical: 4,
+      marginHorizontal: theme.variants.spacingSizes.xs,
+      marginVertical: theme.variants.spacingSizes.xs,
     };
+
     if (horizontal) {
-      return [styles.participantWrapperHorizontal, style];
+      const participantWrapperHorizontal = {
+        // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
+        marginHorizontal: theme.variants.spacingSizes.xs,
+        borderRadius: theme.variants.borderRadiusSizes.md,
+      };
+      return [participantWrapperHorizontal, style];
     }
+    
     if (landscape) {
-      return [styles.landScapeStyle, style];
+      const landscapeStyle = {
+        marginVertical: theme.variants.spacingSizes.xs,
+        borderRadius: theme.variants.borderRadiusSizes.md,
+      };
+      return [landscapeStyle, style];
     }
     return style;
   }, [itemWidth, itemHeight, horizontal, landscape]);
@@ -216,7 +228,7 @@ export const CallParticipantsList = ({
   );
 
   // in vertical mode, only when there are more than 3 participants in a call, the participants should be displayed in a grid
-  // else we display them in a stretched row on the screen
+  // else we display them in a stretched rows on the screen
   const shouldWrapByColumns = !!horizontal || participants.length > 3;
 
   if (!shouldWrapByColumns) {
@@ -263,15 +275,9 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
-        flexed: { flex: 1, margin: 4 },
-        participantWrapperHorizontal: {
-          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-          marginHorizontal: theme.variants.spacingSizes.xs,
-          borderRadius: theme.variants.borderRadiusSizes.md,
-        },
-        landScapeStyle: {
-          marginVertical: theme.variants.spacingSizes.xs,
-          borderRadius: theme.variants.borderRadiusSizes.md,
+        flexed: {
+          flex: 1,
+          margin: theme.variants.spacingSizes.xs,
         },
       }),
     [theme]
