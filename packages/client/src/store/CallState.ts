@@ -549,23 +549,6 @@ export class CallState {
   };
 
   /**
-   * The number of seconds since the start of the call.
-   */
-  get duration() {
-    return this.getCurrentValue(this.duration$);
-  }
-
-  /**
-   * Sets the number of seconds since the start of the call.
-   *
-   * @internal
-   * @param duration the duration of the call in seconds.
-   */
-  setDuration = (duration: Patch<number>) => {
-    return this.setCurrentValue(this.durationSubject, duration);
-  };
-
-  /**
    * The number of seconds since the start of the call session.
    */
   get sessionDuration() {
