@@ -160,6 +160,6 @@ const useStyles = (isEndRecordingModal: boolean) => {
           fontWeight: '600',
         },
       }),
-    [theme],
+    [theme, isEndRecordingModal],
   );
 };

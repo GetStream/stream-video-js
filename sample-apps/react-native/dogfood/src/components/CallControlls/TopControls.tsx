@@ -20,7 +20,7 @@ export const TopControls = ({
   onHangupCallHandler,
   isCallRecordingInProgress,
   isAwaitingResponse,
-      }: TopControlsProps) => {
+}: TopControlsProps) => {
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const styles = useStyles();
