@@ -70,6 +70,7 @@ export const RecordCallConfirmationButton = ({
   caption?: string;
 }) => {
   const { t } = useI18n();
+  const { useToggleCallRecording } = useCallStateHooks();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
@@ -123,6 +124,7 @@ export const RecordCallConfirmationButton = ({
 
 export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
   const { t } = useI18n();
+  const { useToggleCallRecording } = useCallStateHooks();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
