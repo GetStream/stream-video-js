@@ -15,7 +15,7 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useLayout } from '../contexts/LayoutContext';
 
 type ActiveCallProps = {
-  onHangupCallHandler?: () => Promise<void>;
+  onHangupCallHandler?: () => void;
   onCallEnded: () => void;
   onChatOpenHandler: () => void;
   unreadCountIndicator: number;
