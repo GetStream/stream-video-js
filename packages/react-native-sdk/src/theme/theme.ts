@@ -18,6 +18,7 @@ export type Theme = {
     avatarSizes: DimensionType;
     fontSizes: DimensionType;
     spacingSizes: DimensionType;
+    borderRadiusSizes: DimensionType;
     insets: Insets;
   };
   typefaces: Record<FontTypes, FontStyle>;

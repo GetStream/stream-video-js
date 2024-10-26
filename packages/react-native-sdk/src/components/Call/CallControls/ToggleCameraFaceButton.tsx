@@ -28,7 +28,7 @@ export const ToggleCameraFaceButton = ({
   const isVideoEnabledInCall = callSettings?.video.enabled;
 
   const {
-    theme: { colors, toggleCameraFaceButton, defaults },
+    theme: { colors, toggleCameraFaceButton, variants },
   } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
@@ -54,7 +54,7 @@ export const ToggleCameraFaceButton = ({
       >
         <IconWrapper>
           <CameraSwitch
-            size={defaults.iconSize}
+            size={variants.iconSizes.md}
             color={
               optimisticIsMute
                 ? colors.buttonPrimaryDisabled

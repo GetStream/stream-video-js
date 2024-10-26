@@ -21,6 +21,7 @@ import {
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
 import { CallContentProps } from '../CallContent';
+import { useTheme } from '../../..';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -71,7 +72,6 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
  * hence it should be used only in a flex parent container
  */
 export const CallParticipantsList = ({
-  numberOfColumns = 2,
   horizontal,
   participants,
   ParticipantView = DefaultParticipantView,
@@ -82,7 +82,10 @@ export const CallParticipantsList = ({
   VideoRenderer,
   supportedReactions,
   landscape,
+  numberOfColumns = landscape ? 3 : 2,
 }: CallParticipantsListProps) => {
+  const styles = useStyles();
+  const { theme } = useTheme();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -166,15 +169,31 @@ export const CallParticipantsList = ({
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const style = { width: itemWidth, height: itemHeight };
+    const style = {
+      width: itemWidth,
+      height: itemHeight,
+      marginHorizontal: theme.variants.spacingSizes.xs,
+      marginVertical: theme.variants.spacingSizes.xs,
+    };
+
     if (horizontal) {
-      return [styles.participantWrapperHorizontal, style];
+      const participantWrapperHorizontal = {
+        // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
+        marginHorizontal: theme.variants.spacingSizes.xs,
+        borderRadius: theme.variants.borderRadiusSizes.md,
+      };
+      return [participantWrapperHorizontal, style];
     }
+
     if (landscape) {
-      return [styles.landScapeStyle, style];
+      const landscapeStyle = {
+        marginVertical: theme.variants.spacingSizes.xs,
+        borderRadius: theme.variants.borderRadiusSizes.md,
+      };
+      return [landscapeStyle, style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, landscape]);
+  }, [itemWidth, itemHeight, horizontal, landscape, theme]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -208,9 +227,9 @@ export const CallParticipantsList = ({
     [itemContainerStyle]
   );
 
-  // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid
-  // else we display them both in a stretched row on the screen
-  const shouldWrapByColumns = !!horizontal || participants.length > 2;
+  // in vertical mode, only when there are more than 3 participants in a call, the participants should be displayed in a grid
+  // else we display them in a stretched rows on the screen
+  const shouldWrapByColumns = !!horizontal || participants.length > 3;
 
   if (!shouldWrapByColumns) {
     return (
@@ -251,17 +270,19 @@ export const CallParticipantsList = ({
   );
 };
 
-const styles = StyleSheet.create({
-  flexed: { flex: 1 },
-  participantWrapperHorizontal: {
-    // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-    marginHorizontal: 8,
-    borderRadius: 10,
-  },
-  landScapeStyle: {
-    borderRadius: 10,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        flexed: {
+          flex: 1,
+          margin: theme.variants.spacingSizes.xs,
+        },
+      }),
+    [theme]
+  );
+};
 
 /**
  * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
@@ -292,15 +313,16 @@ function calculateParticipantViewSize({
       // special case: if there are 4 or less participants, we display them in 2 rows
       itemHeight = containerHeight / 2;
     } else {
-      // generally, we display the participants in 3 rows
-      itemHeight = containerHeight / 3;
+      // generally, we display the participants in 2 rows
+      itemHeight = containerHeight / 2;
     }
   }
 
   let itemWidth = containerWidth / numberOfColumns;
-  if (horizontal) {
-    // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
-    itemWidth = itemWidth - 8 * 2;
+  itemWidth = itemWidth - 4 * 2;
+  if (!horizontal) {
+    // in vertical mode we apply margin of 4 to the participant view and that should be subtracted from the width
+    itemHeight = itemHeight - 4 * 2;
   }
 
   return { itemHeight, itemWidth };

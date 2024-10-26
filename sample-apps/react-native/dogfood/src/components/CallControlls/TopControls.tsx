@@ -40,7 +40,7 @@ export const TopControls = ({
       <View style={styles.content} onLayout={onLayout}>
         <View style={styles.leftElement}>
           <View style={styles.leftContent}>
-            <LayoutSwitcherButton onPressHandler={() => {}} />
+            <LayoutSwitcherButton />
             <ToggleCameraFaceButton />
             {!isAwaitingResponse && <VideoEffectsButton />}
           </View>
@@ -61,7 +61,6 @@ export const TopControls = ({
 
 const useStyles = () => {
   const { theme } = useTheme();
-
   return useMemo(
     () =>
       StyleSheet.create({

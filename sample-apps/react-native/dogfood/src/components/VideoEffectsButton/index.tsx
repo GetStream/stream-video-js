@@ -86,7 +86,7 @@ const FilterButton = () => {
         <IconWrapper>
           <Effects
             color={theme.colors.iconPrimaryDefault}
-            size={theme.defaults.iconSize}
+            size={theme.variants.iconSizes.md}
           />
         </IconWrapper>
       </CallControlsButton>

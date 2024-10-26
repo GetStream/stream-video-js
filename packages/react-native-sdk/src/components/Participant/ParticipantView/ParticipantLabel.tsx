@@ -97,19 +97,11 @@ export const ParticipantLabel = ({
       ]}
     >
       <View style={styles.wrapper}>
-        <Text
-          style={[
-            styles.userNameLabel,
-            { color: colors.iconPrimaryDefault },
-            typefaces.subtitle,
-            userNameLabel,
-          ]}
-          numberOfLines={1}
-        >
+        <Text style={[styles.userNameLabel, userNameLabel]} numberOfLines={1}>
           {participantLabel}
         </Text>
         <View style={styles.indicatorWrapper}>
-          <SpeechIndicator isSpeaking={participant.isDominantSpeaker} />
+          <SpeechIndicator isSpeaking={participant.isSpeaking} />
         </View>
       </View>
       {isPinningEnabled && (
@@ -152,6 +144,9 @@ const useStyles = () => {
         userNameLabel: {
           flexShrink: 1,
           marginTop: 2,
+          fontSize: 13,
+          fontWeight: '400',
+          color: theme.colors.iconPrimaryDefault,
         },
         screenShareIconContainer: {
           marginRight: theme.variants.spacingSizes.sm,
