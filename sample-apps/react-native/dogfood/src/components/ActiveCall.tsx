@@ -74,6 +74,7 @@ export const ActiveCall = ({
       <TopControls
         isAwaitingResponse={isAwaitingResponse}
         isCallRecordingInProgress={isCallRecordingInProgress}
+        onHangupCallHandler={onHangupCallHandler}
       />
     );
   }, [isAwaitingResponse, isCallRecordingInProgress]);
