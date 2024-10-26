@@ -7,19 +7,18 @@ import {
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
-import {
-  BottomControlsProps,
-  BottomControls,
-} from './CallControlls/BottomControls';
+import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useLayout } from '../contexts/LayoutContext';
 
-type ActiveCallProps = BottomControlsProps & {
-  onHangupCallHandler?: () => void;
+type ActiveCallProps = {
+  onHangupCallHandler?: () => Promise<void>;
   onCallEnded: () => void;
+  onChatOpenHandler: () => void;
+  unreadCountIndicator: number;
 };
 
 export const ActiveCall = ({

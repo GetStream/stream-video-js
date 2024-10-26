@@ -13,7 +13,6 @@ export type Theme = {
   variants: {
     buttonSizes: DimensionType;
     roundButtonSizes: DimensionType;
-    borderRadiusSizes: DimensionType;
     iconSizes: DimensionType;
     avatarSizes: DimensionType;
     fontSizes: DimensionType;
