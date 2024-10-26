@@ -48,9 +48,9 @@ const formatTime = (timeInSeconds: number) => {
 };
 
 const Elapsed = () => {
-  const { useCallDuration } = useCallStateHooks();
-  const duration = useCallDuration();
-  const elapsed = formatTime(duration);
+  const { useCallSessionDuration } = useCallStateHooks();
+  const sessionDuration = useCallSessionDuration();
+  const elapsed = formatTime(sessionDuration);
 
   return (
     <div className="rd__header__elapsed">
