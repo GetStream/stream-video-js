@@ -8,12 +8,13 @@ import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import {
-  CallControlsComponent,
   BottomControlsProps,
+  BottomControls,
 } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 type ActiveCallProps = BottomControlsProps & {
   onHangupCallHandler?: () => void;
@@ -43,15 +44,38 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const CustomControlsComponent = useCallback(() => {
+  const { useToggleCallRecording } = useCallStateHooks();
+  const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
+    useToggleCallRecording();
+
+  const CustomBottomControls = useCallback(() => {
     return (
-      <CallControlsComponent
+      <BottomControls
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         onChatOpenHandler={onChatOpenHandler}
         unreadCountIndicator={unreadCountIndicator}
+        toggleCallRecording={toggleCallRecording}
+        isCallRecordingInProgress={isCallRecordingInProgress}
+        isAwaitingResponse={isAwaitingResponse}
       />
     );
-  }, [onChatOpenHandler, onOpenCallParticipantsInfo, unreadCountIndicator]);
+  }, [
+    onChatOpenHandler,
+    onOpenCallParticipantsInfo,
+    unreadCountIndicator,
+    toggleCallRecording,
+    isAwaitingResponse,
+    isCallRecordingInProgress,
+  ]);
+
+  const CustomTopControls = useCallback(() => {
+    return (
+      <TopControls
+        isAwaitingResponse={isAwaitingResponse}
+        isCallRecordingInProgress={isCallRecordingInProgress}
+      />
+    );
+  }, [isAwaitingResponse, isCallRecordingInProgress]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -67,8 +91,8 @@ export const ActiveCall = ({
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
           onHangupCallHandler={onHangupCallHandler}
-          CallTopView={TopControls}
-          CallControls={CustomControlsComponent}
+          CallTopView={CustomTopControls}
+          CallControls={CustomBottomControls}
           landscape={currentOrientation === 'landscape'}
         />
         <ParticipantsInfoList

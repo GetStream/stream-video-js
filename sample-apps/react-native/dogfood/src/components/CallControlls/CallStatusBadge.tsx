@@ -4,27 +4,26 @@ import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
-/**
- * Props for the CallStatusBadge component.
- */
-interface CallStatusBadgeProps {
-  /**
-   * Indicates if the call is currently being recorded.
-   * When true, it shows "Recording in progress..." and a specific icon.
-   * When false, it shows the elapsed time.
-   */
-  isCallRecorded: boolean;
-}
+const formatTime = (seconds: number) => {
+  const date = new Date(0);
+  date.setSeconds(seconds);
+  const format = date.toISOString();
+  const hours = format.substring(11, 13);
+  const minutes = format.substring(14, 16);
+  const seconds_str = format.substring(17, 19);
+  return `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds_str}`;
+};
 
-/**
- * CallStatusBadge component to display the current status of a call.
- * It shows either a recording message or the elapsed time, with an accompanying icon.
- *
- * @param {CallStatusBadgeProps} props - The props for the component.
- */
+export type CallStatusBadgeProps = {
+  isCallRecordingInProgress: boolean;
+  isAwaitingResponse: boolean;
+};
+
 export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
-  isCallRecorded,
+  isCallRecordingInProgress,
+  isAwaitingResponse,
 }) => {
   const {
     theme: {
@@ -34,27 +33,43 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
   } = useTheme();
 
   // TODO: replace this with useDuration when that https://github.com/GetStream/stream-video-js/pull/1528 is merged
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [elapsed, setElapsed] = useState<string>('00:00');
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
+  const startedAt = session?.started_at;
+  const startedAtDate = useMemo(() => {
+    if (!startedAt) {
+      return Date.now();
+    }
+    const date = new Date(startedAt).getTime();
+    return isNaN(date) ? Date.now() : date;
+  }, [startedAt]);
+
   useEffect(() => {
-    const startedAt = new Date().getTime();
-    setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
-    const intervalId = setInterval(() => {
-      setElapsedSeconds((prevSeconds) => prevSeconds + 1);
+    const initialElapsedSeconds = Math.max(
+      0,
+      (Date.now() - startedAtDate) / 1000,
+    );
+
+    setElapsed(formatTime(initialElapsedSeconds));
+
+    const interval = setInterval(() => {
+      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
+      setElapsed(formatTime(elapsedSeconds));
     }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
 
-  const styles = useStyles(isCallRecorded);
+    return () => clearInterval(interval);
+  }, [startedAtDate]);
 
-  // Format duration to MM:SS
-  const minutes = Math.floor(elapsedSeconds / 60)
-    .toString()
-    .padStart(2, '0');
-  const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
-  const timestamp = `${minutes}:${seconds}`;
-  const text = isCallRecorded ? 'Recording in progress...' : timestamp;
+  const styles = useStyles(isAwaitingResponse);
+  const recordingMessage = isCallRecordingInProgress
+    ? 'Stopping recording...'
+    : 'Recording in progress...';
 
-  const icon = isCallRecorded ? (
+  let text = isAwaitingResponse ? recordingMessage : elapsed;
+  const showRecordingIcon = isCallRecordingInProgress || isAwaitingResponse;
+
+  const icon = showRecordingIcon ? (
     <RecordCall color={colors.iconAlertWarning} size={iconSizes.md} />
   ) : (
     <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
@@ -70,7 +85,7 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
   );
 };
 
-const useStyles = (isCallRecorded: boolean) => {
+const useStyles = (isLoading: boolean) => {
   const { theme } = useTheme();
   return useMemo(
     () =>
@@ -84,7 +99,7 @@ const useStyles = (isCallRecorded: boolean) => {
           paddingRight: 5,
           justifyContent: 'center',
           alignItems: 'center',
-          width: isCallRecorded ? 200 : 80,
+          width: isLoading ? 200 : 80,
         },
         text: {
           color: theme.colors.typePrimary,
@@ -99,6 +114,6 @@ const useStyles = (isCallRecorded: boolean) => {
           marginRight: 5,
         },
       }),
-    [theme, isCallRecorded],
+    [theme, isLoading],
   );
 };

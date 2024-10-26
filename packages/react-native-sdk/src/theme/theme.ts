@@ -13,6 +13,7 @@ export type Theme = {
   variants: {
     buttonSizes: DimensionType;
     roundButtonSizes: DimensionType;
+    borderRadiusSizes: DimensionType;
     iconSizes: DimensionType;
     avatarSizes: DimensionType;
     fontSizes: DimensionType;
@@ -297,6 +298,13 @@ export const defaultTheme: Theme = {
       md: 36,
       lg: 44,
       xl: 56,
+    },
+    borderRadiusSizes: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
     },
     buttonSizes: {
       xs: 40,

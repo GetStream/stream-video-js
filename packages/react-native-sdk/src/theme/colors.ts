@@ -36,6 +36,9 @@ const colors: ColorScheme = {
   iconAlertSuccess: '#00e2a1',
   sheetPrimary: '#000000',
   sheetOverlay: '#0c0d0ea6',
+  typePrimary: '#eff0f1',
+  typeSecondary: '#b0b4b7',
+  buttonSecondaryHover: '#323b44',
 
   buttonPrimaryDisabled: '#1b2c43',
   buttonPrimaryHover: '#4c8fff',
@@ -46,7 +49,6 @@ const colors: ColorScheme = {
   buttonQuaternaryHover: '#e77b76',
   buttonQuaternaryPressed: '#7d3535',
   buttonSecondaryDisabled: '#1e262e29',
-  buttonSecondaryHover: '#323b44',
   buttonSecondaryPressed: '#101213',
   buttonSecondaryActiveDefault: '#005fff',
   buttonSecondaryActiveHover: '#4c8fff',
@@ -76,9 +78,7 @@ const colors: ColorScheme = {
   sheetTertiary: '#19232d',
   typeAccent: '#00e2a1',
   typeOnAccent: '#eff0f1',
-  typePrimary: '#eff0f1',
   typeQuaternary: '#101213',
-  typeSecondary: '#b0b4b7',
   typeTertiary: '#656b72',
 };
 

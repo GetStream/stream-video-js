@@ -11,21 +11,34 @@ import {
   StyleSheet,
 } from 'react-native';
 
-interface EndRecordingModalProps {
+interface CallRecordingModalProps {
   visible: boolean;
+  isLoading: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  message: string;
+  title: string;
+  confirmButton: string;
+  cancelButton: string;
+  isEndRecordingModal: boolean;
 }
 
-export const EndRecordingModal: React.FC<EndRecordingModalProps> = ({
+export const CallRecordingModal: React.FC<CallRecordingModalProps> = ({
   visible,
+  isLoading,
   onCancel,
   onConfirm,
+  message,
+  title,
+  confirmButton,
+  cancelButton,
+  isEndRecordingModal,
 }) => {
-  const styles = useStyles();
+  const styles = useStyles(isEndRecordingModal);
   const {
     theme: { colors, variants },
   } = useTheme();
+
   return (
     <Modal
       animationType="fade"
@@ -38,7 +51,7 @@ export const EndRecordingModal: React.FC<EndRecordingModalProps> = ({
           <View style={styles.modalView}>
             <View style={styles.content}>
               <View style={styles.headerContainer}>
-                <View style={{ display: 'flex', marginRight: 8 }}>
+                <View style={styles.iconContainer}>
                   <IconWrapper>
                     <RecordCall
                       color={colors.iconAlertWarning}
@@ -46,26 +59,28 @@ export const EndRecordingModal: React.FC<EndRecordingModalProps> = ({
                     />
                   </IconWrapper>
                 </View>
-                <Text style={styles.title}>End Recording</Text>
+                <Text style={styles.title}>{title}</Text>
               </View>
-              <Text style={styles.message}>
-                Are you sure you want to end recording?
-              </Text>
+              <Text style={styles.message}>{message}</Text>
             </View>
-
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.cancelButton]}
                 onPress={onCancel}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{cancelButton}</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={[styles.button, styles.endButton]}
+                style={[styles.button, styles.confirmButton]}
                 onPress={onConfirm}
               >
-                <Text style={styles.endButtonText}>End Recording</Text>
+                {isLoading ? (
+                  <IconWrapper>
+                    <Text style={styles.buttonText}>Loading...</Text>
+                  </IconWrapper>
+                ) : (
+                  <Text style={styles.buttonText}>{confirmButton}</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -75,7 +90,7 @@ export const EndRecordingModal: React.FC<EndRecordingModalProps> = ({
   );
 };
 
-const useStyles = () => {
+const useStyles = (isEndRecordingModal: boolean) => {
   const { theme } = useTheme();
   return useMemo(
     () =>
@@ -86,59 +101,60 @@ const useStyles = () => {
           alignItems: 'center',
         },
         modalView: {
-          backgroundColor: '#1C1C1E',
-          borderRadius: 14,
-          padding: 20,
+          backgroundColor: theme.colors.sheetSecondary,
+          borderRadius: theme.variants.borderRadiusSizes.lg,
+          padding: theme.variants.spacingSizes.xl,
           width: '80%',
-          maxWidth: 307,
+          maxWidth: 380,
         },
         content: {
-          marginBottom: 20,
+          marginBottom: theme.variants.spacingSizes.xl,
         },
         headerContainer: {
-          flexDirection: 'row', // Arrange the icon and title side by side
+          flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: 20,
+          marginBottom: theme.variants.spacingSizes.sm,
         },
-
+        iconContainer: {
+          display: 'flex',
+          marginRight: theme.variants.spacingSizes.sm,
+        },
         title: {
-          color: 'white',
-          fontSize: 17,
+          color: theme.colors.typePrimary,
+          fontSize: theme.variants.fontSizes.lg,
           fontWeight: '600',
           textAlign: 'center',
         },
         message: {
-          color: '#8E8E93',
-          fontSize: 17,
+          color: theme.colors.typeSecondary,
+          fontSize: theme.variants.fontSizes.md,
           fontWeight: '400',
           textAlign: 'left',
         },
         buttonContainer: {
           flexDirection: 'row',
           justifyContent: 'space-between',
+          gap: theme.variants.spacingSizes.md,
         },
         button: {
           flex: 1,
-          borderRadius: 20,
-          // paddingVertical: 8,
+          borderRadius: theme.variants.roundButtonSizes.md,
           justifyContent: 'center',
           alignItems: 'center',
-          marginHorizontal: 5,
         },
         cancelButton: {
-          backgroundColor: '#2C2C2E',
+          backgroundColor: theme.colors.sheetSecondary,
           height: 32,
+          borderWidth: 1,
+          borderColor: theme.colors.buttonSecondaryHover,
         },
-        endButton: {
+        confirmButton: {
           height: 32,
-          backgroundColor: '#FF453A',
+          backgroundColor: isEndRecordingModal
+            ? theme.colors.iconAlertWarning
+            : theme.colors.buttonPrimaryDefault,
         },
-        cancelButtonText: {
-          color: 'white',
-          fontSize: 13,
-          fontWeight: '400',
-        },
-        endButtonText: {
+        buttonText: {
           color: 'white',
           fontSize: 13,
           fontWeight: '600',
