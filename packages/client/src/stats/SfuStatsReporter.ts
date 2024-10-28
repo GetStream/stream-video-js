@@ -33,7 +33,8 @@ export class SfuStatsReporter {
   private readonly state: CallState;
 
   private intervalId: NodeJS.Timeout | undefined;
-  private subscriptions: Array<() => void> = [];
+  private unsubscribeDevicePermissionsSubscription?: () => void;
+  private unsubscribeListDevicesSubscription?: () => void;
   private readonly sdkName: string;
   private readonly sdkVersion: string;
   private readonly webRTCVersion: string;
@@ -63,7 +64,8 @@ export class SfuStatsReporter {
     this.sdkName = getSdkName(sdk);
     this.sdkVersion = getSdkVersion(sdk);
 
-    // The WebRTC version if passed from the SDK, it is taken else the browser info is sent.
+    // use the WebRTC version if set by the SDK (React Native) otherwise,
+    // use the browser version as a fallback
     const webRTCInfo = getWebRTCInfo();
     this.webRTCVersion =
       webRTCInfo?.version ||
@@ -76,9 +78,14 @@ export class SfuStatsReporter {
     kind: 'mic' | 'camera',
   ) => {
     const { hasBrowserPermission$ } = device.state;
-    const permissionsSubscription = createSubscription(
+    this.unsubscribeDevicePermissionsSubscription?.();
+    this.unsubscribeDevicePermissionsSubscription = createSubscription(
       combineLatest([hasBrowserPermission$, this.state.ownCapabilities$]),
       ([hasPermission, ownCapabilities]) => {
+        // cleanup the previous listDevices() subscription in case
+        // permissions or capabilities have changed.
+        // we will subscribe again if everything is in order.
+        this.unsubscribeListDevicesSubscription?.();
         const hasCapability =
           kind === 'mic'
             ? ownCapabilities.includes(OwnCapability.SEND_AUDIO)
@@ -91,7 +98,7 @@ export class SfuStatsReporter {
           });
           return;
         }
-        const listDevicesSubscription = createSubscription(
+        this.unsubscribeListDevicesSubscription = createSubscription(
           combineLatest([device.listDevices(), device.state.selectedDevice$]),
           ([devices, deviceId]) => {
             const selected = devices.find((d) => d.deviceId === deviceId);
@@ -102,10 +109,8 @@ export class SfuStatsReporter {
             });
           },
         );
-        this.subscriptions.push(listDevicesSubscription);
       },
     );
-    this.subscriptions.push(permissionsSubscription);
   };
 
   private run = async () => {
@@ -140,8 +145,10 @@ export class SfuStatsReporter {
   };
 
   stop = () => {
-    this.subscriptions.forEach((unsubscribe) => unsubscribe());
-    this.subscriptions = [];
+    this.unsubscribeDevicePermissionsSubscription?.();
+    this.unsubscribeDevicePermissionsSubscription = undefined;
+    this.unsubscribeListDevicesSubscription?.();
+    this.unsubscribeListDevicesSubscription = undefined;
     this.inputDevices.clear();
     clearInterval(this.intervalId);
     this.intervalId = undefined;
