@@ -167,7 +167,7 @@ const getStream = async (constraints: MediaStreamConstraints) => {
  */
 export const getAudioStream = async (
   trackConstraints?: MediaTrackConstraints,
-) => {
+): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     audio: {
       ...audioDeviceConstraints.audio,
@@ -180,13 +180,23 @@ export const getAudioStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
-    return getStream(constraints);
-  } catch (e) {
+    return await getStream(constraints);
+  } catch (error) {
+    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
+      const { deviceId, ...relaxedContraints } = trackConstraints;
+      getLogger(['devices'])(
+        'warn',
+        'Failed to get audio stream, will try again with relaxed contraints',
+        { error, constraints, relaxedContraints },
+      );
+      return getAudioStream(relaxedContraints);
+    }
+
     getLogger(['devices'])('error', 'Failed to get audio stream', {
-      error: e,
-      constraints: constraints,
+      error,
+      constraints,
     });
-    throw e;
+    throw error;
   }
 };
 
@@ -200,7 +210,7 @@ export const getAudioStream = async (
  */
 export const getVideoStream = async (
   trackConstraints?: MediaTrackConstraints,
-) => {
+): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     video: {
       ...videoDeviceConstraints.video,
@@ -213,12 +223,22 @@ export const getVideoStream = async (
       forcePrompt: true,
     });
     return await getStream(constraints);
-  } catch (e) {
+  } catch (error) {
+    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
+      const { deviceId, ...relaxedContraints } = trackConstraints;
+      getLogger(['devices'])(
+        'warn',
+        'Failed to get video stream, will try again with relaxed contraints',
+        { error, constraints, relaxedContraints },
+      );
+      return getVideoStream(relaxedContraints);
+    }
+
     getLogger(['devices'])('error', 'Failed to get video stream', {
-      error: e,
-      constraints: constraints,
+      error,
+      constraints,
     });
-    throw e;
+    throw error;
   }
 };
 

@@ -206,11 +206,17 @@ export abstract class InputMediaDeviceManager<
         'This method is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for reference.',
       );
     }
-    if (deviceId === this.state.selectedDevice) {
+    const prevDeviceId = this.state.selectedDevice;
+    if (deviceId === prevDeviceId) {
       return;
     }
-    this.state.setDevice(deviceId);
-    await this.applySettingsToStream();
+    try {
+      this.state.setDevice(deviceId);
+      await this.applySettingsToStream();
+    } catch (error) {
+      this.state.setDevice(prevDeviceId);
+      throw error;
+    }
   }
 
   /**
