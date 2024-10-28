@@ -212,7 +212,7 @@ export const getVideoStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
-    return getStream(constraints);
+    return await getStream(constraints);
   } catch (e) {
     getLogger(['devices'])('error', 'Failed to get video stream', {
       error: e,
