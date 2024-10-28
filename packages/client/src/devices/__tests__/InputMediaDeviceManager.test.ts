@@ -181,7 +181,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
     expect(manager.getStream).toHaveBeenCalledWith({
-      deviceId,
+      deviceId: { exact: deviceId },
     });
     expect(manager.publishStream).toHaveBeenCalled();
   });
