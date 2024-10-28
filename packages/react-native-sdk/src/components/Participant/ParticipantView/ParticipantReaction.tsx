@@ -33,11 +33,7 @@ export const ParticipantReaction = ({
   const { reaction, sessionId } = participant;
   const call = useCall();
   const {
-    theme: {
-      typefaces,
-      variants: { iconSizes },
-      participantReaction,
-    },
+    theme: { typefaces, participantReaction },
   } = useTheme();
 
   useEffect(() => {
@@ -52,6 +48,12 @@ export const ParticipantReaction = ({
     };
   }, [call, hideAfterTimeoutInMs, sessionId, reaction]);
 
+  // const currentReaction = {
+  //   type: 'reaction',
+  //   emoji_code: ':rolling_on_the_floor_laughing:',
+  //   custom: {},
+  //   icon: '🤣',
+  // };
   const currentReaction =
     reaction &&
     supportedReactions.find(
@@ -60,16 +62,7 @@ export const ParticipantReaction = ({
     );
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          height: iconSizes.md,
-          width: iconSizes.md,
-        },
-        participantReaction.container,
-      ]}
-    >
+    <View style={[styles.container, participantReaction.container]}>
       <Text style={[participantReaction.reaction, typefaces.heading6]}>
         {currentReaction?.icon}
       </Text>
@@ -79,7 +72,15 @@ export const ParticipantReaction = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
+    marginRight: 10,
+    marginTop: 10,
+    height: 44,
+    width: 44,
+    borderRadius: 8,
+    backgroundColor: 'gray',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: Z_INDEX.IN_FRONT,
   },
 });
