@@ -314,7 +314,9 @@ export abstract class InputMediaDeviceManager<
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
         ...defaultConstraints,
-        deviceId: { exact: this.state.selectedDevice },
+        deviceId: this.state.selectedDevice
+          ? { exact: this.state.selectedDevice }
+          : undefined,
       };
 
       /**
