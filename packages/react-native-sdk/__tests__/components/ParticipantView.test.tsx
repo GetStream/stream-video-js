@@ -23,7 +23,7 @@ describe('ParticipantView', () => {
       publishedTracks: [],
       reaction: {
         type: 'reaction',
-        emoji_code: ':fireworks:',
+        emoji_code: ':tada:',
       },
     });
     render(
