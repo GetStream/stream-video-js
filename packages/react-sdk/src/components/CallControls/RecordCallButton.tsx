@@ -11,7 +11,7 @@ import {
   useMenuContext,
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 import { WithTooltip } from '../Tooltip';
 
 export type RecordCallButtonProps = {
@@ -20,7 +20,6 @@ export type RecordCallButtonProps = {
 
 const RecordEndConfirmation = () => {
   const { t } = useI18n();
-  const { useToggleCallRecording } = useCallStateHooks();
   const { toggleCallRecording, isAwaitingResponse } = useToggleCallRecording();
 
   const { close } = useMenuContext();
@@ -70,7 +69,6 @@ export const RecordCallConfirmationButton = ({
   caption?: string;
 }) => {
   const { t } = useI18n();
-  const { useToggleCallRecording } = useCallStateHooks();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
@@ -124,7 +122,6 @@ export const RecordCallConfirmationButton = ({
 
 export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
   const { t } = useI18n();
-  const { useToggleCallRecording } = useCallStateHooks();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 

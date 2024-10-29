@@ -1,6 +1,8 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useI18n,
+  useToggleCallRecording,
+} from '@stream-io/video-react-bindings';
 import { Notification } from './Notification';
 
 export type RecordingInProgressNotificationProps = {
@@ -12,7 +14,6 @@ export const RecordingInProgressNotification = ({
   text,
 }: PropsWithChildren<RecordingInProgressNotificationProps>) => {
   const { t } = useI18n();
-  const { useToggleCallRecording } = useCallStateHooks();
   const { isCallRecordingInProgress } = useToggleCallRecording();
 
   const [isVisible, setVisible] = useState(false);

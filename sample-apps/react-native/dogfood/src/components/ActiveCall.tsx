@@ -11,7 +11,7 @@ import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 import { useLayout } from '../contexts/LayoutContext';
 
 type ActiveCallProps = {
@@ -45,7 +45,6 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const { useToggleCallRecording } = useCallStateHooks();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
@@ -77,7 +76,7 @@ export const ActiveCall = ({
         onHangupCallHandler={onHangupCallHandler}
       />
     );
-  }, [isAwaitingResponse, isCallRecordingInProgress]);
+  }, [isAwaitingResponse, isCallRecordingInProgress, onHangupCallHandler]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
