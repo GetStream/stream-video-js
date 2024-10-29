@@ -12,7 +12,6 @@ import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-// import { generateMockParticipants } from '.';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -61,9 +60,6 @@ export const CallParticipantsGrid = ({
   };
 
   let participants = allParticipants;
-  // console.log('🚀 ~ participants:', participants);
-  // let participants = generateMockParticipants(9);
-
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
   if (isInPiPMode) {
     participants =
