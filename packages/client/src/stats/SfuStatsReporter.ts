@@ -5,7 +5,10 @@ import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getWebRTCInfo, LocalClientDetailsType } from '../client-details';
-import { InputDevices } from '../gen/video/sfu/models/models';
+import {
+  AndroidThermalState,
+  InputDevices,
+} from '../gen/video/sfu/models/models';
 import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
 import { CallState } from '../store';
@@ -19,6 +22,12 @@ export type SfuStatsReporterOptions = {
   camera: CameraManager;
   state: CallState;
 };
+
+declare global {
+  interface Window {
+    PressureObserver?: any;
+  }
+}
 
 export class SfuStatsReporter {
   private readonly logger = getLogger(['SfuStatsReporter']);
@@ -39,6 +48,8 @@ export class SfuStatsReporter {
   private readonly sdkVersion: string;
   private readonly webRTCVersion: string;
   private readonly inputDevices = new Map<'mic' | 'camera', InputDevices>();
+  private readonly pressureObserver: any;
+  private latestThermalState: AndroidThermalState | undefined;
 
   constructor(
     sfuClient: StreamSfuClient,
@@ -63,6 +74,24 @@ export class SfuStatsReporter {
     const { sdk, browser } = clientDetails;
     this.sdkName = getSdkName(sdk);
     this.sdkVersion = getSdkVersion(sdk);
+
+    if ('PressureObserver' in window) {
+      this.pressureObserver = new window.PressureObserver((records: any[]) => {
+        const thermalState: string | undefined = records.at(-1)?.state;
+
+        if (!thermalState) {
+          this.latestThermalState = undefined;
+          return;
+        }
+
+        this.latestThermalState = {
+          nominal: AndroidThermalState.LIGHT,
+          fair: AndroidThermalState.MODERATE,
+          serious: AndroidThermalState.SEVERE,
+          critical: AndroidThermalState.CRITICAL,
+        }[thermalState];
+      });
+    }
 
     // use the WebRTC version if set by the SDK (React Native) otherwise,
     // use the browser version as a fallback
@@ -127,15 +156,31 @@ export class SfuStatsReporter {
       publisherStats,
       audioDevices: this.inputDevices.get('mic'),
       videoDevices: this.inputDevices.get('camera'),
-      deviceState: { oneofKind: undefined },
+      deviceState: {
+        oneofKind: 'android',
+        android: {
+          isPowerSaverMode: false,
+          thermalState:
+            this.latestThermalState ?? AndroidThermalState.UNSPECIFIED,
+        },
+      },
     });
   };
 
   start = () => {
+    if (this.options.reporting_interval_ms <= 0) return;
+
     this.observeDevice(this.microphone, 'mic');
     this.observeDevice(this.camera, 'camera');
 
-    if (this.options.reporting_interval_ms <= 0) return;
+    try {
+      this.pressureObserver.observe('cpu', {
+        sampleInterval: this.options.reporting_interval_ms,
+      });
+    } catch (err) {
+      // may throw an NotSupportedError, which we will ignore
+    }
+
     clearInterval(this.intervalId);
     this.intervalId = setInterval(() => {
       this.run().catch((err) => {
@@ -149,6 +194,13 @@ export class SfuStatsReporter {
     this.unsubscribeDevicePermissionsSubscription = undefined;
     this.unsubscribeListDevicesSubscription?.();
     this.unsubscribeListDevicesSubscription = undefined;
+
+    try {
+      this.pressureObserver.unobserve('cpu');
+    } catch (err) {
+      // may throw an NotSupportedError, which we will ignore
+    }
+
     this.inputDevices.clear();
     clearInterval(this.intervalId);
     this.intervalId = undefined;
