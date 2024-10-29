@@ -32,7 +32,9 @@ const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
         await permission.prompt({ throwOnNotAllowed: true });
         devices = await navigator.mediaDevices.enumerateDevices();
       }
-      return devices.filter((d) => d.kind === kind);
+      return devices.filter(
+        (device) => device.kind === kind && device.label !== '',
+      );
     })(),
   );
 };
@@ -125,7 +127,7 @@ export const getAudioDevices = lazy(() => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getVideoDevices = () => {
+export const getVideoDevices = lazy(() => {
   return merge(
     getDeviceChangeObserver(),
     getVideoBrowserPermission().asObservable(),
@@ -134,7 +136,7 @@ export const getVideoDevices = () => {
     concatMap(() => getDevices(getVideoBrowserPermission(), 'videoinput')),
     shareReplay(1),
   );
-};
+});
 
 /**
  * Prompts the user for a permission to use video devices (if not already granted
@@ -142,7 +144,7 @@ export const getVideoDevices = () => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getAudioOutputDevices = () => {
+export const getAudioOutputDevices = lazy(() => {
   return merge(
     getDeviceChangeObserver(),
     getAudioBrowserPermission().asObservable(),
@@ -151,10 +153,17 @@ export const getAudioOutputDevices = () => {
     concatMap(() => getDevices(getAudioBrowserPermission(), 'audiooutput')),
     shareReplay(1),
   );
-};
+});
 
 const getStream = async (constraints: MediaStreamConstraints) => {
-  return await navigator.mediaDevices.getUserMedia(constraints);
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  // On Firefox, there's no reliable way to listen to device permission changes,
+  // so it's difficult to update the device list once camera or microphone access
+  // is allowed by the user. However, if we were able to get user media, we can be
+  // sure permission was granted, so we fake the devicechange event to force device
+  // lists to update.
+  navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+  return stream;
 };
 
 /**

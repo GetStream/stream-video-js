@@ -57,26 +57,8 @@ const DeviceSelectorList = (props: {
   title?: string;
   onChange?: (deviceId: string) => void;
 }) => {
-  const {
-    devices = [],
-    selectedDeviceId: selectedDeviceFromProps,
-    title,
-    type,
-    onChange,
-  } = props;
-
+  const { devices = [], selectedDeviceId, title, type, onChange } = props;
   const { close } = useMenuContext();
-
-  // sometimes the browser (Chrome) will report the system-default device
-  // with an id of 'default'. In case when it doesn't, we'll select the first
-  // available device.
-  let selectedDeviceId = selectedDeviceFromProps;
-  if (
-    devices.length > 0 &&
-    !devices.find((d) => d.deviceId === selectedDeviceId)
-  ) {
-    selectedDeviceId = devices[0].deviceId;
-  }
 
   return (
     <div className="str-video__device-settings__device-kind">
@@ -85,7 +67,7 @@ const DeviceSelectorList = (props: {
           {title}
         </div>
       )}
-      {!devices.length ? (
+      {devices.length === 0 ? (
         <DeviceSelectorOption
           id={`${type}--default`}
           label="Default"
@@ -122,28 +104,9 @@ const DeviceSelectorDropdown = (props: {
   selectedDeviceId?: string;
   title?: string;
   onChange?: (deviceId: string) => void;
-  visualType?: 'list' | 'dropdown';
   icon: string;
-  placeholder?: string;
 }) => {
-  const {
-    devices = [],
-    selectedDeviceId: selectedDeviceFromProps,
-    title,
-    onChange,
-    icon,
-  } = props;
-
-  // sometimes the browser (Chrome) will report the system-default device
-  // with an id of 'default'. In case when it doesn't, we'll select the first
-  // available device.
-  let selectedDeviceId = selectedDeviceFromProps;
-  if (
-    devices.length > 0 &&
-    !devices.find((d) => d.deviceId === selectedDeviceId)
-  ) {
-    selectedDeviceId = devices[0].deviceId;
-  }
+  const { devices = [], selectedDeviceId, title, onChange, icon } = props;
 
   const selectedIndex = devices.findIndex(
     (d) => d.deviceId === selectedDeviceId,
@@ -199,7 +162,5 @@ export const DeviceSelector = (props: {
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;
   }
-  return (
-    <DeviceSelectorDropdown {...rest} icon={icon} placeholder={placeholder} />
-  );
+  return <DeviceSelectorDropdown {...rest} icon={icon} />;
 };
