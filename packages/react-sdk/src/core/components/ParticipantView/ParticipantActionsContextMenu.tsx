@@ -11,9 +11,10 @@ import { useParticipantViewContext } from './ParticipantViewContext';
 import {
   GenericMenu,
   GenericMenuButtonItem,
-  Icon,
   useMenuContext,
-} from '../../../components';
+} from '../../../components/Menu';
+import { Icon } from '../../../components/Icon';
+import { usePictureInPictureState } from '../../hooks/usePictureInPictureState';
 
 export const ParticipantActionsContextMenu = () => {
   const { participant, participantViewElement, videoElement } =
@@ -21,10 +22,8 @@ export const ParticipantActionsContextMenu = () => {
   const [fullscreenModeOn, setFullscreenModeOn] = useState(
     !!document.fullscreenElement,
   );
-  const [pictureInPictureElement, setPictureInPictureElement] = useState(
-    document.pictureInPictureElement,
-  );
   const call = useCall();
+  const isPiP = usePictureInPictureState(videoElement ?? undefined);
   const { t } = useI18n();
 
   const { pin, sessionId, userId } = participant;
@@ -104,24 +103,8 @@ export const ParticipantActionsContextMenu = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!videoElement) return;
-
-    const handlePiP = () => {
-      setPictureInPictureElement(document.pictureInPictureElement);
-    };
-
-    videoElement.addEventListener('enterpictureinpicture', handlePiP);
-    videoElement.addEventListener('leavepictureinpicture', handlePiP);
-
-    return () => {
-      videoElement.removeEventListener('enterpictureinpicture', handlePiP);
-      videoElement.removeEventListener('leavepictureinpicture', handlePiP);
-    };
-  }, [videoElement]);
-
   const togglePictureInPicture = () => {
-    if (videoElement && pictureInPictureElement !== videoElement) {
+    if (videoElement && !isPiP) {
       return videoElement
         .requestPictureInPicture()
         .catch(console.error) as Promise<void>;
@@ -198,10 +181,7 @@ export const ParticipantActionsContextMenu = () => {
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
           {t('{{ direction }} picture-in-picture', {
-            direction:
-              pictureInPictureElement === videoElement
-                ? t('Leave')
-                : t('Enter'),
+            direction: isPiP ? t('Leave') : t('Enter'),
           })}
         </GenericMenuButtonItem>
       )}

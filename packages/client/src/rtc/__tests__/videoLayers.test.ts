@@ -4,7 +4,11 @@ import {
   findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
   getComputedMaxBitrate,
+  OptimalVideoLayer,
+  ridToVideoQuality,
+  toSvcEncodings,
 } from '../videoLayers';
+import { VideoQuality } from '../../gen/video/sfu/models/models';
 
 describe('videoLayers', () => {
   it('should find optimal screen sharing layers', () => {
@@ -59,7 +63,7 @@ describe('videoLayers', () => {
         height: height / 4,
         maxBitrate: targetBitrate / 4,
         scaleResolutionDownBy: 4,
-        maxFramerate: 20,
+        maxFramerate: 30,
       },
       {
         active: true,
@@ -68,7 +72,7 @@ describe('videoLayers', () => {
         height: height / 2,
         maxBitrate: targetBitrate / 2,
         scaleResolutionDownBy: 2,
-        maxFramerate: 25,
+        maxFramerate: 30,
       },
       {
         active: true,
@@ -133,6 +137,47 @@ describe('videoLayers', () => {
     expect(layers[0].rid).toBe('q');
     expect(layers[1].rid).toBe('h');
     expect(layers[2].rid).toBe('f');
+  });
+
+  it('should announce only one layer for SVC codecs', () => {
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({
+      width: 1280,
+      height: 720,
+    });
+    const layers = findOptimalVideoLayers(track, undefined, 'vp9', {
+      preferredCodec: 'vp9',
+      scalabilityMode: 'L3T3',
+    });
+    expect(layers.length).toBe(3);
+    expect(layers[0].scalabilityMode).toBe('L3T3');
+    expect(layers[0].rid).toBe('q');
+    expect(layers[1].rid).toBe('h');
+    expect(layers[2].rid).toBe('f');
+  });
+
+  it('should map rids to VideoQuality', () => {
+    expect(ridToVideoQuality('q')).toBe(VideoQuality.LOW_UNSPECIFIED);
+    expect(ridToVideoQuality('h')).toBe(VideoQuality.MID);
+    expect(ridToVideoQuality('f')).toBe(VideoQuality.HIGH);
+    expect(ridToVideoQuality('')).toBe(VideoQuality.HIGH);
+  });
+
+  it('should map OptimalVideoLayer to SVC encodings', () => {
+    const layers: Array<Partial<OptimalVideoLayer>> = [
+      { rid: 'f', width: 1920, height: 1080, maxBitrate: 3000000 },
+      { rid: 'h', width: 960, height: 540, maxBitrate: 750000 },
+      { rid: 'q', width: 480, height: 270, maxBitrate: 187500 },
+    ];
+
+    const svcLayers = toSvcEncodings(layers as OptimalVideoLayer[]);
+    expect(svcLayers.length).toBe(1);
+    expect(svcLayers[0]).toEqual({
+      rid: 'q',
+      width: 1920,
+      height: 1080,
+      maxBitrate: 3000000,
+    });
   });
 
   describe('getComputedMaxBitrate', () => {

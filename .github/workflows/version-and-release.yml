@@ -7,9 +7,10 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '!**/docusaurus/**'
-      - 'sample-apps/**'
+    paths:
+      - 'packages/**'
+
+  workflow_dispatch:
 
 concurrency:
   group: version-and-release-${{ github.ref }}
@@ -50,7 +51,6 @@ jobs:
         run: yarn test:ci:libs
 
       - name: Version and release packages
-        if: ${{ github.ref_name == 'main' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

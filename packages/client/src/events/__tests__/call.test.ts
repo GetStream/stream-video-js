@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
-import { watchCallAccepted, watchCallEnded, watchCallRejected } from '../call';
+import {
+  watchCallAccepted,
+  watchCallEnded,
+  watchCallRejected,
+  watchSfuCallEnded,
+} from '../call';
 import {
   CallAcceptedEvent,
   CallEndedEvent,
@@ -8,6 +13,8 @@ import {
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { SfuEvent } from '../../gen/video/sfu/event/events';
+import { CallEndedReason } from '../../gen/video/sfu/models/models';
 
 describe('Call ringing events', () => {
   describe(`call.accepted`, () => {
@@ -261,6 +268,76 @@ describe('Call ringing events', () => {
       await handler(event);
 
       expect(call.leave).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('callEnded (SFU)', () => {
+    it('will leave the call if not already left', async () => {
+      const call = fakeCall();
+      vi.spyOn(call, 'leave').mockImplementation(async () => {
+        console.log(`TEST: leave() called`);
+      });
+
+      watchSfuCallEnded(call);
+      const event: SfuEvent = {
+        eventPayload: {
+          oneofKind: 'callEnded',
+          callEnded: { reason: CallEndedReason.ENDED },
+        },
+      };
+      call['dispatcher'].dispatch(event);
+
+      expect(call.leave).toHaveBeenCalled();
+      expect(call.state.endedAt).toBeDefined();
+    });
+
+    it('will not leave the call if already left', async () => {
+      const call = fakeCall();
+      call.state.setCallingState(CallingState.LEFT);
+      vi.spyOn(call, 'leave').mockImplementation(async () => {
+        console.log(`TEST: leave() called`);
+      });
+
+      watchSfuCallEnded(call);
+      const event: SfuEvent = {
+        eventPayload: {
+          oneofKind: 'callEnded',
+          callEnded: { reason: CallEndedReason.KICKED },
+        },
+      };
+      call['dispatcher'].dispatch(event);
+
+      expect(call.leave).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('call.leave', () => {
+    it('should not call reject when leaving under specific conditions', async () => {
+      const call = fakeCall();
+      call.state.setCallingState(CallingState.JOINED);
+      const rejectSpy = vi
+        .spyOn(call, 'reject')
+        .mockImplementation(async () => {
+          console.log('TEST: reject() called');
+        });
+
+      await call.leave({ reject: false });
+
+      expect(rejectSpy).not.toHaveBeenCalled();
+    });
+
+    it('should call reject when leaving while ringing and reject is true', async () => {
+      const call = fakeCall();
+      call.state.setCallingState(CallingState.RINGING);
+      const rejectSpy = vi
+        .spyOn(call, 'reject')
+        .mockImplementation(async () => {
+          console.log('TEST: reject() called');
+        });
+
+      await call.leave({ reject: true });
+
+      expect(rejectSpy).toHaveBeenCalled();
     });
   });
 });

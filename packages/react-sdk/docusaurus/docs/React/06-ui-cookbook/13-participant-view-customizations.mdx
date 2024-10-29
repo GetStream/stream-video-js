@@ -126,6 +126,16 @@ const App = ({ client, callId }) => {
 };
 ```
 
+### Non-mirrored video
+
+By default, local participant video (video feed from the user's own camera) is mirrored, since people are generally more accustomed to seeing themselves that way. It's possible to disable this behavior using the `mirrorLocalParticipantVideo` prop, which is supported by all built-in layout components:
+
+```tsx
+<SpeakerLayout mirrorLocalParticipantVideo={false} />
+// or
+<PaginatedGridLayout mirrorLocalParticipantVideo={false} />
+```
+
 ## Standalone ParticipantView customization (in custom call layouts)
 
 The `ParticipantViewUI` property accepts three possible values:

@@ -1,8 +1,4 @@
-import notifee, {
-  EventType,
-  Event,
-  AndroidCategory,
-} from '@notifee/react-native';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import {
   Call,
   RxUtils,
@@ -17,7 +13,8 @@ import type {
 import {
   getFirebaseMessagingLib,
   getExpoNotificationsLib,
-  FirebaseMessagingTypes,
+  getNotifeeLibThrowIfNotInstalledForPush,
+  NotifeeLib,
 } from './libs';
 import {
   pushAcceptedIncomingCallCId$,
@@ -42,6 +39,14 @@ const DECLINE_CALL_ACTION_ID = 'decline';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
+type onBackgroundEventFunctionParams = Parameters<
+  NotifeeLib['default']['onBackgroundEvent']
+>[0];
+
+type Event = Parameters<onBackgroundEventFunctionParams>[0];
+
+let lastFirebaseToken = { token: '', userId: '' };
+
 /** Send token to stream, create notification channel,  */
 export async function initAndroidPushToken(
   client: StreamVideoClient,
@@ -52,7 +57,16 @@ export async function initAndroidPushToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
+    const userId = client.streamClient._user?.id ?? '';
+    if (
+      lastFirebaseToken.token === token &&
+      lastFirebaseToken.userId === userId
+    ) {
+      return;
+    }
+    lastFirebaseToken = { token, userId };
     setPushLogoutCallback(async () => {
+      lastFirebaseToken = { token: '', userId: '' };
       try {
         await client.removeDevice(token);
       } catch (err) {
@@ -132,6 +146,9 @@ export const firebaseMessagingOnMessageHandler = async (
       canAddPushWSSubscriptionsRef.current &&
       AppState.currentState !== 'active';
     const asForegroundService = canListenToWS();
+
+    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+    const notifee = notifeeLib.default;
 
     if (asForegroundService) {
       // Listen to call events from WS through fg service
@@ -216,13 +233,18 @@ export const firebaseMessagingOnMessageHandler = async (
             },
           },
         ],
-        category: AndroidCategory.CALL,
+        category: notifeeLib.AndroidCategory.CALL,
         fullScreenAction: {
           id: 'stream_ringing_incoming_call',
         },
         timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
       },
     });
+
+    if (asForegroundService) {
+      // no need to check if call has be closed as that will be handled by the fg service
+      return;
+    }
 
     // check if call needs to be closed if accept/decline event was done
     // before the notification was shown
@@ -233,14 +255,11 @@ export const firebaseMessagingOnMessageHandler = async (
     const callFromPush = await client.onRingingCall(call_cid);
 
     if (shouldCallBeClosed(callFromPush)) {
-      if (asForegroundService) {
-        notifee.stopForegroundService();
-      } else {
-        notifee.cancelDisplayedNotification(call_cid);
-      }
-      return;
+      notifee.cancelDisplayedNotification(call_cid);
     }
   } else {
+    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+    const notifee = notifeeLib.default;
     // the other types are call.live_started and call.notification
     const callChannel = pushConfig.android.callChannel;
     const callNotificationTextGetters =
@@ -309,18 +328,24 @@ export const onAndroidNotifeeEvent = async ({
       pushAcceptedIncomingCallCId$.observed &&
       pushRejectedIncomingCallCId$.observed;
 
+    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+    const notifee = notifeeLib.default;
     // Check if we need to decline the call
     const didPressDecline =
-      type === EventType.ACTION_PRESS &&
+      type === notifeeLib.EventType.ACTION_PRESS &&
       pressAction?.id === DECLINE_CALL_ACTION_ID;
-    const didDismiss = type === EventType.DISMISSED;
+    const didDismiss = type === notifeeLib.EventType.DISMISSED;
     const mustDecline = didPressDecline || didDismiss;
     // Check if we need to accept the call
     const mustAccept =
-      type === EventType.ACTION_PRESS &&
+      type === notifeeLib.EventType.ACTION_PRESS &&
       pressAction?.id === ACCEPT_CALL_ACTION_ID;
 
-    if (mustAccept || mustDecline || type === EventType.ACTION_PRESS) {
+    if (
+      mustAccept ||
+      mustDecline ||
+      type === notifeeLib.EventType.ACTION_PRESS
+    ) {
       clearPushWSEventSubscriptions();
       notifee.stopForegroundService();
     }
@@ -336,18 +361,17 @@ export const onAndroidNotifeeEvent = async ({
       }
       await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
     } else {
-      if (type === EventType.PRESS) {
+      if (type === notifeeLib.EventType.PRESS) {
         pushTappedIncomingCallCId$.next(call_cid);
         // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
-      } else if (isBackground && type === EventType.DELIVERED) {
+      } else if (isBackground && type === notifeeLib.EventType.DELIVERED) {
         pushAndroidBackgroundDeliveredIncomingCallCId$.next(call_cid);
         // background delivered state will be handled by the app with rxjs observers as processing needs to happen only when app is opened
       }
     }
   } else {
-    if (type === EventType.PRESS) {
-      // NOTE: the firebase handler sets pushNonRingingCallData$ so its not necessary to set here
-      // here we handle only the press listener, so we call the callback
+    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+    if (type === notifeeLib.EventType.PRESS) {
       pushConfig.onTapNonRingingCallNotification?.(
         call_cid,
         data.type as NonRingingPushEvent

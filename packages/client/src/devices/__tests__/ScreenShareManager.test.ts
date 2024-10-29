@@ -115,20 +115,6 @@ describe('ScreenShareManager', () => {
     await manager.enable();
     expect(call.publishScreenShareStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
-      { screenShareSettings: undefined },
-    );
-  });
-
-  it('publishes screen share stream with settings', async () => {
-    const call = manager['call'];
-    call.state.setCallingState(CallingState.JOINED);
-
-    manager.setSettings({ maxFramerate: 15, maxBitrate: 1000 });
-
-    await manager.enable();
-    expect(call.publishScreenShareStream).toHaveBeenCalledWith(
-      manager.state.mediaStream,
-      { screenShareSettings: { maxFramerate: 15, maxBitrate: 1000 } },
     );
   });
 

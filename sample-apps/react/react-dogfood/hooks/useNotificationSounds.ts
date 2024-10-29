@@ -11,19 +11,18 @@ export function useNotificationSounds() {
   );
 
   useEffect(() => {
-    if (!call) {
-      return;
-    }
-
+    if (!call) return;
     const unlistenJoin = call.on('call.session_participant_joined', (event) => {
-      if (!isSelf(event.participant.user.id)) {
-        beep('/beeps/joined.mp3');
+      const { participantCount } = call.state;
+      if (!isSelf(event.participant.user.id) && participantCount < 5) {
+        beep('/beeps/joined.mp3').catch((e) => console.error(e));
       }
     });
 
     const unlistenLeft = call.on('call.session_participant_left', (event) => {
-      if (!isSelf(event.participant.user.id)) {
-        beep('/beeps/left.mp3');
+      const { participantCount } = call.state;
+      if (!isSelf(event.participant.user.id) && participantCount < 5) {
+        beep('/beeps/left.mp3').catch((e) => console.error(e));
       }
     });
 

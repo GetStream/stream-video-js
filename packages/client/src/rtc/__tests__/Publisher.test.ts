@@ -4,10 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
-import { Dispatcher } from '../Dispatcher';
+import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
-import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
+import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { StreamClient } from '../../coordinator/connection/client';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -16,7 +17,8 @@ vi.mock('../../StreamSfuClient', () => {
   };
 });
 
-vi.mock('../codecs', () => {
+vi.mock('../codecs', async () => {
+  const codecs = await vi.importActual('../codecs');
   return {
     getPreferredCodecs: vi.fn((): RTCRtpCodecCapability[] => [
       {
@@ -26,6 +28,8 @@ vi.mock('../codecs', () => {
         sdpFmtpLine: 'profile-level-id=42e01f',
       },
     ]),
+    getOptimalVideoCodec: codecs.getOptimalVideoCodec,
+    isSvcCodec: codecs.isSvcCodec,
   };
 });
 
@@ -40,13 +44,22 @@ describe('Publisher', () => {
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
-      sfuServer: {
-        url: 'https://getstream.io/',
-        ws_endpoint: 'https://getstream.io/ws',
-        edge_name: 'sfu-1',
+      sessionId: 'session-id-test',
+      streamClient: new StreamClient('abc'),
+      credentials: {
+        server: {
+          url: 'https://getstream.io/',
+          ws_endpoint: 'https://getstream.io/ws',
+          edge_name: 'sfu-1',
+        },
+        token: 'token',
+        ice_servers: [],
       },
-      token: 'token',
+      logTag: 'test',
     });
+
+    // @ts-expect-error readonly field
+    sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
     // @ts-ignore
     sfuClient['sessionId'] = sessionId;
@@ -58,7 +71,7 @@ describe('Publisher', () => {
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
-      iceRestartDelay: 100,
+      logTag: 'test',
     });
   });
 
@@ -126,11 +139,7 @@ describe('Publisher', () => {
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(newTrack);
 
     expect(track.stop).toHaveBeenCalled();
-    expect(track.removeEventListener).toHaveBeenCalledWith(
-      'ended',
-      expect.any(Function),
-    );
-    expect(newTrack.addEventListener).toHaveBeenCalledWith(
+    expect(newTrack.addEventListener).not.toHaveBeenCalledWith(
       'ended',
       expect.any(Function),
     );
@@ -144,7 +153,7 @@ describe('Publisher', () => {
     );
   });
 
-  it('can publish and un-pubish with just enabling and disabling tracks', async () => {
+  it('can publish and un-publish with just enabling and disabling tracks', async () => {
     const mediaStream = new MediaStream();
     const track = new MediaStreamTrack();
     mediaStream.addTrack(track);
@@ -210,74 +219,6 @@ describe('Publisher', () => {
     expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 
-  describe('Publisher migration', () => {
-    it('should update the sfuClient and peer connection configuration', async () => {
-      const newSfuClient = new StreamSfuClient({
-        dispatcher: new Dispatcher(),
-        sfuServer: {
-          url: 'https://getstream.io/',
-          ws_endpoint: 'https://getstream.io/ws',
-          edge_name: 'sfu-1',
-        },
-        token: 'token',
-      });
-
-      const newPeerConnectionConfig = {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      };
-
-      vi.spyOn(publisher['pc'], 'setConfiguration');
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
-      // @ts-ignore
-      vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
-      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
-
-      await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
-
-      expect(publisher['sfuClient']).toEqual(newSfuClient);
-      expect(publisher['pc'].setConfiguration).toHaveBeenCalledWith(
-        newPeerConnectionConfig,
-      );
-      expect(publisher['negotiate']).toHaveBeenCalledWith({ iceRestart: true });
-    });
-
-    it('should initiate ICE Restart when there are published tracks', async () => {
-      vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([]);
-      // @ts-ignore
-      sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
-      sfuClient.setPublisher = vi.fn().mockResolvedValue({
-        response: {
-          sessionId: 'new-session-id',
-          sdp: 'new-sdp',
-          iceRestart: false,
-        },
-      });
-
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
-      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
-      vi.spyOn(publisher, 'getCurrentTrackInfos').mockReturnValue([
-        // @ts-expect-error
-        { layers: [], trackType: TrackType.AUDIO, mid: '0' },
-      ]);
-
-      await publisher.migrateTo(sfuClient, {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      });
-
-      expect(publisher['pc'].createOffer).toHaveBeenCalledWith({
-        iceRestart: true,
-      });
-      expect(publisher['pc'].setLocalDescription).toHaveBeenCalled();
-      expect(publisher['pc'].setRemoteDescription).toHaveBeenCalledWith({
-        type: 'answer',
-        sdp: 'new-sdp',
-      });
-      expect(sfuClient.setPublisher).toHaveBeenCalled();
-    });
-  });
-
   describe('Publisher ICE Restart', () => {
     it('should perform ICE restart when iceRestart event is received', () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
@@ -289,7 +230,7 @@ describe('Publisher', () => {
               peerType: PeerType.PUBLISHER_UNSPECIFIED,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
       expect(publisher.restartIce).toHaveBeenCalled();
     });
@@ -304,7 +245,7 @@ describe('Publisher', () => {
               peerType: PeerType.SUBSCRIBER,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
       expect(publisher.restartIce).not.toHaveBeenCalled();
     });
@@ -329,27 +270,200 @@ describe('Publisher', () => {
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
-
       // @ts-ignore
       publisher['pc'].iceConnectionState = 'disconnected';
       publisher['onIceConnectionStateChange']();
-      vi.runAllTimers();
       expect(publisher.restartIce).toHaveBeenCalled();
     });
+  });
 
-    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
-      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
+  describe('changePublishQuality', () => {
+    it('can dynamically activate/deactivate simulcast layers', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          codecs: [
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP8' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP9' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/H264' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/AV1' },
+          ],
+          encodings: [
+            { rid: 'q', active: true },
+            { rid: 'h', active: true },
+            { rid: 'f', active: true },
+          ],
+        });
 
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'disconnected';
-      publisher['onIceConnectionStateChange']();
-      // @ts-ignore
-      publisher['pc'].iceConnectionState = 'connected';
+      // inject the transceiver
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
 
-      vi.runAllTimers();
-      expect(publisher.restartIce).not.toHaveBeenCalled();
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 100,
+          scaleResolutionDownBy: 4,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+        {
+          name: 'h',
+          active: false,
+          maxBitrate: 150,
+          scaleResolutionDownBy: 2,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+        {
+          name: 'f',
+          active: true,
+          maxBitrate: 200,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
+          rid: 'q',
+          active: true,
+          maxBitrate: 100,
+          scaleResolutionDownBy: 4,
+          maxFramerate: 30,
+        },
+        {
+          rid: 'h',
+          active: false,
+          maxBitrate: 150,
+          scaleResolutionDownBy: 2,
+          maxFramerate: 30,
+        },
+        {
+          rid: 'f',
+          active: true,
+          maxBitrate: 200,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+        },
+      ]);
+    });
+
+    it('can dynamically update scalability mode in SVC', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          codecs: [
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP9' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/AV1' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP8' },
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/H264' },
+          ],
+          encodings: [
+            {
+              rid: 'q',
+              active: true,
+              maxBitrate: 100,
+              // @ts-expect-error not in the standard lib yet
+              scalabilityMode: 'L3T3_KEY',
+            },
+          ],
+        });
+
+      // inject the transceiver
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
+
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
+          rid: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+    });
+
+    it('supports empty rid in SVC', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          codecs: [
+            // @ts-expect-error incomplete data
+            { mimeType: 'video/VP9' },
+          ],
+          encodings: [
+            {
+              rid: undefined, // empty rid
+              active: true,
+              // @ts-expect-error not in the standard lib yet
+              scalabilityMode: 'L3T3_KEY',
+            },
+          ],
+        });
+
+      // inject the transceiver
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
+
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
+          active: true,
+          maxBitrate: 50,
+          scaleResolutionDownBy: 1,
+          maxFramerate: 30,
+          scalabilityMode: 'L1T3',
+        },
+      ]);
     });
   });
 });

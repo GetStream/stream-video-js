@@ -6,6 +6,7 @@ import {
   defaultSortPreset,
   LoadingIndicator,
   noopComparator,
+  PreferredCodec,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
@@ -41,19 +42,41 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   >('lobby');
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
-  const activeCall = useCall();
+  const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
+
+  const videoCodecOverride = router.query['video_codec'] as
+    | PreferredCodec
+    | undefined;
+  const bitrateOverride = router.query['bitrate'] as string | undefined;
+  const bitrateFactorOverride = router.query['bitrate_factor'] as
+    | string
+    | undefined;
+  const scalabilityMode = router.query['scalability_mode'] as
+    | string
+    | undefined;
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
       if (!fastJoin) setShow('loading');
+      if (!call) throw new Error('No active call found');
       try {
-        const preferredCodec = router.query['video_codec'];
-        if (typeof preferredCodec === 'string') {
-          activeCall?.camera.setPreferredCodec(preferredCodec);
-        }
-        await activeCall?.join({ create: true });
+        const preferredBitrate = bitrateOverride
+          ? parseInt(bitrateOverride, 10)
+          : undefined;
+
+        call.updatePublishOptions({
+          preferredCodec: 'vp9',
+          forceCodec: videoCodecOverride,
+          scalabilityMode,
+          preferredBitrate,
+          bitrateDownscaleFactor: bitrateFactorOverride
+            ? parseInt(bitrateFactorOverride, 10)
+            : 2, // default to 2
+        });
+
+        await call.join({ create: true });
         setShow('active-call');
       } catch (e) {
         console.error(e);
@@ -61,7 +84,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [activeCall, router],
+    [
+      bitrateFactorOverride,
+      bitrateOverride,
+      call,
+      scalabilityMode,
+      videoCodecOverride,
+    ],
   );
 
   const onLeave = useCallback(
@@ -85,42 +114,39 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   }, [callState, onLeave]);
 
   useEffect(() => {
-    if (!activeCall) return;
-    return activeCall.on('call.ended', async (e) => {
-      if (!e.user || e.user.id === activeCall.currentUserId) return;
+    if (!call) return;
+    return call.on('call.ended', async (e) => {
+      if (!e.user || e.user.id === call.currentUserId) return;
       alert(`Call ended for everyone by: ${e.user.name || e.user.id}`);
-      if (activeCall.state.callingState !== CallingState.LEFT) {
-        await activeCall.leave();
+      if (call.state.callingState !== CallingState.LEFT) {
+        await call.leave();
       }
       setShow('lobby');
     });
-  }, [activeCall, router]);
+  }, [call, router]);
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      if (
-        activeCall &&
-        [CallingState.JOINING, CallingState.JOINED].includes(callState)
-      ) {
-        await activeCall.leave();
+      if (call) {
+        await call.leave();
       }
     };
     router.events.on('routeChangeStart', handlePageLeave);
     return () => {
       router.events.off('routeChangeStart', handlePageLeave);
     };
-  }, [activeCall, callState, router.events]);
+  }, [call, callState, router.events]);
 
   const isSortingDisabled = router.query['enableSorting'] === 'false';
   useEffect(() => {
-    if (!activeCall) return;
+    if (!call) return;
     // enable sorting via query param feature flag is provided
     if (isSortingDisabled) {
-      activeCall.setSortParticipantsBy(noopComparator());
+      call.setSortParticipantsBy(noopComparator());
     } else {
-      activeCall.setSortParticipantsBy(defaultSortPreset);
+      call.setSortParticipantsBy(defaultSortPreset);
     }
-  }, [activeCall, isSortingDisabled]);
+  }, [call, isSortingDisabled]);
 
   useKeyboardShortcuts();
   useWakeLock();
@@ -147,12 +173,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         <DefaultAppHeader />
         <div className="rd__leave">
           <div className="rd__leave-content">
-            <Feedback inMeeting={false} callId={activeCall?.id} />
+            <Feedback inMeeting={false} callId={call?.id} />
           </div>
         </div>
       </>
     );
-  } else if (!activeCall) {
+  } else if (!call) {
     ComponentToRender = (
       <ErrorPage
         heading={'Lost active call connection'}
@@ -163,7 +189,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } else {
     ComponentToRender = (
       <ActiveCall
-        activeCall={activeCall}
+        activeCall={call}
         chatClient={chatClient}
         onLeave={onLeave}
         onJoin={onJoin}

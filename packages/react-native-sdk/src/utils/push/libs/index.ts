@@ -4,6 +4,7 @@ export * from './firebaseMessaging';
 export * from './iosPushNotification';
 export * from './voipPushNotification';
 export * from './callkeep';
+export * from './notifee';
 
 /*
 NOTE: must keep each libs in different files

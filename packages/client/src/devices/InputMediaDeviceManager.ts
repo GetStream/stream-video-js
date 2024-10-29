@@ -64,6 +64,13 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
+   * Returns `true` when this device is in enabled state.
+   */
+  get enabled() {
+    return this.state.status === 'enabled';
+  }
+
+  /**
    * Starts stream.
    */
   async enable() {
@@ -199,11 +206,17 @@ export abstract class InputMediaDeviceManager<
         'This method is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for reference.',
       );
     }
-    if (deviceId === this.state.selectedDevice) {
+    const prevDeviceId = this.state.selectedDevice;
+    if (deviceId === prevDeviceId) {
       return;
     }
-    this.state.setDevice(deviceId);
-    await this.applySettingsToStream();
+    try {
+      this.state.setDevice(deviceId);
+      await this.applySettingsToStream();
+    } catch (error) {
+      this.state.setDevice(prevDeviceId);
+      throw error;
+    }
   }
 
   /**
@@ -216,10 +229,12 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    if (this.state.status === 'enabled') {
-      await this.muteStream();
-      await this.unmuteStream();
-    }
+    await withCancellation(this.statusChangeConcurrencyTag, async () => {
+      if (this.enabled) {
+        await this.muteStream();
+        await this.unmuteStream();
+      }
+    });
   }
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
@@ -299,7 +314,9 @@ export abstract class InputMediaDeviceManager<
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
         ...defaultConstraints,
-        deviceId: this.state.selectedDevice,
+        deviceId: this.state.selectedDevice
+          ? { exact: this.state.selectedDevice }
+          : undefined,
       };
 
       /**
@@ -374,7 +391,7 @@ export abstract class InputMediaDeviceManager<
             .then(chainWith(parent), (error) => {
               this.logger(
                 'warn',
-                'Fitler failed to start and will be ignored',
+                'Filter failed to start and will be ignored',
                 error,
               );
               return parent;
@@ -387,17 +404,21 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream, await rootStream);
+      const handleTrackEnded = async () => {
+        await this.statusChangeSettled();
+        if (this.enabled) {
+          this.isTrackStoppedDueToTrackEnd = true;
+          setTimeout(() => {
+            this.isTrackStoppedDueToTrackEnd = false;
+          }, 2000);
+          await this.disable();
+        }
+      };
       this.getTracks().forEach((track) => {
-        track.addEventListener('ended', async () => {
-          await this.statusChangeSettled();
-          if (this.state.status === 'enabled') {
-            this.isTrackStoppedDueToTrackEnd = true;
-            setTimeout(() => {
-              this.isTrackStoppedDueToTrackEnd = false;
-            }, 2000);
-            await this.disable();
-          }
-        });
+        track.addEventListener('ended', handleTrackEnded);
+        this.subscriptions.push(() =>
+          track.removeEventListener('ended', handleTrackEnded),
+        );
       });
     }
   }

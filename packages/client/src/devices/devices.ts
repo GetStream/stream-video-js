@@ -16,7 +16,7 @@ import { lazy } from '../helpers/lazy';
  * Returns an Observable that emits the list of available devices
  * that meet the given constraints.
  *
- * @param constraints the constraints to use when requesting the devices.
+ * @param permission a BrowserPermission instance.
  * @param kind the kind of devices to enumerate.
  */
 const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
@@ -167,7 +167,7 @@ const getStream = async (constraints: MediaStreamConstraints) => {
  */
 export const getAudioStream = async (
   trackConstraints?: MediaTrackConstraints,
-) => {
+): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     audio: {
       ...audioDeviceConstraints.audio,
@@ -180,13 +180,23 @@ export const getAudioStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
-    return getStream(constraints);
-  } catch (e) {
+    return await getStream(constraints);
+  } catch (error) {
+    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
+      const { deviceId, ...relaxedContraints } = trackConstraints;
+      getLogger(['devices'])(
+        'warn',
+        'Failed to get audio stream, will try again with relaxed contraints',
+        { error, constraints, relaxedContraints },
+      );
+      return getAudioStream(relaxedContraints);
+    }
+
     getLogger(['devices'])('error', 'Failed to get audio stream', {
-      error: e,
-      constraints: constraints,
+      error,
+      constraints,
     });
-    throw e;
+    throw error;
   }
 };
 
@@ -200,7 +210,7 @@ export const getAudioStream = async (
  */
 export const getVideoStream = async (
   trackConstraints?: MediaTrackConstraints,
-) => {
+): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     video: {
       ...videoDeviceConstraints.video,
@@ -212,13 +222,23 @@ export const getVideoStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
-    return getStream(constraints);
-  } catch (e) {
+    return await getStream(constraints);
+  } catch (error) {
+    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
+      const { deviceId, ...relaxedContraints } = trackConstraints;
+      getLogger(['devices'])(
+        'warn',
+        'Failed to get video stream, will try again with relaxed contraints',
+        { error, constraints, relaxedContraints },
+      );
+      return getVideoStream(relaxedContraints);
+    }
+
     getLogger(['devices'])('error', 'Failed to get video stream', {
-      error: e,
-      constraints: constraints,
+      error,
+      constraints,
     });
-    throw e;
+    throw error;
   }
 };
 
@@ -276,7 +296,6 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
   if (!stream.active) return;
   stream.getTracks().forEach((track) => {
     track.stop();
-    stream.removeTrack(track);
   });
   // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
   if (typeof stream.release === 'function') {

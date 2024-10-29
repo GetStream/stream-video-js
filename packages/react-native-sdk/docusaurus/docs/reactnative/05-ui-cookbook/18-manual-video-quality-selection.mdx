@@ -1,0 +1,325 @@
+---
+id: manual-video-quality-selection
+title: Manual Video Quality Selection
+---
+
+By default, our SDK chooses the incoming video quality that best matches the size of a video element for a given participant. It makes less sense to waste bandwidth receiving Full HD video when it's going to be displayed in a 320 by 240 pixel rectangle.
+
+However, it's still possible to override this behavior and manually request higher resolution video for better quality, or lower resolution to save bandwidth. It's also possible to disable incoming video altogether for an audio-only experience.
+
+:::noteNOTE
+Actual incoming video quality depends on a number of factors, such as the quality of the source video, and network conditions. Manual video quality selection allows you to specify your preference, while the actual resolution is automatically selected from the available resolutions to match that preference as closely as possible.
+:::
+
+In this article we'll build a UI control for manual video quality selection.
+
+## Prerequisites
+
+If you haven't already bootstrapped a video calling application (our [Video Calling Tutorial](https://getstream.io/video/sdk/react-native/tutorial/video-calling/) is a great place to start!), here's a very simple application showing an active call that we'll use as a starting point:
+
+```jsx
+import React, {useEffect} from 'react';
+import {SafeAreaView, StyleSheet, Text} from 'react-native';
+import {
+  Call,
+  StreamCall,
+  CallContent,
+  CallingState,
+  StreamVideoClient,
+  StreamVideo,
+} from '@stream-io/video-react-native-sdk';
+
+const apiKey = 'REPLACE_WITH_API_KEY';
+const token = 'REPLACE_WITH_TOKEN';
+const userId = 'REPLACE_WITH_USER_ID';
+const callId = 'REPLACE_WITH_CALL_ID';
+
+const user = {
+  id: userId,
+  name: 'John Malkovich',
+  image: 'https://robohash.org/John',
+};
+
+const client = new StreamVideoClient({apiKey, user, token});
+
+const RootContainer = (props: React.PropsWithChildren<{}>) => {
+  return <SafeAreaView style={styles.container}>{props.children}</SafeAreaView>;
+};
+
+const App = () => {
+  const [call, setCall] = React.useState<Call>();
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    const _call = client.call('default', callId);
+    _call.join({create: true}).then(() => setCall(_call));
+
+    return () => {
+      _call.leave().catch(() => console.error('Failed to leave the call'));
+    };
+  }, []);
+
+  if (!call) {
+    return (
+      <RootContainer>
+        <Text style={styles.text}>Joining call...</Text>
+      </RootContainer>
+    );
+  }
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <RootContainer>
+          <CallContent />
+        </RootContainer>
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'white',
+  },
+  text: {
+    color: 'black',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+});
+
+export default App;
+```
+
+## Getting and Setting Incoming Video Settings
+
+To get the current incoming video quality settings, we will use the `useIncomingVideoQualitySettings` call state hook. Most importantly, it returns the following two values:
+
+- `enabled` - a boolean flag indicating whether incoming video is enabled.
+- `preferredResolution` - if video is enabled, an object of the shape `{ width: number; height: number }` containing the current preferred resolution of the incoming video.
+
+To modify the current setting, the following two methods are available on the Call object:
+
+- `setIncomingVideoEnabled` - enables or disables incoming video, clearing any preferred resolution.
+- `setPreferredIncomingVideoResolution` - sets the preference for the incoming video resolution, enabling video if it was previously disabled.
+
+To combine these two settings into a single control, we'll need to do some mapping:
+
+```typescript
+import type { Call } from '@stream-io/video-react-native-sdk';
+
+const incomingVideoSettings = ['auto', '1080p', '720p', '480p', 'off'] as const;
+type IncomingVideoSetting = (typeof incomingVideoSettings)[number];
+type VideoDimension = { width: number; height: number };
+
+function applyIncomingVideoSetting(call: Call, setting: IncomingVideoSetting) {
+  if (setting === 'auto') {
+    call.setIncomingVideoEnabled(true);
+  } else if (setting === 'off') {
+    call.setIncomingVideoEnabled(false);
+  } else {
+    call.setPreferredIncomingVideoResolution(
+      incomingVideoSettingToResolution(setting),
+    );
+  }
+}
+
+function incomingVideoSettingToResolution(
+  setting: Exclude<IncomingVideoSetting, 'auto' | 'off'>,
+): VideoDimension {
+  switch (setting) {
+    case '1080p':
+      return { width: 1920, height: 1080 };
+    case '720p':
+      return { width: 1280, height: 720 };
+    case '480p':
+      return { width: 640, height: 480 };
+  }
+}
+
+function incomingVideoResolutionToSetting(
+  resolution: VideoDimension,
+): IncomingVideoSetting {
+  switch (true) {
+    case resolution.height >= 1080:
+      return '1080p';
+    case resolution.height >= 720:
+      return '720p';
+    case resolution.height >= 480:
+      return '480p';
+    default:
+      return 'auto';
+  }
+}
+```
+
+It's also possible to set a preferred resolution per call participant. There's an optional second parameter to the `setPreferredIncomingVideoResolution`, accepting an array of participant session ids:
+
+```typescript
+const { useParticipants } = useCallStateHooks();
+const participants = useParticipants();
+const [dominantParticipant] = participants;
+
+call.setPreferredIncomingVideoResolution(
+  incomingVideoSettingToResolution('1080p'),
+  [dominantParticipant.sessionId],
+);
+```
+
+However, in this cookbook we assume that the goal is to apply the preferred resolution is applied to all call participants.
+
+## Building Incoming Video Quality Selector Button
+
+Now we're ready to build a UI control to display and change the incoming video quality. For this we use the default [Modal](https://reactnative.dev/docs/modal) component from React Native.
+
+```tsx title="IncomingVideoQualitySelectorButton.tsx"
+import {
+  useCall,
+  useCallStateHooks,
+  type Call,
+} from '@stream-io/video-react-native-sdk';
+import React, {useState} from 'react';
+import {Button, Modal, Pressable, StyleSheet, Text, View} from 'react-native';
+
+/* This is the individual item inside the model */
+const SettingSelectionItem = ({
+  value,
+  setValue,
+  selectedValue,
+  closeModal,
+}: {
+  value: IncomingVideoSetting;
+  setValue: (setting: IncomingVideoSetting) => void;
+  selectedValue: IncomingVideoSetting;
+  closeModal: () => void;
+}) => {
+  return (
+    <Pressable
+      onPress={() => {
+        setValue(value);
+        closeModal();
+      }}
+      style={styles.modalButton}>
+      <Text
+        style={[
+          styles.modalText,
+          selectedValue === value ? styles.selectedModalText : null,
+        ]}>
+        {value}
+      </Text>
+    </Pressable>
+  );
+};
+
+/* This button that opens the modal along with the modal component */
+export const IncomingVideoQualitySelectorButton = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const closeModal = () => setModalVisible(false);
+
+  const call = useCall();
+  const {useIncomingVideoSettings} = useCallStateHooks();
+  const {enabled, preferredResolution} = useIncomingVideoSettings();
+  let currentSetting: IncomingVideoSetting;
+
+  if (!preferredResolution) {
+    currentSetting = enabled ? 'auto' : 'off';
+  } else {
+    currentSetting = incomingVideoResolutionToSetting(preferredResolution);
+  }
+
+  const handleChange = (setting: IncomingVideoSetting) => {
+    if (call) {
+      applyIncomingVideoSetting(call, setting);
+    }
+  };
+
+  return (
+    <>
+      <Modal
+        animationType="fade"
+        transparent
+        visible={modalVisible}
+        onRequestClose={closeModal}>
+        <Pressable
+          style={styles.centeredView}
+          onPress={() => setModalVisible(false)}>
+          <View style={styles.modalView} onStartShouldSetResponder={() => true}>
+            {incomingVideoSettings.map(setting => (
+              <SettingSelectionItem
+                key={setting}
+                value={setting}
+                selectedValue={currentSetting}
+                setValue={handleChange}
+                closeModal={closeModal}
+              />
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
+      {/* This is the button to open/close the modal */}
+      <Button
+        title="Change Incoming Video Quality"
+        onPress={() => setModalVisible(true)}
+      />
+    </>
+  );
+};
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: '#272A30',
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    minWidth: '70%',
+  },
+  modalButton: {
+    padding: 16,
+  },
+  modalText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  selectedModalText: {
+    color: 'blue',
+  },
+});
+```
+
+![Zoom in on the video quality selector modal](../assets/05-ui-cookbook/18-manual-video-quality-selection/video-quality-selector-modal.png)
+
+And now by adding this component inside of the `StreamCall`, we have a video quality selector button that opens the modal in the call UI:
+
+```jsx
+<StreamVideo client={client}>
+  <StreamCall call={call}>
+    // highlight-next-line
+    <IncomingVideoQualitySelectorButton />
+    <SpeakerLayout />
+  </StreamCall>
+</StreamVideo>
+```
+
+![Video quality selector button component in use](../assets/05-ui-cookbook/18-manual-video-quality-selection/video-quality-selector-screen.png)

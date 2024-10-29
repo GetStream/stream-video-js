@@ -14,6 +14,7 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -53,11 +54,14 @@ export const VideoRenderer = ({
     theme: { videoRenderer },
   } = useTheme();
   const call = useCall();
-  const { useCallCallingState, useCameraState } = useCallStateHooks();
+  const { useCallCallingState, useCameraState, useIncomingVideoSettings } =
+    useCallStateHooks();
+  const { isParticipantVideoEnabled } = useIncomingVideoSettings();
   const callingState = useCallCallingState();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { direction } = useCameraState();
+  const videoDimensions = useTrackDimensions(participant, trackType);
   const {
     isLocalParticipant,
     sessionId,
@@ -77,7 +81,10 @@ export const VideoRenderer = ({
     : videoStream) as unknown as MediaStream | undefined;
 
   const canShowVideo =
-    !!videoStreamToRender && isVisible && isPublishingVideoTrack;
+    !!videoStreamToRender &&
+    isVisible &&
+    isPublishingVideoTrack &&
+    isParticipantVideoEnabled(participant.sessionId);
 
   const mirror =
     isLocalParticipant && !isScreenSharing && direction === 'front';
@@ -183,10 +190,10 @@ export const VideoRenderer = ({
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
     const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
-
-    call.updateSubscriptionsPartial(trackType, {
+    call.state.updateParticipantTracks(trackType, {
       [sessionId]: { dimension },
     });
+    call.dynascaleManager.applyTrackSubscriptions();
 
     if (dimension) {
       subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
@@ -235,11 +242,12 @@ export const VideoRenderer = ({
     ) {
       return;
     }
-    call.updateSubscriptionsPartial(trackType, {
+    call.state.updateParticipantTracks(trackType, {
       [sessionId]: {
         dimension,
       },
     });
+    call.dynascaleManager.applyTrackSubscriptions();
     subscribedVideoLayoutRef.current = dimension;
     pendingVideoLayoutRef.current = undefined;
   };
@@ -254,7 +262,12 @@ export const VideoRenderer = ({
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
-          objectFit={objectFit ?? (isScreenSharing ? 'contain' : 'cover')}
+          objectFit={
+            objectFit ??
+            (videoDimensions.width > videoDimensions.height
+              ? 'contain'
+              : 'cover')
+          }
           zOrder={videoZOrder}
         />
       ) : (

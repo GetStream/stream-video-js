@@ -146,8 +146,44 @@ export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
 
+/**
+ * A preferred codec to use when publishing a video track.
+ * @internal
+ */
+export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1';
+
+/**
+ * A collection of track publication options.
+ * @internal
+ */
 export type PublishOptions = {
-  preferredCodec?: string | null;
+  /**
+   * The preferred codec to use when publishing the video stream.
+   */
+  preferredCodec?: PreferredCodec;
+  /**
+   * Force the codec to use when publishing the video stream.
+   * This will override the preferred codec and the internal codec selection logic.
+   * Use with caution.
+   */
+  forceCodec?: PreferredCodec;
+  /**
+   * The preferred scalability to use when publishing the video stream.
+   * Applicable only for SVC codecs.
+   */
+  scalabilityMode?: string;
+  /**
+   * The preferred bitrate to use when publishing the video stream.
+   */
+  preferredBitrate?: number;
+  /**
+   * The preferred downscale factor to use when publishing the video stream
+   * in simulcast mode (non-SVC).
+   */
+  bitrateDownscaleFactor?: number;
+  /**
+   * Screen share settings.
+   */
   screenShareSettings?: ScreenShareSettings;
 };
 

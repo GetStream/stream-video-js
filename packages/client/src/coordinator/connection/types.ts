@@ -39,16 +39,23 @@ export type APIErrorResponse = {
   more_info: string;
   StatusCode: number;
   details?: ErrorResponseDetails;
+  unrecoverable?: boolean;
 };
 
 export class ErrorFromResponse<T> extends Error {
   code?: number;
   response?: AxiosResponse<T>;
   status?: number;
+  unrecoverable?: boolean;
 }
 
 export type ConnectionChangedEvent = {
   type: 'connection.changed';
+  online: boolean;
+};
+
+export type NetworkChangedEvent = {
+  type: 'network.changed';
   online: boolean;
 };
 
@@ -63,6 +70,7 @@ export type ConnectionRecoveredEvent = {
 
 export type StreamVideoEvent = (
   | WSEvent
+  | NetworkChangedEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent
@@ -121,6 +129,10 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * The default timeout for requesting a location hint.
    */
   locationHintTimeout?: number;
+  /**
+   * The maximum number of attempts to request a location hint.
+   */
+  locationHintMaxAttempts?: number;
   /**
    * When true, user will be persisted on client. Otherwise if `connectUser` call fails, then you need to
    * call `connectUser` again to retry.

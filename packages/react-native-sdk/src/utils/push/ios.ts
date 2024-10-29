@@ -15,6 +15,8 @@ import { StreamPushPayload } from './utils';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
+let lastApnToken = { token: '', userId: '' };
+
 function processNonRingingNotificationStreamPayload(
   streamPayload: StreamPushPayload
 ) {
@@ -93,7 +95,13 @@ export async function initIosNonVoipToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
+    const userId = client.streamClient._user?.id ?? '';
+    if (lastApnToken.token === token && lastApnToken.userId === userId) {
+      return;
+    }
+    lastApnToken = { token, userId };
     setPushLogoutCallback(async () => {
+      lastApnToken = { token: '', userId: '' };
       try {
         await client.removeDevice(token);
       } catch (err) {

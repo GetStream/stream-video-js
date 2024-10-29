@@ -19,6 +19,7 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ```bash title=Terminal
 yarn add @react-native-firebase/app
 yarn add @react-native-firebase/messaging
+yarn add @notifee/react-native
 yarn add @react-native-community/push-notification-ios
 npx pod-install
 ```
@@ -26,6 +27,7 @@ npx pod-install
 So what did we install precisely?
 
 - `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `@notifee/react-native` - is used to customize and display push notifications.
 - `@react-native-community/push-notification-ios` for handling [Apple Push Notification service (APNs)](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns) notifications on iOS.
 
 ## Android-specific setup
@@ -295,7 +297,7 @@ export function setPushConfig() {
       // an example promise to fetch token from your server
       const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
       const user = { id: userId, name: userName };
-      return new StreamVideoClient({
+      return StreamVideoClient.getOrCreateInstance({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
         tokenProvider,

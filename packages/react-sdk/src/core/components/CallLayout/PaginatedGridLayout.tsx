@@ -20,12 +20,17 @@ type PaginatedGridLayoutGroupProps = {
    * The group of participants to render.
    */
   group: Array<StreamVideoParticipant>;
-} & Pick<ParticipantViewProps, 'VideoPlaceholder'> &
+} & Pick<
+  ParticipantViewProps,
+  'VideoPlaceholder' | 'PictureInPicturePlaceholder' | 'mirror'
+> &
   Required<Pick<ParticipantViewProps, 'ParticipantViewUI'>>;
 
 const PaginatedGridLayoutGroup = ({
   group,
+  mirror,
   VideoPlaceholder,
+  PictureInPicturePlaceholder,
   ParticipantViewUI,
 }: PaginatedGridLayoutGroupProps) => {
   return (
@@ -43,7 +48,9 @@ const PaginatedGridLayoutGroup = ({
           key={participant.sessionId}
           participant={participant}
           muteAudio
+          mirror={mirror}
           VideoPlaceholder={VideoPlaceholder}
+          PictureInPicturePlaceholder={PictureInPicturePlaceholder}
           ParticipantViewUI={ParticipantViewUI}
         />
       ))}
@@ -59,11 +66,19 @@ export type PaginatedGridLayoutProps = {
 
   /**
    * Whether to exclude the local participant from the grid.
+   * @default false
    */
   excludeLocalParticipant?: boolean;
 
   /**
+   * When set to `false` disables mirroring of the local partipant's video.
+   * @default true
+   */
+  mirrorLocalParticipantVideo?: boolean;
+
+  /**
    * Turns on/off the pagination arrows.
+   * @default true
    */
   pageArrowsVisible?: boolean;
 } & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
@@ -74,6 +89,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
       ? props.groupSize || GROUP_SIZE
       : GROUP_SIZE,
     excludeLocalParticipant = false,
+    mirrorLocalParticipantVideo = true,
     pageArrowsVisible = true,
     VideoPlaceholder,
     ParticipantViewUI = DefaultParticipantViewUI,
@@ -87,7 +103,6 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const participants = useParticipants();
-  // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
 
   usePaginatedLayoutSortPreset(call);
@@ -120,6 +135,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   }, [page, pageCount]);
 
   const selectedGroup = participantGroups[page];
+  const mirror = mirrorLocalParticipantVideo ? undefined : false;
 
   if (!call) return null;
 
@@ -141,7 +157,8 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
         )}
         {selectedGroup && (
           <PaginatedGridLayoutGroup
-            group={participantGroups[page]}
+            group={selectedGroup}
+            mirror={mirror}
             VideoPlaceholder={VideoPlaceholder}
             ParticipantViewUI={ParticipantViewUI}
           />

@@ -18,7 +18,13 @@ import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
 export type SpeakerLayoutProps = {
+  /**
+   * The UI to be used for the participant in the spotlight.
+   */
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
+  /**
+   * The UI to be used for the participants in the participants bar.
+   */
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
   /**
    * The position of the participants who are not in focus.
@@ -30,25 +36,48 @@ export type SpeakerLayoutProps = {
    * Providing string `dynamic` will calculate hard limit based on screen width/height.
    */
   participantsBarLimit?: 'dynamic' | number;
-} & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
+  /**
+   * When set to `true` will exclude the local participant from layout.
+   * @default false
+   */
+  excludeLocalParticipant?: boolean;
+  /**
+   * When set to `false` disables mirroring of the local participant's video.
+   * @default true
+   */
+  mirrorLocalParticipantVideo?: boolean;
+  /**
+   * Turns on/off the pagination arrows.
+   * @default true
+   */
+  pageArrowsVisible?: boolean;
+} & Pick<
+  ParticipantViewProps,
+  'VideoPlaceholder' | 'PictureInPicturePlaceholder'
+>;
 
 const DefaultParticipantViewUIBar = () => (
   <DefaultParticipantViewUI menuPlacement="top-end" />
 );
 
-const DefaultParticipantViewUISpotlight = () => <DefaultParticipantViewUI />;
-
 export const SpeakerLayout = ({
   ParticipantViewUIBar = DefaultParticipantViewUIBar,
-  ParticipantViewUISpotlight = DefaultParticipantViewUISpotlight,
+  ParticipantViewUISpotlight = DefaultParticipantViewUI,
   VideoPlaceholder,
+  PictureInPicturePlaceholder,
   participantsBarPosition = 'bottom',
   participantsBarLimit,
+  mirrorLocalParticipantVideo = true,
+  excludeLocalParticipant = false,
+  pageArrowsVisible = true,
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
-  const [participantInSpotlight, ...otherParticipants] = useParticipants();
+  const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
+  const [participantInSpotlight, ...otherParticipants] = excludeLocalParticipant
+    ? remoteParticipants
+    : allParticipants;
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =
     useState<HTMLDivElement | null>(null);
   const [participantsBarElement, setParticipantsBarElement] =
@@ -77,7 +106,7 @@ export const SpeakerLayout = ({
     return () => cleanup();
   }, [participantsBarWrapperElement, call]);
 
-  const isOneOnOneCall = otherParticipants.length === 1;
+  const isOneOnOneCall = allParticipants.length === 2;
   useSpeakerLayoutSortPreset(call, isOneOnOneCall);
 
   let participantsWithAppliedLimit = otherParticipants;
@@ -98,8 +127,13 @@ export const SpeakerLayout = ({
     );
   }
 
+  const mirror = mirrorLocalParticipantVideo ? undefined : false;
+
   if (!call) return null;
 
+  const renderParticipantsBar =
+    participantsBarPosition &&
+    (participantsWithAppliedLimit.length > 0 || isSpeakerScreenSharing);
   return (
     <div className="str-video__speaker-layout__wrapper">
       <ParticipantsAudio participants={remoteParticipants} />
@@ -115,15 +149,17 @@ export const SpeakerLayout = ({
             <ParticipantView
               participant={participantInSpotlight}
               muteAudio={true}
+              mirror={mirror}
               trackType={
                 isSpeakerScreenSharing ? 'screenShareTrack' : 'videoTrack'
               }
               ParticipantViewUI={ParticipantViewUISpotlight}
               VideoPlaceholder={VideoPlaceholder}
+              PictureInPicturePlaceholder={PictureInPicturePlaceholder}
             />
           )}
         </div>
-        {participantsWithAppliedLimit.length > 0 && participantsBarPosition && (
+        {renderParticipantsBar && (
           <div
             ref={setButtonsWrapperElement}
             className="str-video__speaker-layout__participants-bar-buttons-wrapper"
@@ -145,6 +181,8 @@ export const SpeakerLayout = ({
                       participant={participantInSpotlight}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      PictureInPicturePlaceholder={PictureInPicturePlaceholder}
+                      mirror={mirror}
                       muteAudio={true}
                     />
                   </div>
@@ -158,18 +196,20 @@ export const SpeakerLayout = ({
                       participant={participant}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      PictureInPicturePlaceholder={PictureInPicturePlaceholder}
+                      mirror={mirror}
                       muteAudio={true}
                     />
                   </div>
                 ))}
               </div>
             </div>
-            {isVertical && (
+            {pageArrowsVisible && isVertical && (
               <VerticalScrollButtons
                 scrollWrapper={participantsBarWrapperElement}
               />
             )}
-            {isHorizontal && (
+            {pageArrowsVisible && isHorizontal && (
               <HorizontalScrollButtons
                 scrollWrapper={participantsBarWrapperElement}
               />

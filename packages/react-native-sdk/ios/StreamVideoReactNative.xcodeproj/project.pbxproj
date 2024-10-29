@@ -22,6 +22,23 @@
 		134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStreamVideoReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3E7B5891CC2AC0600A0062D /* StreamVideoReactNative.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamVideoReactNative.m; sourceTree = "<group>"; };
 		D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StreamVideoReactNative.h; sourceTree = "<group>"; };
+		DDCF7DC92C90359D00420842 /* RTCViewPipManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RTCViewPipManager.mm; sourceTree = "<group>"; };
+		DDCF7DCA2C90359D00420842 /* RTCViewPip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTCViewPip.swift; sourceTree = "<group>"; };
+		DDCF7DCB2C90359D00420842 /* RTCViewPipManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTCViewPipManager.swift; sourceTree = "<group>"; };
+		DDCF7DCD2C90359D00420842 /* StreamPixelBufferPool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPixelBufferPool.swift; sourceTree = "<group>"; };
+		DDCF7DCE2C90359D00420842 /* StreamPictureInPictureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureController.swift; sourceTree = "<group>"; };
+		DDCF7DCF2C90359D00420842 /* StreamPixelBufferRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPixelBufferRepository.swift; sourceTree = "<group>"; };
+		DDCF7DD02C90359D00420842 /* StreamBufferTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamBufferTransformer.swift; sourceTree = "<group>"; };
+		DDCF7DD12C90359D00420842 /* StreamAVPictureInPictureVideoCallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamAVPictureInPictureVideoCallViewController.swift; sourceTree = "<group>"; };
+		DDCF7DD22C90359D00420842 /* StreamPictureInPictureVideoRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureVideoRenderer.swift; sourceTree = "<group>"; };
+		DDCF7DD42C90359D00420842 /* StreamPictureInPictureFixedWindowSizePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureFixedWindowSizePolicy.swift; sourceTree = "<group>"; };
+		DDCF7DD52C90359D00420842 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureAdaptiveWindowSizePolicy.swift; sourceTree = "<group>"; };
+		DDCF7DD62C90359D00420842 /* StreamPictureInPictureWindowSizePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureWindowSizePolicy.swift; sourceTree = "<group>"; };
+		DDCF7DD72C90359D00420842 /* StreamRTCYUVBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRTCYUVBuffer.swift; sourceTree = "<group>"; };
+		DDCF7DD82C90359D00420842 /* YpCbCrPixelRange+Default.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YpCbCrPixelRange+Default.swift"; sourceTree = "<group>"; };
+		DDCF7DD92C90359D00420842 /* StreamYUVToARGBConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamYUVToARGBConversion.swift; sourceTree = "<group>"; };
+		DDCF7DDA2C90359D00420842 /* StreamPictureInPictureTrackStateAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPictureInPictureTrackStateAdapter.swift; sourceTree = "<group>"; };
+		DDCF7DDB2C90359D00420842 /* SampleBufferVideoCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleBufferVideoCallView.swift; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* StreamVideoReactNative-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StreamVideoReactNative-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -47,11 +64,44 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				DDCF7DCC2C90359D00420842 /* PictureInPicture */,
+				DDCF7DCA2C90359D00420842 /* RTCViewPip.swift */,
+				DDCF7DC92C90359D00420842 /* RTCViewPipManager.mm */,
+				DDCF7DCB2C90359D00420842 /* RTCViewPipManager.swift */,
 				B3E7B5891CC2AC0600A0062D /* StreamVideoReactNative.m */,
 				D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */,
 				F4FF95D5245B92E700C19C63 /* StreamVideoReactNative-Bridging-Header.h */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		DDCF7DCC2C90359D00420842 /* PictureInPicture */ = {
+			isa = PBXGroup;
+			children = (
+				DDCF7DCD2C90359D00420842 /* StreamPixelBufferPool.swift */,
+				DDCF7DCE2C90359D00420842 /* StreamPictureInPictureController.swift */,
+				DDCF7DCF2C90359D00420842 /* StreamPixelBufferRepository.swift */,
+				DDCF7DD02C90359D00420842 /* StreamBufferTransformer.swift */,
+				DDCF7DD12C90359D00420842 /* StreamAVPictureInPictureVideoCallViewController.swift */,
+				DDCF7DD22C90359D00420842 /* StreamPictureInPictureVideoRenderer.swift */,
+				DDCF7DD32C90359D00420842 /* WindowSizePolicy */,
+				DDCF7DD72C90359D00420842 /* StreamRTCYUVBuffer.swift */,
+				DDCF7DD82C90359D00420842 /* YpCbCrPixelRange+Default.swift */,
+				DDCF7DD92C90359D00420842 /* StreamYUVToARGBConversion.swift */,
+				DDCF7DDA2C90359D00420842 /* StreamPictureInPictureTrackStateAdapter.swift */,
+				DDCF7DDB2C90359D00420842 /* SampleBufferVideoCallView.swift */,
+			);
+			path = PictureInPicture;
+			sourceTree = "<group>";
+		};
+		DDCF7DD32C90359D00420842 /* WindowSizePolicy */ = {
+			isa = PBXGroup;
+			children = (
+				DDCF7DD42C90359D00420842 /* StreamPictureInPictureFixedWindowSizePolicy.swift */,
+				DDCF7DD52C90359D00420842 /* StreamPictureInPictureAdaptiveWindowSizePolicy.swift */,
+				DDCF7DD62C90359D00420842 /* StreamPictureInPictureWindowSizePolicy.swift */,
+			);
+			path = WindowSizePolicy;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -160,7 +210,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -203,7 +253,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

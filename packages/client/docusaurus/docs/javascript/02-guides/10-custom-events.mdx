@@ -1,0 +1,41 @@
+---
+title: Custom Events
+description: How custom events work
+---
+
+You can use custom events to send data among the participants in the call.
+This is a realtime layer that you can use to broadcast your own events to.
+
+## Sending custom events
+
+For example, if you are building a collaborative drawing app, you can send the coordinates to the other participants with the following code:
+
+```typescript
+await call.sendCustomEvent({
+  type: 'draw',
+  x: 10,
+  y: 30,
+});
+```
+
+Please note that the total payload for these events is limited to 5KB in size.
+
+## Receiving custom events
+
+Custom events are only delivered to clients that are [watching the call](../../advanced/events/#call-events).
+
+To receive custom events, you need to subscribe to the `custom` event on the call instance:
+
+```typescript
+const unsubscribe = call.on('custom', (event: CustomVideoEvent) => {
+  const payload = event.custom;
+  if (payload.type === 'draw') {
+    console.log(`Received draw event: x=${payload.x}, y=${payload.y}`);
+  }
+});
+
+// Unsubscribe when you no longer need to listen to custom events
+unsubscribe();
+```
+
+For more information, check out our [Events guide](../../advanced/events).

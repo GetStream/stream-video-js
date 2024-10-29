@@ -1,12 +1,14 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Dispatcher } from '../Dispatcher';
+import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
-import { PeerType } from '../../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { StreamClient } from '../../coordinator/connection/client';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -25,20 +27,28 @@ describe('Subscriber', () => {
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
-      sfuServer: {
-        url: 'https://getstream.io/',
-        ws_endpoint: 'https://getstream.io/ws',
-        edge_name: 'sfu-1',
+      sessionId: 'sessionId',
+      streamClient: new StreamClient('abc'),
+      logTag: 'logTag',
+      credentials: {
+        server: {
+          url: 'https://getstream.io/',
+          ws_endpoint: 'https://getstream.io/ws',
+          edge_name: 'sfu-1',
+        },
+        token: 'token',
+        ice_servers: [],
       },
-      token: 'token',
     });
+    // @ts-expect-error readonly field
+    sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
     subscriber = new Subscriber({
       sfuClient,
       dispatcher,
       state,
       connectionConfig: { iceServers: [] },
-      iceRestartDelay: 100,
+      logTag: 'test',
     });
   });
 
@@ -46,82 +56,6 @@ describe('Subscriber', () => {
     vi.clearAllMocks();
     vi.resetModules();
     dispatcher.offAll();
-  });
-
-  describe('Subscriber migration', () => {
-    it('should update the sfuClient and create a new peer connection', async () => {
-      const newSfuClient = new StreamSfuClient({
-        dispatcher: new Dispatcher(),
-        sfuServer: {
-          url: 'https://getstream.io/',
-          ws_endpoint: 'https://getstream.io/ws',
-          edge_name: 'sfu-1',
-        },
-        token: 'token',
-      });
-      const newConnectionConfig = { iceServers: [] };
-
-      const oldPeerConnection = subscriber['pc'];
-      vi.spyOn(oldPeerConnection, 'getReceivers').mockReturnValue([]);
-
-      await subscriber.migrateTo(newSfuClient, newConnectionConfig);
-      const newPeerConnection = subscriber['pc'];
-
-      expect(subscriber['sfuClient']).toBe(newSfuClient);
-      expect(newPeerConnection).not.toBe(oldPeerConnection);
-    });
-
-    it('should close the old peer connection once the new one connects', async () => {
-      let onConnectionStateChange: () => void = () => {};
-      let onTrack: (e: RTCTrackEvent) => void = () => {};
-      // @ts-ignore
-      vi.spyOn(subscriber, 'createPeerConnection').mockImplementation(() => {
-        const pc = new RTCPeerConnection();
-        vi.spyOn(pc, 'addEventListener').mockImplementation((event, cb) => {
-          if (event === 'connectionstatechange') {
-            // @ts-ignore
-            onConnectionStateChange = cb;
-          } else if (event === 'track') {
-            // @ts-ignore
-            onTrack = cb;
-          }
-        });
-        return pc;
-      });
-
-      const oldPeerConnection = subscriber['pc'];
-      vi.spyOn(oldPeerConnection, 'getReceivers').mockReturnValue([]);
-      vi.spyOn(oldPeerConnection, 'close');
-
-      await subscriber.migrateTo(sfuClient, { iceServers: [] });
-
-      const newPeerConnection = subscriber['pc'];
-      vi.spyOn(newPeerConnection, 'removeEventListener');
-      // @ts-ignore
-      newPeerConnection.connectionState = 'connected';
-
-      expect(onConnectionStateChange).toBeDefined();
-      expect(oldPeerConnection.close).not.toHaveBeenCalled();
-      onConnectionStateChange();
-
-      // @ts-ignore
-      onTrack(
-        // @ts-ignore
-        new RTCTrackEvent('video', {
-          track: new MediaStreamTrack(),
-        }),
-      );
-
-      expect(newPeerConnection.removeEventListener).toHaveBeenCalledWith(
-        'connectionstatechange',
-        onConnectionStateChange,
-      );
-      expect(newPeerConnection.removeEventListener).toHaveBeenCalledWith(
-        'track',
-        onTrack,
-      );
-      expect(oldPeerConnection.close).toHaveBeenCalled();
-    });
   });
 
   describe('Subscriber ICE restart', () => {
@@ -135,7 +69,7 @@ describe('Subscriber', () => {
               peerType: PeerType.SUBSCRIBER,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
 
       expect(sfuClient.iceRestart).toHaveBeenCalledWith({
@@ -153,7 +87,7 @@ describe('Subscriber', () => {
               peerType: PeerType.PUBLISHER_UNSPECIFIED,
             },
           },
-        }),
+        }) as DispatchableMessage<'iceRestart'>,
       );
 
       expect(sfuClient.iceRestart).not.toHaveBeenCalled();
@@ -187,27 +121,59 @@ describe('Subscriber', () => {
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
-
       // @ts-ignore
       subscriber['pc'].iceConnectionState = 'disconnected';
       subscriber['onIceConnectionStateChange']();
-      vi.runAllTimers();
       expect(subscriber.restartIce).toHaveBeenCalled();
     });
+  });
 
-    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
-      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
-      vi.useFakeTimers();
+  describe('OnTrack', () => {
+    it('should add unknown tracks to the to the call state', () => {
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      // @ts-ignore - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
 
-      // @ts-ignore
-      subscriber['pc'].iceConnectionState = 'disconnected';
-      subscriber['onIceConnectionStateChange']();
-      // @ts-ignore
-      subscriber['pc'].iceConnectionState = 'connected';
+      const registerOrphanedTrackSpy = vi.spyOn(state, 'registerOrphanedTrack');
+      const updateParticipantSpy = vi.spyOn(state, 'updateParticipant');
 
-      vi.runAllTimers();
-      expect(subscriber.restartIce).not.toHaveBeenCalled();
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack });
+
+      expect(registerOrphanedTrackSpy).toHaveBeenCalledWith({
+        id: mediaStream.id,
+        trackLookupPrefix: '123',
+        track: mediaStream,
+        trackType: TrackType.VIDEO,
+      });
+      expect(updateParticipantSpy).not.toHaveBeenCalled();
+    });
+
+    it('should assign known tracks to the participant', () => {
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      // @ts-ignore - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const registerOrphanedTrackSpy = vi.spyOn(state, 'registerOrphanedTrack');
+      const updateParticipantSpy = vi.spyOn(state, 'updateParticipant');
+
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        trackLookupPrefix: '123',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack });
+
+      expect(registerOrphanedTrackSpy).not.toHaveBeenCalled();
+      expect(updateParticipantSpy).toHaveBeenCalledWith('session-id', {
+        videoStream: mediaStream,
+      });
     });
   });
 });

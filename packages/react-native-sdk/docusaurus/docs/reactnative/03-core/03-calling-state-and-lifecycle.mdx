@@ -15,7 +15,7 @@ Every `call` instance should be created through the `client.call(type, id)` help
 
 Our `StreamVideoClient` is responsible for maintaining a WebSocket connection to our servers and also takes care about the API calls that are proxied from the `call` instance.
 
-As we learned in [Joining and Creating Calls](../../guides/joining-and-creating-calls/) guide, a call instance is managed like this:
+As we learned in [Joining and Creating Calls](../../core/joining-and-creating-calls/) guide, a call instance is managed like this:
 
 ```ts
 import { Call, StreamVideoClient } from '@stream-io/video-react-native-sdk';
@@ -42,7 +42,7 @@ Every `call` instance has a local state, exposed to integrators through:
 
 - `call.state.callingState` - a getter that returns the current value
 - `call.state.callingState$` - an observable that an integrator can subscribe to and be notified everytime the value changes
-- `useCallCallingState()` - a [call state hook](../../guides/call-and-participant-state/#call-state-hooks) that makes it easy to read and update the UI based on calling state values in React components.
+- `useCallCallingState()` - a [call state hook](../../core/call-and-participant-state/#call-state-hooks) that makes it easy to read and update the UI based on calling state values in React components.
 
 ## Call Instance
 
@@ -70,7 +70,7 @@ useEffect(() => {
 }, [callType, callId]);
 ```
 
-Once the call has been disposed of, it can no longer be used. However, you can get a new call instance with the same type and id. In practice, this is rarely an issue when you're using the pattern above.
+To join the same call again, you can reuse the same call instance, or create a new one using `client.call(type, id)`.
 
 ## Calling State
 
@@ -123,40 +123,23 @@ there are few more states that you should handle.
 To understand these values better, here is a hypothetical example of how these values can be mapped:
 
 ```tsx
-import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { CallingState, useCallStateHooks, CallContent } from '@stream-io/video-react-native-sdk';
+
+const call = useCall();
+const isCallCreatedByMe = call?.isCreatedByMe;
 
 const { useCallCallingState } = useCallStateHooks();
 const callingState = useCallCallingState();
 
 switch (callingState) {
-  case CallingState.UNKNOWN:
-  case CallingState.IDLE:
-    return <LobbyScreen />;
-
   case CallingState.RINGING:
-    return <IncomingCallScreen />;
-
-  case CallingState.JOINING:
-    return <LoadingCallScreen />;
-
-  case CallingState.JOINED:
-    return <ActiveCallScreen />;
-
+    return isCallCreatedByMe
+      ? <OutgoingCallFullScreenComponent /> : <IncomingCallFullScreenComponent />
   case CallingState.LEFT:
-    return <HaveANiceDayScreen />;
-
-  case CallingState.RECONNECTING:
-  case CallingState.MIGRATING:
-    return <RestoringConnectionScreen />;
-
-  case CallingState.RECONNECTING_FAILED:
-    return <GeneralConnectionErrorScreen />;
-
-  case CallingState.OFFLINE:
-    return <NoConnectionScreen />;
-
+    return <CallLeftIndicatorFullScreenComponent />
+  case CallingState.IDLE:
+    return <CallPreparingFullScreenComponent />
   default:
-    const exhaustiveCheck: never = callingState;
-    throw new Error(`Unknown calling state: ${exhaustiveCheck}`);
+    return <CallContent />
 }
 ```

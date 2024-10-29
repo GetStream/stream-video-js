@@ -8,6 +8,7 @@ import {
 } from '../utils/push/internal/utils';
 import { useAndroidKeepCallAliveEffect } from '../hooks/useAndroidKeepCallAliveEffect';
 import { AppState, NativeModules, Platform } from 'react-native';
+import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
 export type StreamCallProps = {
   /**
@@ -49,7 +50,18 @@ const AppStateListener = () => {
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (appState.current.match(/background/) && nextAppState === 'active') {
-        call?.camera?.resume();
+        if (
+          call?.camera?.state.status === 'enabled' &&
+          Platform.OS === 'android'
+        ) {
+          // when device is locked and resumed, the status isnt made disabled but stays enabled
+          // as a workaround we stop the track and enable again if its already in enabled state
+          call?.camera?.disable(true).then(() => {
+            call?.camera?.enable();
+          });
+        } else {
+          call?.camera?.resume();
+        }
         appState.current = nextAppState;
       } else if (
         appState.current === 'active' &&
@@ -66,7 +78,9 @@ const AppStateListener = () => {
             }
           );
         } else {
-          call?.camera?.disable();
+          if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
+            call?.camera?.disable();
+          }
         }
         appState.current = nextAppState;
       }
@@ -81,7 +95,7 @@ const AppStateListener = () => {
 };
 
 /**
- * This is a renderless component is used to keep the call alive on Android device using useAndroidKeepCallAliveEffect.
+ * This is a renderless component to keep the call alive on Android device using useAndroidKeepCallAliveEffect.
  * useAndroidKeepCallAliveEffect needs to called inside a child of StreamCallProvider.
  */
 const AndroidKeepCallAlive = () => {

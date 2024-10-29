@@ -2,8 +2,8 @@ import {
   CallStats,
   CompositeButton,
   Icon,
-  WithTooltip,
   useI18n,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 
 export const ToggleStatsButton = (props: {
@@ -29,7 +29,7 @@ export const ToggleStatsButton = (props: {
 export const CallStatsSidebar = () => {
   return (
     <div className="rd__sidebar__call-stats">
-      <CallStats />
+      <CallStats showCodecInfo />
     </div>
   );
 };

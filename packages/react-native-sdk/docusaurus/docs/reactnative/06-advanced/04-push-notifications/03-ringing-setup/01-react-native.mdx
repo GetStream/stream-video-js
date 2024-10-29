@@ -25,6 +25,7 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ```bash title=Terminal
 yarn add @react-native-firebase/app
 yarn add @react-native-firebase/messaging
+yarn add @notifee/react-native
 yarn add react-native-callkeep
 yarn add react-native-voip-push-notification
 npx pod-install
@@ -33,6 +34,7 @@ npx pod-install
 So what did we install precisely?
 
 - `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `@notifee/react-native` - is used to customize and display push notifications.
 - `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
 - `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
 
@@ -76,13 +78,12 @@ Add the following in `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <!-- We declare the permissions to for using foreground service -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
 <service
     android:name="app.notifee.core.ForegroundService"
     tools:replace="android:foregroundServiceType"
     android:stopWithTask="true"
-    android:foregroundServiceType="dataSync" />
+    android:foregroundServiceType="shortService" />
 ```
 
 ### Request for notification permissions
@@ -348,7 +349,7 @@ export function setPushConfig() {
       // an example promise to fetch token from your server
       const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
       const user = { id: userId, name: userName };
-      return new StreamVideoClient({
+      return StreamVideoClient.getOrCreateInstance({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
         tokenProvider,
@@ -392,6 +393,20 @@ If you want to display a full-screen notification for the incoming call when the
     android:turnScreenOn="true"
   />
 ```
+
+In `AndroidManifest.xml` add the following permission before the `<application>` section.
+
+```xml
+<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+```
+
+:::infoNOTE
+For apps installed on phones running versions Android 13 or lower, the `USE_FULL_SCREEN_INTENT` permission is enabled by default.
+
+For all apps being installed on Android 14 and above, the Google Play Store revokes the `USE_FULL_SCREEN_INTENT` for apps that do not have calling or alarm functionalities. Which means, while submitting your app to the play store, if you do **declare that 'Making and receiving calls' is a 'core' functionality** in your app, this permission is granted by default on Android 14 and above.
+
+If the `USE_FULL_SCREEN_INTENT` permission is not granted, the notification will show up as an expanded heads up notification on the lock screen.
+:::
 
 ## Troubleshooting
 

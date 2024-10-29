@@ -22,18 +22,16 @@ npx expo install @config-plugins/react-native-webrtc
 npx expo install react-native-incall-manager
 npx expo install react-native-svg
 npx expo install @react-native-community/netinfo
-npx expo install @notifee/react-native
 ```
 
 So what did we install precisely?
 
 - `@stream-io/video-react-native-sdk` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
 - `@stream-io/react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
-- `@config-plugins/react-native-webrtc` is the expo config plugin for the WebRTC module for React Native.
+- `@config-plugins/react-native-webrtc` config plugin to auto-configure `@stream-io/react-native-webrtc` when the native code is generated (`npx expo prebuild`).
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
-- `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
 ### Android Specific installation
 
@@ -75,9 +73,9 @@ Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.c
       [
         "@config-plugins/react-native-webrtc",
         {
-          // optionally you can add your own explanations for permissions on iOS
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
+          // add your explanations for camera and microphone
+          "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
+          "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ]
       // highlight-end
@@ -85,6 +83,8 @@ Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.c
   }
 }
 ```
+
+If Expo EAS build is not used, please do `npx expo prebuild --clean` to generate the native directories again after adding the config plugins. 
 
 :::infoINFO
 Permissions need to be granted by the user as well. Requests for Camera and Microphone usage are automatically asked when the stream is first requested by the app. But other permissions like `BLUETOOTH_CONNECT` in Android need to be requested manually. However, we recommend that all necessary permissions be manually asked at an appropriate place in your app for the best user experience.
@@ -102,6 +102,10 @@ In iOS simulators, recording audio or video is not supported. So always test you
 #### Android
 
 In Android emulators, a static video stream can be sent and so it can be used for testing. However, we recommend that you always test your app on an actual device for the best experience.
+
+## New Architecture (Fabric)
+
+The SDK's native modules and views are compatible with the [New Architecture](https://reactnative.dev/docs/the-new-architecture/landing-page) and [Bridgeless mode](https://github.com/reactwg/react-native-new-architecture/discussions/154) through the **New Renderer Interop Layers**. These layers are [automatically enabled](https://github.com/reactwg/react-native-new-architecture/discussions/175) when you turn on the New Architecture in React Native 0.74 and above. We recommend that you use React Native 0.74+ if you are using the New Architecture with the SDK.
 
 ## Troubleshooting
 

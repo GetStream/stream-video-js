@@ -4,26 +4,11 @@ import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
 import type { PinsChanged } from '../gen/video/sfu/event/events';
-import { ErrorCode } from '../gen/video/sfu/models/models';
+import {
+  ErrorCode,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
-
-const logger = getLogger(['events']);
-
-/**
- * An event responder which handles the `changePublishQuality` event.
- */
-export const watchChangePublishQuality = (
-  dispatcher: Dispatcher,
-  call: Call,
-) => {
-  return dispatcher.on('changePublishQuality', (e) => {
-    const { videoSenders } = e;
-    videoSenders.forEach((videoSender) => {
-      const { layers } = videoSender;
-      call.updatePublishQuality(layers.filter((l) => l.active));
-    });
-  });
-};
 
 export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
@@ -70,7 +55,7 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 
     if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)) {
       call.leave({ reason: 'live ended' }).catch((err) => {
-        logger('error', 'Failed to leave call after live ended', err);
+        call.logger('error', 'Failed to leave call after live ended', err);
       });
     }
   });
@@ -82,9 +67,11 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
   return dispatcher.on('error', (e) => {
     if (!e.error) return;
-    const { error } = e;
+    const logger = getLogger(['SfuClient']);
+    const { error, reconnectStrategy } = e;
     logger('error', 'SFU reported error', {
       code: ErrorCode[error.code],
+      reconnectStrategy: WebsocketReconnectStrategy[reconnectStrategy],
       message: error.message,
       shouldRetry: error.shouldRetry,
     });

@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.0...@stream-io/video-styling-1.1.1) (2024-10-16)
+
+
+### Bug Fixes
+
+* PiP video placeholder ([#1509](https://github.com/GetStream/stream-video-js/issues/1509)) ([9eb2936](https://github.com/GetStream/stream-video-js/commit/9eb2936379726923ee43491ce965003e0e7f2c37))
+
+## [1.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.6...@stream-io/video-styling-1.1.0) (2024-10-02)
+
+
+### Features
+
+* manual video quality selection ([#1486](https://github.com/GetStream/stream-video-js/issues/1486)) ([3a754af](https://github.com/GetStream/stream-video-js/commit/3a754afa1bd13d038b1023520ec8a5296ad2669e))
+
 ### [1.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.0.5...@stream-io/video-styling-1.0.6) (2024-07-15)
 
 

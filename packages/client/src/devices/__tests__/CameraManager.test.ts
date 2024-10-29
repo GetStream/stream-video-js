@@ -36,6 +36,13 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../compatibility.ts', () => {
+  console.log('MOCKING mobile device');
+  return {
+    isMobile: () => true,
+  };
+});
+
 describe('CameraManager', () => {
   let manager: CameraManager;
 
@@ -82,23 +89,6 @@ describe('CameraManager', () => {
 
     expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
-      {
-        preferredCodec: undefined,
-      },
-    );
-  });
-
-  it('publish stream with preferred codec', async () => {
-    manager['call'].state.setCallingState(CallingState.JOINED);
-    manager.setPreferredCodec('h264');
-
-    await manager.enable();
-
-    expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
-      manager.state.mediaStream,
-      {
-        preferredCodec: 'h264',
-      },
     );
   });
 
@@ -167,7 +157,7 @@ describe('CameraManager', () => {
     await manager.select(deviceId);
 
     expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
-      deviceId,
+      deviceId: { exact: deviceId },
       width: 1280,
       height: 720,
     });
@@ -192,7 +182,7 @@ describe('CameraManager', () => {
     await manager.selectTargetResolution({ width: 640, height: 480 });
 
     expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
-      deviceId: mockVideoDevices[0].deviceId,
+      deviceId: { exact: mockVideoDevices[0].deviceId },
       width: 640,
       height: 480,
     });

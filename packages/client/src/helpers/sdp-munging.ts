@@ -102,101 +102,6 @@ const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
 };
 
 /**
- * Returns a string of codec IDs with the preferred codec ID in front of the other codec IDs.
- * It is used to ensure that a preferred codec is used when decoding a media stream.
- * Example: Suppose we want to prefer VP8 which has id 96
- * 1. If codec order is 100 101 96 97 35 36 102 125 127
- * 2. The function returns 96 100 101 97 35 36 102 125 127
- */
-const moveCodecToFront = (codecOrder: string, preferredCodecId: string) => {
-  const codecIds = codecOrder.split(' ');
-  const index = codecIds.indexOf(preferredCodecId);
-  if (index > -1) {
-    codecIds.splice(index, 1);
-    codecIds.unshift(preferredCodecId);
-  }
-  return codecIds.join(' ');
-};
-
-/**
- * Returns a string of codec IDs with the given codec ID removed
- * It is used to ensure that a codec is disabled when processing a media stream.
- * Example: Suppose we want to prefer RED which has id 63
- * 1. If codec order is 111 63 103 104 9 102 0 8 106 105 13 110 112 113 126
- * 2. The function returns 111 103 104 9 102 0 8 106 105 13 110 112 113 126
- */
-const removeCodecFromOrder = (codecOrder: string, codecIdToRemove: string) => {
-  const codecIds = codecOrder.split(' ');
-  return codecIds.filter((codecID) => codecID !== codecIdToRemove).join(' ');
-};
-
-/**
- * Returns an SDP with the preferred codec in front of the other codecs.
- * Example: Suppose we want to prefer VP8
- * 1. find video media specification m=video 9 UDP/TLS/RTP/SAVPF 100 101 96 97 35 36 102 125 127
- * 2. look for specified codec (VP8)  a=rtpmap:96 VP8/90000
- * 3. extract 96 as an identifier of VP8
- * 4. move 96 to the front
- * 5. now media looks like this: m=video 9 UDP/TLS/RTP/SAVPF 96 100 101 97 35 36 102 125 127
- */
-export const setPreferredCodec = (
-  sdp: string,
-  mediaType: 'video' | 'audio',
-  preferredCodec: string,
-) => {
-  const section = getMediaSection(sdp, mediaType);
-  if (!section) return sdp;
-  const rtpMap = section.rtpMap.find(
-    (r) => r.codec.toLowerCase() === preferredCodec.toLowerCase(),
-  );
-  const codecId = rtpMap?.payload;
-  if (!codecId) return sdp;
-  const newCodecOrder = moveCodecToFront(section.media.codecOrder, codecId);
-  return sdp.replace(
-    section.media.original,
-    `${section.media.mediaWithPorts} ${newCodecOrder}`,
-  );
-};
-
-/**
- * Returns an SDP with the specified codec removed.
- * Example: Suppose we want to remove RED
- *  1. find audio media specification m=video 9 UDP/TLS/RTP/SAVPF 100 101 96 97 35 36 102 125 127
- *  2. look for specified codec (RED)  a=rtpmap:127 red/90000
- *  3. extract 127 as an identifier of RED
- *  4. remove 127 from the codec order
- *  5. remove a=rtpmap:127 red/90000
- *  6. remove a=fmtp:127 ...
- */
-export const removeCodec = (
-  sdp: string,
-  mediaType: 'video' | 'audio',
-  codecToRemove: string,
-): string => {
-  const section = getMediaSection(sdp, mediaType);
-  const mediaSection = section?.media;
-  if (!mediaSection) {
-    return sdp;
-  }
-  const rtpMap = section?.rtpMap.find(
-    (r) => r.codec.toLowerCase() === codecToRemove.toLowerCase(),
-  );
-  const codecId = rtpMap?.payload;
-  if (!codecId) {
-    return sdp;
-  }
-  const newCodecOrder = removeCodecFromOrder(mediaSection.codecOrder, codecId);
-  const fmtp = section?.fmtp.find((f) => f.payload === codecId);
-  return sdp
-    .replace(
-      mediaSection.original,
-      `${mediaSection.mediaWithPorts} ${newCodecOrder}`,
-    )
-    .replace(new RegExp(`${rtpMap.original}[\r\n]+`), '') // remove the corresponding rtpmap line
-    .replace(fmtp?.original ? new RegExp(`${fmtp?.original}[\r\n]+`) : '', ''); // remove the corresponding fmtp line
-};
-
-/**
  * Gets the fmtp line corresponding to opus
  */
 const getOpusFmtp = (sdp: string): Fmtp | undefined => {
@@ -213,21 +118,15 @@ const getOpusFmtp = (sdp: string): Fmtp | undefined => {
  */
 export const toggleDtx = (sdp: string, enable: boolean): string => {
   const opusFmtp = getOpusFmtp(sdp);
-  if (opusFmtp) {
-    const matchDtx = /usedtx=(\d)/.exec(opusFmtp.config);
-    const requiredDtxConfig = `usedtx=${enable ? '1' : '0'}`;
-    if (matchDtx) {
-      const newFmtp = opusFmtp.original.replace(
-        /usedtx=(\d)/,
-        requiredDtxConfig,
-      );
-      return sdp.replace(opusFmtp.original, newFmtp);
-    } else {
-      const newFmtp = `${opusFmtp.original};${requiredDtxConfig}`;
-      return sdp.replace(opusFmtp.original, newFmtp);
-    }
-  }
-  return sdp;
+  if (!opusFmtp) return sdp;
+
+  const matchDtx = /usedtx=(\d)/.exec(opusFmtp.config);
+  const requiredDtxConfig = `usedtx=${enable ? '1' : '0'}`;
+  const newFmtp = matchDtx
+    ? opusFmtp.original.replace(/usedtx=(\d)/, requiredDtxConfig)
+    : `${opusFmtp.original};${requiredDtxConfig}`;
+
+  return sdp.replace(opusFmtp.original, newFmtp);
 };
 
 /**
@@ -275,4 +174,33 @@ export const enableHighQualityAudio = (
   }
 
   return SDP.write(parsedSdp);
+};
+
+/**
+ * Extracts the mid from the transceiver or the SDP.
+ *
+ * @param transceiver the transceiver.
+ * @param transceiverInitIndex the index of the transceiver in the transceiver's init array.
+ * @param sdp the SDP.
+ */
+export const extractMid = (
+  transceiver: RTCRtpTransceiver,
+  transceiverInitIndex: number,
+  sdp: string | undefined,
+): string => {
+  if (transceiver.mid) return transceiver.mid;
+  if (!sdp) return '';
+
+  const track = transceiver.sender.track!;
+  const parsedSdp = SDP.parse(sdp);
+  const media = parsedSdp.media.find((m) => {
+    return (
+      m.type === track.kind &&
+      // if `msid` is not present, we assume that the track is the first one
+      (m.msid?.includes(track.id) ?? true)
+    );
+  });
+  if (typeof media?.mid !== 'undefined') return String(media.mid);
+  if (transceiverInitIndex === -1) return '';
+  return String(transceiverInitIndex);
 };

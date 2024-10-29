@@ -39,13 +39,19 @@ end
 target 'StreamReactNativeVideoSDKSample' do
   config = use_native_modules!
 
+  # Beginning with firebase-ios-sdk v9+ (react-native-firebase v15+) we must tell CocoaPods to use frameworks.
+  # https://rnfirebase.io/#altering-cocoapods-to-use-frameworks
+  # Note: must disable flipper due to enabling static linkage
+  use_frameworks! :linkage => :static
+  $RNFirebaseAsStaticFramework = true
+
   use_react_native!(
     :path => config[:reactNativePath],
     # Enables Flipper.
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
     # you should disable the next line.
-    :flipper_configuration => flipper_config,
+    # :flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )

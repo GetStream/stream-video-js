@@ -19,11 +19,13 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ```bash title=Terminal
 npx expo install expo-notifications
 npx expo install expo-task-manager
+npx expo install @notifee/react-native
 ```
 
 So what did we install precisely?
 
 - `expo-notifications` and `expo-task-manager` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android and iOS.
+- `@notifee/react-native` - is used to customize and display push notifications.
 
 ## Add Firebase credentials
 
@@ -66,6 +68,8 @@ In **app.json**, in the `plugins` field, add true to the `enableNonRingingPushNo
   ]
 }
 ```
+
+If Expo EAS build is not used, please do `npx expo prebuild --clean` to generate the native directories again after adding the config plugins. 
 
 ## Setup the push config for the SDK
 
@@ -174,7 +178,7 @@ export function setPushConfig() {
       // an example promise to fetch token from your server
       const tokenProvider = () => yourServer.getTokenForUser(userId).then((auth) => auth.token);
       const user = { id: userId, name: userName };
-      return new StreamVideoClient({
+      return StreamVideoClient.getOrCreateInstance({
         apiKey: STREAM_API_KEY, // pass your stream api key
         user,
         tokenProvider,

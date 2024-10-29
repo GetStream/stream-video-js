@@ -70,10 +70,14 @@ export default async function createSampleAppCall(
 
   const userName = names.random();
   const userId = toUserId(userName);
-  const token = createToken(userId, appConfig.secret);
+  const token = createToken(userId, appConfig.apiKey, appConfig.secret);
   const buddyUserName = getBuddyUserName(userName);
   const buddyUserId = toUserId(buddyUserName);
-  const buddyToken = createToken(buddyUserId, appConfig.secret);
+  const buddyToken = createToken(
+    buddyUserId,
+    appConfig.apiKey,
+    appConfig.secret,
+  );
 
   const callId = meetingId();
   const callType = data.call_type || appConfig.defaultCallType || 'default';

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-styling",
-  "version": "1.0.6",
+  "version": "1.1.1",
   "packageManager": "yarn@3.2.4",
   "license": "See license in LICENSE",
   "scripts": {

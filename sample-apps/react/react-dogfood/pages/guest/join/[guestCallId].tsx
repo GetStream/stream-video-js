@@ -54,7 +54,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       user: userToConnect,
       token: tokenToUse,
       options: {
-        logLevel: 'warn',
+        logLevel: 'debug',
         logger: customSentryLogger,
         transformRequest: defaultRequestTransformers,
         transformResponse: defaultResponseTransformers,
@@ -165,7 +165,7 @@ export const getServerSideProps = async (
   };
 
   // anonymous user tokens must have "!anon" as the user_id
-  const token = createToken('!anon', secretKey, {
+  const token = createToken('!anon', apiKey, secretKey, {
     user_id: '!anon',
     call_cids: [`${callType}:${callId}`],
   });

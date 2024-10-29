@@ -130,11 +130,15 @@ const createStreamVideoClient = async () => {
     console.error('Push - createStreamVideoClient -- user.id is undefined');
     return;
   }
-  const { token, apiKey } = await createToken({ user_id: user.id });
-  const client = new StreamVideoClient({
+  const fetchAuthDetails = async () => {
+    return await createToken({ user_id: user.id });
+  };
+  const { apiKey } = await fetchAuthDetails();
+  const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
+  const client = StreamVideoClient.getOrCreateInstance({
     apiKey,
     user,
-    token,
+    tokenProvider,
     options: { logLevel: 'warn' },
   });
   return client;
