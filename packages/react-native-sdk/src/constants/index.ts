@@ -35,7 +35,7 @@ export const defaultEmojiReactions: StreamReactionType[] = [
   },
   {
     type: 'reaction',
-    emoji_code: ':fireworks:',
+    emoji_code: ':tada:',
     custom: {},
     icon: '🎉',
   },

@@ -5,7 +5,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
-import { Drawer, DrawerOption } from '../Drawer';
+import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
 import NoiseCancelation from '../../assets/NoiseCancelation';
 import ClosedCaptions from '../../assets/ClosedCaptions';
 import Stats from '../../assets/Stats';
@@ -35,7 +35,7 @@ export const MoreActionsButton = ({
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const options: DrawerOption[] = [
     {
-      id: '2',
+      id: '1',
       label: 'Noise Cancellation On',
       icon: (
         <IconWrapper>
@@ -45,10 +45,10 @@ export const MoreActionsButton = ({
           />
         </IconWrapper>
       ),
-      onPress: () => console.log('Noise Cancellation'),
+      onPress: () => {},
     },
     {
-      id: '3',
+      id: '2',
       label: 'Start Closed Captions',
       icon: (
         <IconWrapper>
@@ -58,10 +58,10 @@ export const MoreActionsButton = ({
           />
         </IconWrapper>
       ),
-      onPress: () => console.log('Closed Captions'),
+      onPress: () => {},
     },
     {
-      id: '4',
+      id: '3',
       label: 'Stats',
       icon: (
         <IconWrapper>
@@ -71,10 +71,10 @@ export const MoreActionsButton = ({
           />
         </IconWrapper>
       ),
-      onPress: () => console.log('Stats'),
+      onPress: () => {},
     },
     {
-      id: '5',
+      id: '4',
       label: 'Feedback',
       icon: (
         <IconWrapper>
@@ -84,7 +84,7 @@ export const MoreActionsButton = ({
           />
         </IconWrapper>
       ),
-      onPress: () => console.log('Feedback'),
+      onPress: () => {},
     },
   ];
 
@@ -103,8 +103,7 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
-      <Drawer
-        // isVisible={true}
+      <BottomControlsDrawer
         isVisible={isDrawerVisible}
         onClose={() => setIsDrawerVisible(false)}
         options={options}

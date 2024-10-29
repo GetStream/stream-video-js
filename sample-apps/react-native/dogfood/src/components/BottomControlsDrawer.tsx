@@ -4,7 +4,7 @@ import {
   useTheme,
   getLogger,
 } from '@stream-io/video-react-native-sdk';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Modal,
   View,
@@ -19,8 +19,8 @@ import {
   PanResponder,
   Easing,
 } from 'react-native';
-
-import { reactions } from '../constants';
+import { BOTTOM_CONTROLS_HEIGHT, reactions } from '../constants';
+import RaiseHand from '../assets/RaiseHand';
 
 export type DrawerOption = {
   id: string;
@@ -35,16 +35,19 @@ type DrawerProps = {
   options: DrawerOption[];
 };
 
-export const Drawer: React.FC<DrawerProps> = ({
+export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   isVisible,
   onClose,
   options,
 }) => {
+  const { theme } = useTheme();
   const screenHeight = Dimensions.get('window').height;
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
-  const offset = -70;
   const call = useCall();
+
+  // negative offset is needed so the drawer component start above the bottom controls
+  const offset = -theme.variants.insets.bottom - BOTTOM_CONTROLS_HEIGHT;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
@@ -106,12 +109,6 @@ export const Drawer: React.FC<DrawerProps> = ({
     }
   }, [isVisible]);
 
-  const dragIndicator = (
-    <View style={styles.dragIndicator}>
-      <View style={styles.dragIndicatorBar} />
-    </View>
-  );
-
   const elasticAnimRef = useRef(new Animated.Value(0.5));
 
   const onCloseReaction = (reaction?: SendReactionRequest) => {
@@ -129,13 +126,73 @@ export const Drawer: React.FC<DrawerProps> = ({
     }).start(onClose);
   };
 
+  const dragIndicator = (
+    <View style={styles.dragIndicator}>
+      <View style={styles.dragIndicatorBar} />
+    </View>
+  );
+
+  const emojiReactions = (
+    <View style={styles.emojiRow}>
+      {reactions.map((item) => (
+        <View key={item.emoji_code} style={styles.emojiContainer}>
+          <Text
+            style={styles.emojiText}
+            onPress={() => {
+              onCloseReaction({
+                type: item.type,
+                custom: item.custom,
+                emoji_code: item.emoji_code,
+              });
+            }}
+          >
+            {item.icon}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+
+  const raiseHand = (
+    <TouchableOpacity
+      style={styles.raiseHand}
+      onPress={() => {
+        onCloseReaction({
+          type: 'raised-hand',
+          emoji_code: ':raised-hand:',
+          custom: {},
+        });
+      }}
+    >
+      <Text style={styles.handIconContainer}>
+        <RaiseHand
+          color={theme.colors.iconPrimaryDefault}
+          size={theme.variants.roundButtonSizes.sm}
+        />
+      </Text>
+      <Text style={styles.label}>{'Raise hand'}</Text>
+    </TouchableOpacity>
+  );
+
+  const otherButtons = (
+    <FlatList
+      data={options}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <TouchableOpacity style={styles.option} onPress={item.onPress}>
+          {item.icon && <View style={styles.iconContainer}>{item.icon}</View>}
+          <Text style={styles.label}>{item.label}</Text>
+        </TouchableOpacity>
+      )}
+    />
+  );
+
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={isVisible}
       onRequestClose={onClose}
-      supportedOrientations={['portrait', 'landscape']}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
@@ -145,39 +202,9 @@ export const Drawer: React.FC<DrawerProps> = ({
               style={[styles.container, { transform: [{ translateY }] }]}
             >
               {dragIndicator}
-              <View style={styles.emojiRow}>
-                {reactions.map((item) => (
-                  <View key={item.emoji_code} style={styles.emojiContainer}>
-                    <Text
-                      style={styles.emojiText}
-                      onPress={() => {
-                        onCloseReaction({
-                          type: item.type,
-                          custom: item.custom,
-                          emoji_code: item.emoji_code,
-                        });
-                      }}
-                    >
-                      {item.icon}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-              <FlatList
-                data={options}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.option}
-                    onPress={item.onPress}
-                  >
-                    {item.icon && (
-                      <View style={styles.iconContainer}>{item.icon}</View>
-                    )}
-                    <Text style={styles.label}>{item.label}</Text>
-                  </TouchableOpacity>
-                )}
-              />
+              {emojiReactions}
+              {raiseHand}
+              {otherButtons}
             </Animated.View>
           </SafeAreaView>
         </View>
@@ -187,7 +214,9 @@ export const Drawer: React.FC<DrawerProps> = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { colors, variants },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -200,64 +229,32 @@ const useStyles = () => {
           justifyContent: 'flex-end',
         },
         container: {
-          backgroundColor: theme.colors.sheetPrimary,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          padding: 20,
+          backgroundColor: colors.sheetPrimary,
+          borderTopLeftRadius: variants.borderRadiusSizes.lg,
+          borderTopRightRadius: variants.borderRadiusSizes.lg,
+          padding: variants.spacingSizes.md,
           maxHeight: '80%',
-          marginBottom: 0,
-          gap: 10,
         },
         dragIndicator: {
           width: '100%',
-          height: 24,
+          height: variants.spacingSizes.xs,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 8,
+          marginBottom: variants.spacingSizes.md,
         },
         dragIndicatorBar: {
-          width: 40,
-          height: 4,
-          backgroundColor: '#FFFFFF40',
+          width: 36,
+          height: 5,
+          backgroundColor: colors.buttonSecondaryDefault,
           borderRadius: 2,
         },
-        option: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          borderWidth: 1,
-          borderRadius: 32,
-          paddingHorizontal: theme.variants.spacingSizes.md,
-          height: 44,
-          backgroundColor: theme.colors.buttonSecondaryDefault,
-        },
-        iconContainer: {
-          marginRight: 10,
-        },
-        label: {
-          fontSize: 17,
-          color: theme.colors.iconPrimaryDefault,
-          fontWeight: '600',
-        },
-        screen: {
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        openDrawerButton: {
-          padding: 10,
-          backgroundColor: '#007AFF',
-          borderRadius: 5,
-        },
-        openDrawerText: {
-          color: '#FFF',
-          fontWeight: 'bold',
-        },
         emojiContainer: {
-          width: 42,
-          height: 42,
-          padding: theme.variants.spacingSizes.xs,
-          borderRadius: theme.variants.borderRadiusSizes.lg,
-          backgroundColor: theme.colors.buttonSecondaryDefault,
+          width: variants.roundButtonSizes.lg,
+          height: variants.roundButtonSizes.lg,
+          padding: variants.spacingSizes.xs,
+          borderRadius: variants.borderRadiusSizes.lg,
+          backgroundColor: colors.buttonSecondaryDefault,
+          marginBottom: variants.spacingSizes.sm,
           alignItems: 'center',
           justifyContent: 'center',
         },
@@ -270,7 +267,45 @@ const useStyles = () => {
         emojiText: {
           fontSize: 25,
         },
+        option: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderWidth: 2,
+          borderRadius: variants.borderRadiusSizes.lg,
+          paddingHorizontal: variants.spacingSizes.md,
+          height: variants.roundButtonSizes.lg,
+          backgroundColor: colors.buttonSecondaryDefault,
+          marginBottom: variants.spacingSizes.xs,
+        },
+        raiseHand: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 2,
+          borderRadius: variants.borderRadiusSizes.lg,
+          paddingHorizontal: variants.spacingSizes.md,
+          height: variants.roundButtonSizes.lg,
+          backgroundColor: colors.buttonSecondaryDefault,
+          marginBottom: variants.spacingSizes.sm,
+        },
+        iconContainer: {
+          marginRight: variants.spacingSizes.sm,
+        },
+        handIconContainer: {
+          marginRight: variants.spacingSizes.sm,
+          marginTop: variants.spacingSizes.xs,
+        },
+        label: {
+          fontSize: variants.fontSizes.md,
+          color: colors.iconPrimaryDefault,
+          fontWeight: '600',
+        },
+        screen: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
       }),
-    [theme],
+    [variants, colors],
   );
 };
