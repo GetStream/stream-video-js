@@ -107,7 +107,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
         useNativeDriver: true,
       }).start();
     }
-  }, [isVisible]);
+  }, [isVisible, SNAP_BOTTOM, SNAP_TOP, translateY]);
 
   const elasticAnimRef = useRef(new Animated.Value(0.5));
 

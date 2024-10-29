@@ -1,5 +1,4 @@
 import { StyleProp, ViewStyle } from 'react-native';
-import { useTheme } from '../../../..';
 
 export enum FloatingViewAlignment {
   // Aligns the floating view to the top left corner.
@@ -24,22 +23,22 @@ export type SnapAlignments = Record<
 export function getSnapAlignments({
   rootContainerDimensions,
   floatingViewDimensions,
+  topOffset,
 }: {
   rootContainerDimensions: { width: number; height: number };
   floatingViewDimensions: { width: number; height: number };
+  topOffset: number;
 }): SnapAlignments {
   const right = rootContainerDimensions.width - floatingViewDimensions.width;
   const bottom = rootContainerDimensions.height - floatingViewDimensions.height;
-  const { theme } = useTheme();
-  const top = theme.floatingParticipantsView.topPosition || 0;
   const snapOffsets = {
     [FloatingViewAlignment.topLeft]: {
       x: 0,
-      y: top,
+      y: topOffset,
     },
     [FloatingViewAlignment.topRight]: {
       x: right,
-      y: top,
+      y: topOffset,
     },
     [FloatingViewAlignment.bottomLeft]: {
       x: 0,
