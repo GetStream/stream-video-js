@@ -127,11 +127,13 @@ const DeviceSelectorDropdown = (props: {
       <DropDownSelect
         icon={icon}
         defaultSelectedIndex={selectedIndex}
-        defaultSelectedLabel={devices[selectedIndex]?.label}
+        defaultSelectedLabel={devices[selectedIndex]?.label ?? 'Default'}
         handleSelect={handleSelect}
       >
-        {devices.map((device) => {
-          return (
+        {devices.length === 0 ? (
+          <DropDownSelectOption icon={icon} label="Default" selected />
+        ) : (
+          devices.map((device) => (
             <DropDownSelectOption
               key={device.deviceId}
               icon={icon}
@@ -140,8 +142,8 @@ const DeviceSelectorDropdown = (props: {
                 device.deviceId === selectedDeviceId || devices.length === 1
               }
             />
-          );
-        })}
+          ))
+        )}
       </DropDownSelect>
     </div>
   );
