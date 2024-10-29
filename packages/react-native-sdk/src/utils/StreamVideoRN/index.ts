@@ -1,7 +1,5 @@
-import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
-import { setupRemoteNotificationsHandleriOS } from '../push/ios';
 import newNotificationCallbacks, {
   NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
@@ -67,10 +65,6 @@ export class StreamVideoRN {
       return;
     }
     this.config.push = pushConfig;
-    // After getting the config we should setup callkeep events, firebase handler asap to handle incoming calls from a dead state
-    setupFirebaseHandlerAndroid(pushConfig);
-    // setup ios handler for non-voip push notifications asap
-    setupRemoteNotificationsHandleriOS(pushConfig);
   }
 
   static getConfig() {

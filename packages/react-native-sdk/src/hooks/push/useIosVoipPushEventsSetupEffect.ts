@@ -12,11 +12,11 @@ import { NativeModules } from 'react-native';
 import {
   canAddPushWSSubscriptionsRef,
   shouldCallBeEnded,
-} from '../../utils/push/utils';
+} from '../../utils/push/internal/utils';
 import {
   pushUnsubscriptionCallbacks$,
   voipPushNotificationCallCId$,
-} from '../../utils/push/rxSubjects';
+} from '../../utils/push/internal/rxSubjects';
 import { RxUtils, getLogger } from '@stream-io/video-client';
 
 let lastVoipToken: string | undefined = '';

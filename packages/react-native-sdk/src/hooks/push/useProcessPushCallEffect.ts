@@ -3,7 +3,7 @@ import {
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
   pushAndroidBackgroundDeliveredIncomingCallCId$,
-} from '../../utils/push/rxSubjects';
+} from '../../utils/push/internal/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
 import {
@@ -12,7 +12,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { processCallFromPush } from '../../utils/push/utils';
+import { processCallFromPush } from '../../utils/push/internal/utils';
 import { StreamVideoClient } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 

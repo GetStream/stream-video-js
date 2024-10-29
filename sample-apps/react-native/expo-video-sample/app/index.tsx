@@ -14,7 +14,7 @@ import * as Notifications from 'expo-notifications';
 
 export default function CreateCallScreen() {
   useEffect(() => {
-    const run = async () => {
+    const requestPermissions = async () => {
       await Notifications.requestPermissionsAsync();
       if (Platform.OS === 'android') {
         if (Platform.Version > 30) {
@@ -24,7 +24,11 @@ export default function CreateCallScreen() {
         }
       }
     };
-    run();
+    requestPermissions();
+
+    if (Platform.OS === 'ios') {
+      Notifications.addNotificationReceivedListener((notification) => {});
+    }
   }, []);
 
   return (

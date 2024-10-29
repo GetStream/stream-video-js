@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
-import { NonRingingPushEvent } from '../StreamVideoRN/types';
+import { NonRingingPushEvent } from '../../StreamVideoRN/types';
 
 /**
  * This rxjs subject is used to store the call cid of the accepted incoming call from push notification

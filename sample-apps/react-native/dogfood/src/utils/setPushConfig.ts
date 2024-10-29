@@ -1,12 +1,20 @@
 import {
   StreamVideoClient,
   StreamVideoRN,
+  firebaseMessagingOnMessageHandler,
+  onAndroidNotifeeEvent,
+  isFirebaseStreamVideoMessage,
+  isNotifeeStreamVideoEvent,
+  oniOSNotifeeEvent,
 } from '@stream-io/video-react-native-sdk';
 import { AndroidImportance } from '@notifee/react-native';
 import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
+import messaging from '@react-native-firebase/messaging';
+import { Platform } from 'react-native';
+import notifee from '@notifee/react-native';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -63,6 +71,47 @@ export function setPushConfig() {
       }
     },
   });
+
+  if (Platform.OS === 'android') {
+    // Set up the background message handler for
+    // 1. incoming call notifications
+    // 2. non-ringing notifications
+    messaging().setBackgroundMessageHandler(async (msg) => {
+      if (isFirebaseStreamVideoMessage(msg)) {
+        await firebaseMessagingOnMessageHandler(msg);
+      }
+    });
+    // Set up the foreground message handler for
+    // 1. incoming call notifications
+    // 2. non-ringing notifications
+    messaging().onMessage((msg) => {
+      if (isFirebaseStreamVideoMessage(msg)) {
+        firebaseMessagingOnMessageHandler(msg);
+      }
+    });
+
+    // on press handlers of background notifications
+    notifee.onBackgroundEvent(async (event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        await onAndroidNotifeeEvent({ event, isBackground: true });
+      }
+    });
+    // on press handlers of foreground notifications
+    notifee.onForegroundEvent((event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        onAndroidNotifeeEvent({ event, isBackground: false });
+      }
+    });
+  }
+  if (Platform.OS === 'ios') {
+    // on press handlers of foreground notifications for iOS
+    // note: used only for non-ringing notifications
+    notifee.onForegroundEvent((event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        oniOSNotifeeEvent({ event, isBackground: false });
+      }
+    });
+  }
 }
 
 /**

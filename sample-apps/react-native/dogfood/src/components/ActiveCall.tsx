@@ -3,8 +3,6 @@ import {
   useCall,
   CallContent,
   CallControlProps,
-  StreamVideoRN,
-  firebaseMessagingOnMessageHandler,
 } from '@stream-io/video-react-native-sdk';
 
 import { ActivityIndicator, StyleSheet } from 'react-native';
@@ -15,14 +13,6 @@ import {
   CallControlsComponentProps,
 } from './CallControlsComponent';
 import { useOrientation } from '../hooks/useOrientation';
-import messaging from '@react-native-firebase/messaging';
-
-messaging().setBackgroundMessageHandler(async (msg) => {
-  const push = StreamVideoRN.getConfig().push;
-  if (push) {
-    await firebaseMessagingOnMessageHandler(msg.data, push);
-  }
-});
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;

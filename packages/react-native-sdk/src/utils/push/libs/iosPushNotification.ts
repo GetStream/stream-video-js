@@ -3,6 +3,10 @@ export type PushNotificationIosLib =
 
 let pushNotificationIosLib: PushNotificationIosLib | undefined;
 
+import type { PushNotification } from '@react-native-community/push-notification-ios';
+
+export type PushNotificationiOSType = PushNotification;
+
 try {
   pushNotificationIosLib =
     require('@react-native-community/push-notification-ios').default;

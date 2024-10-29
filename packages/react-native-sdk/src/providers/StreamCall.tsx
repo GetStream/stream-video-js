@@ -5,7 +5,7 @@ import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallke
 import {
   canAddPushWSSubscriptionsRef,
   clearPushWSEventSubscriptions,
-} from '../utils/push/utils';
+} from '../utils/push/internal/utils';
 import { useAndroidKeepCallAliveEffect } from '../hooks/useAndroidKeepCallAliveEffect';
 import { AppState, NativeModules, Platform } from 'react-native';
 
