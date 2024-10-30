@@ -3,6 +3,7 @@ import { ChangeEventHandler, useCallback } from 'react';
 
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
+import { useI18n } from '@stream-io/video-react-bindings';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -59,6 +60,7 @@ const DeviceSelectorList = (props: {
 }) => {
   const { devices = [], selectedDeviceId, title, type, onChange } = props;
   const { close } = useMenuContext();
+  const { t } = useI18n();
 
   return (
     <div className="str-video__device-settings__device-kind">
@@ -70,7 +72,7 @@ const DeviceSelectorList = (props: {
       {devices.length === 0 ? (
         <DeviceSelectorOption
           id={`${type}--default`}
-          label="Default"
+          label={t('Default')}
           name={type}
           defaultChecked
           value="default"
@@ -107,6 +109,7 @@ const DeviceSelectorDropdown = (props: {
   icon: string;
 }) => {
   const { devices = [], selectedDeviceId, title, onChange, icon } = props;
+  const { t } = useI18n();
 
   const selectedIndex = devices.findIndex(
     (d) => d.deviceId === selectedDeviceId,
@@ -127,11 +130,11 @@ const DeviceSelectorDropdown = (props: {
       <DropDownSelect
         icon={icon}
         defaultSelectedIndex={selectedIndex}
-        defaultSelectedLabel={devices[selectedIndex]?.label ?? 'Default'}
+        defaultSelectedLabel={devices[selectedIndex]?.label ?? t('Default')}
         handleSelect={handleSelect}
       >
         {devices.length === 0 ? (
-          <DropDownSelectOption icon={icon} label="Default" selected />
+          <DropDownSelectOption icon={icon} label={t('Default')} selected />
         ) : (
           devices.map((device) => (
             <DropDownSelectOption
