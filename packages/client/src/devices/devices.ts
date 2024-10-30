@@ -33,7 +33,10 @@ const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
         devices = await navigator.mediaDevices.enumerateDevices();
       }
       return devices.filter(
-        (device) => device.kind === kind && device.label !== '',
+        (device) =>
+          device.kind === kind &&
+          device.label !== '' &&
+          device.deviceId !== 'default',
       );
     })(),
   );
