@@ -47,7 +47,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   const call = useCall();
 
   // negative offset is needed so the drawer component start above the bottom controls
-  const offset = -theme.variants.insets.bottom - BOTTOM_CONTROLS_HEIGHT;
+  const offset = -BOTTOM_CONTROLS_HEIGHT;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
@@ -136,8 +136,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     <View style={styles.emojiRow}>
       {reactions.map((item) => (
         <View key={item.emoji_code} style={styles.emojiContainer}>
-          <Text
-            style={styles.emojiText}
+          <TouchableOpacity
             onPress={() => {
               onCloseReaction({
                 type: item.type,
@@ -146,8 +145,8 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
               });
             }}
           >
-            {item.icon}
-          </Text>
+            <Text style={styles.emojiText}>{item.icon}</Text>
+          </TouchableOpacity>
         </View>
       ))}
     </View>
