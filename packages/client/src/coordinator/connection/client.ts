@@ -252,7 +252,7 @@ export class StreamClient {
     ) {
       this.logger(
         'warn',
-        'Please do not use connectUser server side. connectUser impacts MAU and concurrent connection usage and thus your bill. If you have a valid use-case, add "allowServerSideConnect: true" to the client options to disable this warning.',
+        'Please do not use connectUser server side. Use our @stream-io/node-sdk instead: https://getstream.io/video/docs/api/',
       );
     }
 

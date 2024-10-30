@@ -1,5 +1,6 @@
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { getLogger } from '../logger';
 
 type FunctionPatch<T> = (currentValue: T) => T;
 
@@ -63,12 +64,15 @@ export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
  *
  * @param observable the observable to subscribe to.
  * @param handler the handler to call when the observable emits a value.
+ * @param onError an optional error handler.
  */
 export const createSubscription = <T>(
   observable: Observable<T>,
   handler: (value: T) => void,
+  onError: (error: any) => void = (error) =>
+    getLogger(['RxUtils'])('warn', 'An observable emitted an error', error),
 ) => {
-  const subscription = observable.subscribe(handler);
+  const subscription = observable.subscribe({ next: handler, error: onError });
   return () => {
     subscription.unsubscribe();
   };
@@ -87,10 +91,7 @@ export const createSafeAsyncSubscription = <T>(
   handler: (value: T) => Promise<void>,
 ) => {
   const tag = Symbol();
-  const subscription = observable.subscribe((value) => {
+  return createSubscription(observable, (value) => {
     withoutConcurrency(tag, () => handler(value));
   });
-  return () => {
-    subscription.unsubscribe();
-  };
 };
