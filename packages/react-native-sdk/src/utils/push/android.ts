@@ -1,4 +1,3 @@
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import {
   Call,
   RxUtils,
@@ -15,6 +14,7 @@ import {
   getExpoNotificationsLib,
   getNotifeeLibThrowIfNotInstalledForPush,
   NotifeeLib,
+  FirebaseMessagingTypes,
 } from './libs';
 import {
   pushAcceptedIncomingCallCId$,
