@@ -18,7 +18,6 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
-// import { generateMockParticipants } from '.';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -65,11 +64,10 @@ export const CallParticipantsSpotlight = ({
     sortBy: speakerLayoutSortPreset,
   });
   let allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
-  // allParticipants = generateMockParticipants(10); // for testing
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);
-  const isUserAloneInCall = allParticipants?.length === 1;
+  const isUserAloneInCall = _allParticipants?.length === 1;
 
   const isInPiP = useIsInPiPMode(disablePictureInPicture);
 
