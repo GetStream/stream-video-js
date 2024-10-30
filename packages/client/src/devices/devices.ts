@@ -11,6 +11,7 @@ import {
 import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
+import { isFirefox } from '../helpers/browsers';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -160,12 +161,12 @@ export const getAudioOutputDevices = lazy(() => {
 
 const getStream = async (constraints: MediaStreamConstraints) => {
   const stream = await navigator.mediaDevices.getUserMedia(constraints);
-  // On Firefox, there's no reliable way to listen to device permission changes,
-  // so it's difficult to update the device list once camera or microphone access
-  // is allowed by the user. However, if we were able to get user media, we can be
-  // sure permission was granted, so we fake the devicechange event to force device
-  // lists to update.
-  navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+  if (isFirefox()) {
+    // When enumerating devices, Firefox will hide device labels unless there's been
+    // an active user media stream on the page. So we force device list updates after
+    // every successful getUserMedia call.
+    navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+  }
   return stream;
 };
 

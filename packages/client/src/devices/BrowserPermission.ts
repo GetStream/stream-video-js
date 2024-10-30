@@ -22,7 +22,7 @@ export class BrowserPermission {
 
     this.ready = (async () => {
       const assumeGranted = (error?: unknown) => {
-        this.setState('granted');
+        this.setState('prompt');
       };
 
       if (!canQueryPermissions()) {
