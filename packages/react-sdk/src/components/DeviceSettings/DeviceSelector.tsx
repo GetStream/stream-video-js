@@ -3,6 +3,7 @@ import { ChangeEventHandler, useCallback } from 'react';
 
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
+import { useI18n } from '@stream-io/video-react-bindings';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -57,26 +58,9 @@ const DeviceSelectorList = (props: {
   title?: string;
   onChange?: (deviceId: string) => void;
 }) => {
-  const {
-    devices = [],
-    selectedDeviceId: selectedDeviceFromProps,
-    title,
-    type,
-    onChange,
-  } = props;
-
+  const { devices = [], selectedDeviceId, title, type, onChange } = props;
   const { close } = useMenuContext();
-
-  // sometimes the browser (Chrome) will report the system-default device
-  // with an id of 'default'. In case when it doesn't, we'll select the first
-  // available device.
-  let selectedDeviceId = selectedDeviceFromProps;
-  if (
-    devices.length > 0 &&
-    !devices.find((d) => d.deviceId === selectedDeviceId)
-  ) {
-    selectedDeviceId = devices[0].deviceId;
-  }
+  const { t } = useI18n();
 
   return (
     <div className="str-video__device-settings__device-kind">
@@ -85,10 +69,10 @@ const DeviceSelectorList = (props: {
           {title}
         </div>
       )}
-      {!devices.length ? (
+      {devices.length === 0 ? (
         <DeviceSelectorOption
           id={`${type}--default`}
-          label="Default"
+          label={t('Default')}
           name={type}
           defaultChecked
           value="default"
@@ -122,28 +106,10 @@ const DeviceSelectorDropdown = (props: {
   selectedDeviceId?: string;
   title?: string;
   onChange?: (deviceId: string) => void;
-  visualType?: 'list' | 'dropdown';
   icon: string;
-  placeholder?: string;
 }) => {
-  const {
-    devices = [],
-    selectedDeviceId: selectedDeviceFromProps,
-    title,
-    onChange,
-    icon,
-  } = props;
-
-  // sometimes the browser (Chrome) will report the system-default device
-  // with an id of 'default'. In case when it doesn't, we'll select the first
-  // available device.
-  let selectedDeviceId = selectedDeviceFromProps;
-  if (
-    devices.length > 0 &&
-    !devices.find((d) => d.deviceId === selectedDeviceId)
-  ) {
-    selectedDeviceId = devices[0].deviceId;
-  }
+  const { devices = [], selectedDeviceId, title, onChange, icon } = props;
+  const { t } = useI18n();
 
   const selectedIndex = devices.findIndex(
     (d) => d.deviceId === selectedDeviceId,
@@ -164,11 +130,13 @@ const DeviceSelectorDropdown = (props: {
       <DropDownSelect
         icon={icon}
         defaultSelectedIndex={selectedIndex}
-        defaultSelectedLabel={devices[selectedIndex]?.label}
+        defaultSelectedLabel={devices[selectedIndex]?.label ?? t('Default')}
         handleSelect={handleSelect}
       >
-        {devices.map((device) => {
-          return (
+        {devices.length === 0 ? (
+          <DropDownSelectOption icon={icon} label={t('Default')} selected />
+        ) : (
+          devices.map((device) => (
             <DropDownSelectOption
               key={device.deviceId}
               icon={icon}
@@ -177,8 +145,8 @@ const DeviceSelectorDropdown = (props: {
                 device.deviceId === selectedDeviceId || devices.length === 1
               }
             />
-          );
-        })}
+          ))
+        )}
       </DropDownSelect>
     </div>
   );
@@ -199,7 +167,5 @@ export const DeviceSelector = (props: {
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;
   }
-  return (
-    <DeviceSelectorDropdown {...rest} icon={icon} placeholder={placeholder} />
-  );
+  return <DeviceSelectorDropdown {...rest} icon={icon} />;
 };
