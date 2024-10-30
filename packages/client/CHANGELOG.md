@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.9.3...@stream-io/video-client-1.10.0) (2024-10-30)
+
+
+### Features
+
+* report input devices in call stats ([#1533](https://github.com/GetStream/stream-video-js/issues/1533)) ([f34fe0a](https://github.com/GetStream/stream-video-js/commit/f34fe0a0444903099565ae55a9639e39fc19b76c))
+
 ## [1.9.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.9.2...@stream-io/video-client-1.9.3) (2024-10-28)
 
 
