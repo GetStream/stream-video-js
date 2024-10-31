@@ -52,6 +52,7 @@ export const CallParticipantsFullscreen = ({
       ? [localParticipant]
       : remoteParticipants;
 
+  // local participant alone in the call, so it is shown in full screen
   if (remoteParticipants.length === 0 && localParticipant) {
     participants = [localParticipant];
   }
