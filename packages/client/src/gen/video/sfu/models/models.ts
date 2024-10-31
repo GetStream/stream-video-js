@@ -435,6 +435,51 @@ export interface CallGrants {
   canScreenshare: boolean;
 }
 /**
+ * @generated from protobuf message stream.video.sfu.models.InputDevices
+ */
+export interface InputDevices {
+  /**
+   * @generated from protobuf field: repeated string available_devices = 1;
+   */
+  availableDevices: string[];
+  /**
+   * @generated from protobuf field: string current_device = 2;
+   */
+  currentDevice: string;
+  /**
+   * @generated from protobuf field: bool is_permitted = 3;
+   */
+  isPermitted: boolean;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.AndroidState
+ */
+export interface AndroidState {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.AndroidThermalState thermal_state = 1;
+   */
+  thermalState: AndroidThermalState;
+  /**
+   * @generated from protobuf field: bool is_power_saver_mode = 2;
+   */
+  isPowerSaverMode: boolean;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.AppleState
+ */
+export interface AppleState {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.AppleThermalState thermal_state = 1;
+   */
+  thermalState: AppleThermalState;
+  /**
+   * https://developer.apple.com/documentation/foundation/processinfo/1617047-islowpowermodeenabled
+   *
+   * @generated from protobuf field: bool is_low_power_mode_enabled = 2;
+   */
+  isLowPowerModeEnabled: boolean;
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
  */
 export enum PeerType {
@@ -764,6 +809,74 @@ export enum WebsocketReconnectStrategy {
    * @generated from protobuf enum value: WEBSOCKET_RECONNECT_STRATEGY_MIGRATE = 4;
    */
   MIGRATE = 4,
+}
+/**
+ * AndroidThermalState is reported by the Android API. The full list of values is documented here
+ * https://developer.android.com/reference/android/os/PowerManager.html#getCurrentThermalStatus()
+ *
+ * @generated from protobuf enum stream.video.sfu.models.AndroidThermalState
+ */
+export enum AndroidThermalState {
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_NONE = 1;
+   */
+  NONE = 1,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_LIGHT = 2;
+   */
+  LIGHT = 2,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_MODERATE = 3;
+   */
+  MODERATE = 3,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_SEVERE = 4;
+   */
+  SEVERE = 4,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_CRITICAL = 5;
+   */
+  CRITICAL = 5,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_EMERGENCY = 6;
+   */
+  EMERGENCY = 6,
+  /**
+   * @generated from protobuf enum value: ANDROID_THERMAL_STATE_SHUTDOWN = 7;
+   */
+  SHUTDOWN = 7,
+}
+/**
+ * AppleThermalState is the thermal state as reported by Apple devices when available or applicable to the platform.
+ * The full list of states (enum) is available here: https://developer.apple.com/documentation/foundation/processinfo/thermalstate
+ *
+ * @generated from protobuf enum stream.video.sfu.models.AppleThermalState
+ */
+export enum AppleThermalState {
+  /**
+   * @generated from protobuf enum value: APPLE_THERMAL_STATE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: APPLE_THERMAL_STATE_NOMINAL = 1;
+   */
+  NOMINAL = 1,
+  /**
+   * @generated from protobuf enum value: APPLE_THERMAL_STATE_FAIR = 2;
+   */
+  FAIR = 2,
+  /**
+   * @generated from protobuf enum value: APPLE_THERMAL_STATE_SERIOUS = 3;
+   */
+  SERIOUS = 3,
+  /**
+   * @generated from protobuf enum value: APPLE_THERMAL_STATE_CRITICAL = 4;
+   */
+  CRITICAL = 4,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
@@ -1191,3 +1304,82 @@ class CallGrants$Type extends MessageType<CallGrants> {
  * @generated MessageType for protobuf message stream.video.sfu.models.CallGrants
  */
 export const CallGrants = new CallGrants$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InputDevices$Type extends MessageType<InputDevices> {
+  constructor() {
+    super('stream.video.sfu.models.InputDevices', [
+      {
+        no: 1,
+        name: 'available_devices',
+        kind: 'scalar',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 2,
+        name: 'current_device',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      { no: 3, name: 'is_permitted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.InputDevices
+ */
+export const InputDevices = new InputDevices$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AndroidState$Type extends MessageType<AndroidState> {
+  constructor() {
+    super('stream.video.sfu.models.AndroidState', [
+      {
+        no: 1,
+        name: 'thermal_state',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.AndroidThermalState',
+          AndroidThermalState,
+          'ANDROID_THERMAL_STATE_',
+        ],
+      },
+      {
+        no: 2,
+        name: 'is_power_saver_mode',
+        kind: 'scalar',
+        T: 8 /*ScalarType.BOOL*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.AndroidState
+ */
+export const AndroidState = new AndroidState$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppleState$Type extends MessageType<AppleState> {
+  constructor() {
+    super('stream.video.sfu.models.AppleState', [
+      {
+        no: 1,
+        name: 'thermal_state',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.AppleThermalState',
+          AppleThermalState,
+          'APPLE_THERMAL_STATE_',
+        ],
+      },
+      {
+        no: 2,
+        name: 'is_low_power_mode_enabled',
+        kind: 'scalar',
+        T: 8 /*ScalarType.BOOL*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.AppleState
+ */
+export const AppleState = new AppleState$Type();

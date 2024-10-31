@@ -988,6 +988,9 @@ export class Call {
         options: statsOptions,
         subscriber: this.subscriber,
         publisher: this.publisher,
+        microphone: this.microphone,
+        camera: this.camera,
+        state: this.state,
       });
       this.sfuStatsReporter.start();
     }
