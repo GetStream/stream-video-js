@@ -218,7 +218,15 @@ export class Subscriber {
       this.logger('error', `Unknown track type: ${rawTrackType}`);
       return;
     }
+
     const previousStream = participantToUpdate[streamKindProp];
+
+    // replace the previous stream with the new one, prevents flickering
+    this.state.updateParticipant(participantToUpdate.sessionId, {
+      [streamKindProp]: primaryStream,
+    });
+
+    // now, dispose the previous stream
     if (previousStream) {
       this.logger(
         'info',
@@ -229,9 +237,6 @@ export class Subscriber {
         previousStream.removeTrack(t);
       });
     }
-    this.state.updateParticipant(participantToUpdate.sessionId, {
-      [streamKindProp]: primaryStream,
-    });
   };
 
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
