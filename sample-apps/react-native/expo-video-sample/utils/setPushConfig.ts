@@ -1,13 +1,10 @@
 import {
   StreamVideoClient,
   StreamVideoRN,
-  firebaseMessagingOnMessageHandler,
-  onAndroidNotifeeEvent,
-  isFirebaseStreamVideoMessage,
   oniOSNotifeeEvent,
   isNotifeeStreamVideoEvent,
+  onAndroidNotifeeEvent,
 } from '@stream-io/video-react-native-sdk';
-import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import * as Notifications from 'expo-notifications';
@@ -17,6 +14,7 @@ import {
   staticNavigateToRingingCall,
 } from './staticNavigationUtils';
 import { createToken } from './createToken';
+import { setFirebaseListeners } from './setFirebaseListeners';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -66,24 +64,10 @@ export function setPushConfig() {
       staticNavigateToNonRingingCall();
     },
   });
-  if (Platform.OS === 'android') {
-    // Set up the background message handler for
-    // 1. incoming call notifications
-    // 2. non-ringing notifications
-    messaging().setBackgroundMessageHandler(async (msg) => {
-      if (isFirebaseStreamVideoMessage(msg)) {
-        await firebaseMessagingOnMessageHandler(msg);
-      }
-    });
-    // Set up the foreground message handler for
-    // 1. incoming call notifications
-    // 2. non-ringing notifications
-    messaging().onMessage((msg) => {
-      if (isFirebaseStreamVideoMessage(msg)) {
-        firebaseMessagingOnMessageHandler(msg);
-      }
-    });
 
+  setFirebaseListeners();
+
+  if (Platform.OS === 'android') {
     // on press handlers of background notifications
     notifee.onBackgroundEvent(async (event) => {
       if (isNotifeeStreamVideoEvent(event)) {

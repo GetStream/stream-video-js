@@ -26,7 +26,6 @@
     "expo-router": "~3.5.23",
     "expo-splash-screen": "~0.27.6",
     "expo-status-bar": "~1.12.1",
-    "expo-task-manager": "~11.8.2",
     "react": "18.2.0",
     "react-native": "0.74.5",
     "react-native-callkeep": "4.3.12",
