@@ -22,7 +22,7 @@ export class BrowserPermission {
 
     this.ready = (async () => {
       const assumeGranted = (error?: unknown) => {
-        this.setState('granted');
+        this.setState('prompt');
       };
 
       if (!canQueryPermissions()) {
@@ -88,12 +88,14 @@ export class BrowserPermission {
             this.permission.constraints,
           );
           disposeOfMediaStream(stream);
+          this.setState('granted');
           return true;
         } catch (e) {
           if (e instanceof DOMException && e.name === 'NotAllowedError') {
             this.logger('info', 'Browser permission was not granted', {
               permission: this.permission,
             });
+            this.setState('denied');
 
             if (throwOnNotAllowed) {
               throw e;
