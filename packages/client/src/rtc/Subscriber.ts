@@ -31,21 +31,12 @@ export class Subscriber {
   private state: CallState;
 
   private readonly unregisterOnSubscriberOffer: () => void;
-  private readonly unregisterOnIceRestart: () => void;
   private readonly onUnrecoverableError?: () => void;
 
   private isIceRestarting = false;
 
   /**
    * Constructs a new `Subscriber` instance.
-   *
-   * @param sfuClient the SFU client to use.
-   * @param dispatcher the dispatcher to use.
-   * @param state the state of the call.
-   * @param connectionConfig the connection configuration to use.
-   * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE when connection goes to `disconnected` state.
-   * @param onUnrecoverableError a callback to call when an unrecoverable error occurs.
-   * @param logTag a tag to use for logging.
    */
   constructor({
     sfuClient,
@@ -73,17 +64,6 @@ export class Subscriber {
         });
       },
     );
-
-    const iceRestartConcurrencyTag = Symbol('iceRestart');
-    this.unregisterOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
-      withoutConcurrency(iceRestartConcurrencyTag, async () => {
-        if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
-        await this.restartIce();
-      }).catch((err) => {
-        this.logger('error', `ICERestart failed`, err);
-        this.onUnrecoverableError?.();
-      });
-    });
   }
 
   /**
@@ -124,7 +104,6 @@ export class Subscriber {
    */
   detachEventHandlers = () => {
     this.unregisterOnSubscriberOffer();
-    this.unregisterOnIceRestart();
 
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('track', this.handleOnTrack);
@@ -239,7 +218,18 @@ export class Subscriber {
       this.logger('error', `Unknown track type: ${rawTrackType}`);
       return;
     }
+
+    // get the previous stream to dispose it later
+    // usually this happens during migration, when the stream is replaced
+    // with a new one but the old one is still in the state
     const previousStream = participantToUpdate[streamKindProp];
+
+    // replace the previous stream with the new one, prevents flickering
+    this.state.updateParticipant(participantToUpdate.sessionId, {
+      [streamKindProp]: primaryStream,
+    });
+
+    // now, dispose the previous stream if it exists
     if (previousStream) {
       this.logger(
         'info',
@@ -250,9 +240,6 @@ export class Subscriber {
         previousStream.removeTrack(t);
       });
     }
-    this.state.updateParticipant(participantToUpdate.sessionId, {
-      [streamKindProp]: primaryStream,
-    });
   };
 
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
