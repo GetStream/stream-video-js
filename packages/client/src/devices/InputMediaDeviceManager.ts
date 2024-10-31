@@ -78,6 +78,7 @@ export abstract class InputMediaDeviceManager<
       return;
     }
 
+    this.state.prevStatus = this.state.status;
     this.state.setPendingStatus('enabled');
 
     await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
@@ -97,9 +98,17 @@ export abstract class InputMediaDeviceManager<
    * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
   async disable(forceStop: boolean = false) {
-    this.state.prevStatus = this.state.status;
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
+    }
+    this.state.prevStatus = this.state.status;
+    if (
+      this.state.prevStatus === 'disabled' &&
+      this.state.optimisticStatus === 'enabled'
+    ) {
+      // if previously enabled but its not done yet, set the prevStatus to enabled
+      // this makes resume() work correctly
+      this.state.prevStatus = 'enabled';
     }
 
     this.state.setPendingStatus('disabled');
