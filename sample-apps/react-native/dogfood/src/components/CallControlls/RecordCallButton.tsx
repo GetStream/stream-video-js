@@ -72,21 +72,6 @@ export const RecordCallButton = ({
     />
   );
 
-  // TODO: add consent modal recording for other users in the call
-  // const consentRecording = (
-  //   <CallRecordingModal
-  //     visible={isConsentRecordingModalOpen}
-  //     isLoading={isAwaitingResponse}
-  //     title="This call is being recorded"
-  //     confirmButton="Continue"
-  //     cancelButton="Leave call"
-  //     isEndRecordingModal={false}
-  //     message="By staying in the call you're consenting to being recorded."
-  //     onCancel={onHangupCallHandler}
-  //     onConfirm={() => setIsConsentRecordingModalOpen(false)}
-  //   />
-  // );
-
   return (
     <CallControlsButton
       size={variants.roundButtonSizes.lg}
