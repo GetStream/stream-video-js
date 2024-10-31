@@ -11,7 +11,7 @@ import {
   useMenuContext,
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
-import { useToggleCallRecording } from '../../hooks';
+import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 import { WithTooltip } from '../Tooltip';
 
 export type RecordCallButtonProps = {
