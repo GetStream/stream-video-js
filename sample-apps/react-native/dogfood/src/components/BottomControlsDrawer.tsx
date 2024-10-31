@@ -4,6 +4,8 @@ import {
   useTheme,
   getLogger,
 } from '@stream-io/video-react-native-sdk';
+import { defaultEmojiReactions } from '@stream-io/video-react-native-sdk/src/constants';
+
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Modal,
@@ -19,7 +21,7 @@ import {
   PanResponder,
   Easing,
 } from 'react-native';
-import { BOTTOM_CONTROLS_HEIGHT, reactions } from '../constants';
+import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
 import RaiseHand from '../assets/RaiseHand';
 
 export type DrawerOption = {
@@ -134,7 +136,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
 
   const emojiReactions = (
     <View style={styles.emojiRow}>
-      {reactions.map((item) => (
+      {defaultEmojiReactions.map((item) => (
         <View key={item.emoji_code} style={styles.emojiContainer}>
           <TouchableOpacity
             onPress={() => {
