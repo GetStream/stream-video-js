@@ -17,12 +17,12 @@ import {
   toSvcEncodings,
 } from './videoLayers';
 import {
-  getCodecPreferences,
   getOptimalVideoCodec,
+  getSupportedCodecs,
   isCodecSupported,
   isSvcCodec,
 } from './codecs';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { toTrackKind, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { PublishOptions } from '../types';
 import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
 import { Dispatcher } from './Dispatcher';
@@ -43,7 +43,6 @@ export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new Map<TrackType, RTCRtpTransceiver>();
   private readonly trackLayersCache = new Map<TrackType, OptimalVideoLayer[]>();
   private readonly publishOptsForTrack = new Map<TrackType, PublishOptions>();
-  private readonly codecsForTrack = new Map<TrackType, string>();
   private readonly scalabilityModeForTrack = new Map<TrackType, string>();
 
   /**
@@ -185,7 +184,6 @@ export class Publisher extends BasePeerConnection {
     this.transceiverInitOrder.push(trackType);
     this.transceiverCache.set(trackType, transceiver);
     this.publishOptsForTrack.set(trackType, opts);
-    this.codecsForTrack.set(trackType, codecInUse);
     this.scalabilityModeForTrack.set(
       trackType,
       sendEncodings?.[0]?.scalabilityMode || '',
@@ -501,13 +499,11 @@ export class Publisher extends BasePeerConnection {
         const transceiverInitIndex =
           this.transceiverInitOrder.indexOf(trackType);
 
-        let codecToUse: string | undefined = undefined;
-        if (trackType === TrackType.VIDEO) {
-          codecToUse = this.codecsForTrack.get(trackType);
-        } else if (trackType === TrackType.AUDIO) {
-          codecToUse = isRedEnabled ? 'red' : 'opus';
-        }
-        const preferredCodecs = getCodecPreferences(trackType, codecToUse);
+        // FIXME OL:
+        //  instead of sending all supported codecs, we should send a prioritized list
+        //  [video/vp9, video/h264, video/vp8] or [audio/opus, audio/red]
+        const trackKind = toTrackKind(trackType);
+        const preferredCodecs = trackKind ? getSupportedCodecs(trackKind) : [];
         return {
           trackId: track.id,
           layers,
@@ -517,7 +513,7 @@ export class Publisher extends BasePeerConnection {
           dtx: isAudioTrack && isDtxEnabled,
           red: isAudioTrack && isRedEnabled,
           muted: !isTrackLive,
-          preferredCodecs: (preferredCodecs || []).map<Codec>((codec) => ({
+          preferredCodecs: preferredCodecs.map<Codec>((codec) => ({
             mimeType: codec.mimeType,
             fmtp: codec.sdpFmtpLine || '',
             scalabilityMode: isSvcCodec(codec.mimeType)

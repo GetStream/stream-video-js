@@ -1,84 +1,19 @@
 import { getOSInfo } from '../client-details';
 import { isReactNative } from '../helpers/platforms';
 import { isFirefox, isSafari } from '../helpers/browsers';
-import { TrackType } from '../gen/video/sfu/models/models';
 import type { PreferredCodec } from '../types';
 
 /**
- * Returns back a list of sorted codecs, with the preferred codec first.
- *
- * @param preferredCodecMimeType the codec to prioritize (video/vp8, video/h264, video/vp9, video/av1...).
+ * Returns back a list of supported publish codecs for the given kind.
  */
-export const getPreferredCodecs = (
-  preferredCodecMimeType: string,
-): RTCRtpCodecCapability[] | undefined => {
-  if (!('getCapabilities' in RTCRtpSender)) return;
-
-  const [kind] = preferredCodecMimeType.split('/');
+export const getSupportedCodecs = (
+  kind: 'audio' | 'video',
+): RTCRtpCodecCapability[] => {
+  if (!('getCapabilities' in RTCRtpSender)) return [];
   const capabilities = RTCRtpSender.getCapabilities(kind);
-  if (!capabilities) return;
+  if (!capabilities) return [];
 
-  const preferred: RTCRtpCodecCapability[] = [];
-  const partiallyPreferred: RTCRtpCodecCapability[] = [];
-  const unpreferred: RTCRtpCodecCapability[] = [];
-
-  preferredCodecMimeType = preferredCodecMimeType.toLowerCase();
-  for (const codec of capabilities.codecs) {
-    const codecMimeType = codec.mimeType.toLowerCase();
-
-    const isPreferredCodec = codecMimeType === preferredCodecMimeType;
-    if (!isPreferredCodec) {
-      unpreferred.push(codec);
-      continue;
-    }
-
-    // h264 is a special case, we want to prioritize the baseline codec with
-    // profile-level-id is 42e01f and packetization-mode=0 for maximum
-    // cross-browser compatibility.
-    // this branch covers the other cases, such as vp8.
-    if (codecMimeType !== 'video/h264') {
-      preferred.push(codec);
-      continue;
-    }
-
-    const sdpFmtpLine = codec.sdpFmtpLine;
-    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42e01f')) {
-      // this is not the baseline h264 codec, prioritize it lower
-      partiallyPreferred.push(codec);
-      continue;
-    }
-
-    // packetization-mode mode is optional; when not present it defaults to 0:
-    // https://datatracker.ietf.org/doc/html/rfc6184#section-6.2
-    if (
-      sdpFmtpLine.includes('packetization-mode=0') ||
-      !sdpFmtpLine.includes('packetization-mode')
-    ) {
-      preferred.unshift(codec);
-    } else {
-      preferred.push(codec);
-    }
-  }
-
-  // return a sorted list of codecs, with the preferred codecs first
-  return [...preferred, ...partiallyPreferred, ...unpreferred];
-};
-
-/**
- * Returns an ordered list of preferred codecs for the given track type.
- *
- * @param trackType the type of track.
- * @param preferredCodec the preferred codec to prioritize.
- */
-export const getCodecPreferences = (
-  trackType: TrackType,
-  preferredCodec?: string,
-): RTCRtpCodecCapability[] | undefined => {
-  return trackType === TrackType.VIDEO
-    ? getPreferredCodecs(`video/${preferredCodec || 'vp8'}`)
-    : trackType === TrackType.AUDIO
-      ? getPreferredCodecs(`audio/${preferredCodec || 'opus'}`)
-      : undefined;
+  return capabilities.codecs;
 };
 
 /**
@@ -139,14 +74,9 @@ const preferredOr = (
  * @param codecMimeType the codec to check.
  */
 export const isCodecSupported = (codecMimeType: string): boolean => {
-  if (!('getCapabilities' in RTCRtpSender)) return false;
-
   codecMimeType = codecMimeType.toLowerCase();
-  const [kind] = codecMimeType.split('/');
-  const capabilities = RTCRtpSender.getCapabilities(kind);
-  if (!capabilities) return false;
-
-  const { codecs } = capabilities;
+  const [kind] = codecMimeType.split('/') as ('audio' | 'video')[];
+  const codecs = getSupportedCodecs(kind);
   return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType);
 };
 

@@ -1458,6 +1458,12 @@ export class Call {
    * @param options the options to use.
    */
   updatePublishOptions(options: PublishOptions) {
+    if (this.state.callingState === CallingState.JOINED) {
+      this.logger(
+        'warn',
+        'Cannot update publish options after joining the call',
+      );
+    }
     this.publishOptions = { ...this.publishOptions, ...options };
   }
 
