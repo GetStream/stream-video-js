@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { Grid } from '../../assets/Grid';
-import { FullScreen } from '../../assets/FullScreen';
 import { SpotLight } from '../../assets/Spotlight';
 import { Layout, useLayout } from '../../contexts/LayoutContext';
 
