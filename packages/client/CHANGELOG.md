@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.1...@stream-io/video-client-1.10.2) (2024-11-01)
+
+
+### Bug Fixes
+
+* camera not enabled on foreground notifications ([#1546](https://github.com/GetStream/stream-video-js/issues/1546)) ([67c920a](https://github.com/GetStream/stream-video-js/commit/67c920ac4bca35a414b88f6c9829b08396a6260b))
+
 ## [1.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.0...@stream-io/video-client-1.10.1) (2024-10-30)
 
 
