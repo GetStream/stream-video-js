@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.5...@stream-io/video-react-sdk-1.7.6) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.11`
+
+### Bug Fixes
+
+* move useToggleCallRecording to react-bindings ([#1545](https://github.com/GetStream/stream-video-js/issues/1545)) ([73014ca](https://github.com/GetStream/stream-video-js/commit/73014ca6a4585680f581c4e9481c2d286f2fcd37))
+
 ## [1.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.4...@stream-io/video-react-sdk-1.7.5) (2024-10-30)
 
 ### Dependency Updates
