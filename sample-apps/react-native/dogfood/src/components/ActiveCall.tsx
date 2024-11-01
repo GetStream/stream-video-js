@@ -12,6 +12,7 @@ import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
+import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
