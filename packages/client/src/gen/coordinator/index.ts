@@ -56,13 +56,13 @@ export interface APIError {
   unrecoverable?: boolean;
 }
 /**
- *
+ * AcceptCallResponse is the payload for accepting a call.
  * @export
  * @interface AcceptCallResponse
  */
 export interface AcceptCallResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof AcceptCallResponse
    */
@@ -258,7 +258,7 @@ export type BlockListOptionsBehaviorEnum =
   (typeof BlockListOptionsBehaviorEnum)[keyof typeof BlockListOptionsBehaviorEnum];
 
 /**
- *
+ * BlockUserRequest is the payload for blocking a user.
  * @export
  * @interface BlockUserRequest
  */
@@ -271,7 +271,7 @@ export interface BlockUserRequest {
   user_id: string;
 }
 /**
- *
+ * BlockUserResponse is the payload for blocking a user.
  * @export
  * @interface BlockUserResponse
  */
@@ -341,7 +341,7 @@ export interface BroadcastSettingsRequest {
   hls?: HLSSettingsRequest;
 }
 /**
- *
+ * BroadcastSettingsResponse is the payload for broadcasting settings
  * @export
  * @interface BroadcastSettingsResponse
  */
@@ -432,6 +432,31 @@ export interface CallClosedCaption {
    * @memberof CallClosedCaption
    */
   user: UserResponse;
+}
+/**
+ * This event is sent when call closed captions has failed
+ * @export
+ * @interface CallClosedCaptionsFailedEvent
+ */
+export interface CallClosedCaptionsFailedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaptionsFailedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaptionsFailedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.closed_captions_failed" in this case
+   * @type {string}
+   * @memberof CallClosedCaptionsFailedEvent
+   */
+  type: string;
 }
 /**
  * This event is sent when call closed caption has started
@@ -708,7 +733,7 @@ export interface CallHLSBroadcastingStoppedEvent {
   type: string;
 }
 /**
- *
+ * CallIngressResponse is the payload for ingress settings
  * @export
  * @interface CallIngressResponse
  */
@@ -1252,7 +1277,7 @@ export interface CallRejectedEvent {
   user: UserResponse;
 }
 /**
- *
+ * CallRequest is the payload for creating a call.
  * @export
  * @interface CallRequest
  */
@@ -1905,7 +1930,7 @@ export interface CallSettingsResponse {
   video: VideoSettingsResponse;
 }
 /**
- *
+ * CallStateResponseFields is the payload for call state response
  * @export
  * @interface CallStateResponseFields
  */
@@ -3138,27 +3163,27 @@ export interface CustomVideoEvent {
  */
 export interface DeleteRecordingResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof DeleteRecordingResponse
    */
   duration: string;
 }
 /**
- *
+ * DeleteTranscriptionResponse is the payload for deleting a transcription.
  * @export
  * @interface DeleteTranscriptionResponse
  */
 export interface DeleteTranscriptionResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof DeleteTranscriptionResponse
    */
   duration: string;
 }
 /**
- *
+ * Response for Device
  * @export
  * @interface Device
  */
@@ -3343,13 +3368,13 @@ export interface EgressResponse {
   rtmps: Array<EgressRTMPResponse>;
 }
 /**
- *
+ * Response for ending a call
  * @export
  * @interface EndCallResponse
  */
 export interface EndCallResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof EndCallResponse
    */
@@ -3577,7 +3602,7 @@ export interface GetCallStatsResponse {
   sfus: Array<SFULocationResponse>;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface GetEdgesResponse
  */
@@ -3713,7 +3738,7 @@ export interface GoLiveRequest {
   transcription_storage_name?: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface GoLiveResponse
  */
@@ -3757,7 +3782,7 @@ export interface HLSSettingsRequest {
   quality_tracks: Array<string>;
 }
 /**
- *
+ * HLSSettings is the payload for HLS settings
  * @export
  * @interface HLSSettingsResponse
  */
@@ -3807,7 +3832,7 @@ export interface HealthCheckEvent {
   created_at: string;
   /**
    *
-   * @type {OwnUser}
+   * @type {OwnUserResponse}
    * @memberof HealthCheckEvent
    */
   me?: OwnUser;
@@ -4011,7 +4036,7 @@ export interface LimitsSettingsResponse {
   max_participants?: number;
 }
 /**
- *
+ * List devices response
  * @export
  * @interface ListDevicesResponse
  */
@@ -4030,7 +4055,7 @@ export interface ListDevicesResponse {
   duration: string;
 }
 /**
- *
+ * Response for listing recordings
  * @export
  * @interface ListRecordingsResponse
  */
@@ -4061,7 +4086,7 @@ export interface ListTranscriptionsResponse {
    */
   duration: string;
   /**
-   *
+   * List of transcriptions for the call
    * @type {Array<CallTranscription>}
    * @memberof ListTranscriptionsResponse
    */
@@ -4155,7 +4180,7 @@ export interface MediaPubSubHint {
   video_subscribed: boolean;
 }
 /**
- *
+ * MemberRequest is the payload for adding a member to a call.
  * @export
  * @interface MemberRequest
  */
@@ -4180,7 +4205,7 @@ export interface MemberRequest {
   user_id: string;
 }
 /**
- *
+ * MemberResponse is the payload for a member of a call.
  * @export
  * @interface MemberResponse
  */
@@ -4272,7 +4297,7 @@ export interface MuteUsersRequest {
   video?: boolean;
 }
 /**
- *
+ * MuteUsersResponse is the response payload for the mute users endpoint.
  * @export
  * @interface MuteUsersResponse
  */
@@ -4737,7 +4762,7 @@ export interface PermissionRequestEvent {
   user: UserResponse;
 }
 /**
- *
+ * PinRequest is the payload for pinning a message.
  * @export
  * @interface PinRequest
  */
@@ -4756,7 +4781,7 @@ export interface PinRequest {
   user_id: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface PinResponse
  */
@@ -4938,7 +4963,7 @@ export interface QueryCallMembersRequest {
   type: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface QueryCallMembersResponse
  */
@@ -5006,7 +5031,7 @@ export interface QueryCallStatsRequest {
   sort?: Array<SortParamRequest>;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface QueryCallStatsResponse
  */
@@ -5067,7 +5092,7 @@ export interface QueryCallsRequest {
    */
   prev?: string;
   /**
-   *
+   * Array of sort parameters
    * @type {Array<SortParamRequest>}
    * @memberof QueryCallsRequest
    */
@@ -5223,7 +5248,7 @@ export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
 
 /**
- *
+ * RecordSettings is the payload for recording settings
  * @export
  * @interface RecordSettingsResponse
  */
@@ -5267,7 +5292,7 @@ export interface RejectCallRequest {
  */
 export interface RejectCallResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof RejectCallResponse
    */
@@ -5293,14 +5318,14 @@ export interface RequestPermissionRequest {
  */
 export interface RequestPermissionResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof RequestPermissionResponse
    */
   duration: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface Response
  */
@@ -5469,7 +5494,7 @@ export interface ScreensharingSettingsResponse {
   target_resolution?: TargetResolution;
 }
 /**
- *
+ * Send a call event to the other user
  * @export
  * @interface SendCallEventRequest
  */
@@ -5488,7 +5513,7 @@ export interface SendCallEventRequest {
  */
 export interface SendCallEventResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof SendCallEventResponse
    */
@@ -5520,7 +5545,7 @@ export interface SendReactionRequest {
   type: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface SendReactionResponse
  */
@@ -5571,19 +5596,19 @@ export interface StartClosedCaptionsResponse {
   duration: string;
 }
 /**
- *
+ * StartHLSBroadcastingResponse is the payload for starting an HLS broadcasting.
  * @export
  * @interface StartHLSBroadcastingResponse
  */
 export interface StartHLSBroadcastingResponse {
   /**
-   * Duration of the request in milliseconds
+   *
    * @type {string}
    * @memberof StartHLSBroadcastingResponse
    */
   duration: string;
   /**
-   *
+   * the URL of the HLS playlist
    * @type {string}
    * @memberof StartHLSBroadcastingResponse
    */
@@ -5603,13 +5628,13 @@ export interface StartRecordingRequest {
   recording_external_storage?: string;
 }
 /**
- *
+ * StartRecordingResponse is the response payload for the start recording endpoint.
  * @export
  * @interface StartRecordingResponse
  */
 export interface StartRecordingResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StartRecordingResponse
    */
@@ -5635,7 +5660,7 @@ export interface StartTranscriptionRequest {
  */
 export interface StartTranscriptionResponse {
   /**
-   *
+   * Duration of the request in milliseconds
    * @type {string}
    * @memberof StartTranscriptionResponse
    */
@@ -5687,7 +5712,7 @@ export interface StopClosedCaptionsResponse {
   duration: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface StopHLSBroadcastingResponse
  */
@@ -5712,7 +5737,7 @@ export interface StopLiveResponse {
    */
   call: CallResponse;
   /**
-   * Duration of the request in milliseconds
+   *
    * @type {string}
    * @memberof StopLiveResponse
    */
@@ -5732,7 +5757,7 @@ export interface StopRecordingResponse {
   duration: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface StopTranscriptionResponse
  */
@@ -5801,7 +5826,7 @@ export interface TargetResolution {
   width: number;
 }
 /**
- * Sets thresholds for AI moderation
+ *
  * @export
  * @interface Thresholds
  */
@@ -5974,7 +5999,7 @@ export interface TypingIndicators {
   enabled?: boolean;
 }
 /**
- *
+ * UnblockUserRequest is the payload for unblocking a user.
  * @export
  * @interface UnblockUserRequest
  */
@@ -5987,7 +6012,7 @@ export interface UnblockUserRequest {
   user_id: string;
 }
 /**
- *
+ * UnblockUserResponse is the payload for unblocking a user.
  * @export
  * @interface UnblockUserResponse
  */
@@ -6032,7 +6057,7 @@ export interface UnblockedUserEvent {
   user: UserResponse;
 }
 /**
- *
+ * UnpinRequest is the payload for unpinning a message.
  * @export
  * @interface UnpinRequest
  */
@@ -6051,7 +6076,7 @@ export interface UnpinRequest {
   user_id: string;
 }
 /**
- *
+ * UnpinResponse is the payload for unpinning a message.
  * @export
  * @interface UnpinResponse
  */
@@ -6064,7 +6089,7 @@ export interface UnpinResponse {
   duration: string;
 }
 /**
- *
+ * Update call members
  * @export
  * @interface UpdateCallMembersRequest
  */
@@ -6083,7 +6108,7 @@ export interface UpdateCallMembersRequest {
   update_members?: Array<MemberRequest>;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface UpdateCallMembersResponse
  */
@@ -6102,7 +6127,7 @@ export interface UpdateCallMembersResponse {
   members: Array<MemberResponse>;
 }
 /**
- *
+ * Request for updating a call
  * @export
  * @interface UpdateCallRequest
  */
@@ -6127,7 +6152,7 @@ export interface UpdateCallRequest {
   starts_at?: string;
 }
 /**
- * Represents a call
+ * Response for updating a call
  * @export
  * @interface UpdateCallResponse
  */
@@ -6189,7 +6214,7 @@ export interface UpdateUserPermissionsRequest {
   user_id: string;
 }
 /**
- *
+ * Basic response information
  * @export
  * @interface UpdateUserPermissionsResponse
  */
@@ -6397,6 +6422,12 @@ export interface UserInfoResponse {
    * @memberof UserInfoResponse
    */
   custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof UserInfoResponse
+   */
+  id: string;
   /**
    *
    * @type {string}
@@ -6687,7 +6718,7 @@ export interface UserReactivatedEvent {
   user?: UserObject;
 }
 /**
- *
+ * User request object
  * @export
  * @interface UserRequest
  */
@@ -6742,7 +6773,7 @@ export interface UserRequest {
   push_notifications?: PushNotificationSettingsInput;
 }
 /**
- *
+ * User response object
  * @export
  * @interface UserResponse
  */
@@ -7413,7 +7444,7 @@ export type VideoSettingsResponseCameraFacingEnum =
   (typeof VideoSettingsResponseCameraFacingEnum)[keyof typeof VideoSettingsResponseCameraFacingEnum];
 
 /**
- *
+ * Websocket auth message
  * @export
  * @interface WSAuthMessage
  */
@@ -7446,6 +7477,7 @@ export type WSEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
   | ({ type: 'call.closed_caption' } & ClosedCaptionEvent)
+  | ({ type: 'call.closed_captions_failed' } & CallClosedCaptionsFailedEvent)
   | ({ type: 'call.closed_captions_started' } & CallClosedCaptionsStartedEvent)
   | ({ type: 'call.closed_captions_stopped' } & CallClosedCaptionsStoppedEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)

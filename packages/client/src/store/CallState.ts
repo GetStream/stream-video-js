@@ -436,6 +436,9 @@ export class CallState {
       'call.accepted': (e) => this.updateFromCallResponse(e.call),
       'call.blocked_user': this.blockUser,
       'call.closed_caption': this.updateFromClosedCaptions,
+      'call.closed_captions_failed': () => {
+        this.setCurrentValue(this.captioningSubject, false);
+      },
       'call.closed_captions_started': () => {
         this.setCurrentValue(this.captioningSubject, true);
       },
