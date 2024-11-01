@@ -2,6 +2,52 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.9...@stream-io/video-react-native-sdk-1.2.10) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.13`
+## [1.2.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.8...@stream-io/video-react-native-sdk-1.2.9) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.12`
+
+### Bug Fixes
+
+* camera not enabled on foreground notifications ([#1546](https://github.com/GetStream/stream-video-js/issues/1546)) ([67c920a](https://github.com/GetStream/stream-video-js/commit/67c920ac4bca35a414b88f6c9829b08396a6260b))
+
+## [1.2.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.7...@stream-io/video-react-native-sdk-1.2.8) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.11`
+## [1.2.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.6...@stream-io/video-react-native-sdk-1.2.7) (2024-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.10`
+## [1.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.5...@stream-io/video-react-native-sdk-1.2.6) (2024-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.9`
+## [1.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.4...@stream-io/video-react-native-sdk-1.2.5) (2024-10-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.9.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.8`
+## [1.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.3...@stream-io/video-react-native-sdk-1.2.4) (2024-10-22)
+
+
+### Bug Fixes
+
+* added workaround for possible multiple createDevice calls on remounting ([#1532](https://github.com/GetStream/stream-video-js/issues/1532)) ([eb3afb4](https://github.com/GetStream/stream-video-js/commit/eb3afb4dc33289cde0639cc109194971d31f51e0))
+
 ## [1.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.2...@stream-io/video-react-native-sdk-1.2.3) (2024-10-21)
 
 ### Dependency Updates

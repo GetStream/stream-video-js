@@ -1,5 +1,6 @@
 import { css } from '@emotion/css';
 import clsx from 'clsx';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from '../../ConfigurationContext';
 
@@ -15,6 +16,8 @@ export const useParticipantStyles = () => {
     },
   } = useConfigurationContext();
 
+  const { useHasOngoingScreenShare } = useCallStateHooks();
+  const hasScreenShare = useHasOngoingScreenShare();
   const styles = [
     participantBorderRadius &&
       css`
@@ -22,7 +25,12 @@ export const useParticipantStyles = () => {
           border-radius: ${participantBorderRadius};
         }
       `,
+    // we don't want to apply the aspect ratio when screen share is
+    // enabled, as it breaks our layouts.
+    // we should think about this later, and most likely introduce
+    // parallel configuration for screen sharing mode
     participantAspectRatio &&
+      !hasScreenShare &&
       css`
         & .str-video__participant-view {
           aspect-ratio: ${participantAspectRatio};

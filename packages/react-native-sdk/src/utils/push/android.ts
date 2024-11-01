@@ -46,6 +46,8 @@ type onBackgroundEventFunctionParams = Parameters<
 
 type Event = Parameters<onBackgroundEventFunctionParams>[0];
 
+let lastFirebaseToken = { token: '', userId: '' };
+
 //  EventType = NotifeeLib['EventType'];
 
 /** Setup Firebase push message handler **/
@@ -139,7 +141,16 @@ export async function initAndroidPushToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
+    const userId = client.streamClient._user?.id ?? '';
+    if (
+      lastFirebaseToken.token === token &&
+      lastFirebaseToken.userId === userId
+    ) {
+      return;
+    }
+    lastFirebaseToken = { token, userId };
     setPushLogoutCallback(async () => {
+      lastFirebaseToken = { token: '', userId: '' };
       try {
         await client.removeDevice(token);
       } catch (err) {

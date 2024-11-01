@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-
+import { useCall } from '../contexts';
+import { useIsCallRecordingInProgress } from './callStateHooks';
+/**
+ * Custom hook for toggling call recording in a video call.
+ *
+ * This hook provides functionality to start and stop call recording,
+ * along with state management for tracking the recording status
+ * and the loading indicator while awaiting a response.
+ */
 export const useToggleCallRecording = () => {
   const call = useCall();
-  const { useIsCallRecordingInProgress } = useCallStateHooks();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 

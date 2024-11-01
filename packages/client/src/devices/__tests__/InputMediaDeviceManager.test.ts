@@ -181,7 +181,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
     expect(manager.getStream).toHaveBeenCalledWith({
-      deviceId,
+      deviceId: { exact: deviceId },
     });
     expect(manager.publishStream).toHaveBeenCalled();
   });
@@ -239,6 +239,29 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.resume();
 
     expect(manager.enable).toHaveBeenCalledOnce();
+  });
+
+  it(`should resume if enable was cancelled due to disable call`, async () => {
+    vi.spyOn(manager, 'enable');
+
+    manager.enable();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
+
+    // enable was not awaited so cancelled by disabled
+    await manager.disable();
+
+    manager.resume();
+
+    expect(manager.enable).toBeCalledTimes(2);
+
+    // this disable is not awaited, but will cancel the enable anyway
+    // so resume must work here too
+    manager.disable();
+
+    manager.resume();
+
+    expect(manager.enable).toBeCalledTimes(3);
   });
 
   it('should provide default constraints to `getStream` method', () => {

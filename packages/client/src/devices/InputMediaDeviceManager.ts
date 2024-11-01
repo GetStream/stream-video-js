@@ -74,10 +74,10 @@ export abstract class InputMediaDeviceManager<
    * Starts stream.
    */
   async enable() {
+    this.state.prevStatus = this.state.optimisticStatus;
     if (this.state.optimisticStatus === 'enabled') {
       return;
     }
-
     this.state.setPendingStatus('enabled');
 
     await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
@@ -97,7 +97,7 @@ export abstract class InputMediaDeviceManager<
    * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
   async disable(forceStop: boolean = false) {
-    this.state.prevStatus = this.state.status;
+    this.state.prevStatus = this.state.optimisticStatus;
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
     }
@@ -131,7 +131,7 @@ export abstract class InputMediaDeviceManager<
   async resume() {
     if (
       this.state.prevStatus === 'enabled' &&
-      this.state.status === 'disabled'
+      this.state.status !== 'enabled'
     ) {
       await this.enable();
     }
@@ -206,11 +206,17 @@ export abstract class InputMediaDeviceManager<
         'This method is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for reference.',
       );
     }
-    if (deviceId === this.state.selectedDevice) {
+    const prevDeviceId = this.state.selectedDevice;
+    if (deviceId === prevDeviceId) {
       return;
     }
-    this.state.setDevice(deviceId);
-    await this.applySettingsToStream();
+    try {
+      this.state.setDevice(deviceId);
+      await this.applySettingsToStream();
+    } catch (error) {
+      this.state.setDevice(prevDeviceId);
+      throw error;
+    }
   }
 
   /**
@@ -308,7 +314,9 @@ export abstract class InputMediaDeviceManager<
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
         ...defaultConstraints,
-        deviceId: this.state.selectedDevice,
+        deviceId: this.state.selectedDevice
+          ? { exact: this.state.selectedDevice }
+          : undefined,
       };
 
       /**
