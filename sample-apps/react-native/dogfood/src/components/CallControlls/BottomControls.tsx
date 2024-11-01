@@ -31,7 +31,7 @@ export const CallControlsComponent = ({
 }: BottomControlsProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
-  const styles = useStyles();
+  const styles = useStyles(isSpeakingWhileMuted);
 
   return (
     <View style={styles.container}>
@@ -60,15 +60,20 @@ export const CallControlsComponent = ({
   );
 };
 
-const useStyles = () => {
+const useStyles = (showMicLabel: boolean) => {
   const { theme } = useTheme();
 
   return useMemo(
     () =>
       StyleSheet.create({
+        container: {
+          paddingVertical: !showMicLabel ? theme.variants.spacingSizes.md : 0,
+          paddingHorizontal: theme.variants.spacingSizes.md,
+          backgroundColor: theme.colors.sheetPrimary,
+          height: 76,
+        },
         speakingLabelContainer: {
           backgroundColor: appTheme.colors.static_overlay,
-          // paddingVertical: 10,
           width: '100%',
         },
         label: {
@@ -80,12 +85,6 @@ const useStyles = () => {
           flexDirection: 'row',
           justifyContent: 'flex-start',
           zIndex: Z_INDEX.IN_FRONT,
-        },
-        container: {
-          paddingVertical: theme.variants.spacingSizes.md,
-          paddingHorizontal: theme.variants.spacingSizes.md,
-          backgroundColor: theme.colors.sheetPrimary,
-          height: 76,
         },
         left: {
           flex: 2.5,
@@ -100,6 +99,6 @@ const useStyles = () => {
           gap: theme.variants.spacingSizes.xs,
         },
       }),
-    [theme],
+    [theme, showMicLabel],
   );
 };

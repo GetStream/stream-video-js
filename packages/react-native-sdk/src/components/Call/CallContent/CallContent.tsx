@@ -197,7 +197,7 @@ export const CallContent = ({
         />
       )}
       <View style={[styles.container, callContent.container]}>
-        <View style={[styles.container, callContent.callParticipantsContainer]}>
+        <View style={[styles.content, callContent.callParticipantsContainer]}>
           {!isInPiPMode && CallTopView && (
             <CallTopView onHangupCallHandler={onHangupCallHandler} />
           )}

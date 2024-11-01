@@ -13,6 +13,7 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
 import { useUnreadCount } from '../hooks/useUnreadCount';
+import { LayoutProvider } from '../contexts/LayoutContext';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -129,12 +130,14 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     );
   } else {
     return (
-      <ActiveCall
-        onCallEnded={onCallEnded}
-        onHangupCallHandler={onHangupCallHandler}
-        onChatOpenHandler={onChatOpenHandler}
-        unreadCountIndicator={unreadCountIndicator}
-      />
+      <LayoutProvider>
+        <ActiveCall
+          onCallEnded={onCallEnded}
+          onHangupCallHandler={onHangupCallHandler}
+          onChatOpenHandler={onChatOpenHandler}
+          unreadCountIndicator={unreadCountIndicator}
+        />
+      </LayoutProvider>
     );
   }
 };

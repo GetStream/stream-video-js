@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Grid } from '@stream-io/video-react-native-sdk/src/icons/Grid';
 import {
   CallControlsButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import LayoutSwitcherModal from './LayoutSwitcherModal';
+import { ColorValue } from 'react-native';
+import { Grid } from '../../assets/Grid';
+import { SpotLight } from '../../assets/Spotlight';
+import { useLayout } from '../../contexts/LayoutContext';
 
 export type LayoutSwitcherButtonProps = {
   /**
@@ -12,6 +16,17 @@ export type LayoutSwitcherButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
+};
+
+const getIcon = (selectedButton: string, color: ColorValue, size: number) => {
+  switch (selectedButton) {
+    case 'grid':
+      return <Grid color={color} size={size} />;
+    case 'spotlight':
+      return <SpotLight color={color} size={size} />;
+    default:
+      return 'grid';
+  }
 };
 
 /**
@@ -22,27 +37,51 @@ export const LayoutSwitcherButton = ({
   onPressHandler,
 }: LayoutSwitcherButtonProps) => {
   const {
-    theme: { colors, defaults, variants },
+    theme: { colors, variants },
   } = useTheme();
-  const [toggleLayoutMenu, setToggleLayoutMenu] = useState(false);
-  const buttonColor = toggleLayoutMenu
+
+  const { selectedLayout } = useLayout();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const buttonColor = isModalVisible
     ? colors.iconPrimaryAccent
     : colors.iconPrimaryDefault;
+
+  const handleOpenModal = () => setIsModalVisible(true);
+  const handleCloseModal = () => setIsModalVisible(false);
+
+  const handleLayout = (event: any) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setAnchorPosition({ x, y: y + height, width, height });
+  };
 
   return (
     <CallControlsButton
       size={variants.iconSizes.lg}
+      onLayout={handleLayout}
       onPress={() => {
+        handleOpenModal();
         if (onPressHandler) {
           onPressHandler();
         }
-        setToggleLayoutMenu(!toggleLayoutMenu);
+        setIsModalVisible(!isModalVisible);
       }}
       color={colors.sheetPrimary}
     >
       <IconWrapper>
-        <Grid color={buttonColor} size={defaults.iconSize} />
+        {getIcon(selectedLayout, buttonColor, variants.iconSizes.lg)}
       </IconWrapper>
+      <LayoutSwitcherModal
+        isVisible={isModalVisible}
+        anchorPosition={anchorPosition}
+        onClose={handleCloseModal}
+      />
     </CallControlsButton>
   );
 };

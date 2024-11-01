@@ -149,7 +149,13 @@ export const ParticipantView = ({
           videoZOrder={videoZOrder}
         />
       )}
-      <View style={[styles.footerContainer, participantView.footerContainer]}>
+      <View
+        style={[
+          styles.footerContainer,
+          participantView.footerContainer,
+          !ParticipantLabel && styles.networkIndicatorOnly,
+        ]}
+      >
         {ParticipantLabel && (
           <ParticipantLabel participant={participant} trackType={trackType} />
         )}
@@ -169,10 +175,7 @@ const useStyles = () => {
         container: {
           justifyContent: 'space-between',
           overflow: 'hidden',
-          borderWidth: 2,
-          borderColor: 'transparent',
-          margin: theme.variants.spacingSizes.sm,
-          borderRadius: 16,
+          borderRadius: theme.variants.borderRadiusSizes.md,
         },
         footerContainer: {
           flexDirection: 'row',
@@ -182,6 +185,7 @@ const useStyles = () => {
         highligtedContainer: {
           borderWidth: 2,
         },
+        networkIndicatorOnly: { justifyContent: 'flex-end' },
       }),
     [theme]
   );

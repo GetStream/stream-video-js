@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   hasScreenShare,
   speakerLayoutSortPreset,
@@ -56,8 +56,9 @@ export const CallParticipantsSpotlight = ({
   disablePictureInPicture,
 }: CallParticipantsSpotlightProps) => {
   const {
-    theme: { colors, callParticipantsSpotlight },
+    theme: { callParticipantsSpotlight, variants },
   } = useTheme();
+  const styles = useStyles();
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
@@ -88,7 +89,7 @@ export const CallParticipantsSpotlight = ({
   };
 
   const spotlightContainerLandscapeStyles: ViewStyle = {
-    marginHorizontal: landscape ? 0 : 8,
+    marginHorizontal: landscape ? 0 : variants.spacingSizes.xs,
   };
 
   return (
@@ -97,9 +98,6 @@ export const CallParticipantsSpotlight = ({
       style={[
         styles.container,
         landscapeStyles,
-        {
-          backgroundColor: colors.background2,
-        },
         callParticipantsSpotlight.container,
       ]}
     >
@@ -155,20 +153,29 @@ export const CallParticipantsSpotlight = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  fullScreenSpotlightContainer: {
-    flex: 1,
-  },
-  spotlightContainer: {
-    flex: 2,
-    overflow: 'hidden',
-    borderRadius: 10,
-    marginHorizontal: 8,
-  },
-  callParticipantsListContainer: {
-    flex: 1,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: theme.variants.spacingSizes.xs,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        fullScreenSpotlightContainer: {
+          flex: 1,
+        },
+        spotlightContainer: {
+          flex: 2,
+          overflow: 'hidden',
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          marginHorizontal: theme.variants.spacingSizes.sm,
+        },
+        callParticipantsListContainer: {
+          flex: 1,
+        },
+      }),
+    [theme]
+  );
+};

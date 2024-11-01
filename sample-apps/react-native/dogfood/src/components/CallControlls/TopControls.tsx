@@ -41,7 +41,7 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
       <View style={styles.content} onLayout={onLayout}>
         <View style={styles.leftElement}>
           <View style={styles.leftContent}>
-            <LayoutSwitcherButton onPressHandler={() => {}} />
+            <LayoutSwitcherButton />
             <ToggleCameraFaceButton />
             {!isCallRecorded && <VideoEffectsButton />}
           </View>
@@ -59,7 +59,6 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
 
 const useStyles = () => {
   const { theme } = useTheme();
-
   return useMemo(
     () =>
       StyleSheet.create({

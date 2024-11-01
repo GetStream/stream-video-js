@@ -14,6 +14,7 @@ import {
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
+import { useLayout } from '../contexts/LayoutContext';
 
 type ActiveCallProps = BottomControlsProps & {
   onHangupCallHandler?: () => void;
@@ -32,6 +33,7 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const styles = useStyles();
   const { theme: colors } = useTheme();
+  const { selectedLayout } = useLayout();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -64,12 +66,15 @@ export const ActiveCall = ({
         backgroundColor={colors.sheetPrimary}
       />
       <View style={styles.topUnsafeArea} />
+      <View style={styles.leftUnsafeArea} />
+      <View style={styles.rightUnsafeArea} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
           onHangupCallHandler={onHangupCallHandler}
           CallTopView={TopControls}
           CallControls={CustomControlsComponent}
           landscape={currentOrientation === 'landscape'}
+          layout={selectedLayout}
         />
         <ParticipantsInfoList
           isCallParticipantsInfoVisible={isCallParticipantsVisible}
@@ -83,7 +88,6 @@ export const ActiveCall = ({
 
 const useStyles = () => {
   const { theme } = useTheme();
-
   return useMemo(
     () =>
       StyleSheet.create({
@@ -105,6 +109,22 @@ const useStyles = () => {
           right: 0,
           bottom: 0,
           height: theme.variants.insets.bottom,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        leftUnsafeArea: {
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: theme.variants.insets.left,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        rightUnsafeArea: {
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: theme.variants.insets.right,
           backgroundColor: theme.colors.sheetPrimary,
         },
         view: {
