@@ -1,7 +1,11 @@
 import { forwardRef } from 'react';
 
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useI18n } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useI18n,
+  useToggleCallRecording,
+} from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button/';
 import { Icon } from '../Icon';
 import {
@@ -11,7 +15,6 @@ import {
   useMenuContext,
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
-import { useToggleCallRecording } from '../../hooks';
 import { WithTooltip } from '../Tooltip';
 
 export type RecordCallButtonProps = {

@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 
-export type Layout = 'grid' | 'spotlight' | 'fullscreen';
+export type Layout = 'grid' | 'spotlight';
 
 interface LayoutContextState {
   selectedLayout: Layout;

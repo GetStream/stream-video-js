@@ -1149,7 +1149,7 @@ PODS:
   - stream-react-native-webrtc (124.0.0-rc.1):
     - JitsiWebRTC (~> 124.0.0)
     - React-Core
-  - stream-video-react-native (1.1.4):
+  - stream-video-react-native (1.2.7):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1480,7 +1480,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-io-video-filters-react-native: 8c345e6adf5164646696d45f9962c4199b2fe3b9
   stream-react-native-webrtc: 1380525629fae21f4894535189573fb4ddb7984a
-  stream-video-react-native: 25880e3ff2889deca42fba87f6fa0c434fc6e5fa
+  stream-video-react-native: 7948f9d3bfd695f46d90f7d05b982b31b0c304a8
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
