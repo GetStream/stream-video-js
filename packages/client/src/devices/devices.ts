@@ -11,6 +11,7 @@ import {
 import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
+import { isFirefox } from '../helpers/browsers';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -32,7 +33,12 @@ const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
         await permission.prompt({ throwOnNotAllowed: true });
         devices = await navigator.mediaDevices.enumerateDevices();
       }
-      return devices.filter((d) => d.kind === kind);
+      return devices.filter(
+        (device) =>
+          device.kind === kind &&
+          device.label !== '' &&
+          device.deviceId !== 'default',
+      );
     })(),
   );
 };
@@ -125,7 +131,7 @@ export const getAudioDevices = lazy(() => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getVideoDevices = () => {
+export const getVideoDevices = lazy(() => {
   return merge(
     getDeviceChangeObserver(),
     getVideoBrowserPermission().asObservable(),
@@ -134,7 +140,7 @@ export const getVideoDevices = () => {
     concatMap(() => getDevices(getVideoBrowserPermission(), 'videoinput')),
     shareReplay(1),
   );
-};
+});
 
 /**
  * Prompts the user for a permission to use video devices (if not already granted
@@ -142,7 +148,7 @@ export const getVideoDevices = () => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getAudioOutputDevices = () => {
+export const getAudioOutputDevices = lazy(() => {
   return merge(
     getDeviceChangeObserver(),
     getAudioBrowserPermission().asObservable(),
@@ -151,10 +157,17 @@ export const getAudioOutputDevices = () => {
     concatMap(() => getDevices(getAudioBrowserPermission(), 'audiooutput')),
     shareReplay(1),
   );
-};
+});
 
 const getStream = async (constraints: MediaStreamConstraints) => {
-  return await navigator.mediaDevices.getUserMedia(constraints);
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  if (isFirefox()) {
+    // When enumerating devices, Firefox will hide device labels unless there's been
+    // an active user media stream on the page. So we force device list updates after
+    // every successful getUserMedia call.
+    navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+  }
+  return stream;
 };
 
 /**
