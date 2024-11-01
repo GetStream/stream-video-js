@@ -68,7 +68,7 @@ export type CallContentProps = Pick<
 > &
   CallContentComponentProps & {
     /**
-     * This switches the participant's layout between the grid, spotlight and fullscreen mode.
+     * This switches the participant's layout between the grid and the spotlight mode.
      */
     layout?: 'grid' | 'spotlight';
     /**
@@ -224,7 +224,7 @@ export const CallContent = ({
             <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
           ) : (
             <CallParticipantsGrid {...callParticipantsGridProps} />
-          )}{' '}
+          )}
         </View>
 
         {!isInPiPMode && CallControls && (
