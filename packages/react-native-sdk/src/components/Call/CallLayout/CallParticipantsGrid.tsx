@@ -65,6 +65,7 @@ export const CallParticipantsGrid = ({
   };
 
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
+
   const showFloatingView =
     !isInPiPMode &&
     remoteParticipants.length > 0 &&
@@ -75,6 +76,7 @@ export const CallParticipantsGrid = ({
       ? [localParticipant]
       : remoteParticipants
     : allParticipants;
+
   if (isInPiPMode) {
     participants =
       remoteParticipants.length > 0

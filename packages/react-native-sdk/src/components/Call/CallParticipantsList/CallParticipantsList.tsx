@@ -21,7 +21,6 @@ import {
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
 import { CallContentProps } from '../CallContent';
-import { useTheme } from '../../..';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -84,8 +83,6 @@ export const CallParticipantsList = ({
   supportedReactions,
   landscape,
 }: CallParticipantsListProps) => {
-  const styles = useStyles();
-  const { theme } = useTheme();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -211,9 +208,9 @@ export const CallParticipantsList = ({
     [itemContainerStyle]
   );
 
-  // in vertical mode, only when there are more than 3 participants in a call, the participants should be displayed in a grid
-  // else we display them in a stretched rows on the screen
-  const shouldWrapByColumns = !!horizontal || participants.length > 3;
+  // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid
+  // else we display them both in a stretched row on the screen
+  const shouldWrapByColumns = !!horizontal || participants.length > 2;
 
   if (!shouldWrapByColumns) {
     return (
@@ -254,24 +251,17 @@ export const CallParticipantsList = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        flexed: { flex: 1 },
-        participantWrapperHorizontal: {
-          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-          marginHorizontal: 8,
-          borderRadius: 10,
-        },
-        landScapeStyle: {
-          borderRadius: 10,
-        },
-      }),
-    [theme]
-  );
-};
+const styles = StyleSheet.create({
+  flexed: { flex: 1 },
+  participantWrapperHorizontal: {
+    // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
+    marginHorizontal: 8,
+    borderRadius: 10,
+  },
+  landScapeStyle: {
+    borderRadius: 10,
+  },
+});
 
 /**
  * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
@@ -311,6 +301,7 @@ function calculateParticipantViewSize({
   if (horizontal) {
     // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
     itemWidth = itemWidth - 8 * 2;
+  }
 
   return { itemHeight, itemWidth };
 }

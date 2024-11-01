@@ -33,10 +33,6 @@ import {
   ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import RTCViewPipIOS from './RTCViewPipIOS';
-import {
-  CallParticipantsFullscreen,
-  CallParticipantsFullscreenProps,
-} from '../CallLayout/CallParticipantsFullscreen';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -144,7 +140,6 @@ export const CallContent = ({
     !isInPiPMode &&
     remoteParticipants.length > 0 &&
     remoteParticipants.length < 3;
-
   const isRemoteParticipantInFloatingView =
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
