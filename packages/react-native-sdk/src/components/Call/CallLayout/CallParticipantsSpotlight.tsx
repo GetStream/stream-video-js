@@ -160,6 +160,8 @@ const useStyles = () => {
       StyleSheet.create({
         container: {
           flex: 1,
+          padding: theme.variants.spacingSizes.xs,
+          backgroundColor: theme.colors.sheetPrimary,
         },
         fullScreenSpotlightContainer: {
           flex: 1,
