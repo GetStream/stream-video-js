@@ -58,7 +58,7 @@ export const CallParticipantsSpotlight = ({
   const {
     theme: { callParticipantsSpotlight, variants },
   } = useTheme();
-  const styles = useStyles(landscape);
+  const styles = useStyles();
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
@@ -153,32 +153,27 @@ export const CallParticipantsSpotlight = ({
   );
 };
 
-const useStyles = (landscape: boolean | undefined) => {
+const useStyles = () => {
   const { theme } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          padding: theme.variants.spacingSizes.xs,
-          backgroundColor: theme.colors.sheetPrimary,
         },
         fullScreenSpotlightContainer: {
           flex: 1,
         },
         spotlightContainer: {
-          flex: landscape ? 3 : 4,
+          flex: 2,
           overflow: 'hidden',
-          borderRadius: theme.variants.borderRadiusSizes.md,
-          marginHorizontal: theme.variants.spacingSizes.xs,
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          marginHorizontal: theme.variants.spacingSizes.sm,
         },
         callParticipantsListContainer: {
           flex: 1,
-          flexDirection: 'row',
-          backgroundColor: theme.colors.sheetPrimary,
-          marginLeft: landscape ? theme.variants.spacingSizes.sm : 0,
         },
       }),
-    [theme, landscape]
+    [theme]
   );
 };

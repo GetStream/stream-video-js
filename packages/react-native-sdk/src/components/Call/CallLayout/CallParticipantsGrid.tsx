@@ -76,7 +76,7 @@ export const CallParticipantsGrid = ({
       ? [localParticipant]
       : remoteParticipants
     : allParticipants;
-    
+
   if (isInPiPMode) {
     participants =
       remoteParticipants.length > 0

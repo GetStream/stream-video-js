@@ -140,7 +140,6 @@ export const CallContent = ({
     !isInPiPMode &&
     remoteParticipants.length > 0 &&
     remoteParticipants.length < 3;
-
   const isRemoteParticipantInFloatingView =
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
@@ -175,6 +174,7 @@ export const CallContent = ({
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
     landscape,
+    showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
     supportedReactions,

@@ -21,7 +21,6 @@ import {
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
 import { CallContentProps } from '../CallContent';
-import { useTheme } from '../../..';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -84,7 +83,6 @@ export const CallParticipantsList = ({
   supportedReactions,
   landscape,
 }: CallParticipantsListProps) => {
-  // const { theme } = useTheme();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -300,7 +298,6 @@ function calculateParticipantViewSize({
   }
 
   let itemWidth = containerWidth / numberOfColumns;
-  itemWidth = itemWidth - 4 * 2;
   if (horizontal) {
     // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
     itemWidth = itemWidth - 8 * 2;
