@@ -8072,6 +8072,7 @@ __metadata:
     react-native-voip-push-notification: 3.3.1
     react-test-renderer: ^18.2.0
     rimraf: ^5.0.7
+    rxjs: ~7.8.1
     text-encoding-polyfill: 0.6.7
     ts-jest: ^29.1.5
     ts-node: ^10.9.2
