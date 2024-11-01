@@ -1,20 +1,15 @@
-import { StreamSfuClient } from '../StreamSfuClient';
-import { getIceCandidate } from './helpers/iceCandidate';
+import {
+  BasePeerConnection,
+  BasePeerConnectionOpts,
+} from './BasePeerConnection';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
-import { getLogger } from '../logger';
-import { CallingState, CallState } from '../store';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { Logger } from '../coordinator/connection/types';
 
-export type SubscriberOpts = {
-  sfuClient: StreamSfuClient;
+export type SubscriberOpts = BasePeerConnectionOpts & {
   dispatcher: Dispatcher;
-  state: CallState;
-  connectionConfig?: RTCConfiguration;
-  onUnrecoverableError?: () => void;
   logTag: string;
 };
 
@@ -24,34 +19,15 @@ export type SubscriberOpts = {
  *
  * @internal
  */
-export class Subscriber {
-  private readonly logger: Logger;
-  private pc: RTCPeerConnection;
-  private sfuClient: StreamSfuClient;
-  private state: CallState;
-
+export class Subscriber extends BasePeerConnection {
   private readonly unregisterOnSubscriberOffer: () => void;
-  private readonly onUnrecoverableError?: () => void;
-
-  private isIceRestarting = false;
 
   /**
    * Constructs a new `Subscriber` instance.
    */
-  constructor({
-    sfuClient,
-    dispatcher,
-    state,
-    connectionConfig,
-    onUnrecoverableError,
-    logTag,
-  }: SubscriberOpts) {
-    this.logger = getLogger(['Subscriber', logTag]);
-    this.sfuClient = sfuClient;
-    this.state = state;
-    this.onUnrecoverableError = onUnrecoverableError;
-
-    this.pc = this.createPeerConnection(connectionConfig);
+  constructor({ dispatcher, ...baseOptions }: SubscriberOpts) {
+    super(PeerType.SUBSCRIBER, baseOptions);
+    this.pc.addEventListener('track', this.handleOnTrack);
 
     const subscriberOfferConcurrencyTag = Symbol('subscriberOffer');
     this.unregisterOnSubscriberOffer = dispatcher.on(
@@ -67,29 +43,6 @@ export class Subscriber {
   }
 
   /**
-   * Creates a new `RTCPeerConnection` instance with the given configuration.
-   *
-   * @param connectionConfig the connection configuration to use.
-   */
-  private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
-    const pc = new RTCPeerConnection(connectionConfig);
-    pc.addEventListener('icecandidate', this.onIceCandidate);
-    pc.addEventListener('track', this.handleOnTrack);
-
-    pc.addEventListener('icecandidateerror', this.onIceCandidateError);
-    pc.addEventListener(
-      'iceconnectionstatechange',
-      this.onIceConnectionStateChange,
-    );
-    pc.addEventListener(
-      'icegatheringstatechange',
-      this.onIceGatheringStateChange,
-    );
-
-    return pc;
-  };
-
-  /**
    * Closes the `RTCPeerConnection` and unsubscribes from the dispatcher.
    */
   close = () => {
@@ -102,39 +55,12 @@ export class Subscriber {
    * This is useful when we want to replace the `RTCPeerConnection`
    * instance with a new one (in case of migration).
    */
-  detachEventHandlers = () => {
+  detachEventHandlers() {
     this.unregisterOnSubscriberOffer();
 
-    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    super.detachEventHandlers();
     this.pc.removeEventListener('track', this.handleOnTrack);
-    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
-    this.pc.removeEventListener(
-      'iceconnectionstatechange',
-      this.onIceConnectionStateChange,
-    );
-    this.pc.removeEventListener(
-      'icegatheringstatechange',
-      this.onIceGatheringStateChange,
-    );
-  };
-
-  /**
-   * Returns the result of the `RTCPeerConnection.getStats()` method
-   * @param selector
-   * @returns
-   */
-  getStats = (selector?: MediaStreamTrack | null | undefined) => {
-    return this.pc.getStats(selector);
-  };
-
-  /**
-   * Sets the SFU client to use.
-   *
-   * @param sfuClient the SFU client to use.
-   */
-  setSfuClient = (sfuClient: StreamSfuClient) => {
-    this.sfuClient = sfuClient;
-  };
+  }
 
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
@@ -239,23 +165,6 @@ export class Subscriber {
     }
   };
 
-  private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
-    const { candidate } = e;
-    if (!candidate) {
-      this.logger('debug', 'null ice candidate');
-      return;
-    }
-
-    this.sfuClient
-      .iceTrickle({
-        iceCandidate: getIceCandidate(candidate),
-        peerType: PeerType.SUBSCRIBER,
-      })
-      .catch((err) => {
-        this.logger('warn', `ICETrickle failed`, err);
-      });
-  };
-
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
     this.logger('info', `Received subscriberOffer`, subscriberOffer);
 
@@ -284,41 +193,5 @@ export class Subscriber {
     });
 
     this.isIceRestarting = false;
-  };
-
-  private onIceConnectionStateChange = () => {
-    const state = this.pc.iceConnectionState;
-    this.logger('debug', `ICE connection state changed`, state);
-
-    if (this.state.callingState === CallingState.RECONNECTING) return;
-
-    // do nothing when ICE is restarting
-    if (this.isIceRestarting) return;
-
-    if (state === 'failed' || state === 'disconnected') {
-      this.logger('debug', `Attempting to restart ICE`);
-      this.restartIce().catch((e) => {
-        this.logger('error', `ICE restart failed`, e);
-        this.onUnrecoverableError?.();
-      });
-    }
-  };
-
-  private onIceGatheringStateChange = () => {
-    this.logger(
-      'debug',
-      `ICE gathering state changed`,
-      this.pc.iceGatheringState,
-    );
-  };
-
-  private onIceCandidateError = (e: Event) => {
-    const errorMessage =
-      e instanceof RTCPeerConnectionIceErrorEvent &&
-      `${e.errorCode}: ${e.errorText}`;
-    const iceState = this.pc.iceConnectionState;
-    const logLevel =
-      iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    this.logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 }

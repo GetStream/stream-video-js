@@ -1,4 +1,7 @@
-import { StreamSfuClient } from '../StreamSfuClient';
+import {
+  BasePeerConnection,
+  BasePeerConnectionOpts,
+} from './BasePeerConnection';
 import {
   Codec,
   PeerType,
@@ -6,7 +9,6 @@ import {
   TrackType,
   VideoLayer,
 } from '../gen/video/sfu/models/models';
-import { getIceCandidate } from './helpers/iceCandidate';
 import {
   findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
@@ -21,23 +23,15 @@ import {
   isSvcCodec,
 } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
 import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
-import { Logger } from '../coordinator/connection/types';
-import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 import { withoutConcurrency } from '../helpers/concurrency';
 
-export type PublisherConstructorOpts = {
-  sfuClient: StreamSfuClient;
-  state: CallState;
+export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   dispatcher: Dispatcher;
-  connectionConfig?: RTCConfiguration;
-  onUnrecoverableError?: () => void;
-  logTag: string;
 };
 
 /**
@@ -45,10 +39,7 @@ export type PublisherConstructorOpts = {
  *
  * @internal
  */
-export class Publisher {
-  private readonly logger: Logger;
-  private pc: RTCPeerConnection;
-  private readonly state: CallState;
+export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new Map<TrackType, RTCRtpTransceiver>();
   private readonly trackLayersCache = new Map<TrackType, OptimalVideoLayer[]>();
   private readonly publishOptsForTrack = new Map<TrackType, PublishOptions>();
@@ -66,27 +57,13 @@ export class Publisher {
 
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
-  private readonly onUnrecoverableError?: () => void;
-
-  private isIceRestarting = false;
-  private sfuClient: StreamSfuClient;
 
   /**
    * Constructs a new `Publisher` instance.
    */
-  constructor({
-    connectionConfig,
-    sfuClient,
-    dispatcher,
-    state,
-    onUnrecoverableError,
-    logTag,
-  }: PublisherConstructorOpts) {
-    this.logger = getLogger(['Publisher', logTag]);
-    this.pc = this.createPeerConnection(connectionConfig);
-    this.sfuClient = sfuClient;
-    this.state = state;
-    this.onUnrecoverableError = onUnrecoverableError;
+  constructor({ dispatcher, ...baseOptions }: PublisherConstructorOpts) {
+    super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
+    this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
@@ -112,24 +89,6 @@ export class Publisher {
     );
   }
 
-  private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
-    const pc = new RTCPeerConnection(connectionConfig);
-    pc.addEventListener('icecandidate', this.onIceCandidate);
-    pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
-
-    pc.addEventListener('icecandidateerror', this.onIceCandidateError);
-    pc.addEventListener(
-      'iceconnectionstatechange',
-      this.onIceConnectionStateChange,
-    );
-    pc.addEventListener(
-      'icegatheringstatechange',
-      this.onIceGatheringStateChange,
-    );
-    pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
-    return pc;
-  };
-
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
    */
@@ -140,8 +99,7 @@ export class Publisher {
       this.trackLayersCache.clear();
     }
 
-    this.detachEventHandlers();
-    this.pc.close();
+    this.dispose();
   };
 
   /**
@@ -149,26 +107,13 @@ export class Publisher {
    * This is useful when we want to replace the `RTCPeerConnection`
    * instance with a new one (in case of migration).
    */
-  detachEventHandlers = () => {
+  detachEventHandlers() {
     this.unsubscribeOnIceRestart();
     this.unsubscribeChangePublishQuality();
 
-    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    super.detachEventHandlers();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
-    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
-    this.pc.removeEventListener(
-      'iceconnectionstatechange',
-      this.onIceConnectionStateChange,
-    );
-    this.pc.removeEventListener(
-      'icegatheringstatechange',
-      this.onIceGatheringStateChange,
-    );
-    this.pc.removeEventListener(
-      'signalingstatechange',
-      this.onSignalingStateChange,
-    );
-  };
+  }
 
   /**
    * Starts publishing the given track of the given media stream.
@@ -425,40 +370,6 @@ export class Publisher {
   };
 
   /**
-   * Returns the result of the `RTCPeerConnection.getStats()` method
-   * @param selector
-   * @returns
-   */
-  getStats = (selector?: MediaStreamTrack | null | undefined) => {
-    return this.pc.getStats(selector);
-  };
-
-  private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
-    const { candidate } = e;
-    if (!candidate) {
-      this.logger('debug', 'null ice candidate');
-      return;
-    }
-    this.sfuClient
-      .iceTrickle({
-        iceCandidate: getIceCandidate(candidate),
-        peerType: PeerType.PUBLISHER_UNSPECIFIED,
-      })
-      .catch((err) => {
-        this.logger('warn', `ICETrickle failed`, err);
-      });
-  };
-
-  /**
-   * Sets the SFU client to use.
-   *
-   * @param sfuClient the SFU client to use.
-   */
-  setSfuClient = (sfuClient: StreamSfuClient) => {
-    this.sfuClient = sfuClient;
-  };
-
-  /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
@@ -635,38 +546,5 @@ export class Publisher {
       : trackType === TrackType.SCREEN_SHARE
         ? findOptimalScreenSharingLayers(track, publishOpts, screenShareBitrate)
         : undefined;
-  };
-
-  private onIceCandidateError = (e: Event) => {
-    const errorMessage =
-      e instanceof RTCPeerConnectionIceErrorEvent &&
-      `${e.errorCode}: ${e.errorText}`;
-    const iceState = this.pc.iceConnectionState;
-    const logLevel =
-      iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    this.logger(logLevel, `ICE Candidate error`, errorMessage);
-  };
-
-  private onIceConnectionStateChange = () => {
-    const state = this.pc.iceConnectionState;
-    this.logger('debug', `ICE Connection state changed to`, state);
-
-    if (this.state.callingState === CallingState.RECONNECTING) return;
-
-    if (state === 'failed' || state === 'disconnected') {
-      this.logger('debug', `Attempting to restart ICE`);
-      this.restartIce().catch((e) => {
-        this.logger('error', `ICE restart error`, e);
-        this.onUnrecoverableError?.();
-      });
-    }
-  };
-
-  private onIceGatheringStateChange = () => {
-    this.logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
-  };
-
-  private onSignalingStateChange = () => {
-    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
   };
 }
