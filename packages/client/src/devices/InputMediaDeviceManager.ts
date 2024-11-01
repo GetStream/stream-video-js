@@ -74,7 +74,7 @@ export abstract class InputMediaDeviceManager<
    * Starts stream.
    */
   async enable() {
-    this.state.prevStatus = this.state.status;
+    this.state.prevStatus = this.state.optimisticStatus;
     if (this.state.optimisticStatus === 'enabled') {
       return;
     }
@@ -97,15 +97,7 @@ export abstract class InputMediaDeviceManager<
    * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
   async disable(forceStop: boolean = false) {
-    this.state.prevStatus = this.state.status;
-    if (
-      this.state.prevStatus !== 'enabled' &&
-      this.state.optimisticStatus === 'enabled'
-    ) {
-      // if previously enabled but its not done yet, set the prevStatus to enabled
-      // this makes resume() work correctly
-      this.state.prevStatus = 'enabled';
-    }
+    this.state.prevStatus = this.state.optimisticStatus;
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
     }
