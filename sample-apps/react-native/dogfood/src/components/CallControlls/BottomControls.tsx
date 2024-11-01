@@ -8,7 +8,7 @@ import {
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { appTheme } from '../../theme';
-import { Z_INDEX } from '../../constants';
+import { BOTTOM_CONTROLS_HEIGHT, Z_INDEX } from '../../constants';
 import { MoreActionsButton } from './MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
@@ -80,7 +80,7 @@ const useStyles = (showMicLabel: boolean) => {
           paddingVertical: !showMicLabel ? theme.variants.spacingSizes.md : 0,
           paddingHorizontal: theme.variants.spacingSizes.md,
           backgroundColor: theme.colors.sheetPrimary,
-          height: 76,
+          height: BOTTOM_CONTROLS_HEIGHT,
         },
         speakingLabelContainer: {
           backgroundColor: appTheme.colors.static_overlay,
