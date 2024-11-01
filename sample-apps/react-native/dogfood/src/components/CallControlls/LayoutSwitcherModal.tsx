@@ -106,19 +106,6 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
             />
             <Text style={styles.buttonText}>Spotlight</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              selectedLayout === 'fullscreen' && styles.selectedButton,
-            ]}
-            onPress={() => onPressHandler('fullscreen')}
-          >
-            <FullScreen
-              size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimaryDefault}
-            />
-            <Text style={styles.buttonText}>Fullscreen</Text>
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Modal>

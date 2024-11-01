@@ -63,7 +63,7 @@ export const CallParticipantsSpotlight = ({
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
-  let allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);
@@ -103,7 +103,7 @@ export const CallParticipantsSpotlight = ({
     >
       {participantInSpotlight &&
         ParticipantView &&
-        (isScreenShareOnSpotlight && ScreenShareOverlay ? (
+        (participantInSpotlight.isLocalParticipant && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <ParticipantView
