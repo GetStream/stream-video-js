@@ -8,7 +8,6 @@ import LayoutSwitcherModal from './LayoutSwitcherModal';
 import { ColorValue } from 'react-native';
 import { Grid } from '../../assets/Grid';
 import { SpotLight } from '../../assets/Spotlight';
-import { FullScreen } from '../../assets/FullScreen';
 import { useLayout } from '../../contexts/LayoutContext';
 
 export type LayoutSwitcherButtonProps = {
@@ -25,8 +24,6 @@ const getIcon = (selectedButton: string, color: ColorValue, size: number) => {
       return <Grid color={color} size={size} />;
     case 'spotlight':
       return <SpotLight color={color} size={size} />;
-    case 'fullscreen':
-      return <FullScreen color={color} size={size} />;
     default:
       return 'grid';
   }

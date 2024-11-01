@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { Grid } from '../../assets/Grid';
-import { FullScreen } from '../../assets/FullScreen';
 import { SpotLight } from '../../assets/Spotlight';
 import { Layout, useLayout } from '../../contexts/LayoutContext';
 
@@ -105,19 +104,6 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
               color={theme.colors.iconPrimaryDefault}
             />
             <Text style={styles.buttonText}>Spotlight</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              selectedLayout === 'fullscreen' && styles.selectedButton,
-            ]}
-            onPress={() => onPressHandler('fullscreen')}
-          >
-            <FullScreen
-              size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimaryDefault}
-            />
-            <Text style={styles.buttonText}>Fullscreen</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>

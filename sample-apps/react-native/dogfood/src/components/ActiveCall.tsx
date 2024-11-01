@@ -11,7 +11,6 @@ import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
-import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 import { useLayout } from '../contexts/LayoutContext';
 
 type ActiveCallProps = {
