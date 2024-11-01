@@ -72,6 +72,7 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
  * hence it should be used only in a flex parent container
  */
 export const CallParticipantsList = ({
+  numberOfColumns = 2,
   horizontal,
   participants,
   ParticipantView = DefaultParticipantView,
@@ -82,7 +83,6 @@ export const CallParticipantsList = ({
   VideoRenderer,
   supportedReactions,
   landscape,
-  numberOfColumns = landscape ? 3 : 2,
 }: CallParticipantsListProps) => {
   const styles = useStyles();
   const { theme } = useTheme();
@@ -169,31 +169,15 @@ export const CallParticipantsList = ({
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const style = {
-      width: itemWidth,
-      height: itemHeight,
-      marginHorizontal: theme.variants.spacingSizes.xs,
-      marginVertical: theme.variants.spacingSizes.xs,
-    };
-
+    const style = { width: itemWidth, height: itemHeight };
     if (horizontal) {
-      const participantWrapperHorizontal = {
-        // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-        marginHorizontal: theme.variants.spacingSizes.xs,
-        borderRadius: theme.variants.borderRadiusSizes.md,
-      };
-      return [participantWrapperHorizontal, style];
+      return [styles.participantWrapperHorizontal, style];
     }
-
     if (landscape) {
-      const landscapeStyle = {
-        marginVertical: theme.variants.spacingSizes.xs,
-        borderRadius: theme.variants.borderRadiusSizes.md,
-      };
-      return [landscapeStyle, style];
+      return [styles.landScapeStyle, style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, landscape, theme]);
+  }, [itemWidth, itemHeight, horizontal, landscape]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -275,9 +259,14 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
-        flexed: {
-          flex: 1,
-          margin: theme.variants.spacingSizes.xs,
+        flexed: { flex: 1 },
+        participantWrapperHorizontal: {
+          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
+          marginHorizontal: 8,
+          borderRadius: 10,
+        },
+        landScapeStyle: {
+          borderRadius: 10,
         },
       }),
     [theme]
@@ -313,17 +302,15 @@ function calculateParticipantViewSize({
       // special case: if there are 4 or less participants, we display them in 2 rows
       itemHeight = containerHeight / 2;
     } else {
-      // generally, we display the participants in 2 rows
-      itemHeight = containerHeight / 2;
+      // generally, we display the participants in 3 rows
+      itemHeight = containerHeight / 3;
     }
   }
 
   let itemWidth = containerWidth / numberOfColumns;
-  itemWidth = itemWidth - 4 * 2;
-  if (!horizontal) {
-    // in vertical mode we apply margin of 4 to the participant view and that should be subtracted from the width
-    itemHeight = itemHeight - 4 * 2;
-  }
+  if (horizontal) {
+    // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
+    itemWidth = itemWidth - 8 * 2;
 
   return { itemHeight, itemWidth };
 }
