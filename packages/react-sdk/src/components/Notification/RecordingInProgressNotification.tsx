@@ -1,6 +1,8 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
-import { useToggleCallRecording } from '@stream-io/video-react-bindings';
+import {
+  useI18n,
+  useToggleCallRecording,
+} from '@stream-io/video-react-bindings';
 import { Notification } from './Notification';
 
 export type RecordingInProgressNotificationProps = {
