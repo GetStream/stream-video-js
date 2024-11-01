@@ -5,44 +5,83 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { CallRecordingModal } from './CallRecordingModal';
 
 /**
  * The props for the Record Call Button in the Call Controls.
  */
 export type RecordCallButtonProps = {
-  /**
-   * Handler to be called when the record call button is pressed.
-   * @returns void
-   */
   onPressHandler?: () => void;
+  toggleCallRecording: () => Promise<void>;
+  isAwaitingResponse: boolean;
+  isCallRecordingInProgress: boolean;
 };
 
 /**
  * The Record Call Button is used in the Call Controls component
  * and allows the user to toggle call recording.
  */
-export const RecordCallButton = ({ onPressHandler }: RecordCallButtonProps) => {
+export const RecordCallButton = ({
+  onPressHandler,
+  toggleCallRecording,
+  isAwaitingResponse,
+  isCallRecordingInProgress,
+}: RecordCallButtonProps) => {
   const {
     theme: { colors, recordCallButton, variants },
   } = useTheme();
-  const [isRecording, setIsRecording] = useState(false);
-  const buttonColor = isRecording
+
+  const [isStopRecordingModalOpen, setIsStopRecordingModalOpen] =
+    useState(false);
+
+  const buttonColor = isCallRecordingInProgress
     ? colors.buttonSecondaryWarningDefault
     : colors.buttonSecondaryDefault;
 
-  // TODO: implement PBE-5871 [Demo App] Call Recording flow
+  const onPress = async () => {
+    if (onPressHandler) {
+      onPressHandler();
+    }
+    if (isCallRecordingInProgress) {
+      setIsStopRecordingModalOpen(true);
+    } else {
+      await toggleCallRecording();
+    }
+  };
+
+  const endRecording = (
+    <CallRecordingModal
+      visible={isStopRecordingModalOpen}
+      isLoading={isAwaitingResponse}
+      title="End Recording"
+      confirmButton="End recording"
+      cancelButton="Cancel"
+      isEndRecordingModal={true}
+      message="Are you sure you want to end recording?"
+      onCancel={() => {
+        if (!isAwaitingResponse) {
+          setIsStopRecordingModalOpen(false);
+        }
+      }}
+      onConfirm={async () => {
+        if (!isAwaitingResponse) {
+          await toggleCallRecording();
+          setIsStopRecordingModalOpen(false);
+        }
+      }}
+    />
+  );
+
   return (
     <CallControlsButton
       size={variants.roundButtonSizes.lg}
-      onPress={() => {
-        if (onPressHandler) {
-          onPressHandler();
-        }
-        setIsRecording(!isRecording);
-      }}
+      onPress={onPress}
       color={buttonColor}
       style={recordCallButton}
+      disabled={isAwaitingResponse}
+      disabledColor={colors.buttonPrimaryDisabled}
     >
+      {endRecording}
       <IconWrapper>
         <RecordCall
           color={colors.iconPrimaryDefault}

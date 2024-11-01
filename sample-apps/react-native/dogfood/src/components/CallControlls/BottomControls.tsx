@@ -22,12 +22,18 @@ export type BottomControlsProps = Pick<
   onChatOpenHandler?: () => void;
   onParticipantInfoPress?: () => void;
   unreadCountIndicator?: number;
+  toggleCallRecording: () => Promise<void>;
+  isAwaitingResponse: boolean;
+  isCallRecordingInProgress: boolean;
 };
 
-export const CallControlsComponent = ({
+export const BottomControls = ({
   onChatOpenHandler,
   unreadCountIndicator,
   onParticipantInfoPress,
+  toggleCallRecording,
+  isAwaitingResponse,
+  isCallRecordingInProgress,
 }: BottomControlsProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
@@ -46,7 +52,11 @@ export const CallControlsComponent = ({
           <AudioButton />
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
-          <RecordCallButton />
+          <RecordCallButton
+            toggleCallRecording={toggleCallRecording}
+            isAwaitingResponse={isAwaitingResponse}
+            isCallRecordingInProgress={isCallRecordingInProgress}
+          />
         </View>
         <View style={styles.right}>
           <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
