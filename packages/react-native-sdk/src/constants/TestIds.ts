@@ -10,7 +10,6 @@ export enum ComponentTestIds {
   CALL_PARTICIPANTS_LIST = 'call-participants-list',
   CALL_PARTICIPANTS_SPOTLIGHT = 'call-participants-spotlight',
   CALL_PARTICIPANTS_GRID = 'call-participants-grid',
-  CALL_PARTICIPANTS_FULLSCREEN = 'call-participants-fullscreen',
   LOCAL_PARTICIPANT = 'local-participant',
   PARTICIPANT_MEDIA_STREAM = 'participant-media-stream',
   PARTICIPANTS_INFO = 'participants-info',

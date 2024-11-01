@@ -33,10 +33,6 @@ import {
   ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import RTCViewPipIOS from './RTCViewPipIOS';
-import {
-  CallParticipantsFullscreen,
-  CallParticipantsFullscreenProps,
-} from '../CallLayout/CallParticipantsFullscreen';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -74,7 +70,7 @@ export type CallContentProps = Pick<
     /**
      * This switches the participant's layout between the grid, spotlight and fullscreen mode.
      */
-    layout?: 'grid' | 'spotlight' | 'fullscreen';
+    layout?: 'grid' | 'spotlight';
     /**
      * Reactions that are to be supported in the call
      */
@@ -120,8 +116,12 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
-  const { useCallSettings, useRemoteParticipants, useLocalParticipant } =
-    useCallStateHooks();
+  const {
+    useCallSettings,
+    useHasOngoingScreenShare,
+    useRemoteParticipants,
+    useLocalParticipant,
+  } = useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
@@ -132,9 +132,14 @@ export const CallContent = ({
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
   const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
-  const isFullScreen = layout === 'fullscreen';
-  const showFloatingView = isFullScreen && remoteParticipants.length === 1;
+  const hasScreenShare = useHasOngoingScreenShare();
+  const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
+  const showFloatingView =
+    !showSpotlightLayout &&
+    !isInPiPMode &&
+    remoteParticipants.length > 0 &&
+    remoteParticipants.length < 3;
   const isRemoteParticipantInFloatingView =
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
@@ -169,13 +174,6 @@ export const CallContent = ({
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
     landscape,
-    ParticipantView,
-    CallParticipantsList,
-    supportedReactions,
-  };
-
-  const callParticipantsFullscreenProps: CallParticipantsFullscreenProps = {
-    ...participantViewProps,
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
@@ -189,21 +187,6 @@ export const CallContent = ({
     CallParticipantsList,
     ScreenShareOverlay,
     supportedReactions,
-  };
-
-  const renderCallParticipants = (selectedLayout: string) => {
-    switch (selectedLayout) {
-      case 'fullscreen':
-        return (
-          <CallParticipantsFullscreen {...callParticipantsFullscreenProps} />
-        );
-      case 'spotlight':
-        return (
-          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-        );
-      default:
-        return <CallParticipantsGrid {...callParticipantsGridProps} />;
-    }
   };
 
   return (
@@ -237,7 +220,11 @@ export const CallContent = ({
               />
             )}
           </View>
-          {renderCallParticipants(layout)}
+          {showSpotlightLayout ? (
+            <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+          ) : (
+            <CallParticipantsGrid {...callParticipantsGridProps} />
+          )}{' '}
         </View>
 
         {!isInPiPMode && CallControls && (

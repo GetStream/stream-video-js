@@ -101,7 +101,7 @@ export const ParticipantLabel = ({
           {participantLabel}
         </Text>
         <View style={styles.indicatorWrapper}>
-          <SpeechIndicator isSpeaking={participant.isSpeaking} />
+          <SpeechIndicator isSpeaking={participant.isDominantSpeaker} />
         </View>
       </View>
       {isPinningEnabled && (
