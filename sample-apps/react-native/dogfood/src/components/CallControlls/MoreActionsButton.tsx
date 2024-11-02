@@ -41,7 +41,7 @@ export const MoreActionsButton = ({
       ?.submitFeedback(Math.min(Math.max(1, rating), 5), {
         reason: '<no-message-provided>',
       })
-      .catch((err) => console.warn(`Failed to submit call feedback`, err));
+      .catch((err) => console.warn('Failed to submit call feedback', err));
 
     setFeedbackModalVisible(false);
   };
