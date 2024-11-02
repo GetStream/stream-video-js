@@ -6,6 +6,7 @@ import { StopScreenShare } from '../../../icons/StopScreenShare';
 import { CallControlsButton } from './CallControlsButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useScreenShareButton } from '../../../hooks/useScreenShareButton';
+import { IconWrapper } from '../../../icons';
 
 /**
  * The props for the Screen Share button in the Call Controls.
@@ -32,7 +33,7 @@ export const ScreenShareToggleButton = ({
   onScreenShareStoppedHandler,
 }: ScreenShareToggleButtonProps) => {
   const {
-    theme: { colors, screenShareToggleButton },
+    theme: { colors, screenShareToggleButton, variants },
   } = useTheme();
 
   const screenCapturePickerViewiOSRef = useRef(null);
@@ -48,17 +49,29 @@ export const ScreenShareToggleButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={hasPublishedScreenShare ? colors.error : colors.base1}
+      color={
+        hasPublishedScreenShare
+          ? colors.iconAlertWarning
+          : colors.buttonSecondaryDefault
+      }
       style={{
         container: screenShareToggleButton.container,
         svgContainer: screenShareToggleButton.svgContainer,
       }}
     >
-      {hasPublishedScreenShare ? (
-        <StopScreenShare color={colors.base5} />
-      ) : (
-        <ScreenShare color={colors.base5} />
-      )}
+      <IconWrapper>
+        {hasPublishedScreenShare ? (
+          <StopScreenShare
+            size={variants.iconSizes.md}
+            color={colors.iconPrimaryDefault}
+          />
+        ) : (
+          <ScreenShare
+            size={variants.iconSizes.md}
+            color={colors.iconPrimaryDefault}
+          />
+        )}
+      </IconWrapper>
       {Platform.OS === 'ios' && (
         <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />
       )}

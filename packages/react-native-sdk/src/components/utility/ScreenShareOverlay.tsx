@@ -67,7 +67,10 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
             screenshareOverlay.buttonIcon,
           ]}
         >
-          <StopScreenShare color={colors.base1} />
+          <StopScreenShare
+            size={iconSizes.xs}
+            color={colors.iconPrimaryDefault}
+          />
         </View>
         <Text
           style={[
