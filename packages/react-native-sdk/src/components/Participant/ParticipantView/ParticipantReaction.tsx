@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import { Z_INDEX, defaultEmojiReactions } from '../../../constants';
@@ -32,12 +32,9 @@ export const ParticipantReaction = ({
 }: ParticipantReactionProps) => {
   const { reaction, sessionId } = participant;
   const call = useCall();
+  const styles = useStyles();
   const {
-    theme: {
-      typefaces,
-      variants: { iconSizes },
-      participantReaction,
-    },
+    theme: { typefaces, participantReaction },
   } = useTheme();
 
   useEffect(() => {
@@ -60,26 +57,34 @@ export const ParticipantReaction = ({
     );
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          height: iconSizes.md,
-          width: iconSizes.md,
-        },
-        participantReaction.container,
-      ]}
-    >
-      <Text style={[participantReaction.reaction, typefaces.heading6]}>
-        {currentReaction?.icon}
-      </Text>
-    </View>
+    currentReaction?.icon != null && (
+      <View style={[styles.container, participantReaction.container]}>
+        <Text style={[participantReaction.reaction, typefaces.heading6]}>
+          {currentReaction?.icon}
+        </Text>
+      </View>
+    )
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    alignSelf: 'flex-start',
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          alignSelf: 'flex-end',
+          marginRight: theme.variants.spacingSizes.md,
+          marginTop: theme.variants.spacingSizes.md,
+          height: theme.variants.roundButtonSizes.md,
+          width: theme.variants.roundButtonSizes.md,
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          backgroundColor: theme.colors.sheetOverlay,
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+      }),
+    [theme]
+  );
+};

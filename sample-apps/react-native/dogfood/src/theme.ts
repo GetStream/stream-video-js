@@ -45,5 +45,8 @@ export const useCustomTheme = (): DeepPartial<Theme> => {
         left,
       },
     },
+    floatingParticipantsView: {
+      topPosition: 47,
+    },
   } as DeepPartial<Theme['variants']>;
 };

@@ -23,20 +23,22 @@ export type SnapAlignments = Record<
 export function getSnapAlignments({
   rootContainerDimensions,
   floatingViewDimensions,
+  topOffset,
 }: {
   rootContainerDimensions: { width: number; height: number };
   floatingViewDimensions: { width: number; height: number };
+  topOffset: number;
 }): SnapAlignments {
   const right = rootContainerDimensions.width - floatingViewDimensions.width;
   const bottom = rootContainerDimensions.height - floatingViewDimensions.height;
   const snapOffsets = {
     [FloatingViewAlignment.topLeft]: {
       x: 0,
-      y: 0,
+      y: topOffset,
     },
     [FloatingViewAlignment.topRight]: {
       x: right,
-      y: 0,
+      y: topOffset,
     },
     [FloatingViewAlignment.bottomLeft]: {
       x: 0,

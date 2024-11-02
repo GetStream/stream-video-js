@@ -78,19 +78,17 @@ export const MoreActionsButton = ({
     },
   ];
 
-  const [isPressed, setIsPressed] = useState(false);
-  const buttonColor = isPressed
+  const buttonColor = isDrawerVisible
     ? colors.buttonPrimaryDefault
     : colors.buttonSecondaryDefault;
 
   return (
     <CallControlsButton
       onPress={() => {
-        // TODO: Implement PBE-5870 [Demo App] Component for "More" menu items
         if (onPressHandler) {
           onPressHandler();
         }
-        setIsPressed(!isPressed);
+        setIsDrawerVisible(!isDrawerVisible);
       }}
       style={moreActionsButton}
       color={buttonColor}

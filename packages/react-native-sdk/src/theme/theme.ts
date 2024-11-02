@@ -95,6 +95,7 @@ export type Theme = {
     container: ViewStyle;
     participantViewContainer: ViewStyle;
     videoFallback: ViewStyle;
+    topPosition: number;
   };
   chatButton: {
     container: ViewStyle;
@@ -479,6 +480,7 @@ export const defaultTheme: Theme = {
     container: {},
     participantViewContainer: {},
     videoFallback: {},
+    topPosition: 0,
   },
   participantLabel: {
     container: {},

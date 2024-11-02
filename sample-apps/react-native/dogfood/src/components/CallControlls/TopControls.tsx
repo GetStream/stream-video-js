@@ -11,20 +11,19 @@ import { VideoEffectsButton } from '../VideoEffectsButton';
 import { LayoutSwitcherButton } from './LayoutSwitcherButton';
 
 export type TopControlsProps = {
-  /**
-   * Handler to be called when the hangup button is pressed in the TopControls.
-   * @returns void
-   */
   onHangupCallHandler?: () => void;
+  isCallRecordingInProgress: boolean;
+  isAwaitingResponse: boolean;
 };
 
-export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
+export const TopControls = ({
+  onHangupCallHandler,
+  isCallRecordingInProgress,
+  isAwaitingResponse,
+}: TopControlsProps) => {
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const styles = useStyles();
-
-  // TODO: replace this with real data implement PBE-5871 [Demo App] Call Recording flow
-  const [isCallRecorded] = useState(false);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -43,11 +42,14 @@ export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
           <View style={styles.leftContent}>
             <LayoutSwitcherButton />
             <ToggleCameraFaceButton />
-            {!isCallRecorded && <VideoEffectsButton />}
+            {!isAwaitingResponse && <VideoEffectsButton />}
           </View>
         </View>
         <View style={styles.centerElement}>
-          <CallStatusBadge isCallRecorded={isCallRecorded} />
+          <CallStatusBadge
+            isCallRecordingInProgress={isCallRecordingInProgress}
+            isAwaitingResponse={isAwaitingResponse}
+          />
         </View>
         <View style={styles.rightElement}>
           <HangUpCallButton onPressHandler={onHangupCallHandler} />

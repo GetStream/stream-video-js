@@ -7,18 +7,18 @@ import {
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
-import {
-  CallControlsComponent,
-  BottomControlsProps,
-} from './CallControlls/BottomControls';
+import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
+import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 
-type ActiveCallProps = BottomControlsProps & {
+type ActiveCallProps = {
   onHangupCallHandler?: () => void;
   onCallEnded: () => void;
+  onChatOpenHandler: () => void;
+  unreadCountIndicator: number;
 };
 
 export const ActiveCall = ({
@@ -45,15 +45,38 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const CustomControlsComponent = useCallback(() => {
+  const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
+    useToggleCallRecording();
+
+  const CustomBottomControls = useCallback(() => {
     return (
-      <CallControlsComponent
+      <BottomControls
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         onChatOpenHandler={onChatOpenHandler}
         unreadCountIndicator={unreadCountIndicator}
+        toggleCallRecording={toggleCallRecording}
+        isCallRecordingInProgress={isCallRecordingInProgress}
+        isAwaitingResponse={isAwaitingResponse}
       />
     );
-  }, [onChatOpenHandler, onOpenCallParticipantsInfo, unreadCountIndicator]);
+  }, [
+    onChatOpenHandler,
+    onOpenCallParticipantsInfo,
+    unreadCountIndicator,
+    toggleCallRecording,
+    isAwaitingResponse,
+    isCallRecordingInProgress,
+  ]);
+
+  const CustomTopControls = useCallback(() => {
+    return (
+      <TopControls
+        isAwaitingResponse={isAwaitingResponse}
+        isCallRecordingInProgress={isCallRecordingInProgress}
+        onHangupCallHandler={onHangupCallHandler}
+      />
+    );
+  }, [isAwaitingResponse, isCallRecordingInProgress, onHangupCallHandler]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -71,8 +94,8 @@ export const ActiveCall = ({
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <CallContent
           onHangupCallHandler={onHangupCallHandler}
-          CallTopView={TopControls}
-          CallControls={CustomControlsComponent}
+          CallTopView={CustomTopControls}
+          CallControls={CustomBottomControls}
           landscape={currentOrientation === 'landscape'}
           layout={selectedLayout}
         />

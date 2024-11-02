@@ -8,7 +8,7 @@ import {
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { appTheme } from '../../theme';
-import { Z_INDEX } from '../../constants';
+import { BOTTOM_CONTROLS_HEIGHT, Z_INDEX } from '../../constants';
 import { MoreActionsButton } from './MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
@@ -21,12 +21,18 @@ export type BottomControlsProps = Pick<
   onChatOpenHandler?: () => void;
   onParticipantInfoPress?: () => void;
   unreadCountIndicator?: number;
+  toggleCallRecording: () => Promise<void>;
+  isAwaitingResponse: boolean;
+  isCallRecordingInProgress: boolean;
 };
 
-export const CallControlsComponent = ({
+export const BottomControls = ({
   onChatOpenHandler,
   unreadCountIndicator,
   onParticipantInfoPress,
+  toggleCallRecording,
+  isAwaitingResponse,
+  isCallRecordingInProgress,
 }: BottomControlsProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
@@ -44,7 +50,11 @@ export const CallControlsComponent = ({
           <MoreActionsButton />
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
-          <RecordCallButton />
+          <RecordCallButton
+            toggleCallRecording={toggleCallRecording}
+            isAwaitingResponse={isAwaitingResponse}
+            isCallRecordingInProgress={isCallRecordingInProgress}
+          />
         </View>
         <View style={styles.right}>
           <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
@@ -68,7 +78,7 @@ const useStyles = (showMicLabel: boolean) => {
           paddingVertical: !showMicLabel ? theme.variants.spacingSizes.md : 0,
           paddingHorizontal: theme.variants.spacingSizes.md,
           backgroundColor: theme.colors.sheetPrimary,
-          height: 76,
+          height: BOTTOM_CONTROLS_HEIGHT,
         },
         speakingLabelContainer: {
           backgroundColor: appTheme.colors.static_overlay,
