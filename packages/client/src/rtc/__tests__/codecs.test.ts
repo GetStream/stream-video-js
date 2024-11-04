@@ -25,11 +25,11 @@ describe('codecs', () => {
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
       ['video/VP8', undefined],
-      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f'],
-      ['video/rtx', undefined],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=640c1f'],
-      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f'],
+      ['video/rtx', undefined],
       ['video/VP9', 'profile-id=0'],
       ['video/VP9', 'profile-id=2'],
       ['video/red', undefined],
@@ -46,8 +46,8 @@ describe('codecs', () => {
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'],
-      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=640c1f'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f'],
       ['video/rtx', undefined],
       ['video/VP8', undefined],
       ['video/VP9', 'profile-id=0'],
@@ -73,6 +73,26 @@ describe('codecs', () => {
       ['video/VP9', 'max-fs=12288;max-fr=60'],
       ['video/ulpfec', undefined],
       ['video/red', undefined],
+    ]);
+  });
+
+  it('should pick the profile-0 VP9 codec', () => {
+    RTCRtpReceiver.getCapabilities = vi.fn().mockReturnValue(videoCodecs);
+    const codecs = getPreferredCodecs('video', 'vp9');
+    expect(codecs).toBeDefined();
+    // prettier-ignore
+    expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
+      ['video/VP9', 'profile-id=0'],
+      ['video/VP9', 'profile-id=2'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=640c1f'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f'],
+      ['video/rtx', undefined],
+      ['video/VP8', undefined],
+      ['video/red', undefined],
+      ['video/ulpfec', undefined],
+      ['video/flexfec-03', 'repair-window=10000000'],
     ]);
   });
 });

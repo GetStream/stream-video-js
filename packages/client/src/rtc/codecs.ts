@@ -1,6 +1,7 @@
 import { getOSInfo } from '../client-details';
 import { isReactNative } from '../helpers/platforms';
 import { isFirefox, isSafari } from '../helpers/browsers';
+import { combineComparators, Comparator } from '../sorting';
 import type { PreferredCodec } from '../types';
 
 /**
@@ -21,8 +22,7 @@ export const getPreferredCodecs = (
   if (!capabilities) return;
 
   const preferred: RTCRtpCodecCapability[] = [];
-  const partiallyPreferred: RTCRtpCodecCapability[] = [];
-  const unpreferred: RTCRtpCodecCapability[] = [];
+  const unpreferred: Record<string, RTCRtpCodecCapability[]> = {};
 
   const preferredCodecMimeType = `${kind}/${preferredCodec.toLowerCase()}`;
   const codecToRemoveMimeType =
@@ -30,46 +30,75 @@ export const getPreferredCodecs = (
 
   for (const codec of capabilities.codecs) {
     const codecMimeType = codec.mimeType.toLowerCase();
-
-    const shouldRemoveCodec = codecMimeType === codecToRemoveMimeType;
-    if (shouldRemoveCodec) continue; // skip this codec
-
-    const isPreferredCodec = codecMimeType === preferredCodecMimeType;
-    if (!isPreferredCodec) {
-      unpreferred.push(codec);
-      continue;
-    }
-
-    // h264 is a special case, we want to prioritize the baseline codec with
-    // profile-level-id is 42e01f and packetization-mode=0 for maximum
-    // cross-browser compatibility.
-    // this branch covers the other cases, such as vp8.
-    if (codecMimeType !== 'video/h264') {
+    if (codecMimeType === codecToRemoveMimeType) continue; // skip this codec
+    if (codecMimeType === preferredCodecMimeType) {
       preferred.push(codec);
-      continue;
-    }
-
-    const sdpFmtpLine = codec.sdpFmtpLine;
-    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42e01f')) {
-      // this is not the baseline h264 codec, prioritize it lower
-      partiallyPreferred.push(codec);
-      continue;
-    }
-
-    // packetization-mode mode is optional; when not present it defaults to 0:
-    // https://datatracker.ietf.org/doc/html/rfc6184#section-6.2
-    if (
-      sdpFmtpLine.includes('packetization-mode=0') ||
-      !sdpFmtpLine.includes('packetization-mode')
-    ) {
-      preferred.unshift(codec);
     } else {
-      preferred.push(codec);
+      (unpreferred[codecMimeType] ??= []).push(codec);
     }
   }
 
   // return a sorted list of codecs, with the preferred codecs first
-  return [...preferred, ...partiallyPreferred, ...unpreferred];
+  return preferred
+    .concat(Object.values(unpreferred).flatMap((v) => v))
+    .sort(combineComparators(h264Comparator, vp9Comparator));
+};
+
+/**
+ * A comparator for sorting H264 codecs.
+ * We want to prioritize the baseline codec with profile-level-id is 42e01f
+ * and packetization-mode=0 for maximum cross-browser compatibility.
+ */
+const h264Comparator: Comparator<RTCRtpCodecCapability> = (a, b) => {
+  const aMimeType = a.mimeType.toLowerCase();
+  const bMimeType = b.mimeType.toLowerCase();
+  if (aMimeType !== 'video/h264' || bMimeType !== 'video/h264') return 0;
+
+  const aFmtpLine = a.sdpFmtpLine;
+  const bFmtpLine = b.sdpFmtpLine;
+  if (!aFmtpLine || !bFmtpLine) return 0;
+
+  // h264 is a special case, we want to prioritize the baseline codec with
+  // profile-level-id is 42e01f and packetization-mode=0 for maximum
+  // cross-browser compatibility.
+  const aIsBaseline = aFmtpLine.includes('profile-level-id=42e01f');
+  const bIsBaseline = bFmtpLine.includes('profile-level-id=42e01f');
+  if (aIsBaseline && !bIsBaseline) return -1;
+  if (!aIsBaseline && bIsBaseline) return 1;
+
+  const aPacketizationMode0 =
+    aFmtpLine.includes('packetization-mode=0') ||
+    !aFmtpLine.includes('packetization-mode');
+  const bPacketizationMode0 =
+    bFmtpLine.includes('packetization-mode=0') ||
+    !bFmtpLine.includes('packetization-mode');
+  if (aPacketizationMode0 && !bPacketizationMode0) return -1;
+  if (!aPacketizationMode0 && bPacketizationMode0) return 1;
+
+  return 0;
+};
+
+/**
+ * A comparator for sorting VP9 codecs.
+ * We want to prioritize the profile-id=0 codec for maximum compatibility.
+ */
+const vp9Comparator: Comparator<RTCRtpCodecCapability> = (a, b) => {
+  const aMimeType = a.mimeType.toLowerCase();
+  const bMimeType = b.mimeType.toLowerCase();
+  if (aMimeType !== 'video/vp9' || bMimeType !== 'video/vp9') return 0;
+
+  const aFmtpLine = a.sdpFmtpLine;
+  const bFmtpLine = b.sdpFmtpLine;
+  if (!aFmtpLine || !bFmtpLine) return 0;
+
+  // for vp9, we want to prioritize the profile-id=0 codec
+  // for maximum cross-browser compatibility.
+  const aIsProfile0 = aFmtpLine.includes('profile-id=0');
+  const bIsProfile0 = bFmtpLine.includes('profile-id=0');
+  if (aIsProfile0 && !bIsProfile0) return -1;
+  if (!aIsProfile0 && bIsProfile0) return 1;
+
+  return 0;
 };
 
 /**
@@ -112,6 +141,18 @@ export const getOptimalVideoCodec = (
 };
 
 /**
+ * Returns whether the H264 codec supports the baseline profile.
+ */
+const h264SupportsBaseline = (codec: RTCRtpCodecCapability) => {
+  const fmtpLine = codec.sdpFmtpLine;
+  if (!fmtpLine) return false;
+  const packetization0 =
+    fmtpLine.includes('packetization-mode=0') ||
+    !fmtpLine.includes('packetization-mode');
+  return fmtpLine.includes('profile-level-id=42e01f') && packetization0;
+};
+
+/**
  * Determines if the platform supports the preferred codec.
  * If not, it returns the fallback codec.
  */
@@ -128,11 +169,13 @@ const preferredOr = (
   // so we disable it for them.
   if (isSvcCodec(codec) && (isSafari() || isFirefox())) return fallback;
 
-  const { codecs } = capabilities;
   const codecMimeType = `video/${codec}`.toLowerCase();
-  return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType)
-    ? codec
-    : fallback;
+  const isSupported = capabilities.codecs.some(
+    (c) =>
+      c.mimeType.toLowerCase() === codecMimeType &&
+      (codec === 'h264' ? h264SupportsBaseline(c) : true),
+  );
+  return isSupported ? codec : fallback;
 };
 
 /**
@@ -145,8 +188,8 @@ export const isSvcCodec = (codecOrMimeType: string | undefined) => {
   codecOrMimeType = codecOrMimeType.toLowerCase();
   return (
     codecOrMimeType === 'vp9' ||
-    codecOrMimeType === 'av1' ||
     codecOrMimeType === 'video/vp9' ||
+    codecOrMimeType === 'av1' ||
     codecOrMimeType === 'video/av1'
   );
 };
