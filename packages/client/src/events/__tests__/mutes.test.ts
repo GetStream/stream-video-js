@@ -8,6 +8,12 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { handleRemoteSoftMute } from '../mutes';
 import type { CallEventListener } from '../../coordinator/connection/types';
 
+vi.mock('../../compatibility.ts', () => {
+  return {
+    isMobile: () => true,
+  };
+});
+
 describe('mutes', () => {
   describe('soft mute', () => {
     let handler: CallEventListener<'trackUnpublished'>;
