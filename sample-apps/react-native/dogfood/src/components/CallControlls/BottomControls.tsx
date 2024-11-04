@@ -1,5 +1,6 @@
 import {
   CallContentProps,
+  ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCallStateHooks,
@@ -13,7 +14,6 @@ import { MoreActionsButton } from './MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
-import { AudioButton } from './AudioButton';
 
 export type BottomControlsProps = Pick<
   CallContentProps,
@@ -49,9 +49,9 @@ export const BottomControls = ({
       <View style={[styles.callControlsWrapper]}>
         <View style={styles.left}>
           <MoreActionsButton />
-          <AudioButton />
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
+          <ScreenShareToggleButton />
           <RecordCallButton
             toggleCallRecording={toggleCallRecording}
             isAwaitingResponse={isAwaitingResponse}
