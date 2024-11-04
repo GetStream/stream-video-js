@@ -9,6 +9,7 @@ import { isMobile } from '../compatibility';
 import { isReactNative } from '../helpers/platforms';
 
 const isDirectionSupportedByDevice = isMobile() || isReactNative();
+
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
     width: 1280,
