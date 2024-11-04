@@ -45,10 +45,10 @@ import Close from '../assets/Close';
 
 const FeedbackModal: = () => {
   const call = useCall();
-  const [rating, setRating] = useState<number | null>(null);
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
   const handleRatingPress = (rating: number) => {
-    setRating(rating);
+    setSelectedRating(rating);
     await call
       ?.submitFeedback(Math.min(Math.max(1, rating), 5), {
         reason: '<no-message-provided>',
@@ -92,7 +92,7 @@ const FeedbackModal: = () => {
               >
                 <Star
                   color={
-                    rating && rating >= rating
+                    selectedRating && selectedRating >= rating
                       ? colors.iconAlertSuccess
                       : colors.typeSecondary
                   }
