@@ -93,8 +93,10 @@ const vp9Comparator: Comparator<RTCRtpCodecCapability> = (a, b) => {
 
   // for vp9, we want to prioritize the profile-id=0 codec
   // for maximum cross-browser compatibility.
-  const aIsProfile0 = aFmtpLine.includes('profile-id=0');
-  const bIsProfile0 = bFmtpLine.includes('profile-id=0');
+  const aIsProfile0 =
+    aFmtpLine.includes('profile-id=0') || !aFmtpLine.includes('profile-id');
+  const bIsProfile0 =
+    bFmtpLine.includes('profile-id=0') || !bFmtpLine.includes('profile-id');
   if (aIsProfile0 && !bIsProfile0) return -1;
   if (!aIsProfile0 && bIsProfile0) return 1;
 
