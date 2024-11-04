@@ -92,6 +92,11 @@ export const CallParticipantsSpotlight = ({
     marginHorizontal: landscape ? 0 : variants.spacingSizes.xs,
   };
 
+  const showShareScreenOverlay =
+    participantInSpotlight?.isLocalParticipant &&
+    isScreenShareOnSpotlight &&
+    ScreenShareOverlay;
+
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
@@ -103,7 +108,7 @@ export const CallParticipantsSpotlight = ({
     >
       {participantInSpotlight &&
         ParticipantView &&
-        (participantInSpotlight.isLocalParticipant && ScreenShareOverlay ? (
+        (showShareScreenOverlay ? (
           <ScreenShareOverlay />
         ) : (
           <ParticipantView
