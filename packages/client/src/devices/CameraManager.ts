@@ -6,6 +6,7 @@ import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { PreferredCodec } from '../types';
 import { isMobile } from '../compatibility';
+import { isReactNative } from '../helpers/platforms';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -22,13 +23,17 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     super(call, new CameraManagerState(), TrackType.VIDEO);
   }
 
+  private isDirectionSupportedByDevice() {
+    return isReactNative() || isMobile();
+  }
+
   /**
    * Select the camera direction.
    *
    * @param direction the direction of the camera to select.
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
-    if (isMobile()) {
+    if (this.isDirectionSupportedByDevice()) {
       this.state.setDirection(direction);
       // Providing both device id and direction doesn't work, so we deselect the device
       this.state.setDevice(undefined);
@@ -102,7 +107,12 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     constraints.height = this.targetResolution.height;
     // We can't set both device id and facing mode
     // Device id has higher priority
-    if (!constraints.deviceId && this.state.direction && isMobile()) {
+
+    if (
+      !constraints.deviceId &&
+      this.state.direction &&
+      this.isDirectionSupportedByDevice()
+    ) {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
