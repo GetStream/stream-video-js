@@ -45,7 +45,7 @@ export const JoinCallButton = ({
     <Pressable
       style={[
         styles.container,
-        { backgroundColor: colors.primary },
+        { backgroundColor: colors.buttonPrimaryDefault },
         joinCallButton.container,
       ]}
       onPress={onPress}
@@ -53,9 +53,7 @@ export const JoinCallButton = ({
       <Text
         style={[
           styles.label,
-          {
-            color: colors.base1,
-          },
+          { color: colors.typePrimary },
           typefaces.subtitleBold,
           joinCallButton.label,
         ]}

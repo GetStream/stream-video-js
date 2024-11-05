@@ -49,19 +49,6 @@ export const MoreActionsButton = ({
   const options: DrawerOption[] = [
     {
       id: '1',
-      label: 'Stats',
-      icon: (
-        <IconWrapper>
-          <Stats
-            color={colors.iconPrimaryDefault}
-            size={variants.roundButtonSizes.sm}
-          />
-        </IconWrapper>
-      ),
-      onPress: () => {},
-    },
-    {
-      id: '2',
       label: 'Feedback',
       icon: (
         <IconWrapper>

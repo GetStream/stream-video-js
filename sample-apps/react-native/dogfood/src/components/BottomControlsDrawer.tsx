@@ -194,6 +194,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
       transparent={true}
       visible={isVisible}
       onRequestClose={onClose}
+      supportedOrientations={['portrait', 'landscape']}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>

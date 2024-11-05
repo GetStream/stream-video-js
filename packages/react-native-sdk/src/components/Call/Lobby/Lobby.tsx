@@ -90,7 +90,7 @@ export const Lobby = ({
       style={[
         styles.container,
         landscapeStyles,
-        { backgroundColor: colors.base4 },
+        { backgroundColor: colors.sheetPrimary },
         lobby.container,
       ]}
     >
@@ -99,7 +99,7 @@ export const Lobby = ({
           <Text
             style={[
               styles.heading,
-              { color: colors.base1 },
+              { color: colors.typePrimary },
               typefaces.heading4,
               lobby.heading,
             ]}
@@ -109,7 +109,7 @@ export const Lobby = ({
           <Text
             style={[
               styles.subHeading,
-              { color: colors.base3 },
+              { color: colors.typeSecondary },
               typefaces.subtitle,
             ]}
           >
@@ -121,7 +121,7 @@ export const Lobby = ({
             <View
               style={[
                 styles.videoContainer,
-                { backgroundColor: colors.disabled },
+                { backgroundColor: colors.sheetTertiary },
                 lobby.videoContainer,
               ]}
             >
@@ -167,16 +167,14 @@ const ParticipantStatus = () => {
     <View
       style={[
         styles.participantStatusContainer,
-        {
-          backgroundColor: colors.background6,
-        },
+        { backgroundColor: colors.sheetOverlay },
         lobby.participantStatusContainer,
       ]}
     >
       <Text
         style={[
           styles.userNameLabel,
-          { color: colors.base1 },
+          { color: colors.typePrimary },
           typefaces.caption,
           lobby.userNameLabel,
         ]}

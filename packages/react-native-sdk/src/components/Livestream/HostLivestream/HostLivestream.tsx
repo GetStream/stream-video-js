@@ -108,9 +108,7 @@ export const HostLivestream = ({
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: colors.background2,
-        },
+        { backgroundColor: colors.sheetTertiary },
         hostLivestream.container,
       ]}
     >

@@ -57,11 +57,11 @@ export const AcceptCallButton = ({
   return (
     <CallControlsButton
       onPress={acceptCallHandler}
-      color={colors.info}
+      color={colors.iconAlertSuccess}
       size={buttonSizes.lg}
       style={acceptCallButton}
     >
-      <Phone color={colors.base1} />
+      <Phone color={colors.typePrimary} />
     </CallControlsButton>
   );
 };

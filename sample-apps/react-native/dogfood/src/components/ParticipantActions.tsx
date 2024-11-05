@@ -7,6 +7,7 @@ import {
   useCall,
   useCallStateHooks,
   useI18n,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { Cross } from '../assets/Cross';
 import { Mic } from '../assets/Mic';
@@ -19,7 +20,6 @@ import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useCallback, useMemo } from 'react';
 import { generateParticipantTitle } from '../utils';
-import { useTheme } from 'stream-chat-react-native';
 
 type CallParticipantOptionType = {
   title: string;
@@ -103,7 +103,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserVideoOption = participantPublishesVideo
     ? {
-        icon: <VideoSlash color={colors.base1} />,
+        icon: <VideoSlash color={colors.iconPrimaryDefault} />,
         title: 'Mute Video',
         onPressHandler: muteUserVideo,
       }
@@ -111,7 +111,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserAudioOption = participantPublishesAudio
     ? {
-        icon: <MicOff color={colors.base1} />,
+        icon: <MicOff color={colors.iconPrimaryDefault} />,
         title: 'Mute Audio',
         onPressHandler: muteUserAudio,
       }
@@ -125,37 +125,37 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasUpdateCallPermissionsCapability
       ? [
           {
-            icon: <VideoDisabled color={colors.base1} />,
+            icon: <VideoDisabled color={colors.iconPrimaryDefault} />,
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <MicOff color={colors.base1} />,
+            icon: <MicOff color={colors.iconPrimaryDefault} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Mic color={colors.base1} />,
+            icon: <Mic color={colors.iconPrimaryDefault} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Video color={colors.base1} />,
+            icon: <Video color={colors.iconPrimaryDefault} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <ScreenShare color={colors.base1} />,
+            icon: <ScreenShare color={colors.iconPrimaryDefault} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
-            icon: <Cross color={colors.base1} />,
+            icon: <Cross color={colors.iconPrimaryDefault} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -167,7 +167,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasBlockUserCapability
       ? [
           {
-            icon: <Cross color={colors.base1} />,
+            icon: <Cross color={colors.iconPrimaryDefault} />,
             title: 'Block',
             onPressHandler: blockUser,
           },
@@ -177,7 +177,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
   const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
     ? {
-        icon: <Pin color={colors.base1} />,
+        icon: <Pin color={colors.iconPrimaryDefault} />,
         title: participant.pin ? 'Unpin' : 'Pin',
         onPressHandler: toggleParticipantPinnedAt,
       }
@@ -191,7 +191,6 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   ];
 
   const showYouLabel = participant.isLocalParticipant;
-
   return (
     <View style={styles.outerContainer}>
       <View style={styles.modalContainer}>
@@ -207,7 +206,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross color={colors.primary} style={styles.crossIcon} />
+            <Cross color={colors.iconPrimaryDefault} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -248,7 +247,7 @@ const useStyles = () => {
           flex: 1,
         },
         modalContainer: {
-          backgroundColor: theme.colors.background5,
+          backgroundColor: theme.colors.sheetPrimary,
           borderRadius: 15,
           marginHorizontal: 32,
         },
@@ -266,7 +265,7 @@ const useStyles = () => {
           marginLeft: 8,
           fontSize: 16,
           fontWeight: '500',
-          color: theme.colors.base1,
+          color: theme.colors.iconPrimaryDefault,
         },
         option: {
           paddingHorizontal: 24,
@@ -280,12 +279,12 @@ const useStyles = () => {
         },
         title: {
           marginLeft: 16,
-          color: theme.colors.base1,
+          color: theme.colors.iconPrimaryDefault,
           fontSize: 16,
           fontWeight: '400',
         },
         borderBottom: {
-          borderBottomColor: theme.colors.base4,
+          borderBottomColor: theme.colors.buttonSecondaryHover,
           borderBottomWidth: 1,
         },
         crossIcon: {
@@ -294,8 +293,8 @@ const useStyles = () => {
         },
         closePressable: {
           padding: 8,
-          borderRadius: 5,
-          backgroundColor: theme.colors.base4,
+          borderRadius: 15,
+          backgroundColor: theme.colors.buttonSecondaryDefault,
         },
       }),
     [theme],

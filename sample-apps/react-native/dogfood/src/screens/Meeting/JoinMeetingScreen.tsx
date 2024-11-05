@@ -26,6 +26,7 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
+  const { theme } = useTheme();
   const [linking, setLinking] = useState<boolean>(false);
   const { t } = useI18n();
   const orientation = useOrientation();
@@ -103,7 +104,12 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             onPress={joinCallHandler}
             title={t('Join Call')}
             disabled={!isValidCallId}
-            buttonStyle={styles.joinCallButton}
+            buttonStyle={{
+              ...styles.joinCallButton,
+              backgroundColor: isValidCallId
+                ? theme.colors.buttonPrimaryDefault
+                : theme.colors.buttonPrimaryDisabled,
+            }}
           />
         </View>
         <Button
@@ -126,11 +132,13 @@ const useStyles = () => {
       StyleSheet.create({
         container: {
           padding: appTheme.spacing.lg,
-          backgroundColor: appTheme.colors.static_grey,
+          backgroundColor: theme.colors.sheetPrimary,
           flex: 1,
           justifyContent: 'space-evenly',
-          paddingRight: theme.variants.insets.right,
-          paddingLeft: theme.variants.insets.left,
+          paddingRight:
+            theme.variants.insets.right + theme.variants.spacingSizes.lg,
+          paddingLeft:
+            theme.variants.insets.left + theme.variants.spacingSizes.lg,
         },
         topContainer: {
           flex: 1,

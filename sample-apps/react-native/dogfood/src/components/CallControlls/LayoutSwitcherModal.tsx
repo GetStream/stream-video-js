@@ -88,7 +88,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           >
             <Grid
               size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimaryDefault}
+              color={theme.colors.typePrimary}
             />
             <Text style={styles.buttonText}>Grid</Text>
           </TouchableOpacity>
@@ -138,7 +138,7 @@ const useStyles = () => {
           paddingVertical: theme.variants.spacingSizes.sm,
         },
         selectedButton: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.buttonPrimaryDefault,
         },
         buttonText: {
           color: 'white',

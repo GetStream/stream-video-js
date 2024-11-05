@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { OwnCapability } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../constants/TestIds';
-import { Reaction } from '../../../icons';
+import { IconWrapper, Reaction } from '../../../icons';
 import { ReactionsPicker } from './internal/ReactionsPicker';
 import { LayoutChangeEvent, LayoutRectangle } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -71,7 +71,9 @@ export const ReactionsButton = ({
           onPress={reactionsButtonHandler}
           onLayout={onReactionsButtonLayout}
         >
-          <Reaction color={colors.base5} />
+          <IconWrapper>
+            <Reaction color={colors.iconPrimaryDefault} />
+          </IconWrapper>
         </CallControlsButton>
       </Restricted>
       {showReactionsPicker && (

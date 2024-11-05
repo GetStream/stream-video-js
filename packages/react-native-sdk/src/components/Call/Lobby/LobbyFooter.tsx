@@ -39,13 +39,13 @@ export const LobbyFooter = ({
     <View
       style={[
         styles.infoContainer,
-        { backgroundColor: colors.background6 },
+        { backgroundColor: colors.sheetSecondary },
         lobby.infoContainer,
       ]}
     >
       <Text
         style={[
-          { color: colors.base1 },
+          { color: colors.typePrimary },
           typefaces.subtitleBold,
           lobby.infoText,
         ]}

@@ -2,7 +2,7 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Video, VideoSlash } from '../../../icons';
+import { IconWrapper, Video, VideoSlash } from '../../../icons';
 
 /**
  * The LivestreamVideoControlButton controls the video stream publish/unpublish while in the livestream for the host.
@@ -17,7 +17,6 @@ export const LivestreamVideoControlButton = () => {
       colors,
       variants: { iconSizes, buttonSizes },
       livestreamVideoControlButton,
-      defaults,
     },
   } = useTheme();
 
@@ -35,7 +34,7 @@ export const LivestreamVideoControlButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.background2,
+          backgroundColor: colors.buttonSecondaryDefault,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -52,11 +51,13 @@ export const LivestreamVideoControlButton = () => {
           livestreamVideoControlButton.icon,
         ]}
       >
-        {!optimisticIsMute ? (
-          <Video color={colors.base1} size={defaults.iconSize} />
-        ) : (
-          <VideoSlash color={colors.base1} size={defaults.iconSize} />
-        )}
+        <IconWrapper>
+          {!optimisticIsMute ? (
+            <Video color={colors.typePrimary} size={iconSizes.md} />
+          ) : (
+            <VideoSlash color={colors.typePrimary} size={iconSizes.md} />
+          )}
+        </IconWrapper>
       </View>
     </Pressable>
   );

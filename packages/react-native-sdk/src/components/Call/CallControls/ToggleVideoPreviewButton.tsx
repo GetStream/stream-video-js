@@ -25,8 +25,7 @@ export const ToggleVideoPreviewButton = ({
     theme: {
       colors,
       toggleVideoPreviewButton,
-      variants: { buttonSizes },
-      defaults,
+      variants: { buttonSizes, iconSizes },
     },
   } = useTheme();
   const { useCameraState, useCallSettings } = useCallStateHooks();
@@ -61,12 +60,9 @@ export const ToggleVideoPreviewButton = ({
     >
       <IconWrapper>
         {!optimisticIsMute ? (
-          <Video color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+          <Video color={colors.iconPrimaryDefault} size={iconSizes.lg} />
         ) : (
-          <VideoSlash
-            color={colors.iconPrimaryDefault}
-            size={defaults.iconSize}
-          />
+          <VideoSlash color={colors.iconPrimaryDefault} size={iconSizes.lg} />
         )}
       </IconWrapper>
     </CallControlsButton>

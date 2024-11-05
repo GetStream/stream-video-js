@@ -112,21 +112,19 @@ export const ParticipantView = ({
   const {
     theme: { colors, participantView },
   } = useTheme();
-  const styles = useStyles();
-  const { isSpeaking, userId } = participant;
+  const { isSpeaking, userId, reaction } = participant;
+  const styles = useStyles(!!reaction);
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
     styles.highligtedContainer,
-    {
-      borderColor: colors.primary,
-    },
+    { borderColor: colors.buttonPrimaryDefault },
     participantView.highligtedContainer,
   ];
 
   return (
     <View
-      style={[styles.container, style, speakerStyle]}
+      style={[styles.container, {}, style, speakerStyle]}
       testID={
         isSpeaking
           ? `participant-${userId}-is-speaking`
@@ -167,14 +165,14 @@ export const ParticipantView = ({
   );
 };
 
-const useStyles = () => {
+const useStyles = (hasReaction: boolean) => {
   const { theme } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          justifyContent: 'space-between',
           overflow: 'hidden',
+          justifyContent: hasReaction ? 'space-between' : 'flex-end',
           borderRadius: theme.variants.borderRadiusSizes.md,
         },
         footerContainer: {
