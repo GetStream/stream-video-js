@@ -22,6 +22,7 @@ import type {
   UR,
 } from './types';
 import type { ConnectedEvent, WSAuthMessage } from '../../gen/coordinator';
+import { getTimers } from '../../timers';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -58,7 +59,7 @@ export class StableWSConnection {
   authenticationSent: boolean;
   consecutiveFailures: number;
   pingInterval: number;
-  healthCheckTimeoutRef?: NodeJS.Timeout;
+  healthCheckTimeoutRef?: number;
   isConnecting: boolean;
   isDisconnected: boolean;
   isHealthy: boolean;
@@ -249,7 +250,7 @@ export class StableWSConnection {
 
     // start by removing all the listeners
     if (this.healthCheckTimeoutRef) {
-      clearInterval(this.healthCheckTimeoutRef);
+      getTimers().clearInterval(this.healthCheckTimeoutRef);
     }
     if (this.connectionCheckTimeoutRef) {
       clearInterval(this.connectionCheckTimeoutRef);
@@ -757,12 +758,13 @@ export class StableWSConnection {
    * Schedules a next health check ping for websocket.
    */
   scheduleNextPing = () => {
+    const timers = getTimers();
     if (this.healthCheckTimeoutRef) {
-      clearTimeout(this.healthCheckTimeoutRef);
+      timers.clearTimeout(this.healthCheckTimeoutRef);
     }
 
     // 30 seconds is the recommended interval (messenger uses this)
-    this.healthCheckTimeoutRef = setTimeout(() => {
+    this.healthCheckTimeoutRef = timers.setTimeout(() => {
       // send the healthcheck..., server replies with a health check event
       const data = [{ type: 'health.check', client_id: this.client.clientID }];
       // try to send on the connection
