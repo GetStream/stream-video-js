@@ -12,10 +12,13 @@ self.addEventListener('message', (event: MessageEvent) => {
     case 'setInterval':
       timerIdMapping.set(
         request.id,
-        (request.type === 'setTimeout' ? setTimeout : setInterval)(
-          () => tick(request.id),
-          request.timeout,
-        ),
+        (request.type === 'setTimeout' ? setTimeout : setInterval)(() => {
+          tick(request.id);
+
+          if (request.type === 'setTimeout') {
+            timerIdMapping.delete(request.id);
+          }
+        }, request.timeout),
       );
       break;
 

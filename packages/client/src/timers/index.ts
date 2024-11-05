@@ -73,7 +73,17 @@ class TimerWorker {
     }
 
     const id = this.getTimerId();
-    this.callbacks.set(id, callback);
+
+    this.callbacks.set(id, () => {
+      callback();
+
+      // Timeouts are one-off operations, so no need to keep callback reference
+      // after timer has fired
+      if (type === 'setTimeout') {
+        this.callbacks.delete(id);
+      }
+    });
+
     this.sendMessage({ type, id, timeout });
     return id;
   }
