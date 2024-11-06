@@ -98,7 +98,7 @@ class TimerWorker {
     }
 
     if (this.fallback) {
-      this.clearInterval(id);
+      (type === 'clearTimeout' ? clearTimeout : clearInterval)(id);
       return;
     }
 
