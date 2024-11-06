@@ -207,6 +207,8 @@ const videoParticipants = participants.filter(
 );
 ```
 
+In a call with many participants, the list returned by the `useParticipants` call state hook is truncated to 250 participants. The participants who are publishing video, audio, or screen sharing have priority over the other participants in the list. This means, for example, that in a livestream with one host and many viewers, the host is guaranteed to be in the list.
+
 ## Client state
 
 To observe client state you need to provide a `StreamVideoClient` instance to the `StreamVideo` context provider.
