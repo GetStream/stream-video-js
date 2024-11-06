@@ -9,6 +9,7 @@ import {
 import { CallStatusBadge } from './CallStatusBadge';
 import { VideoEffectsButton } from '../VideoEffectsButton';
 import { LayoutSwitcherButton } from './LayoutSwitcherButton';
+import { useOrientation } from '../../hooks/useOrientation';
 
 export type TopControlsProps = {
   onHangupCallHandler?: () => void;
@@ -25,6 +26,8 @@ export const TopControls = ({
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const styles = useStyles();
   const { theme } = useTheme();
+  const orientation = useOrientation();
+  const isLandscape = orientation === 'landscape';
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -45,7 +48,7 @@ export const TopControls = ({
             <ToggleCameraFaceButton
               backgroundColor={theme.colors.sheetPrimary}
             />
-            {!isAwaitingResponse && <VideoEffectsButton />}
+            {(!isAwaitingResponse || isLandscape) && <VideoEffectsButton />}
           </View>
         </View>
         <View style={styles.centerElement}>

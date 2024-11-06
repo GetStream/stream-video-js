@@ -256,6 +256,7 @@ const useStyles = () => {
           backgroundColor: theme.colors.sheetPrimary,
           borderRadius: 15,
           marginHorizontal: 16,
+          marginTop: 65,
         },
         header: {
           flexDirection: 'row',

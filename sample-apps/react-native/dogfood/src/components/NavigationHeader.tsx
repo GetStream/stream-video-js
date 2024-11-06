@@ -120,7 +120,7 @@ const useStyles = () => {
           flexShrink: 1,
           fontSize: 20,
           fontWeight: '500',
-          color: appTheme.colors.static_white,
+          color: theme.colors.typePrimary,
           marginRight: appTheme.spacing.lg,
         },
         avatar: {

@@ -112,8 +112,8 @@ export const ParticipantView = ({
   const {
     theme: { colors, participantView },
   } = useTheme();
-  const { isSpeaking, userId, reaction } = participant;
-  const styles = useStyles(!!reaction);
+  const { isSpeaking, userId } = participant;
+  const styles = useStyles();
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [

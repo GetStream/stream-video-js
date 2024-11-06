@@ -151,7 +151,7 @@ const useStyles = () => {
           fontSize: 28,
           marginBottom: variants.spacingSizes.sm,
           textAlign: 'center',
-          color: 'white',
+          color: colors.typePrimary,
           fontWeight: '600',
         },
         subtitle: {

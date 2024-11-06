@@ -4,9 +4,12 @@ import {
   StyleSheet,
   TextInputProps,
 } from 'react-native';
-import { appTheme } from '../theme';
 import { INPUT_HEIGHT } from '../constants';
-import { useTheme } from '@stream-io/video-react-native-sdk';
+import {
+  Theme,
+  defaultTheme,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
 
 export const TextInput = (
   props: Omit<TextInputProps, 'placeholderTextColor'>,
@@ -22,7 +25,13 @@ export const TextInput = (
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  let appTheme: Theme;
+  try {
+    /* eslint-disable react-hooks/rules-of-hooks */
+    appTheme = useTheme()?.theme;
+  } catch (e) {
+    appTheme = defaultTheme;
+  }
   return useMemo(
     () =>
       StyleSheet.create({
@@ -30,15 +39,15 @@ const useStyles = () => {
           paddingLeft: appTheme.spacing.lg,
           marginVertical: appTheme.spacing.md,
           height: INPUT_HEIGHT,
-          backgroundColor: theme.colors.sheetSecondary,
+          backgroundColor: appTheme.colors.sheetSecondary,
           borderRadius: 8,
-          borderColor: theme.colors.buttonPrimaryDisabled,
+          borderColor: appTheme.colors.buttonPrimaryDisabled,
           borderWidth: 1,
-          color: theme.colors.typePrimary,
+          color: appTheme.colors.typePrimary,
           fontSize: 17,
           flex: 1,
         },
       }),
-    [theme],
+    [appTheme],
   );
 };

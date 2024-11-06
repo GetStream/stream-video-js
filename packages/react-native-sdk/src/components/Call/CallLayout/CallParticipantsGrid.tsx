@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
@@ -52,6 +52,7 @@ export const CallParticipantsGrid = ({
   const {
     theme: { colors, callParticipantsGrid },
   } = useTheme();
+  const styles = useStyles();
   const { useRemoteParticipants, useParticipants, useLocalParticipant } =
     useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
@@ -117,6 +118,16 @@ export const CallParticipantsGrid = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: theme.variants.spacingSizes.xs,
+        },
+      }),
+    [theme]
+  );
+};
