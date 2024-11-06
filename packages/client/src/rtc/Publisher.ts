@@ -390,11 +390,12 @@ export class Publisher {
 
     let changed = false;
     for (const encoder of params.encodings) {
-      const layer = usesSvcCodec
-        ? // for SVC, we only have one layer (q) and often rid is omitted
-          enabledLayers[0]
-        : // for non-SVC, we need to find the layer by rid (simulcast)
-          enabledLayers.find((l) => l.name === encoder.rid);
+      const layer =
+        usesSvcCodec || enabledLayers.length === 1
+          ? // for SVC, we only have one layer (q) and often rid is omitted
+            enabledLayers[0]
+          : // for non-SVC, we need to find the layer by rid (simulcast)
+            enabledLayers.find((l) => l.name === encoder.rid);
 
       // flip 'active' flag only when necessary
       const shouldActivate = !!layer?.active;
