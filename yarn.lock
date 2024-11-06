@@ -7760,16 +7760,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:125.0.0-alpha.1":
-  version: 125.0.0-alpha.1
-  resolution: "@stream-io/react-native-webrtc@npm:125.0.0-alpha.1"
+"@stream-io/react-native-webrtc@npm:125.0.0-alpha.3":
+  version: 125.0.0-alpha.3
+  resolution: "@stream-io/react-native-webrtc@npm:125.0.0-alpha.3"
   dependencies:
     base64-js: 1.5.1
     debug: 4.3.4
     event-target-shim: 6.0.2
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 582eb9b32548484af02821d2d46d96885066c296324d0ac29b019a674a77e5a941c1ec6cdc8b19f7ae4da80e75ee7c9d8a9efb0dfaaab9533abc524dc4db383d
+  checksum: 4204e5534e8af9065af28164e64f7db43272c24da85945078472a490e1b39cde5d559ed6e312bad8ca5933c5506c43066243e8380aee19a34711ef81bed12d21
   languageName: node
   linkType: hard
 
@@ -7989,7 +7989,7 @@ __metadata:
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
     "@stream-io/flat-list-mvcp": ^0.10.3
-    "@stream-io/react-native-webrtc": 125.0.0-alpha.1
+    "@stream-io/react-native-webrtc": 125.0.0-alpha.3
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/eslint": ^8.56.10
@@ -26187,17 +26187,17 @@ __metadata:
 
 "typescript@patch:typescript@4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
+  checksum: 1f8f3b6aaea19f0f67cba79057674ba580438a7db55057eb89cc06950483c5d632115c14077f6663ea76fd09fce3c190e6414bb98582ec80aa5a4eaf345d5b68
   languageName: node
   linkType: hard
 
 "typescript@patch:typescript@^4.6.4 || ^5.0.0#~builtin<compat/typescript>, typescript@patch:typescript@^5.5.2#~builtin<compat/typescript>":
   version: 5.5.2
-  resolution: "typescript@patch:typescript@npm%3A5.5.2#~builtin<compat/typescript>::version=5.5.2&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.5.2#~builtin<compat/typescript>::version=5.5.2&hash=29ae49"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
