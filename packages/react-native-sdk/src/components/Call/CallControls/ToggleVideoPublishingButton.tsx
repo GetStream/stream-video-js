@@ -27,7 +27,7 @@ export const ToggleVideoPublishingButton = ({
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
-    theme: { colors, defaults, variants },
+    theme: { colors, variants },
   } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {

@@ -7,7 +7,6 @@ import {
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
-import Stats from '../../assets/Stats';
 import Feedback from '../../assets/Feedback';
 import FeedbackModal from '../FeedbackModal';
 

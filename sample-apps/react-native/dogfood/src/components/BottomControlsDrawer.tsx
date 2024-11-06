@@ -236,6 +236,7 @@ const useStyles = () => {
           borderTopRightRadius: variants.borderRadiusSizes.lg,
           padding: variants.spacingSizes.md,
           maxHeight: '80%',
+          maxWidth: 500,
         },
         dragIndicator: {
           width: '100%',

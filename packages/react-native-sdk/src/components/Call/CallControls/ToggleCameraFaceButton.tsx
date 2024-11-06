@@ -14,6 +14,11 @@ export type ToggleCameraFaceButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
+
+  /**
+   * Background color of the button.
+   */
+  backgroundColor?: string;
 };
 
 /**
@@ -21,6 +26,7 @@ export type ToggleCameraFaceButtonProps = {
  */
 export const ToggleCameraFaceButton = ({
   onPressHandler,
+  backgroundColor,
 }: ToggleCameraFaceButtonProps) => {
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, optimisticIsMute, direction } = useCameraState();
@@ -46,8 +52,9 @@ export const ToggleCameraFaceButton = ({
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
+        size={variants.roundButtonSizes.md}
         onPress={onPress}
-        color={colors.buttonSecondaryDefault}
+        color={backgroundColor || colors.buttonSecondaryDefault}
         disabledColor={colors.sheetPrimary}
         disabled={optimisticIsMute}
         style={toggleCameraFaceButton}

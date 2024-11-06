@@ -24,6 +24,7 @@ export const TopControls = ({
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const styles = useStyles();
+  const { theme } = useTheme();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -41,7 +42,9 @@ export const TopControls = ({
         <View style={styles.leftElement}>
           <View style={styles.leftContent}>
             <LayoutSwitcherButton />
-            <ToggleCameraFaceButton />
+            <ToggleCameraFaceButton
+              backgroundColor={theme.colors.sheetPrimary}
+            />
             {!isAwaitingResponse && <VideoEffectsButton />}
           </View>
         </View>

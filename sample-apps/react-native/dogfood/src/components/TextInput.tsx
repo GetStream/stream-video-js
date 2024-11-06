@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TextInput as NativeTextInput,
   StyleSheet,
@@ -6,10 +6,12 @@ import {
 } from 'react-native';
 import { appTheme } from '../theme';
 import { INPUT_HEIGHT } from '../constants';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 export const TextInput = (
   props: Omit<TextInputProps, 'placeholderTextColor'>,
 ) => {
+  const styles = useStyles();
   return (
     <NativeTextInput
       placeholderTextColor={'#8C8C8CFF'}
@@ -19,17 +21,24 @@ export const TextInput = (
   );
 };
 
-const styles = StyleSheet.create({
-  input: {
-    paddingLeft: appTheme.spacing.lg,
-    marginVertical: appTheme.spacing.md,
-    height: INPUT_HEIGHT,
-    backgroundColor: appTheme.colors.dark_gray,
-    borderRadius: 8,
-    borderColor: appTheme.colors.disabled,
-    borderWidth: 1,
-    color: appTheme.colors.static_white,
-    fontSize: 17,
-    flex: 1,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        input: {
+          paddingLeft: appTheme.spacing.lg,
+          marginVertical: appTheme.spacing.md,
+          height: INPUT_HEIGHT,
+          backgroundColor: theme.colors.sheetSecondary,
+          borderRadius: 8,
+          borderColor: theme.colors.buttonPrimaryDisabled,
+          borderWidth: 1,
+          color: theme.colors.typePrimary,
+          fontSize: 17,
+          flex: 1,
+        },
+      }),
+    [theme],
+  );
+};

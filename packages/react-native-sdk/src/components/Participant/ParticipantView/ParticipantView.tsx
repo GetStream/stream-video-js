@@ -124,7 +124,7 @@ export const ParticipantView = ({
 
   return (
     <View
-      style={[styles.container, {}, style, speakerStyle]}
+      style={[styles.container, style, speakerStyle]}
       testID={
         isSpeaking
           ? `participant-${userId}-is-speaking`
@@ -165,14 +165,14 @@ export const ParticipantView = ({
   );
 };
 
-const useStyles = (hasReaction: boolean) => {
+const useStyles = () => {
   const { theme } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           overflow: 'hidden',
-          justifyContent: hasReaction ? 'space-between' : 'flex-end',
+          justifyContent: 'flex-end',
           borderRadius: theme.variants.borderRadiusSizes.md,
         },
         footerContainer: {

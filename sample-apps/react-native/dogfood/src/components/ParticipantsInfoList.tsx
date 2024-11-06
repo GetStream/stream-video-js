@@ -29,7 +29,6 @@ import { MicOff } from '../assets/MicOff';
 import { ScreenShare } from '../assets/ScreenShare';
 import { VideoSlash } from '../assets/VideoSlash';
 import { ArrowRight } from '../assets/ArrowRight';
-import { appTheme } from '../theme';
 import { ParticipantActions } from './ParticipantActions';
 import { generateParticipantTitle } from '../utils';
 import { Z_INDEX } from '../constants';
