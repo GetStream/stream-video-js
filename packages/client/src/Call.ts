@@ -76,7 +76,7 @@ import type {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-  VideoResolution,
+  VideoDimension,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
@@ -2317,7 +2317,7 @@ export class Call {
    * preference has effect on. Affects all participants by default.
    */
   setPreferredIncomingVideoResolution = (
-    resolution: VideoResolution | undefined,
+    resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
     this.dynascaleManager.setVideoTrackSubscriptionOverrides(
