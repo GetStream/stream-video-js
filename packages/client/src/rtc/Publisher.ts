@@ -395,9 +395,7 @@ export class Publisher {
           enabledLayers[0]
         : // for non-SVC, we need to find the layer by rid (simulcast)
           enabledLayers.find((l) => l.name === encoder.rid) ??
-            (enabledLayers.length === 1 && params.encodings.length === 1)
-          ? enabledLayers[0]
-          : undefined;
+          (params.encodings.length === 1 ? enabledLayers[0] : undefined);
 
       // flip 'active' flag only when necessary
       const shouldActivate = !!layer?.active;
