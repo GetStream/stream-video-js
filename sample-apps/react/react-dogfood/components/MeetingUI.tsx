@@ -70,7 +70,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           : undefined;
 
         call.updatePublishOptions({
-          preferredCodec: 'h264',
+          preferredCodec: 'vp9',
           forceCodec: videoCodecOverride,
           scalabilityMode,
           preferredBitrate,
