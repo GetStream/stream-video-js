@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.3...@stream-io/video-client-1.10.4) (2024-11-07)
+
+
+### Bug Fixes
+
+* max simulcast layers preference ([#1560](https://github.com/GetStream/stream-video-js/issues/1560)) ([2b0bf28](https://github.com/GetStream/stream-video-js/commit/2b0bf2824dce41c2709e361e0521cf85e1b2fd16))
+
 ## [1.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.2...@stream-io/video-client-1.10.3) (2024-11-05)
 
 
