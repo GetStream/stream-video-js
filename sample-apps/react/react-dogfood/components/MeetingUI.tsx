@@ -56,6 +56,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const scalabilityMode = router.query['scalability_mode'] as
     | string
     | undefined;
+  const maxSimulcastLayers = router.query['max_simulcast_layers'] as
+    | string
+    | undefined;
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
@@ -74,6 +77,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           bitrateDownscaleFactor: bitrateFactorOverride
             ? parseInt(bitrateFactorOverride, 10)
             : 2, // default to 2
+          maxSimulcastLayers: maxSimulcastLayers
+            ? parseInt(maxSimulcastLayers, 10)
+            : 3, // default to 3
         });
 
         await call.join({ create: true });

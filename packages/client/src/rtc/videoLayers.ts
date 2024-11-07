@@ -65,7 +65,11 @@ export const findOptimalVideoLayers = (
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width = 0, height = 0 } = settings;
-  const { scalabilityMode, bitrateDownscaleFactor = 2 } = publishOptions || {};
+  const {
+    scalabilityMode,
+    bitrateDownscaleFactor = 2,
+    maxSimulcastLayers = 3,
+  } = publishOptions || {};
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
     width,
@@ -76,7 +80,8 @@ export const findOptimalVideoLayers = (
   let downscaleFactor = 1;
   let bitrateFactor = 1;
   const svcCodec = isSvcCodec(codecInUse);
-  for (const rid of ['f', 'h', 'q']) {
+  const totalLayers = svcCodec ? 3 : Math.min(3, maxSimulcastLayers);
+  for (const rid of ['f', 'h', 'q'].slice(0, totalLayers)) {
     const layer: OptimalVideoLayer = {
       active: true,
       rid,

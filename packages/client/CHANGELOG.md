@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.4...@stream-io/video-client-1.10.5) (2024-11-07)
+
+
+### Bug Fixes
+
+* ignore maxSimulcastLayers override for SVC codecs ([#1564](https://github.com/GetStream/stream-video-js/issues/1564)) ([48f8abe](https://github.com/GetStream/stream-video-js/commit/48f8abe5fd5b48c367a04696febd582573def828))
+
+## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.3...@stream-io/video-client-1.10.4) (2024-11-07)
+
+
+### Bug Fixes
+
+* max simulcast layers preference ([#1560](https://github.com/GetStream/stream-video-js/issues/1560)) ([2b0bf28](https://github.com/GetStream/stream-video-js/commit/2b0bf2824dce41c2709e361e0521cf85e1b2fd16))
+
+## [1.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.2...@stream-io/video-client-1.10.3) (2024-11-05)
+
+
+### Bug Fixes
+
+* camera flip did not work in react-native ([#1554](https://github.com/GetStream/stream-video-js/issues/1554)) ([423890c](https://github.com/GetStream/stream-video-js/commit/423890cb2d1925366d8a63c29f93c4c92c8104ad)), closes [#1521](https://github.com/GetStream/stream-video-js/issues/1521)
+
 ## [1.10.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.1...@stream-io/video-client-1.10.2) (2024-11-01)
 
 

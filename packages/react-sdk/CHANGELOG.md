@@ -2,6 +2,29 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.10...@stream-io/video-react-sdk-1.7.11) (2024-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.5`
+* `@stream-io/video-react-bindings` updated to version `1.1.16`
+## [1.7.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.9...@stream-io/video-react-sdk-1.7.10) (2024-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.4`
+* `@stream-io/video-react-bindings` updated to version `1.1.15`
+## [1.7.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.8...@stream-io/video-react-sdk-1.7.9) (2024-11-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.14`
+## [1.7.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.7...@stream-io/video-react-sdk-1.7.8) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.13`
 ## [1.7.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.6...@stream-io/video-react-sdk-1.7.7) (2024-11-01)
 
 ### Dependency Updates

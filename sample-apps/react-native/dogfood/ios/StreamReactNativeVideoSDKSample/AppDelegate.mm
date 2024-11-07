@@ -13,6 +13,7 @@
 // @react-native-community/push-notification-ios
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
+#import <WebRTCModuleOptions.h>
 
 #import "StreamVideoReactNative.h"
 
@@ -122,6 +123,10 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
   
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
+  
+  WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+//  uncomment below to see native webrtc logs
+//  options.loggingSeverity = RTCLoggingSeverityInfo;
   
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
