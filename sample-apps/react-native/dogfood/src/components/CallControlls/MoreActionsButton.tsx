@@ -40,7 +40,7 @@ export const MoreActionsButton = ({
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const setState = useAppGlobalStoreSetState();
-  const theme = useAppGlobalStoreValue((store) => store.themeMode);
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
 
   const handleRating = async (rating: number) => {
@@ -79,7 +79,7 @@ export const MoreActionsButton = ({
     },
     {
       id: '2',
-      label: getName(theme),
+      label: getName(themeMode),
       icon: (
         <IconWrapper>
           <LightDark
@@ -89,7 +89,7 @@ export const MoreActionsButton = ({
         </IconWrapper>
       ),
       onPress: () => {
-        if (theme === 'light') {
+        if (themeMode === 'light') {
           setState({ themeMode: 'dark' });
         } else {
           setState({ themeMode: 'light' });

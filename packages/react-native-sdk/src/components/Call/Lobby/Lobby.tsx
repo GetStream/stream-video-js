@@ -204,6 +204,6 @@ const useStyles = (landscape = false) => {
           flexShrink: 1,
         },
       }),
-    [theme]
+    [theme, landscape]
   );
 };
