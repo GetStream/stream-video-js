@@ -1,7 +1,7 @@
-import { Logger } from './types';
+import { AxiosResponse } from 'axios';
+import type { APIErrorResponse, Logger } from './types';
 
-export const sleep = (m: number): Promise<void> =>
-  new Promise((r) => setTimeout(r, m));
+export const sleep = (m: number) => new Promise((r) => setTimeout(r, m));
 
 export function isFunction<T>(value: Function | T): value is Function {
   return (
@@ -92,24 +92,6 @@ function getRandomBytes(length: number): Uint8Array {
   return bytes;
 }
 
-export function convertErrorToJson(err: Error) {
-  const jsonObj = {} as Record<string, unknown>;
-
-  if (!err) return jsonObj;
-
-  try {
-    Object.getOwnPropertyNames(err).forEach((key) => {
-      jsonObj[key] = Object.getOwnPropertyDescriptor(err, key);
-    });
-  } catch (_) {
-    return {
-      error: 'failed to serialize the error',
-    };
-  }
-
-  return jsonObj;
-}
-
 /**
  * Informs if a promise is yet to be resolved or rejected
  */
@@ -164,4 +146,10 @@ export function removeConnectionEventListeners(cb: (e: Event) => void) {
     window.removeEventListener('offline', cb);
     window.removeEventListener('online', cb);
   }
+}
+
+export function isErrorResponse(
+  res: AxiosResponse<unknown>,
+): res is AxiosResponse<APIErrorResponse> {
+  return !res.status || res.status < 200 || 300 <= res.status;
 }

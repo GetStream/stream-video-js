@@ -1,4 +1,4 @@
-import { UserFromToken } from './signing';
+import { getUserFromToken } from './signing';
 import { isFunction } from './utils';
 import type { TokenOrProvider, UserWithId } from './types';
 
@@ -93,7 +93,7 @@ export class TokenManager {
       // Allow empty token for anonymous users
       if (isAnonymous && tokenOrProvider === '') return;
 
-      const tokenUserId = UserFromToken(tokenOrProvider);
+      const tokenUserId = getUserFromToken(tokenOrProvider);
       if (
         tokenOrProvider != null &&
         (tokenUserId == null ||
