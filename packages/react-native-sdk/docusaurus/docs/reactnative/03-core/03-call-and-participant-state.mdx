@@ -205,9 +205,11 @@ const hosts = participants.filter((p) => p.roles.includes('host'));
 
 // participants that publish video and audio
 const videoParticipants = participants.filter(
-  (p) => hasVideo(p) && hasAudio(p),
+  (p) => hasVideo(p) && hasAudio(p)
 );
 ```
+
+In a call with many participants, the list returned by the `useParticipants` call state hook is truncated to 250 participants. The participants who are publishing video, audio, or screen sharing have priority over the other participants in the list. This means, for example, that in a livestream with one host and many viewers, the host is guaranteed to be in the list.
 
 ## Client state
 
