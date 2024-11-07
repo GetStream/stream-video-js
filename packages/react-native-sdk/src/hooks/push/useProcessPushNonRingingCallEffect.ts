@@ -16,7 +16,7 @@ import { processNonIncomingCallFromPush } from '../../utils/push/internal/utils'
 export const useProcessPushNonRingingCallEffect = () => {
   const client = useStreamVideoClient();
   const connectedUserId = useConnectedUser()?.id;
-  // The Effect to join/reject call automatically when incoming call was received and processed from push notification
+  // The Effect to automatically add the non ringing call to our low level client state
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     if (!pushConfig || !client || !connectedUserId) {

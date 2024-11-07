@@ -128,7 +128,7 @@ export const processCallFromPush = async (
  * This function is used process the call from push notifications due to non ringing calls
  * It does the following steps:
  * 1. Get the call from the client if present or create a new call
- * 2. Fetch the latest state of the call from the server if its not already in ringing state
+ * 2. Fetch the latest state of the call from the server
  * 3. Call all the callbacks to inform the app about the call
  */
 export const processNonIncomingCallFromPush = async (

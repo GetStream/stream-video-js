@@ -6,11 +6,15 @@ import {
   ScrollView,
   KeyboardAvoidingView,
 } from 'react-native';
-import { NavigationHeader } from '../components/NavigationHeader';
+import {
+  isExpoNotificationStreamVideoEvent,
+  oniOSExpoNotificationEvent,
+} from '@stream-io/video-react-native-sdk';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
+import { NavigationHeader } from '../components/NavigationHeader';
 import CreateMeetingCall from '../components/CreateMeetingCall';
 import CreateRingingCall from '../components/CreateRingingCall';
-import * as Notifications from 'expo-notifications';
 
 export default function CreateCallScreen() {
   useEffect(() => {
@@ -27,7 +31,18 @@ export default function CreateCallScreen() {
     requestPermissions();
 
     if (Platform.OS === 'ios') {
-      Notifications.addNotificationReceivedListener((notification) => {});
+      // This listener is fired whenever a notification is received while the app is foregrounded.
+      // here the notification payload is processed and the call is added to the low level client state
+      const subscription = Notifications.addNotificationReceivedListener(
+        (notification) => {
+          if (isExpoNotificationStreamVideoEvent(notification)) {
+            oniOSExpoNotificationEvent(notification);
+          }
+        },
+      );
+      return () => {
+        subscription.remove();
+      };
     }
   }, []);
 
