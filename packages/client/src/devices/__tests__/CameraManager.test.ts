@@ -43,6 +43,13 @@ vi.mock('../../compatibility.ts', () => {
   };
 });
 
+vi.mock('../../helpers/platforms', () => {
+  console.log('MOCKING mobile device');
+  return {
+    isReactNative: () => false,
+  };
+});
+
 describe('CameraManager', () => {
   let manager: CameraManager;
 

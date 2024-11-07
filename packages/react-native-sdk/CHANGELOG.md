@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.11...@stream-io/video-react-native-sdk-1.2.12) (2024-11-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.14`
+## [1.2.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.10...@stream-io/video-react-native-sdk-1.2.11) (2024-11-04)
+
+
+### Bug Fixes
+
+* share screen for alone participant on spotlight layout ([#1553](https://github.com/GetStream/stream-video-js/issues/1553)) ([660056a](https://github.com/GetStream/stream-video-js/commit/660056af56d7f2b9d09b5a834a8eb4b9cba48fba))
+
 ## [1.2.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.9...@stream-io/video-react-native-sdk-1.2.10) (2024-11-01)
 
 ### Dependency Updates
