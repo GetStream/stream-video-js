@@ -80,7 +80,8 @@ export const findOptimalVideoLayers = (
   let downscaleFactor = 1;
   let bitrateFactor = 1;
   const svcCodec = isSvcCodec(codecInUse);
-  for (const rid of ['f', 'h', 'q'].slice(0, Math.min(3, maxSimulcastLayers))) {
+  const totalLayers = svcCodec ? 3 : Math.min(3, maxSimulcastLayers);
+  for (const rid of ['f', 'h', 'q'].slice(0, totalLayers)) {
     const layer: OptimalVideoLayer = {
       active: true,
       rid,
