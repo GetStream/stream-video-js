@@ -549,7 +549,6 @@ export class StableWSConnection {
     if (!this.isResolved && data && data.type === 'connection.error') {
       this.isResolved = true;
       if (data.error) {
-        // @ts-expect-error - the types of _errorFromWSEvent are incorrect
         this.rejectPromise?.(this._errorFromWSEvent(data, false));
         return;
       }
@@ -640,7 +639,7 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-    this.rejectPromise?.(this._errorFromWSEvent(event));
+    this.rejectPromise?.(new Error(event.message));
     this._log(`onerror() - WS connection resulted into error`, { event });
 
     this._reconnect();
@@ -679,40 +678,31 @@ export class StableWSConnection {
 
   /**
    * _errorFromWSEvent - Creates an error object for the WS event
-   *
    */
-  _errorFromWSEvent = (
-    event: WebSocket.CloseEvent | WebSocket.Data | WebSocket.ErrorEvent,
+  private _errorFromWSEvent = (
+    event: WebSocket.CloseEvent | ConnectionErrorEvent,
     isWSFailure = true,
   ) => {
-    let code;
-    let statusCode;
-    let message;
+    let code: number;
+    let statusCode: number;
+    let message: string;
     if (isCloseEvent(event)) {
       code = event.code;
-      statusCode = 'unknown';
       message = event.reason;
-    }
-
-    if (isErrorEvent(event)) {
+      statusCode = 0;
+    } else {
       code = event.error.code;
-      statusCode = event.error.StatusCode;
       message = event.error.message;
+      statusCode = event.error.StatusCode;
     }
 
+    const msg = `WS failed with code: ${code} and reason: ${message}`;
     // Keeping this `warn` level log, to avoid cluttering of error logs from ws failures.
-    this._log(
-      `_errorFromWSEvent() - WS failed with code ${code}`,
-      { event },
-      'warn',
-    );
-
-    const error = new Error(
-      `WS failed with code ${code} and reason - ${message}`,
-    ) as Error & {
+    this._log(msg, { event }, 'warn');
+    const error = new Error(msg) as Error & {
       code?: string | number;
       isWSFailure?: boolean;
-      StatusCode?: string | number;
+      StatusCode?: number;
     };
     error.code = code;
     /**
