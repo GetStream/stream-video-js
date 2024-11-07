@@ -1,7 +1,6 @@
 import { ColorScheme } from './types';
 
 const colors: ColorScheme = {
-  // Colors candidates for the default theme
   buttonPrimaryDefault: '#005fff',
   buttonPrimaryDisabled: '#1b2c43',
   buttonSecondaryDefault: '#19232d',

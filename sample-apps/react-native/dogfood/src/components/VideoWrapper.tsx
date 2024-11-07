@@ -12,13 +12,14 @@ import translations from '../translations';
 import { useCustomTheme } from '../theme';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
-  const customTheme = useCustomTheme();
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(

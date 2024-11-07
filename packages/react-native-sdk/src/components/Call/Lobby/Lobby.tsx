@@ -1,5 +1,5 @@
 import React, { ComponentType, useMemo } from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
@@ -7,7 +7,6 @@ import {
 } from '@stream-io/video-react-bindings';
 import { Avatar } from '../../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { LOBBY_VIDEO_VIEW_HEIGHT } from '../../../constants';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import { LobbyControls as DefaultLobbyControls } from '../CallControls/LobbyControls';
 import {
@@ -63,7 +62,7 @@ export const Lobby = ({
   const {
     theme: { colors, lobby, typefaces },
   } = useTheme();
-  const styles = useStyles();
+  const styles = useStyles(landscape);
   const connectedUser = useConnectedUser();
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
@@ -81,41 +80,19 @@ export const Lobby = ({
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
   return (
-    <View
-      style={[
-        styles.container,
-        landscapeStyles,
-        { backgroundColor: colors.sheetPrimary },
-        lobby.container,
-      ]}
-    >
+    <View style={[styles.container, lobby.container]}>
       {connectedUser && (
-        <View style={[styles.topContainer, lobby.topContainer]}>
+        <>
           <Text
             style={[
               styles.heading,
               { color: colors.typePrimary },
-              typefaces.heading4,
+              typefaces.heading5,
               lobby.heading,
             ]}
           >
-            {t('Before Joining')}
-          </Text>
-          <Text
-            style={[
-              styles.subHeading,
-              { color: colors.typeSecondary },
-              typefaces.subtitle,
-            ]}
-          >
-            {isVideoEnabledInCall
-              ? t('Setup your audio and video')
-              : t('Setup your audio')}
+            {t('Setup your test call')}
           </Text>
           {isVideoEnabledInCall && (
             <View
@@ -141,17 +118,15 @@ export const Lobby = ({
               <ParticipantStatus />
             </View>
           )}
-        </View>
+        </>
       )}
-      <View style={[styles.bottomContainer, lobby.bottomContainer]}>
-        {LobbyControls && <LobbyControls />}
-        {LobbyFooter && (
-          <LobbyFooter
-            JoinCallButton={JoinCallButton}
-            onJoinCallHandler={onJoinCallHandler}
-          />
-        )}
-      </View>
+      {LobbyControls && <LobbyControls />}
+      {LobbyFooter && (
+        <LobbyFooter
+          JoinCallButton={JoinCallButton}
+          onJoinCallHandler={onJoinCallHandler}
+        />
+      )}
     </View>
   );
 };
@@ -186,50 +161,40 @@ const ParticipantStatus = () => {
   );
 };
 
-const useStyles = () => {
+const useStyles = (landscape = false) => {
   const { theme } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
+        heading: {
+          textAlign: 'center',
+          paddingBottom: theme.variants.spacingSizes.md,
+        },
         container: {
           flex: 1,
-          justifyContent: 'space-evenly',
-          paddingRight: theme.variants.insets.right,
-          paddingLeft: theme.variants.insets.left,
+          justifyContent: 'center',
+          backgroundColor: theme.colors.sheetPrimary,
+          paddingRight:
+            theme.variants.insets.right + theme.variants.spacingSizes.sm,
+          paddingLeft:
+            theme.variants.insets.left + theme.variants.spacingSizes.sm,
           paddingTop: theme.variants.insets.top,
           paddingBottom: theme.variants.insets.bottom,
         },
-        topContainer: {
-          flex: 2,
-          justifyContent: 'space-evenly',
-          paddingHorizontal: 12,
-        },
-        heading: {
-          textAlign: 'center',
-        },
-        subHeading: {
-          textAlign: 'center',
-        },
         videoContainer: {
-          height: LOBBY_VIDEO_VIEW_HEIGHT,
-          borderRadius: 20,
+          height: landscape ? '40%' : '50%',
+          borderRadius: theme.variants.borderRadiusSizes.md,
           justifyContent: 'space-between',
           alignItems: 'center',
           overflow: 'hidden',
-          padding: 8,
         },
         topView: {},
-        bottomContainer: {
-          flex: 2,
-          justifyContent: 'space-evenly',
-          paddingHorizontal: 12,
-        },
         participantStatusContainer: {
           alignSelf: 'flex-start',
           flexDirection: 'row',
           alignItems: 'center',
-          padding: 8,
-          borderRadius: 5,
+          padding: theme.variants.spacingSizes.sm,
+          borderTopRightRadius: theme.variants.borderRadiusSizes.sm,
         },
         avatarContainer: {
           flex: 2,
@@ -237,9 +202,6 @@ const useStyles = () => {
         },
         userNameLabel: {
           flexShrink: 1,
-        },
-        audioMutedIconContainer: {
-          marginLeft: 8,
         },
       }),
     [theme]

@@ -4,6 +4,7 @@ import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { CameraSwitch, IconWrapper } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { ColorValue } from 'react-native';
 
 /**
  * Props for the Toggle Camera face button.
@@ -18,7 +19,7 @@ export type ToggleCameraFaceButtonProps = {
   /**
    * Background color of the button.
    */
-  backgroundColor?: string;
+  backgroundColor?: ColorValue;
 };
 
 /**

@@ -9,6 +9,12 @@ import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
 import Feedback from '../../assets/Feedback';
 import FeedbackModal from '../FeedbackModal';
+import {
+  ThemeMode,
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
+import LightDark from '../../assets/LightDark';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -33,6 +39,8 @@ export const MoreActionsButton = ({
   } = useTheme();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const setState = useAppGlobalStoreSetState();
+  const theme = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
 
   const handleRating = async (rating: number) => {
@@ -43,6 +51,13 @@ export const MoreActionsButton = ({
       .catch((err) => console.warn('Failed to submit call feedback', err));
 
     setFeedbackModalVisible(false);
+  };
+
+  const getName = (theme: ThemeMode) => {
+    if (theme === 'light') {
+      return 'Dark mode';
+    }
+    return 'Light mode';
   };
 
   const options: DrawerOption[] = [
@@ -60,6 +75,26 @@ export const MoreActionsButton = ({
       onPress: () => {
         setIsDrawerVisible(false);
         setFeedbackModalVisible(true);
+      },
+    },
+    {
+      id: '2',
+      label: getName(theme),
+      icon: (
+        <IconWrapper>
+          <LightDark
+            color={colors.iconPrimaryDefault}
+            size={variants.roundButtonSizes.sm}
+          />
+        </IconWrapper>
+      ),
+      onPress: () => {
+        if (theme === 'light') {
+          setState({ themeMode: 'dark' });
+        } else {
+          setState({ themeMode: 'light' });
+        }
+        setIsDrawerVisible(false);
       },
     },
   ];

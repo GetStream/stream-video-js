@@ -36,8 +36,8 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         input: {
-          paddingLeft: appTheme.spacing.lg,
-          marginVertical: appTheme.spacing.md,
+          paddingLeft: appTheme.variants.spacingSizes.lg,
+          marginVertical: appTheme.variants.spacingSizes.md,
           height: INPUT_HEIGHT,
           backgroundColor: appTheme.colors.sheetSecondary,
           borderRadius: 8,
