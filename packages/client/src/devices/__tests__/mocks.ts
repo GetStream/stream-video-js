@@ -207,7 +207,7 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
 
 let deviceIds: Subject<MediaDeviceInfo[]>;
 export const mockDeviceIds$ = () => {
-  global.navigator = {
+  globalThis.navigator = {
     //@ts-expect-error
     mediaDevices: {},
   };
