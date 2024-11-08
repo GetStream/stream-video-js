@@ -246,9 +246,23 @@ export interface SfuEvent {
         participantMigrationComplete: ParticipantMigrationComplete;
       }
     | {
+        oneofKind: 'codecNegotiationComplete';
+        /**
+         * CodecNegotiationComplete is sent to signal the completion of a codec negotiation.
+         * SDKs can safely stop previous transceivers
+         *
+         * @generated from protobuf field: stream.video.sfu.event.CodecNegotiationComplete codec_negotiation_complete = 26;
+         */
+        codecNegotiationComplete: CodecNegotiationComplete;
+      }
+    | {
         oneofKind: undefined;
       };
 }
+/**
+ * @generated from protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ */
+export interface CodecNegotiationComplete {}
 /**
  * @generated from protobuf message stream.video.sfu.event.ParticipantMigrationComplete
  */
@@ -961,6 +975,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         oneof: 'eventPayload',
         T: () => ParticipantMigrationComplete,
       },
+      {
+        no: 26,
+        name: 'codec_negotiation_complete',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => CodecNegotiationComplete,
+      },
     ]);
   }
 }
@@ -968,6 +989,16 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CodecNegotiationComplete$Type extends MessageType<CodecNegotiationComplete> {
+  constructor() {
+    super('stream.video.sfu.event.CodecNegotiationComplete', []);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ */
+export const CodecNegotiationComplete = new CodecNegotiationComplete$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ParticipantMigrationComplete$Type extends MessageType<ParticipantMigrationComplete> {
   constructor() {

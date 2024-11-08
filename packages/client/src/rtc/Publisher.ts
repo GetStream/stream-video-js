@@ -16,7 +16,7 @@ import {
 import { getOptimalVideoCodec, getPreferredCodecs, isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
-import { PublishOptions } from '../types';
+import { PreferredCodec, PublishOptions } from '../types';
 import {
   enableHighQualityAudio,
   extractMid,
@@ -61,6 +61,7 @@ export class Publisher {
    * @internal
    */
   private readonly transceiverInitOrder: TrackType[] = [];
+  private readonly transceiverOrder: RTCRtpTransceiver[] = [];
   private readonly isDtxEnabled: boolean;
   private readonly isRedEnabled: boolean;
 
@@ -70,6 +71,8 @@ export class Publisher {
 
   private isIceRestarting = false;
   private sfuClient: StreamSfuClient;
+
+  private readonly dispatcher: Dispatcher;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -90,6 +93,7 @@ export class Publisher {
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
+    this.dispatcher = dispatcher;
     this.onUnrecoverableError = onUnrecoverableError;
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
@@ -246,6 +250,7 @@ export class Publisher {
 
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverInitOrder.push(trackType);
+    this.transceiverOrder.push(transceiver);
     this.transceiverCache.set(trackType, transceiver);
     this.publishOptsForTrack.set(trackType, opts);
 
@@ -284,6 +289,24 @@ export class Publisher {
       previousTrack.stop();
     }
     await transceiver.sender.replaceTrack(track);
+  };
+
+  publishTrack = (codec: PreferredCodec) => {
+    const currentTransceiver = this.transceiverCache.get(TrackType.VIDEO);
+    if (!currentTransceiver || !currentTransceiver.sender.track) return;
+    const track = currentTransceiver.sender.track;
+
+    const negotiationComplete = async () => {
+      this.dispatcher.off('codecNegotiationComplete', negotiationComplete);
+      this.logger('info', 'Codec negotiation complete');
+
+      await currentTransceiver.sender.replaceTrack(null);
+      currentTransceiver.stop();
+    };
+    this.dispatcher.on('codecNegotiationComplete', negotiationComplete);
+
+    const ms = new MediaStream([track]);
+    this.addTransceiver(TrackType.VIDEO, track, { preferredCodec: codec }, ms);
   };
 
   /**
@@ -586,11 +609,12 @@ export class Publisher {
     return this.pc
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)
-      .map<TrackInfo>((transceiver) => {
+      .map<TrackInfo | undefined>((transceiver) => {
         let trackType!: TrackType;
         this.transceiverCache.forEach((value, key) => {
           if (value === transceiver) trackType = key;
         });
+        if (!trackType) return;
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
         const isTrackLive = track.readyState === 'live';
@@ -627,17 +651,21 @@ export class Publisher {
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverInitIndex =
           this.transceiverInitOrder.indexOf(trackType);
+        const mid = this.transceiverOrder.indexOf(transceiver);
+
         return {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: extractMid(transceiver, transceiverInitIndex, sdp),
+          mid:
+            String(mid) ?? extractMid(transceiver, transceiverInitIndex, sdp),
           stereo: isStereo,
           dtx: isAudioTrack && this.isDtxEnabled,
           red: isAudioTrack && this.isRedEnabled,
           muted: !isTrackLive,
         };
-      });
+      })
+      .filter(Boolean) as TrackInfo[];
   };
 
   private computeLayers = (
