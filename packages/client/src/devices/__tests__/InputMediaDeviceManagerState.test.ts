@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { firstValueFrom } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
@@ -33,11 +33,6 @@ describe('InputMediaDeviceManagerState', () => {
           query: vi.fn(),
         },
       });
-    });
-
-    afterAll(() => {
-      // @ts-ignore - delete navigator.permissions
-      delete navigator.permissions;
     });
 
     it('should emit true when permission is granted', async () => {
