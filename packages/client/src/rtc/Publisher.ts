@@ -614,7 +614,7 @@ export class Publisher {
         this.transceiverCache.forEach((value, key) => {
           if (value === transceiver) trackType = key;
         });
-        if (!trackType) return;
+        if (!trackType) return undefined;
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
         const isTrackLive = track.readyState === 'live';
