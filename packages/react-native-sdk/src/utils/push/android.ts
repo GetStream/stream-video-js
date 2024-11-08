@@ -104,10 +104,10 @@ export async function initAndroidPushToken(
  * Creates notification from the push message data.
  * For Ringing and Non-Ringing calls.
  */
-export const firebaseMessagingOnMessageHandler = async (
-  message: FirebaseMessagingTypes.RemoteMessage
+export const firebaseDataHandler = async (
+  data: FirebaseMessagingTypes.RemoteMessage['data']
 ) => {
-  const data = message.data;
+  if (Platform.OS !== 'android') return;
   /* Example data from firebase
     "message": {
         "data": {
@@ -305,6 +305,7 @@ export const onAndroidNotifeeEvent = async ({
   event: Event;
   isBackground: boolean;
 }) => {
+  if (Platform.OS !== 'android') return;
   const { type, detail } = event;
   const { notification, pressAction } = detail;
   const notificationId = notification?.id;

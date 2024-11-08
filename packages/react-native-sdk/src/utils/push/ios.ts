@@ -48,6 +48,7 @@ export const oniOSNotifeeEvent = ({
   event: Event;
   isBackground: boolean;
 }) => {
+  if (Platform.OS !== 'ios') return;
   const pushConfig = StreamVideoRN.getConfig().push;
   const { type, detail } = event;
   if (pushConfig && type === EventType.PRESS) {
@@ -66,13 +67,13 @@ export function onPushNotificationiOSStreamVideoEvent(
 ) {
   const pushNotificationIosLib = getPushNotificationIosLib();
   const data = notification.getData();
+  const streamPayload = data?.stream as StreamPushPayload;
   const isClicked = data.userInteraction === 1;
   const pushConfig = StreamVideoRN.getConfig().push;
-  if (!isClicked || !pushConfig) {
+  if (!streamPayload || !isClicked || !pushConfig) {
     notification.finish(pushNotificationIosLib.FetchResult.NoData);
     return;
   }
-  const streamPayload = data?.stream as StreamPushPayload;
   // listen to foreground notifications
   const result = processNonRingingNotificationStreamPayload(streamPayload);
   if (result) {

@@ -26,9 +26,15 @@ export function isNotifeeStreamVideoEvent(event: Event) {
 
 export function isExpoNotificationStreamVideoEvent(event: ExpoNotification) {
   if (event.request.trigger.type === 'push') {
+    // iOS
     const streamPayload = event.request.trigger.payload
       ?.stream as StreamPushPayload;
-    return streamPayload?.sender === 'stream.video';
+    // Android
+    const remoteMessageData = event.request.trigger.remoteMessage?.data;
+    return (
+      streamPayload?.sender === 'stream.video' ||
+      remoteMessageData?.sender === 'stream.video'
+    );
   }
 }
 
