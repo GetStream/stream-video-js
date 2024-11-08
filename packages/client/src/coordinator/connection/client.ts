@@ -320,7 +320,7 @@ export class StreamClient {
       return Promise.resolve();
     }
 
-    this._setupConnectionIdPromise();
+    await this._setupConnectionIdPromise();
 
     this.clientID = `${this.userID}--${randomId()}`;
     this.wsPromise = this.connect();
@@ -357,16 +357,7 @@ export class StreamClient {
     this.guestUserCreatePromise = this.doAxiosRequest<
       CreateGuestResponse,
       CreateGuestRequest
-    >(
-      'post',
-      '/guest',
-      {
-        user: {
-          ...user,
-        },
-      },
-      { publicEndpoint: true },
-    );
+    >('post', '/guest', { user }, { publicEndpoint: true });
 
     const response = await this.guestUserCreatePromise;
     this.guestUserCreatePromise.finally(
@@ -384,7 +375,7 @@ export class StreamClient {
     tokenOrProvider: TokenOrProvider,
   ) => {
     addConnectionEventListeners(this.updateNetworkConnectionStatus);
-    this._setupConnectionIdPromise();
+    await this._setupConnectionIdPromise();
 
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
@@ -650,13 +641,7 @@ export class StreamClient {
     if (!this.clientID) throw Error('clientID is not set');
 
     // The StableWSConnection handles all the reconnection logic.
-    if (this.options.wsConnection && this.node) {
-      // Intentionally avoiding adding ts generics on wsConnection in options since its only useful for unit test purpose.
-      this.options.wsConnection.setClient(this);
-      this.wsConnection = this.options.wsConnection;
-    } else {
-      this.wsConnection = new StableWSConnection(this);
-    }
+    this.wsConnection = new StableWSConnection(this);
 
     this.logger('info', 'StreamClient.connect: this.wsConnection.connect()');
     return await this.wsConnection.connect(this.defaultWSTimeout);
