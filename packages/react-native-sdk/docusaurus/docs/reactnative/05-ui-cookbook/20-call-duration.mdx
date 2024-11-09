@@ -1,0 +1,95 @@
+---
+id: call-duration
+title: Call Duration
+---
+
+## Introduction
+
+In this guide, we'll show you how to build a call duration component using our React Native Video SDK. This component shows the elapsed time since a call started.
+
+Here's what we'll be building:
+![Preview of the Call Duration component](../assets/05-ui-cookbook/call-duration/duration-badge.png)
+
+## Implementation
+
+Here's how to implement a call duration display component:
+
+```tsx
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { CallDuration } from './icons/CallDuration';
+
+const formatTime = (seconds: number) => {
+  const date = new Date(0);
+  date.setSeconds(seconds);
+  const format = date.toISOString();
+  const hours = format.substring(11, 13);
+  const minutes = format.substring(14, 16);
+  const seconds_str = format.substring(17, 19);
+  return `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds_str}`;
+};
+
+const CallDurationBadge = () => {
+  const { theme } = useTheme();
+  const [elapsed, setElapsed] = useState<string>('00:00');
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
+  const startedAt = session?.started_at;
+  const startedAtDate = useMemo(() => {
+    if (!startedAt) {
+      return Date.now();
+    }
+    const date = new Date(startedAt).getTime();
+    return isNaN(date) ? Date.now() : date;
+  }, [startedAt]);
+
+  useEffect(() => {
+    const initialElapsedSeconds = Math.max(
+      0,
+      (Date.now() - startedAtDate) / 1000
+    );
+
+    setElapsed(formatTime(initialElapsedSeconds));
+
+    const interval = setInterval(() => {
+      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
+      setElapsed(formatTime(elapsedSeconds));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [startedAtDate]);
+
+  return (
+    <View style={styles.container}>
+      <CallDuration
+        color={theme.colors.iconAlertSuccess}
+        size={theme.variants.iconSizes.md}
+      />
+      <Text style={styles.text}>{elapsed}</Text>
+    </View>
+  );
+};
+```
+
+## Features
+
+The CallDurationBadge component provides:
+
+- Real-time display of call duration in HH:MM:SS format
+- Automatic start when the call begins
+- Clean and minimal UI with an icon and timer display
+
+## Customization
+
+You can customize the appearance of the CallDurationBadge by:
+
+1. Modifying the styles object
+2. Using different theme colors through the useTheme hook
+3. Adjusting the icon size or using a custom icon
+4. Changing the time format display
+
+:::note
+For simplicity, the StyleSheet is not included in this guide.
+:::
