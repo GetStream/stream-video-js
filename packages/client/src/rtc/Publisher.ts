@@ -301,7 +301,6 @@ export class Publisher {
       this.logger('info', 'Codec negotiation complete');
 
       await currentTransceiver.sender.replaceTrack(null);
-      currentTransceiver.stop();
     };
     this.dispatcher.on('codecNegotiationComplete', negotiationComplete);
 
