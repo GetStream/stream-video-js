@@ -454,6 +454,10 @@ export interface JoinRequest {
    */
   subscriberSdp: string;
   /**
+   * @generated from protobuf field: string publisher_sdp = 8;
+   */
+  publisherSdp: string;
+  /**
    * @generated from protobuf field: stream.video.sfu.models.ClientDetails client_details = 4;
    */
   clientDetails?: ClientDetails;
@@ -548,6 +552,14 @@ export interface JoinResponse {
    * @generated from protobuf field: int32 fast_reconnect_deadline_seconds = 3;
    */
   fastReconnectDeadlineSeconds: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec publish_audio_codec = 4;
+   */
+  publishAudioCodec?: Codec;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec publish_video_codec = 5;
+   */
+  publishVideoCodec?: Codec;
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -1233,6 +1245,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         T: 9 /*ScalarType.STRING*/,
       },
       {
+        no: 8,
+        name: 'publisher_sdp',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
         no: 4,
         name: 'client_details',
         kind: 'message',
@@ -1354,6 +1372,8 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
       },
+      { no: 4, name: 'publish_audio_codec', kind: 'message', T: () => Codec },
+      { no: 5, name: 'publish_video_codec', kind: 'message', T: () => Codec },
     ]);
   }
 }

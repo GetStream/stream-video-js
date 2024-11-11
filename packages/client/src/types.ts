@@ -147,10 +147,20 @@ export type SubscriptionChanges = {
 };
 
 /**
- * A preferred codec to use when publishing a video track.
+ * A preferred codec to use when publishing a video or audio track.
  * @internal
  */
-export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1';
+export type PreferredCodec =
+  | 'vp8'
+  | 'h264'
+  | 'vp9'
+  | 'av1'
+  | 'video/vp8'
+  | 'video/h264'
+  | 'video/vp9'
+  | 'video/av1'
+  | 'audio/opus'
+  | 'audio/red';
 
 /**
  * A collection of track publication options.
@@ -167,6 +177,10 @@ export type PublishOptions = {
    * Use with caution.
    */
   forceCodec?: PreferredCodec;
+  /**
+   * The preferred audio codec to use when publishing the audio stream.
+   */
+  preferredAudioCodec?: PreferredCodec;
   /**
    * The preferred scalability to use when publishing the video stream.
    * Applicable only for SVC codecs.

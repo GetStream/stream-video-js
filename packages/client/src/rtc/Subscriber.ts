@@ -10,7 +10,6 @@ import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 
 export type SubscriberOpts = BasePeerConnectionOpts & {
   dispatcher: Dispatcher;
-  logTag: string;
 };
 
 /**

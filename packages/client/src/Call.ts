@@ -82,6 +82,7 @@ import {
   CallConstructor,
   CallLeaveOptions,
   JoinCallData,
+  PreferredCodec,
   PublishOptions,
   TrackMuteType,
   VideoTrackType,
@@ -786,18 +787,34 @@ export class Call {
       // prepare a generic SDP and send it to the SFU.
       // this is a throw-away SDP that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
-      const receivingCapabilitiesSdp = await getGenericSdp('recvonly');
+      const [receivingCapabilitiesSdp, publishingCapabilitiesSdp] =
+        await Promise.all([
+          getGenericSdp('recvonly'),
+          getGenericSdp('sendonly'),
+        ]);
       const reconnectDetails =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
           ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
           : undefined;
-      const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
+      const {
+        callState,
+        fastReconnectDeadlineSeconds,
+        publishAudioCodec,
+        publishVideoCodec,
+      } = await sfuClient.join({
         subscriberSdp: receivingCapabilitiesSdp,
+        publisherSdp: publishingCapabilitiesSdp,
         clientDetails,
         fastReconnect: performingFastReconnect,
         reconnectDetails,
       });
 
+      this.updatePublishOptions({
+        preferredAudioCodec:
+          publishAudioCodec?.mimeType.toLowerCase() as PreferredCodec,
+        preferredCodec:
+          publishVideoCodec?.mimeType.toLowerCase() as PreferredCodec,
+      });
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
