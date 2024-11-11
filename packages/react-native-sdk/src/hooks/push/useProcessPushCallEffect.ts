@@ -92,11 +92,6 @@ const createCallSubscription = (
     .pipe(filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
       await processCallFromPush(client, callCId, action, pushConfig);
-      if (action === 'accept') {
-        pushConfig.navigateAcceptCall();
-      } else if (action === 'pressed' || action === 'backgroundDelivered') {
-        pushConfig.navigateToIncomingCall();
-      }
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
     });
 };

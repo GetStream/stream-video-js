@@ -107,9 +107,9 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** The callback that is called when a call is accepted, used for navigation */
+    /** @deprecated This method is not used anymore. */
     navigateAcceptCall: () => void;
-    /** The callback that is called when a push notification is tapped but user did not press accept or decline, used for navigation */
+    /** @deprecated This method will be removed in the future. */
     navigateToIncomingCall: () => void;
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
