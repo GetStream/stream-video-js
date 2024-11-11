@@ -144,6 +144,9 @@ export class Subscriber extends BasePeerConnection {
       return;
     }
 
+    // get the previous stream to dispose it later
+    // usually this happens during migration, when the stream is replaced
+    // with a new one but the old one is still in the state
     const previousStream = participantToUpdate[streamKindProp];
 
     // replace the previous stream with the new one, prevents flickering
@@ -151,7 +154,7 @@ export class Subscriber extends BasePeerConnection {
       [streamKindProp]: primaryStream,
     });
 
-    // now, dispose the previous stream
+    // now, dispose the previous stream if it exists
     if (previousStream) {
       this.logger(
         'info',
