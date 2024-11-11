@@ -2,6 +2,67 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.11...@stream-io/video-react-sdk-1.7.12) (2024-11-08)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.1.5`
+## [1.7.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.10...@stream-io/video-react-sdk-1.7.11) (2024-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.5`
+* `@stream-io/video-react-bindings` updated to version `1.1.16`
+## [1.7.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.9...@stream-io/video-react-sdk-1.7.10) (2024-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.4`
+* `@stream-io/video-react-bindings` updated to version `1.1.15`
+## [1.7.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.8...@stream-io/video-react-sdk-1.7.9) (2024-11-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.14`
+## [1.7.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.7...@stream-io/video-react-sdk-1.7.8) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.13`
+## [1.7.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.6...@stream-io/video-react-sdk-1.7.7) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.12`
+## [1.7.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.5...@stream-io/video-react-sdk-1.7.6) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.11`
+
+### Bug Fixes
+
+* move useToggleCallRecording to react-bindings ([#1545](https://github.com/GetStream/stream-video-js/issues/1545)) ([73014ca](https://github.com/GetStream/stream-video-js/commit/73014ca6a4585680f581c4e9481c2d286f2fcd37))
+
+## [1.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.4...@stream-io/video-react-sdk-1.7.5) (2024-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.10`
+
+### Bug Fixes
+
+* various device selector issues ([#1541](https://github.com/GetStream/stream-video-js/issues/1541)) ([f23618b](https://github.com/GetStream/stream-video-js/commit/f23618bda447eeb2d66f908bdb38b24db051f87c))
+
+## [1.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.3...@stream-io/video-react-sdk-1.7.4) (2024-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.9`
 ## [1.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.2...@stream-io/video-react-sdk-1.7.3) (2024-10-28)
 
 ### Dependency Updates

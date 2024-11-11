@@ -71,13 +71,21 @@ const AppStateListener = () => {
           // in Android, we need to check if we are in PiP mode
           // in PiP mode, we don't want to disable the camera
           NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
-            async (isInPiP: boolean | null | undefined) => {
+            (isInPiP: boolean | null | undefined) => {
               if (!isInPiP) {
-                await call?.camera?.disable();
+                const currentState = appState.current;
+                if (currentState === 'active') {
+                  // this is to handle the case that the app became active as soon as it went to background
+                  // in this case, we dont want to disable the camera
+                  // this happens on foreground push notifications
+                  return;
+                }
+                call?.camera?.disable();
               }
             }
           );
         } else {
+          // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
             call?.camera?.disable();
           }

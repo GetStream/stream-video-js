@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.4...@stream-io/video-filters-web-0.1.5) (2024-11-08)
+
+
+### Bug Fixes
+
+* guard against null fenceSync ([#1565](https://github.com/GetStream/stream-video-js/issues/1565)) ([9a3ae38](https://github.com/GetStream/stream-video-js/commit/9a3ae385ebed5b7fd44855ed2a7b7fc01ac53792))
+
 ## [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.3...@stream-io/video-filters-web-0.1.4) (2024-09-19)
 
 

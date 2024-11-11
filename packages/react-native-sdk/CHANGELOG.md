@@ -2,6 +2,64 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.13...@stream-io/video-react-native-sdk-1.2.14) (2024-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.5`
+* `@stream-io/video-react-bindings` updated to version `1.1.16`
+## [1.2.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.12...@stream-io/video-react-native-sdk-1.2.13) (2024-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.4`
+* `@stream-io/video-react-bindings` updated to version `1.1.15`
+## [1.2.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.11...@stream-io/video-react-native-sdk-1.2.12) (2024-11-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.14`
+## [1.2.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.10...@stream-io/video-react-native-sdk-1.2.11) (2024-11-04)
+
+
+### Bug Fixes
+
+* share screen for alone participant on spotlight layout ([#1553](https://github.com/GetStream/stream-video-js/issues/1553)) ([660056a](https://github.com/GetStream/stream-video-js/commit/660056af56d7f2b9d09b5a834a8eb4b9cba48fba))
+
+## [1.2.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.9...@stream-io/video-react-native-sdk-1.2.10) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.13`
+## [1.2.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.8...@stream-io/video-react-native-sdk-1.2.9) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.12`
+
+### Bug Fixes
+
+* camera not enabled on foreground notifications ([#1546](https://github.com/GetStream/stream-video-js/issues/1546)) ([67c920a](https://github.com/GetStream/stream-video-js/commit/67c920ac4bca35a414b88f6c9829b08396a6260b))
+
+## [1.2.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.7...@stream-io/video-react-native-sdk-1.2.8) (2024-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.1.11`
+## [1.2.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.6...@stream-io/video-react-native-sdk-1.2.7) (2024-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.10`
+## [1.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.5...@stream-io/video-react-native-sdk-1.2.6) (2024-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.10.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.9`
 ## [1.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.4...@stream-io/video-react-native-sdk-1.2.5) (2024-10-28)
 
 ### Dependency Updates
