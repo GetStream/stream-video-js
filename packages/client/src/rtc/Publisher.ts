@@ -3,7 +3,6 @@ import {
   BasePeerConnectionOpts,
 } from './BasePeerConnection';
 import {
-  Codec,
   PeerType,
   TrackInfo,
   TrackType,
@@ -16,14 +15,9 @@ import {
   ridToVideoQuality,
   toSvcEncodings,
 } from './videoLayers';
-import {
-  getOptimalVideoCodec,
-  getSupportedCodecs,
-  isCodecSupported,
-  isSvcCodec,
-} from './codecs';
-import { toTrackKind, trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { PublishOptions } from '../types';
+import { getOptimalVideoCodec, isCodecSupported, isSvcCodec } from './codecs';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { PreferredCodec, PublishOptions } from '../types';
 import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
 import { Dispatcher } from './Dispatcher';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
@@ -53,15 +47,19 @@ export class Publisher extends BasePeerConnection {
    * @internal
    */
   private readonly transceiverInitOrder: TrackType[] = [];
+  private readonly transceiverOrder: RTCRtpTransceiver[] = [];
 
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
+
+  private readonly dispatcher: Dispatcher;
 
   /**
    * Constructs a new `Publisher` instance.
    */
   constructor({ dispatcher, ...baseOptions }: PublisherConstructorOpts) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
+    this.dispatcher = dispatcher;
     this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
     this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
@@ -182,6 +180,7 @@ export class Publisher extends BasePeerConnection {
 
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverInitOrder.push(trackType);
+    this.transceiverOrder.push(transceiver);
     this.transceiverCache.set(trackType, transceiver);
     this.publishOptsForTrack.set(trackType, opts);
     this.scalabilityModeForTrack.set(
@@ -204,6 +203,22 @@ export class Publisher extends BasePeerConnection {
       previousTrack.stop();
     }
     await transceiver.sender.replaceTrack(track);
+  };
+
+  publishTrack = (codec: PreferredCodec) => {
+    const currentTransceiver = this.transceiverCache.get(TrackType.VIDEO);
+    if (!currentTransceiver || !currentTransceiver.sender.track) return;
+    const track = currentTransceiver.sender.track;
+
+    const negotiationComplete = async () => {
+      this.dispatcher.off('codecNegotiationComplete', negotiationComplete);
+      this.logger('info', 'Codec negotiation complete');
+
+      await currentTransceiver.sender.replaceTrack(null);
+    };
+    this.dispatcher.on('codecNegotiationComplete', negotiationComplete);
+
+    this.addTransceiver(TrackType.VIDEO, track, { preferredCodec: codec });
   };
 
   /**
@@ -453,11 +468,12 @@ export class Publisher extends BasePeerConnection {
     return this.pc
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)
-      .map<TrackInfo>((transceiver) => {
+      .map<TrackInfo | undefined>((transceiver) => {
         let trackType!: TrackType;
         this.transceiverCache.forEach((value, key) => {
           if (value === transceiver) trackType = key;
         });
+        if (!trackType) return undefined;
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
         const isTrackLive = track.readyState === 'live';
@@ -499,30 +515,21 @@ export class Publisher extends BasePeerConnection {
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverInitIndex =
           this.transceiverInitOrder.indexOf(trackType);
+        const mid = this.transceiverOrder.indexOf(transceiver);
 
-        // FIXME OL:
-        //  instead of sending all supported codecs, we should send a prioritized list
-        //  [video/vp9, video/h264, video/vp8] or [audio/opus, audio/red]
-        const trackKind = toTrackKind(trackType);
-        const preferredCodecs = trackKind ? getSupportedCodecs(trackKind) : [];
         return {
           trackId: track.id,
           layers,
           trackType,
-          mid: extractMid(transceiver, transceiverInitIndex, sdp),
+          mid:
+            String(mid) ?? extractMid(transceiver, transceiverInitIndex, sdp),
           stereo: isStereo,
           dtx: isAudioTrack && isDtxEnabled,
           red: isAudioTrack && isRedEnabled,
           muted: !isTrackLive,
-          preferredCodecs: preferredCodecs.map<Codec>((codec) => ({
-            mimeType: codec.mimeType,
-            fmtp: codec.sdpFmtpLine || '',
-            scalabilityMode: isSvcCodec(codec.mimeType)
-              ? this.scalabilityModeForTrack.get(trackType) || ''
-              : '',
-          })),
         };
-      });
+      })
+      .filter(Boolean) as TrackInfo[];
   };
 
   private computeLayers = (

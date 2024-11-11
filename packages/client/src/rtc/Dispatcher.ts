@@ -42,6 +42,7 @@ const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   callEnded: undefined,
   participantUpdated: undefined,
   participantMigrationComplete: undefined,
+  codecNegotiationComplete: undefined,
 };
 
 export const isSfuEvent = (
