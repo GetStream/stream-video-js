@@ -1,5 +1,6 @@
 import './mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
+import { PublishOption, VideoQuality } from '../../gen/video/sfu/models/models';
 import {
   findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
@@ -8,7 +9,6 @@ import {
   ridToVideoQuality,
   toSvcEncodings,
 } from '../videoLayers';
-import { VideoQuality } from '../../gen/video/sfu/models/models';
 
 describe('videoLayers', () => {
   it('should find optimal screen sharing layers', () => {
@@ -50,11 +50,17 @@ describe('videoLayers', () => {
     const targetBitrate = 3000000;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
 
-    const layers = findOptimalVideoLayers(track, {
-      width,
-      height,
+    const publishOption: PublishOption = {
       bitrate: targetBitrate,
-    });
+      // @ts-expect-error - incomplete data
+      codec: { name: 'vp8' },
+      fps: 30,
+    };
+    const layers = findOptimalVideoLayers(
+      track,
+      { width, height, bitrate: targetBitrate },
+      publishOption,
+    );
     expect(layers).toEqual([
       {
         active: true,
@@ -92,7 +98,12 @@ describe('videoLayers', () => {
     const bitrate = 3000000;
     const track = new MediaStreamTrack();
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track, { width, height, bitrate });
+    const layers = findOptimalVideoLayers(
+      track,
+      { width, height, bitrate },
+      // @ts-expect-error - incomplete data
+      { bitrate, codec: { name: 'vp8' }, fps: 30 },
+    );
     expect(layers).toEqual([
       {
         active: true,
@@ -111,7 +122,12 @@ describe('videoLayers', () => {
     const width = 320;
     const height = 240;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track);
+    const layers = findOptimalVideoLayers(
+      track,
+      undefined,
+      // @ts-expect-error - incomplete data
+      { bitrate: 0, codec: { name: 'vp8' }, fps: 30 },
+    );
     expect(layers.length).toBe(1);
     expect(layers[0].rid).toBe('q');
   });
@@ -121,7 +137,12 @@ describe('videoLayers', () => {
     const width = 640;
     const height = 480;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track);
+    const layers = findOptimalVideoLayers(
+      track,
+      undefined,
+      // @ts-expect-error - incomplete data
+      { bitrate: 0, codec: { name: 'vp8' }, fps: 30 },
+    );
     expect(layers.length).toBe(2);
     expect(layers[0].rid).toBe('q');
     expect(layers[1].rid).toBe('h');
@@ -132,7 +153,12 @@ describe('videoLayers', () => {
     const width = 1280;
     const height = 720;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track);
+    const layers = findOptimalVideoLayers(
+      track,
+      undefined,
+      // @ts-expect-error - incomplete data
+      { bitrate: 0, codec: { name: 'vp8' }, fps: 30 },
+    );
     expect(layers.length).toBe(3);
     expect(layers[0].rid).toBe('q');
     expect(layers[1].rid).toBe('h');
@@ -145,12 +171,14 @@ describe('videoLayers', () => {
       width: 1280,
       height: 720,
     });
-    const layers = findOptimalVideoLayers(track, undefined, 'vp9', {
-      preferredCodec: 'vp9',
-      scalabilityMode: 'L3T3',
+    const layers = findOptimalVideoLayers(track, undefined, {
+      maxTemporalLayers: 3,
+      maxSpatialLayers: 3,
+      // @ts-expect-error - incomplete data
+      codec: { name: 'vp9' },
     });
     expect(layers.length).toBe(3);
-    expect(layers[0].scalabilityMode).toBe('L3T3');
+    expect(layers[0].scalabilityMode).toBe('L3T3_KEY');
     expect(layers[0].rid).toBe('q');
     expect(layers[1].rid).toBe('h');
     expect(layers[2].rid).toBe('f');
@@ -183,7 +211,12 @@ describe('videoLayers', () => {
   describe('getComputedMaxBitrate', () => {
     it('should scale target bitrate down if resolution is smaller than target resolution', () => {
       const targetResolution = { width: 1920, height: 1080, bitrate: 3000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 1280, 720);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        1280,
+        720,
+        3000000,
+      );
       expect(scaledBitrate).toBe(1333333);
     });
 
@@ -193,7 +226,12 @@ describe('videoLayers', () => {
       const targetBitrates = ['f', 'h', 'q'].map((rid) => {
         const width = targetResolution.width / downscaleFactor;
         const height = targetResolution.height / downscaleFactor;
-        const bitrate = getComputedMaxBitrate(targetResolution, width, height);
+        const bitrate = getComputedMaxBitrate(
+          targetResolution,
+          width,
+          height,
+          3000000,
+        );
         downscaleFactor *= 2;
         return {
           rid,
@@ -211,25 +249,45 @@ describe('videoLayers', () => {
 
     it('should not scale target bitrate if resolution is larger than target resolution', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 2560, 1440);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        2560,
+        1440,
+        1000000,
+      );
       expect(scaledBitrate).toBe(1000000);
     });
 
     it('should not scale target bitrate if resolution is equal to target resolution', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 1280, 720);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        1280,
+        720,
+        1000000,
+      );
       expect(scaledBitrate).toBe(1000000);
     });
 
     it('should handle 0 width and height', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 0, 0);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        0,
+        0,
+        1000000,
+      );
       expect(scaledBitrate).toBe(0);
     });
 
     it('should handle 4k target resolution', () => {
       const targetResolution = { width: 3840, height: 2160, bitrate: 15000000 };
-      const scaledBitrate = getComputedMaxBitrate(targetResolution, 1280, 720);
+      const scaledBitrate = getComputedMaxBitrate(
+        targetResolution,
+        1280,
+        720,
+        15000000,
+      );
       expect(scaledBitrate).toBe(1666667);
     });
   });

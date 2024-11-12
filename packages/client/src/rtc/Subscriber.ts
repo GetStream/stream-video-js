@@ -4,13 +4,8 @@ import {
 } from './BasePeerConnection';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
-import { Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
-
-export type SubscriberOpts = BasePeerConnectionOpts & {
-  dispatcher: Dispatcher;
-};
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -24,12 +19,12 @@ export class Subscriber extends BasePeerConnection {
   /**
    * Constructs a new `Subscriber` instance.
    */
-  constructor({ dispatcher, ...baseOptions }: SubscriberOpts) {
-    super(PeerType.SUBSCRIBER, baseOptions);
+  constructor(opts: BasePeerConnectionOpts) {
+    super(PeerType.SUBSCRIBER, opts);
     this.pc.addEventListener('track', this.handleOnTrack);
 
     const subscriberOfferConcurrencyTag = Symbol('subscriberOffer');
-    this.unregisterOnSubscriberOffer = dispatcher.on(
+    this.unregisterOnSubscriberOffer = this.dispatcher.on(
       'subscriberOffer',
       (subscriberOffer) => {
         withoutConcurrency(subscriberOfferConcurrencyTag, () => {

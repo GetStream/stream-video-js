@@ -4,6 +4,8 @@ import {
 } from './BasePeerConnection';
 import {
   PeerType,
+  PublishOption,
+  PublishOptions,
   TrackInfo,
   TrackType,
   VideoLayer,
@@ -15,17 +17,15 @@ import {
   ridToVideoQuality,
   toSvcEncodings,
 } from './videoLayers';
-import { getOptimalVideoCodec, isCodecSupported, isSvcCodec } from './codecs';
+import { isSvcCodec } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { PreferredCodec, PublishOptions } from '../types';
 import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
-import { Dispatcher } from './Dispatcher';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
-  dispatcher: Dispatcher;
+  publishOptions: PublishOptions;
 };
 
 /**
@@ -36,41 +36,40 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new Map<TrackType, RTCRtpTransceiver>();
   private readonly trackLayersCache = new Map<TrackType, OptimalVideoLayer[]>();
-  private readonly publishOptsForTrack = new Map<TrackType, PublishOptions>();
-  private readonly scalabilityModeForTrack = new Map<TrackType, string>();
 
   /**
    * An array maintaining the order how transceivers were added to the peer connection.
    * This is needed because some browsers (Firefox) don't reliably report
    * trackId and `mid` parameters.
-   *
-   * @internal
    */
-  private readonly transceiverInitOrder: TrackType[] = [];
   private readonly transceiverOrder: RTCRtpTransceiver[] = [];
 
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
+  private readonly unsubscribeChangePublishOptions: () => void;
 
-  private readonly dispatcher: Dispatcher;
+  private publishOptions: PublishOptions;
 
   /**
    * Constructs a new `Publisher` instance.
    */
-  constructor({ dispatcher, ...baseOptions }: PublisherConstructorOpts) {
+  constructor({ publishOptions, ...baseOptions }: PublisherConstructorOpts) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
-    this.dispatcher = dispatcher;
+    this.publishOptions = publishOptions;
     this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
-    this.unsubscribeOnIceRestart = dispatcher.on('iceRestart', (iceRestart) => {
-      if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
-      this.restartIce().catch((err) => {
-        this.logger('warn', `ICERestart failed`, err);
-        this.onUnrecoverableError?.();
-      });
-    });
+    this.unsubscribeOnIceRestart = this.dispatcher.on(
+      'iceRestart',
+      (iceRestart) => {
+        if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
+        this.restartIce().catch((err) => {
+          this.logger('warn', `ICERestart failed`, err);
+          this.onUnrecoverableError?.();
+        });
+      },
+    );
 
-    this.unsubscribeChangePublishQuality = dispatcher.on(
+    this.unsubscribeChangePublishQuality = this.dispatcher.on(
       'changePublishQuality',
       ({ videoSenders }) => {
         withoutConcurrency('publisher.changePublishQuality', async () => {
@@ -82,6 +81,17 @@ export class Publisher extends BasePeerConnection {
         }).catch((err) => {
           this.logger('warn', 'Failed to change publish quality', err);
         });
+      },
+    );
+
+    this.unsubscribeChangePublishOptions = this.dispatcher.on(
+      'changePublishOptions',
+      (event) => {
+        const { publishOption } = event;
+        if (!publishOption) return;
+        this.publishOptions.codecs = this.publishOptions.codecs.map((option) =>
+          option.trackType === publishOption.trackType ? publishOption : option,
+        );
       },
     );
   }
@@ -107,6 +117,7 @@ export class Publisher extends BasePeerConnection {
   detachEventHandlers() {
     this.unsubscribeOnIceRestart();
     this.unsubscribeChangePublishQuality();
+    this.unsubscribeChangePublishOptions();
 
     super.detachEventHandlers();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -121,13 +132,11 @@ export class Publisher extends BasePeerConnection {
    * @param mediaStream the media stream to publish.
    * @param track the track to publish.
    * @param trackType the track type to publish.
-   * @param opts the optional publish options to use.
    */
   publishStream = async (
     mediaStream: MediaStream,
     track: MediaStreamTrack,
     trackType: TrackType,
-    opts: PublishOptions = {},
   ) => {
     if (track.readyState === 'ended') {
       throw new Error(`Can't publish a track that has ended already.`);
@@ -149,7 +158,7 @@ export class Publisher extends BasePeerConnection {
         );
       };
       track.addEventListener('ended', handleTrackEnded);
-      this.addTransceiver(trackType, track, opts);
+      this.addTransceiver(trackType, track);
     } else {
       await this.updateTransceiver(transceiver, track);
     }
@@ -162,15 +171,11 @@ export class Publisher extends BasePeerConnection {
    * This needs to be called when a new track kind is added to the peer connection.
    * In other cases, use `updateTransceiver` method.
    */
-  private addTransceiver = (
-    trackType: TrackType,
-    track: MediaStreamTrack,
-    opts: PublishOptions,
-  ) => {
-    const { forceCodec, preferredCodec } = opts;
-    const codecInUse = forceCodec || getOptimalVideoCodec(preferredCodec);
-    const videoEncodings = this.computeLayers(trackType, track, opts);
-    const sendEncodings = isSvcCodec(codecInUse)
+  private addTransceiver = (trackType: TrackType, track: MediaStreamTrack) => {
+    const publishOption = this.getPublishOptionFor(trackType);
+
+    const videoEncodings = this.computeLayers(trackType, track, publishOption);
+    const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(videoEncodings)
       : videoEncodings;
     const transceiver = this.pc.addTransceiver(track, {
@@ -179,14 +184,8 @@ export class Publisher extends BasePeerConnection {
     });
 
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
-    this.transceiverInitOrder.push(trackType);
     this.transceiverOrder.push(transceiver);
     this.transceiverCache.set(trackType, transceiver);
-    this.publishOptsForTrack.set(trackType, opts);
-    this.scalabilityModeForTrack.set(
-      trackType,
-      sendEncodings?.[0]?.scalabilityMode || '',
-    );
   };
 
   /**
@@ -205,7 +204,7 @@ export class Publisher extends BasePeerConnection {
     await transceiver.sender.replaceTrack(track);
   };
 
-  publishTrack = (codec: PreferredCodec) => {
+  publishTrack = () => {
     const currentTransceiver = this.transceiverCache.get(TrackType.VIDEO);
     if (!currentTransceiver || !currentTransceiver.sender.track) return;
     const track = currentTransceiver.sender.track;
@@ -218,7 +217,7 @@ export class Publisher extends BasePeerConnection {
     };
     this.dispatcher.on('codecNegotiationComplete', negotiationComplete);
 
-    this.addTransceiver(TrackType.VIDEO, track, { preferredCodec: codec });
+    this.addTransceiver(TrackType.VIDEO, track);
   };
 
   /**
@@ -229,20 +228,16 @@ export class Publisher extends BasePeerConnection {
    */
   unpublishStream = async (trackType: TrackType, stopTrack: boolean) => {
     const transceiver = this.transceiverCache.get(trackType);
-    if (
-      transceiver &&
-      transceiver.sender.track &&
-      (stopTrack
-        ? transceiver.sender.track.readyState === 'live'
-        : transceiver.sender.track.enabled)
-    ) {
-      stopTrack
-        ? transceiver.sender.track.stop()
-        : (transceiver.sender.track.enabled = false);
-      // We don't need to notify SFU if unpublishing in response to remote soft mute
-      if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
-        await this.notifyTrackMuteStateChanged(undefined, trackType, true);
-      }
+    if (!transceiver || !transceiver.sender.track) return;
+
+    if (stopTrack && transceiver.sender.track.readyState === 'live') {
+      transceiver.sender.track.stop();
+    } else if (transceiver.sender.track.enabled) {
+      transceiver.sender.track.enabled = false;
+    }
+
+    if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
+      await this.notifyTrackMuteStateChanged(undefined, trackType, true);
     }
   };
 
@@ -253,9 +248,9 @@ export class Publisher extends BasePeerConnection {
    */
   isPublishing = (trackType: TrackType): boolean => {
     const transceiver = this.transceiverCache.get(trackType);
-    if (!transceiver || !transceiver.sender) return false;
+    if (!transceiver || !transceiver.sender.track) return false;
     const track = transceiver.sender.track;
-    return !!track && track.readyState === 'live' && track.enabled;
+    return track.readyState === 'live' && track.enabled;
   };
 
   private notifyTrackMuteStateChanged = async (
@@ -368,7 +363,6 @@ export class Publisher extends BasePeerConnection {
       if (scalabilityMode && scalabilityMode !== encoder.scalabilityMode) {
         // @ts-expect-error scalabilityMode is not in the typedefs yet
         encoder.scalabilityMode = scalabilityMode;
-        this.scalabilityModeForTrack.set(trackType, scalabilityMode);
         changed = true;
       }
     }
@@ -450,9 +444,7 @@ export class Publisher extends BasePeerConnection {
     const transceiver = this.transceiverCache.get(TrackType.SCREEN_SHARE_AUDIO);
     if (!transceiver) return sdp;
 
-    const transceiverInitIndex = this.transceiverInitOrder.indexOf(
-      TrackType.SCREEN_SHARE_AUDIO,
-    );
+    const transceiverInitIndex = this.transceiverOrder.indexOf(transceiver);
     const mid = extractMid(transceiver, transceiverInitIndex, sdp);
     return enableHighQualityAudio(sdp, mid);
   };
@@ -473,22 +465,16 @@ export class Publisher extends BasePeerConnection {
         this.transceiverCache.forEach((value, key) => {
           if (value === transceiver) trackType = key;
         });
+
         if (!trackType) return undefined;
         const track = transceiver.sender.track!;
-        let optimalLayers: OptimalVideoLayer[];
+
+        const publishOption = this.getPublishOptionFor(trackType);
         const isTrackLive = track.readyState === 'live';
-        if (isTrackLive) {
-          optimalLayers = this.computeLayers(trackType, track) || [];
-          this.trackLayersCache.set(trackType, optimalLayers);
-        } else {
-          // we report the last known optimal layers for ended tracks
-          optimalLayers = this.trackLayersCache.get(trackType) || [];
-          this.logger(
-            'debug',
-            `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,
-            optimalLayers,
-          );
-        }
+        const optimalLayers = isTrackLive
+          ? this.computeLayers(trackType, track, publishOption) || []
+          : this.trackLayersCache.get(trackType) || [];
+        this.trackLayersCache.set(trackType, optimalLayers);
 
         const layers = optimalLayers.map<VideoLayer>((optimalLayer) => ({
           rid: optimalLayer.rid || '',
@@ -507,22 +493,18 @@ export class Publisher extends BasePeerConnection {
 
         const audioSettings = this.state.settings?.audio;
         const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-        const isRedEnabled =
-          !!audioSettings?.redundant_coding_enabled &&
-          isCodecSupported('audio/red');
+        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
 
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
-        const transceiverInitIndex =
-          this.transceiverInitOrder.indexOf(trackType);
-        const mid = this.transceiverOrder.indexOf(transceiver);
+        const transceiverIndex = this.transceiverOrder.indexOf(transceiver);
+        const mid = extractMid(transceiver, transceiverIndex, sdp);
 
         return {
           trackId: track.id,
           layers,
           trackType,
-          mid:
-            String(mid) ?? extractMid(transceiver, transceiverInitIndex, sdp),
+          mid,
           stereo: isStereo,
           dtx: isAudioTrack && isDtxEnabled,
           red: isAudioTrack && isRedEnabled,
@@ -532,23 +514,28 @@ export class Publisher extends BasePeerConnection {
       .filter(Boolean) as TrackInfo[];
   };
 
+  private getPublishOptionFor = (trackType: TrackType) => {
+    const options = this.publishOptions.codecs;
+    const publishOption = options.find((o) => o.trackType === trackType);
+    if (!publishOption) {
+      throw new Error(`No publish options found for ${TrackType[trackType]}`);
+    }
+    return publishOption;
+  };
+
   private computeLayers = (
     trackType: TrackType,
     track: MediaStreamTrack,
-    opts?: PublishOptions,
+    opts: PublishOption,
   ): OptimalVideoLayer[] | undefined => {
     const { settings } = this.state;
     const targetResolution = settings?.video
       .target_resolution as TargetResolutionResponse;
-    const screenShareBitrate =
-      settings?.screensharing.target_resolution?.bitrate;
 
-    const publishOpts = opts || this.publishOptsForTrack.get(trackType);
-    const codecInUse = getOptimalVideoCodec(publishOpts?.preferredCodec);
     return trackType === TrackType.VIDEO
-      ? findOptimalVideoLayers(track, targetResolution, codecInUse, publishOpts)
+      ? findOptimalVideoLayers(track, targetResolution, opts)
       : trackType === TrackType.SCREEN_SHARE
-        ? findOptimalScreenSharingLayers(track, publishOpts, screenShareBitrate)
+        ? findOptimalScreenSharingLayers(track, undefined, opts.bitrate)
         : undefined;
   };
 }

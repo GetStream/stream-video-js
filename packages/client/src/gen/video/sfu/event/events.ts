@@ -17,6 +17,8 @@ import {
   ParticipantCount,
   PeerType,
   Pin,
+  PublishOption,
+  PublishOptions,
   TrackInfo,
   TrackType,
   TrackUnpublishReason,
@@ -256,8 +258,26 @@ export interface SfuEvent {
         codecNegotiationComplete: CodecNegotiationComplete;
       }
     | {
+        oneofKind: 'changePublishOptions';
+        /**
+         * ChangePublishOptions is sent to signal the change in publish options such as a new codec or simulcast layers
+         *
+         * @generated from protobuf field: stream.video.sfu.event.ChangePublishOptions change_publish_options = 27;
+         */
+        changePublishOptions: ChangePublishOptions;
+      }
+    | {
         oneofKind: undefined;
       };
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.ChangePublishOptions
+ */
+export interface ChangePublishOptions {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.PublishOption publish_option = 1;
+   */
+  publishOption?: PublishOption;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.CodecNegotiationComplete
@@ -553,13 +573,9 @@ export interface JoinResponse {
    */
   fastReconnectDeadlineSeconds: number;
   /**
-   * @generated from protobuf field: stream.video.sfu.models.Codec publish_audio_codec = 4;
+   * @generated from protobuf field: stream.video.sfu.models.PublishOptions publish_options = 4;
    */
-  publishAudioCodec?: Codec;
-  /**
-   * @generated from protobuf field: stream.video.sfu.models.Codec publish_video_codec = 5;
-   */
-  publishVideoCodec?: Codec;
+  publishOptions?: PublishOptions;
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -994,6 +1010,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         oneof: 'eventPayload',
         T: () => CodecNegotiationComplete,
       },
+      {
+        no: 27,
+        name: 'change_publish_options',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => ChangePublishOptions,
+      },
     ]);
   }
 }
@@ -1001,6 +1024,23 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ChangePublishOptions$Type extends MessageType<ChangePublishOptions> {
+  constructor() {
+    super('stream.video.sfu.event.ChangePublishOptions', [
+      {
+        no: 1,
+        name: 'publish_option',
+        kind: 'message',
+        T: () => PublishOption,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.ChangePublishOptions
+ */
+export const ChangePublishOptions = new ChangePublishOptions$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CodecNegotiationComplete$Type extends MessageType<CodecNegotiationComplete> {
   constructor() {
@@ -1372,8 +1412,12 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
       },
-      { no: 4, name: 'publish_audio_codec', kind: 'message', T: () => Codec },
-      { no: 5, name: 'publish_video_codec', kind: 'message', T: () => Codec },
+      {
+        no: 4,
+        name: 'publish_options',
+        kind: 'message',
+        T: () => PublishOptions,
+      },
     ]);
   }
 }

@@ -195,17 +195,63 @@ export interface VideoLayer {
   quality: VideoQuality;
 }
 /**
+ * @generated from protobuf message stream.video.sfu.models.PublishOptions
+ */
+export interface PublishOptions {
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption codecs = 1;
+   */
+  codecs: PublishOption[];
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.PublishOption
+ */
+export interface PublishOption {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
+   */
+  codec?: Codec;
+  /**
+   * @generated from protobuf field: int32 bitrate = 3;
+   */
+  bitrate: number;
+  /**
+   * @generated from protobuf field: int32 fps = 4;
+   */
+  fps: number;
+  /**
+   * @generated from protobuf field: int32 max_spatial_layers = 5;
+   */
+  maxSpatialLayers: number;
+  /**
+   * @generated from protobuf field: int32 max_temporal_layers = 6;
+   */
+  maxTemporalLayers: number;
+}
+/**
  * @generated from protobuf message stream.video.sfu.models.Codec
  */
 export interface Codec {
   /**
-   * @generated from protobuf field: string mime_type = 10;
+   * @generated from protobuf field: uint32 payload_type = 11;
    */
-  mimeType: string;
+  payloadType: number;
   /**
-   * @generated from protobuf field: string scalability_mode = 11;
+   * @generated from protobuf field: string name = 10;
    */
-  scalabilityMode: string;
+  name: string;
+  /**
+   * @generated from protobuf field: uint32 clock_rate = 14;
+   */
+  clockRate: number;
+  /**
+   * @generated from protobuf field: string encoding_parameters = 13;
+   */
+  encodingParameters: string;
   /**
    * @generated from protobuf field: string fmtp = 12;
    */
@@ -1057,13 +1103,79 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
  */
 export const VideoLayer = new VideoLayer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class PublishOptions$Type extends MessageType<PublishOptions> {
+  constructor() {
+    super('stream.video.sfu.models.PublishOptions', [
+      {
+        no: 1,
+        name: 'codecs',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => PublishOption,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.PublishOptions
+ */
+export const PublishOptions = new PublishOptions$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PublishOption$Type extends MessageType<PublishOption> {
+  constructor() {
+    super('stream.video.sfu.models.PublishOption', [
+      {
+        no: 1,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      { no: 2, name: 'codec', kind: 'message', T: () => Codec },
+      { no: 3, name: 'bitrate', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      { no: 4, name: 'fps', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      {
+        no: 5,
+        name: 'max_spatial_layers',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 6,
+        name: 'max_temporal_layers',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.PublishOption
+ */
+export const PublishOption = new PublishOption$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Codec$Type extends MessageType<Codec> {
   constructor() {
     super('stream.video.sfu.models.Codec', [
-      { no: 10, name: 'mime_type', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 11,
-        name: 'scalability_mode',
+        name: 'payload_type',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
+      { no: 10, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 14,
+        name: 'clock_rate',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
+      {
+        no: 13,
+        name: 'encoding_parameters',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },

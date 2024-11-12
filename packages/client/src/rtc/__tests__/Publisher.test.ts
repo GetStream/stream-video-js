@@ -69,9 +69,20 @@ describe('Publisher', () => {
       sfuClient,
       dispatcher,
       state,
-      isDtxEnabled: true,
-      isRedEnabled: true,
       logTag: 'test',
+      publishOptions: {
+        codecs: [
+          {
+            trackType: TrackType.VIDEO,
+            bitrate: 1000,
+            // @ts-expect-error - incomplete data
+            codec: { name: 'vp9' },
+            fps: 30,
+            maxTemporalLayers: 3,
+            maxSpatialLayers: 0,
+          },
+        ],
+      },
     });
   });
 

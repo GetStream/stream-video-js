@@ -3,11 +3,13 @@ import type { Logger } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
+import { Dispatcher } from './Dispatcher';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
+  dispatcher: Dispatcher;
   onUnrecoverableError?: () => void;
   logTag: string;
 };
@@ -18,9 +20,10 @@ export type BasePeerConnectionOpts = {
  */
 export abstract class BasePeerConnection {
   protected readonly logger: Logger;
-  protected readonly state: CallState;
-  protected readonly pc: RTCPeerConnection;
   protected readonly peerType: PeerType;
+  protected readonly pc: RTCPeerConnection;
+  protected readonly state: CallState;
+  protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
   protected readonly onUnrecoverableError?: () => void;
@@ -35,6 +38,7 @@ export abstract class BasePeerConnection {
       sfuClient,
       connectionConfig,
       state,
+      dispatcher,
       onUnrecoverableError,
       logTag,
     }: BasePeerConnectionOpts,
@@ -42,6 +46,7 @@ export abstract class BasePeerConnection {
     this.peerType = peerType;
     this.sfuClient = sfuClient;
     this.state = state;
+    this.dispatcher = dispatcher;
     this.onUnrecoverableError = onUnrecoverableError;
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',

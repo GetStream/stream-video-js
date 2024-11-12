@@ -81,9 +81,8 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  ClientPublishOptions,
   JoinCallData,
-  PreferredCodec,
-  PublishOptions,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -91,6 +90,7 @@ import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
+  PublishOptions,
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
@@ -200,6 +200,7 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
+  private clientPublishOptions?: ClientPublishOptions;
   private publishOptions?: PublishOptions;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
@@ -796,25 +797,16 @@ export class Call {
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
           ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
           : undefined;
-      const {
-        callState,
-        fastReconnectDeadlineSeconds,
-        publishAudioCodec,
-        publishVideoCodec,
-      } = await sfuClient.join({
-        subscriberSdp: receivingCapabilitiesSdp,
-        publisherSdp: publishingCapabilitiesSdp,
-        clientDetails,
-        fastReconnect: performingFastReconnect,
-        reconnectDetails,
-      });
+      const { callState, fastReconnectDeadlineSeconds, publishOptions } =
+        await sfuClient.join({
+          subscriberSdp: receivingCapabilitiesSdp,
+          publisherSdp: publishingCapabilitiesSdp,
+          clientDetails,
+          fastReconnect: performingFastReconnect,
+          reconnectDetails,
+        });
 
-      this.updatePublishOptions({
-        preferredAudioCodec:
-          publishAudioCodec?.mimeType.toLowerCase() as PreferredCodec,
-        preferredCodec:
-          publishVideoCodec?.mimeType.toLowerCase() as PreferredCodec,
-      });
+      this.publishOptions = publishOptions;
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
@@ -844,6 +836,7 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
+        publishOptions: this.publishOptions!,
         closePreviousInstances: !performingMigration,
       });
     }
@@ -936,6 +929,7 @@ export class Call {
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
     clientDetails: ClientDetails;
+    publishOptions: PublishOptions;
     closePreviousInstances: boolean;
   }) => {
     const {
@@ -943,6 +937,7 @@ export class Call {
       connectionConfig,
       clientDetails,
       statsOptions,
+      publishOptions,
       closePreviousInstances,
     } = opts;
     if (closePreviousInstances && this.subscriber) {
@@ -977,6 +972,7 @@ export class Call {
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
+        publishOptions,
         logTag: String(this.sfuClientTag),
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
@@ -1365,7 +1361,6 @@ export class Call {
       videoStream,
       videoTrack,
       TrackType.VIDEO,
-      this.publishOptions,
     );
   };
 
@@ -1429,14 +1424,14 @@ export class Call {
     if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
       this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
     }
-    const opts: PublishOptions = {
-      screenShareSettings: this.screenShare.getSettings(),
-    };
+    // const opts: ClientPublishOptions = {
+    //   screenShareSettings: this.screenShare.getSettings(),
+    // };
     await this.publisher.publishStream(
       screenShareStream,
       screenShareTrack,
       TrackType.SCREEN_SHARE,
-      opts,
+      // opts,
     );
 
     const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
@@ -1448,7 +1443,7 @@ export class Call {
         screenShareStream,
         screenShareAudioTrack,
         TrackType.SCREEN_SHARE_AUDIO,
-        opts,
+        // opts,
       );
     }
   };
@@ -1474,14 +1469,14 @@ export class Call {
    * @internal
    * @param options the options to use.
    */
-  updatePublishOptions(options: PublishOptions) {
+  updatePublishOptions(options: ClientPublishOptions) {
     if (this.state.callingState === CallingState.JOINED) {
       this.logger(
         'warn',
         'Cannot update publish options after joining the call',
       );
     }
-    this.publishOptions = { ...this.publishOptions, ...options };
+    this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
   }
 
   /**

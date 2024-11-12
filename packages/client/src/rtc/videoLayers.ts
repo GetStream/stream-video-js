@@ -1,8 +1,7 @@
-import { PreferredCodec, PublishOptions } from '../types';
+import { ScreenShareSettings } from '../types';
 import { TargetResolutionResponse } from '../gen/shims';
 import { isSvcCodec } from './codecs';
-import { getOptimalBitrate } from './bitrateLookup';
-import { VideoQuality } from '../gen/video/sfu/models/models';
+import { PublishOption, VideoQuality } from '../gen/video/sfu/models/models';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -48,60 +47,67 @@ export const ridToVideoQuality = (rid: string): VideoQuality => {
 };
 
 /**
+ * Converts the spatial and temporal layers to a scalability mode.
+ */
+const toScalabilityMode = (spatialLayers: number, temporalLayers: number) =>
+  `L${spatialLayers}T${temporalLayers}${spatialLayers > 1 ? '_KEY' : ''}`;
+
+/**
  * Determines the most optimal video layers for simulcasting
  * for the given track.
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param targetResolution the expected target resolution.
- * @param codecInUse the codec in use.
- * @param publishOptions the publish options for the track.
+ * @param publishOption the publish options for the track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
   targetResolution: TargetResolutionResponse = defaultTargetResolution,
-  codecInUse?: PreferredCodec,
-  publishOptions?: PublishOptions,
+  publishOption: PublishOption,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width = 0, height = 0 } = settings;
   const {
-    scalabilityMode,
-    bitrateDownscaleFactor = 2,
-    maxSimulcastLayers = 3,
-  } = publishOptions || {};
+    bitrate,
+    codec,
+    fps,
+    maxSpatialLayers = 3,
+    maxTemporalLayers = 3,
+  } = publishOption;
   const maxBitrate = getComputedMaxBitrate(
     targetResolution,
     width,
     height,
-    codecInUse,
-    publishOptions,
+    bitrate,
   );
   let downscaleFactor = 1;
   let bitrateFactor = 1;
-  const svcCodec = isSvcCodec(codecInUse);
-  const totalLayers = svcCodec ? 3 : Math.min(3, maxSimulcastLayers);
+  const svcCodec = isSvcCodec(codec?.name);
+  const totalLayers = svcCodec ? 3 : Math.min(3, maxSpatialLayers);
   for (const rid of ['f', 'h', 'q'].slice(0, totalLayers)) {
     const layer: OptimalVideoLayer = {
       active: true,
       rid,
       width: Math.round(width / downscaleFactor),
       height: Math.round(height / downscaleFactor),
-      maxBitrate:
-        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
-      maxFramerate: 30,
+      maxBitrate: maxBitrate / bitrateFactor || defaultBitratePerRid[rid],
+      maxFramerate: fps,
     };
     if (svcCodec) {
       // for SVC codecs, we need to set the scalability mode, and the
       // codec will handle the rest (layers, temporal layers, etc.)
-      layer.scalabilityMode = scalabilityMode || 'L3T2_KEY';
+      layer.scalabilityMode = toScalabilityMode(
+        maxSpatialLayers,
+        maxTemporalLayers,
+      );
     } else {
       // for non-SVC codecs, we need to downscale proportionally (simulcast)
       layer.scaleResolutionDownBy = downscaleFactor;
     }
 
     downscaleFactor *= 2;
-    bitrateFactor *= bitrateDownscaleFactor;
+    bitrateFactor *= 2;
 
     // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
     // when deciding which layer to disable when CPU or bandwidth is constrained.
@@ -124,29 +130,17 @@ export const findOptimalVideoLayers = (
  * @param targetResolution the target resolution.
  * @param currentWidth the current width of the track.
  * @param currentHeight the current height of the track.
- * @param codecInUse the codec in use.
- * @param publishOptions the publish options.
+ * @param bitrate the target bitrate.
  */
 export const getComputedMaxBitrate = (
   targetResolution: TargetResolutionResponse,
   currentWidth: number,
   currentHeight: number,
-  codecInUse?: PreferredCodec,
-  publishOptions?: PublishOptions,
+  bitrate: number,
 ): number => {
   // if the current resolution is lower than the target resolution,
   // we want to proportionally reduce the target bitrate
-  const {
-    width: targetWidth,
-    height: targetHeight,
-    bitrate: targetBitrate,
-  } = targetResolution;
-  const { preferredBitrate } = publishOptions || {};
-  const frameHeight =
-    currentWidth > currentHeight ? currentHeight : currentWidth;
-  const bitrate =
-    preferredBitrate ||
-    (codecInUse ? getOptimalBitrate(codecInUse, frameHeight) : targetBitrate);
+  const { width: targetWidth, height: targetHeight } = targetResolution;
   if (currentWidth < targetWidth || currentHeight < targetHeight) {
     const currentPixels = currentWidth * currentHeight;
     const targetPixels = targetWidth * targetHeight;
@@ -189,12 +183,14 @@ const withSimulcastConstraints = (
   }));
 };
 
+/**
+ * Determines the most optimal video layers for screen sharing.
+ */
 export const findOptimalScreenSharingLayers = (
   videoTrack: MediaStreamTrack,
-  publishOptions?: PublishOptions,
+  preferences?: ScreenShareSettings,
   defaultMaxBitrate = 3000000,
 ): OptimalVideoLayer[] => {
-  const { screenShareSettings: preferences } = publishOptions || {};
   const settings = videoTrack.getSettings();
   return [
     {
