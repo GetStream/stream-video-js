@@ -1,10 +1,16 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { PinVertical, ScreenShareIndicator } from '../../../icons';
+import {
+  MicOff,
+  PinVertical,
+  ScreenShareIndicator,
+  VideoSlash,
+} from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
+import { hasAudio, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 import SpeechIndicator from './SpeechIndicator';
 
@@ -31,6 +37,8 @@ export const ParticipantLabel = ({
       participantLabel: {
         container,
         userNameLabel,
+        audioMutedIconContainer,
+        videoMutedIconContainer,
         pinIconContainer,
         screenShareIconContainer,
       },
@@ -44,6 +52,8 @@ export const ParticipantLabel = ({
 
   const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
+  const isAudioMuted = !hasAudio(participant);
+  const isVideoMuted = !hasVideo(participant);
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);
@@ -100,22 +110,35 @@ export const ParticipantLabel = ({
         <Text style={[styles.userNameLabel, userNameLabel]} numberOfLines={1}>
           {participantLabel}
         </Text>
+        {isAudioMuted && (
+          <View
+            style={[styles.audioMutedIconContainer, audioMutedIconContainer]}
+          >
+            <MicOff color={colors.iconPrimaryDefault} size={iconSizes.sm} />
+          </View>
+        )}
+        {isVideoMuted && (
+          <View
+            style={[styles.videoMutedIconContainer, videoMutedIconContainer]}
+          >
+            <VideoSlash color={colors.iconPrimaryDefault} size={iconSizes.sm} />
+          </View>
+        )}
+        {isPinningEnabled && (
+          <Pressable
+            style={[styles.pinIconContainer, pinIconContainer]}
+            onPress={unPinParticipantHandler}
+          >
+            <PinVertical
+              color={colors.iconPrimaryDefault}
+              size={iconSizes.sm}
+            />
+          </Pressable>
+        )}
         <View style={styles.indicatorWrapper}>
           <SpeechIndicator isSpeaking={participant.isSpeaking} />
         </View>
       </View>
-      {isPinningEnabled && (
-        <Pressable
-          style={[
-            styles.pinIconContainer,
-            { height: iconSizes.xs, width: iconSizes.xs },
-            pinIconContainer,
-          ]}
-          onPress={unPinParticipantHandler}
-        >
-          <PinVertical color={colors.iconPrimaryDefault} />
-        </Pressable>
-      )}
     </View>
   );
 };

@@ -54,7 +54,7 @@ export const ToggleVideoPreviewButton = ({
       }
       size={buttonSizes.md}
       style={{
-        container: { ...toggleVideoPreviewButton.container },
+        container: toggleVideoPreviewButton.container,
         svgContainer: toggleVideoPreviewButton.svgContainer,
       }}
     >

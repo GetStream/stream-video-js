@@ -60,7 +60,6 @@ const AnimatedFloatingView = ({
         width: rectangle.width,
         height: rectangle.height,
       },
-      topOffset: theme.floatingParticipantsView.topPosition,
     });
     const { x, y } = snapAlignments[initialAlignment];
     snapAlignmentsRef.current = snapAlignments;

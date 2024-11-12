@@ -21,8 +21,6 @@ export type ColorScheme = {
   [key: string]: ColorValue;
 };
 
-export type ColorType = Record<'light' | 'dark', ColorScheme>;
-
 export type FontTypes =
   | 'heading4'
   | 'heading5'
@@ -36,6 +34,10 @@ export type FontStyle = {
   fontWeight: TextStyle['fontWeight'];
 };
 
+/**
+ * DimensionType is used to define the size of a component.
+ * It is an object with xs, sm, md, lg, and xl properties.
+ */
 export type DimensionType = {
   xs: number;
   sm: number;
@@ -44,6 +46,12 @@ export type DimensionType = {
   xl: number;
 };
 
+/**
+ * Insets are used to define the padding or margin of a component.
+ * These values can also represent safe area insets, which ensure content
+ * is properly padded to avoid device-specific UI elements like notches
+ * or rounded corners.
+ */
 export type Insets = {
   top: number;
   right: number;
@@ -52,5 +60,3 @@ export type Insets = {
 };
 
 export type FontsScheme = Record<FontTypes, FontStyle>;
-
-export type Theme = ColorType;

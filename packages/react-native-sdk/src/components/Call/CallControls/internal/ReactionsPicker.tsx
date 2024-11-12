@@ -30,14 +30,12 @@ export const ReactionsPicker = ({
   const call = useCall();
   const size = reactionsButtonLayoutRectangle?.width ?? 0;
   const reactionItemSize = size * 0.8;
-  const TOP_PADDING = variants.spacingSizes.xs;
-  const REACTION_MARGIN_BOTTOM = variants.spacingSizes.xs;
 
   const popupHeight =
     // the top padding
-    TOP_PADDING +
+    variants.spacingSizes.xs +
     // take margins into account
-    REACTION_MARGIN_BOTTOM * supportedReactions.length +
+    variants.spacingSizes.xs * supportedReactions.length +
     // the size of the reaction icon items (same size as reactions button * amount of reactions)
     reactionItemSize * supportedReactions.length;
 

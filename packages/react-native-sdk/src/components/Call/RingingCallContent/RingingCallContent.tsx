@@ -41,10 +41,6 @@ export type RingingCallContentProps = {
    */
   CallContent?: React.ComponentType<CallContentProps> | null;
   /**
-   * Prop to customize the CallTopView component in the RingingCallContent.
-   */
-  CallTopView?: React.ComponentType<any> | null;
-  /**
    * Prop to override the component shown when the call is left.
    */
   CallLeftIndicator?: React.ComponentType<CallLeftIndicatorProps> | null;
@@ -68,7 +64,6 @@ const RingingCallPanel = ({
   IncomingCall = DefaultIncomingCall,
   OutgoingCall = DefaultOutgoingCall,
   CallContent = DefaultCallContent,
-  CallTopView,
   CallLeftIndicator = DefaultCallLeftIndicator,
   CallPreparingIndicator = DefaultCallPreparingIndicator,
   landscape,
@@ -83,12 +78,8 @@ const RingingCallPanel = ({
   switch (callingState) {
     case CallingState.RINGING:
       return isCallCreatedByMe
-        ? OutgoingCall && (
-            <OutgoingCall CallTopView={CallTopView} landscape={landscape} />
-          )
-        : IncomingCall && (
-            <IncomingCall CallTopView={CallTopView} landscape={landscape} />
-          );
+        ? OutgoingCall && <OutgoingCall landscape={landscape} />
+        : IncomingCall && <IncomingCall landscape={landscape} />;
     case CallingState.LEFT:
       return (
         CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />
@@ -100,11 +91,7 @@ const RingingCallPanel = ({
         )
       );
     default:
-      return (
-        CallContent && (
-          <CallContent CallTopView={CallTopView} landscape={landscape} />
-        )
-      );
+      return CallContent && <CallContent landscape={landscape} />;
   }
 };
 

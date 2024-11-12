@@ -17,10 +17,6 @@ import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefau
  */
 export type OutgoingCallProps = OutgoingCallControlsProps & {
   /**
-   * Prop to customize the CallTopView component in the IncomingCall component.
-   */
-  CallTopView?: React.ComponentType<any> | null;
-  /**
    * Prop to customize the OutgoingCall controls.
    */
   OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
@@ -36,7 +32,6 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  * Used after the user has initiated a call.
  */
 export const OutgoingCall = ({
-  CallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
   landscape,
 }: OutgoingCallProps) => {
@@ -61,7 +56,6 @@ export const OutgoingCall = ({
           outgoingCall.container,
         ]}
       >
-        {CallTopView && <CallTopView />}
         <View
           style={[styles.content, landscapeContentStyles, outgoingCall.content]}
         >

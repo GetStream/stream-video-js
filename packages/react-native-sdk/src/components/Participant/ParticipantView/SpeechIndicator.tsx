@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '../../..';
 
@@ -19,14 +19,12 @@ export type SpeechIndicatorProps = {
  */
 export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
   const styles = useStyles();
-  const animatedValue1 = useRef(new Animated.Value(0.6)).current;
-  const animatedValue2 = useRef(new Animated.Value(0.6)).current;
-  const animatedValue3 = useRef(new Animated.Value(0.6)).current;
 
-  const animationValues = useMemo(
-    () => [animatedValue1, animatedValue2, animatedValue3],
-    [animatedValue1, animatedValue2, animatedValue3]
-  );
+  const [animationValues] = useState(() => [
+    new Animated.Value(0.6),
+    new Animated.Value(0.6),
+    new Animated.Value(0.6),
+  ]);
 
   useEffect(() => {
     if (isSpeaking) {

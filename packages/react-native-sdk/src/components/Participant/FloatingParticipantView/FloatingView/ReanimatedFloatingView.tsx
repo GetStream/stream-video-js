@@ -75,9 +75,8 @@ try {
           width: rectangle.width,
           height: rectangle.height,
         },
-        topOffset: theme.floatingParticipantsView.topPosition,
       });
-    }, [rectangle, containerWidth, containerHeight, theme]);
+    }, [rectangle, containerWidth, containerHeight]);
 
     const dragGesture = Gesture.Pan()
       .onStart((_e) => {

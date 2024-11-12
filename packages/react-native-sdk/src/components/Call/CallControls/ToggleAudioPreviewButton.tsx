@@ -50,7 +50,7 @@ export const ToggleAudioPreviewButton = ({
       }
       size={buttonSizes.md}
       style={{
-        container: { ...toggleAudioPreviewButton.container },
+        container: toggleAudioPreviewButton.container,
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >

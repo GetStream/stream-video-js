@@ -95,7 +95,6 @@ export type Theme = {
     container: ViewStyle;
     participantViewContainer: ViewStyle;
     videoFallback: ViewStyle;
-    topPosition: number;
   };
   chatButton: {
     container: ViewStyle;
@@ -177,15 +176,6 @@ export type Theme = {
     bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
     deviceControlButtons: ViewStyle;
-  };
-  callTopView: {
-    container: ViewStyle;
-    content: ViewStyle;
-    backIconContainer: ViewStyle;
-    leftElement: ViewStyle;
-    centerElement: ViewStyle;
-    rightElement: ViewStyle;
-    title: TextStyle;
   };
   userInfo: {
     container: ViewStyle;
@@ -480,7 +470,6 @@ export const defaultTheme: Theme = {
     container: {},
     participantViewContainer: {},
     videoFallback: {},
-    topPosition: 0,
   },
   participantLabel: {
     container: {},
@@ -540,15 +529,6 @@ export const defaultTheme: Theme = {
     deviceControlButtons: {},
   },
   ringingCallContent: { container: {} },
-  callTopView: {
-    container: {},
-    content: {},
-    backIconContainer: {},
-    leftElement: {},
-    centerElement: {},
-    rightElement: {},
-    title: {},
-  },
   userInfo: {
     container: {},
     avatarGroup: {},
