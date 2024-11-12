@@ -4,6 +4,7 @@ import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { CameraSwitch, IconWrapper } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { ColorValue } from 'react-native';
 
 /**
  * Props for the Toggle Camera face button.
@@ -14,6 +15,11 @@ export type ToggleCameraFaceButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
+
+  /**
+   * Background color of the button.
+   */
+  backgroundColor?: ColorValue;
 };
 
 /**
@@ -21,6 +27,7 @@ export type ToggleCameraFaceButtonProps = {
  */
 export const ToggleCameraFaceButton = ({
   onPressHandler,
+  backgroundColor,
 }: ToggleCameraFaceButtonProps) => {
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, optimisticIsMute, direction } = useCameraState();
@@ -46,8 +53,9 @@ export const ToggleCameraFaceButton = ({
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
+        size={variants.roundButtonSizes.md}
         onPress={onPress}
-        color={colors.sheetPrimary}
+        color={backgroundColor || colors.buttonSecondaryDefault}
         disabledColor={colors.sheetPrimary}
         disabled={optimisticIsMute}
         style={toggleCameraFaceButton}

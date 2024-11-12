@@ -112,15 +112,13 @@ export const ParticipantView = ({
   const {
     theme: { colors, participantView },
   } = useTheme();
-  const styles = useStyles();
   const { isSpeaking, userId } = participant;
+  const styles = useStyles();
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
     styles.highligtedContainer,
-    {
-      borderColor: colors.primary,
-    },
+    { borderColor: colors.buttonPrimaryDefault },
     participantView.highligtedContainer,
   ];
 
@@ -173,8 +171,8 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         container: {
-          justifyContent: 'space-between',
           overflow: 'hidden',
+          justifyContent: 'flex-end',
           borderRadius: theme.variants.borderRadiusSizes.md,
         },
         footerContainer: {

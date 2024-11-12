@@ -108,16 +108,7 @@ export const CallControlsButton = (
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
-    borderWidth: 1,
     alignItems: 'center',
-    // For iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
 
     // For android
     elevation: 6,

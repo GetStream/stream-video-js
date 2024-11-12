@@ -104,7 +104,7 @@ export const ReactionsPicker = ({
           styles.reactionsPopup,
           reactionsPopupStyle,
           {
-            backgroundColor: colors.base4,
+            backgroundColor: colors.sheetSecondary,
           },
           reactionsPicker.reactionsPopup,
         ]}
@@ -120,7 +120,7 @@ export const ReactionsPicker = ({
               styles.reactionItem,
               reactionItemStyle,
               {
-                backgroundColor: colors.background3,
+                backgroundColor: colors.buttonSecondaryDefault,
               },
               reactionsPicker.reactionItem,
             ]}
@@ -158,7 +158,7 @@ export const ReactionsPicker = ({
         style={[
           reactionsButtonDimmerStyle,
           {
-            backgroundColor: colors.base4,
+            backgroundColor: colors.sheetSecondary,
           },
           reactionsPicker.reactionsButtonDimmer,
         ]}

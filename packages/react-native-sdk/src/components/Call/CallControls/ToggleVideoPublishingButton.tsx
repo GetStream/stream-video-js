@@ -27,7 +27,7 @@ export const ToggleVideoPublishingButton = ({
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
-    theme: { colors, defaults },
+    theme: { colors, variants },
   } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
@@ -53,11 +53,14 @@ export const ToggleVideoPublishingButton = ({
       >
         <IconWrapper>
           {!optimisticIsMute ? (
-            <Video color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+            <Video
+              color={colors.iconPrimaryDefault}
+              size={variants.iconSizes.md}
+            />
           ) : (
             <VideoSlash
               color={colors.iconPrimaryDefault}
-              size={defaults.iconSize}
+              size={variants.iconSizes.md}
             />
           )}
         </IconWrapper>

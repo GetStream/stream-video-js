@@ -45,6 +45,7 @@ export const CallRecordingModal: React.FC<CallRecordingModalProps> = ({
       transparent={true}
       visible={visible}
       onRequestClose={onCancel}
+      supportedOrientations={['portrait', 'landscape']}
     >
       <TouchableWithoutFeedback onPress={onCancel}>
         <View style={styles.overlay}>
@@ -155,7 +156,7 @@ const useStyles = (isEndRecordingModal: boolean) => {
             : theme.colors.buttonPrimaryDefault,
         },
         buttonText: {
-          color: 'white',
+          color: theme.colors.typePrimary,
           fontSize: 13,
           fontWeight: '600',
         },

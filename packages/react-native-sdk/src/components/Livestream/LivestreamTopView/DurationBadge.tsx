@@ -120,7 +120,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.background2 },
+        { backgroundColor: colors.sheetTertiary },
         durationBadge.container,
       ]}
     >
@@ -137,7 +137,11 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
         <ShieldBadge />
       </View>
       <Text
-        style={[styles.label, { color: colors.base1 }, durationBadge.label]}
+        style={[
+          styles.label,
+          { color: colors.typePrimary },
+          durationBadge.label,
+        ]}
       >
         {formatDuration(duration)}
       </Text>

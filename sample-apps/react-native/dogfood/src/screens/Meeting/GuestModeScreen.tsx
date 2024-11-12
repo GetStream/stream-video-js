@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useCall, useI18n } from '@stream-io/video-react-native-sdk';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useCall, useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
@@ -20,6 +20,7 @@ export const GuestModeScreen = ({
   const [callId, setCallId] = useState<string>(route.params.callId);
   const [username, setUsername] = useState<string>('Guest');
   const { t } = useI18n();
+  const styles = useStyles();
 
   useEffect(() => {
     if (call) {
@@ -81,24 +82,31 @@ export const GuestModeScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: appTheme.spacing.lg,
-    flex: 1,
-    justifyContent: 'space-evenly',
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  textInputStyle: {
-    flex: 0,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: '400',
-    color: appTheme.colors.static_white,
-    textAlign: 'center',
-  },
-  anonymousButton: {
-    marginTop: appTheme.spacing.lg,
-    backgroundColor: appTheme.colors.light_blue,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          padding: appTheme.spacing.lg,
+          flex: 1,
+          justifyContent: 'space-evenly',
+          backgroundColor: theme.colors.sheetTertiary,
+        },
+        textInputStyle: {
+          flex: 0,
+        },
+        title: {
+          fontSize: 34,
+          fontWeight: '400',
+          color: theme.colors.typePrimary,
+          textAlign: 'center',
+        },
+        anonymousButton: {
+          marginTop: appTheme.spacing.lg,
+          backgroundColor: theme.colors.buttonSecondaryHover,
+        },
+      }),
+    [theme],
+  );
+};

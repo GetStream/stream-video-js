@@ -26,7 +26,7 @@ export const FollowerCount = ({}: FollowerCountProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.background2 },
+        { backgroundColor: colors.sheetTertiary },
         followerCount.container,
       ]}
     >
@@ -40,7 +40,11 @@ export const FollowerCount = ({}: FollowerCountProps) => {
         <Eye />
       </View>
       <Text
-        style={[styles.label, { color: colors.base1 }, followerCount.label]}
+        style={[
+          styles.label,
+          { color: colors.typePrimary },
+          followerCount.label,
+        ]}
       >
         {totalParticipants}
       </Text>

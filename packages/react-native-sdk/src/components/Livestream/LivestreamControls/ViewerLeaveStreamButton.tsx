@@ -59,9 +59,7 @@ export const ViewerLeaveStreamButton = ({
     <Pressable
       style={[
         styles.container,
-        {
-          backgroundColor: colors.background2,
-        },
+        { backgroundColor: colors.buttonSecondaryDefault },
         viewerLeaveStreamButton.container,
       ]}
       onPress={onLeaveStreamButtonPress}
@@ -79,7 +77,7 @@ export const ViewerLeaveStreamButton = ({
         style={[
           styles.text,
           typefaces.subtitleBold,
-          { color: colors.base1 },
+          { color: colors.typePrimary },
           viewerLeaveStreamButton.text,
         ]}
       >

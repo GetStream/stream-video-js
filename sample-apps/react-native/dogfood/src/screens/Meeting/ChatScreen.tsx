@@ -96,18 +96,18 @@ const useStyles = () => {
         header: {
           padding: 10,
           flexDirection: 'row',
-          backgroundColor: theme.colors.base5,
+          backgroundColor: theme.colors.sheetPrimary,
         },
-        headerText: { flex: 1, color: theme.colors.base1 },
+        headerText: { flex: 1, color: theme.colors.typePrimary },
         notedButton: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.buttonPrimaryDefault,
           justifyContent: 'center',
           padding: 10,
           borderRadius: 10,
           marginLeft: 10,
         },
         notedButtonText: {
-          color: theme.colors.base1,
+          color: theme.colors.typePrimary,
           fontWeight: '500',
         },
       }),

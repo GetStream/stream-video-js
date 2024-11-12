@@ -58,14 +58,14 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         button: {
-          backgroundColor: appTheme.colors.primary,
+          backgroundColor: appTheme.colors.buttonPrimaryDefault,
           justifyContent: 'center',
           borderRadius: 8,
           height: BUTTON_HEIGHT,
           paddingHorizontal: appTheme.variants.spacingSizes.md,
         },
         buttonText: {
-          color: appTheme.colors.static_white,
+          color: appTheme.colors.iconPrimaryDefault,
           fontWeight: appTheme.typefaces.heading6.fontWeight,
           textAlign: 'center',
           fontSize: 17,

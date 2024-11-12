@@ -63,7 +63,7 @@ export const LayoutSwitcherButton = ({
 
   return (
     <CallControlsButton
-      size={variants.iconSizes.lg}
+      size={variants.roundButtonSizes.md}
       onLayout={handleLayout}
       onPress={() => {
         handleOpenModal();

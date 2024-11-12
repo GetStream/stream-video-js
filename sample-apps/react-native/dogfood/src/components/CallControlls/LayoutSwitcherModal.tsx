@@ -40,9 +40,8 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
     if (isVisible && anchorPosition) {
       const windowHeight = Dimensions.get('window').height;
       const windowWidth = Dimensions.get('window').width;
-
       let top = anchorPosition.y + anchorPosition.height / 2 + topInset;
-      let left = anchorPosition.x + leftInset;
+      let left = anchorPosition.x + leftInset + 6;
 
       // Ensure the popup stays within the screen bounds
       if (top + 150 > windowHeight) {
@@ -88,7 +87,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           >
             <Grid
               size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimaryDefault}
+              color={theme.colors.typePrimary}
             />
             <Text style={styles.buttonText}>Grid</Text>
           </TouchableOpacity>
@@ -124,13 +123,15 @@ const useStyles = () => {
           position: 'absolute',
           width: 212,
           backgroundColor: theme.colors.sheetSecondary,
-          borderRadius: theme.variants.borderRadiusSizes.lg,
+          borderRadius: theme.variants.borderRadiusSizes.md,
           padding: theme.variants.spacingSizes.md,
           gap: theme.variants.spacingSizes.sm,
         },
         button: {
           backgroundColor: theme.colors.buttonSecondaryDefault,
           borderRadius: theme.variants.borderRadiusSizes.lg,
+          borderWidth: 1,
+          borderColor: theme.colors.sheetTertiary,
           flexDirection: 'row',
           justifyContent: 'flex-start',
           alignItems: 'center',
@@ -138,10 +139,10 @@ const useStyles = () => {
           paddingVertical: theme.variants.spacingSizes.sm,
         },
         selectedButton: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.buttonPrimaryDefault,
         },
         buttonText: {
-          color: 'white',
+          color: theme.colors.typePrimary,
           textAlign: 'center',
           fontWeight: '600',
           marginTop: 2,

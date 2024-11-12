@@ -8,7 +8,6 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { appTheme } from '../../theme';
 import { BOTTOM_CONTROLS_HEIGHT, Z_INDEX } from '../../constants';
 import { MoreActionsButton } from './MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
@@ -83,12 +82,12 @@ const useStyles = (showMicLabel: boolean) => {
           height: BOTTOM_CONTROLS_HEIGHT,
         },
         speakingLabelContainer: {
-          backgroundColor: appTheme.colors.static_overlay,
+          backgroundColor: theme.colors.sheetSecondary,
           width: '100%',
         },
         label: {
           textAlign: 'center',
-          color: appTheme.colors.static_white,
+          color: theme.colors.typePrimary,
         },
         callControlsWrapper: {
           display: 'flex',

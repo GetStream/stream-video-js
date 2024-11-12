@@ -29,18 +29,14 @@ export const ParticipantVideoFallback = ({
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: colors.base4,
-        },
+        { backgroundColor: colors.sheetTertiary },
         participantVideoFallback.container,
       ]}
     >
       {!image ? (
         <Text
           style={[
-            {
-              color: colors.base1,
-            },
+            { color: colors.typePrimary },
             typefaces.bodyBold,
             participantVideoFallback.label,
           ]}

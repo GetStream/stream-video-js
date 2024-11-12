@@ -70,7 +70,7 @@ export const OutgoingCall = ({
             <Text
               style={[
                 styles.callingText,
-                { color: colors.base1 },
+                { color: colors.typePrimary },
                 typefaces.heading6,
                 outgoingCall.callingText,
               ]}
@@ -111,7 +111,7 @@ const Background = () => {
       <View
         style={[
           styles.background,
-          { backgroundColor: colors.base4 },
+          { backgroundColor: colors.sheetTertiary },
           outgoingCall.background,
         ]}
       />
@@ -121,7 +121,7 @@ const Background = () => {
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.base4 },
+        { backgroundColor: colors.sheetTertiary },
         outgoingCall.background,
       ]}
     >

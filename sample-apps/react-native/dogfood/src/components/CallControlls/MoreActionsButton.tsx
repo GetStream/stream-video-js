@@ -7,9 +7,14 @@ import {
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
-import Stats from '../../assets/Stats';
 import Feedback from '../../assets/Feedback';
 import FeedbackModal from '../FeedbackModal';
+import {
+  ThemeMode,
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
+import LightDark from '../../assets/LightDark';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -34,6 +39,8 @@ export const MoreActionsButton = ({
   } = useTheme();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const setState = useAppGlobalStoreSetState();
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
 
   const handleRating = async (rating: number) => {
@@ -46,22 +53,16 @@ export const MoreActionsButton = ({
     setFeedbackModalVisible(false);
   };
 
+  const getName = (theme: ThemeMode) => {
+    if (theme === 'light') {
+      return 'Dark mode';
+    }
+    return 'Light mode';
+  };
+
   const options: DrawerOption[] = [
     {
       id: '1',
-      label: 'Stats',
-      icon: (
-        <IconWrapper>
-          <Stats
-            color={colors.iconPrimaryDefault}
-            size={variants.roundButtonSizes.sm}
-          />
-        </IconWrapper>
-      ),
-      onPress: () => {},
-    },
-    {
-      id: '2',
       label: 'Feedback',
       icon: (
         <IconWrapper>
@@ -74,6 +75,26 @@ export const MoreActionsButton = ({
       onPress: () => {
         setIsDrawerVisible(false);
         setFeedbackModalVisible(true);
+      },
+    },
+    {
+      id: '2',
+      label: getName(themeMode),
+      icon: (
+        <IconWrapper>
+          <LightDark
+            color={colors.iconPrimaryDefault}
+            size={variants.roundButtonSizes.sm}
+          />
+        </IconWrapper>
+      ),
+      onPress: () => {
+        if (themeMode === 'light') {
+          setState({ themeMode: 'dark' });
+        } else {
+          setState({ themeMode: 'light' });
+        }
+        setIsDrawerVisible(false);
       },
     },
   ];

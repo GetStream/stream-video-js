@@ -29,7 +29,6 @@ import { MicOff } from '../assets/MicOff';
 import { ScreenShare } from '../assets/ScreenShare';
 import { VideoSlash } from '../assets/VideoSlash';
 import { ArrowRight } from '../assets/ArrowRight';
-import { appTheme } from '../theme';
 import { ParticipantActions } from './ParticipantActions';
 import { generateParticipantTitle } from '../utils';
 import { Z_INDEX } from '../constants';
@@ -58,6 +57,7 @@ export const ParticipantsInfoList = ({
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
   const styles = useStyles();
+  const { theme } = useTheme();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useI18n();
@@ -129,14 +129,14 @@ export const ParticipantsInfoList = ({
                 testID={ButtonTestIds.EXIT_PARTICIPANTS_INFO}
               >
                 <Cross
-                  color={appTheme.colors.primary}
+                  color={theme.colors.iconPrimaryDefault}
                   style={styles.crossIcon}
                 />
               </Pressable>
             </View>
             <FlatList data={participants} renderItem={renderItem} />
             <View style={styles.buttonGroup}>
-              <Pressable style={styles.button} onPress={inviteHandler}>
+              <Pressable style={styles.inviteButton} onPress={inviteHandler}>
                 <Text style={styles.buttonText}>{t('Invite')}</Text>
               </Pressable>
               <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
@@ -219,22 +219,22 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
           <View
             style={[styles.svgContainerStyle, styles.screenShareIconContainer]}
           >
-            <ScreenShare color={colors.info} />
+            <ScreenShare color={colors.iconAlertSuccess} />
           </View>
         )}
         {isAudioMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <MicOff color={colors.error} />
+            <MicOff color={colors.iconAlertWarning} />
           </View>
         )}
         {isVideoMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <VideoSlash color={colors.error} />
+            <VideoSlash color={colors.iconAlertWarning} />
           </View>
         )}
         {!participantIsLocalParticipant && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <ArrowRight color={colors.base1} />
+            <ArrowRight color={colors.iconPrimaryDefault} />
           </View>
         )}
       </View>
@@ -249,14 +249,14 @@ const useStyles = () => {
       StyleSheet.create({
         backDropBackground: {
           ...StyleSheet.absoluteFillObject,
-          backgroundColor: theme.colors.background3,
           zIndex: Z_INDEX.IN_BACK,
         },
         content: {
           zIndex: Z_INDEX.IN_FRONT,
-          backgroundColor: theme.colors.background5,
+          backgroundColor: theme.colors.sheetPrimary,
           borderRadius: 15,
           marginHorizontal: 16,
+          marginTop: 65,
         },
         header: {
           flexDirection: 'row',
@@ -270,13 +270,13 @@ const useStyles = () => {
         headerText: {
           fontSize: 16,
           fontWeight: '600',
-          color: theme.base1,
+          color: theme.colors.typePrimary,
         },
         closePressable: {
           padding: 8,
-          borderRadius: 5,
+          borderRadius: 15,
           marginRight: 16,
-          backgroundColor: theme.base4,
+          backgroundColor: theme.colors.buttonSecondaryDefault,
         },
         buttonGroup: {
           flexDirection: 'row',
@@ -298,14 +298,22 @@ const useStyles = () => {
         },
         button: {
           flex: 1,
-          backgroundColor: theme.colors.primary,
+          borderRadius: 24,
+          padding: 8,
+          marginHorizontal: 8,
+          borderColor: theme.colors.buttonSecondaryDefault,
+          borderWidth: 2,
+        },
+        inviteButton: {
+          flex: 1,
+          backgroundColor: theme.colors.buttonPrimaryDefault,
           borderRadius: 24,
           padding: 8,
           marginHorizontal: 8,
         },
         buttonText: {
           textAlign: 'center',
-          color: theme.colors.base1,
+          color: theme.colors.iconPrimaryDefault,
           fontSize: 16,
           fontWeight: '500',
         },
@@ -315,7 +323,7 @@ const useStyles = () => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottomColor: theme.colors.base4,
+          borderBottomColor: theme.colors.buttonSecondaryHover,
           borderBottomWidth: 1,
         },
         participantInfo: {
@@ -325,7 +333,7 @@ const useStyles = () => {
         },
         name: {
           marginLeft: 8,
-          color: theme.colors.base1,
+          color: theme.colors.typePrimary,
           flexShrink: 1,
           fontSize: 16,
           fontWeight: '500',
@@ -339,7 +347,6 @@ const useStyles = () => {
         modal: {
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: theme.colors.background3,
         },
       }),
     [theme],

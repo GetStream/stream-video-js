@@ -109,7 +109,7 @@ export const UserInfo = ({
         style={[
           styles.name,
           fontStyleByMembersCount,
-          { color: colors.base1 },
+          { color: colors.typePrimary },
           userInfo.name,
         ]}
       >

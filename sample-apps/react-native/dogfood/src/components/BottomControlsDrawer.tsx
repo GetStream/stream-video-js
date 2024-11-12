@@ -194,6 +194,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
       transparent={true}
       visible={isVisible}
       onRequestClose={onClose}
+      supportedOrientations={['portrait', 'landscape']}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
@@ -235,6 +236,7 @@ const useStyles = () => {
           borderTopRightRadius: variants.borderRadiusSizes.lg,
           padding: variants.spacingSizes.md,
           maxHeight: '80%',
+          maxWidth: 500,
         },
         dragIndicator: {
           width: '100%',
@@ -271,7 +273,8 @@ const useStyles = () => {
         option: {
           flexDirection: 'row',
           alignItems: 'center',
-          borderWidth: 2,
+          borderWidth: 1,
+          borderColor: colors.sheetTertiary,
           borderRadius: variants.borderRadiusSizes.lg,
           paddingHorizontal: variants.spacingSizes.md,
           height: variants.roundButtonSizes.lg,
@@ -282,7 +285,8 @@ const useStyles = () => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
-          borderWidth: 2,
+          borderWidth: 1,
+          borderColor: colors.sheetTertiary,
           borderRadius: variants.borderRadiusSizes.lg,
           paddingHorizontal: variants.spacingSizes.md,
           height: variants.roundButtonSizes.lg,

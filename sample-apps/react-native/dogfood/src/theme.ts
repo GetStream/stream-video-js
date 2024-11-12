@@ -1,5 +1,6 @@
 import { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ThemeMode } from './contexts/AppContext';
 
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
@@ -34,9 +35,10 @@ export const appTheme = {
   },
 };
 
-export const useCustomTheme = (): DeepPartial<Theme> => {
+export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
   const { top, right, bottom, left } = useSafeAreaInsets();
-  return {
+
+  const baseTheme: DeepPartial<Theme> = {
     variants: {
       insets: {
         top,
@@ -49,4 +51,29 @@ export const useCustomTheme = (): DeepPartial<Theme> => {
       topPosition: 47,
     },
   } as DeepPartial<Theme['variants']>;
+
+  if (mode === 'light') {
+    return {
+      ...baseTheme,
+      colors: {
+        buttonPrimaryDefault: '#005fff',
+        buttonPrimaryDisabled: '#ccdfff',
+        buttonSecondaryDefault: '#eff0f1',
+        buttonSecondaryHover: '#e3e4e5',
+        buttonSecondaryWarningDefault: '#dc433b',
+        iconPrimaryDefault: '#19232d',
+        iconPrimaryAccent: '#005fff',
+        iconAlertSuccess: '#00e2a1',
+        iconAlertWarning: '#dc433b',
+        sheetPrimary: '#ffffff',
+        sheetSecondary: '#eff0f1',
+        sheetTertiary: '#e3e4e5',
+        sheetOverlay: '#0c0d0ea6',
+        typePrimary: '#000000',
+        typeSecondary: '#19232d',
+      } as DeepPartial<Theme['colors']>,
+    };
+  }
+
+  return baseTheme;
 };

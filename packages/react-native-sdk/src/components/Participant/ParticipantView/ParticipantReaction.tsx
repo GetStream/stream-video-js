@@ -59,9 +59,11 @@ export const ParticipantReaction = ({
   return (
     currentReaction?.icon != null && (
       <View style={[styles.container, participantReaction.container]}>
-        <Text style={[participantReaction.reaction, typefaces.heading6]}>
-          {currentReaction?.icon}
-        </Text>
+        <View style={styles.reaction}>
+          <Text style={[participantReaction.reaction, typefaces.heading6]}>
+            {currentReaction?.icon}
+          </Text>
+        </View>
       </View>
     )
   );
@@ -73,16 +75,19 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         container: {
+          flex: 1,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+        reaction: {
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          backgroundColor: theme.colors.sheetOverlay,
           alignSelf: 'flex-end',
           marginRight: theme.variants.spacingSizes.md,
           marginTop: theme.variants.spacingSizes.md,
           height: theme.variants.roundButtonSizes.md,
           width: theme.variants.roundButtonSizes.md,
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-          backgroundColor: theme.colors.sheetOverlay,
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: Z_INDEX.IN_FRONT,
         },
       }),
     [theme]
