@@ -123,6 +123,7 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/withResolvers';
+import {Telemetry} from "./gen/video/sfu/signal_rpc/signal";
 
 /**
  * An object representation of a `Call`.
@@ -725,6 +726,7 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallData): Promise<void> => {
+    const connectStartTime = Date.now();
     await this.setup();
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
@@ -793,11 +795,11 @@ export class Call {
           : undefined;
       const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
         subscriberSdp: receivingCapabilitiesSdp,
+        publisherSdp: '',
         clientDetails,
         fastReconnect: performingFastReconnect,
         reconnectDetails,
       });
-
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
@@ -828,6 +830,13 @@ export class Call {
         clientDetails,
         statsOptions,
         closePreviousInstances: !performingMigration,
+      });
+      // at this point we are connected, compute the time it took and send it
+      this.sfuStatsReporter?.sendTelemetryData({
+        data: {
+          oneofKind: 'connectionTimeSeconds',
+          connectionTimeSeconds: (Date.now() - connectStartTime) / 1000,
+        },
       });
     }
 
@@ -1062,6 +1071,8 @@ export class Call {
     strategy: WebsocketReconnectStrategy,
   ): Promise<void> => {
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
+      const reconnectStartTime = Date.now();
+      let attempts = 1;
       this.logger(
         'info',
         `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
@@ -1098,8 +1109,18 @@ export class Call {
               );
               break;
           }
+          this.sfuStatsReporter?.sendTelemetryData({
+            data: {
+              oneofKind: 'reconnection',
+              reconnection: {
+                timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+                attempts: attempts,
+              },
+            },
+          });
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          attempts += 1;
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
               'warn',

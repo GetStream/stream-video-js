@@ -20,7 +20,29 @@ export type DispatchableMessage<K extends SfuEventKinds> = {
   };
 };
 
-const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
+const sfuEventKinds: {
+  subscriberOffer: undefined;
+  publisherAnswer: undefined;
+  trackPublished: undefined;
+  changePublishQuality: undefined;
+  dominantSpeakerChanged: undefined;
+  participantMigrationComplete: undefined;
+  pinsUpdated: undefined;
+  goAway: undefined;
+  callEnded: undefined;
+  participantUpdated: undefined;
+  trackUnpublished: undefined;
+  error: undefined;
+  callGrantsUpdated: undefined;
+  connectionQualityChanged: undefined;
+  iceRestart: undefined;
+  iceTrickle: undefined;
+  healthCheckResponse: undefined;
+  participantLeft: undefined;
+  joinResponse: undefined;
+  participantJoined: undefined;
+  audioLevelChanged: undefined
+} = {
   subscriberOffer: undefined,
   publisherAnswer: undefined,
   connectionQualityChanged: undefined,
