@@ -9,7 +9,7 @@ import { InputDevices } from '../gen/video/sfu/models/models';
 import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
 import { CallState } from '../store';
-import {Telemetry} from "../gen/video/sfu/signal_rpc/signal";
+import { Telemetry } from '../gen/video/sfu/signal_rpc/signal';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;

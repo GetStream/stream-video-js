@@ -1,10 +1,27 @@
-import {StreamSfuClient} from './StreamSfuClient';
-import {Dispatcher, getGenericSdp, isSfuEvent, Publisher, Subscriber,} from './rtc';
-import {muteTypeToTrackType} from './rtc/helpers/tracks';
-import {toRtcConfiguration} from './rtc/helpers/rtcConfiguration';
-import {registerEventHandlers, registerRingingCallEventHandlers,} from './events/callEventHandlers';
-import {CallingState, CallState, StreamVideoWriteableStateStore,} from './store';
-import {createSafeAsyncSubscription, createSubscription, getCurrentValue,} from './store/rxUtils';
+import { StreamSfuClient } from './StreamSfuClient';
+import {
+  Dispatcher,
+  getGenericSdp,
+  isSfuEvent,
+  Publisher,
+  Subscriber,
+} from './rtc';
+import { muteTypeToTrackType } from './rtc/helpers/tracks';
+import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
+import {
+  registerEventHandlers,
+  registerRingingCallEventHandlers,
+} from './events/callEventHandlers';
+import {
+  CallingState,
+  CallState,
+  StreamVideoWriteableStateStore,
+} from './store';
+import {
+  createSafeAsyncSubscription,
+  createSubscription,
+  getCurrentValue,
+} from './store/rxUtils';
 import type {
   AcceptCallResponse,
   BlockUserRequest,
@@ -59,7 +76,7 @@ import type {
   UpdateUserPermissionsResponse,
   VideoResolution,
 } from './gen/coordinator';
-import {OwnCapability} from './gen/coordinator';
+import { OwnCapability } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
@@ -69,15 +86,19 @@ import {
   TrackMuteType,
   VideoTrackType,
 } from './types';
-import {BehaviorSubject, Subject, takeWhile} from 'rxjs';
-import {ReconnectDetails} from './gen/video/sfu/event/events';
-import {ClientDetails, TrackType, WebsocketReconnectStrategy,} from './gen/video/sfu/models/models';
-import {createStatsReporter, SfuStatsReporter, StatsReporter} from './stats';
-import {DynascaleManager} from './helpers/DynascaleManager';
-import {PermissionsContext} from './permissions';
-import {CallTypes} from './CallType';
-import {StreamClient} from './coordinator/connection/client';
-import {sleep} from './coordinator/connection/utils';
+import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
+import { ReconnectDetails } from './gen/video/sfu/event/events';
+import {
+  ClientDetails,
+  TrackType,
+  WebsocketReconnectStrategy,
+} from './gen/video/sfu/models/models';
+import { createStatsReporter, SfuStatsReporter, StatsReporter } from './stats';
+import { DynascaleManager } from './helpers/DynascaleManager';
+import { PermissionsContext } from './permissions';
+import { CallTypes } from './CallType';
+import { StreamClient } from './coordinator/connection/client';
+import { sleep } from './coordinator/connection/utils';
 import {
   AllCallEvents,
   CallEventListener,
@@ -86,14 +107,23 @@ import {
   RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import {getClientDetails} from './client-details';
-import {getLogger} from './logger';
-import {CameraDirection, CameraManager, MicrophoneManager, ScreenShareManager, SpeakerManager,} from './devices';
-import {getSdkSignature} from './stats/utils';
-import {withoutConcurrency} from './helpers/concurrency';
-import {ensureExhausted} from './helpers/ensureExhausted';
-import {PromiseWithResolvers, promiseWithResolvers,} from './helpers/withResolvers';
-import {ReconnectStrategy} from "./gen/video/sfu/signal_rpc/signal";
+import { getClientDetails } from './client-details';
+import { getLogger } from './logger';
+import {
+  CameraDirection,
+  CameraManager,
+  MicrophoneManager,
+  ScreenShareManager,
+  SpeakerManager,
+} from './devices';
+import { getSdkSignature } from './stats/utils';
+import { withoutConcurrency } from './helpers/concurrency';
+import { ensureExhausted } from './helpers/ensureExhausted';
+import {
+  PromiseWithResolvers,
+  promiseWithResolvers,
+} from './helpers/withResolvers';
+import { ReconnectStrategy } from './gen/video/sfu/signal_rpc/signal';
 
 /**
  * An object representation of a `Call`.
@@ -1115,6 +1145,7 @@ export class Call {
     let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
+    await this.join(this.joinCallData);
     this.sfuStatsReporter?.sendTelemetryData({
       data: {
         oneofKind: 'reconnection',
@@ -1124,7 +1155,6 @@ export class Call {
         },
       },
     });
-    return this.join(this.joinCallData);
   };
 
   /**
