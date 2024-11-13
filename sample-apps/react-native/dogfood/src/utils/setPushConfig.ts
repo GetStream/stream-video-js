@@ -51,12 +51,6 @@ export function setPushConfig() {
       },
     },
     createStreamVideoClient,
-    navigateAcceptCall: () => {
-      staticNavigate({ name: 'Call', params: undefined });
-    },
-    navigateToIncomingCall: () => {
-      staticNavigate({ name: 'Call', params: undefined });
-    },
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');
       if (callType === 'default') {

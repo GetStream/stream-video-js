@@ -107,10 +107,12 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** @deprecated This method is not used anymore. */
-    navigateAcceptCall: () => void;
-    /** @deprecated This method will be removed in the future. */
-    navigateToIncomingCall: () => void;
+    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
+    navigateAcceptCall?: () => void;
+    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
+    navigateToIncomingCall?: () => void;
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
       call_cid: string,

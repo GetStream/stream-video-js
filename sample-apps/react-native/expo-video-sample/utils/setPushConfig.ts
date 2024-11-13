@@ -9,10 +9,7 @@ import { Platform } from 'react-native';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  staticNavigateToNonRingingCall,
-  staticNavigateToRingingCall,
-} from './staticNavigationUtils';
+import { staticNavigateToNonRingingCall } from './staticNavigationUtils';
 import { createToken } from './createToken';
 import { setFirebaseListeners } from './setFirebaseListeners';
 
@@ -54,12 +51,6 @@ export function setPushConfig() {
       },
     },
     createStreamVideoClient,
-    navigateAcceptCall: () => {
-      staticNavigateToRingingCall();
-    },
-    navigateToIncomingCall: () => {
-      staticNavigateToRingingCall();
-    },
     onTapNonRingingCallNotification: (_cid, _type) => {
       staticNavigateToNonRingingCall();
     },
