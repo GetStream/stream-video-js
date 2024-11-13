@@ -12,6 +12,7 @@ import { PeerType } from '../models/models';
 import { AppleState } from '../models/models';
 import { AndroidState } from '../models/models';
 import { InputDevices } from '../models/models';
+import { WebsocketReconnectStrategy } from '../models/models';
 import { Error } from '../models/models';
 /**
  * @generated from protobuf message stream.video.sfu.signal.StartNoiseCancellationRequest
@@ -58,9 +59,9 @@ export interface Reconnection {
    */
   timeSeconds: number;
   /**
-   * @generated from protobuf field: stream.video.sfu.signal.ReconnectStrategy strategy = 2;
+   * @generated from protobuf field: stream.video.sfu.models.WebsocketReconnectStrategy strategy = 2;
    */
-  strategy: ReconnectStrategy;
+  strategy: WebsocketReconnectStrategy;
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.Telemetry
@@ -354,27 +355,6 @@ export interface SetPublisherResponse {
    */
   error?: Error;
 }
-/**
- * @generated from protobuf enum stream.video.sfu.signal.ReconnectStrategy
- */
-export enum ReconnectStrategy {
-  /**
-   * @generated from protobuf enum value: RECONNECT_STRATEGY_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-  /**
-   * @generated from protobuf enum value: RECONNECT_STRATEGY_FAST = 1;
-   */
-  FAST = 1,
-  /**
-   * @generated from protobuf enum value: RECONNECT_STRATEGY_REJOIN = 2;
-   */
-  REJOIN = 2,
-  /**
-   * @generated from protobuf enum value: RECONNECT_STRATEGY_MIGRATE = 3;
-   */
-  MIGRATE = 3,
-}
 // @generated message type with reflection information, may provide speed optimized methods
 class StartNoiseCancellationRequest$Type extends MessageType<StartNoiseCancellationRequest> {
   constructor() {
@@ -442,9 +422,9 @@ class Reconnection$Type extends MessageType<Reconnection> {
         name: 'strategy',
         kind: 'enum',
         T: () => [
-          'stream.video.sfu.signal.ReconnectStrategy',
-          ReconnectStrategy,
-          'RECONNECT_STRATEGY_',
+          'stream.video.sfu.models.WebsocketReconnectStrategy',
+          WebsocketReconnectStrategy,
+          'WEBSOCKET_RECONNECT_STRATEGY_',
         ],
       },
     ]);

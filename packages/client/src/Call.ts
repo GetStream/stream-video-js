@@ -123,7 +123,6 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/withResolvers';
-import { ReconnectStrategy } from './gen/video/sfu/signal_rpc/signal';
 
 /**
  * An object representation of a `Call`.
@@ -1151,7 +1150,7 @@ export class Call {
         oneofKind: 'reconnection',
         reconnection: {
           timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: ReconnectStrategy.FAST,
+          strategy: WebsocketReconnectStrategy.FAST,
         },
       },
     });
@@ -1173,7 +1172,7 @@ export class Call {
         oneofKind: 'reconnection',
         reconnection: {
           timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: ReconnectStrategy.REJOIN,
+          strategy: WebsocketReconnectStrategy.REJOIN,
         },
       },
     });
@@ -1234,7 +1233,7 @@ export class Call {
         oneofKind: 'reconnection',
         reconnection: {
           timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: ReconnectStrategy.MIGRATE,
+          strategy: WebsocketReconnectStrategy.MIGRATE,
         },
       },
     });
