@@ -32,13 +32,13 @@ export const ChatButton = ({
   unreadBadgeCount,
 }: ChatButtonProps) => {
   const {
-    theme: { colors, chatButton, defaults },
+    theme: { colors, chatButton, variants },
   } = useTheme();
   return (
     <CallControlsButton onPress={onPressHandler} style={chatButton}>
       <BadgeCountIndicator count={unreadBadgeCount} />
       <IconWrapper>
-        <Chat color={colors.iconPrimary} size={defaults.iconSize} />
+        <Chat color={colors.iconPrimary} size={variants.iconSizes.md} />
       </IconWrapper>
     </CallControlsButton>
   );

@@ -1,5 +1,10 @@
 import { ColorValue, TextStyle } from 'react-native';
 
+/**
+ * ColorScheme defines the complete color palette for the application's theme.
+ * It provides a centralized type definition for maintaining consistent colors
+ * across different UI components and contexts.
+ */
 export type ColorScheme = {
   primary: ColorValue;
   secondary: ColorValue;
@@ -8,12 +13,13 @@ export type ColorScheme = {
 
   buttonPrimary: ColorValue;
   buttonSecondary: ColorValue;
-  buttonDisabled: ColorValue;
+  buttonSuccess: ColorValue;
   buttonWarning: ColorValue;
+  buttonDisabled: ColorValue;
 
   iconPrimary: ColorValue;
+  iconSecondary: ColorValue;
   iconSuccess: ColorValue;
-  iconPrimaryAccent: ColorValue;
   iconWarning: ColorValue;
 
   sheetPrimary: ColorValue;
@@ -42,8 +48,20 @@ export type FontStyle = {
 };
 
 /**
- * DimensionType is used to define the size of a component.
- * It is an object with xs, sm, md, lg, and xl properties.
+ * DimensionType defines a set of standardized size values for component scaling.
+ * Each property represents a size tier from extra small (xs) to extra large (xl).
+ *
+ * @property xs - Extra small size (typically used for minimal spacing or compact elements)
+ * @property sm - Small size (used for tight but readable spacing)
+ * @property md - Medium size (default size for most components)
+ * @property lg - Large size (used for emphasized or prominent elements)
+ * @property xl - Extra large size (used for maximum emphasis or touch targets)
+ *
+ * Common use cases:
+ * - Padding and margin values
+ * - Icon sizes
+ * - Button dimensions
+ * - Component spacing
  */
 export type DimensionType = {
   xs: number;
@@ -54,10 +72,17 @@ export type DimensionType = {
 };
 
 /**
- * Insets are used to define the padding or margin of a component.
- * These values can also represent safe area insets, which ensure content
- * is properly padded to avoid device-specific UI elements like notches
- * or rounded corners.
+ * Insets represent spacing measurements for the four edges of a component or screen.
+ *
+ * @property top - Distance from the upper edge (e.g., status bar, notch)
+ * @property right - Distance from the right edge (e.g., curved screen edges)
+ * @property bottom - Distance from the bottom edge (e.g., home indicator, navigation bar)
+ * @property left - Distance from the left edge (e.g., curved screen edges)
+ *
+ * Common use cases:
+ * - Safe area padding to avoid device UI elements
+ * - Component internal padding
+ * - Layout margin spacing
  */
 export type Insets = {
   top: number;

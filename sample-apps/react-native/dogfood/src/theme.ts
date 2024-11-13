@@ -53,7 +53,7 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
     buttonDisabled: '#ccdfff',
     buttonWarning: '#dc433b',
     iconPrimary: '#19232d',
-    iconPrimaryAccent: '#005fff',
+    iconSecondary: '#005fff',
     iconSuccess: '#00e2a1',
     iconWarning: '#dc433b',
     sheetPrimary: '#ffffff',

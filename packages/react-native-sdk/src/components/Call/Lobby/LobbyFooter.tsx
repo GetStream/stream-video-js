@@ -1,8 +1,12 @@
 import React, { useMemo } from 'react';
 import { LobbyProps } from './Lobby';
 import { View, StyleSheet, Text } from 'react-native';
-import { useI18n } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { Lock } from '../../../icons/Lock';
 
 /**
@@ -23,8 +27,12 @@ export const LobbyFooter = ({
   const {
     theme: { colors, lobby, variants },
   } = useTheme();
-  const { t } = useI18n();
   const styles = useStyles();
+  const { useCallSession } = useCallStateHooks();
+  const { t } = useI18n();
+  const call = useCall();
+  const session = useCallSession();
+  const participantsCount = session?.participants.length;
 
   return (
     <View style={[styles.mainContainer, lobby.infoContainer]}>
@@ -39,9 +47,18 @@ export const LobbyFooter = ({
             lobby.infoText,
           ]}
         >
-          {t(
-            "Start a private test call. This demo is built on Stream's SDKs and runs on our global edge network."
-          )}
+          {t('You are about to join a call with id {{ callId }}.', {
+            callId: call?.id,
+          }) +
+            ' ' +
+            (participantsCount
+              ? t(
+                  '{{ numberOfParticipants }} participant(s) are in the call.',
+                  {
+                    numberOfParticipants: participantsCount,
+                  }
+                )
+              : t('You are first to join the call.'))}
         </Text>
       </View>
       {JoinCallButton && (

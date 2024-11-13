@@ -9,11 +9,12 @@ const colors: ColorScheme = {
 
   buttonPrimary: palette.primary100,
   buttonSecondary: palette.neutral90,
-  buttonDisabled: palette.primary180,
+  buttonSuccess: palette.success100,
   buttonWarning: palette.warning100,
+  buttonDisabled: palette.primary180,
 
   iconPrimary: palette.neutral0,
-  iconPrimaryAccent: palette.primary100,
+  iconSecondary: palette.primary100,
   iconSuccess: palette.success100,
   iconWarning: palette.warning100,
 

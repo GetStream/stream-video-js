@@ -10,7 +10,7 @@ type Props = {
 
 export const PhoneDown = ({ color, size }: Props) => (
   <Svg
-    viewBox={`0 0 ${size} ${size}`}
+    viewBox={'0 0 24 24'}
     width={size}
     height={size}
     testID={IconTestIds.HANG_UP_CALL}

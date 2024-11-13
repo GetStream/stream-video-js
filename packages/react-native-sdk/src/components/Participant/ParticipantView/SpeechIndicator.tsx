@@ -92,7 +92,7 @@ const useStyles = () => {
         bar: {
           width: 3,
           height: '100%',
-          backgroundColor: theme.colors.iconPrimaryAccent,
+          backgroundColor: theme.colors.iconSecondary,
           borderRadius: 2,
         },
       }),

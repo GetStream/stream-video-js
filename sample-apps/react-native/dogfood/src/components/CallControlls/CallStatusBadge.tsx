@@ -72,7 +72,7 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
   const icon = showRecordingIcon ? (
     <RecordCall color={colors.iconWarning} size={iconSizes.md} />
   ) : (
-    <CallDuration color={colors.iconSuccess} size={iconSizes.md} />
+    <CallDuration color={colors.iconSuccess} size={iconSizes.sm} />
   );
 
   return (
