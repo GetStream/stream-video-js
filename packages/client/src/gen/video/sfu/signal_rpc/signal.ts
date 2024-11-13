@@ -58,9 +58,9 @@ export interface Reconnection {
    */
   timeSeconds: number;
   /**
-   * @generated from protobuf field: int32 attempts = 2;
+   * @generated from protobuf field: stream.video.sfu.signal.ReconnectStrategy strategy = 2;
    */
-  attempts: number;
+  strategy: ReconnectStrategy;
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.Telemetry
@@ -354,6 +354,27 @@ export interface SetPublisherResponse {
    */
   error?: Error;
 }
+/**
+ * @generated from protobuf enum stream.video.sfu.signal.ReconnectStrategy
+ */
+export enum ReconnectStrategy {
+  /**
+   * @generated from protobuf enum value: ReconnectStrategyUnspecified = 0;
+   */
+  ReconnectStrategyUnspecified = 0,
+  /**
+   * @generated from protobuf enum value: ReconnectStrategyFast = 1;
+   */
+  ReconnectStrategyFast = 1,
+  /**
+   * @generated from protobuf enum value: ReconnectStrategyRejoin = 2;
+   */
+  ReconnectStrategyRejoin = 2,
+  /**
+   * @generated from protobuf enum value: ReconnectStrategyMigrate = 3;
+   */
+  ReconnectStrategyMigrate = 3,
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class StartNoiseCancellationRequest$Type extends MessageType<StartNoiseCancellationRequest> {
   constructor() {
@@ -416,7 +437,15 @@ class Reconnection$Type extends MessageType<Reconnection> {
         kind: 'scalar',
         T: 2 /*ScalarType.FLOAT*/,
       },
-      { no: 2, name: 'attempts', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      {
+        no: 2,
+        name: 'strategy',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.signal.ReconnectStrategy',
+          ReconnectStrategy,
+        ],
+      },
     ]);
   }
 }

@@ -1,27 +1,10 @@
-import { StreamSfuClient } from './StreamSfuClient';
-import {
-  Dispatcher,
-  getGenericSdp,
-  isSfuEvent,
-  Publisher,
-  Subscriber,
-} from './rtc';
-import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
-import {
-  registerEventHandlers,
-  registerRingingCallEventHandlers,
-} from './events/callEventHandlers';
-import {
-  CallingState,
-  CallState,
-  StreamVideoWriteableStateStore,
-} from './store';
-import {
-  createSafeAsyncSubscription,
-  createSubscription,
-  getCurrentValue,
-} from './store/rxUtils';
+import {StreamSfuClient} from './StreamSfuClient';
+import {Dispatcher, getGenericSdp, isSfuEvent, Publisher, Subscriber,} from './rtc';
+import {muteTypeToTrackType} from './rtc/helpers/tracks';
+import {toRtcConfiguration} from './rtc/helpers/rtcConfiguration';
+import {registerEventHandlers, registerRingingCallEventHandlers,} from './events/callEventHandlers';
+import {CallingState, CallState, StreamVideoWriteableStateStore,} from './store';
+import {createSafeAsyncSubscription, createSubscription, getCurrentValue,} from './store/rxUtils';
 import type {
   AcceptCallResponse,
   BlockUserRequest,
@@ -76,7 +59,7 @@ import type {
   UpdateUserPermissionsResponse,
   VideoResolution,
 } from './gen/coordinator';
-import { OwnCapability } from './gen/coordinator';
+import {OwnCapability} from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
@@ -86,19 +69,15 @@ import {
   TrackMuteType,
   VideoTrackType,
 } from './types';
-import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
-import { ReconnectDetails } from './gen/video/sfu/event/events';
-import {
-  ClientDetails,
-  TrackType,
-  WebsocketReconnectStrategy,
-} from './gen/video/sfu/models/models';
-import { createStatsReporter, SfuStatsReporter, StatsReporter } from './stats';
-import { DynascaleManager } from './helpers/DynascaleManager';
-import { PermissionsContext } from './permissions';
-import { CallTypes } from './CallType';
-import { StreamClient } from './coordinator/connection/client';
-import { sleep } from './coordinator/connection/utils';
+import {BehaviorSubject, Subject, takeWhile} from 'rxjs';
+import {ReconnectDetails} from './gen/video/sfu/event/events';
+import {ClientDetails, TrackType, WebsocketReconnectStrategy,} from './gen/video/sfu/models/models';
+import {createStatsReporter, SfuStatsReporter, StatsReporter} from './stats';
+import {DynascaleManager} from './helpers/DynascaleManager';
+import {PermissionsContext} from './permissions';
+import {CallTypes} from './CallType';
+import {StreamClient} from './coordinator/connection/client';
+import {sleep} from './coordinator/connection/utils';
 import {
   AllCallEvents,
   CallEventListener,
@@ -107,23 +86,14 @@ import {
   RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
-import { getLogger } from './logger';
-import {
-  CameraDirection,
-  CameraManager,
-  MicrophoneManager,
-  ScreenShareManager,
-  SpeakerManager,
-} from './devices';
-import { getSdkSignature } from './stats/utils';
-import { withoutConcurrency } from './helpers/concurrency';
-import { ensureExhausted } from './helpers/ensureExhausted';
-import {
-  PromiseWithResolvers,
-  promiseWithResolvers,
-} from './helpers/withResolvers';
-import {Telemetry} from "./gen/video/sfu/signal_rpc/signal";
+import {getClientDetails} from './client-details';
+import {getLogger} from './logger';
+import {CameraDirection, CameraManager, MicrophoneManager, ScreenShareManager, SpeakerManager,} from './devices';
+import {getSdkSignature} from './stats/utils';
+import {withoutConcurrency} from './helpers/concurrency';
+import {ensureExhausted} from './helpers/ensureExhausted';
+import {PromiseWithResolvers, promiseWithResolvers,} from './helpers/withResolvers';
+import {ReconnectStrategy} from "./gen/video/sfu/signal_rpc/signal";
 
 /**
  * An object representation of a `Call`.
@@ -831,7 +801,10 @@ export class Call {
         statsOptions,
         closePreviousInstances: !performingMigration,
       });
-      // at this point we are connected, compute the time it took and send it
+    }
+
+    // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
+    if (!performingRejoin && !performingFastReconnect && !performingMigration) {
       this.sfuStatsReporter?.sendTelemetryData({
         data: {
           oneofKind: 'connectionTimeSeconds',
@@ -1071,8 +1044,6 @@ export class Call {
     strategy: WebsocketReconnectStrategy,
   ): Promise<void> => {
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
-      const reconnectStartTime = Date.now();
-      let attempts = 1;
       this.logger(
         'info',
         `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
@@ -1109,18 +1080,8 @@ export class Call {
               );
               break;
           }
-          this.sfuStatsReporter?.sendTelemetryData({
-            data: {
-              oneofKind: 'reconnection',
-              reconnection: {
-                timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-                attempts: attempts,
-              },
-            },
-          });
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
-          attempts += 1;
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
               'warn',
@@ -1151,8 +1112,18 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
+    let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: ReconnectStrategy.ReconnectStrategyFast,
+        },
+      },
+    });
     return this.join(this.joinCallData);
   };
 
@@ -1161,11 +1132,21 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
+    let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: ReconnectStrategy.ReconnectStrategyRejoin,
+        },
+      },
+    });
   };
 
   /**
@@ -1173,6 +1154,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
+    let reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
       throw new Error('Cannot migrate without an active SFU client');
@@ -1217,6 +1199,15 @@ export class Call {
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close();
     }
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: ReconnectStrategy.ReconnectStrategyMigrate,
+        },
+      },
+    });
   };
 
   /**
