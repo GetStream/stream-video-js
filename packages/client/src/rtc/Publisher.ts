@@ -47,6 +47,7 @@ export class Publisher extends BasePeerConnection {
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
   private readonly unsubscribeChangePublishOptions: () => void;
+  private unsubscribeCodecNegotiationComplete?: () => void;
 
   private publishOptions: PublishOptions;
 
@@ -86,12 +87,21 @@ export class Publisher extends BasePeerConnection {
 
     this.unsubscribeChangePublishOptions = this.dispatcher.on(
       'changePublishOptions',
-      (event) => {
-        const { publishOption } = event;
-        if (!publishOption) return;
-        this.publishOptions.codecs = this.publishOptions.codecs.map((option) =>
-          option.trackType === publishOption.trackType ? publishOption : option,
-        );
+      ({ publishOption }) => {
+        withoutConcurrency('publisher.changePublishOptions', async () => {
+          if (!publishOption) return;
+          this.publishOptions.codecs = this.publishOptions.codecs.map(
+            (option) =>
+              option.trackType === publishOption.trackType
+                ? publishOption
+                : option,
+          );
+          if (this.isPublishing(publishOption.trackType)) {
+            this.switchCodec(publishOption);
+          }
+        }).catch((err) => {
+          this.logger('warn', 'Failed to change publish options', err);
+        });
       },
     );
   }
@@ -118,6 +128,7 @@ export class Publisher extends BasePeerConnection {
     this.unsubscribeOnIceRestart();
     this.unsubscribeChangePublishQuality();
     this.unsubscribeChangePublishOptions();
+    this.unsubscribeCodecNegotiationComplete?.();
 
     super.detachEventHandlers();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -158,7 +169,8 @@ export class Publisher extends BasePeerConnection {
         );
       };
       track.addEventListener('ended', handleTrackEnded);
-      this.addTransceiver(trackType, track);
+      const publishOption = this.getPublishOptionFor(trackType);
+      this.addTransceiver(trackType, track, publishOption);
     } else {
       await this.updateTransceiver(transceiver, track);
     }
@@ -171,9 +183,11 @@ export class Publisher extends BasePeerConnection {
    * This needs to be called when a new track kind is added to the peer connection.
    * In other cases, use `updateTransceiver` method.
    */
-  private addTransceiver = (trackType: TrackType, track: MediaStreamTrack) => {
-    const publishOption = this.getPublishOptionFor(trackType);
-
+  private addTransceiver = (
+    trackType: TrackType,
+    track: MediaStreamTrack,
+    publishOption: PublishOption,
+  ) => {
     const videoEncodings = this.computeLayers(trackType, track, publishOption);
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(videoEncodings)
@@ -204,20 +218,28 @@ export class Publisher extends BasePeerConnection {
     await transceiver.sender.replaceTrack(track);
   };
 
-  publishTrack = () => {
-    const currentTransceiver = this.transceiverCache.get(TrackType.VIDEO);
-    if (!currentTransceiver || !currentTransceiver.sender.track) return;
-    const track = currentTransceiver.sender.track;
+  /**
+   * Switches the codec of the given track type.
+   */
+  private switchCodec = (publishOption: PublishOption) => {
+    const trackType = publishOption.trackType;
+    const transceiver = this.transceiverCache.get(trackType);
+    if (!transceiver || !transceiver.sender.track) return;
 
-    const negotiationComplete = async () => {
-      this.dispatcher.off('codecNegotiationComplete', negotiationComplete);
+    const onNegotiationComplete = async () => {
       this.logger('info', 'Codec negotiation complete');
+      this.dispatcher.off('codecNegotiationComplete', onNegotiationComplete);
 
-      await currentTransceiver.sender.replaceTrack(null);
+      await transceiver.sender.replaceTrack(null);
     };
-    this.dispatcher.on('codecNegotiationComplete', negotiationComplete);
+    this.unsubscribeCodecNegotiationComplete?.();
+    this.unsubscribeCodecNegotiationComplete = this.dispatcher.on(
+      'codecNegotiationComplete',
+      onNegotiationComplete,
+    );
 
-    this.addTransceiver(TrackType.VIDEO, track);
+    const track = transceiver.sender.track;
+    this.addTransceiver(trackType, track, publishOption);
   };
 
   /**
