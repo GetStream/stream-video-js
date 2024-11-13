@@ -98,6 +98,10 @@ In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. B
 </array>
 ```
 
+### Enable push notifications capability
+
+Enable the Push Notifications capability in the Xcode `Project` > `Signing & Capabilities` pane.
+
 ### Update `AppDelegate.h`
 
 At the top of the file, add:
@@ -182,6 +186,129 @@ Then add the following lines to `didFinishLaunchingWithOptions`:
 ### Enable push notifications
 
 To receive push notifications, enable the Push Notifications capability in the Xcode `Project` > `Signing & Capabilities` pane.
+
+## Add Push message handlers
+To process the incoming push notifications, the SDK provides the utility functions that you must add to your existing or new notification listeners.
+
+### Add callbacks to process notifications and displaying it
+
+When Firebase a push message, it must be processed first. For this we expose handler function from the SDK which reads the message and displays it using the `@notifee/react-native` library. Below is the snippet to add message handlers:
+
+```ts title="src/utils/setPushMessageHandlers.ts"
+import messaging from '@react-native-firebase/messaging';
+import {
+  isFirebaseStreamVideoMessage,
+  firebaseDataHandler,
+} from '@stream-io/video-react-native-sdk';
+
+export const setFirebaseListeners = () => {
+  // Set up the background message handler for Android
+  messaging().setBackgroundMessageHandler(async (msg) => {
+    if (isFirebaseStreamVideoMessage(msg)) {
+      await firebaseDataHandler(msg.data);
+    } else {
+      // your other messages (if any)
+    }
+  });
+  // Set up the foreground message handler for Android
+  messaging().onMessage((msg) => {
+    if (isFirebaseStreamVideoMessage(msg)) {
+      firebaseDataHandler(msg.data);
+    } else {
+      // your other messages (if any)
+    }
+  });
+};
+```
+
+**The Firebase message handlers**
+* The `isFirebaseStreamVideoMessage` method is used to check if this push message is a video related message. And only this needs to be processed by the SDK.
+* The `firebaseDataHandler` method is the callback to be invoked to process the message. This callback reads the message and uses the `@notifee/react-native` library to display push notifications.
+
+:::infoNOTE
+If you had disabled the installation of Firebase on iOS, add the above method only for Android using the Platform-specific extensions for React Native.
+
+For example, say you add the following files in your project:
+
+```
+setFirebaseListeners.android.ts
+setFirebaseListeners.ts
+```
+
+The method above must only be added to the file that `.android` extension. The other file must add the method but do nothing like below:
+
+```ts title="setPushMessageListeners.ts"
+export const setFirebaseListeners = () => {
+  // do nothing
+};
+```
+
+This is to ensure that `@react-native-firebase/messaging` is only imported on the Android platform.
+:::
+
+The `firebaseDataHandler` method is the callback to be invoked to process the message. This callback reads the message and uses the `@notifee/react-native` library to display push notifications.
+
+### Add notification onPress listeners
+
+Below is the snippet of how to add the notification onPress listeners for Android using `@notifee/react-native` library: 
+
+```ts title="src/utils/setNotifeeListeners.ts"
+import {
+  isNotifeeStreamVideoEvent,
+  onAndroidNotifeeEvent,
+} from '@stream-io/video-react-native-sdk';
+import { Platform } from 'react-native';
+import notifee from '@notifee/react-native';
+
+export const setNotifeeListeners = () => {
+  // on press handlers of background notifications for Android
+  notifee.onBackgroundEvent(async (event) => {
+    if (isNotifeeStreamVideoEvent(event)) {
+      await onAndroidNotifeeEvent({ event, isBackground: true });
+    } else {
+      // your other notifications (if any)
+    }
+  });
+  // on press handlers of foreground notifications for Android
+  notifee.onForegroundEvent((event) => {
+    if (isNotifeeStreamVideoEvent(event)) {
+      onAndroidNotifeeEvent({ event, isBackground: false });
+    } else {
+      // your other notifications (if any)
+    }
+  });
+};
+```
+
+**The Notifee event handlers**
+* The `isNotifeeStreamVideoEvent` method is used to check if the event was a video related notifee event. And only this needs to be processed by the SDK.
+* The `onAndroidNotifeeEvent` method is the callback to be invoked to process the event. This callback reads the event and makes sure that the call is accepted or declined.
+
+**Adding handler for iOS**
+
+Below is the snippet of how to add the notification onPress listeners for iOS using `@react-native-community/push-notification-ios` library. Add the following `useEffect` in the root component of your App, this is most likely in `App.tsx`. 
+
+```ts
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import {
+  isPushNotificationiOSStreamVideoEvent,
+  onPushNotificationiOSStreamVideoEvent,
+} from '@stream-io/video-react-native-sdk';
+
+useEffect(() => {
+  PushNotificationIOS.addEventListener('notification', (notification) => {
+    if (isPushNotificationiOSStreamVideoEvent(notification)) {
+      onPushNotificationiOSStreamVideoEvent(notification);
+    } else {
+      // any other APN notifications
+    }
+  });
+  return () => {
+    PushNotificationIOS.removeEventListener('notification');
+  };
+}, []);
+```
+
 ## Setup the push config for the SDK
 
 The SDK automatically processes the incoming push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,
@@ -307,11 +434,20 @@ export function setPushConfig() {
 }
 ```
 
-Now, call the method outside of your application cycle. That is, alongside your `AppRegistry.registerComponent()` method call at the entry point of your application code. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
+## Call the created methods outside of the application lifecycle
+
+Call the methods we have created outside of your application cycle. That is, alongside your `AppRegistry.registerComponent()` method call at the entry point of your application code. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
+
+Following is an example,
 
 ```js title="index.js"
 import { AppRegistry } from 'react-native';
+// highlight-next-line
 import { setPushConfig } from 'src/utils/setPushConfig';
+// highlight-next-line
+import { setNotifeeListeners } from 'src/utils/setNotifeeListeners';
+// highlight-next-line
+import { setFirebaseListeners } from 'src/utils/setFirebaseListeners';
 import App from './App';
 
 // Set push config
@@ -347,3 +483,7 @@ await StreamVideoRN.onPushLogout();
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
 - You can check the "Webhook & Push Logs" section in the [Stream Dashboard](https://dashboard.getstream.io/) to see if Notifications were sent by Stream.
 - If you are still having trouble with Push Notifications, please submit a ticket to us at [support](https://getstream.io/contact/support/).
+
+### Closed notification behavior on Android
+
+On Android, users can set certain OS-level settings, usually revolving around performance and battery optimization, that can prevent notifications from being delivered when the app is in a killed state. For example, one such setting is the **Deep Clear** option on OnePlus devices using Android 9 and lower versions.
