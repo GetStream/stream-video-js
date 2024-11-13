@@ -64,7 +64,10 @@ export class StreamVideoRN {
       // Ignoring this config as push config was already set
       return;
     }
-    if (pushConfig.navigateAcceptCall || pushConfig.navigateToIncomingCall) {
+    if (
+      __DEV__ &&
+      (pushConfig.navigateAcceptCall || pushConfig.navigateToIncomingCall)
+    ) {
       throw new Error(
         `Support for navigateAcceptCall or navigateToIncomingCall in pushConfig has been removed.
         Please watch for incoming and outgoing calls in the root component of your app.
