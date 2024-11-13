@@ -7,7 +7,6 @@ import {
   floatingChildViewContainerStyle,
   FloatingViewProps,
 } from './common';
-import { useTheme } from '../../../..';
 type GestureHandlerExportsType = typeof import('react-native-gesture-handler');
 type ReanimatedNamespaceType = typeof import('react-native-reanimated').default;
 type ReanimatedExportsType = typeof import('react-native-reanimated');
@@ -55,7 +54,6 @@ try {
     // we don't want to show the floating view until we have the layout rectangle
     const opacity = useSharedValue(0);
     const [rectangle, setRectangle] = React.useState<LayoutRectangle>();
-    const { theme } = useTheme();
 
     const snapAlignments = useMemo(() => {
       if (!rectangle) {
