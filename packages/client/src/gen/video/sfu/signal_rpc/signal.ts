@@ -359,21 +359,21 @@ export interface SetPublisherResponse {
  */
 export enum ReconnectStrategy {
   /**
-   * @generated from protobuf enum value: ReconnectStrategyUnspecified = 0;
+   * @generated from protobuf enum value: RECONNECT_STRATEGY_UNSPECIFIED = 0;
    */
-  ReconnectStrategyUnspecified = 0,
+  UNSPECIFIED = 0,
   /**
-   * @generated from protobuf enum value: ReconnectStrategyFast = 1;
+   * @generated from protobuf enum value: RECONNECT_STRATEGY_FAST = 1;
    */
-  ReconnectStrategyFast = 1,
+  FAST = 1,
   /**
-   * @generated from protobuf enum value: ReconnectStrategyRejoin = 2;
+   * @generated from protobuf enum value: RECONNECT_STRATEGY_REJOIN = 2;
    */
-  ReconnectStrategyRejoin = 2,
+  REJOIN = 2,
   /**
-   * @generated from protobuf enum value: ReconnectStrategyMigrate = 3;
+   * @generated from protobuf enum value: RECONNECT_STRATEGY_MIGRATE = 3;
    */
-  ReconnectStrategyMigrate = 3,
+  MIGRATE = 3,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class StartNoiseCancellationRequest$Type extends MessageType<StartNoiseCancellationRequest> {
@@ -444,6 +444,7 @@ class Reconnection$Type extends MessageType<Reconnection> {
         T: () => [
           'stream.video.sfu.signal.ReconnectStrategy',
           ReconnectStrategy,
+          'RECONNECT_STRATEGY_',
         ],
       },
     ]);

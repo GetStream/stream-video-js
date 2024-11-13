@@ -1151,7 +1151,7 @@ export class Call {
         oneofKind: 'reconnection',
         reconnection: {
           timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: ReconnectStrategy.ReconnectStrategyFast,
+          strategy: ReconnectStrategy.FAST,
         },
       },
     });
@@ -1173,7 +1173,7 @@ export class Call {
         oneofKind: 'reconnection',
         reconnection: {
           timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: ReconnectStrategy.ReconnectStrategyRejoin,
+          strategy: ReconnectStrategy.REJOIN,
         },
       },
     });
@@ -1234,7 +1234,7 @@ export class Call {
         oneofKind: 'reconnection',
         reconnection: {
           timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: ReconnectStrategy.ReconnectStrategyMigrate,
+          strategy: ReconnectStrategy.MIGRATE,
         },
       },
     });
