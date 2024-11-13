@@ -3,27 +3,26 @@
 // @generated from protobuf file "video/sfu/event/events.proto" (package "stream.video.sfu.event", syntax proto3)
 // tslint:disable
 import { MessageType } from '@protobuf-ts/runtime';
-import {
-  CallEndedReason,
-  CallGrants,
-  CallState,
-  ClientDetails,
-  Codec,
-  ConnectionQuality,
-  Error as Error$,
-  GoAwayReason,
-  ICETrickle as ICETrickle$,
-  Participant,
-  ParticipantCount,
-  PeerType,
-  Pin,
-  TrackInfo,
-  TrackType,
-  TrackUnpublishReason,
-  WebsocketReconnectStrategy,
-} from '../models/models';
+import { CallEndedReason } from '../models/models';
+import { GoAwayReason } from '../models/models';
+import { CallGrants } from '../models/models';
+import { Codec } from '../models/models';
+import { ConnectionQuality } from '../models/models';
+import { PublishOptions } from '../models/models';
+import { CallState } from '../models/models';
 import { TrackSubscriptionDetails } from '../signal_rpc/signal';
-
+import { TrackInfo } from '../models/models';
+import { ClientDetails } from '../models/models';
+import { TrackUnpublishReason } from '../models/models';
+import { Participant } from '../models/models';
+import { TrackType } from '../models/models';
+import { ParticipantCount } from '../models/models';
+import { PeerType } from '../models/models';
+import { WebsocketReconnectStrategy } from '../models/models';
+import { Error as Error$ } from '../models/models';
+import { Pin } from '../models/models';
+import { PublishOption } from '../models/models';
+import { ICETrickle as ICETrickle$ } from '../models/models';
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
  *
@@ -246,9 +245,41 @@ export interface SfuEvent {
         participantMigrationComplete: ParticipantMigrationComplete;
       }
     | {
+        oneofKind: 'codecNegotiationComplete';
+        /**
+         * CodecNegotiationComplete is sent to signal the completion of a codec negotiation.
+         * SDKs can safely stop previous transceivers
+         *
+         * @generated from protobuf field: stream.video.sfu.event.CodecNegotiationComplete codec_negotiation_complete = 26;
+         */
+        codecNegotiationComplete: CodecNegotiationComplete;
+      }
+    | {
+        oneofKind: 'changePublishOptions';
+        /**
+         * ChangePublishOptions is sent to signal the change in publish options such as a new codec or simulcast layers
+         *
+         * @generated from protobuf field: stream.video.sfu.event.ChangePublishOptions change_publish_options = 27;
+         */
+        changePublishOptions: ChangePublishOptions;
+      }
+    | {
         oneofKind: undefined;
       };
 }
+/**
+ * @generated from protobuf message stream.video.sfu.event.ChangePublishOptions
+ */
+export interface ChangePublishOptions {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.PublishOption publish_option = 1;
+   */
+  publishOption?: PublishOption;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ */
+export interface CodecNegotiationComplete {}
 /**
  * @generated from protobuf message stream.video.sfu.event.ParticipantMigrationComplete
  */
@@ -440,6 +471,10 @@ export interface JoinRequest {
    */
   subscriberSdp: string;
   /**
+   * @generated from protobuf field: string publisher_sdp = 8;
+   */
+  publisherSdp: string;
+  /**
    * @generated from protobuf field: stream.video.sfu.models.ClientDetails client_details = 4;
    */
   clientDetails?: ClientDetails;
@@ -534,6 +569,10 @@ export interface JoinResponse {
    * @generated from protobuf field: int32 fast_reconnect_deadline_seconds = 3;
    */
   fastReconnectDeadlineSeconds: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.PublishOptions publish_options = 4;
+   */
+  publishOptions?: PublishOptions;
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -961,6 +1000,20 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         oneof: 'eventPayload',
         T: () => ParticipantMigrationComplete,
       },
+      {
+        no: 26,
+        name: 'codec_negotiation_complete',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => CodecNegotiationComplete,
+      },
+      {
+        no: 27,
+        name: 'change_publish_options',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => ChangePublishOptions,
+      },
     ]);
   }
 }
@@ -968,6 +1021,33 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ChangePublishOptions$Type extends MessageType<ChangePublishOptions> {
+  constructor() {
+    super('stream.video.sfu.event.ChangePublishOptions', [
+      {
+        no: 1,
+        name: 'publish_option',
+        kind: 'message',
+        T: () => PublishOption,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.ChangePublishOptions
+ */
+export const ChangePublishOptions = new ChangePublishOptions$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CodecNegotiationComplete$Type extends MessageType<CodecNegotiationComplete> {
+  constructor() {
+    super('stream.video.sfu.event.CodecNegotiationComplete', []);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ */
+export const CodecNegotiationComplete = new CodecNegotiationComplete$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ParticipantMigrationComplete$Type extends MessageType<ParticipantMigrationComplete> {
   constructor() {
@@ -1202,6 +1282,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         T: 9 /*ScalarType.STRING*/,
       },
       {
+        no: 8,
+        name: 'publisher_sdp',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
         no: 4,
         name: 'client_details',
         kind: 'message',
@@ -1322,6 +1408,12 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         name: 'fast_reconnect_deadline_seconds',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 4,
+        name: 'publish_options',
+        kind: 'message',
+        T: () => PublishOptions,
       },
     ]);
   }
