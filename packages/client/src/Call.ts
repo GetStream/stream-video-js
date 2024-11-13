@@ -727,6 +727,7 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallData): Promise<void> => {
+    const connectStartTime = Date.now();
     await this.setup();
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
@@ -838,6 +839,16 @@ export class Call {
         statsOptions,
         publishOptions: this.publishOptions!,
         closePreviousInstances: !performingMigration,
+      });
+    }
+
+    // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
+    if (!performingRejoin && !performingFastReconnect && !performingMigration) {
+      this.sfuStatsReporter?.sendTelemetryData({
+        data: {
+          oneofKind: 'connectionTimeSeconds',
+          connectionTimeSeconds: (Date.now() - connectStartTime) / 1000,
+        },
       });
     }
 
@@ -1138,9 +1149,19 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
+    let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
-    return this.join(this.joinCallData);
+    await this.join(this.joinCallData);
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: WebsocketReconnectStrategy.FAST,
+        },
+      },
+    });
   };
 
   /**
@@ -1148,11 +1169,21 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
+    let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: WebsocketReconnectStrategy.REJOIN,
+        },
+      },
+    });
   };
 
   /**
@@ -1160,6 +1191,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
+    let reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
       throw new Error('Cannot migrate without an active SFU client');
@@ -1204,6 +1236,15 @@ export class Call {
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close();
     }
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: WebsocketReconnectStrategy.MIGRATE,
+        },
+      },
+    });
   };
 
   /**

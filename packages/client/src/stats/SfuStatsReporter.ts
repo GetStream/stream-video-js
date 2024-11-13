@@ -9,6 +9,7 @@ import { InputDevices } from '../gen/video/sfu/models/models';
 import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
 import { CallState } from '../store';
+import { Telemetry } from '../gen/video/sfu/signal_rpc/signal';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
@@ -113,7 +114,11 @@ export class SfuStatsReporter {
     );
   };
 
-  private run = async () => {
+  sendTelemetryData = async (telemetryData: Telemetry) => {
+    return this.run(telemetryData);
+  };
+
+  private run = async (telemetryData?: Telemetry) => {
     const [subscriberStats, publisherStats] = await Promise.all([
       this.subscriber.getStats().then(flatten).then(JSON.stringify),
       this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
@@ -128,6 +133,7 @@ export class SfuStatsReporter {
       audioDevices: this.inputDevices.get('mic'),
       videoDevices: this.inputDevices.get('camera'),
       deviceState: { oneofKind: undefined },
+      telemetry: telemetryData,
     });
   };
 

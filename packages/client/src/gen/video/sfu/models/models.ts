@@ -5,7 +5,6 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
-
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
