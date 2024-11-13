@@ -51,7 +51,7 @@ export const LayoutSwitcherButton = ({
 
   const buttonColor = isModalVisible
     ? colors.iconPrimaryAccent
-    : colors.iconPrimaryDefault;
+    : colors.iconPrimary;
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);

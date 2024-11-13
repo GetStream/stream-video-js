@@ -87,7 +87,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           >
             <Grid
               size={theme.variants.iconSizes.md}
-              color={theme.colors.typePrimary}
+              color={theme.colors.iconPrimary}
             />
             <Text style={styles.buttonText}>Grid</Text>
           </TouchableOpacity>
@@ -100,7 +100,7 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
           >
             <SpotLight
               size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimaryDefault}
+              color={theme.colors.iconPrimary}
             />
             <Text style={styles.buttonText}>Spotlight</Text>
           </TouchableOpacity>
@@ -128,7 +128,7 @@ const useStyles = () => {
           gap: theme.variants.spacingSizes.sm,
         },
         button: {
-          backgroundColor: theme.colors.buttonSecondaryDefault,
+          backgroundColor: theme.colors.buttonSecondary,
           borderRadius: theme.variants.borderRadiusSizes.lg,
           borderWidth: 1,
           borderColor: theme.colors.sheetTertiary,
@@ -139,10 +139,10 @@ const useStyles = () => {
           paddingVertical: theme.variants.spacingSizes.sm,
         },
         selectedButton: {
-          backgroundColor: theme.colors.buttonPrimaryDefault,
+          backgroundColor: theme.colors.buttonPrimary,
         },
         buttonText: {
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           textAlign: 'center',
           fontWeight: '600',
           marginTop: 2,

@@ -87,7 +87,7 @@ export const Lobby = ({
           <Text
             style={[
               styles.heading,
-              { color: colors.typePrimary },
+              { color: colors.textPrimary },
               typefaces.heading5,
               lobby.heading,
             ]}
@@ -149,7 +149,7 @@ const ParticipantStatus = () => {
       <Text
         style={[
           styles.userNameLabel,
-          { color: colors.typePrimary },
+          { color: colors.textPrimary },
           typefaces.caption,
           lobby.userNameLabel,
         ]}

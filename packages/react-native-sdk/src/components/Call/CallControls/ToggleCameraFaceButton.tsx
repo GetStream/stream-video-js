@@ -54,7 +54,7 @@ export const ToggleCameraFaceButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={backgroundColor || colors.buttonSecondaryDefault}
+        color={backgroundColor || colors.buttonSecondary}
         disabledColor={colors.sheetPrimary}
         disabled={optimisticIsMute}
         style={toggleCameraFaceButton}
@@ -64,10 +64,10 @@ export const ToggleCameraFaceButton = ({
             size={variants.iconSizes.md}
             color={
               optimisticIsMute
-                ? colors.buttonPrimaryDisabled
+                ? colors.buttonDisabled
                 : direction === 'front' || direction === undefined
-                  ? colors.iconPrimaryDefault
-                  : colors.buttonPrimaryDefault
+                  ? colors.iconPrimary
+                  : colors.buttonPrimary
             }
           />
         </IconWrapper>

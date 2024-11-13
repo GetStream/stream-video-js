@@ -69,7 +69,7 @@ export const Avatar = (props: AvatarProps) => {
           height: size,
           width: size,
         },
-        { backgroundColor: colors.buttonPrimaryDefault },
+        { backgroundColor: colors.buttonPrimary },
         avatar.container,
         styleProp?.container,
       ]}
@@ -86,7 +86,7 @@ export const Avatar = (props: AvatarProps) => {
         <Text
           style={[
             styles.text,
-            { fontSize: size / 2, color: colors.typePrimary },
+            { fontSize: size / 2, color: colors.textPrimary },
             typefaces.heading6,
             avatar.text,
             styleProp?.text,

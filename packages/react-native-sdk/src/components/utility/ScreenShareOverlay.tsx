@@ -41,7 +41,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
         style={[
           styles.text,
           typefaces.subtitleBold,
-          { color: colors.typePrimary },
+          { color: colors.textPrimary },
           screenshareOverlay.text,
         ]}
       >
@@ -67,15 +67,12 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
             screenshareOverlay.buttonIcon,
           ]}
         >
-          <StopScreenShare
-            size={iconSizes.xs}
-            color={colors.iconPrimaryDefault}
-          />
+          <StopScreenShare size={iconSizes.xs} color={colors.iconPrimary} />
         </View>
         <Text
           style={[
             styles.buttonText,
-            { color: colors.typePrimary },
+            { color: colors.textPrimary },
             screenshareOverlay.buttonText,
           ]}
         >

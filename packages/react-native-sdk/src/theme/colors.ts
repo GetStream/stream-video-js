@@ -1,24 +1,29 @@
+import { palette } from './constants';
 import { ColorScheme } from './types';
 
 const colors: ColorScheme = {
-  buttonPrimaryDefault: '#005fff',
-  buttonPrimaryDisabled: '#1b2c43',
-  buttonSecondaryDefault: '#19232d',
-  buttonSecondaryHover: '#323b44',
-  buttonSecondaryWarningDefault: '#dc433b',
+  primary: palette.primary100,
+  secondary: palette.neutral90,
+  success: palette.success100,
+  warning: palette.warning100,
 
-  iconPrimaryDefault: '#eff0f1',
-  iconPrimaryAccent: '#005fff',
-  iconAlertSuccess: '#00e2a1',
-  iconAlertWarning: '#dc433b',
+  buttonPrimary: palette.primary100,
+  buttonSecondary: palette.neutral90,
+  buttonDisabled: palette.primary180,
+  buttonWarning: palette.warning100,
 
-  sheetPrimary: '#000000',
-  sheetSecondary: '#101213',
-  sheetTertiary: '#19232d',
-  sheetOverlay: '#0c0d0ea6',
+  iconPrimary: palette.neutral0,
+  iconPrimaryAccent: palette.primary100,
+  iconSuccess: palette.success100,
+  iconWarning: palette.warning100,
 
-  typePrimary: '#eff0f1',
-  typeSecondary: '#b0b4b7',
+  sheetPrimary: palette.neutral120,
+  sheetSecondary: palette.neutral110,
+  sheetTertiary: palette.neutral90,
+  sheetOverlay: palette.overlay,
+
+  textPrimary: palette.neutral0,
+  textSecondary: palette.neutral30,
 };
 
 const colorPalette = {

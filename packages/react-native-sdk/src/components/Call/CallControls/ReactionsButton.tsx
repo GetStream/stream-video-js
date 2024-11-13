@@ -72,7 +72,7 @@ export const ReactionsButton = ({
           onLayout={onReactionsButtonLayout}
         >
           <IconWrapper>
-            <Reaction color={colors.iconPrimaryDefault} />
+            <Reaction color={colors.iconPrimary} />
           </IconWrapper>
         </CallControlsButton>
       </Restricted>

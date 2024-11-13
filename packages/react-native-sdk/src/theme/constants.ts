@@ -49,6 +49,8 @@ const ref = {
     neutral70: '#4c535b',
     neutral80: '#323b44',
     neutral90: '#19232d',
+
+    overlay: '#0c0d0ea6',
   },
 };
 

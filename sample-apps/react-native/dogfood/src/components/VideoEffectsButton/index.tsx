@@ -86,7 +86,7 @@ const FilterButton = () => {
       >
         <IconWrapper>
           <Effects
-            color={theme.colors.iconPrimaryDefault}
+            color={theme.colors.iconPrimary}
             size={theme.variants.iconSizes.md}
           />
         </IconWrapper>
@@ -257,14 +257,14 @@ const useStyles = () => {
         },
         selectedModalButton: {
           borderWidth: 4,
-          borderColor: theme.colors.typePrimary,
+          borderColor: theme.colors.iconPrimary,
         },
         unselectedModalButton: {
           borderWidth: 4,
           borderColor: 'transparent',
         },
         modalHeaderText: {
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           fontSize: 24,
           fontWeight: 'bold',
           alignSelf: 'center',

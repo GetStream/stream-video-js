@@ -370,7 +370,7 @@ export const defaultTheme: Theme = {
     },
   },
   defaults: {
-    color: colors.buttonPrimaryDefault,
+    color: colors.buttonPrimary,
     backgroundColor: colors.sheetPrimary,
     margin: 10,
     padding: 10,
@@ -378,7 +378,7 @@ export const defaultTheme: Theme = {
     fontWeight: '500',
     borderRadius: 32,
     iconSize: 28,
-    borderColor: colors.buttonPrimaryDefault,
+    borderColor: colors.buttonPrimary,
     borderWidth: 1,
   },
   colors: colors,

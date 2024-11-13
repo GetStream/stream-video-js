@@ -81,12 +81,12 @@ export const ParticipantLabel = ({
             screenShareIconContainer,
           ]}
         >
-          <ScreenShareIndicator color={colors.iconPrimaryDefault} />
+          <ScreenShareIndicator color={colors.iconPrimary} />
         </View>
         <Text
           style={[
             styles.userNameLabel,
-            { color: colors.typePrimary },
+            { color: colors.textPrimary },
             typefaces.caption,
             userNameLabel,
           ]}
@@ -114,14 +114,14 @@ export const ParticipantLabel = ({
           <View
             style={[styles.audioMutedIconContainer, audioMutedIconContainer]}
           >
-            <MicOff color={colors.iconPrimaryDefault} size={iconSizes.sm} />
+            <MicOff color={colors.iconPrimary} size={iconSizes.sm} />
           </View>
         )}
         {isVideoMuted && (
           <View
             style={[styles.videoMutedIconContainer, videoMutedIconContainer]}
           >
-            <VideoSlash color={colors.iconPrimaryDefault} size={iconSizes.sm} />
+            <VideoSlash color={colors.iconPrimary} size={iconSizes.sm} />
           </View>
         )}
         {isPinningEnabled && (
@@ -129,10 +129,7 @@ export const ParticipantLabel = ({
             style={[styles.pinIconContainer, pinIconContainer]}
             onPress={unPinParticipantHandler}
           >
-            <PinVertical
-              color={colors.iconPrimaryDefault}
-              size={iconSizes.sm}
-            />
+            <PinVertical color={colors.iconPrimary} size={iconSizes.sm} />
           </Pressable>
         )}
         <View style={styles.indicatorWrapper}>
@@ -169,7 +166,7 @@ const useStyles = () => {
           marginTop: 2,
           fontSize: 13,
           fontWeight: '400',
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
         },
         screenShareIconContainer: {
           marginRight: theme.variants.spacingSizes.sm,

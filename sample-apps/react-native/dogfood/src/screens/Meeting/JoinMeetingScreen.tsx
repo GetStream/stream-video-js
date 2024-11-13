@@ -107,8 +107,8 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             buttonStyle={{
               ...styles.joinCallButton,
               backgroundColor: isValidCallId
-                ? theme.colors.buttonPrimaryDefault
-                : theme.colors.buttonPrimaryDisabled,
+                ? theme.colors.buttonPrimary
+                : theme.colors.buttonDisabled,
             }}
           />
         </View>

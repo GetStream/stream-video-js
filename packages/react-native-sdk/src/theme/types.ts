@@ -1,21 +1,28 @@
 import { ColorValue, TextStyle } from 'react-native';
 
 export type ColorScheme = {
-  buttonPrimaryDefault: ColorValue;
-  buttonPrimaryDisabled: ColorValue;
-  buttonSecondaryDefault: ColorValue;
-  buttonSecondaryHover: ColorValue;
-  buttonSecondaryWarningDefault: ColorValue;
-  iconPrimaryDefault: ColorValue;
+  primary: ColorValue;
+  secondary: ColorValue;
+  success: ColorValue;
+  warning: ColorValue;
+
+  buttonPrimary: ColorValue;
+  buttonSecondary: ColorValue;
+  buttonDisabled: ColorValue;
+  buttonWarning: ColorValue;
+
+  iconPrimary: ColorValue;
+  iconSuccess: ColorValue;
   iconPrimaryAccent: ColorValue;
-  iconAlertSuccess: ColorValue;
-  iconAlertWarning: ColorValue;
+  iconWarning: ColorValue;
+
   sheetPrimary: ColorValue;
   sheetSecondary: ColorValue;
   sheetTertiary: ColorValue;
   sheetOverlay: ColorValue;
-  typePrimary: ColorValue;
-  typeSecondary: ColorValue;
+
+  textPrimary: ColorValue;
+  textSecondary: ColorValue;
 
   // allow any other color
   [key: string]: ColorValue;

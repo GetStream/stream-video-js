@@ -64,7 +64,7 @@ export const OutgoingCall = ({
             <Text
               style={[
                 styles.callingText,
-                { color: colors.typePrimary },
+                { color: colors.textPrimary },
                 typefaces.heading6,
                 outgoingCall.callingText,
               ]}

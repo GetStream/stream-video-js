@@ -49,7 +49,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               <TouchableOpacity onPress={onClose} style={[styles.closeButton]}>
                 <IconWrapper>
                   <Close
-                    color={colors.typeSecondary}
+                    color={colors.textSecondary} // fix this
                     size={variants.roundButtonSizes.sm}
                   />
                 </IconWrapper>
@@ -77,8 +77,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                   <Star
                     color={
                       selectedRating && selectedRating >= rating
-                        ? colors.iconAlertSuccess
-                        : colors.typeSecondary
+                        ? colors.iconSuccess
+                        : colors.textSecondary
                     }
                     size={68}
                   />
@@ -127,7 +127,7 @@ const useStyles = () => {
           flexDirection: 'row',
         },
         closeButton: {
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           borderRadius: variants.borderRadiusSizes.xl,
           width: variants.roundButtonSizes.md,
           height: variants.roundButtonSizes.md,
@@ -151,13 +151,13 @@ const useStyles = () => {
           fontSize: 28,
           marginBottom: variants.spacingSizes.sm,
           textAlign: 'center',
-          color: colors.typePrimary,
+          color: colors.textPrimary,
           fontWeight: '600',
         },
         subtitle: {
           fontSize: 13,
           textAlign: 'center',
-          color: colors.typeSecondary,
+          color: colors.textSecondary,
           marginBottom: variants.spacingSizes.xl,
           fontWeight: '600',
         },
@@ -185,7 +185,7 @@ const useStyles = () => {
           justifyContent: 'flex-end',
         },
         text: {
-          color: colors.typeSecondary,
+          color: colors.textSecondary,
           fontSize: 13,
           fontWeight: '500',
         },

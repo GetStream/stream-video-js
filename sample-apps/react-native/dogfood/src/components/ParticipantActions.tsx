@@ -103,7 +103,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserVideoOption = participantPublishesVideo
     ? {
-        icon: <VideoSlash color={colors.iconPrimaryDefault} />,
+        icon: <VideoSlash color={colors.iconPrimary} />,
         title: 'Mute Video',
         onPressHandler: muteUserVideo,
       }
@@ -111,7 +111,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserAudioOption = participantPublishesAudio
     ? {
-        icon: <MicOff color={colors.iconPrimaryDefault} />,
+        icon: <MicOff color={colors.iconPrimary} />,
         title: 'Mute Audio',
         onPressHandler: muteUserAudio,
       }
@@ -125,37 +125,37 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasUpdateCallPermissionsCapability
       ? [
           {
-            icon: <VideoDisabled color={colors.iconPrimaryDefault} />,
+            icon: <VideoDisabled color={colors.iconPrimary} />,
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <MicOff color={colors.iconPrimaryDefault} />,
+            icon: <MicOff color={colors.iconPrimary} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Mic color={colors.iconPrimaryDefault} />,
+            icon: <Mic color={colors.iconPrimary} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Video color={colors.iconPrimaryDefault} />,
+            icon: <Video color={colors.iconPrimary} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <ScreenShare color={colors.iconPrimaryDefault} />,
+            icon: <ScreenShare color={colors.iconPrimary} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
-            icon: <Cross color={colors.iconPrimaryDefault} />,
+            icon: <Cross color={colors.iconPrimary} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -167,7 +167,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasBlockUserCapability
       ? [
           {
-            icon: <Cross color={colors.iconPrimaryDefault} />,
+            icon: <Cross color={colors.iconPrimary} />,
             title: 'Block',
             onPressHandler: blockUser,
           },
@@ -177,7 +177,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
   const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
     ? {
-        icon: <Pin color={colors.iconPrimaryDefault} />,
+        icon: <Pin color={colors.iconPrimary} />,
         title: participant.pin ? 'Unpin' : 'Pin',
         onPressHandler: toggleParticipantPinnedAt,
       }
@@ -206,7 +206,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross color={colors.iconPrimaryDefault} style={styles.crossIcon} />
+            <Cross color={colors.iconPrimary} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -265,7 +265,7 @@ const useStyles = () => {
           marginLeft: 8,
           fontSize: 16,
           fontWeight: '500',
-          color: theme.colors.iconPrimaryDefault,
+          color: theme.colors.iconPrimary,
         },
         option: {
           paddingHorizontal: 24,
@@ -279,12 +279,12 @@ const useStyles = () => {
         },
         title: {
           marginLeft: 16,
-          color: theme.colors.iconPrimaryDefault,
+          color: theme.colors.iconPrimary,
           fontSize: 16,
           fontWeight: '400',
         },
         borderBottom: {
-          borderBottomColor: theme.colors.buttonSecondaryHover,
+          borderBottomColor: theme.colors.sheetTertiary,
           borderBottomWidth: 1,
         },
         crossIcon: {
@@ -294,7 +294,7 @@ const useStyles = () => {
         closePressable: {
           padding: 8,
           borderRadius: 15,
-          backgroundColor: theme.colors.buttonSecondaryDefault,
+          backgroundColor: theme.colors.buttonSecondary,
         },
       }),
     [theme],

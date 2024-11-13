@@ -35,8 +35,8 @@ export const RecordCallButton = ({
     useState(false);
 
   const buttonColor = isCallRecordingInProgress
-    ? colors.buttonSecondaryWarningDefault
-    : colors.buttonSecondaryDefault;
+    ? colors.buttonWarning
+    : colors.buttonSecondary;
 
   const onPress = async () => {
     if (onPressHandler) {
@@ -79,12 +79,12 @@ export const RecordCallButton = ({
       color={buttonColor}
       style={recordCallButton}
       disabled={isAwaitingResponse}
-      disabledColor={colors.buttonPrimaryDisabled}
+      disabledColor={colors.buttonDisabled}
     >
       {endRecording}
       <IconWrapper>
         <RecordCall
-          color={colors.iconPrimaryDefault}
+          color={colors.iconPrimary}
           size={variants.roundButtonSizes.sm}
         />
       </IconWrapper>

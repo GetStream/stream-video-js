@@ -42,7 +42,7 @@ export const FollowerCount = ({}: FollowerCountProps) => {
       <Text
         style={[
           styles.label,
-          { color: colors.typePrimary },
+          { color: colors.textPrimary },
           followerCount.label,
         ]}
       >

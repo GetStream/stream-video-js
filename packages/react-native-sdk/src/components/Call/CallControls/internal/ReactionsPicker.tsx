@@ -117,9 +117,7 @@ export const ReactionsPicker = ({
             style={[
               styles.reactionItem,
               reactionItemStyle,
-              {
-                backgroundColor: colors.buttonSecondaryDefault,
-              },
+              { backgroundColor: colors.buttonSecondary },
               reactionsPicker.reactionItem,
             ]}
             onPress={() => {

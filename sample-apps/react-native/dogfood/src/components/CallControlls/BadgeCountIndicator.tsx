@@ -29,7 +29,7 @@ export const BadgeCountIndicator = ({
   return (
     <View
       testID={ComponentTestIds.BADGE_COUNT_INDICATOR}
-      style={[styles.badge, { backgroundColor: colors.iconAlertSuccess }]}
+      style={[styles.badge, { backgroundColor: colors.iconSuccess }]}
     >
       <Text
         style={[

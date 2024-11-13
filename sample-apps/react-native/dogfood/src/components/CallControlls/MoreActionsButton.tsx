@@ -67,7 +67,7 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <Feedback
-            color={colors.iconPrimaryDefault}
+            color={colors.iconPrimary}
             size={variants.roundButtonSizes.sm}
           />
         </IconWrapper>
@@ -83,7 +83,7 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <LightDark
-            color={colors.iconPrimaryDefault}
+            color={colors.iconPrimary}
             size={variants.roundButtonSizes.sm}
           />
         </IconWrapper>
@@ -100,8 +100,8 @@ export const MoreActionsButton = ({
   ];
 
   const buttonColor = isDrawerVisible
-    ? colors.buttonPrimaryDefault
-    : colors.buttonSecondaryDefault;
+    ? colors.buttonPrimary
+    : colors.buttonSecondary;
 
   return (
     <CallControlsButton
@@ -125,10 +125,7 @@ export const MoreActionsButton = ({
         onRating={handleRating}
       />
       <IconWrapper>
-        <MoreActions
-          color={colors.iconPrimaryDefault}
-          size={defaults.iconSize}
-        />
+        <MoreActions color={colors.iconPrimary} size={defaults.iconSize} />
       </IconWrapper>
     </CallControlsButton>
   );
