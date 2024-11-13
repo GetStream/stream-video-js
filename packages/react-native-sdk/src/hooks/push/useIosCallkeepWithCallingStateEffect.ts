@@ -7,7 +7,7 @@ import { getCallKeepLib } from '../../utils/push/libs';
 import {
   voipCallkeepAcceptedCallOnNativeDialerMap$,
   voipCallkeepCallOnForegroundMap$,
-} from '../../utils/push/rxSubjects';
+} from '../../utils/push/internal/rxSubjects';
 
 const isNonActiveCallingState = (callingState: CallingState) => {
   return (

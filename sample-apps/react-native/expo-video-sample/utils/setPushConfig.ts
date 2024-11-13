@@ -1,14 +1,17 @@
 import {
   StreamVideoClient,
   StreamVideoRN,
+  oniOSNotifeeEvent,
+  isNotifeeStreamVideoEvent,
+  onAndroidNotifeeEvent,
 } from '@stream-io/video-react-native-sdk';
-import { AndroidImportance } from '@notifee/react-native';
+import { Platform } from 'react-native';
+import notifee, { AndroidImportance } from '@notifee/react-native';
+import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  staticNavigateToNonRingingCall,
-  staticNavigateToRingingCall,
-} from './staticNavigationUtils';
+import { staticNavigateToNonRingingCall } from './staticNavigationUtils';
 import { createToken } from './createToken';
+import { setFirebaseListeners } from './setFirebaseListeners';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -48,16 +51,47 @@ export function setPushConfig() {
       },
     },
     createStreamVideoClient,
-    navigateAcceptCall: () => {
-      staticNavigateToRingingCall();
-    },
-    navigateToIncomingCall: () => {
-      staticNavigateToRingingCall();
-    },
     onTapNonRingingCallNotification: (_cid, _type) => {
       staticNavigateToNonRingingCall();
     },
   });
+
+  setFirebaseListeners();
+
+  if (Platform.OS === 'android') {
+    // on press handlers of background notifications
+    notifee.onBackgroundEvent(async (event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        await onAndroidNotifeeEvent({ event, isBackground: true });
+      }
+    });
+    // on press handlers of foreground notifications
+    notifee.onForegroundEvent((event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        onAndroidNotifeeEvent({ event, isBackground: false });
+      }
+    });
+  }
+
+  if (Platform.OS === 'ios') {
+    // show notification on foreground
+    // https://docs.expo.dev/push-notifications/receiving-notifications/#foreground-notification-behavior
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
+
+    // on press handlers of foreground notifications for iOS
+    // note: used only for non-ringing notifications
+    notifee.onForegroundEvent((event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        oniOSNotifeeEvent({ event, isBackground: false });
+      }
+    });
+  }
 }
 
 /**

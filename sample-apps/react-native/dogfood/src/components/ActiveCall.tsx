@@ -4,6 +4,7 @@ import {
   CallContent,
   CallControlProps,
 } from '@stream-io/video-react-native-sdk';
+
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
