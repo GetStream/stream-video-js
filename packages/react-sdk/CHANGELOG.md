@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.14...@stream-io/video-react-sdk-1.7.15) (2024-11-13)
+
+
+### Bug Fixes
+
+* race conditions in usePersistedDevicePreferences ([#1575](https://github.com/GetStream/stream-video-js/issues/1575)) ([08aacc4](https://github.com/GetStream/stream-video-js/commit/08aacc4e35920e30d9f091ba9207ecf757d86796))
+
 ## [1.7.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.13...@stream-io/video-react-sdk-1.7.14) (2024-11-13)
 
 ### Dependency Updates
