@@ -520,7 +520,9 @@ export class Publisher extends BasePeerConnection {
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverIndex = this.transceiverOrder.indexOf(transceiver);
-        const mid = extractMid(transceiver, transceiverIndex, sdp);
+        const mid =
+          String(transceiverIndex) ||
+          extractMid(transceiver, transceiverIndex, sdp);
 
         return {
           trackId: track.id,
