@@ -1,6 +1,7 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import {
   Dispatcher,
+  findCodec,
   getGenericSdp,
   isSfuEvent,
   Publisher,
@@ -90,6 +91,7 @@ import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
+  Codec,
   PublishOptions,
   TrackType,
   WebsocketReconnectStrategy,
@@ -120,6 +122,7 @@ import {
 import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
+import { getPayloadTypeForCodec } from './helpers/sdp-munging';
 import {
   PromiseWithResolvers,
   promiseWithResolvers,
@@ -805,6 +808,7 @@ export class Call {
           clientDetails,
           fastReconnect: performingFastReconnect,
           reconnectDetails,
+          preferredCodec: this.getPreferredCodec(publishingCapabilitiesSdp),
         });
 
       this.initialPublishOptions = publishOptions;
@@ -900,6 +904,27 @@ export class Call {
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
     };
+  };
+
+  /**
+   * Prepares the preferred codec for the call.
+   * This is an experimental client feature and subject to change.
+   * @internal
+   */
+  private getPreferredCodec = (sdp: string): Codec | undefined => {
+    const { preferredCodec } = this.clientPublishOptions || {};
+    if (!preferredCodec) return;
+
+    const codec = findCodec(`video/${preferredCodec}`);
+    if (!codec) return;
+
+    const { clockRate, mimeType, sdpFmtpLine } = codec;
+    return Codec.create({
+      name: preferredCodec, // e.g. 'vp9'
+      fmtp: sdpFmtpLine || '',
+      clockRate: clockRate,
+      payloadType: getPayloadTypeForCodec(sdp, mimeType, sdpFmtpLine),
+    });
   };
 
   /**
@@ -1510,7 +1535,7 @@ export class Call {
    * @internal
    * @param options the options to use.
    */
-  updatePublishOptions(options: ClientPublishOptions) {
+  updatePublishOptions = (options: ClientPublishOptions) => {
     if (this.state.callingState === CallingState.JOINED) {
       this.logger(
         'warn',
@@ -1518,7 +1543,7 @@ export class Call {
       );
     }
     this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
-  }
+  };
 
   /**
    * Notifies the SFU that a noise cancellation process has started.

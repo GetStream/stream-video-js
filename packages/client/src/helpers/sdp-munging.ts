@@ -48,6 +48,27 @@ export const enableHighQualityAudio = (
 };
 
 /**
+ * Gets the payload type for the given codec.
+ */
+export const getPayloadTypeForCodec = (
+  sdp: string,
+  mimeType: string,
+  fmtpLine: string | undefined,
+): number => {
+  mimeType = mimeType.toLowerCase();
+  const parsedSdp = SDP.parse(sdp);
+  const [kind, codec] = mimeType.split('/');
+  const media = parsedSdp.media.find((m) => m.type === kind);
+  if (!media) return 0;
+
+  const fmtp = media.fmtp.find((f) => f.config === fmtpLine);
+  const rtp = media.rtp.find(
+    (r) => r.codec.toLowerCase() === codec && r.payload === fmtp?.payload,
+  );
+  return rtp?.payload ?? 0;
+};
+
+/**
  * Extracts the mid from the transceiver or the SDP.
  *
  * @param transceiver the transceiver.

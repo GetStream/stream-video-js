@@ -5,6 +5,7 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
+
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -236,7 +237,7 @@ export interface PublishOption {
  */
 export interface Codec {
   /**
-   * @generated from protobuf field: uint32 payload_type = 11;
+   * @generated from protobuf field: uint32 payload_type = 16;
    */
   payloadType: number;
   /**
@@ -248,7 +249,7 @@ export interface Codec {
    */
   clockRate: number;
   /**
-   * @generated from protobuf field: string encoding_parameters = 13;
+   * @generated from protobuf field: string encoding_parameters = 15;
    */
   encodingParameters: string;
   /**
@@ -1160,7 +1161,7 @@ class Codec$Type extends MessageType<Codec> {
   constructor() {
     super('stream.video.sfu.models.Codec', [
       {
-        no: 11,
+        no: 16,
         name: 'payload_type',
         kind: 'scalar',
         T: 13 /*ScalarType.UINT32*/,
@@ -1173,7 +1174,7 @@ class Codec$Type extends MessageType<Codec> {
         T: 13 /*ScalarType.UINT32*/,
       },
       {
-        no: 13,
+        no: 15,
         name: 'encoding_parameters',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,

@@ -150,19 +150,17 @@ export type SubscriptionChanges = {
  * A preferred codec to use when publishing a video or audio track.
  * @internal
  */
-export type PreferredCodec =
-  | 'video/vp8'
-  | 'video/h264'
-  | 'video/vp9'
-  | 'video/av1'
-  | 'audio/opus'
-  | 'audio/red';
+export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1';
 
 /**
  * A collection of track publication options.
  * @internal
  */
 export type ClientPublishOptions = {
+  /**
+   * The preferred codec to use when publishing the video stream.
+   */
+  preferredCodec?: PreferredCodec;
   /**
    * Screen share settings.
    */

@@ -35,3 +35,18 @@ export const isSvcCodec = (codecOrMimeType: string | undefined) => {
     codecOrMimeType === 'video/av1'
   );
 };
+
+/**
+ * Returns whether the codec is supported
+ */
+export const findCodec = (mimeType: string): RTCRtpCodec | undefined => {
+  if (!('getCapabilities' in RTCRtpSender)) return;
+
+  mimeType = mimeType.toLowerCase();
+  const [kind] = mimeType.split('/');
+  const capabilities = RTCRtpSender.getCapabilities(kind);
+  if (!capabilities) return;
+
+  const { codecs } = capabilities;
+  return codecs.find((c) => c.mimeType.toLowerCase() === mimeType);
+};

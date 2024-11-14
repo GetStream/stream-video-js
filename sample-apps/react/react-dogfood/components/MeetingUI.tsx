@@ -6,6 +6,7 @@ import {
   defaultSortPreset,
   LoadingIndicator,
   noopComparator,
+  PreferredCodec,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
@@ -45,11 +46,18 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
+  const videoCodecOverride = router.query['video_codec'] as
+    | PreferredCodec
+    | undefined;
+
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
+        call.updatePublishOptions({
+          preferredCodec: videoCodecOverride || 'vp9',
+        });
         await call.join({ create: true });
         setShow('active-call');
       } catch (e) {
@@ -58,7 +66,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call],
+    [call, videoCodecOverride],
   );
 
   const onLeave = useCallback(
