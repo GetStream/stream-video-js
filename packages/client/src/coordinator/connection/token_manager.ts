@@ -63,6 +63,8 @@ export class TokenManager {
    */
   reset = () => {
     this.token = undefined;
+    this.tokenProvider = undefined;
+    this.type = 'static';
     this.user = undefined;
     this.loadTokenPromise = null;
   };
