@@ -516,8 +516,16 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      if (reject && callingState === CallingState.RINGING) {
-        await this.reject(reason);
+      if (callingState === CallingState.RINGING) {
+        if (reject) {
+          await this.reject(reason);
+        } else {
+          const hasOtherParticipants = this.state.remoteParticipants.length > 0;
+          if (this.isCreatedByMe && !hasOtherParticipants) {
+            // I'm the one who started the call, so I should cancel it when there are no other participants.
+            await this.reject('cancel');
+          }
+        }
       }
 
       this.statsReporter?.stop();
