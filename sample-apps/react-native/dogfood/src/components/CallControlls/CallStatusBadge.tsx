@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
-import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
+import { RecordCall } from '../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';

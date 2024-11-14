@@ -1,6 +1,6 @@
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
+import { RecordCall } from '../../assets/RecordCall';
 import React, { useMemo } from 'react';
 import {
   Modal,

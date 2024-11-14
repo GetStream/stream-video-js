@@ -19,7 +19,7 @@ import { appTheme } from '../../theme';
 import { Button } from '../Button';
 import { useCustomVideoFilters } from './CustomFilters';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { Effects } from '@stream-io/video-react-native-sdk/src/icons/Effects';
+import { Effects } from '../../assets/Effects';
 
 type ImageSourceType = ImageURISource | number;
 

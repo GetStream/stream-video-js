@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@stream-io/video-react-native-sdk';
-import { ComponentTestIds } from '@stream-io/video-react-native-sdk/src/constants/TestIds';
 import { Z_INDEX } from '../../constants';
+import { ComponentTestIds } from '../../constants/TestIds';
 
 /**
  * A badge that displays a number.

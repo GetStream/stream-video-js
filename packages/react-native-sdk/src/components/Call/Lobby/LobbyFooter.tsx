@@ -27,17 +27,21 @@ export const LobbyFooter = ({
   const { useCallSession } = useCallStateHooks();
   const { t } = useI18n();
   const session = useCallSession();
-  const participantsCount = session?.participants.length;
+  const numberOfParticipants = session?.participants.length;
 
   const participantsText = useMemo(() => {
-    if (!participantsCount) {
+    if (!numberOfParticipants) {
       return t('Currently there are no other participants in the call.');
     }
-    if (participantsCount === 1) {
-      return t(`There is ${participantsCount} more person in the call.`);
+    if (numberOfParticipants === 1) {
+      return t('There is {{numberOfParticipants}} more person in the call.', {
+        numberOfParticipants,
+      });
     }
-    return t(`There are ${participantsCount} more people in the call.`);
-  }, [participantsCount, t]);
+    return t('There are {{numberOfParticipants}} more people in the call.', {
+      numberOfParticipants,
+    });
+  }, [numberOfParticipants, t]);
 
   return (
     <View style={[styles.mainContainer, lobby.infoContainer]}>
