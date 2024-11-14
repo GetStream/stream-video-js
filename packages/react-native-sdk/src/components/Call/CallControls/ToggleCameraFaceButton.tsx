@@ -55,7 +55,7 @@ export const ToggleCameraFaceButton = ({
       <CallControlsButton
         onPress={onPress}
         color={backgroundColor || colors.buttonSecondary}
-        disabledColor={colors.sheetPrimary}
+        disabledColor={backgroundColor || colors.sheetSecondary}
         disabled={optimisticIsMute}
         style={toggleCameraFaceButton}
       >
