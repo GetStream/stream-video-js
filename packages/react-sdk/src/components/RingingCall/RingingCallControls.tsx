@@ -18,7 +18,7 @@ export const RingingCallControls = () => {
         <>
           <AcceptCallButton disabled={buttonsDisabled} />
           <CancelCallButton
-            onClick={() => call.leave({ reject: true })}
+            onClick={() => call.leave({ reject: true, reason: 'cancel' })}
             disabled={buttonsDisabled}
           />
         </>
