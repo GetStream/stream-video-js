@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { HangUpCallButton } from './HangupCallButton';
 import { ToggleAudioPreviewButton } from './ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './ToggleVideoPreviewButton';
+import { RejectCallButton } from './RejectCallButton';
 
 /**
  * Props for the OutgoingCallControls Component.
@@ -32,9 +32,10 @@ export const OutgoingCallControls = ({
         <ToggleAudioPreviewButton />
         <ToggleVideoPreviewButton />
       </View>
-      <HangUpCallButton
+      <RejectCallButton
         onPressHandler={onHangupCallHandler}
         size={buttonSizes.md}
+        rejectReason="cancel"
       />
     </View>
   );
