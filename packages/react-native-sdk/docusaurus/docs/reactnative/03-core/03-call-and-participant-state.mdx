@@ -66,7 +66,6 @@ Here is an excerpt of the available call state hooks:
 | `useCall`                            | The `Call` instance that is registered with `StreamCall`. You need the `Call` instance to initiate API calls. |
 | `useCallBlockedUserIds`              | The list of blocked user IDs.                                                                                 |
 | `useCallCallingState`                | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.                |
-| `useCallClosedCaptions`              | The closed captions of the call.                                                                              |
 | `useCallCreatedAt`                   | The time the call was created.                                                                                |
 | `useCallCreatedBy`                   | The user that created the call.                                                                               |
 | `useCallCustomData`                  | The custom data attached to the call.                                                                         |
@@ -85,16 +84,15 @@ Here is an excerpt of the available call state hooks:
 | `useDominantSpeaker`                 | The participant that is the current dominant speaker of the call.                                             |
 | `useHasOngoingScreenShare`           | It will return `true` if at least one participant is sharing their screen.                                    |
 | `useHasPermissions`                  | Returns `true` if the local participant has all the given permissions.                                        |
-| `useIncomingVideoSettings`           | The state of manual overrides to incoming video quality.                                                      |
-| `useIsCallCaptioningInProgress`      | It's `true` if the call is being close-captioned.                                                             |
 | `useIsCallHLSBroadcastingInProgress` | It's `true` if the call is being broadcasted in HLS mode.                                                     |
 | `useIsCallLive`                      | It's `true` if the call is currently live.                                                                    |
-| `useIsCallRecordingInProgress`       | It's `true` if the call is being recorded.                                                                    |
+| `useIsCallRecordingInProgress`       | It's' `true` if the call is being recorded.                                                                   |
 | `useIsCallTranscribingInProgress`    | It's `true` if the call is being transcribed.                                                                 |
 | `useMicrophoneState`                 | The microphone state of the local participant.                                                                |
 | `useOwnCapabilities`                 | The capabilities of the local participant.                                                                    |
 | `useScreenShareState`                | The screen share state of the local participant.                                                              |
 | `useSpeakerState`                    | The speaker state of the local participant.                                                                   |
+| `useIncomingVideoSettings`           | The state of manual overrides to incoming video quality.                                                      |
 
 In your IDE of choice, you can see the full list if you de-structure the `useCallStateHooks` object:
 
