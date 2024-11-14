@@ -22,6 +22,7 @@ export function buildWebGL2Pipeline(
   canvas: HTMLCanvasElement,
   tflite: TFLite,
   segmentationConfig: SegmentationParams,
+  onError?: (error: any) => void,
 ) {
   const gl = canvas.getContext('webgl2')!;
   if (!gl) throw new Error('WebGL2 is not supported');
@@ -95,6 +96,7 @@ export function buildWebGL2Pipeline(
     texCoordBuffer,
     tflite,
     segmentationConfig,
+    onError,
   );
   const loadSegmentationStage = buildSoftmaxStage(
     gl,

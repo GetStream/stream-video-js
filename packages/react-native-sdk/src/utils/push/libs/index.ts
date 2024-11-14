@@ -1,5 +1,4 @@
 export * from './expoNotifications';
-export * from './expoTaskManager';
 export * from './firebaseMessaging';
 export * from './iosPushNotification';
 export * from './voipPushNotification';

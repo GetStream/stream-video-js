@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.5...@stream-io/video-filters-web-0.1.6) (2024-11-12)
+
+
+### Bug Fixes
+
+* handle async errors in background filters pipeline ([#1571](https://github.com/GetStream/stream-video-js/issues/1571)) ([53a5ac3](https://github.com/GetStream/stream-video-js/commit/53a5ac3691a6fe71a0b7b6695aa6c0ffaa01d3ec)), closes [#1565](https://github.com/GetStream/stream-video-js/issues/1565)
+
 ## [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.1.4...@stream-io/video-filters-web-0.1.5) (2024-11-08)
 
 

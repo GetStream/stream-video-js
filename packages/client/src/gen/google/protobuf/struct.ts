@@ -33,18 +33,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-import type {
-  JsonObject,
-  JsonReadOptions,
-  JsonValue,
-  JsonWriteOptions,
-} from '@protobuf-ts/runtime';
-import {
-  isJsonObject,
-  MessageType,
-  typeofJsonValue,
-} from '@protobuf-ts/runtime';
-
+import { isJsonObject } from '@protobuf-ts/runtime';
+import { typeofJsonValue } from '@protobuf-ts/runtime';
+import type { JsonValue } from '@protobuf-ts/runtime';
+import type { JsonReadOptions } from '@protobuf-ts/runtime';
+import type { JsonWriteOptions } from '@protobuf-ts/runtime';
+import type { JsonObject } from '@protobuf-ts/runtime';
+import { MessageType } from '@protobuf-ts/runtime';
 /**
  * `Struct` represents a structured data value, consisting of fields
  * which map to dynamically typed values. In some languages, `Struct`

@@ -37,6 +37,7 @@ async function startForegroundService(call_cid: string) {
     );
     return;
   }
+  // channel id is not required for notifee as its only used on android 7 and below here
   await notifeeLib.default.displayNotification({
     id: call_cid,
     title,

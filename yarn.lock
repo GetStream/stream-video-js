@@ -5822,40 +5822,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/app@npm:17.5.0":
-  version: 17.5.0
-  resolution: "@react-native-firebase/app@npm:17.5.0"
-  dependencies:
-    opencollective-postinstall: ^2.0.1
-    superstruct: ^0.6.2
-  peerDependencies:
-    expo: ">=47.0.0"
-    react: "*"
-    react-native: "*"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 7d86f43a063561971edf328f7a2a1928660beb9617cbc3c5ba73ab65f359e0cadbc5e276e5654cfa0ef2d25c29f3f98587ebfd58f193be51f472facff3c3024f
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/app@npm:18.8.0":
-  version: 18.8.0
-  resolution: "@react-native-firebase/app@npm:18.8.0"
-  dependencies:
-    opencollective-postinstall: ^2.0.3
-    superstruct: ^0.6.2
-  peerDependencies:
-    expo: ">=47.0.0"
-    react: "*"
-    react-native: "*"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 10b4e5aec0dd18a690bc2ba07fe95f0d414f2904574dda930efd050b113629469d2c01e1d849b129ce575e84bbf89b53ffbeee55c51716c4a78e36be463c1fff
-  languageName: node
-  linkType: hard
-
 "@react-native-firebase/app@npm:19.2.2":
   version: 19.2.2
   resolution: "@react-native-firebase/app@npm:19.2.2"
@@ -5870,28 +5836,6 @@ __metadata:
     expo:
       optional: true
   checksum: 6bab63a70a92f8576a40ea5181ee37c3f07b1b9b3954574a6f1eb6aa9ddd807a5508ac6a775b48da4a04126fd43e228c018b428cf29f3bbc66cb0bc0febcb300
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/messaging@npm:17.5.0":
-  version: 17.5.0
-  resolution: "@react-native-firebase/messaging@npm:17.5.0"
-  peerDependencies:
-    "@react-native-firebase/app": 17.5.0
-  checksum: 296dad0335d18e262569c4edc6b62d009fc15887b3a9801f7d49a64eb091cd86548b940cbd1e993d649fb7e14282b1e910b221e701adb8213305580db578411a
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/messaging@npm:18.8.0":
-  version: 18.8.0
-  resolution: "@react-native-firebase/messaging@npm:18.8.0"
-  peerDependencies:
-    "@react-native-firebase/app": 18.8.0
-    expo: ">=47.0.0"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 4a6e744579954310557a56c843049283e8478185609d78409ad3949dbfe0e01007b6fb724496308dec9131266a55d068a0828587476df54ddfc3adc8a1013d29
   languageName: node
   linkType: hard
 
@@ -7664,7 +7608,6 @@ __metadata:
     expo-router: ~3.5.23
     expo-splash-screen: ~0.27.6
     expo-status-bar: ~1.12.1
-    expo-task-manager: ~11.8.2
     react: 18.2.0
     react-native: 0.74.5
     react-native-callkeep: 4.3.12
@@ -7760,16 +7703,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:125.0.0-alpha.3":
-  version: 125.0.0-alpha.3
-  resolution: "@stream-io/react-native-webrtc@npm:125.0.0-alpha.3"
+"@stream-io/react-native-webrtc@npm:125.0.0-rc.1":
+  version: 125.0.0-rc.1
+  resolution: "@stream-io/react-native-webrtc@npm:125.0.0-rc.1"
   dependencies:
     base64-js: 1.5.1
     debug: 4.3.4
     event-target-shim: 6.0.2
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 4204e5534e8af9065af28164e64f7db43272c24da85945078472a490e1b39cde5d559ed6e312bad8ca5933c5506c43066243e8380aee19a34711ef81bed12d21
+  checksum: 1f2046eea92d128244949ec87f0ff92cc4a1940c56dc14e23ba41b6237048073c9db36f4b0c7fddfccda75dbbb532404d9425e97fe96ad18a983e7ec00213505
   languageName: node
   linkType: hard
 
@@ -7976,8 +7919,8 @@ __metadata:
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/netinfo": 11.3.0
     "@react-native-community/push-notification-ios": ^1.11.0
-    "@react-native-firebase/app": 18.8.0
-    "@react-native-firebase/messaging": 18.8.0
+    "@react-native-firebase/app": 19.2.2
+    "@react-native-firebase/messaging": 19.2.2
     "@react-native-google-signin/google-signin": ^11.0.0
     "@react-native/babel-preset": 0.73.21
     "@react-native/eslint-config": 0.74.84
@@ -7989,7 +7932,7 @@ __metadata:
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
     "@stream-io/flat-list-mvcp": ^0.10.3
-    "@stream-io/react-native-webrtc": 125.0.0-alpha.3
+    "@stream-io/react-native-webrtc": 125.0.0-rc.1
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/eslint": ^8.56.10
@@ -8015,11 +7958,11 @@ __metadata:
     react-native-incall-manager: 4.2.0
     react-native-mmkv: 2.8.0
     react-native-permissions: ^4.1.1
-    react-native-reanimated: ^3.7.0
-    react-native-safe-area-context: ^4.4.1
-    react-native-screens: ^3.29.0
+    react-native-reanimated: ~3.10.1
+    react-native-safe-area-context: 4.10.5
+    react-native-screens: 3.31.1
     react-native-svg: ^13.9.0
-    react-native-video: ^6.0.0-beta.5
+    react-native-video: ^6.7.0
     react-native-voip-push-notification: ~3.3.1
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
@@ -8037,8 +7980,8 @@ __metadata:
     "@notifee/react-native": 7.8.0
     "@react-native-community/netinfo": 9.3.9
     "@react-native-community/push-notification-ios": 1.11.0
-    "@react-native-firebase/app": 17.5.0
-    "@react-native-firebase/messaging": 17.5.0
+    "@react-native-firebase/app": 19.2.2
+    "@react-native-firebase/messaging": 19.2.2
     "@react-native/eslint-config": ^0.74.84
     "@stream-io/react-native-webrtc": 118.1.0
     "@stream-io/video-client": "workspace:*"
@@ -8056,8 +7999,7 @@ __metadata:
     expo: 50.0.19
     expo-build-properties: ^0.12.3
     expo-modules-core: 1.12.16
-    expo-notifications: ~0.27.8
-    expo-task-manager: ~11.7.3
+    expo-notifications: ~0.28.18
     intl-pluralrules: 2.0.1
     jest: ^29.7.0
     lodash.merge: ^4.6.2
@@ -8088,7 +8030,6 @@ __metadata:
     expo: ">=47.0.0"
     expo-build-properties: "*"
     expo-notifications: "*"
-    expo-task-manager: "*"
     react: ">=17.0.0"
     react-native: ">=0.67.0"
     react-native-callkeep: ">=4.3.11"
@@ -8113,8 +8054,6 @@ __metadata:
     expo-build-properties:
       optional: true
     expo-notifications:
-      optional: true
-    expo-task-manager:
       optional: true
     react-native-callkeep:
       optional: true
@@ -14204,15 +14143,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-application@npm:~5.8.0":
-  version: 5.8.4
-  resolution: "expo-application@npm:5.8.4"
-  peerDependencies:
-    expo: "*"
-  checksum: 80b0055e76c01a3c7a9068accc5016c4fb999fbbe037191b5d6a6a34e72246a919bfb46b0ecafbf84b9595092cf87b36c61ff5e4b5e99516b9293769eba2181f
-  languageName: node
-  linkType: hard
-
 "expo-application@npm:~5.9.0":
   version: 5.9.1
   resolution: "expo-application@npm:5.9.1"
@@ -14412,24 +14342,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-notifications@npm:~0.27.8":
-  version: 0.27.8
-  resolution: "expo-notifications@npm:0.27.8"
-  dependencies:
-    "@expo/image-utils": ^0.4.0
-    "@ide/backoff": ^1.0.0
-    abort-controller: ^3.0.0
-    assert: ^2.0.0
-    badgin: ^1.1.5
-    expo-application: ~5.8.0
-    expo-constants: ~15.4.0
-    fs-extra: ^9.1.0
-  peerDependencies:
-    expo: "*"
-  checksum: b6582598c99883e71ddef2a958e77efb0c4254b6e5fa375b885971dbc042db099c264b9f8ae2ad82b7039327fa768cf85dcda98b462912eb4d87b2ed52a4fb28
-  languageName: node
-  linkType: hard
-
 "expo-notifications@npm:~0.28.18":
   version: 0.28.18
   resolution: "expo-notifications@npm:0.28.18"
@@ -14507,28 +14419,6 @@ __metadata:
   version: 1.12.1
   resolution: "expo-status-bar@npm:1.12.1"
   checksum: 82f2e9096660cdb521b920662908b93e1909c2bbe776802c314dff6e0863300d19ba4b9e093825b2bdc094f333010df0b8ed11fcb330e4c29a16c2d55da0aa96
-  languageName: node
-  linkType: hard
-
-"expo-task-manager@npm:~11.7.3":
-  version: 11.7.3
-  resolution: "expo-task-manager@npm:11.7.3"
-  dependencies:
-    unimodules-app-loader: ~4.5.0
-  peerDependencies:
-    expo: "*"
-  checksum: 340425019bc6ad48c9cecc4f5dd4fdbf1388e14f06f525f546fc421abe2cc8eaee76b067f94156a784d677ef43970fe279f4661eee3d9c77e85aaa14dfe8fa6b
-  languageName: node
-  linkType: hard
-
-"expo-task-manager@npm:~11.8.2":
-  version: 11.8.2
-  resolution: "expo-task-manager@npm:11.8.2"
-  dependencies:
-    unimodules-app-loader: ~4.6.0
-  peerDependencies:
-    expo: "*"
-  checksum: ebc0ebb23ce357cfe8be1c19bf781551ea71b40aac69b85814558cf9233b36596241c7b905512bcc174f148aa7d66cd67d2c755747ee16d1359264fc6376ac81
   languageName: node
   linkType: hard
 
@@ -21312,7 +21202,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"opencollective-postinstall@npm:^2.0.1, opencollective-postinstall@npm:^2.0.3":
+"opencollective-postinstall@npm:^2.0.3":
   version: 2.0.3
   resolution: "opencollective-postinstall@npm:2.0.3"
   bin:
@@ -22894,7 +22784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:^3.7.0, react-native-reanimated@npm:~3.10.1":
+"react-native-reanimated@npm:~3.10.1":
   version: 3.10.1
   resolution: "react-native-reanimated@npm:3.10.1"
   dependencies:
@@ -22914,7 +22804,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-safe-area-context@npm:4.10.5, react-native-safe-area-context@npm:^4.4.1":
+"react-native-safe-area-context@npm:4.10.5":
   version: 4.10.5
   resolution: "react-native-safe-area-context@npm:4.10.5"
   peerDependencies:
@@ -22924,7 +22814,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:3.31.1, react-native-screens@npm:^3.29.0":
+"react-native-screens@npm:3.31.1":
   version: 3.31.1
   resolution: "react-native-screens@npm:3.31.1"
   dependencies:
@@ -22974,13 +22864,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-video@npm:^6.0.0-beta.5":
-  version: 6.0.0-beta.5
-  resolution: "react-native-video@npm:6.0.0-beta.5"
+"react-native-video@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "react-native-video@npm:6.7.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 7c9828f6704ee4d6bdde05e7b0ec69c292e09359cf763e1138761a1d577151a6d325219f4fc63c3b63a49a5ff630e8e2f4625d29c61921bee117f9842fa7848e
+  checksum: ad8b321ef5ac078fededcafa63d7a21fada7c13ecaf34cd795058868ef386791347ba3e5b6f320aa7ab6bf95bcb0b3958cfca540a0675c8c57fdeaf2e828b1cf
   languageName: node
   linkType: hard
 
@@ -26355,20 +26245,6 @@ __metadata:
     trough: ^1.0.0
     vfile: ^4.0.0
   checksum: 7c24461be7de4145939739ce50d18227c5fbdf9b3bc5a29dabb1ce26dd3e8bd4a1c385865f6f825f3b49230953ee8b591f23beab3bb3643e3e9dc37aa8a089d5
-  languageName: node
-  linkType: hard
-
-"unimodules-app-loader@npm:~4.5.0":
-  version: 4.5.1
-  resolution: "unimodules-app-loader@npm:4.5.1"
-  checksum: 3f2f353b6eb632ba45c5d5214d6037231ae8442938796fe5fb5b7a5d4b0eff05b6d35cd58d085777e4b1e32a675a99d315de12a4140e55994a0239f909f4ba6d
-  languageName: node
-  linkType: hard
-
-"unimodules-app-loader@npm:~4.6.0":
-  version: 4.6.0
-  resolution: "unimodules-app-loader@npm:4.6.0"
-  checksum: 20897153b02f5436d51090ae30863950abec6a0438e460f4e5561bd155273c2a6eea626d1135fc8b07f5a57c1969e24f89b4ae4d5df198266ee88719db10444d
   languageName: node
   linkType: hard
 

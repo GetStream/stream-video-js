@@ -1,7 +1,5 @@
-import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
-import { setupRemoteNotificationsHandleriOS } from '../push/ios';
 import newNotificationCallbacks, {
   NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
@@ -66,11 +64,18 @@ export class StreamVideoRN {
       // Ignoring this config as push config was already set
       return;
     }
+    if (
+      __DEV__ &&
+      (pushConfig.navigateAcceptCall || pushConfig.navigateToIncomingCall)
+    ) {
+      throw new Error(
+        `Support for navigateAcceptCall or navigateToIncomingCall in pushConfig has been removed.
+        Please watch for incoming and outgoing calls in the root component of your app.
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`
+      );
+    }
+
     this.config.push = pushConfig;
-    // After getting the config we should setup callkeep events, firebase handler asap to handle incoming calls from a dead state
-    setupFirebaseHandlerAndroid(pushConfig);
-    // setup ios handler for non-voip push notifications asap
-    setupRemoteNotificationsHandleriOS(pushConfig);
   }
 
   static getConfig() {
