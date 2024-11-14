@@ -236,7 +236,7 @@ export class Publisher extends BasePeerConnection {
       onNegotiationComplete,
     );
 
-    const track = transceiver.sender.track;
+    const track = transceiver.sender.track.clone();
     this.addTransceiver(trackType, track, publishOption);
   };
 
@@ -411,10 +411,12 @@ export class Publisher extends BasePeerConnection {
   };
 
   private onNegotiationNeeded = () => {
-    this.negotiate().catch((err) => {
-      this.logger('error', `Negotiation failed.`, err);
-      this.onUnrecoverableError?.();
-    });
+    withoutConcurrency('publisher.negotiate', () => this.negotiate()).catch(
+      (err) => {
+        this.logger('error', `Negotiation failed.`, err);
+        this.onUnrecoverableError?.();
+      },
+    );
   };
 
   /**
