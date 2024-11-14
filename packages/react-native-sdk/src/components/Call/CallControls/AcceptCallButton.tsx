@@ -57,7 +57,7 @@ export const AcceptCallButton = ({
   return (
     <CallControlsButton
       onPress={acceptCallHandler}
-      color={colors.iconSuccess}
+      color={colors.buttonSuccess}
       size={buttonSizes.md}
       style={acceptCallButton}
     >

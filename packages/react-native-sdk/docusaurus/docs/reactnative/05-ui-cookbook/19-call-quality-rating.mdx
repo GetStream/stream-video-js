@@ -69,7 +69,7 @@ const FeedbackModal: = () => {
               <TouchableOpacity onPress={onClose} style={[styles.closeButton]}>
                 <IconWrapper>
                   <Close
-                    color={colors.textSecondary}
+                    color={colors.iconPrimary}
                     size={variants.roundButtonSizes.sm}
                   />
                 </IconWrapper>
@@ -94,7 +94,7 @@ const FeedbackModal: = () => {
                   color={
                     selectedRating && selectedRating >= rating
                       ? colors.iconSuccess
-                      : colors.textSecondary
+                      : colors.iconPrimary
                   }
                 />
               </TouchableOpacity>

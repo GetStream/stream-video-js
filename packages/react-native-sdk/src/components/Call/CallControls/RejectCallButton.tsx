@@ -79,7 +79,7 @@ export const RejectCallButton = ({
   return (
     <CallControlsButton
       onPress={rejectCallHandler}
-      color={colors.iconWarning}
+      color={colors.buttonWarning}
       size={size ?? buttonSizes.md}
       // TODO: check what to do about this random style prop
       // svgContainerStyle={theme.icon.lg}

@@ -49,7 +49,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               <TouchableOpacity onPress={onClose} style={[styles.closeButton]}>
                 <IconWrapper>
                   <Close
-                    color={colors.textSecondary} // fix this
+                    color={colors.iconPrimary}
                     size={variants.roundButtonSizes.sm}
                   />
                 </IconWrapper>
@@ -78,7 +78,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     color={
                       selectedRating && selectedRating >= rating
                         ? colors.iconSuccess
-                        : colors.textSecondary
+                        : colors.iconPrimary
                     }
                     size={68}
                   />

@@ -69,7 +69,7 @@ export const Avatar = (props: AvatarProps) => {
           height: size,
           width: size,
         },
-        { backgroundColor: colors.buttonPrimary },
+        { backgroundColor: colors.primary },
         avatar.container,
         styleProp?.container,
       ]}

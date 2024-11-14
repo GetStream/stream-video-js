@@ -50,7 +50,7 @@ export const ScreenShareToggleButton = ({
     <CallControlsButton
       onPress={onPress}
       color={
-        hasPublishedScreenShare ? colors.iconWarning : colors.buttonSecondary
+        hasPublishedScreenShare ? colors.buttonWarning : colors.buttonSecondary
       }
       style={{
         container: screenShareToggleButton.container,

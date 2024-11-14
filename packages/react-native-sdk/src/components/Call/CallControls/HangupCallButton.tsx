@@ -68,13 +68,13 @@ export const HangUpCallButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={colors.iconWarning}
+      color={colors.buttonWarning}
       style={hangupCallButton}
       size={size}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
       <IconWrapper>
-        <PhoneDown color={colors.textPrimary} size={variants.iconSizes.md} />
+        <PhoneDown color={colors.iconPrimary} size={variants.iconSizes.md} />
       </IconWrapper>
     </CallControlsButton>
   );

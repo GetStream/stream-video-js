@@ -47,7 +47,7 @@ export const LobbyFooter = ({
     <View style={[styles.mainContainer, lobby.infoContainer]}>
       <View style={styles.textContainer}>
         <View style={styles.iconContainer}>
-          <Lock color={colors.textPrimary} size={variants.iconSizes.md} />
+          <Lock color={colors.iconPrimary} size={variants.iconSizes.md} />
         </View>
         <Text
           style={[

@@ -53,9 +53,9 @@ export const LivestreamVideoControlButton = () => {
       >
         <IconWrapper>
           {!optimisticIsMute ? (
-            <Video color={colors.textPrimary} size={iconSizes.md} />
+            <Video color={colors.iconPrimary} size={iconSizes.md} />
           ) : (
-            <VideoSlash color={colors.textPrimary} size={iconSizes.md} />
+            <VideoSlash color={colors.iconPrimary} size={iconSizes.md} />
           )}
         </IconWrapper>
       </View>

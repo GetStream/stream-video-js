@@ -31,7 +31,7 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
               },
             ]}
           >
-            <Back color={colors.textPrimary} />
+            <Back color={colors.iconPrimary} />
           </Pressable>
         </View>
       )}
