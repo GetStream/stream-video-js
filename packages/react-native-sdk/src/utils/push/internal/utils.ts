@@ -112,7 +112,7 @@ export const processCallFromPush = async (
       }
       await callFromPush.join();
     } else if (action === 'decline') {
-      await callFromPush.leave({ reject: true });
+      await callFromPush.leave({ reject: true, reason: 'decline' });
     }
   } catch (e) {
     const logger = getLogger(['processCallFromPush']);

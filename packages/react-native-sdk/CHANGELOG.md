@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.0...@stream-io/video-react-native-sdk-1.3.1) (2024-11-14)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.1`
+* `@stream-io/video-react-bindings` updated to version `1.1.18`
+
+### Bug Fixes
+
+* reject was not called on timeout, decline and cancel scenarios ([#1576](https://github.com/GetStream/stream-video-js/issues/1576)) ([8be76a4](https://github.com/GetStream/stream-video-js/commit/8be76a447729aeba7f5c68f8a9bb85b4738cb76d))
+
 ## [1.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.2.15...@stream-io/video-react-native-sdk-1.3.0) (2024-11-13)
 
 
