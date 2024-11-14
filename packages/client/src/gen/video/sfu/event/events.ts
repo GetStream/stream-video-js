@@ -3,29 +3,25 @@
 // @generated from protobuf file "video/sfu/event/events.proto" (package "stream.video.sfu.event", syntax proto3)
 // tslint:disable
 import { MessageType } from '@protobuf-ts/runtime';
-import {
-  CallEndedReason,
-  CallGrants,
-  CallState,
-  ClientDetails,
-  Codec,
-  ConnectionQuality,
-  Error as Error$,
-  GoAwayReason,
-  ICETrickle as ICETrickle$,
-  Participant,
-  ParticipantCount,
-  PeerType,
-  Pin,
-  PublishOption,
-  PublishOptions,
-  TrackInfo,
-  TrackType,
-  TrackUnpublishReason,
-  WebsocketReconnectStrategy,
-} from '../models/models';
+import { CallEndedReason } from '../models/models';
+import { GoAwayReason } from '../models/models';
+import { CallGrants } from '../models/models';
+import { Codec } from '../models/models';
+import { ConnectionQuality } from '../models/models';
+import { CallState } from '../models/models';
 import { TrackSubscriptionDetails } from '../signal_rpc/signal';
-
+import { TrackInfo } from '../models/models';
+import { ClientDetails } from '../models/models';
+import { TrackUnpublishReason } from '../models/models';
+import { Participant } from '../models/models';
+import { TrackType } from '../models/models';
+import { ParticipantCount } from '../models/models';
+import { PeerType } from '../models/models';
+import { WebsocketReconnectStrategy } from '../models/models';
+import { Error as Error$ } from '../models/models';
+import { Pin } from '../models/models';
+import { PublishOption } from '../models/models';
+import { ICETrickle as ICETrickle$ } from '../models/models';
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
  *
@@ -508,9 +504,9 @@ export interface JoinRequest {
    */
   reconnectDetails?: ReconnectDetails;
   /**
-   * @generated from protobuf field: stream.video.sfu.models.Codec preferred_codec = 9;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption preferred_publish_options = 9;
    */
-  preferredCodec?: Codec;
+  preferredPublishOptions: PublishOption[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ReconnectDetails
@@ -577,9 +573,9 @@ export interface JoinResponse {
    */
   fastReconnectDeadlineSeconds: number;
   /**
-   * @generated from protobuf field: stream.video.sfu.models.PublishOptions publish_options = 4;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption publish_options = 4;
    */
-  publishOptions?: PublishOptions;
+  publishOptions: PublishOption[];
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -1313,7 +1309,13 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         kind: 'message',
         T: () => ReconnectDetails,
       },
-      { no: 9, name: 'preferred_codec', kind: 'message', T: () => Codec },
+      {
+        no: 9,
+        name: 'preferred_publish_options',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => PublishOption,
+      },
     ]);
   }
 }
@@ -1421,7 +1423,8 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         no: 4,
         name: 'publish_options',
         kind: 'message',
-        T: () => PublishOptions,
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => PublishOption,
       },
     ]);
   }

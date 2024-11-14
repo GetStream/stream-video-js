@@ -92,7 +92,7 @@ import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
   Codec,
-  PublishOptions,
+  PublishOption,
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
@@ -204,7 +204,7 @@ export class Call {
   private readonly dispatcher = new Dispatcher();
 
   private clientPublishOptions?: ClientPublishOptions;
-  private initialPublishOptions?: PublishOptions;
+  private initialPublishOptions?: PublishOption[];
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -803,7 +803,9 @@ export class Call {
           clientDetails,
           fastReconnect: performingFastReconnect,
           reconnectDetails,
-          preferredCodec: this.getPreferredCodec(publishingCapabilitiesSdp),
+          preferredPublishOptions: this.getPreferredCodec(
+            publishingCapabilitiesSdp,
+          ),
         });
 
       this.initialPublishOptions = publishOptions;
@@ -836,7 +838,7 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
-        publishOptions: this.initialPublishOptions!,
+        publishOptions: this.initialPublishOptions || [],
         closePreviousInstances: !performingMigration,
       });
     }
@@ -906,20 +908,25 @@ export class Call {
    * This is an experimental client feature and subject to change.
    * @internal
    */
-  private getPreferredCodec = (sdp: string): Codec | undefined => {
+  private getPreferredCodec = (sdp: string): PublishOption[] => {
     const { preferredCodec } = this.clientPublishOptions || {};
-    if (!preferredCodec) return;
+    if (!preferredCodec) return [];
 
     const codec = findCodec(`video/${preferredCodec}`);
-    if (!codec) return;
+    if (!codec) return [];
 
     const { clockRate, mimeType, sdpFmtpLine } = codec;
-    return Codec.create({
-      name: preferredCodec, // e.g. 'vp9'
-      fmtp: sdpFmtpLine || '',
-      clockRate: clockRate,
-      payloadType: getPayloadTypeForCodec(sdp, mimeType, sdpFmtpLine),
-    });
+    return [
+      PublishOption.create({
+        trackType: TrackType.VIDEO,
+        codec: Codec.create({
+          name: preferredCodec, // e.g. 'vp9'
+          fmtp: sdpFmtpLine || '',
+          clockRate: clockRate,
+          payloadType: getPayloadTypeForCodec(sdp, mimeType, sdpFmtpLine),
+        }),
+      }),
+    ];
   };
 
   /**
@@ -960,7 +967,7 @@ export class Call {
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
     clientDetails: ClientDetails;
-    publishOptions: PublishOptions;
+    publishOptions: PublishOption[];
     closePreviousInstances: boolean;
   }) => {
     const {

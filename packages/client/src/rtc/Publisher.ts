@@ -5,7 +5,6 @@ import {
 import {
   PeerType,
   PublishOption,
-  PublishOptions,
   TrackInfo,
   TrackType,
   VideoLayer,
@@ -25,7 +24,7 @@ import { TargetResolutionResponse } from '../gen/shims';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
-  publishOptions: PublishOptions;
+  publishOptions: PublishOption[];
 };
 
 /**
@@ -49,7 +48,7 @@ export class Publisher extends BasePeerConnection {
   private readonly unsubscribeChangePublishOptions: () => void;
   private unsubscribeCodecNegotiationComplete?: () => void;
 
-  private publishOptions: PublishOptions;
+  private publishOptions: PublishOption[];
 
   /**
    * Constructs a new `Publisher` instance.
@@ -90,11 +89,10 @@ export class Publisher extends BasePeerConnection {
       ({ publishOption }) => {
         withoutConcurrency('publisher.changePublishOptions', async () => {
           if (!publishOption) return;
-          this.publishOptions.codecs = this.publishOptions.codecs.map(
-            (option) =>
-              option.trackType === publishOption.trackType
-                ? publishOption
-                : option,
+          this.publishOptions = this.publishOptions.map((option) =>
+            option.trackType === publishOption.trackType
+              ? publishOption
+              : option,
           );
           if (this.isPublishing(publishOption.trackType)) {
             this.switchCodec(publishOption);
@@ -539,8 +537,9 @@ export class Publisher extends BasePeerConnection {
   };
 
   private getPublishOptionFor = (trackType: TrackType) => {
-    const options = this.publishOptions.codecs;
-    const publishOption = options.find((o) => o.trackType === trackType);
+    const publishOption = this.publishOptions.find(
+      (option) => option.trackType === trackType,
+    );
     if (!publishOption) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);
     }

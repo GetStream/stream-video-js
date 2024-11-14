@@ -5,7 +5,6 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
-
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -193,15 +192,6 @@ export interface VideoLayer {
    * @generated from protobuf field: stream.video.sfu.models.VideoQuality quality = 6;
    */
   quality: VideoQuality;
-}
-/**
- * @generated from protobuf message stream.video.sfu.models.PublishOptions
- */
-export interface PublishOptions {
-  /**
-   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption codecs = 1;
-   */
-  codecs: PublishOption[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.PublishOption
@@ -1102,24 +1092,6 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
  * @generated MessageType for protobuf message stream.video.sfu.models.VideoLayer
  */
 export const VideoLayer = new VideoLayer$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class PublishOptions$Type extends MessageType<PublishOptions> {
-  constructor() {
-    super('stream.video.sfu.models.PublishOptions', [
-      {
-        no: 1,
-        name: 'codecs',
-        kind: 'message',
-        repeat: 1 /*RepeatType.PACKED*/,
-        T: () => PublishOption,
-      },
-    ]);
-  }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.PublishOptions
- */
-export const PublishOptions = new PublishOptions$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PublishOption$Type extends MessageType<PublishOption> {
   constructor() {
