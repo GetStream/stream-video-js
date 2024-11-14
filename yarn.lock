@@ -7810,6 +7810,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/video-client@npm:1.11.1":
+  version: 1.11.1
+  resolution: "@stream-io/video-client@npm:1.11.1"
+  dependencies:
+    "@protobuf-ts/runtime": ^2.9.4
+    "@protobuf-ts/runtime-rpc": ^2.9.4
+    "@protobuf-ts/twirp-transport": ^2.9.4
+    "@types/ws": ^8.5.7
+    axios: ^1.6.0
+    base64-js: ^1.5.1
+    isomorphic-ws: ^5.0.0
+    rxjs: ~7.8.1
+    sdp-transform: ^2.14.1
+    ua-parser-js: ^1.0.36
+    webrtc-adapter: ^8.2.3
+    ws: ^8.14.2
+  checksum: 309c403beb5e010bcee31e1d59b5d825f3ca25c3ae79237a2340a44c364c770e07c9de11eef6c7dbbb34981dbf9ecb4c1a1489f208972d5389383cb53dea9ebb
+  languageName: node
+  linkType: hard
+
 "@stream-io/video-client@workspace:*, @stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
@@ -7899,6 +7919,19 @@ __metadata:
     vite: ^5.4.6
   languageName: unknown
   linkType: soft
+
+"@stream-io/video-react-bindings@npm:1.1.18":
+  version: 1.1.18
+  resolution: "@stream-io/video-react-bindings@npm:1.1.18"
+  dependencies:
+    i18next: ^23.5.1
+    rxjs: ~7.8.1
+  peerDependencies:
+    "@stream-io/video-client": ^1.11.1
+    react: ^17 || ^18 || ^19
+  checksum: 32a443713ffe45fb4a117a7420c998a9c6eee703dad8d2ba0e1364363edb492776ead7c6910eeb3f1dc92d7798632b1b5d074c93d9225f1296aa72af540efcb1
+  languageName: node
+  linkType: hard
 
 "@stream-io/video-react-bindings@workspace:*, @stream-io/video-react-bindings@workspace:packages/react-bindings":
   version: 0.0.0-use.local
@@ -8041,9 +8074,9 @@ __metadata:
     "@react-native-firebase/messaging": 17.5.0
     "@react-native/eslint-config": ^0.74.84
     "@stream-io/react-native-webrtc": 118.1.0
-    "@stream-io/video-client": "workspace:*"
+    "@stream-io/video-client": 1.11.1
     "@stream-io/video-filters-react-native": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:*"
+    "@stream-io/video-react-bindings": 1.1.18
     "@testing-library/jest-native": ^5.4.2
     "@testing-library/react-native": ^12.1.2
     "@tsconfig/node14": 14.1.0
