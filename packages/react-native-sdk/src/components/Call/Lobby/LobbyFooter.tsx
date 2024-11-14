@@ -2,11 +2,7 @@ import React, { useMemo } from 'react';
 import { LobbyProps } from './Lobby';
 import { View, StyleSheet, Text } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Lock } from '../../../icons/Lock';
 
 /**
@@ -30,9 +26,18 @@ export const LobbyFooter = ({
   const styles = useStyles();
   const { useCallSession } = useCallStateHooks();
   const { t } = useI18n();
-  const call = useCall();
   const session = useCallSession();
   const participantsCount = session?.participants.length;
+
+  const participantsText = useMemo(() => {
+    if (!participantsCount) {
+      return t('Currently there are no other participants in the call.');
+    }
+    if (participantsCount === 1) {
+      return t(`There is ${participantsCount} more person in the call.`);
+    }
+    return t(`There are ${participantsCount} more people in the call.`);
+  }, [participantsCount, t]);
 
   return (
     <View style={[styles.mainContainer, lobby.infoContainer]}>
@@ -47,18 +52,7 @@ export const LobbyFooter = ({
             lobby.infoText,
           ]}
         >
-          {t('You are about to join a call with id {{ callId }}.', {
-            callId: call?.id,
-          }) +
-            ' ' +
-            (participantsCount
-              ? t(
-                  '{{ numberOfParticipants }} participant(s) are in the call.',
-                  {
-                    numberOfParticipants: participantsCount,
-                  }
-                )
-              : t('You are first to join the call.'))}
+          {t('You are about to join a call.') + ' ' + participantsText}
         </Text>
       </View>
       {JoinCallButton && (
