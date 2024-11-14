@@ -49,14 +49,25 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const videoCodecOverride = router.query['video_codec'] as
     | PreferredCodec
     | undefined;
+  const bitrateOverride = router.query['bitrate'] as string | undefined;
+  const maxSimulcastLayers = router.query['max_simulcast_layers'] as
+    | string
+    | undefined;
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
+        const preferredBitrate = bitrateOverride
+          ? parseInt(bitrateOverride, 10)
+          : undefined;
         call.updatePublishOptions({
           preferredCodec: videoCodecOverride || 'vp9',
+          preferredBitrate,
+          maxSimulcastLayers: maxSimulcastLayers
+            ? parseInt(maxSimulcastLayers, 10)
+            : 3, // default to 3
         });
         await call.join({ create: true });
         setShow('active-call');
@@ -66,7 +77,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, videoCodecOverride],
+    [bitrateOverride, call, maxSimulcastLayers, videoCodecOverride],
   );
 
   const onLeave = useCallback(

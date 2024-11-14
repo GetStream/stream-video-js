@@ -162,6 +162,14 @@ export type ClientPublishOptions = {
    */
   preferredCodec?: PreferredCodec;
   /**
+   * The preferred bitrate to use when publishing the video stream.
+   */
+  preferredBitrate?: number;
+  /**
+   * The maximum number of simulcast layers to use when publishing the video stream.
+   */
+  maxSimulcastLayers?: number;
+  /**
    * Screen share settings.
    */
   screenShareSettings?: ScreenShareSettings;

@@ -803,7 +803,7 @@ export class Call {
           clientDetails,
           fastReconnect: performingFastReconnect,
           reconnectDetails,
-          preferredPublishOptions: this.getPreferredCodec(
+          preferredPublishOptions: this.getPreferredCodecs(
             publishingCapabilitiesSdp,
           ),
         });
@@ -908,23 +908,29 @@ export class Call {
    * This is an experimental client feature and subject to change.
    * @internal
    */
-  private getPreferredCodec = (sdp: string): PublishOption[] => {
-    const { preferredCodec } = this.clientPublishOptions || {};
-    if (!preferredCodec) return [];
+  private getPreferredCodecs = (sdp: string): PublishOption[] => {
+    const { preferredCodec, preferredBitrate, maxSimulcastLayers } =
+      this.clientPublishOptions || {};
+    if (!preferredCodec || !preferredBitrate || !maxSimulcastLayers) return [];
 
+    let sfuCodec: Codec | undefined;
     const codec = findCodec(`video/${preferredCodec}`);
-    if (!codec) return [];
+    if (codec) {
+      const { clockRate, mimeType, sdpFmtpLine } = codec;
+      sfuCodec = Codec.create({
+        name: preferredCodec, // e.g. 'vp9'
+        fmtp: sdpFmtpLine || '',
+        clockRate: clockRate,
+        payloadType: getPayloadTypeForCodec(sdp, mimeType, sdpFmtpLine),
+      });
+    }
 
-    const { clockRate, mimeType, sdpFmtpLine } = codec;
     return [
       PublishOption.create({
         trackType: TrackType.VIDEO,
-        codec: Codec.create({
-          name: preferredCodec, // e.g. 'vp9'
-          fmtp: sdpFmtpLine || '',
-          clockRate: clockRate,
-          payloadType: getPayloadTypeForCodec(sdp, mimeType, sdpFmtpLine),
-        }),
+        codec: sfuCodec,
+        bitrate: preferredBitrate,
+        maxSpatialLayers: maxSimulcastLayers,
       }),
     ];
   };
