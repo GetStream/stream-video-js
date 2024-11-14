@@ -911,7 +911,7 @@ export class Call {
   private getPreferredCodecs = (sdp: string): PublishOption[] => {
     const { preferredCodec, preferredBitrate, maxSimulcastLayers } =
       this.clientPublishOptions || {};
-    if (!preferredCodec || !preferredBitrate || !maxSimulcastLayers) return [];
+    if (!preferredCodec && !preferredBitrate && !maxSimulcastLayers) return [];
 
     let sfuCodec: Codec | undefined;
     const codec = findCodec(`video/${preferredCodec}`);
