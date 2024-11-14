@@ -146,7 +146,7 @@ export const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  topContainer: { flex: 1 },
+  topContainer: { flex: 1, justifyContent: 'center' },
   incomingCallText: {
     marginTop: 8,
     textAlign: 'center',

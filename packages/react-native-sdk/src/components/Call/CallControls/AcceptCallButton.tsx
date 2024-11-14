@@ -2,7 +2,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { getLogger } from '@stream-io/video-client';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { Phone } from '../../../icons';
+import { IconWrapper, Phone } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -34,7 +34,7 @@ export const AcceptCallButton = ({
   const {
     theme: {
       colors,
-      variants: { buttonSizes },
+      variants: { buttonSizes, iconSizes },
       acceptCallButton,
     },
   } = useTheme();
@@ -58,10 +58,12 @@ export const AcceptCallButton = ({
     <CallControlsButton
       onPress={acceptCallHandler}
       color={colors.iconSuccess}
-      size={buttonSizes.lg}
+      size={buttonSizes.md}
       style={acceptCallButton}
     >
-      <Phone color={colors.textPrimary} />
+      <IconWrapper>
+        <Phone color={colors.iconPrimary} size={iconSizes.lg} />
+      </IconWrapper>
     </CallControlsButton>
   );
 };

@@ -105,7 +105,7 @@ const Background = () => {
       <View
         style={[
           styles.background,
-          { backgroundColor: colors.sheetTertiary },
+          { backgroundColor: colors.sheetSecondary },
           outgoingCall.background,
         ]}
       />
@@ -115,7 +115,7 @@ const Background = () => {
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.sheetTertiary },
+        { backgroundColor: colors.sheetSecondary },
         outgoingCall.background,
       ]}
     >
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  topContainer: { flex: 1 },
+  topContainer: { flex: 1, justifyContent: 'center' },
   content: {
     flex: 1,
   },

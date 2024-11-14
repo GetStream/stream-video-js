@@ -1,7 +1,7 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { PhoneDown } from '../../../icons';
+import { IconWrapper, PhoneDown } from '../../../icons';
 import { CallingState, getLogger } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
@@ -80,12 +80,14 @@ export const RejectCallButton = ({
     <CallControlsButton
       onPress={rejectCallHandler}
       color={colors.iconWarning}
-      size={size ?? buttonSizes.lg}
+      size={size ?? buttonSizes.md}
       // TODO: check what to do about this random style prop
       // svgContainerStyle={theme.icon.lg}
       style={rejectCallButton}
     >
-      <PhoneDown color={colors.iconPrimary} size={iconSizes.md} />
+      <IconWrapper>
+        <PhoneDown color={colors.iconPrimary} size={iconSizes.lg} />
+      </IconWrapper>
     </CallControlsButton>
   );
 };
