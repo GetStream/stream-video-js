@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { type MutableRefObject, useEffect, useRef } from 'react';
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
@@ -18,7 +18,10 @@ const defaultDevice = 'default';
  *
  * @param key the key to use for local storage.
  */
-const usePersistDevicePreferences = (key: string) => {
+const usePersistDevicePreferences = (
+  key: string,
+  shouldPersistRef: MutableRefObject<boolean>,
+) => {
   const { useMicrophoneState, useCameraState, useSpeakerState } =
     useCallStateHooks();
   const call = useCall();
@@ -26,6 +29,7 @@ const usePersistDevicePreferences = (key: string) => {
   const camera = useCameraState();
   const speaker = useSpeakerState();
   useEffect(() => {
+    if (!shouldPersistRef.current) return;
     if (!call) return;
     if (call.state.callingState === CallingState.LEFT) return;
     try {
@@ -55,6 +59,7 @@ const usePersistDevicePreferences = (key: string) => {
     mic.isMute,
     mic.selectedDevice,
     speaker.selectedDevice,
+    shouldPersistRef,
   ]);
 };
 
@@ -63,15 +68,21 @@ const usePersistDevicePreferences = (key: string) => {
  *
  * @param key the key to use for local storage.
  */
-const useApplyDevicePreferences = (key: string) => {
+const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
   const call = useCall();
+  const onAppliedRef = useRef(onApplied);
+  onAppliedRef.current = onApplied;
   useEffect(() => {
     if (!call) return;
     if (call.state.callingState === CallingState.LEFT) return;
 
+    let cancel = false;
+
     const apply = async () => {
       const initMic = async (setting: LocalDevicePreference) => {
+        if (cancel) return;
         await call.microphone.select(parseDeviceId(setting.selectedDeviceId));
+        if (cancel) return;
         if (setting.muted) {
           await call.microphone.disable();
         } else {
@@ -80,7 +91,9 @@ const useApplyDevicePreferences = (key: string) => {
       };
 
       const initCamera = async (setting: LocalDevicePreference) => {
+        if (cancel) return;
         await call.camera.select(parseDeviceId(setting.selectedDeviceId));
+        if (cancel) return;
         if (setting.muted) {
           await call.camera.disable();
         } else {
@@ -89,6 +102,7 @@ const useApplyDevicePreferences = (key: string) => {
       };
 
       const initSpeaker = (setting: LocalDevicePreference) => {
+        if (cancel) return;
         call.speaker.select(parseDeviceId(setting.selectedDeviceId) ?? '');
       };
 
@@ -107,9 +121,15 @@ const useApplyDevicePreferences = (key: string) => {
       }
     };
 
-    apply().catch((err) => {
-      console.warn('Failed to apply device preferences', err);
-    });
+    apply()
+      .then(() => onAppliedRef.current())
+      .catch((err) => {
+        console.warn('Failed to apply device preferences', err);
+      });
+
+    return () => {
+      cancel = true;
+    };
   }, [call, key]);
 };
 
@@ -121,8 +141,9 @@ const useApplyDevicePreferences = (key: string) => {
 export const usePersistedDevicePreferences = (
   key: string = '@stream-io/device-preferences',
 ) => {
-  useApplyDevicePreferences(key);
-  usePersistDevicePreferences(key);
+  const shouldPersistRef = useRef(false);
+  useApplyDevicePreferences(key, () => (shouldPersistRef.current = true));
+  usePersistDevicePreferences(key, shouldPersistRef);
 };
 
 const parseDeviceId = (deviceId: string) =>

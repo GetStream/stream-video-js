@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.0...@stream-io/video-client-1.11.1) (2024-11-14)
+
+
+### Bug Fixes
+
+* reject was not called on timeout, decline and cancel scenarios ([#1576](https://github.com/GetStream/stream-video-js/issues/1576)) ([8be76a4](https://github.com/GetStream/stream-video-js/commit/8be76a447729aeba7f5c68f8a9bb85b4738cb76d))
+
 ## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.5...@stream-io/video-client-1.11.0) (2024-11-13)
 
 
