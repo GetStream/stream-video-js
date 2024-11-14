@@ -32,9 +32,6 @@ PODS:
   - MMKV (1.3.9):
     - MMKVCore (~> 1.3.9)
   - MMKVCore (1.3.9)
-  - PromisesObjC (2.4.0)
-  - PromisesSwift (2.4.0):
-    - PromisesObjC (= 2.4.0)
   - RCT-Folly (2022.05.16.00):
     - boost
     - DoubleConversion
@@ -917,11 +914,14 @@ PODS:
     - React-Core
   - react-native-safe-area-context (4.10.5):
     - React-Core
-  - react-native-video (6.0.0-beta.5):
+  - react-native-video (6.7.0):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
     - React-Core
-    - react-native-video/Video (= 6.0.0-beta.5)
-  - react-native-video/Video (6.0.0-beta.5):
-    - PromisesSwift
+    - react-native-video/Video (= 6.7.0)
+  - react-native-video/Video (6.7.0):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - React-nativeconfig (0.73.4)
   - React-NativeModulesApple (0.73.4):
@@ -1148,7 +1148,7 @@ PODS:
   - stream-react-native-webrtc (125.0.0-rc.1):
     - React-Core
     - WebRTC-SDK (~> 125.6422.05)
-  - stream-video-react-native (1.2.12):
+  - stream-video-react-native (1.2.14):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1244,8 +1244,6 @@ SPEC REPOS:
     - libevent
     - MMKV
     - MMKVCore
-    - PromisesObjC
-    - PromisesSwift
     - SocketRocket
     - TOCropViewController
     - WebRTC-SDK
@@ -1412,8 +1410,6 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   MMKV: 817ba1eea17421547e01e087285606eb270a8dcb
   MMKVCore: af055b00e27d88cd92fad301c5fecd1ff9b26dd9
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: ab7f915c15569f04a49669e573e6e319a53f9faa
   RCTTypeSafety: 63b97ced7b766865057e7154db0e81ce4ee6cf1e
@@ -1440,7 +1436,7 @@ SPEC CHECKSUMS:
   react-native-mmkv: 7da5e18e55c04a9af9a7e0ab9792a1e8d33765a1
   react-native-netinfo: 299dad906cdbf3b67bcc6f693c807f98bdd127cc
   react-native-safe-area-context: a240ad4b683349e48b1d51fed1611138d1bdad97
-  react-native-video: df7d8a4c8568ed4a31b28e6cd2bfa4a98b186e36
+  react-native-video: d3f78ea2b7ed6bf8f0b8d16a9d3bbe19f73bcbca
   React-nativeconfig: ca8b90c736cf3be019cb332ca42d93dd95b32e05
   React-NativeModulesApple: 1fdffcce7772e274baeab33a1900f45feba86cbd
   React-perflogger: 8a1e1af5733004bdd91258dcefbde21e0d1faccd
@@ -1479,7 +1475,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-io-video-filters-react-native: 8c345e6adf5164646696d45f9962c4199b2fe3b9
   stream-react-native-webrtc: 976646e6e3643d331fc4da20e4be04ea16af295b
-  stream-video-react-native: f6aa195dbaf9f72945ad2d16d709dc1e40ceee2b
+  stream-video-react-native: 99eb88b52009b0687c3e9d8600e924ba789490dd
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   WebRTC-SDK: 1990a1a595bd0b59c17485ce13ff17f575732c12
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312

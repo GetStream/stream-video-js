@@ -519,20 +519,15 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      if (reject && this.ringing) {
-        // I'm the one who started the call, so I should cancel it.
-        const hasOtherParticipants = this.state.remoteParticipants.length > 0;
-        if (
-          this.isCreatedByMe &&
-          !hasOtherParticipants &&
-          callingState === CallingState.RINGING
-        ) {
-          // Signals other users that I have cancelled my call to them
-          // before they accepted it.
-          await this.reject();
-        } else if (callingState === CallingState.RINGING) {
-          // Signals other users that I have rejected the incoming call.
-          await this.reject();
+      if (callingState === CallingState.RINGING) {
+        if (reject) {
+          await this.reject(reason);
+        } else {
+          const hasOtherParticipants = this.state.remoteParticipants.length > 0;
+          if (this.isCreatedByMe && !hasOtherParticipants) {
+            // I'm the one who started the call, so I should cancel it when there are no other participants.
+            await this.reject('cancel');
+          }
         }
       }
 
@@ -729,6 +724,7 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallData): Promise<void> => {
+    const connectStartTime = Date.now();
     await this.setup();
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
@@ -797,11 +793,11 @@ export class Call {
           : undefined;
       const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
         subscriberSdp: receivingCapabilitiesSdp,
+        publisherSdp: '',
         clientDetails,
         fastReconnect: performingFastReconnect,
         reconnectDetails,
       });
-
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
@@ -832,6 +828,16 @@ export class Call {
         clientDetails,
         statsOptions,
         closePreviousInstances: !performingMigration,
+      });
+    }
+
+    // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
+    if (!performingRejoin && !performingFastReconnect && !performingMigration) {
+      this.sfuStatsReporter?.sendTelemetryData({
+        data: {
+          oneofKind: 'connectionTimeSeconds',
+          connectionTimeSeconds: (Date.now() - connectStartTime) / 1000,
+        },
       });
     }
 
@@ -1134,9 +1140,19 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
+    let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
-    return this.join(this.joinCallData);
+    await this.join(this.joinCallData);
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: WebsocketReconnectStrategy.FAST,
+        },
+      },
+    });
   };
 
   /**
@@ -1144,11 +1160,21 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
+    let reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: WebsocketReconnectStrategy.REJOIN,
+        },
+      },
+    });
   };
 
   /**
@@ -1156,6 +1182,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
+    let reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
       throw new Error('Cannot migrate without an active SFU client');
@@ -1200,6 +1227,15 @@ export class Call {
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close();
     }
+    this.sfuStatsReporter?.sendTelemetryData({
+      data: {
+        oneofKind: 'reconnection',
+        reconnection: {
+          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
+          strategy: WebsocketReconnectStrategy.MIGRATE,
+        },
+      },
+    });
   };
 
   /**
@@ -1964,13 +2000,16 @@ export class Call {
         // ignore if the call is not ringing
         if (this.state.callingState !== CallingState.RINGING) return;
 
-        const timeoutInMs = settings.ring.auto_cancel_timeout_ms;
+        const timeoutInMs = this.isCreatedByMe
+          ? settings.ring.auto_cancel_timeout_ms
+          : settings.ring.incoming_call_timeout_ms;
+
         // 0 means no auto-drop
         if (timeoutInMs <= 0) return;
 
         clearTimeout(this.dropTimeout);
         this.dropTimeout = setTimeout(() => {
-          this.leave({ reason: 'ring: timeout' }).catch((err) => {
+          this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
             this.logger('error', 'Failed to drop call', err);
           });
         }, timeoutInMs);

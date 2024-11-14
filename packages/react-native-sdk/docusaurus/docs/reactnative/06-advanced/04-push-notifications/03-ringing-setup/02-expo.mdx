@@ -148,37 +148,88 @@ React Native Firebase Messaging automatically registers the device with APNs to 
 }
 ```
 
-## Setup the push config for the SDK
+## Add Firebase message handlers
+To process the incoming push notifications, the SDK provides the utility functions that you must add to your existing or new Firebase notification listeners. Below is the snippet of how to add the firebase listeners:
 
-The SDK automatically processes the incoming push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,
+```ts title="src/utils/setFirebaseListeners.ts"
+import messaging from '@react-native-firebase/messaging';
+import {
+  isFirebaseStreamVideoMessage,
+  firebaseDataHandler,
+  onAndroidNotifeeEvent,
+  isNotifeeStreamVideoEvent,
+} from '@stream-io/video-react-native-sdk';
 
-### Add the ability to statically navigate to screens in your app
-
-When a user taps on the push notification and the JS engine is not ready, they should still be able to navigate to the screen that shows the active call. You can achieve this by using [imperative navigation in the expo router](https://docs.expo.dev/routing/navigating-pages/#imperative-navigation).
-
-The following is an example implementation of a utility file that has helpers to statically navigate in the app:
-
-```ts title="src/utils/staticNavigation.ts"
-import { User } from '@stream-io/video-react-native-sdk';
-import { router } from 'expo-router';
-
-/**
- * This is used to run the navigation logic from root level
- */
-export const staticNavigateToRingingCall = () => {
-  const intervalId = setInterval(async () => {
-    // add any requirements here (like authentication)
-    if (GlobalState.hasAuthentication) {
-      clearInterval(intervalId);
-      router.push('/ringing');
+export const setFirebaseListeners = () => {
+  // Set up the background message handler
+  messaging().setBackgroundMessageHandler(async (msg) => {
+    if (isFirebaseStreamVideoMessage(msg)) {
+      await firebaseDataHandler(msg.data);
+    } else {
+      // your other background notifications (if any)
     }
-  }, 300);
+  });
+
+  // on press handlers of background notifications
+  notifee.onBackgroundEvent(async (event) => {
+    if (isNotifeeStreamVideoEvent(event)) {
+      await onAndroidNotifeeEvent({ event, isBackground: true });
+    } else {
+      // your other background notifications (if any)
+    }
+  });
+
+  // Optionally: set up the foreground message handler
+  messaging().onMessage((msg) => {
+    if (isFirebaseStreamVideoMessage(msg)) {
+      firebaseDataHandler(msg.data);
+    } else {
+      // your other foreground notifications (if any)
+    }
+  });
+  //  Optionally: on press handlers of foreground notifications
+  notifee.onForegroundEvent((event) => {
+    if (isNotifeeStreamVideoEvent(event)) {
+      onAndroidNotifeeEvent({ event, isBackground: false });
+    } else {
+      // your other foreground notifications (if any)
+    }
+  });
 };
 ```
 
-### Setup the push config
+**The Firebase message handlers**
+* The `onMessage` handler should not be added if you do not want notifications to show up when the app is in the foreground. When the app is in foreground, you would automatically see the incoming call screen.
+* The `isFirebaseStreamVideoMessage` method is used to check if this push message is a video related message. And only this needs to be processed by the SDK.
+* The `firebaseDataHandler` method is the callback to be invoked to process the message. This callback reads the message and uses the `@notifee/react-native` library to display push notifications.
 
-Once we have set up the methods to navigate the app from a static method we are ready to call the `StreamVideoRN.setPushConfig` method. Below is an example of how this method can be called,
+**The Notifee event handlers**
+* The `onForegroundEvent` handler should not be added if you did not add foreground notifications above.
+* The `isNotifeeStreamVideoEvent` method is used to check if the event was a video related notifee event. And only this needs to be processed by the SDK.
+* The `onAndroidNotifeeEvent` method is the callback to be invoked to process the event. This callback reads the event and makes sure that the call is accepted or declined.
+
+:::infoNOTE
+If you had disabled the initialization of Firebase on iOS, add the above method only for Android using the Platform-specific extensions for React Native.
+
+For example, say you add the following files in your project:
+
+```
+setFirebaseListeners.android.ts
+setFirebaseListeners.ts
+```
+
+The method above must only be added to the file that `.android` extension. The other file must add the method but do nothing like below:
+
+```ts title="setFirebaseListeners.ts"
+export const setFirebaseListeners = () => {
+  // do nothing
+};
+```
+:::
+
+## Setup the push notifications configuration for the SDK
+
+The SDK automatically processes the incoming push notifications once the setup above is done if the push notifications configuration has been set using `StreamVideoRN.setPushConfig`. Below is an example of how this method can be called,
 
 ```ts title="src/utils/setPushConfig.ts"
 import {
@@ -188,7 +239,6 @@ import {
 import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STREAM_API_KEY } from '../../constants';
-import { staticNavigateToRingingCall } from './staticNavigationUtils';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -221,15 +271,6 @@ export function setPushConfig() {
         getBody: (_createdUserName: string) => 'Tap to answer the call',
       },
     },
-    // add the callback to be executed a call is accepted, used for navigation
-    navigateAcceptCall: () => {
-      staticNavigateToRingingCall();
-    },
-    // add the callback to be executed when a notification is tapped,
-    // but the user did not press accept or decline, used for navigation
-    navigateToIncomingCall: () => {
-      staticNavigateToRingingCall();
-    },
     // add the async callback to create a video client
     // for incoming calls in the background on a push notification
     createStreamVideoClient: async () => {
@@ -251,18 +292,30 @@ export function setPushConfig() {
 }
 ```
 
-Now, call the method outside of your application cycle. That is inside `index.js`. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
+## Call the created methods outside of the application lifecycle
+
+Call the methods we have created outside of your application cycle. That is inside `index.js` or the equivalent entry point file. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the configuration and notification callbacks as soon as the JS bridge is initialized. 
+
+Following is an example,
 
 ```js title="index.js"
 import 'expo-router/entry';
-import { setPushConfig } from './utils/setPushConfig';
+// highlight-next-line
+import { setPushConfig } from 'src/utils/setPushConfig';
+// highlight-next-line
+import { setFirebaseListeners } from 'src/utils/setFirebaseListeners';
 
+// Set push config
+// highlight-next-line
 setPushConfig();
+// Set the firebase listeners
+// highlight-next-line
+setFirebaseListeners();
 ```
 
-## Request for notification permissions
+## Request for notification permissions in Android
 
-At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions in Expo:
+At an appropriate place in your app, request for notification permissions from the user on Android. Below is a small example of how to request permissions in Expo:
 
 ```js
 import {PermissionsAndroid} from 'react-native';
@@ -291,8 +344,16 @@ For all apps being installed on Android 14 and above, the Google Play Store revo
 If the `USE_FULL_SCREEN_INTENT` permission is not granted, the notification will show up as an expanded heads up notification on the lock screen.
 :::
 
+## Show the incoming and outgoing call UI when app is on the foreground
+
+The last part of the setup for ringing calls is to show the incoming and outgoing call UIs in the app whenever there is a ringing call. If this was not implemented before, please headover to [this page](../../../ringing-calls/#watch-for-incoming-and-outgoing-calls) of our documentation to implement that.
+
 ## Troubleshooting
 
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
 - You can check the "Webhook & Push Logs" section in the [Stream Dashboard](https://dashboard.getstream.io/) to see if Notifications were sent by Stream.
 - If you are still having trouble with Push Notifications, please submit a ticket to us at [support](https://getstream.io/contact/support/).
+
+### Closed notification behavior on Android
+
+On Android, users can set certain OS-level settings, usually revolving around performance and battery optimization, that can prevent notifications from being delivered when the app is in a killed state. For example, one such setting is the **Deep Clear** option on OnePlus devices using Android 9 and lower versions.

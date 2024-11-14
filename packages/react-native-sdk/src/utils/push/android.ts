@@ -1,4 +1,3 @@
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import {
   Call,
   RxUtils,
@@ -12,11 +11,10 @@ import type {
 } from '../StreamVideoRN/types';
 import {
   getFirebaseMessagingLib,
-  getFirebaseMessagingLibNoThrow,
   getExpoNotificationsLib,
-  getExpoTaskManagerLib,
   getNotifeeLibThrowIfNotInstalledForPush,
   NotifeeLib,
+  FirebaseMessagingTypes,
 } from './libs';
 import {
   pushAcceptedIncomingCallCId$,
@@ -25,15 +23,16 @@ import {
   pushNonRingingCallData$,
   pushUnsubscriptionCallbacks$,
   pushAndroidBackgroundDeliveredIncomingCallCId$,
-} from './rxSubjects';
+} from './internal/rxSubjects';
 import {
   canAddPushWSSubscriptionsRef,
   clearPushWSEventSubscriptions,
   processCallFromPushInBackground,
   shouldCallBeEnded,
-} from './utils';
+} from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { getAndroidDefaultRingtoneUrl } from '../getAndroidDefaultRingtoneUrl';
+import { StreamVideoRN } from '../StreamVideoRN';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -47,89 +46,6 @@ type onBackgroundEventFunctionParams = Parameters<
 type Event = Parameters<onBackgroundEventFunctionParams>[0];
 
 let lastFirebaseToken = { token: '', userId: '' };
-
-//  EventType = NotifeeLib['EventType'];
-
-/** Setup Firebase push message handler **/
-export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
-  if (Platform.OS !== 'android') {
-    return;
-  }
-  if (pushConfig.isExpo) {
-    const messaging = getFirebaseMessagingLibNoThrow(true);
-    if (messaging) {
-      // handles on app killed state in expo, expo-notifications cannot handle that
-      messaging().setBackgroundMessageHandler(
-        async (msg) =>
-          await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
-      );
-      messaging().onMessage((msg) =>
-        firebaseMessagingOnMessageHandler(msg.data, pushConfig)
-      ); // this is to listen to foreground messages, which we dont need for now
-    } else {
-      const Notifications = getExpoNotificationsLib();
-      const TaskManager = getExpoTaskManagerLib();
-      const BACKGROUND_NOTIFICATION_TASK =
-        'STREAM-VIDEO-SDK-INTERNAL-BACKGROUND-NOTIFICATION-TASK';
-
-      TaskManager.defineTask(
-        BACKGROUND_NOTIFICATION_TASK,
-        ({ data, error }) => {
-          if (error) {
-            return;
-          }
-          // @ts-ignore
-          const dataToProcess = data.notification?.data;
-          firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
-        }
-      );
-      // background handler (does not handle on app killed state)
-      Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
-      // foreground handler
-      Notifications.setNotificationHandler({
-        handleNotification: async (notification) => {
-          // @ts-ignore
-          const trigger = notification?.request?.trigger;
-          if (trigger.type === 'push') {
-            const data = trigger?.remoteMessage?.data;
-            if (data?.sender === 'stream.video') {
-              await firebaseMessagingOnMessageHandler(data, pushConfig);
-              return {
-                shouldShowAlert: false,
-                shouldPlaySound: false,
-                shouldSetBadge: false,
-              };
-            }
-          }
-          return {
-            shouldShowAlert: true,
-            shouldPlaySound: false,
-            shouldSetBadge: false,
-          };
-        },
-      });
-    }
-  } else {
-    const messaging = getFirebaseMessagingLib();
-    messaging().setBackgroundMessageHandler(
-      async (msg) =>
-        await firebaseMessagingOnMessageHandler(msg.data, pushConfig)
-    );
-    messaging().onMessage((msg) =>
-      firebaseMessagingOnMessageHandler(msg.data, pushConfig)
-    ); // this is to listen to foreground messages, which we dont need for now
-  }
-
-  // the notification tap handlers are always registered with notifee for both expo and non-expo in android
-  const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-  const notifee = notifeeLib.default;
-  notifee.onBackgroundEvent(async (event) => {
-    await onNotifeeEvent(event, pushConfig, true);
-  });
-  notifee.onForegroundEvent((event) => {
-    onNotifeeEvent(event, pushConfig, false);
-  });
-}
 
 /** Send token to stream, create notification channel,  */
 export async function initAndroidPushToken(
@@ -184,10 +100,14 @@ export async function initAndroidPushToken(
   }
 }
 
-const firebaseMessagingOnMessageHandler = async (
-  data: FirebaseMessagingTypes.RemoteMessage['data'],
-  pushConfig: PushConfig
+/**
+ * Creates notification from the push message data.
+ * For Ringing and Non-Ringing calls.
+ */
+export const firebaseDataHandler = async (
+  data: FirebaseMessagingTypes.RemoteMessage['data']
 ) => {
+  if (Platform.OS !== 'android') return;
   /* Example data from firebase
     "message": {
         "data": {
@@ -203,7 +123,8 @@ const firebaseMessagingOnMessageHandler = async (
         // other stuff
     }
   */
-  if (!data || data.sender !== 'stream.video') {
+  const pushConfig = StreamVideoRN.getConfig().push;
+  if (!pushConfig || !data || data.sender !== 'stream.video') {
     return;
   }
 
@@ -377,16 +298,25 @@ const firebaseMessagingOnMessageHandler = async (
   }
 };
 
-const onNotifeeEvent = async (
-  event: Event,
-  pushConfig: PushConfig,
-  isBackground: boolean
-) => {
+export const onAndroidNotifeeEvent = async ({
+  event,
+  isBackground,
+}: {
+  event: Event;
+  isBackground: boolean;
+}) => {
+  if (Platform.OS !== 'android') return;
   const { type, detail } = event;
   const { notification, pressAction } = detail;
   const notificationId = notification?.id;
   const data = notification?.data;
-  if (!data || !notificationId || data.sender !== 'stream.video') {
+  const pushConfig = StreamVideoRN.getConfig().push;
+  if (
+    !pushConfig ||
+    !data ||
+    !notificationId ||
+    data.sender !== 'stream.video'
+  ) {
     return;
   }
 
@@ -443,7 +373,6 @@ const onNotifeeEvent = async (
   } else {
     const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
     if (type === notifeeLib.EventType.PRESS) {
-      pushTappedIncomingCallCId$.next(call_cid);
       pushConfig.onTapNonRingingCallNotification?.(
         call_cid,
         data.type as NonRingingPushEvent

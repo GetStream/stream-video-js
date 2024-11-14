@@ -197,6 +197,10 @@ export type PublishOptions = {
    */
   bitrateDownscaleFactor?: number;
   /**
+   * The maximum number of simulcast layers to use when publishing the video stream.
+   */
+  maxSimulcastLayers?: number;
+  /**
    * Screen share settings.
    */
   screenShareSettings?: ScreenShareSettings;

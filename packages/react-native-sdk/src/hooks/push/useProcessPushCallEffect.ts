@@ -3,7 +3,7 @@ import {
   pushAndroidBackgroundDeliveredIncomingCallCId$,
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
-} from '../../utils/push/rxSubjects';
+} from '../../utils/push/internal/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
 import {
@@ -12,7 +12,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { processCallFromPush } from '../../utils/push/utils';
+import { processCallFromPush } from '../../utils/push/internal/utils';
 import { StreamVideoClient } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 
@@ -92,11 +92,6 @@ const createCallSubscription = (
     .pipe(filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
       await processCallFromPush(client, callCId, action, pushConfig);
-      if (action === 'accept') {
-        pushConfig.navigateAcceptCall();
-      } else if (action === 'pressed' || action === 'backgroundDelivered') {
-        pushConfig.navigateToIncomingCall();
-      }
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
     });
 };
