@@ -2,6 +2,29 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.14...@stream-io/video-react-sdk-1.7.15) (2024-11-13)
+
+
+### Bug Fixes
+
+* race conditions in usePersistedDevicePreferences ([#1575](https://github.com/GetStream/stream-video-js/issues/1575)) ([08aacc4](https://github.com/GetStream/stream-video-js/commit/08aacc4e35920e30d9f091ba9207ecf757d86796))
+
+## [1.7.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.13...@stream-io/video-react-sdk-1.7.14) (2024-11-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.0`
+* `@stream-io/video-react-bindings` updated to version `1.1.17`
+## [1.7.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.12...@stream-io/video-react-sdk-1.7.13) (2024-11-12)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-web` updated to version `0.1.6`
+
+### Bug Fixes
+
+* reset background blur level when filter is disabled ([#1570](https://github.com/GetStream/stream-video-js/issues/1570)) ([d0a0b24](https://github.com/GetStream/stream-video-js/commit/d0a0b242f482eecad9f41741a42747d1d5b6d0fe))
+
 ## [1.7.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.11...@stream-io/video-react-sdk-1.7.12) (2024-11-08)
 
 ### Dependency Updates

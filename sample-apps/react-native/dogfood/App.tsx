@@ -32,6 +32,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LogBox, StyleSheet } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import {
+  isPushNotificationiOSStreamVideoEvent,
+  onPushNotificationiOSStreamVideoEvent,
+} from '@stream-io/video-react-native-sdk';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -56,6 +61,17 @@ const StackNavigator = () => {
 
   useProntoLinkEffect();
   useSyncPermissions();
+
+  useEffect(() => {
+    PushNotificationIOS.addEventListener('notification', (notification) => {
+      if (isPushNotificationiOSStreamVideoEvent(notification)) {
+        onPushNotificationiOSStreamVideoEvent(notification);
+      }
+    });
+    return () => {
+      PushNotificationIOS.removeEventListener('notification');
+    };
+  }, []);
 
   let mode;
   switch (appMode) {
