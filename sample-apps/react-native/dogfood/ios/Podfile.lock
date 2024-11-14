@@ -1145,7 +1145,7 @@ PODS:
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
     - stream-react-native-webrtc
-  - stream-react-native-webrtc (125.0.0-alpha.3):
+  - stream-react-native-webrtc (125.0.0-rc.1):
     - React-Core
     - WebRTC-SDK (~> 125.6422.05)
   - stream-video-react-native (1.2.14):
@@ -1482,4 +1482,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: f96321cd21f8fa84788658bc6649718343f705b3
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.14.3
