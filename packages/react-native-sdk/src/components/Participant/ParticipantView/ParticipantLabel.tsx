@@ -133,7 +133,9 @@ export const ParticipantLabel = ({
           </Pressable>
         )}
         <View style={styles.indicatorWrapper}>
-          <SpeechIndicator isSpeaking={participant.isSpeaking} />
+          <SpeechIndicator
+            isSpeaking={!isAudioMuted && participant.isDominantSpeaker}
+          />
         </View>
       </View>
     </View>
@@ -163,22 +165,26 @@ const useStyles = () => {
         },
         userNameLabel: {
           flexShrink: 1,
-          marginTop: 2,
+          marginTop: 3,
           fontSize: 13,
           fontWeight: '400',
           color: theme.colors.textPrimary,
         },
         screenShareIconContainer: {
           marginRight: theme.variants.spacingSizes.sm,
+          justifyContent: 'center',
         },
         audioMutedIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
         },
         videoMutedIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
         },
         pinIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
         },
       }),
     [theme]
