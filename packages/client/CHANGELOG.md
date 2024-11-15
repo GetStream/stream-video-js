@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.1...@stream-io/video-client-1.11.2) (2024-11-14)
+
+
+### Bug Fixes
+
+* fully reset token manager on user disconnect ([#1578](https://github.com/GetStream/stream-video-js/issues/1578)) ([6751abc](https://github.com/GetStream/stream-video-js/commit/6751abc0507085bd7c9f3f803f4c5929e0598bea)), closes [#1573](https://github.com/GetStream/stream-video-js/issues/1573)
+
 ## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.0...@stream-io/video-client-1.11.1) (2024-11-14)
 
 
