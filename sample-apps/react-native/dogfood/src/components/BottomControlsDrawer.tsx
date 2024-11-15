@@ -167,7 +167,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     >
       <Text style={styles.handIconContainer}>
         <RaiseHand
-          color={theme.colors.iconPrimaryDefault}
+          color={theme.colors.iconPrimary}
           size={theme.variants.roundButtonSizes.sm}
         />
       </Text>
@@ -248,7 +248,7 @@ const useStyles = () => {
         dragIndicatorBar: {
           width: 36,
           height: 5,
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           borderRadius: 2,
         },
         emojiContainer: {
@@ -256,7 +256,7 @@ const useStyles = () => {
           height: variants.roundButtonSizes.lg,
           padding: variants.spacingSizes.xs,
           borderRadius: variants.borderRadiusSizes.lg,
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           marginBottom: variants.spacingSizes.sm,
           alignItems: 'center',
           justifyContent: 'center',
@@ -278,7 +278,7 @@ const useStyles = () => {
           borderRadius: variants.borderRadiusSizes.lg,
           paddingHorizontal: variants.spacingSizes.md,
           height: variants.roundButtonSizes.lg,
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           marginBottom: variants.spacingSizes.xs,
         },
         raiseHand: {
@@ -290,7 +290,7 @@ const useStyles = () => {
           borderRadius: variants.borderRadiusSizes.lg,
           paddingHorizontal: variants.spacingSizes.md,
           height: variants.roundButtonSizes.lg,
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           marginBottom: variants.spacingSizes.sm,
         },
         iconContainer: {
@@ -302,7 +302,7 @@ const useStyles = () => {
         },
         label: {
           fontSize: variants.fontSizes.md,
-          color: colors.iconPrimaryDefault,
+          color: colors.iconPrimary,
           fontWeight: '600',
         },
         screen: {

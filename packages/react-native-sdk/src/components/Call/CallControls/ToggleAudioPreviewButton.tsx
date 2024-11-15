@@ -43,22 +43,18 @@ export const ToggleAudioPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={
-        !optimisticIsMute
-          ? colors.buttonSecondaryDefault
-          : colors.buttonSecondaryWarningDefault
-      }
+      color={!optimisticIsMute ? colors.buttonSecondary : colors.buttonWarning}
       size={buttonSizes.md}
       style={{
-        container: { ...toggleAudioPreviewButton.container },
+        container: toggleAudioPreviewButton.container,
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >
       <IconWrapper>
         {!optimisticIsMute ? (
-          <Mic color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+          <Mic color={colors.iconPrimary} size={defaults.iconSize} />
         ) : (
-          <MicOff color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+          <MicOff color={colors.iconPrimary} size={defaults.iconSize} />
         )}
       </IconWrapper>
     </CallControlsButton>

@@ -1,10 +1,16 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { PinVertical, ScreenShareIndicator } from '../../../icons';
+import {
+  MicOff,
+  PinVertical,
+  ScreenShareIndicator,
+  VideoSlash,
+} from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
+import { hasAudio, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 import SpeechIndicator from './SpeechIndicator';
 
@@ -31,6 +37,8 @@ export const ParticipantLabel = ({
       participantLabel: {
         container,
         userNameLabel,
+        audioMutedIconContainer,
+        videoMutedIconContainer,
         pinIconContainer,
         screenShareIconContainer,
       },
@@ -44,6 +52,8 @@ export const ParticipantLabel = ({
 
   const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
+  const isAudioMuted = !hasAudio(participant);
+  const isVideoMuted = !hasVideo(participant);
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);
@@ -71,12 +81,12 @@ export const ParticipantLabel = ({
             screenShareIconContainer,
           ]}
         >
-          <ScreenShareIndicator color={colors.iconPrimaryDefault} />
+          <ScreenShareIndicator color={colors.iconPrimary} />
         </View>
         <Text
           style={[
             styles.userNameLabel,
-            { color: colors.typePrimary },
+            { color: colors.textPrimary },
             typefaces.caption,
             userNameLabel,
           ]}
@@ -100,22 +110,34 @@ export const ParticipantLabel = ({
         <Text style={[styles.userNameLabel, userNameLabel]} numberOfLines={1}>
           {participantLabel}
         </Text>
+        {isAudioMuted && (
+          <View
+            style={[styles.audioMutedIconContainer, audioMutedIconContainer]}
+          >
+            <MicOff color={colors.iconPrimary} size={iconSizes.sm} />
+          </View>
+        )}
+        {isVideoMuted && (
+          <View
+            style={[styles.videoMutedIconContainer, videoMutedIconContainer]}
+          >
+            <VideoSlash color={colors.iconPrimary} size={iconSizes.sm} />
+          </View>
+        )}
+        {isPinningEnabled && (
+          <Pressable
+            style={[styles.pinIconContainer, pinIconContainer]}
+            onPress={unPinParticipantHandler}
+          >
+            <PinVertical color={colors.iconPrimary} size={iconSizes.sm} />
+          </Pressable>
+        )}
         <View style={styles.indicatorWrapper}>
-          <SpeechIndicator isSpeaking={participant.isSpeaking} />
+          <SpeechIndicator
+            isSpeaking={!isAudioMuted && participant.isDominantSpeaker}
+          />
         </View>
       </View>
-      {isPinningEnabled && (
-        <Pressable
-          style={[
-            styles.pinIconContainer,
-            { height: iconSizes.xs, width: iconSizes.xs },
-            pinIconContainer,
-          ]}
-          onPress={unPinParticipantHandler}
-        >
-          <PinVertical color={colors.iconPrimaryDefault} />
-        </Pressable>
-      )}
     </View>
   );
 };
@@ -143,22 +165,26 @@ const useStyles = () => {
         },
         userNameLabel: {
           flexShrink: 1,
-          marginTop: 2,
+          marginTop: 3,
           fontSize: 13,
           fontWeight: '400',
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
         },
         screenShareIconContainer: {
           marginRight: theme.variants.spacingSizes.sm,
+          justifyContent: 'center',
         },
         audioMutedIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
         },
         videoMutedIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
         },
         pinIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
         },
       }),
     [theme]

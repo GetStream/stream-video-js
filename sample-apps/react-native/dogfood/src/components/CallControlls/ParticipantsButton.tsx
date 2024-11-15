@@ -58,10 +58,7 @@ export const ParticipantsButton = ({
     <CallControlsButton onPress={onParticipantInfoPress} style={chatButton}>
       <BadgeCountIndicator count={count} />
       <IconWrapper>
-        <Participants
-          color={colors.iconPrimaryDefault}
-          size={defaults.iconSize}
-        />
+        <Participants color={colors.iconPrimary} size={defaults.iconSize} />
       </IconWrapper>
     </CallControlsButton>
   );

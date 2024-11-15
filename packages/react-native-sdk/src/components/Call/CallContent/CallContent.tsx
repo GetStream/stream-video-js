@@ -41,10 +41,6 @@ export type StreamReactionType = StreamReaction & {
 type CallContentComponentProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
-     * Component to customize the CallTopView component.
-     */
-    CallTopView?: React.ComponentType<any> | null;
-    /**
      * Component to customize the CallControls component.
      */
     CallControls?: React.ComponentType<CallControlProps> | null;
@@ -93,7 +89,6 @@ export type CallContentProps = Pick<
 export const CallContent = ({
   onHangupCallHandler,
   CallParticipantsList,
-  CallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -198,9 +193,6 @@ export const CallContent = ({
       )}
       <View style={[styles.container, callContent.container]}>
         <View style={[styles.content, callContent.callParticipantsContainer]}>
-          {!isInPiPMode && CallTopView && (
-            <CallTopView onHangupCallHandler={onHangupCallHandler} />
-          )}
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches

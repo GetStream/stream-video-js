@@ -31,7 +31,7 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
               },
             ]}
           >
-            <Back color={colors.typePrimary} />
+            <Back color={colors.iconPrimary} />
           </Pressable>
         </View>
       )}
@@ -39,7 +39,7 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
         <Text
           style={[
             styles.text,
-            { color: colors.typePrimary },
+            { color: colors.textPrimary },
             typefaces.heading6,
           ]}
         >

@@ -87,7 +87,7 @@ const useStyles = (showMicLabel: boolean) => {
         },
         label: {
           textAlign: 'center',
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
         },
         callControlsWrapper: {
           display: 'flex',

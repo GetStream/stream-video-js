@@ -24,10 +24,6 @@ import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefau
  */
 export type IncomingCallProps = IncomingCallControlsProps & {
   /**
-   * Prop to customize the CallTopView component in the IncomingCall component.
-   */
-  CallTopView?: React.ComponentType<any> | null;
-  /**
    * Prop to customize the IncomingCall controls.
    */
   IncomingCallControls?: React.ComponentType<IncomingCallControlsProps> | null;
@@ -45,7 +41,6 @@ export type IncomingCallProps = IncomingCallControlsProps & {
 export const IncomingCall = ({
   onAcceptCallHandler,
   onRejectCallHandler,
-  CallTopView,
   IncomingCallControls = DefaultIncomingCallControls,
   landscape,
 }: IncomingCallProps) => {
@@ -62,7 +57,6 @@ export const IncomingCall = ({
 
   return (
     <Background>
-      {CallTopView && <CallTopView />}
       <View
         style={[styles.content, landscapeContentStyles, incomingCall.content]}
       >
@@ -71,7 +65,7 @@ export const IncomingCall = ({
           <Text
             style={[
               styles.incomingCallText,
-              { color: colors.typePrimary },
+              { color: colors.textPrimary },
               typefaces.heading6,
               incomingCall.incomingCallText,
             ]}
@@ -152,7 +146,7 @@ export const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  topContainer: { flex: 1 },
+  topContainer: { flex: 1, justifyContent: 'center' },
   incomingCallText: {
     marginTop: 8,
     textAlign: 'center',

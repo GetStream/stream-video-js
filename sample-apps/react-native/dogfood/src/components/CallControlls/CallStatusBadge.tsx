@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
-import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
+import { RecordCall } from '../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -70,9 +70,9 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
   const showRecordingIcon = isCallRecordingInProgress || isAwaitingResponse;
 
   const icon = showRecordingIcon ? (
-    <RecordCall color={colors.iconAlertWarning} size={iconSizes.md} />
+    <RecordCall color={colors.iconWarning} size={iconSizes.md} />
   ) : (
-    <CallDuration color={colors.iconAlertSuccess} size={iconSizes.md} />
+    <CallDuration color={colors.iconSuccess} size={iconSizes.sm} />
   );
 
   return (
@@ -91,7 +91,7 @@ const useStyles = (isLoading: boolean) => {
     () =>
       StyleSheet.create({
         container: {
-          backgroundColor: theme.colors.buttonSecondaryDefault,
+          backgroundColor: theme.colors.buttonSecondary,
           borderRadius: 8,
           flexDirection: 'row',
           height: 36,
@@ -102,7 +102,7 @@ const useStyles = (isLoading: boolean) => {
           width: isLoading ? 200 : 80,
         },
         text: {
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           fontSize: 14,
           fontWeight: '600',
           flexShrink: 0,

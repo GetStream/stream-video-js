@@ -15,7 +15,6 @@ import {
   floatingChildViewContainerStyle,
 } from './common';
 import { getLogger } from '@stream-io/video-client';
-import { useTheme } from '../../../..';
 
 const AnimatedFloatingView = ({
   initialAlignment,
@@ -30,7 +29,6 @@ const AnimatedFloatingView = ({
   const translateRef = useRef(new Animated.ValueXY());
   const opacity = useRef(new Animated.Value(0));
 
-  const { theme } = useTheme();
   const [rectangle, setRectangle] = React.useState<LayoutRectangle>();
 
   // we need to force update the component when the rectangle is available
@@ -60,7 +58,6 @@ const AnimatedFloatingView = ({
         width: rectangle.width,
         height: rectangle.height,
       },
-      topOffset: theme.floatingParticipantsView.topPosition,
     });
     const { x, y } = snapAlignments[initialAlignment];
     snapAlignmentsRef.current = snapAlignments;
@@ -69,7 +66,7 @@ const AnimatedFloatingView = ({
     opacity.current.setValue(1);
     forceUpdate();
     // any time the dependency changes, we need to snap to the new alignment
-  }, [initialAlignment, rectangle, containerWidth, containerHeight, theme]);
+  }, [initialAlignment, rectangle, containerWidth, containerHeight]);
 
   const panResponder = useRef(
     PanResponder.create({

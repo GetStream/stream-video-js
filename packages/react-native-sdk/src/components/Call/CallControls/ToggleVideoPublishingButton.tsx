@@ -46,20 +46,15 @@ export const ToggleVideoPublishingButton = ({
       <CallControlsButton
         onPress={onPress}
         color={
-          !optimisticIsMute
-            ? colors.buttonSecondaryDefault
-            : colors.iconAlertWarning
+          !optimisticIsMute ? colors.buttonSecondary : colors.buttonWarning
         }
       >
         <IconWrapper>
           {!optimisticIsMute ? (
-            <Video
-              color={colors.iconPrimaryDefault}
-              size={variants.iconSizes.md}
-            />
+            <Video color={colors.iconPrimary} size={variants.iconSizes.md} />
           ) : (
             <VideoSlash
-              color={colors.iconPrimaryDefault}
+              color={colors.iconPrimary}
               size={variants.iconSizes.md}
             />
           )}

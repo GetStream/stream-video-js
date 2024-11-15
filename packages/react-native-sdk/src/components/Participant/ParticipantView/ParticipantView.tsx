@@ -118,7 +118,7 @@ export const ParticipantView = ({
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
     styles.highligtedContainer,
-    { borderColor: colors.buttonPrimaryDefault },
+    { borderColor: colors.buttonPrimary },
     participantView.highligtedContainer,
   ];
 

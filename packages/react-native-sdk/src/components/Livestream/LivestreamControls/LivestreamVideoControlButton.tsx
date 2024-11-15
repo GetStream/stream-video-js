@@ -34,7 +34,7 @@ export const LivestreamVideoControlButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -53,9 +53,9 @@ export const LivestreamVideoControlButton = () => {
       >
         <IconWrapper>
           {!optimisticIsMute ? (
-            <Video color={colors.typePrimary} size={iconSizes.md} />
+            <Video color={colors.iconPrimary} size={iconSizes.md} />
           ) : (
-            <VideoSlash color={colors.typePrimary} size={iconSizes.md} />
+            <VideoSlash color={colors.iconPrimary} size={iconSizes.md} />
           )}
         </IconWrapper>
       </View>

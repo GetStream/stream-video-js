@@ -73,8 +73,8 @@ export const CallControlsButton = (
     styles.container,
     {
       backgroundColor: disabled
-        ? disabledColorProp || colors.buttonPrimaryDisabled
-        : colorProp || colors.buttonSecondaryDefault,
+        ? disabledColorProp || colors.buttonDisabled
+        : colorProp || colors.buttonSecondary,
       opacity: pressed ? 0.2 : 1,
       height: size || roundButtonSizes.lg,
       width: size || roundButtonSizes.lg,

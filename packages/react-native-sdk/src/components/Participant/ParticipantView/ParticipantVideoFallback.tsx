@@ -36,7 +36,7 @@ export const ParticipantVideoFallback = ({
       {!image ? (
         <Text
           style={[
-            { color: colors.typePrimary },
+            { color: colors.textPrimary },
             typefaces.bodyBold,
             participantVideoFallback.label,
           ]}

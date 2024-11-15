@@ -27,23 +27,11 @@ const useConnectionQualitySignalColors = (
 
   switch (connectionQuality) {
     case SfuModels.ConnectionQuality.EXCELLENT:
-      return [
-        colors.iconAlertSuccess,
-        colors.iconAlertSuccess,
-        colors.iconAlertSuccess,
-      ];
+      return [colors.iconSuccess, colors.iconSuccess, colors.iconSuccess];
     case SfuModels.ConnectionQuality.GOOD:
-      return [
-        colors.iconAlertSuccess,
-        colors.iconAlertSuccess,
-        colors.iconPrimaryDefault,
-      ];
+      return [colors.iconSuccess, colors.iconSuccess, colors.iconPrimary];
     case SfuModels.ConnectionQuality.POOR:
-      return [
-        colors.iconAlertWarning,
-        colors.iconPrimaryDefault,
-        colors.iconPrimaryDefault,
-      ];
+      return [colors.iconWarning, colors.iconPrimary, colors.iconPrimary];
     default:
       return null;
   }

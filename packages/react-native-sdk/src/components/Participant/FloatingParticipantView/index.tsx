@@ -79,7 +79,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
       ]}
     >
       <View style={{ height: iconSizes.md, width: iconSizes.md }}>
-        <VideoSlash color={colors.typePrimary} size={defaults.iconSize} />
+        <VideoSlash color={colors.iconPrimary} size={defaults.iconSize} />
       </View>
     </View>
   );

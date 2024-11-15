@@ -1,6 +1,6 @@
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { RecordCall } from '@stream-io/video-react-native-sdk/src/icons/RecordCall';
+import { RecordCall } from '../../assets/RecordCall';
 import React, { useMemo } from 'react';
 import {
   Modal,
@@ -55,7 +55,7 @@ export const CallRecordingModal: React.FC<CallRecordingModalProps> = ({
                 <View style={styles.iconContainer}>
                   <IconWrapper>
                     <RecordCall
-                      color={colors.iconAlertWarning}
+                      color={colors.iconWarning}
                       size={variants.roundButtonSizes.sm}
                     />
                   </IconWrapper>
@@ -121,13 +121,13 @@ const useStyles = (isEndRecordingModal: boolean) => {
           marginRight: theme.variants.spacingSizes.sm,
         },
         title: {
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           fontSize: theme.variants.fontSizes.lg,
           fontWeight: '600',
           textAlign: 'center',
         },
         message: {
-          color: theme.colors.typeSecondary,
+          color: theme.colors.textSecondary,
           fontSize: theme.variants.fontSizes.md,
           fontWeight: '400',
           textAlign: 'left',
@@ -147,16 +147,16 @@ const useStyles = (isEndRecordingModal: boolean) => {
           backgroundColor: theme.colors.sheetSecondary,
           height: 32,
           borderWidth: 1,
-          borderColor: theme.colors.buttonSecondaryHover,
+          borderColor: theme.colors.sheetTertiary,
         },
         confirmButton: {
           height: 32,
           backgroundColor: isEndRecordingModal
-            ? theme.colors.iconAlertWarning
-            : theme.colors.buttonPrimaryDefault,
+            ? theme.colors.iconWarning
+            : theme.colors.buttonPrimary,
         },
         buttonText: {
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           fontSize: 13,
           fontWeight: '600',
         },

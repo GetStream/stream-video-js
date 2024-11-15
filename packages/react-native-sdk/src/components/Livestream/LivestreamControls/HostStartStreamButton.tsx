@@ -116,8 +116,8 @@ export const HostStartStreamButton = ({
           backgroundColor: isAwaitingResponse
             ? colors.sheetTertiary
             : liveOrBroadcasting
-              ? colors.iconAlertWarning
-              : colors.buttonPrimaryDefault,
+              ? colors.buttonWarning
+              : colors.buttonPrimary,
         },
         hostStartStreamButton.container,
       ]}
@@ -144,7 +144,7 @@ export const HostStartStreamButton = ({
         style={[
           styles.text,
           typefaces.subtitleBold,
-          { color: colors.typePrimary },
+          { color: colors.textPrimary },
           hostStartStreamButton.text,
         ]}
       >

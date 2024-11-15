@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { LobbyProps } from './Lobby';
 import { View, StyleSheet, Text } from 'react-native';
-import { useI18n } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Lock } from '../../../icons/Lock';
 
 /**
@@ -23,25 +23,40 @@ export const LobbyFooter = ({
   const {
     theme: { colors, lobby, variants },
   } = useTheme();
-  const { t } = useI18n();
   const styles = useStyles();
+  const { useCallSession } = useCallStateHooks();
+  const { t } = useI18n();
+  const session = useCallSession();
+  const numberOfParticipants = session?.participants.length;
+
+  const participantsText = useMemo(() => {
+    if (!numberOfParticipants) {
+      return t('Currently there are no other participants in the call.');
+    }
+    if (numberOfParticipants === 1) {
+      return t('There is {{numberOfParticipants}} more person in the call.', {
+        numberOfParticipants,
+      });
+    }
+    return t('There are {{numberOfParticipants}} more people in the call.', {
+      numberOfParticipants,
+    });
+  }, [numberOfParticipants, t]);
 
   return (
     <View style={[styles.mainContainer, lobby.infoContainer]}>
       <View style={styles.textContainer}>
         <View style={styles.iconContainer}>
-          <Lock color={colors.typePrimary} size={variants.iconSizes.md} />
+          <Lock color={colors.iconPrimary} size={variants.iconSizes.md} />
         </View>
         <Text
           style={[
-            { color: colors.typePrimary },
+            { color: colors.textPrimary },
             styles.infoText,
             lobby.infoText,
           ]}
         >
-          {t(
-            "Start a private test call. This demo is built on Stream's SDKs and runs on our global edge network."
-          )}
+          {t('You are about to join a call.') + ' ' + participantsText}
         </Text>
       </View>
       {JoinCallButton && (

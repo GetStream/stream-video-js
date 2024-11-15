@@ -26,9 +26,7 @@ export const AudioButton = ({ onPressHandler }: AudioButtonProps) => {
   } = useTheme();
 
   const [isPressed, setIsPressed] = useState(false);
-  const buttonColor = isPressed
-    ? colors.buttonPrimaryDefault
-    : colors.buttonSecondaryDefault;
+  const buttonColor = isPressed ? colors.buttonPrimary : colors.buttonSecondary;
 
   return (
     <CallControlsButton
@@ -42,7 +40,7 @@ export const AudioButton = ({ onPressHandler }: AudioButtonProps) => {
       color={buttonColor}
     >
       <IconWrapper>
-        <Audio color={colors.iconPrimaryDefault} size={variants.iconSizes.md} />
+        <Audio color={colors.iconPrimary} size={variants.iconSizes.md} />
       </IconWrapper>
     </CallControlsButton>
   );

@@ -17,10 +17,6 @@ import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefau
  */
 export type OutgoingCallProps = OutgoingCallControlsProps & {
   /**
-   * Prop to customize the CallTopView component in the IncomingCall component.
-   */
-  CallTopView?: React.ComponentType<any> | null;
-  /**
    * Prop to customize the OutgoingCall controls.
    */
   OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
@@ -36,7 +32,6 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  * Used after the user has initiated a call.
  */
 export const OutgoingCall = ({
-  CallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
   landscape,
 }: OutgoingCallProps) => {
@@ -61,7 +56,6 @@ export const OutgoingCall = ({
           outgoingCall.container,
         ]}
       >
-        {CallTopView && <CallTopView />}
         <View
           style={[styles.content, landscapeContentStyles, outgoingCall.content]}
         >
@@ -70,7 +64,7 @@ export const OutgoingCall = ({
             <Text
               style={[
                 styles.callingText,
-                { color: colors.typePrimary },
+                { color: colors.textPrimary },
                 typefaces.heading6,
                 outgoingCall.callingText,
               ]}
@@ -111,7 +105,7 @@ const Background = () => {
       <View
         style={[
           styles.background,
-          { backgroundColor: colors.sheetTertiary },
+          { backgroundColor: colors.sheetSecondary },
           outgoingCall.background,
         ]}
       />
@@ -121,7 +115,7 @@ const Background = () => {
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.sheetTertiary },
+        { backgroundColor: colors.sheetSecondary },
         outgoingCall.background,
       ]}
     >
@@ -143,7 +137,7 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  topContainer: { flex: 1 },
+  topContainer: { flex: 1, justifyContent: 'center' },
   content: {
     flex: 1,
   },

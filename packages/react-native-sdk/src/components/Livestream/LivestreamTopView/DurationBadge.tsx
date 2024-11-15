@@ -139,7 +139,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
       <Text
         style={[
           styles.label,
-          { color: colors.typePrimary },
+          { color: colors.textPrimary },
           durationBadge.label,
         ]}
       >

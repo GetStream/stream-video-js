@@ -1,6 +1,7 @@
 export enum IconTestIds {
   MUTED_VIDEO = 'muted-video-icon',
   HANG_UP_CALL = 'hang-up-call-icon',
+  PHONE = 'phone-icon',
   SCREEN_SHARE_INDICATOR = 'screen-share-indicator-icon',
   SCREEN_SHARE = 'screen-share-icon',
 }
@@ -15,8 +16,6 @@ export enum ComponentTestIds {
   PARTICIPANTS_INFO = 'participants-info',
   PARTICIPANT_SCREEN_SHARING = 'participant-screen-sharing',
   REACTIONS_PICKER = 'reactions-picker',
-  CHAT_UNREAD_BADGE_COUNT_INDICATOR = 'chat-unread-badge-count-indicator',
-  BADGE_COUNT_INDICATOR = 'badge-count-indicator',
 }
 
 export enum ButtonTestIds {

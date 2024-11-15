@@ -84,15 +84,11 @@ export const Lobby = ({
     <View style={[styles.container, lobby.container]}>
       {connectedUser && (
         <>
-          <Text
-            style={[
-              styles.heading,
-              { color: colors.typePrimary },
-              typefaces.heading5,
-              lobby.heading,
-            ]}
-          >
-            {t('Setup your test call')}
+          <Text style={[styles.heading, typefaces.heading5, lobby.heading]}>
+            {t('Before joining')}
+          </Text>
+          <Text style={[styles.subHeading, lobby.subHeading]}>
+            {t('Setup your audio and video')}
           </Text>
           {isVideoEnabledInCall && (
             <View
@@ -149,7 +145,7 @@ const ParticipantStatus = () => {
       <Text
         style={[
           styles.userNameLabel,
-          { color: colors.typePrimary },
+          { color: colors.textPrimary },
           typefaces.caption,
           lobby.userNameLabel,
         ]}
@@ -168,7 +164,13 @@ const useStyles = (landscape = false) => {
       StyleSheet.create({
         heading: {
           textAlign: 'center',
+          color: theme.colors.textPrimary,
+          paddingBottom: theme.variants.spacingSizes.xs,
+        },
+        subHeading: {
+          textAlign: 'center',
           paddingBottom: theme.variants.spacingSizes.md,
+          color: theme.colors.textSecondary,
         },
         container: {
           flex: 1,

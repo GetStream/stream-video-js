@@ -129,7 +129,7 @@ export const ParticipantsInfoList = ({
                 testID={ButtonTestIds.EXIT_PARTICIPANTS_INFO}
               >
                 <Cross
-                  color={theme.colors.iconPrimaryDefault}
+                  color={theme.colors.iconPrimary}
                   style={styles.crossIcon}
                 />
               </Pressable>
@@ -219,22 +219,22 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
           <View
             style={[styles.svgContainerStyle, styles.screenShareIconContainer]}
           >
-            <ScreenShare color={colors.iconAlertSuccess} />
+            <ScreenShare color={colors.iconSuccess} />
           </View>
         )}
         {isAudioMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <MicOff color={colors.iconAlertWarning} />
+            <MicOff color={colors.iconWarning} />
           </View>
         )}
         {isVideoMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <VideoSlash color={colors.iconAlertWarning} />
+            <VideoSlash color={colors.iconWarning} />
           </View>
         )}
         {!participantIsLocalParticipant && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <ArrowRight color={colors.iconPrimaryDefault} />
+            <ArrowRight color={colors.iconPrimary} />
           </View>
         )}
       </View>
@@ -270,13 +270,13 @@ const useStyles = () => {
         headerText: {
           fontSize: 16,
           fontWeight: '600',
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
         },
         closePressable: {
           padding: 8,
           borderRadius: 15,
           marginRight: 16,
-          backgroundColor: theme.colors.buttonSecondaryDefault,
+          backgroundColor: theme.colors.buttonSecondary,
         },
         buttonGroup: {
           flexDirection: 'row',
@@ -301,19 +301,19 @@ const useStyles = () => {
           borderRadius: 24,
           padding: 8,
           marginHorizontal: 8,
-          borderColor: theme.colors.buttonSecondaryDefault,
+          borderColor: theme.colors.buttonSecondary,
           borderWidth: 2,
         },
         inviteButton: {
           flex: 1,
-          backgroundColor: theme.colors.buttonPrimaryDefault,
+          backgroundColor: theme.colors.buttonPrimary,
           borderRadius: 24,
           padding: 8,
           marginHorizontal: 8,
         },
         buttonText: {
           textAlign: 'center',
-          color: theme.colors.iconPrimaryDefault,
+          color: theme.colors.iconPrimary,
           fontSize: 16,
           fontWeight: '500',
         },
@@ -323,7 +323,7 @@ const useStyles = () => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottomColor: theme.colors.buttonSecondaryHover,
+          borderBottomColor: theme.colors.sheetTertiary,
           borderBottomWidth: 1,
         },
         participantInfo: {
@@ -333,7 +333,7 @@ const useStyles = () => {
         },
         name: {
           marginLeft: 8,
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           flexShrink: 1,
           fontSize: 16,
           fontWeight: '500',

@@ -28,7 +28,7 @@ export const LivestreamAudioControlButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.buttonSecondaryDefault,
+          backgroundColor: colors.buttonSecondary,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -47,9 +47,9 @@ export const LivestreamAudioControlButton = () => {
       >
         <IconWrapper>
           {!optimisticIsMute ? (
-            <Mic color={colors.iconPrimaryDefault} size={iconSizes.md} />
+            <Mic color={colors.iconPrimary} size={iconSizes.md} />
           ) : (
-            <MicOff color={colors.iconPrimaryDefault} size={iconSizes.md} />
+            <MicOff color={colors.iconPrimary} size={iconSizes.md} />
           )}
         </IconWrapper>
       </View>

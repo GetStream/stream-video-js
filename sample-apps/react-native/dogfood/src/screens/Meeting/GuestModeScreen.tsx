@@ -99,12 +99,12 @@ const useStyles = () => {
         title: {
           fontSize: 34,
           fontWeight: '400',
-          color: theme.colors.typePrimary,
+          color: theme.colors.textPrimary,
           textAlign: 'center',
         },
         anonymousButton: {
           marginTop: appTheme.spacing.lg,
-          backgroundColor: theme.colors.buttonSecondaryHover,
+          backgroundColor: theme.colors.sheetTertiary,
         },
       }),
     [theme],

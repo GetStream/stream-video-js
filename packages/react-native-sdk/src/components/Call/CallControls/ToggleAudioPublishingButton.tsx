@@ -42,20 +42,15 @@ export const ToggleAudioPublishingButton = ({
       <CallControlsButton
         onPress={onPress}
         color={
-          !optimisticIsMute
-            ? colors.buttonSecondaryDefault
-            : colors.iconAlertWarning
+          !optimisticIsMute ? colors.buttonSecondary : colors.buttonWarning
         }
         style={toggleAudioPublishingButton}
       >
         <IconWrapper>
           {!optimisticIsMute ? (
-            <Mic color={colors.iconPrimaryDefault} size={defaults.iconSize} />
+            <Mic color={colors.iconPrimary} size={defaults.iconSize} />
           ) : (
-            <MicOff
-              color={colors.iconPrimaryDefault}
-              size={defaults.iconSize}
-            />
+            <MicOff color={colors.iconPrimary} size={defaults.iconSize} />
           )}
         </IconWrapper>
       </CallControlsButton>

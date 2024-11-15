@@ -1,8 +1,8 @@
 import { StreamReactionType } from '../components';
 
 export const FLOATING_VIDEO_VIEW_STYLE = {
-  height: 170,
-  width: 100,
+  height: 140,
+  width: 80,
   borderRadius: 10,
 };
 
