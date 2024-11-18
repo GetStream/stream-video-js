@@ -10,6 +10,7 @@ import { Publisher, Subscriber } from '../rtc';
 import { getLogger } from '../logger';
 import { flatten } from './utils';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { isFirefox } from '../helpers/browsers';
 
 export type StatsReporterOpts = {
   subscriber: Subscriber;
@@ -276,10 +277,13 @@ const transform = (
       }
 
       let trackType: TrackType | undefined;
-      if (kind === 'publisher' && publisher && rtcStreamStats.mediaSourceId) {
+      if (kind === 'publisher' && publisher) {
+        const firefox = isFirefox();
         const mediaSource = stats.find(
           (s) =>
-            s.type === 'media-source' && s.id === rtcStreamStats.mediaSourceId,
+            s.type === 'media-source' &&
+            // Firefox doesn't have mediaSourceId, so we need to guess the media source
+            (firefox ? true : s.id === rtcStreamStats.mediaSourceId),
         ) as RTCMediaSourceStats | undefined;
         if (mediaSource) {
           trackType = publisher.getTrackType(mediaSource.trackIdentifier);
