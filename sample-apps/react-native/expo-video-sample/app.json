@@ -12,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
@@ -26,6 +24,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
+      ],
       "googleServicesFile": "./google-services.json",
       "package": "io.getstream.expovideosample"
     },
@@ -35,6 +38,7 @@
         "@stream-io/video-react-native-sdk",
         {
           "enableScreenshare": true,
+          "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
             "disableVideoIos": false,

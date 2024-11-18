@@ -1116,10 +1116,10 @@ PODS:
     - React-Core
     - React-RCTImage
     - TOCropViewController (~> 2.7.4)
-  - RNNotifee (7.8.0):
+  - RNNotifee (9.1.2):
     - React-Core
-    - RNNotifee/NotifeeCore (= 7.8.0)
-  - RNNotifee/NotifeeCore (7.8.0):
+    - RNNotifee/NotifeeCore (= 9.1.2)
+  - RNNotifee/NotifeeCore (9.1.2):
     - React-Core
   - RNPermissions (4.1.1):
     - React-Core
@@ -1148,7 +1148,7 @@ PODS:
   - stream-react-native-webrtc (125.0.0-rc.1):
     - React-Core
     - WebRTC-SDK (~> 125.6422.05)
-  - stream-video-react-native (1.2.14):
+  - stream-video-react-native (1.3.2):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1465,7 +1465,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: a51b249f3c779e38a5d9ec45cb107d8780b39fb2
   RNGoogleSignin: fc408799f1990a12497a32f64280c0fe353ffcc1
   RNImageCropPicker: 771e2ca319d2cf92e04ebf334ece892ee9a6728f
-  RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
+  RNNotifee: bc20a5e3d581f629db988075944fdd944d363dfe
   RNPermissions: 4d64d2c763b20e5db08dfb8f1ef541f95c0d28c1
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
   RNReanimated: 8cd12e58bbedca2b0b62a3c3872d3629fc2e1583
@@ -1475,7 +1475,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   stream-io-video-filters-react-native: 8c345e6adf5164646696d45f9962c4199b2fe3b9
   stream-react-native-webrtc: 976646e6e3643d331fc4da20e4be04ea16af295b
-  stream-video-react-native: 99eb88b52009b0687c3e9d8600e924ba789490dd
+  stream-video-react-native: 4c85bd9c26933254bfcab689c7db5751110f67e5
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   WebRTC-SDK: 1990a1a595bd0b59c17485ce13ff17f575732c12
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312

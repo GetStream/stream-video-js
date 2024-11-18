@@ -1,15 +1,31 @@
-import { Platform } from 'react-native';
+import { PermissionsAndroid } from 'react-native';
 import { getLogger } from '../../..';
 
 export type NotifeeLib = typeof import('@notifee/react-native');
+
+enum AndroidForegroundServiceType {
+  FOREGROUND_SERVICE_TYPE_CAMERA = 64,
+  FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE = 16,
+  FOREGROUND_SERVICE_TYPE_DATA_SYNC = 1,
+  FOREGROUND_SERVICE_TYPE_HEALTH = 256,
+  FOREGROUND_SERVICE_TYPE_LOCATION = 8,
+  FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK = 2,
+  FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION = 32,
+  FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING = 8192,
+  FOREGROUND_SERVICE_TYPE_MICROPHONE = 128,
+  FOREGROUND_SERVICE_TYPE_PHONE_CALL = 4,
+  FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING = 512,
+  FOREGROUND_SERVICE_TYPE_SHORT_SERVICE = 2048,
+  FOREGROUND_SERVICE_TYPE_SPECIAL_USE = 1073741824,
+  FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED = 1024,
+  FOREGROUND_SERVICE_TYPE_MANIFEST = -1,
+}
 
 let notifeeLib: NotifeeLib | undefined;
 
 try {
   notifeeLib = require('@notifee/react-native');
 } catch (_e) {}
-
-const isAndroid7OrBelow = Platform.OS === 'android' && Platform.Version < 26;
 
 const INSTALLATION_INSTRUCTION =
   'Please see https://notifee.app/react-native/docs/installation for installation instructions';
@@ -25,12 +41,48 @@ export function getNotifeeLibThrowIfNotInstalledForPush() {
 }
 
 export function getNotifeeLibNoThrowForKeepCallAlive() {
-  if (!notifeeLib && isAndroid7OrBelow) {
+  if (!notifeeLib) {
     const logger = getLogger(['getNotifeeLibNoThrow']);
     logger(
       'info',
-      `${'@notifee/react-native library not installed. It is required to keep call alive in the background for Android < 26. '}${INSTALLATION_INSTRUCTION}`
+      `${'@notifee/react-native library not installed. It is required to keep call alive in the background for Android. '}${INSTALLATION_INSTRUCTION}`
     );
   }
   return notifeeLib;
+}
+
+export async function getKeepCallAliveForegroundServiceTypes() {
+  const types: AndroidForegroundServiceType[] = [];
+  const hasCameraPermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.CAMERA!
+  );
+  if (hasCameraPermission) {
+    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_CAMERA);
+  }
+  const hasMicrophonePermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.RECORD_AUDIO!
+  );
+  if (hasMicrophonePermission) {
+    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+  }
+  const hasConnectionPermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!
+  );
+  if (hasConnectionPermission) {
+    types.push(
+      AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+    );
+  }
+  if (types.length === 0) {
+    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+  }
+  console.log({ types });
+  return types;
+}
+
+export function getIncomingCallForegroundServiceTypes() {
+  const types: AndroidForegroundServiceType[] = [
+    AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE,
+  ];
+  return types;
 }
