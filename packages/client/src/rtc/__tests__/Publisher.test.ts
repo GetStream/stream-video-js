@@ -360,6 +360,45 @@ describe('Publisher', () => {
       ]);
     });
 
+    it('can dynamically activate/deactivate simulcast layers when rid is missing', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          // @ts-expect-error incomplete data
+          codecs: [{ mimeType: 'video/VP8' }],
+          encodings: [{ active: false }],
+        });
+
+      // inject the transceiver
+      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
+
+      await publisher['changePublishQuality']([
+        {
+          name: 'q',
+          active: true,
+          maxBitrate: 100,
+          scaleResolutionDownBy: 4,
+          maxFramerate: 30,
+          scalabilityMode: '',
+        },
+      ]);
+
+      expect(getParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        {
+          active: true,
+          maxBitrate: 100,
+          scaleResolutionDownBy: 4,
+          maxFramerate: 30,
+        },
+      ]);
+    });
+
     it('can dynamically update scalability mode in SVC', async () => {
       const transceiver = new RTCRtpTransceiver();
       const setParametersSpy = vi

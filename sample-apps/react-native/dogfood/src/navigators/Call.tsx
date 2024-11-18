@@ -21,9 +21,7 @@ import { useOrientation } from '../hooks/useOrientation';
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 const Calls = () => {
-  const calls = useCalls().filter(
-    (c) => c.state.callingState === CallingState.RINGING,
-  );
+  const calls = useCalls().filter((c) => c.ringing);
   const { top } = useSafeAreaInsets();
   const orientation = useOrientation();
 

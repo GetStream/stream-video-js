@@ -2,6 +2,41 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.1...@stream-io/video-client-1.11.2) (2024-11-14)
+
+
+### Bug Fixes
+
+* fully reset token manager on user disconnect ([#1578](https://github.com/GetStream/stream-video-js/issues/1578)) ([6751abc](https://github.com/GetStream/stream-video-js/commit/6751abc0507085bd7c9f3f803f4c5929e0598bea)), closes [#1573](https://github.com/GetStream/stream-video-js/issues/1573)
+
+## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.0...@stream-io/video-client-1.11.1) (2024-11-14)
+
+
+### Bug Fixes
+
+* reject was not called on timeout, decline and cancel scenarios ([#1576](https://github.com/GetStream/stream-video-js/issues/1576)) ([8be76a4](https://github.com/GetStream/stream-video-js/commit/8be76a447729aeba7f5c68f8a9bb85b4738cb76d))
+
+## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.5...@stream-io/video-client-1.11.0) (2024-11-13)
+
+
+### Features
+
+* Connection timing ([#1574](https://github.com/GetStream/stream-video-js/issues/1574)) ([ce1dc9a](https://github.com/GetStream/stream-video-js/commit/ce1dc9a01fc5b0e60e3dac6653c27e99fd4b3ecb))
+
+## [1.10.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.4...@stream-io/video-client-1.10.5) (2024-11-07)
+
+
+### Bug Fixes
+
+* ignore maxSimulcastLayers override for SVC codecs ([#1564](https://github.com/GetStream/stream-video-js/issues/1564)) ([48f8abe](https://github.com/GetStream/stream-video-js/commit/48f8abe5fd5b48c367a04696febd582573def828))
+
+## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.3...@stream-io/video-client-1.10.4) (2024-11-07)
+
+
+### Bug Fixes
+
+* max simulcast layers preference ([#1560](https://github.com/GetStream/stream-video-js/issues/1560)) ([2b0bf28](https://github.com/GetStream/stream-video-js/commit/2b0bf2824dce41c2709e361e0521cf85e1b2fd16))
+
 ## [1.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.10.2...@stream-io/video-client-1.10.3) (2024-11-05)
 
 

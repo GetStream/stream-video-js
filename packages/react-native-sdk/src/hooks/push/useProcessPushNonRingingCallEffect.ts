@@ -1,4 +1,4 @@
-import { pushNonRingingCallData$ } from '../../utils/push/rxSubjects';
+import { pushNonRingingCallData$ } from '../../utils/push/internal/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
 import {
@@ -6,7 +6,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { filter } from 'rxjs/operators';
-import { processNonIncomingCallFromPush } from '../../utils/push/utils';
+import { processNonIncomingCallFromPush } from '../../utils/push/internal/utils';
 
 /**
  * This hook is used to process the non ringing call data via push notifications using the relevant rxjs subject
@@ -16,7 +16,7 @@ import { processNonIncomingCallFromPush } from '../../utils/push/utils';
 export const useProcessPushNonRingingCallEffect = () => {
   const client = useStreamVideoClient();
   const connectedUserId = useConnectedUser()?.id;
-  // The Effect to join/reject call automatically when incoming call was received and processed from push notification
+  // The Effect to automatically add the non ringing call to our low level client state
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     if (!pushConfig || !client || !connectedUserId) {
