@@ -273,6 +273,18 @@ export class Publisher extends BasePeerConnection {
     return track.readyState === 'live' && track.enabled;
   };
 
+  /**
+   * Maps the given track ID to the corresponding track type.
+   */
+  getTrackType = (trackId: string): TrackType | undefined => {
+    for (const [trackType, transceiver] of this.transceiverCache) {
+      if (transceiver.sender.track?.id === trackId) {
+        return trackType;
+      }
+    }
+    return undefined;
+  };
+
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
     trackType: TrackType,
@@ -520,9 +532,7 @@ export class Publisher extends BasePeerConnection {
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverIndex = this.transceiverOrder.indexOf(transceiver);
-        const mid =
-          String(transceiverIndex) ||
-          extractMid(transceiver, transceiverIndex, sdp);
+        const mid = extractMid(transceiver, transceiverIndex, sdp);
 
         return {
           trackId: track.id,

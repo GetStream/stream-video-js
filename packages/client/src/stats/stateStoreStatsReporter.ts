@@ -2,12 +2,14 @@ import type {
   AggregatedStatsReport,
   BaseStats,
   ParticipantsStatsReport,
+  RTCMediaSourceStats,
   StatsReport,
 } from './types';
 import { CallState } from '../store';
 import { Publisher, Subscriber } from '../rtc';
 import { getLogger } from '../logger';
 import { flatten } from './utils';
+import { TrackType } from '../gen/video/sfu/models/models';
 
 export type StatsReporterOpts = {
   subscriber: Subscriber;
@@ -157,6 +159,7 @@ export const createStatsReporter = ({
           transform(report, {
             kind: 'subscriber',
             trackKind: 'video',
+            publisher,
           }),
         )
         .then(aggregate),
@@ -167,6 +170,7 @@ export const createStatsReporter = ({
               transform(report, {
                 kind: 'publisher',
                 trackKind: 'video',
+                publisher,
               }),
             )
             .then(aggregate)
@@ -220,11 +224,14 @@ export type StatsTransformOpts = {
    * The kind of track we are transforming stats for.
    */
   trackKind: 'audio' | 'video';
-
   /**
    * The kind of peer connection we are transforming stats for.
    */
   kind: 'subscriber' | 'publisher';
+  /**
+   * The publisher instance.
+   */
+  publisher: Publisher | undefined;
 };
 
 /**
@@ -237,7 +244,7 @@ const transform = (
   report: RTCStatsReport,
   opts: StatsTransformOpts,
 ): StatsReport => {
-  const { trackKind, kind } = opts;
+  const { trackKind, kind, publisher } = opts;
   const direction = kind === 'subscriber' ? 'inbound-rtp' : 'outbound-rtp';
   const stats = flatten(report);
   const streams = stats
@@ -268,6 +275,17 @@ const transform = (
         roundTripTime = candidatePair?.currentRoundTripTime;
       }
 
+      let trackType: TrackType | undefined;
+      if (kind === 'publisher' && publisher && rtcStreamStats.mediaSourceId) {
+        const mediaSource = stats.find(
+          (s) =>
+            s.type === 'media-source' && s.id === rtcStreamStats.mediaSourceId,
+        ) as RTCMediaSourceStats | undefined;
+        if (mediaSource) {
+          trackType = publisher.getTrackType(mediaSource.trackIdentifier);
+        }
+      }
+
       return {
         bytesSent: rtcStreamStats.bytesSent,
         bytesReceived: rtcStreamStats.bytesReceived,
@@ -278,10 +296,12 @@ const transform = (
         framesPerSecond: rtcStreamStats.framesPerSecond,
         jitter: rtcStreamStats.jitter,
         kind: rtcStreamStats.kind,
+        mediaSourceId: rtcStreamStats.mediaSourceId,
         // @ts-ignore: available in Chrome only, TS doesn't recognize this
         qualityLimitationReason: rtcStreamStats.qualityLimitationReason,
         rid: rtcStreamStats.rid,
         ssrc: rtcStreamStats.ssrc,
+        trackType,
       };
     });
 
@@ -304,6 +324,7 @@ const getEmptyStats = (stats?: StatsReport): AggregatedStatsReport => {
     highestFrameHeight: 0,
     highestFramesPerSecond: 0,
     codec: '',
+    codecPerTrackType: {},
     timestamp: Date.now(),
   };
 };
@@ -349,6 +370,15 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     );
     // we take the first codec we find, as it should be the same for all streams
     report.codec = streams[0].codec || '';
+    report.codecPerTrackType = streams.reduce(
+      (acc, stream) => {
+        if (stream.trackType) {
+          acc[stream.trackType] = stream.codec || '';
+        }
+        return acc;
+      },
+      {} as Record<TrackType, string>,
+    );
   }
 
   const qualityLimitationReason = [
