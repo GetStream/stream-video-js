@@ -1,5 +1,5 @@
+import { getLogger } from '@stream-io/video-client';
 import { PermissionsAndroid } from 'react-native';
-import { getLogger } from '../../..';
 
 export type NotifeeLib = typeof import('@notifee/react-native');
 
