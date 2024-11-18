@@ -82,7 +82,7 @@ const useStyles = (showMicLabel: boolean) => {
           height: BOTTOM_CONTROLS_HEIGHT,
         },
         speakingLabelContainer: {
-          backgroundColor: theme.colors.sheetSecondary,
+          backgroundColor: theme.colors.sheetPrimary,
           width: '100%',
         },
         label: {

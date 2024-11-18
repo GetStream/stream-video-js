@@ -21,6 +21,7 @@ import {
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
 import { CallContentProps } from '../CallContent';
+import { useTheme } from '../../../contexts';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -83,6 +84,7 @@ export const CallParticipantsList = ({
   supportedReactions,
   landscape,
 }: CallParticipantsListProps) => {
+  const styles = useStyles();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -163,10 +165,15 @@ export const CallParticipantsList = ({
     participantsLength: participants.length,
     numberOfColumns,
     horizontal,
+    margin: styles.participant.margin,
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const style = { width: itemWidth, height: itemHeight };
+    const style = {
+      width: itemWidth,
+      height: itemHeight,
+      margin: styles.participant.margin,
+    };
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
     }
@@ -174,7 +181,7 @@ export const CallParticipantsList = ({
       return [styles.landScapeStyle, style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, landscape]);
+  }, [itemWidth, itemHeight, horizontal, landscape, styles]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -251,17 +258,27 @@ export const CallParticipantsList = ({
   );
 };
 
-const styles = StyleSheet.create({
-  flexed: { flex: 1 },
-  participantWrapperHorizontal: {
-    // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-    marginHorizontal: 8,
-    borderRadius: 10,
-  },
-  landScapeStyle: {
-    borderRadius: 10,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        flexed: { flex: 1 },
+        participantWrapperHorizontal: {
+          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
+          marginHorizontal: theme.variants.spacingSizes.sm,
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+        },
+        landScapeStyle: {
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+        },
+        participant: {
+          margin: theme.variants.spacingSizes.xs,
+        },
+      }),
+    [theme]
+  );
+};
 
 /**
  * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
@@ -278,12 +295,14 @@ function calculateParticipantViewSize({
   participantsLength,
   numberOfColumns,
   horizontal,
+  margin,
 }: {
   containerHeight: number;
   containerWidth: number;
   participantsLength: number;
   numberOfColumns: number;
   horizontal: boolean | undefined;
+  margin: number;
 }) {
   let itemHeight = containerHeight;
   // in vertical mode, we calculate the height of the participant view based on the containerHeight (aka the phone's screen height)
@@ -303,5 +322,7 @@ function calculateParticipantViewSize({
     itemWidth = itemWidth - 8 * 2;
   }
 
+  itemHeight = itemHeight - margin;
+  itemWidth = itemWidth - margin;
   return { itemHeight, itemWidth };
 }

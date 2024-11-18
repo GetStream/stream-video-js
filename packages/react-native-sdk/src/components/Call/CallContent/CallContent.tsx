@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
   CallParticipantsGrid,
@@ -184,6 +184,10 @@ export const CallContent = ({
     supportedReactions,
   };
 
+  const landscapeStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
+
   return (
     <>
       {!disablePictureInPicture && (
@@ -191,7 +195,7 @@ export const CallContent = ({
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
         />
       )}
-      <View style={[styles.container, callContent.container]}>
+      <View style={[styles.container, landscapeStyles, callContent.container]}>
         <View style={[styles.content, callContent.callParticipantsContainer]}>
           <View
             style={[styles.view, callContent.topContainer]}
