@@ -9,6 +9,7 @@ import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
+import { ThermalInfo } from './ThermalInfo';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -30,6 +31,7 @@ export const LobbyViewComponent = ({
   const JoinCallButtonComponent = useCallback(() => {
     return (
       <>
+        <ThermalInfo />
         <JoinCallButton onPressHandler={onJoinCallHandler} />
         {route.name === 'MeetingScreen' ? (
           <Pressable
