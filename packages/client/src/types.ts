@@ -172,7 +172,7 @@ export type PublishOptions = {
    * Enabling this, it will remove all other supported codecs from the SDP.
    * Defaults to false.
    */
-  forceSinglePreferredCodec?: boolean;
+  forceSingleCodec?: boolean;
   /**
    * The preferred scalability to use when publishing the video stream.
    * Applicable only for SVC codecs.

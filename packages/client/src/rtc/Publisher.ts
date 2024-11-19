@@ -573,7 +573,7 @@ export class Publisher {
 
   private removeUnpreferredCodecs(sdp: string, trackType: TrackType) {
     const opts = this.publishOptsForTrack.get(trackType);
-    if (!opts || !opts.forceSinglePreferredCodec) return sdp;
+    if (!opts || !opts.forceSingleCodec) return sdp;
 
     const codec = opts.forceCodec || opts.preferredCodec;
     const orderedCodecs = this.getCodecPreferences(trackType, codec);
