@@ -84,27 +84,17 @@ export const ActiveCall = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar
-        barStyle={'light-content'}
-        backgroundColor={colors.sheetPrimary}
+      <CustomTopControls />
+      <CallContent
+        onHangupCallHandler={onHangupCallHandler}
+        CallControls={CustomBottomControls}
+        landscape={currentOrientation === 'landscape'}
+        layout={selectedLayout}
       />
-      <View style={styles.topUnsafeArea} />
-      <View style={styles.leftUnsafeArea} />
-      <View style={styles.rightUnsafeArea} />
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <CustomTopControls />
-        <CallContent
-          onHangupCallHandler={onHangupCallHandler}
-          CallControls={CustomBottomControls}
-          landscape={currentOrientation === 'landscape'}
-          layout={selectedLayout}
-        />
-        <ParticipantsInfoList
-          isCallParticipantsInfoVisible={isCallParticipantsVisible}
-          setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-        />
-      </SafeAreaView>
-      <View style={styles.bottomUnsafeArea} />
+      <ParticipantsInfoList
+        isCallParticipantsInfoVisible={isCallParticipantsVisible}
+        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
+      />
     </View>
   );
 };
@@ -114,9 +104,12 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
-        container: { flex: 1 },
+        container: {
+          flex: 1,
+          paddingTop: theme.variants.insets.top,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
         callContent: { flex: 1 },
-        safeArea: { flex: 1, paddingBottom: theme.variants.insets.bottom },
         topUnsafeArea: {
           position: 'absolute',
           top: 0,
