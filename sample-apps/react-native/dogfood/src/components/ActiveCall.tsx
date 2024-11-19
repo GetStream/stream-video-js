@@ -4,8 +4,7 @@ import {
   CallContent,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
