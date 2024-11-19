@@ -24,11 +24,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "android.permission.FOREGROUND_SERVICE_CAMERA",
-        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
-      ],
       "googleServicesFile": "./google-services.json",
       "package": "io.getstream.expovideosample"
     },
