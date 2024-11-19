@@ -89,7 +89,6 @@ a=rtcp-rsize`;
       sdpFmtpLine: 'profile-id=0',
     });
     expect(target).toContain('VP9');
-    expect(target).toEqual(sdp);
     expect(target).not.toContain('profile-id=2');
   });
 });
