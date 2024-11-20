@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.2...@stream-io/video-client-1.11.3) (2024-11-20)
+
+
+### Bug Fixes
+
+* respect codec overrides when computing the video layers ([#1582](https://github.com/GetStream/stream-video-js/issues/1582)) ([c22b83e](https://github.com/GetStream/stream-video-js/commit/c22b83ef710f2188e680b73790154de046a824e9))
+
 ## [1.11.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.1...@stream-io/video-client-1.11.2) (2024-11-14)
 
 
