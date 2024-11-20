@@ -652,7 +652,8 @@ export class Publisher {
       settings?.screensharing.target_resolution?.bitrate;
 
     const publishOpts = opts || this.publishOptsForTrack.get(trackType);
-    const codecInUse = getOptimalVideoCodec(publishOpts?.preferredCodec);
+    const codecInUse =
+      opts?.forceCodec || getOptimalVideoCodec(opts?.preferredCodec);
     return trackType === TrackType.VIDEO
       ? findOptimalVideoLayers(track, targetResolution, codecInUse, publishOpts)
       : trackType === TrackType.SCREEN_SHARE
