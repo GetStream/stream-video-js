@@ -31,7 +31,6 @@ export const ActiveCall = ({
   const call = useCall();
   const currentOrientation = useOrientation();
   const styles = useStyles();
-  const { theme: colors } = useTheme();
   const { selectedLayout } = useLayout();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
