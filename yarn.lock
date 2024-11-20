@@ -4211,12 +4211,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:7.8.0, @notifee/react-native@npm:^7.8.0":
-  version: 7.8.0
-  resolution: "@notifee/react-native@npm:7.8.0"
+"@notifee/react-native@npm:9.1.2":
+  version: 9.1.2
+  resolution: "@notifee/react-native@npm:9.1.2"
   peerDependencies:
     react-native: "*"
-  checksum: 800233c9505195046e918ee42a4b11d8e84cf1846ea4a0b52599e1a40181b2bbfcab09c64b445b5a7eed98c38556c97550bce32ed24a51ce05ccd8b65047548d
+  checksum: 1cf39654ed9679992f098e7df1586d47a65239297903ab57c76ca5834641d9171f8d2d3a337c8453950c9f6ee2cea1b5388093e1a386e7a89eceb96bf27ef374
   languageName: node
   linkType: hard
 
@@ -7914,7 +7914,7 @@ __metadata:
     "@babel/preset-env": ^7.25.4
     "@babel/runtime": ^7.25.6
     "@gorhom/bottom-sheet": ^4.6.1
-    "@notifee/react-native": ^7.8.0
+    "@notifee/react-native": 9.1.2
     "@react-native-camera-roll/camera-roll": ^5.6.0
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/netinfo": 11.3.0
@@ -7977,7 +7977,7 @@ __metadata:
   dependencies:
     "@babel/preset-typescript": ^7.24.7
     "@expo/config-plugins": ~7.8.4
-    "@notifee/react-native": 7.8.0
+    "@notifee/react-native": 9.1.2
     "@react-native-community/netinfo": 9.3.9
     "@react-native-community/push-notification-ios": 1.11.0
     "@react-native-firebase/app": 19.2.2
@@ -8020,7 +8020,7 @@ __metadata:
     ts-node: ^10.9.2
     typescript: ^5.5.2
   peerDependencies:
-    "@notifee/react-native": ">=7.8.0"
+    "@notifee/react-native": ">=9.0.0"
     "@react-native-community/netinfo": ">=9.0.0"
     "@react-native-community/push-notification-ios": ">=1.11.0"
     "@react-native-firebase/app": ">=17.5.0"
