@@ -4,12 +4,13 @@ import {
   Lobby,
   useI18n,
 } from '@stream-io/video-react-native-sdk';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
 import { ThermalInfo } from './ThermalInfo';
+import { checkLowPowerMode } from './PowerMode';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -28,9 +29,27 @@ export const LobbyViewComponent = ({
   const { t } = useI18n();
   const orientation = useOrientation();
 
+  const [lowPowerMode, setLowPowerMode] = useState(false);
+
+  useEffect(() => {
+    const checkPowerMode = async () => {
+      const isLowPower = await checkLowPowerMode();
+      setLowPowerMode(isLowPower);
+    };
+
+    checkPowerMode();
+
+    const interval = setInterval(checkLowPowerMode, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const JoinCallButtonComponent = useCallback(() => {
     return (
       <>
+        <Text style={{ color: lowPowerMode ? 'red' : 'green' }}>
+          Low Power Mode: {lowPowerMode ? 'Enabled' : 'Disabled'}
+        </Text>
         <ThermalInfo />
         <JoinCallButton onPressHandler={onJoinCallHandler} />
         {route.name === 'MeetingScreen' ? (
@@ -58,7 +77,7 @@ export const LobbyViewComponent = ({
         )}
       </>
     );
-  }, [onJoinCallHandler, callId, navigation, route.name, t]);
+  }, [onJoinCallHandler, callId, navigation, route.name, t, lowPowerMode]);
 
   return (
     <View style={styles.container}>

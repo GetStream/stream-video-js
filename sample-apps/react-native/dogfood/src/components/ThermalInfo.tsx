@@ -1,30 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform, NativeModules } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  NativeModules,
+  NativeEventEmitter,
+} from 'react-native';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 
 const { ThermalModule } = NativeModules;
+
+const thermalEventEmitter = new NativeEventEmitter(ThermalModule);
 
 export const ThermalInfo = () => {
   const [thermalStatus, setThermalStatus] = useState<string>('Unknown');
   const { theme } = useTheme();
 
   useEffect(() => {
-    const checkThermalStatus = async () => {
-      if (Platform.OS === 'android') {
-        try {
-          const status = await ThermalModule.getCurrentThermalStatus();
-          setThermalStatus(status);
-        } catch (error) {
-          console.error('Failed to get thermal status:', error);
+    if (Platform.OS === 'android') {
+      // Start listening to thermal status updates
+      ThermalModule.startThermalStatusUpdates()
+        .then((initialStatus: string) => setThermalStatus(initialStatus))
+        .catch((error: any) => {
+          console.error('Failed to start thermal status updates:', error);
           setThermalStatus('Error');
-        }
-      }
-    };
+        });
 
-    checkThermalStatus();
-    const interval = setInterval(checkThermalStatus, 5000);
+      // Subscribe to thermal status changes
+      const subscription = thermalEventEmitter.addListener(
+        ThermalModule.THERMAL_EVENT,
+        (status: string) => setThermalStatus(status),
+      );
 
-    return () => clearInterval(interval);
+      // Cleanup
+      return () => {
+        subscription.remove();
+        ThermalModule.stopThermalStatusUpdates();
+      };
+    }
   }, []);
 
   const getStatusColor = () => {
