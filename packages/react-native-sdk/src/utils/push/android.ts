@@ -1,6 +1,7 @@
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import {
   Call,
+  CallingState,
   RxUtils,
   StreamVideoClient,
   getLogger,
@@ -17,6 +18,7 @@ import {
   getExpoTaskManagerLib,
   getNotifeeLibThrowIfNotInstalledForPush,
   NotifeeLib,
+  getIncomingCallForegroundServiceTypes,
 } from './libs';
 import {
   pushAcceptedIncomingCallCId$,
@@ -212,14 +214,14 @@ const firebaseMessagingOnMessageHandler = async (
     const created_by_id = data.created_by_id as string;
     const receiver_id = data.receiver_id as string;
 
-    function shouldCallBeClosed(callToCheck: Call) {
+    const shouldCallBeClosed = (callToCheck: Call) => {
       const { mustEndCall } = shouldCallBeEnded(
         callToCheck,
         created_by_id,
         receiver_id
       );
       return mustEndCall;
-    }
+    };
 
     const canListenToWS = () =>
       canAddPushWSSubscriptionsRef.current &&
@@ -244,17 +246,33 @@ const firebaseMessagingOnMessageHandler = async (
             notifee.stopForegroundService();
             return;
           }
+          const unsubscribeFunctions: Array<() => void> = [];
+          // check if service needs to be closed if accept/decline event was done on another device
           const unsubscribe = callFromPush.on('all', () => {
             if (!canListenToWS() || shouldCallBeClosed(callFromPush)) {
-              unsubscribe();
+              unsubscribeFunctions.forEach((fn) => fn());
               notifee.stopForegroundService();
             }
           });
+          // check if service needs to be closed if call was left
+          const subscription = callFromPush.state.callingState$.subscribe(
+            (callingState) => {
+              if (
+                callingState === CallingState.IDLE ||
+                callingState === CallingState.LEFT
+              ) {
+                unsubscribeFunctions.forEach((fn) => fn());
+                notifee.stopForegroundService();
+              }
+            }
+          );
+          unsubscribeFunctions.push(unsubscribe);
+          unsubscribeFunctions.push(() => subscription.unsubscribe());
           const unsubscriptionCallbacks =
             RxUtils.getCurrentValue(pushUnsubscriptionCallbacks$) ?? [];
           pushUnsubscriptionCallbacks$.next([
             ...unsubscriptionCallbacks,
-            unsubscribe,
+            ...unsubscribeFunctions,
           ]);
         });
       });
@@ -290,6 +308,7 @@ const firebaseMessagingOnMessageHandler = async (
       data,
       android: {
         channelId,
+        foregroundServiceTypes: getIncomingCallForegroundServiceTypes(),
         asForegroundService,
         sound: incomingCallChannel.sound,
         vibrationPattern: incomingCallChannel.vibrationPattern,

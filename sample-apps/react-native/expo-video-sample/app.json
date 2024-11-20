@@ -12,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
@@ -35,6 +33,7 @@
         "@stream-io/video-react-native-sdk",
         {
           "enableScreenshare": true,
+          "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
             "disableVideoIos": false,

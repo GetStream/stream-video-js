@@ -3,14 +3,14 @@ import { useEffect, useRef } from 'react';
 import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
 import { CallingState, getLogger } from '@stream-io/video-client';
-import { getNotifeeLibNoThrowForKeepCallAlive } from '../utils/push/libs/notifee';
-
-const isAndroid7OrBelow = Platform.OS === 'android' && Platform.Version < 26;
+import {
+  getNotifeeLibNoThrowForKeepCallAlive,
+  getKeepCallAliveForegroundServiceTypes,
+} from '../utils/push/libs/notifee';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
 function setForegroundService() {
-  if (!isAndroid7OrBelow) return;
   notifeeLib?.default.registerForegroundService(() => {
     return new Promise(() => {
       const logger = getLogger(['setForegroundService method']);
@@ -20,7 +20,6 @@ function setForegroundService() {
 }
 
 async function startForegroundService(call_cid: string) {
-  if (!isAndroid7OrBelow) return;
   const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
 
@@ -37,11 +36,18 @@ async function startForegroundService(call_cid: string) {
     );
     return;
   }
+  const channelId = foregroundServiceConfig.android.channel.id;
+  await notifeeLib.default.createChannel(
+    foregroundServiceConfig.android.channel
+  );
+  const foregroundServiceTypes = await getKeepCallAliveForegroundServiceTypes();
   await notifeeLib.default.displayNotification({
     id: call_cid,
     title,
     body,
     android: {
+      channelId,
+      foregroundServiceTypes,
       asForegroundService: true,
       ongoing: true, // user cannot dismiss the notification
       colorized: true,
@@ -60,10 +66,10 @@ let isSetForegroundServiceRan = false;
  * This hook is used to keep the call alive in the background for Android.
  * It starts a foreground service to keep the call alive as soon as the call is joined
  * and stops the foreground Service when the call is left.
- * Additonally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
+ * Additionally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
-  if (!isSetForegroundServiceRan && isAndroid7OrBelow) {
+  if (!isSetForegroundServiceRan) {
     isSetForegroundServiceRan = true;
     setForegroundService();
   }
@@ -74,10 +80,10 @@ export const useAndroidKeepCallAliveEffect = () => {
   const callingState = useCallCallingState();
 
   useEffect((): (() => void) | undefined => {
-    if (!notifeeLib) return;
     if (Platform.OS === 'ios' || !activeCallCid) {
       return;
     }
+    if (!notifeeLib) return;
 
     // start foreground service as soon as the call is joined
     if (callingState === CallingState.JOINED) {

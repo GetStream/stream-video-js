@@ -15,6 +15,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
     const props: ConfigProps = {
       enableScreenshare: true,
       ringingPushNotifications: { disableVideoIos: false },
+      androidKeepCallAlive: true,
     };
 
     const updatedConfig = withStreamVideoReactNativeSDKAndroidPermissions(
@@ -31,6 +32,10 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
         'android.permission.BLUETOOTH',
         'android.permission.BLUETOOTH_CONNECT',
         'android.permission.BLUETOOTH_ADMIN',
+        'android.permission.FOREGROUND_SERVICE_CAMERA',
+        'android.permission.FOREGROUND_SERVICE_MICROPHONE',
+        'android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE',
+        'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
       ])
     );
   });

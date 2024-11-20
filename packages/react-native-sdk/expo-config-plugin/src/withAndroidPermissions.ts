@@ -20,6 +20,14 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
       );
     }
   }
+  if (props?.androidKeepCallAlive) {
+    permissions.push(
+      'android.permission.FOREGROUND_SERVICE_CAMERA',
+      'android.permission.FOREGROUND_SERVICE_MICROPHONE',
+      'android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE',
+      'android.permission.FOREGROUND_SERVICE_DATA_SYNC'
+    );
+  }
   if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
     permissions.push('android.permission.USE_FULL_SCREEN_INTENT');
   }
