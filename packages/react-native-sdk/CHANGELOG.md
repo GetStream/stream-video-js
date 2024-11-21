@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.3.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.4...@stream-io/video-react-native-sdk-1.3.5) (2024-11-21)
+
+### Dependency Updates
+
+* `@stream-io/video-filters-react-native` updated to version `0.2.5`
+## [1.3.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.3...@stream-io/video-react-native-sdk-1.3.4) (2024-11-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.20`
+## [1.3.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.2...@stream-io/video-react-native-sdk-1.3.3) (2024-11-20)
+
+
+### Bug Fixes
+
+* use foreground service to keep call alive ([#1580](https://github.com/GetStream/stream-video-js/issues/1580)) ([22bc042](https://github.com/GetStream/stream-video-js/commit/22bc042a629508c8b2536d4b448308b1d8ec1d47))
+
 ## [1.3.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.1...@stream-io/video-react-native-sdk-1.3.2) (2024-11-14)
 
 ### Dependency Updates

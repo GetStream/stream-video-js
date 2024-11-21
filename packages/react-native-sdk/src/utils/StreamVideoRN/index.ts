@@ -7,6 +7,13 @@ import newNotificationCallbacks, {
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
     android: {
+      channel: {
+        id: 'stream_call_foreground_service',
+        name: 'To keep calls alive',
+        lights: false,
+        vibration: false,
+        importance: 3,
+      },
       notificationTexts: {
         title: 'Call in progress',
         body: 'Tap to return to the call',

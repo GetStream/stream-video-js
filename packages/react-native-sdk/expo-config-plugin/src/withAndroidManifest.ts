@@ -15,14 +15,18 @@ type ManifestService = Unpacked<
   NonNullable<AndroidConfig.Manifest.ManifestApplication['service']>
 >;
 
-function getNotifeeService() {
+function getNotifeeService(isKeepCallAliveEnabled = false) {
   /* We add this service to the AndroidManifest.xml:
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
         android:foregroundServiceType="shortService" />
  */
-  const foregroundServiceType = 'shortService';
+  let foregroundServiceType = 'shortService';
+  if (isKeepCallAliveEnabled) {
+    foregroundServiceType =
+      'dataSync|camera|microphone|connectedDevice|' + foregroundServiceType;
+  }
   let head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
     stopWithTask: 'true',
@@ -41,7 +45,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   return withAndroidManifest(configuration, (config) => {
     const androidManifest = config.modResults;
     const mainApplication = getMainApplicationOrThrow(androidManifest);
-    if (props?.ringingPushNotifications) {
+    if (props?.ringingPushNotifications || props?.androidKeepCallAlive) {
       /* Add the notifee foreground Service */
       let services = mainApplication.service ?? [];
       // we filter out the existing notifee service (if any) so that we can override it
@@ -49,7 +53,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
         (service) =>
           service.$['android:name'] !== 'app.notifee.core.ForegroundService'
       );
-      services.push(getNotifeeService());
+      services.push(getNotifeeService(!!props?.androidKeepCallAlive));
       mainApplication.service = services;
     }
 
