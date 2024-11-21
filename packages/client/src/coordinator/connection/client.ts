@@ -502,6 +502,10 @@ export class StreamClient {
     return this.connectionIdPromiseSafe?.();
   }
 
+  get wsPromise() {
+    return this.wsPromiseSafe?.();
+  }
+
   _logApiRequest = (
     type: string,
     url: string,
