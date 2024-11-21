@@ -8,7 +8,6 @@ import {
 import {
   addConnectionEventListeners,
   convertErrorToJson,
-  isPromisePending,
   KnownCodes,
   randomId,
   removeConnectionEventListeners,
@@ -17,7 +16,7 @@ import {
 } from './utils';
 import type { LogLevel, StreamVideoEvent, UR } from './types';
 import type { ConnectedEvent, WSAuthMessage } from '../../gen/coordinator';
-import { makeSafePromise, type SafePromise } from '../../promise';
+import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -334,14 +333,7 @@ export class StableWSConnection {
         await this.client.tokenManager.loadToken();
       }
 
-      let mustSetupConnectionIdPromise = true;
-      const connectionIdPromise = this.client.connectionIdPromise;
-      if (connectionIdPromise) {
-        if (await isPromisePending(connectionIdPromise)) {
-          mustSetupConnectionIdPromise = false;
-        }
-      }
-      if (mustSetupConnectionIdPromise) {
+      if (!this.client.isConnectionIsPromisePending) {
         this.client._setupConnectionIdPromise();
       }
       this._setupConnectionPromise();
@@ -565,7 +557,6 @@ export class StableWSConnection {
 
     if (data && data.type === 'connection.ok') {
       this.resolvePromise?.(data);
-      this.client.resolveConnectionId?.(data.connection_id);
       this._setHealth(true);
     }
 

@@ -43,7 +43,7 @@ import {
   CreateGuestRequest,
   CreateGuestResponse,
 } from '../../gen/coordinator';
-import { makeSafePromise, type SafePromise } from '../../promise';
+import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -500,6 +500,10 @@ export class StreamClient {
 
   get connectionIdPromise() {
     return this.connectionIdPromiseSafe?.();
+  }
+
+  get isConnectionIsPromisePending() {
+    return this.connectionIdPromiseSafe?.checkPending() ?? false;
   }
 
   get wsPromise() {

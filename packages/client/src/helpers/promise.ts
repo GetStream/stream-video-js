@@ -1,4 +1,7 @@
-export type SafePromise<T> = () => Promise<T>;
+export interface SafePromise<T> {
+  (): Promise<T>;
+  checkPending(): boolean;
+}
 
 type Fulfillment<T> =
   | {
@@ -24,14 +27,21 @@ type Fulfillment<T> =
  * with the original promise
  */
 export function makeSafePromise<T>(promise: Promise<T>): SafePromise<T> {
-  const safePromise: Promise<Fulfillment<T>> = promise.then(
-    (result) => ({ status: 'resolved', result }),
-    (error) => ({ status: 'rejected', error }),
-  );
+  let isPending = true;
 
-  return () =>
+  const safePromise: Promise<Fulfillment<T>> = promise
+    .then(
+      (result) => ({ status: 'resolved' as const, result }),
+      (error) => ({ status: 'rejected' as const, error }),
+    )
+    .finally(() => (isPending = false));
+
+  const unwrapPromise = () =>
     safePromise.then((fulfillment) => {
       if (fulfillment.status === 'rejected') throw fulfillment.error;
       return fulfillment.result;
     });
+
+  unwrapPromise.checkPending = () => isPending;
+  return unwrapPromise;
 }
