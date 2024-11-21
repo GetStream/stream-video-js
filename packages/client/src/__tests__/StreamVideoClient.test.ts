@@ -100,6 +100,15 @@ describe('StreamVideoClient', () => {
     expect(response.calls).toBeDefined();
   });
 
+  it('should clear token on disconnect', async () => {
+    const user = { id: 'jane' };
+    const tp = vi.fn(tokenProvider(user.id));
+    await client.connectUser(user, tp);
+    await client.disconnectUser();
+    await client.connectUser({ type: 'anonymous' });
+    expect(tp).toBeCalledTimes(1);
+  });
+
   afterEach(() => {
     client.disconnectUser();
   });

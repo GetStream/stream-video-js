@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.17...@stream-io/video-react-sdk-1.7.18) (2024-11-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.3`
+* `@stream-io/video-react-bindings` updated to version `1.1.20`
+## [1.7.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.16...@stream-io/video-react-sdk-1.7.17) (2024-11-14)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.2`
+* `@stream-io/video-react-bindings` updated to version `1.1.19`
+
+* add reason for cancel call click button ([#1577](https://github.com/GetStream/stream-video-js/issues/1577)) ([bcac386](https://github.com/GetStream/stream-video-js/commit/bcac386b6baa039b23f2281a1f7df0c633af035f))
+
 ## [1.7.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.15...@stream-io/video-react-sdk-1.7.16) (2024-11-14)
 
 ### Dependency Updates
