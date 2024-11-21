@@ -7810,9 +7810,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-client@npm:1.11.3":
-  version: 1.11.3
-  resolution: "@stream-io/video-client@npm:1.11.3"
+"@stream-io/video-client@npm:1.11.4":
+  version: 1.11.4
+  resolution: "@stream-io/video-client@npm:1.11.4"
   dependencies:
     "@protobuf-ts/runtime": ^2.9.4
     "@protobuf-ts/runtime-rpc": ^2.9.4
@@ -7826,7 +7826,7 @@ __metadata:
     ua-parser-js: ^1.0.36
     webrtc-adapter: ^8.2.3
     ws: ^8.14.2
-  checksum: 682ba7df425ad578c3e7dda078ceaa27fcf989af660d0316c8a5632c8f4f8d0674637234886db32732ba06c90ebe261e104a021a4cf5f344c0f2d3ef1bee9aab
+  checksum: 6f3deb69d070fec4c08044601e5132a5c4eddc81c5875142c7fa50003f9f17ffb4ebcc6ca05ecf518ab4b875fed0eba7bbb745ef5ab0b514a9f2e7562a2ac0df
   languageName: node
   linkType: hard
 
@@ -8074,7 +8074,7 @@ __metadata:
     "@react-native-firebase/messaging": 17.5.0
     "@react-native/eslint-config": ^0.74.84
     "@stream-io/react-native-webrtc": 118.1.0
-    "@stream-io/video-client": 1.11.3
+    "@stream-io/video-client": 1.11.4
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": 1.1.20
     "@testing-library/jest-native": ^5.4.2
