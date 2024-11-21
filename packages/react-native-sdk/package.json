@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.2.16",
+  "version": "1.2.17",
   "packageManager": "yarn@3.2.4",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
@@ -46,8 +46,8 @@
     "!**/.*"
   ],
   "dependencies": {
-    "@stream-io/video-client": "1.11.1",
-    "@stream-io/video-react-bindings": "1.1.18",
+    "@stream-io/video-client": "1.11.3",
+    "@stream-io/video-react-bindings": "1.1.20",
     "intl-pluralrules": "2.0.1",
     "lodash.merge": "^4.6.2",
     "react-native-url-polyfill": "1.3.0",
@@ -55,7 +55,7 @@
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {
-    "@notifee/react-native": ">=7.8.0",
+    "@notifee/react-native": ">=9.0.0",
     "@react-native-community/netinfo": ">=9.0.0",
     "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
@@ -119,7 +119,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.24.7",
     "@expo/config-plugins": "~7.8.4",
-    "@notifee/react-native": "7.8.0",
+    "@notifee/react-native": "9.1.2",
     "@react-native-community/netinfo": "9.3.9",
     "@react-native-community/push-notification-ios": "1.11.0",
     "@react-native-firebase/app": "17.5.0",

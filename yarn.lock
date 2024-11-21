@@ -4211,12 +4211,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:7.8.0, @notifee/react-native@npm:^7.8.0":
-  version: 7.8.0
-  resolution: "@notifee/react-native@npm:7.8.0"
+"@notifee/react-native@npm:9.1.2":
+  version: 9.1.2
+  resolution: "@notifee/react-native@npm:9.1.2"
   peerDependencies:
     react-native: "*"
-  checksum: 800233c9505195046e918ee42a4b11d8e84cf1846ea4a0b52599e1a40181b2bbfcab09c64b445b5a7eed98c38556c97550bce32ed24a51ce05ccd8b65047548d
+  checksum: 1cf39654ed9679992f098e7df1586d47a65239297903ab57c76ca5834641d9171f8d2d3a337c8453950c9f6ee2cea1b5388093e1a386e7a89eceb96bf27ef374
   languageName: node
   linkType: hard
 
@@ -7810,9 +7810,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-client@npm:1.11.1":
-  version: 1.11.1
-  resolution: "@stream-io/video-client@npm:1.11.1"
+"@stream-io/video-client@npm:1.11.3":
+  version: 1.11.3
+  resolution: "@stream-io/video-client@npm:1.11.3"
   dependencies:
     "@protobuf-ts/runtime": ^2.9.4
     "@protobuf-ts/runtime-rpc": ^2.9.4
@@ -7826,7 +7826,7 @@ __metadata:
     ua-parser-js: ^1.0.36
     webrtc-adapter: ^8.2.3
     ws: ^8.14.2
-  checksum: 309c403beb5e010bcee31e1d59b5d825f3ca25c3ae79237a2340a44c364c770e07c9de11eef6c7dbbb34981dbf9ecb4c1a1489f208972d5389383cb53dea9ebb
+  checksum: 682ba7df425ad578c3e7dda078ceaa27fcf989af660d0316c8a5632c8f4f8d0674637234886db32732ba06c90ebe261e104a021a4cf5f344c0f2d3ef1bee9aab
   languageName: node
   linkType: hard
 
@@ -7920,16 +7920,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-react-bindings@npm:1.1.18":
-  version: 1.1.18
-  resolution: "@stream-io/video-react-bindings@npm:1.1.18"
+"@stream-io/video-react-bindings@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@stream-io/video-react-bindings@npm:1.1.20"
   dependencies:
     i18next: ^23.5.1
     rxjs: ~7.8.1
   peerDependencies:
-    "@stream-io/video-client": ^1.11.1
+    "@stream-io/video-client": ^1.11.3
     react: ^17 || ^18 || ^19
-  checksum: 32a443713ffe45fb4a117a7420c998a9c6eee703dad8d2ba0e1364363edb492776ead7c6910eeb3f1dc92d7798632b1b5d074c93d9225f1296aa72af540efcb1
+  checksum: c63ce3b118d5c111e7693a833c9819620735d0ccd96dd418ca54b2a91bce9dcdbc00333745f72987429316870515ddc69bb71f8eaad171174c1b8d8a7b9ed519
   languageName: node
   linkType: hard
 
@@ -8004,7 +8004,7 @@ __metadata:
     "@babel/preset-env": ^7.25.4
     "@babel/runtime": ^7.25.6
     "@gorhom/bottom-sheet": ^4.6.1
-    "@notifee/react-native": ^7.8.0
+    "@notifee/react-native": 9.1.2
     "@react-native-camera-roll/camera-roll": ^5.6.0
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/netinfo": 11.3.0
@@ -8067,16 +8067,16 @@ __metadata:
   dependencies:
     "@babel/preset-typescript": ^7.24.7
     "@expo/config-plugins": ~7.8.4
-    "@notifee/react-native": 7.8.0
+    "@notifee/react-native": 9.1.2
     "@react-native-community/netinfo": 9.3.9
     "@react-native-community/push-notification-ios": 1.11.0
     "@react-native-firebase/app": 17.5.0
     "@react-native-firebase/messaging": 17.5.0
     "@react-native/eslint-config": ^0.74.84
     "@stream-io/react-native-webrtc": 118.1.0
-    "@stream-io/video-client": 1.11.1
+    "@stream-io/video-client": 1.11.3
     "@stream-io/video-filters-react-native": "workspace:^"
-    "@stream-io/video-react-bindings": 1.1.18
+    "@stream-io/video-react-bindings": 1.1.20
     "@testing-library/jest-native": ^5.4.2
     "@testing-library/react-native": ^12.1.2
     "@tsconfig/node14": 14.1.0
@@ -8111,7 +8111,7 @@ __metadata:
     ts-node: ^10.9.2
     typescript: ^5.5.2
   peerDependencies:
-    "@notifee/react-native": ">=7.8.0"
+    "@notifee/react-native": ">=9.0.0"
     "@react-native-community/netinfo": ">=9.0.0"
     "@react-native-community/push-notification-ios": ">=1.11.0"
     "@react-native-firebase/app": ">=17.5.0"
