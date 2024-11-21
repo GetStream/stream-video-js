@@ -18,14 +18,14 @@
     "lint:ci": "eslint --cache 'src/**/*.{ts,tsx}'"
   },
   "dependencies": {
-    "@gorhom/bottom-sheet": "^4.6.1",
+    "@gorhom/bottom-sheet": "4.6.4",
     "@notifee/react-native": "9.1.2",
     "@react-native-camera-roll/camera-roll": "^7.8.3",
     "@react-native-clipboard/clipboard": "^1.11.1",
     "@react-native-community/netinfo": "11.3.0",
     "@react-native-community/push-notification-ios": "^1.11.0",
-    "@react-native-firebase/app": "19.2.2",
-    "@react-native-firebase/messaging": "19.2.2",
+    "@react-native-firebase/app": "21.6.0",
+    "@react-native-firebase/messaging": "21.6.0",
     "@react-native-google-signin/google-signin": "^11.0.0",
     "@react-navigation/native": "^7.0",
     "@react-navigation/native-stack": "^7.1",
