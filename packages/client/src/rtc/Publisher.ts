@@ -571,7 +571,7 @@ export class Publisher {
     );
   };
 
-  private removeUnpreferredCodecs(sdp: string, trackType: TrackType) {
+  private removeUnpreferredCodecs(sdp: string, trackType: TrackType): string {
     const opts = this.publishOptsForTrack.get(trackType);
     if (!opts || !opts.forceSingleCodec) return sdp;
 

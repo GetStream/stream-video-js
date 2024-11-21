@@ -138,6 +138,17 @@ export const preserveCodec = (
   codec: RTCRtpCodec,
 ): string => {
   const [kind, codecName] = codec.mimeType.toLowerCase().split('/');
+
+  const toSet = (fmtpLine: string) =>
+    new Set(fmtpLine.split(';').map((f) => f.trim().toLowerCase()));
+
+  const equal = (a: Set<string>, b: Set<string>) => {
+    if (a.size !== b.size) return false;
+    for (const item of a) if (!b.has(item)) return false;
+    return true;
+  };
+
+  const codecFmtp = toSet(codec.sdpFmtpLine || '');
   const parsedSdp = SDP.parse(sdp);
   for (const media of parsedSdp.media) {
     if (media.type !== kind || String(media.mid) !== mid) continue;
@@ -148,7 +159,7 @@ export const preserveCodec = (
       if (
         rtp.codec.toLowerCase() === codecName &&
         media.fmtp.some(
-          (f) => f.payload === rtp.payload && f.config === codec.sdpFmtpLine,
+          (f) => f.payload === rtp.payload && equal(toSet(f.config), codecFmtp),
         )
       ) {
         payloads.add(rtp.payload);
