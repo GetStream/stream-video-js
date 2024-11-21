@@ -1,5 +1,4 @@
-import { ScreenShareSettings } from '../types';
-import { TargetResolutionResponse } from '../gen/shims';
+import type { TargetResolution } from '../gen/coordinator';
 import { isSvcCodec } from './codecs';
 import { PublishOption, VideoQuality } from '../gen/video/sfu/models/models';
 
@@ -11,7 +10,7 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
 };
 
 const DEFAULT_BITRATE = 1250000;
-const defaultTargetResolution: TargetResolutionResponse = {
+const defaultTargetResolution: TargetResolution = {
   bitrate: DEFAULT_BITRATE,
   width: 1280,
   height: 720,
@@ -30,7 +29,9 @@ const defaultBitratePerRid: Record<string, number> = {
  *
  * @param layers the layers to process.
  */
-export const toSvcEncodings = (layers: OptimalVideoLayer[] | undefined) => {
+export const toSvcEncodings = (
+  layers: OptimalVideoLayer[] | undefined,
+): RTCRtpEncodingParameters[] | undefined => {
   // we take the `f` layer, and we rename it to `q`.
   return layers?.filter((l) => l.rid === 'f').map((l) => ({ ...l, rid: 'q' }));
 };
@@ -62,7 +63,7 @@ const toScalabilityMode = (spatialLayers: number, temporalLayers: number) =>
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
-  targetResolution: TargetResolutionResponse = defaultTargetResolution,
+  targetResolution: TargetResolution = defaultTargetResolution,
   publishOption: PublishOption,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
@@ -133,7 +134,7 @@ export const findOptimalVideoLayers = (
  * @param bitrate the target bitrate.
  */
 export const getComputedMaxBitrate = (
-  targetResolution: TargetResolutionResponse,
+  targetResolution: TargetResolution,
   currentWidth: number,
   currentHeight: number,
   bitrate: number,
@@ -181,26 +182,4 @@ const withSimulcastConstraints = (
     ...layer,
     rid: ridMapping[index], // reassign rid
   }));
-};
-
-/**
- * Determines the most optimal video layers for screen sharing.
- */
-export const findOptimalScreenSharingLayers = (
-  videoTrack: MediaStreamTrack,
-  preferences?: ScreenShareSettings,
-  defaultMaxBitrate = 3000000,
-): OptimalVideoLayer[] => {
-  const settings = videoTrack.getSettings();
-  return [
-    {
-      active: true,
-      rid: 'q', // single track, start from 'q'
-      width: settings.width || 0,
-      height: settings.height || 0,
-      scaleResolutionDownBy: 1,
-      maxBitrate: preferences?.maxBitrate ?? defaultMaxBitrate,
-      maxFramerate: preferences?.maxFramerate ?? 30,
-    },
-  ];
 };

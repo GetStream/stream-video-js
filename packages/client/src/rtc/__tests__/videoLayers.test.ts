@@ -2,7 +2,6 @@ import './mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { PublishOption, VideoQuality } from '../../gen/video/sfu/models/models';
 import {
-  findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
   getComputedMaxBitrate,
   OptimalVideoLayer,
@@ -11,38 +10,6 @@ import {
 } from '../videoLayers';
 
 describe('videoLayers', () => {
-  it('should find optimal screen sharing layers', () => {
-    const track = new MediaStreamTrack();
-    vi.spyOn(track, 'getSettings').mockReturnValue({
-      width: 1920,
-      height: 1080,
-    });
-
-    const layers = findOptimalScreenSharingLayers(track);
-    expect(layers).toEqual([
-      {
-        active: true,
-        rid: 'q',
-        width: 1920,
-        height: 1080,
-        maxBitrate: 3000000,
-        scaleResolutionDownBy: 1,
-        maxFramerate: 30,
-      },
-    ]);
-  });
-
-  it('should use default max bitrate if none is provided in preferences', () => {
-    const track = new MediaStreamTrack();
-    vi.spyOn(track, 'getSettings').mockReturnValue({
-      width: 1920,
-      height: 1080,
-    });
-
-    const layers = findOptimalScreenSharingLayers(track, undefined, 192000);
-    expect(layers).toMatchObject([{ maxBitrate: 192000 }]);
-  });
-
   it('should find optimal video layers', () => {
     const track = new MediaStreamTrack();
     const width = 1920;

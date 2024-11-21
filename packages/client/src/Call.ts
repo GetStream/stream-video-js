@@ -925,7 +925,7 @@ export class Call {
       });
     }
 
-    return [
+    const preferredPublishOptions = [
       PublishOption.create({
         trackType: TrackType.VIDEO,
         codec: sfuCodec,
@@ -933,6 +933,19 @@ export class Call {
         maxSpatialLayers: maxSimulcastLayers,
       }),
     ];
+
+    const screenShareSettings = this.screenShare.getSettings();
+    if (screenShareSettings) {
+      preferredPublishOptions.push(
+        PublishOption.create({
+          trackType: TrackType.SCREEN_SHARE,
+          fps: screenShareSettings.maxFramerate,
+          bitrate: screenShareSettings.maxBitrate,
+        }),
+      );
+    }
+
+    return preferredPublishOptions;
   };
 
   /**
@@ -1498,14 +1511,10 @@ export class Call {
     if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
       this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
     }
-    // const opts: ClientPublishOptions = {
-    //   screenShareSettings: this.screenShare.getSettings(),
-    // };
     await this.publisher.publishStream(
       screenShareStream,
       screenShareTrack,
       TrackType.SCREEN_SHARE,
-      // opts,
     );
 
     const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
@@ -1517,7 +1526,6 @@ export class Call {
         screenShareStream,
         screenShareAudioTrack,
         TrackType.SCREEN_SHARE_AUDIO,
-        // opts,
       );
     }
   };

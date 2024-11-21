@@ -58,19 +58,5 @@ export const toTrackType = (trackType: string): TrackType | undefined => {
   }
 };
 
-export const toTrackKind = (
-  trackType: TrackType,
-): 'audio' | 'video' | undefined => {
-  switch (trackType) {
-    case TrackType.AUDIO:
-      return 'audio';
-    case TrackType.VIDEO:
-      return 'video';
-    case TrackType.UNSPECIFIED:
-    case TrackType.SCREEN_SHARE:
-    case TrackType.SCREEN_SHARE_AUDIO:
-      return undefined;
-    default:
-      ensureExhausted(trackType, 'Unknown track type');
-  }
-};
+export const isAudioTrackType = (trackType: TrackType): boolean =>
+  trackType === TrackType.AUDIO || trackType === TrackType.SCREEN_SHARE_AUDIO;

@@ -10,17 +10,18 @@ import {
   VideoLayer,
 } from '../gen/video/sfu/models/models';
 import {
-  findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
   OptimalVideoLayer,
   ridToVideoQuality,
   toSvcEncodings,
 } from './videoLayers';
 import { isSvcCodec } from './codecs';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  isAudioTrackType,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
-import { TargetResolutionResponse } from '../gen/shims';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
@@ -89,10 +90,8 @@ export class Publisher extends BasePeerConnection {
       ({ publishOption }) => {
         withoutConcurrency('publisher.changePublishOptions', async () => {
           if (!publishOption) return;
-          this.publishOptions = this.publishOptions.map((option) =>
-            option.trackType === publishOption.trackType
-              ? publishOption
-              : option,
+          this.publishOptions = this.publishOptions.map((o) =>
+            o.trackType === publishOption.trackType ? publishOption : o,
           );
           if (this.isPublishing(publishOption.trackType)) {
             this.switchCodec(publishOption);
@@ -285,6 +284,7 @@ export class Publisher extends BasePeerConnection {
     return undefined;
   };
 
+  // FIXME move to InputMediaDeviceManager
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
     trackType: TrackType,
@@ -521,56 +521,45 @@ export class Publisher extends BasePeerConnection {
           },
         }));
 
-        const isAudioTrack =
-          trackType === TrackType.AUDIO ||
-          trackType === TrackType.SCREEN_SHARE_AUDIO;
-
-        const audioSettings = this.state.settings?.audio;
-        const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-        const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
-
+        const isAudioTrack = isAudioTrackType(trackType);
         const trackSettings = track.getSettings();
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
         const transceiverIndex = this.transceiverOrder.indexOf(transceiver);
         const mid = extractMid(transceiver, transceiverIndex, sdp);
 
+        const audioSettings = this.state.settings?.audio;
         return {
           trackId: track.id,
           layers,
           trackType,
           mid,
           stereo: isStereo,
-          dtx: isAudioTrack && isDtxEnabled,
-          red: isAudioTrack && isRedEnabled,
+          dtx: isAudioTrack && !!audioSettings?.opus_dtx_enabled,
+          red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
           muted: !isTrackLive,
         };
       })
       .filter(Boolean) as TrackInfo[];
   };
 
-  private getPublishOptionFor = (trackType: TrackType) => {
-    const publishOption = this.publishOptions.find(
-      (option) => option.trackType === trackType,
-    );
-    if (!publishOption) {
+  /**
+   * Returns the publish options for the given track type.
+   */
+  private getPublishOptionFor = (trackType: TrackType): PublishOption => {
+    const option = this.publishOptions.find((o) => o.trackType === trackType);
+    if (!option) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);
     }
-    return publishOption;
+    return option;
   };
 
   private computeLayers = (
     trackType: TrackType,
     track: MediaStreamTrack,
-    opts: PublishOption,
+    publishOption: PublishOption,
   ): OptimalVideoLayer[] | undefined => {
-    const { settings } = this.state;
-    const targetResolution = settings?.video
-      .target_resolution as TargetResolutionResponse;
-
-    return trackType === TrackType.VIDEO
-      ? findOptimalVideoLayers(track, targetResolution, opts)
-      : trackType === TrackType.SCREEN_SHARE
-        ? findOptimalScreenSharingLayers(track, undefined, opts.bitrate)
-        : undefined;
+    if (isAudioTrackType(trackType)) return;
+    const targetResolution = this.state.settings?.video.target_resolution;
+    return findOptimalVideoLayers(track, targetResolution, publishOption);
   };
 }
