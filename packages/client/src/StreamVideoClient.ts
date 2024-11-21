@@ -304,6 +304,8 @@ export class StreamVideoClient {
         this.writeableStateStore.registerCall(theCall);
       }),
     );
+
+    return connectUserResponse;
   };
 
   /**
