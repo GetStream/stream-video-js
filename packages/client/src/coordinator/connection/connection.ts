@@ -565,6 +565,7 @@ export class StableWSConnection {
 
     if (data && data.type === 'connection.ok') {
       this.resolvePromise?.(data);
+      this.client.resolveConnectionId?.(data.connection_id);
       this._setHealth(true);
     }
 
