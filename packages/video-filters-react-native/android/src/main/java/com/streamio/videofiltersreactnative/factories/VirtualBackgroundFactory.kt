@@ -139,7 +139,7 @@ private class VirtualBackgroundVideoFilter(
         // Make a copy of the scaled virtual background bitmap. Used when processing each frame.
         scaledVirtualBackgroundBitmapCopy = scaledVirtualBackgroundBitmap!!.copy(
           /* config = */
-          scaledVirtualBackgroundBitmap!!.config,
+            scaledVirtualBackgroundBitmap!!.config!!,
           /* isMutable = */
           true,
         )

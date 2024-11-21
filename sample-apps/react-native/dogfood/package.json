@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "4.5.0",
+  "version": "4.5.6",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^4.6.1",
-    "@notifee/react-native": "^7.8.0",
+    "@notifee/react-native": "9.1.2",
     "@react-native-camera-roll/camera-roll": "^5.6.0",
     "@react-native-clipboard/clipboard": "^1.11.1",
     "@react-native-community/netinfo": "11.3.0",
