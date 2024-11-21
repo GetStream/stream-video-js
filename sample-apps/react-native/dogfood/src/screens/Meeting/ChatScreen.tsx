@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   Channel,
   MessageInput,
@@ -79,6 +86,7 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
 
   return (
     <SafeAreaView>
+      <StatusBar barStyle={'light-content'} />
       <Channel channel={channel}>
         <ChannelHeader />
         <MessageList />
@@ -96,9 +104,9 @@ const useStyles = () => {
         header: {
           padding: 10,
           flexDirection: 'row',
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: 'black',
         },
-        headerText: { flex: 1, color: theme.colors.textPrimary },
+        headerText: { flex: 1, color: 'white' },
         notedButton: {
           backgroundColor: theme.colors.buttonPrimary,
           justifyContent: 'center',
@@ -107,7 +115,7 @@ const useStyles = () => {
           marginLeft: 10,
         },
         notedButtonText: {
-          color: theme.colors.textPrimary,
+          color: 'white',
           fontWeight: '500',
         },
       }),

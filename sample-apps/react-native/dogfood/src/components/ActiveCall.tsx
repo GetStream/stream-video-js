@@ -4,7 +4,7 @@ import {
   CallContent,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
@@ -12,6 +12,7 @@ import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useToggleCallRecording } from '@stream-io/video-react-bindings';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -32,6 +33,7 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const styles = useStyles();
   const { selectedLayout } = useLayout();
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -82,6 +84,9 @@ export const ActiveCall = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
+      />
       <CustomTopControls />
       <CallContent
         onHangupCallHandler={onHangupCallHandler}
