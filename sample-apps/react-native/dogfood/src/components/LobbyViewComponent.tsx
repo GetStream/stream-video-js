@@ -10,7 +10,7 @@ import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
 import { ThermalInfo } from './ThermalInfo';
-import { checkLowPowerMode } from './PowerMode';
+import { addPowerModeListener } from './PowerMode';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -31,17 +31,14 @@ export const LobbyViewComponent = ({
 
   const [lowPowerMode, setLowPowerMode] = useState(false);
 
+
   useEffect(() => {
-    const checkPowerMode = async () => {
-      const isLowPower = await checkLowPowerMode();
-      setLowPowerMode(isLowPower);
-    };
+    const subscription = addPowerModeListener((isLowPowerMode: boolean) => {
+      console.log('Power mode changed:', isLowPowerMode);
+      setLowPowerMode(isLowPowerMode);
+    });
 
-    checkPowerMode();
-
-    const interval = setInterval(checkLowPowerMode, 5000);
-
-    return () => clearInterval(interval);
+    return () => subscription.remove();
   }, []);
 
   const JoinCallButtonComponent = useCallback(() => {
