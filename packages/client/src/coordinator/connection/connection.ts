@@ -15,13 +15,9 @@ import {
   retryInterval,
   sleep,
 } from './utils';
-import type {
-  ConnectAPIResponse,
-  LogLevel,
-  StreamVideoEvent,
-  UR,
-} from './types';
+import type { LogLevel, StreamVideoEvent, UR } from './types';
 import type { ConnectedEvent, WSAuthMessage } from '../../gen/coordinator';
+import { makeSafePromise, type SafePromise } from '../../promise';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -54,7 +50,7 @@ const isErrorEvent = (
 export class StableWSConnection {
   // local vars
   connectionID?: string;
-  connectionOpen?: ConnectAPIResponse;
+  private connectionOpenSafe?: SafePromise<ConnectedEvent>;
   authenticationSent: boolean;
   consecutiveFailures: number;
   pingInterval: number;
@@ -339,8 +335,9 @@ export class StableWSConnection {
       }
 
       let mustSetupConnectionIdPromise = true;
-      if (this.client.connectionIdPromise) {
-        if (await isPromisePending(this.client.connectionIdPromise)) {
+      const connectionIdPromise = this.client.connectionIdPromise;
+      if (connectionIdPromise) {
+        if (await isPromisePending(connectionIdPromise)) {
           mustSetupConnectionIdPromise = false;
         }
       }
@@ -747,11 +744,17 @@ export class StableWSConnection {
   _setupConnectionPromise = () => {
     this.isResolved = false;
     /** a promise that is resolved once ws.open is called */
-    this.connectionOpen = new Promise<ConnectedEvent>((resolve, reject) => {
-      this.resolvePromise = resolve;
-      this.rejectPromise = reject;
-    });
+    this.connectionOpenSafe = makeSafePromise(
+      new Promise<ConnectedEvent>((resolve, reject) => {
+        this.resolvePromise = resolve;
+        this.rejectPromise = reject;
+      }),
+    );
   };
+
+  get connectionOpen() {
+    return this.connectionOpenSafe?.();
+  }
 
   /**
    * Schedules a next health check ping for websocket.

@@ -30,6 +30,7 @@ import {
 import { getLogger, logToConsole, setLogger } from './logger';
 import { getSdkInfo } from './client-details';
 import { SdkType } from './gen/video/sfu/models/models';
+import { withoutConcurrency } from './helpers/concurrency';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -51,8 +52,9 @@ export class StreamVideoClient {
   streamClient: StreamClient;
 
   protected eventHandlersToUnregister: Array<() => void> = [];
-  protected connectionPromise: Promise<void | ConnectedEvent> | undefined;
-  protected disconnectionPromise: Promise<void> | undefined;
+  private readonly connectionConcurrencyTag = Symbol(
+    'connectionConcurrencyTag',
+  );
 
   private static _instanceMap: Map<string, StreamVideoClient> = new Map();
 
@@ -209,12 +211,11 @@ export class StreamVideoClient {
         return this.streamClient.connectGuestUser(user);
       };
     }
-    this.connectionPromise = this.disconnectionPromise
-      ? this.disconnectionPromise.then(() => connectUser())
-      : connectUser();
 
-    this.connectionPromise?.finally(() => (this.connectionPromise = undefined));
-    const connectUserResponse = await this.connectionPromise;
+    const connectUserResponse = await withoutConcurrency(
+      this.connectionConcurrencyTag,
+      () => connectUser(),
+    );
     // connectUserResponse will be void if connectUser called twice for the same user
     if (connectUserResponse?.me) {
       this.writeableStateStore.setConnectedUser(connectUserResponse.me);
@@ -303,8 +304,6 @@ export class StreamVideoClient {
         this.writeableStateStore.registerCall(theCall);
       }),
     );
-
-    return connectUserResponse;
   };
 
   /**
@@ -316,19 +315,15 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    if (!this.streamClient.user && !this.connectionPromise) {
+    if (!this.streamClient.user) {
       return;
     }
     const userId = this.streamClient.user?.id;
     const apiKey = this.streamClient.key;
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
-    this.disconnectionPromise = this.connectionPromise
-      ? this.connectionPromise.then(() => disconnectUser())
-      : disconnectUser();
-    this.disconnectionPromise.finally(
-      () => (this.disconnectionPromise = undefined),
+    await withoutConcurrency(this.connectionConcurrencyTag, () =>
+      disconnectUser(),
     );
-    await this.disconnectionPromise;
     if (userId) {
       StreamVideoClient._instanceMap.delete(apiKey + userId);
     }
@@ -556,10 +551,8 @@ export class StreamVideoClient {
   ) => {
     const connectAnonymousUser = () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider);
-    this.connectionPromise = this.disconnectionPromise
-      ? this.disconnectionPromise.then(() => connectAnonymousUser())
-      : connectAnonymousUser();
-    this.connectionPromise.finally(() => (this.connectionPromise = undefined));
-    return this.connectionPromise;
+    return await withoutConcurrency(this.connectionConcurrencyTag, () =>
+      connectAnonymousUser(),
+    );
   };
 }
