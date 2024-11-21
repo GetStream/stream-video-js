@@ -7,7 +7,7 @@
   "license": "See license in LICENSE",
   "workspaces": [
     "packages/*",
-    "sample-apps/**/*"
+    "sample-apps/*/*"
   ],
   "scripts": {
     "start:react:sdk": "yarn workspace @stream-io/video-react-sdk run start",
