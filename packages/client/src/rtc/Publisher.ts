@@ -459,9 +459,14 @@ export class Publisher {
   private getCodecPreferences = (
     trackType: TrackType,
     preferredCodec?: string,
+    codecPreferencesSource?: 'sender' | 'receiver',
   ) => {
     if (trackType === TrackType.VIDEO) {
-      return getPreferredCodecs('video', preferredCodec || 'vp8');
+      return getPreferredCodecs(
+        'video',
+        preferredCodec || 'vp8',
+        codecPreferencesSource,
+      );
     }
     if (trackType === TrackType.AUDIO) {
       const defaultAudioCodec = this.isRedEnabled ? 'red' : 'opus';
@@ -575,8 +580,8 @@ export class Publisher {
     const opts = this.publishOptsForTrack.get(trackType);
     if (!opts || !opts.forceSingleCodec) return sdp;
 
-    const codec = opts.forceCodec || opts.preferredCodec;
-    const orderedCodecs = this.getCodecPreferences(trackType, codec);
+    const codec = opts.forceCodec || getOptimalVideoCodec(opts.preferredCodec);
+    const orderedCodecs = this.getCodecPreferences(trackType, codec, 'sender');
     if (!orderedCodecs || orderedCodecs.length === 0) return sdp;
 
     const transceiver = this.transceiverCache.get(trackType);
