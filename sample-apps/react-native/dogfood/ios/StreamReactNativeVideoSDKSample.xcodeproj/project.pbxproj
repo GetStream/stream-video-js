@@ -11,6 +11,7 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		4D971DCC2E57B61BFEDC0B7D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */; };
 		5318450A012104024787F335 /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82EFD02D0801AB3A8C4FA795 /* Pods_StreamReactNativeVideoSDKSample.framework */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		CC1B146FA84C47A62BC8887B /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C73B75C69992770C64D361AA /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework */; };
@@ -75,6 +76,7 @@
 		708A154FC8B4F4BC106A6A17 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StreamReactNativeVideoSDKSample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		82EFD02D0801AB3A8C4FA795 /* Pods_StreamReactNativeVideoSDKSample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_StreamReactNativeVideoSDKSample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = StreamReactNativeVideoSDKSample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9FF5873D7CFBD5B6ADF5E88E /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; sourceTree = "<group>"; };
 		BFF02C9ED8B0E334A6042435 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; sourceTree = "<group>"; };
 		C73B75C69992770C64D361AA /* Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_StreamReactNativeVideoSDKSample_StreamReactNativeVideoSDKSampleTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -163,6 +165,7 @@
 				DD36F8FB2C182FFC00836A94 /* StreamReactNativeVideoSDKSample-Bridging-Header.h */,
 				DD36F8FE2C18311200836A94 /* VideoEffectsModule.mm */,
 				DD36F9002C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift */,
+				88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */,
 			);
 			name = StreamReactNativeVideoSDKSample;
 			sourceTree = "<group>";
@@ -359,6 +362,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				DD17437129221798001CBEA0 /* GoogleService-Info.plist in Resources */,
+				4D971DCC2E57B61BFEDC0B7D /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,7 +390,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
+			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
 		19A18E83588531331E4B48D7 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -565,7 +569,7 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = StreamReactNativeVideoSDKSampleTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -592,7 +596,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				INFOPLIST_FILE = StreamReactNativeVideoSDKSampleTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -879,7 +883,7 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -898,6 +902,7 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -906,6 +911,7 @@
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				USE_HERMES = true;
 			};
 			name = Debug;
@@ -967,7 +973,7 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -1018,7 +1024,7 @@
 				INFOPLIST_FILE = "Broadcast Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Broadcast Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1061,7 +1067,7 @@
 				INFOPLIST_FILE = "Broadcast Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Broadcast Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

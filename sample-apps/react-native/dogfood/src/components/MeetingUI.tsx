@@ -58,7 +58,6 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
 
   const onJoinCallHandler = useCallback(async () => {
     try {
-      setShow('loading');
       call?.updatePublishOptions({
         preferredCodec: 'vp9',
       });
