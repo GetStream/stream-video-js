@@ -14,6 +14,7 @@ export type StreamChatType = {
   channelType: ChannelType;
   commandType: CommandType;
   eventType: EventType;
+  memberType: UR;
   messageType: MessageType;
   pollType: UR;
   pollOptionType: UR;
