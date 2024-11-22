@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.4...@stream-io/video-client-1.11.5) (2024-11-22)
+
+
+### Bug Fixes
+
+* unhandled promise rejections during reconnect ([#1585](https://github.com/GetStream/stream-video-js/issues/1585)) ([920c4ea](https://github.com/GetStream/stream-video-js/commit/920c4ea3b3f622430b35ac1bade74a6206ee17e5)), closes [/github.com/GetStream/stream-video-js/pull/1585/files#diff-420f6ddab47c1be72fd9ce8c99e1fa2b9f5f0495b7c367546ee0ff634beaed81](https://github.com/GetStream//github.com/GetStream/stream-video-js/pull/1585/files/issues/diff-420f6ddab47c1be72fd9ce8c99e1fa2b9f5f0495b7c367546ee0ff634beaed81)
+
+## [1.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.3...@stream-io/video-client-1.11.4) (2024-11-21)
+
+
+### Bug Fixes
+
+* experimental option to force single codec preference in the SDP ([#1581](https://github.com/GetStream/stream-video-js/issues/1581)) ([894a86e](https://github.com/GetStream/stream-video-js/commit/894a86e407dc0dd36b7463bb964c86da0c3055d1))
+
 ## [1.11.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.2...@stream-io/video-client-1.11.3) (2024-11-20)
 
 
