@@ -1,6 +1,7 @@
 import { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeMode } from './contexts/AppContext';
+import { Dimensions } from 'react-native';
 
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
@@ -51,6 +52,16 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
     container: { paddingTop: 0, paddingBottom: 0 },
   };
 
+  const { height, width } = Dimensions.get('window');
+  const floatingParticipantsView: DeepPartial<
+    Theme['floatingParticipantsView']
+  > = {
+    participantViewContainer: {
+      height: height * 0.2,
+      width: width * 0.25,
+    },
+  };
+
   const lightThemeColors: DeepPartial<Theme['colors']> = {
     buttonPrimary: '#005fff',
     buttonSecondary: '#eff0f1',
@@ -71,6 +82,7 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
   const baseTheme: DeepPartial<Theme> = {
     variants,
     callContent,
+    floatingParticipantsView,
   };
 
   if (mode === 'light') {
