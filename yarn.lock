@@ -8456,8 +8456,8 @@ __metadata:
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
     sass: ^1.69.5
-    stream-chat: ^8.40.9
-    stream-chat-react: 12.0.0
+    stream-chat: ^8.45.1
+    stream-chat-react: 12.6.0
     typescript: ^5.5.2
     vite: ^5.4.6
   languageName: unknown
@@ -8685,8 +8685,8 @@ __metadata:
     sass: ^1.69.5
     source-map-loader: ^5.0.0
     starwars-names: ^1.6.0
-    stream-chat: ^8.40.9
-    stream-chat-react: 12.0.0
+    stream-chat: ^8.45.1
+    stream-chat-react: 12.6.0
     yargs: ^17.7.2
   languageName: unknown
   linkType: soft
@@ -8905,8 +8905,8 @@ __metadata:
     react: ^18.3.1
     react-dom: ^18.3.1
     react-router-dom: ^6.17.0
-    stream-chat: ^8.40.9
-    stream-chat-react: 12.0.0
+    stream-chat: ^8.45.1
+    stream-chat-react: 12.6.0
     tailwindcss: ^3.2.4
     typescript: ^5.5.2
     vite: ^5.4.6
@@ -25886,9 +25886,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:12.0.0":
-  version: 12.0.0
-  resolution: "stream-chat-react@npm:12.0.0"
+"stream-chat-react@npm:12.6.0":
+  version: 12.6.0
+  resolution: "stream-chat-react@npm:12.6.0"
   dependencies:
     "@braintree/sanitize-url": ^6.0.4
     "@popperjs/core": ^2.11.5
@@ -25930,7 +25930,7 @@ __metadata:
     emoji-mart: ^5.4.0
     react: ^18.0.0 || ^17.0.0 || ^16.8.0
     react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
-    stream-chat: ^8.40.8
+    stream-chat: ^8.45.0
   dependenciesMeta:
     "@stream-io/transliterate":
       optional: true
@@ -25945,11 +25945,11 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: c04dc519e44eebd9155c5583dfe307035073aa247a945e482f147f11af58893429ec87acc51d5244837266caff0c8431cf9184a4856b8c5f605a96f7e38ed7ad
+  checksum: b0900d1f8b859afe864637173727a9dba0cb07c63ff963548f88d89813044ff784cb9cd8b9dcc44dfaf2a808db7bee0d9b05fe53c34d7794fce2c6cf925d87b8
   languageName: node
   linkType: hard
 
-"stream-chat@npm:8.45.1, stream-chat@npm:^8.40.9":
+"stream-chat@npm:8.45.1, stream-chat@npm:^8.45.1":
   version: 8.45.1
   resolution: "stream-chat@npm:8.45.1"
   dependencies:
