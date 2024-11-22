@@ -50,7 +50,7 @@ export const getPreferredCodecs = (
     }
 
     const sdpFmtpLine = codec.sdpFmtpLine;
-    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42e01f')) {
+    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42')) {
       // this is not the baseline h264 codec, prioritize it lower
       partiallyPreferred.push(codec);
       continue;
