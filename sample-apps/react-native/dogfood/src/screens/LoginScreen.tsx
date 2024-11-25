@@ -113,7 +113,8 @@ const LoginScreen = () => {
           <View style={styles.header}>
             <Text style={styles.envText}>{t('Pronto')}</Text>
             <Switch
-              value={appEnvironment === 'pronto'}
+              value={appEnvironment === 'pronto' ||
+              appEnvironment === 'pronto-staging'}
               onValueChange={(value) => {
                 if (value === true) {
                   setState({ appEnvironment: 'pronto' });
