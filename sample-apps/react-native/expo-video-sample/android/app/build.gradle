@@ -178,8 +178,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-
-    implementation project(':notifee_react-native')
 }
 
 apply plugin: 'com.google.gms.google-services'
