@@ -39,6 +39,9 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
+// const ENABLE_PRONTO_SWITCH = REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto';
+const ENABLE_PRONTO_SWITCH = true;
+
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const [prontoEnvironment, setProntoEnvironment] = useState(
@@ -65,12 +68,11 @@ const LoginScreen = () => {
         userImageUrl: _userImageUrl,
         appMode:
           REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
-        appEnvironment:
-          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
-            ? 'demo'
-            : prontoEnvironment
-              ? 'pronto'
-              : 'demo',
+        appEnvironment: !ENABLE_PRONTO_SWITCH
+          ? REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT
+          : prontoEnvironment
+            ? 'pronto'
+            : 'demo',
       });
     } catch (error) {
       console.log(error);
@@ -92,12 +94,11 @@ const LoginScreen = () => {
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
         appMode:
           REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
-        appEnvironment:
-          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo'
-            ? 'demo'
-            : prontoEnvironment
-              ? 'pronto'
-              : 'demo',
+        appEnvironment: !ENABLE_PRONTO_SWITCH
+          ? REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT
+          : prontoEnvironment
+            ? 'pronto'
+            : 'demo',
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {
@@ -118,7 +119,7 @@ const LoginScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.keyboardContainer, landscapeStyles]}
       >
-        {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && (
+        {ENABLE_PRONTO_SWITCH && (
           <View style={styles.header}>
             <Text style={styles.envText}>{t('Pronto')}</Text>
             <Switch
@@ -139,17 +140,13 @@ const LoginScreen = () => {
         <View style={styles.topContainer}>
           <Image source={require('../assets/Logo.png')} style={styles.logo} />
           <View>
-            {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' ? (
-              <Text style={styles.title}>
-                {prontoEnvironment
-                  ? t('Stream DogFood App')
-                  : t('Stream Video Calling')}
-              </Text>
-            ) : (
-              <Text style={styles.title}>{t('Stream Video Calling')}</Text>
-            )}
+            <Text style={styles.title}>
+              {prontoEnvironment
+                ? t('Stream DogFood App')
+                : t('Stream Video Calling')}
+            </Text>
             <Text style={styles.subTitle}>
-              {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto'
+              {prontoEnvironment
                 ? t(
                     'Please sign in with your Google Stream account or a Custom user id.',
                   )
@@ -175,7 +172,7 @@ const LoginScreen = () => {
               buttonStyle={styles.loginButton}
             />
           </View>
-          {REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && (
+          {prontoEnvironment && (
             <>
               <Text style={styles.orText}>{t('OR')}</Text>
               <Button
