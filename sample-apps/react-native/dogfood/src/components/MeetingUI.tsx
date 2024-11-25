@@ -61,6 +61,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     try {
       call?.updatePublishOptions({
         preferredCodec: 'vp9',
+        preferredBitrate: 1500000,
       });
       await call?.join({ create: true });
       appStoreSetState({ chatLabelNoted: false });
