@@ -183,7 +183,8 @@ lane :deploy_ios do
     ipa: "#{build_dir}/app.ipa",
     groups: ['Dev Testers', 'Stream Testers'],
     changelog: 'Lots of amazing new features to test out!',
-    reject_build_waiting_for_review: false,
+    reject_build_waiting_for_review: true,
+    distribute_external: true,
     skip_waiting_for_build_processing: false
   )
 rescue StandardError => e

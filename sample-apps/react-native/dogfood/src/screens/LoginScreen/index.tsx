@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Switch,
   Text,
   View,
   ViewStyle,
@@ -16,14 +15,15 @@ import {
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
-} from '../contexts/AppContext';
-import { appTheme } from '../theme';
-import { Button } from '../components/Button';
-import { TextInput } from '../components/TextInput';
+} from '../../contexts/AppContext';
+import { appTheme } from '../../theme';
+import { Button } from '../../components/Button';
+import { TextInput } from '../../components/TextInput';
 import { useI18n } from '@stream-io/video-react-native-sdk';
-import { KnownUsers } from '../constants/KnownUsers';
-import { useOrientation } from '../hooks/useOrientation';
+import { KnownUsers } from '../../constants/KnownUsers';
+import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import EnvSwitcherButton from './EnvSwitcherButton';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -74,6 +74,11 @@ const LoginScreen = () => {
     }
   };
 
+  const isProntoEnv =
+    appEnvironment === 'local' ||
+    appEnvironment === 'pronto' ||
+    appEnvironment === 'pronto-staging';
+
   const signInViaGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
@@ -111,36 +116,21 @@ const LoginScreen = () => {
       >
         {ENABLE_PRONTO_SWITCH && (
           <View style={styles.header}>
-            <Text style={styles.envText}>{t('Pronto')}</Text>
-            <Switch
-              value={
-                appEnvironment === 'pronto' ||
-                appEnvironment === 'pronto-staging'
-              }
-              onValueChange={(value) => {
-                if (value) {
-                  setState({ appEnvironment: 'pronto' });
-                } else {
-                  setState({ appEnvironment: 'demo' });
-                }
-              }}
-              trackColor={{ true: appTheme.colors.light_blue }}
-              thumbColor={appTheme.colors.primary}
-            />
+            <Text style={styles.envText}>{`Current: ${appEnvironment}`}</Text>
+            <EnvSwitcherButton />
           </View>
         )}
         <View style={styles.topContainer}>
-          <Image source={require('../assets/Logo.png')} style={styles.logo} />
+          <Image
+            source={require('../../assets/Logo.png')}
+            style={styles.logo}
+          />
           <View>
             <Text style={styles.title}>
-              {appEnvironment === 'pronto' ||
-              appEnvironment === 'pronto-staging'
-                ? t('Pronto')
-                : t('Stream Video Calling')}
+              {isProntoEnv ? t('Pronto') : t('Stream Video Calling')}
             </Text>
             <Text style={styles.subTitle}>
-              {appEnvironment === 'pronto' ||
-              appEnvironment === 'pronto-staging'
+              {isProntoEnv
                 ? t(
                     'Please sign in with your Google Stream account or use a custom user id',
                   )
@@ -166,18 +156,17 @@ const LoginScreen = () => {
               buttonStyle={styles.loginButton}
             />
           </View>
-          {appEnvironment === 'pronto' ||
-            (appEnvironment === 'pronto-staging' && (
-              <>
-                <Text style={styles.orText}>{t('OR')}</Text>
-                <Button
-                  title={t('Google Sign In')}
-                  onPress={signInViaGoogle}
-                  disabled={loader}
-                  buttonStyle={styles.googleSignin}
-                />
-              </>
-            ))}
+          {isProntoEnv && (
+            <>
+              <Text style={styles.orText}>{t('OR')}</Text>
+              <Button
+                title={t('Google Sign In')}
+                onPress={signInViaGoogle}
+                disabled={loader}
+                buttonStyle={styles.googleSignin}
+              />
+            </>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
