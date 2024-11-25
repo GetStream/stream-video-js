@@ -17,13 +17,13 @@ import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
 import { Button } from './Button';
 import { ButtonTestIds } from '../constants/TestIds';
-import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
   const styles = useStyles();
   const userName = useAppGlobalStoreValue((store) => store.userName);
+  const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
   const appStoreSetState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
@@ -62,7 +62,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   };
 
   const showChooseModeButton =
-    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' &&
+    (environment === 'pronto' || environment === 'pronto-staging') &&
     (route.name === 'JoinMeetingScreen' ||
       route.name === 'JoinCallScreen' ||
       route.name === 'AudioRoom' ||
