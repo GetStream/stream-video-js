@@ -49,7 +49,7 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
   };
 
   const callContent: DeepPartial<Theme['callContent']> = {
-    container: { paddingTop: 0, paddingBottom: 0 },
+    container: { paddingTop: 0, paddingBottom: 0, flexDirection: 'column' },
   };
 
   const { height, width } = Dimensions.get('window');
