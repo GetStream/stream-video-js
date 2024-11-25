@@ -13,6 +13,7 @@ type AppGlobalStore = {
   appEnvironment: AppEnvironment;
   chatLabelNoted?: boolean;
   themeMode: ThemeMode;
+  localIpAddress: string;
   useLocalSfu?: boolean;
 };
 
@@ -32,6 +33,7 @@ export const {
     chatLabelNoted: false,
     themeMode: 'dark',
     useLocalSfu: false,
+    localIpAddress: '127.0.0.1',
   },
   [
     'apiKey',

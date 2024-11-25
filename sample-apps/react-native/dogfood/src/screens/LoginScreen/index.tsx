@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -7,6 +7,7 @@ import {
   Text,
   View,
   ViewStyle,
+  TextInput as NativeTextInput,
 } from 'react-native';
 import {
   GoogleSignin,
@@ -24,6 +25,7 @@ import { KnownUsers } from '../../constants/KnownUsers';
 import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import EnvSwitcherButton from './EnvSwitcherButton';
+import { Alert } from 'react-native';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -54,6 +56,11 @@ const LoginScreen = () => {
     (store) => store.appEnvironment,
   );
   const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
+  const localIpAddress = useAppGlobalStoreValue(
+    (store) => store.localIpAddress,
+  );
+
+  const sfuIpInputRef = useRef<NativeTextInput>(null);
 
   const loginHandler = async () => {
     try {
@@ -140,10 +147,9 @@ const LoginScreen = () => {
           </View>
         </View>
         <View style={styles.bottomContainer}>
-          <View style={styles.customUser}>
+          <View style={styles.textBoxContainer}>
             <TextInput
               placeholder={t('Enter User ID')}
-              value={localUserId}
               onChangeText={(text) => {
                 setLocalUserId(text);
               }}
@@ -154,9 +160,37 @@ const LoginScreen = () => {
               title={t('Login')}
               disabled={!localUserId}
               onPress={loginHandler}
-              buttonStyle={styles.loginButton}
+              buttonStyle={styles.textBoxButton}
             />
           </View>
+          {useLocalSfu && (
+            <View style={styles.textBoxContainer}>
+              <TextInput
+                placeholder={'Enter Local IP'}
+                ref={sfuIpInputRef}
+                defaultValue={localIpAddress}
+                onEndEditing={(e) => {
+                  if (e.nativeEvent.text) {
+                    setState({ localIpAddress: e.nativeEvent.text });
+                    Alert.alert(
+                      'Local IP Updated',
+                      'Local IP has been updated to ' + e.nativeEvent.text,
+                    );
+                  }
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <Button
+                title={'Update Local Ip'}
+                onPress={() => {
+                  // will make onEndEditing to trigger
+                  sfuIpInputRef.current!.blur();
+                }}
+                buttonStyle={styles.textBoxButton}
+              />
+            </View>
+          )}
           {isProntoEnv && (
             <>
               <Text style={styles.orText}>{t('OR')}</Text>
@@ -223,13 +257,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  customUser: {
+  textBoxContainer: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  loginButton: {
+  textBoxButton: {
     marginLeft: appTheme.spacing.lg,
   },
   orText: {

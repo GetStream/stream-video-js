@@ -11,18 +11,20 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 
-export const TextInput = (
-  props: Omit<TextInputProps, 'placeholderTextColor'>,
-) => {
+export const TextInput = React.forwardRef<
+  NativeTextInput,
+  Omit<TextInputProps, 'placeholderTextColor'>
+>((props, ref) => {
   const styles = useStyles();
   return (
     <NativeTextInput
+      ref={ref}
       placeholderTextColor={'#8C8C8CFF'}
       {...props}
       style={[styles.input, props.style]}
     />
   );
-};
+});
 
 const useStyles = () => {
   let appTheme: Theme;

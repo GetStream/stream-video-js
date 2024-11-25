@@ -62,23 +62,30 @@ const SwitcherButton = ({
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const useLocalSfuState = useAppGlobalStoreValue((store) => store.useLocalSfu);
   const setState = useAppGlobalStoreSetState();
-  const isSelected = appEnvironment === environment;
+  const isSelected =
+    appEnvironment === environment && useLocalSfuState === useLocalSfu;
   const onPress = () => {
     setState({ appEnvironment: environment, useLocalSfu });
   };
+
   return (
-    <Button
-      title={label}
-      buttonStyle={[
-        styles.modalButton,
-        isSelected ? styles.selectedModalButton : styles.unselectedModalButton,
-      ]}
-      onPress={() => {
-        onPress();
-        closeModal();
-      }}
-    />
+    <>
+      <Button
+        title={label}
+        buttonStyle={[
+          styles.modalButton,
+          isSelected
+            ? styles.selectedModalButton
+            : styles.unselectedModalButton,
+        ]}
+        onPress={() => {
+          onPress();
+          closeModal();
+        }}
+      />
+    </>
   );
 };
 
