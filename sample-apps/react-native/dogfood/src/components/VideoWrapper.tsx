@@ -9,6 +9,7 @@ import {
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
+import { useCustomTheme } from '../theme';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -17,6 +18,8 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
@@ -64,7 +67,11 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} translationsOverrides={translations}>
+    <StreamVideo
+      client={videoClient}
+      style={customTheme}
+      translationsOverrides={translations}
+    >
       {children}
     </StreamVideo>
   );

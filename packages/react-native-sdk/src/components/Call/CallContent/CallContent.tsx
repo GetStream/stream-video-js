@@ -1,11 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
-
-import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
 import {
   CallParticipantsGrid,
   CallParticipantsGridProps,
@@ -46,10 +41,6 @@ export type StreamReactionType = StreamReaction & {
 type CallContentComponentProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
-     * Component to customize the CallTopView component.
-     */
-    CallTopView?: React.ComponentType<CallTopViewProps> | null;
-    /**
      * Component to customize the CallControls component.
      */
     CallControls?: React.ComponentType<CallControlProps> | null;
@@ -71,10 +62,6 @@ export type CallContentProps = Pick<
   HangUpCallButtonProps,
   'onHangupCallHandler'
 > &
-  Pick<
-    CallTopViewProps,
-    'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
-  > &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -100,11 +87,8 @@ export type CallContentProps = Pick<
   };
 
 export const CallContent = ({
-  onBackPressed,
-  onParticipantInfoPress,
   onHangupCallHandler,
   CallParticipantsList,
-  CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -113,7 +97,6 @@ export const CallContent = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView,
-  ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
   landscape = false,
@@ -125,6 +108,7 @@ export const CallContent = ({
     showRemoteParticipantInFloatingView,
     setShowRemoteParticipantInFloatingView,
   ] = useState<boolean>(false);
+  const styles = useStyles();
   const {
     theme: { callContent },
   } = useTheme();
@@ -213,20 +197,13 @@ export const CallContent = ({
         />
       )}
       <View style={[styles.container, landscapeStyles, callContent.container]}>
-        <View style={[styles.container, callContent.callParticipantsContainer]}>
+        <View style={[styles.content, callContent.callParticipantsContainer]}>
           <View
             style={[styles.view, callContent.topContainer]}
             // "box-none" disallows the container view to be not take up touches
             // and allows only the top and floating view (its child views) to take up the touches
             pointerEvents="box-none"
           >
-            {!isInPiPMode && CallTopView && (
-              <CallTopView
-                onBackPressed={onBackPressed}
-                onParticipantInfoPress={onParticipantInfoPress}
-                ParticipantsInfoBadge={ParticipantsInfoBadge}
-              />
-            )}
             {showFloatingView && FloatingParticipantView && (
               <FloatingParticipantView
                 participant={
@@ -258,10 +235,25 @@ export const CallContent = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  view: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          paddingBottom: theme.variants.insets.bottom,
+          paddingLeft: theme.variants.insets.left,
+          paddingRight: theme.variants.insets.right,
+          paddingTop: theme.variants.insets.top,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        content: { flex: 1 },
+        view: {
+          ...StyleSheet.absoluteFillObject,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+      }),
+    [theme]
+  );
+};

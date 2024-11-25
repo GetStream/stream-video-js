@@ -1,4 +1,4 @@
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useMemo } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import {
   StreamVideoParticipant,
@@ -113,13 +113,12 @@ export const ParticipantView = ({
     theme: { colors, participantView },
   } = useTheme();
   const { isSpeaking, userId } = participant;
+  const styles = useStyles();
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
     styles.highligtedContainer,
-    {
-      borderColor: colors.primary,
-    },
+    { borderColor: colors.buttonPrimary },
     participantView.highligtedContainer,
   ];
 
@@ -148,7 +147,13 @@ export const ParticipantView = ({
           videoZOrder={videoZOrder}
         />
       )}
-      <View style={[styles.footerContainer, participantView.footerContainer]}>
+      <View
+        style={[
+          styles.footerContainer,
+          participantView.footerContainer,
+          !ParticipantLabel && styles.networkIndicatorOnly,
+        ]}
+      >
         {ParticipantLabel && (
           <ParticipantLabel participant={participant} trackType={trackType} />
         )}
@@ -160,20 +165,26 @@ export const ParticipantView = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'space-between',
-    padding: 4,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  footerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  highligtedContainer: {
-    borderWidth: 2,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          overflow: 'hidden',
+          justifyContent: 'flex-end',
+          borderRadius: theme.variants.borderRadiusSizes.md,
+        },
+        footerContainer: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+        highligtedContainer: {
+          borderWidth: 2,
+        },
+        networkIndicatorOnly: { justifyContent: 'flex-end' },
+      }),
+    [theme]
+  );
+};

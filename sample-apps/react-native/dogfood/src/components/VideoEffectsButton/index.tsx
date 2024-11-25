@@ -3,9 +3,9 @@ import {
   useBackgroundFilters,
   BlurIntensity,
   BackgroundFiltersProvider,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import React, { useState } from 'react';
-import { AutoAwesome } from '../../assets/AutoAwesome';
+import React, { useMemo, useState } from 'react';
 import {
   Image,
   Modal,
@@ -18,6 +18,8 @@ import {
 import { appTheme } from '../../theme';
 import { Button } from '../Button';
 import { useCustomVideoFilters } from './CustomFilters';
+import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { Effects } from '../../assets/Effects';
 
 type ImageSourceType = ImageURISource | number;
 
@@ -42,6 +44,8 @@ export const VideoEffectsButton = () => (
 const FilterButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
+  const { theme } = useTheme();
+  const styles = useStyles();
   const { disableCustomFilter } = useCustomVideoFilters();
   const { isSupported, disableAllFilters } = useBackgroundFilters();
 
@@ -75,14 +79,24 @@ const FilterButton = () => {
           </View>
         </Pressable>
       </Modal>
-      <CallControlsButton onPress={() => setModalVisible((prev) => !prev)}>
-        <AutoAwesome />
+      <CallControlsButton
+        size={theme.variants.roundButtonSizes.md}
+        color={theme.colors.sheetPrimary}
+        onPress={() => setModalVisible((prev) => !prev)}
+      >
+        <IconWrapper>
+          <Effects
+            color={theme.colors.iconPrimary}
+            size={theme.variants.iconSizes.md}
+          />
+        </IconWrapper>
       </CallControlsButton>
     </>
   );
 };
 
 const CustomFiltersRow = ({ closeModal }: { closeModal: () => void }) => {
+  const styles = useStyles();
   const { applyGrayScaleFilter, currentCustomFilter } = useCustomVideoFilters();
   const grayScaleSelected = currentCustomFilter === 'GrayScale';
   return (
@@ -111,6 +125,7 @@ const ModalFilterButton = ({
   onPress: () => void;
   closeModal: () => void;
 }) => {
+  const styles = useStyles();
   return (
     <Button
       title={title}
@@ -149,6 +164,7 @@ const ModalBlurItemButton = ({
 };
 
 const BlurFilterItemsRow = ({ closeModal }: { closeModal: () => void }) => {
+  const styles = useStyles();
   return (
     <>
       <Text style={styles.modalHeaderText}>{'Blur Filters'}</Text>
@@ -171,6 +187,7 @@ const ImageItemPressable = ({
   const { applyBackgroundImageFilter, currentBackgroundFilter } =
     useBackgroundFilters();
   const isSelected = currentBackgroundFilter?.image === imageSource;
+  const styles = useStyles();
   return (
     <Pressable
       style={[
@@ -188,6 +205,7 @@ const ImageItemPressable = ({
 };
 
 const ImageFilterItemsRow = ({ closeModal }: { closeModal: () => void }) => {
+  const styles = useStyles();
   return (
     <>
       <Text style={styles.modalHeaderText}>{'Image Filters'}</Text>
@@ -204,56 +222,63 @@ const ImageFilterItemsRow = ({ closeModal }: { closeModal: () => void }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  modalView: {
-    alignItems: 'center',
-    backgroundColor: appTheme.colors.static_grey,
-    borderRadius: 20,
-    padding: appTheme.spacing.md,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalButton: {
-    margin: appTheme.spacing.sm,
-  },
-  selectedModalButton: {
-    borderWidth: 4,
-    borderColor: 'white',
-  },
-  unselectedModalButton: {
-    borderWidth: 4,
-    borderColor: 'transparent',
-  },
-  modalHeaderText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    marginVertical: 8,
-  },
-  modalText: {
-    fontSize: 20,
-  },
-  imageBackgroundItem: {
-    resizeMode: 'cover',
-    width: 96,
-    height: 54,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        centeredView: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        row: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        },
+        modalView: {
+          alignItems: 'center',
+          backgroundColor: theme.colors.sheetSecondary,
+          borderRadius: 20,
+          padding: appTheme.spacing.md,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 5,
+        },
+        modalButton: {
+          margin: appTheme.spacing.sm,
+        },
+        selectedModalButton: {
+          borderWidth: 4,
+          borderColor: theme.colors.iconPrimary,
+        },
+        unselectedModalButton: {
+          borderWidth: 4,
+          borderColor: 'transparent',
+        },
+        modalHeaderText: {
+          color: theme.colors.textPrimary,
+          fontSize: 24,
+          fontWeight: 'bold',
+          alignSelf: 'center',
+          marginVertical: 8,
+        },
+        modalText: {
+          fontSize: 20,
+        },
+        imageBackgroundItem: {
+          resizeMode: 'cover',
+          width: 96,
+          height: 54,
+        },
+      }),
+    [theme],
+  );
+};

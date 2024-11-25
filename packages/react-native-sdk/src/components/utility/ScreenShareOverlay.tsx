@@ -33,7 +33,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.sheetTertiary },
         screenshareOverlay.container,
       ]}
     >
@@ -41,7 +41,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
         style={[
           styles.text,
           typefaces.subtitleBold,
-          { color: colors.static_white },
+          { color: colors.textPrimary },
           screenshareOverlay.text,
         ]}
       >
@@ -53,7 +53,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
           return [
             styles.button,
             {
-              backgroundColor: colors.dark_gray,
+              backgroundColor: colors.sheetSecondary,
               opacity: pressed ? 0.2 : 1,
             },
             screenshareOverlay.button,
@@ -67,12 +67,12 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
             screenshareOverlay.buttonIcon,
           ]}
         >
-          <StopScreenShare color={colors.static_white} />
+          <StopScreenShare size={iconSizes.xs} color={colors.iconPrimary} />
         </View>
         <Text
           style={[
             styles.buttonText,
-            { color: colors.static_white },
+            { color: colors.textPrimary },
             screenshareOverlay.buttonText,
           ]}
         >

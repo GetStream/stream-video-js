@@ -2,7 +2,7 @@ import React from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts';
 import { CallControlsButton } from './CallControlsButton';
-import { Video, VideoSlash } from '../../../icons';
+import { IconWrapper, Video, VideoSlash } from '../../../icons';
 
 /**
  * Props for the Toggle Video preview button
@@ -25,7 +25,7 @@ export const ToggleVideoPreviewButton = ({
     theme: {
       colors,
       toggleVideoPreviewButton,
-      variants: { buttonSizes },
+      variants: { buttonSizes, iconSizes },
     },
   } = useTheme();
   const { useCameraState, useCallSettings } = useCallStateHooks();
@@ -47,23 +47,20 @@ export const ToggleVideoPreviewButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={!optimisticIsMute ? colors.static_white : colors.static_black}
+      color={!optimisticIsMute ? colors.buttonSecondary : colors.buttonWarning}
       size={buttonSizes.md}
       style={{
-        container: {
-          shadowColor: !optimisticIsMute
-            ? colors.static_white
-            : colors.static_black,
-          ...toggleVideoPreviewButton.container,
-        },
+        container: toggleVideoPreviewButton.container,
         svgContainer: toggleVideoPreviewButton.svgContainer,
       }}
     >
-      {!optimisticIsMute ? (
-        <Video color={colors.static_black} />
-      ) : (
-        <VideoSlash color={colors.static_white} />
-      )}
+      <IconWrapper>
+        {!optimisticIsMute ? (
+          <Video color={colors.iconPrimary} size={iconSizes.lg} />
+        ) : (
+          <VideoSlash color={colors.iconPrimary} size={iconSizes.lg} />
+        )}
+      </IconWrapper>
     </CallControlsButton>
   );
 };
