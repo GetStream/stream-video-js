@@ -9,15 +9,19 @@ import type { PreferredCodec } from '../types';
  * @param kind the kind of codec to get.
  * @param preferredCodec the codec to prioritize (vp8, h264, vp9, av1...).
  * @param codecToRemove the codec to exclude from the list.
+ * @param codecPreferencesSource the source of the codec preferences.
  */
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
   codecToRemove?: string,
-): RTCRtpCodecCapability[] | undefined => {
-  if (!('getCapabilities' in RTCRtpReceiver)) return;
+  codecPreferencesSource: 'sender' | 'receiver' = 'receiver',
+): RTCRtpCodec[] | undefined => {
+  const source =
+    codecPreferencesSource === 'receiver' ? RTCRtpReceiver : RTCRtpSender;
+  if (!('getCapabilities' in source)) return;
 
-  const capabilities = RTCRtpReceiver.getCapabilities(kind);
+  const capabilities = source.getCapabilities(kind);
   if (!capabilities) return;
 
   const preferred: RTCRtpCodecCapability[] = [];
