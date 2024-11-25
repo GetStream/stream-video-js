@@ -1,5 +1,3 @@
-import { AppEnvironment } from '../../contexts/AppContext';
-
 type ParamsType = {
   user_id: string;
   call_cids?: string;

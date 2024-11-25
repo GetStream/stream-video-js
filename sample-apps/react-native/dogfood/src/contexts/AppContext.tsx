@@ -2,7 +2,6 @@ import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import createStoreContext from './createStoreContext';
 
 export type AppMode = 'Meeting' | 'Call' | 'Audio-Room' | 'LiveStream' | 'None';
-export type AppEnvironment = 'pronto' | 'pronto-staging' | 'demo';
 export type ThemeMode = 'dark' | 'light';
 
 type AppGlobalStore = {
@@ -14,6 +13,8 @@ type AppGlobalStore = {
   appEnvironment: AppEnvironment;
   chatLabelNoted?: boolean;
   themeMode: ThemeMode;
+  localIpAddress: string;
+  useLocalSfu?: boolean;
 };
 
 export const {
@@ -31,6 +32,8 @@ export const {
       (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT as AppEnvironment) || 'demo',
     chatLabelNoted: false,
     themeMode: 'dark',
+    useLocalSfu: false,
+    localIpAddress: '127.0.0.1',
   },
   [
     'apiKey',
