@@ -13,6 +13,7 @@ type AppGlobalStore = {
   appEnvironment: AppEnvironment;
   chatLabelNoted?: boolean;
   themeMode: ThemeMode;
+  useLocalSfu?: boolean;
 };
 
 export const {
@@ -30,6 +31,7 @@ export const {
       (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT as AppEnvironment) || 'demo',
     chatLabelNoted: false,
     themeMode: 'dark',
+    useLocalSfu: false,
   },
   [
     'apiKey',

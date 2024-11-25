@@ -53,6 +53,7 @@ const LoginScreen = () => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
 
   const loginHandler = async () => {
     try {
@@ -75,9 +76,7 @@ const LoginScreen = () => {
   };
 
   const isProntoEnv =
-    appEnvironment === 'local' ||
-    appEnvironment === 'pronto' ||
-    appEnvironment === 'pronto-staging';
+    appEnvironment === 'pronto' || appEnvironment === 'pronto-staging';
 
   const signInViaGoogle = async () => {
     try {
@@ -116,7 +115,9 @@ const LoginScreen = () => {
       >
         {ENABLE_PRONTO_SWITCH && (
           <View style={styles.header}>
-            <Text style={styles.envText}>{`Current: ${appEnvironment}`}</Text>
+            <Text
+              style={styles.envText}
+            >{`Current: ${appEnvironment}${useLocalSfu ? ' (local)' : ''}`}</Text>
             <EnvSwitcherButton />
           </View>
         )}

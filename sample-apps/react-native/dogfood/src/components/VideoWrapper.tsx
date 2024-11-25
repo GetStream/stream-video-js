@@ -20,6 +20,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
@@ -51,11 +52,10 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         user,
         tokenProvider,
         options: {
-          logLevel: 'warn',
-          transformResponse:
-            appEnvironment === 'local'
-              ? customSfuResponseTransformers
-              : undefined,
+          logLevel: 'debug',
+          transformResponse: useLocalSfu
+            ? customSfuResponseTransformers
+            : undefined,
         },
       });
       setVideoClient(_videoClient);
@@ -68,7 +68,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [appEnvironment, setState, user]);
+  }, [appEnvironment, setState, useLocalSfu, user]);
 
   if (!videoClient) {
     return null;

@@ -29,7 +29,12 @@ export default function EnvSwitcherButton() {
               environment="pronto-staging"
               closeModal={closeModal}
             />
-            <SwitcherButton environment="local" closeModal={closeModal} />
+            <SwitcherButton
+              environment="pronto"
+              label="Local SFU"
+              closeModal={closeModal}
+              useLocalSfu
+            />
           </View>
         </Pressable>
       </Modal>
@@ -45,10 +50,14 @@ export default function EnvSwitcherButton() {
 
 const SwitcherButton = ({
   environment,
+  label = environment,
   closeModal,
+  useLocalSfu = false,
 }: {
   environment: AppEnvironment;
+  label?: string;
   closeModal: () => void;
+  useLocalSfu?: boolean;
 }) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
@@ -56,11 +65,11 @@ const SwitcherButton = ({
   const setState = useAppGlobalStoreSetState();
   const isSelected = appEnvironment === environment;
   const onPress = () => {
-    setState({ appEnvironment: environment });
+    setState({ appEnvironment: environment, useLocalSfu });
   };
   return (
     <Button
-      title={environment}
+      title={label}
       buttonStyle={[
         styles.modalButton,
         isSelected ? styles.selectedModalButton : styles.unselectedModalButton,
