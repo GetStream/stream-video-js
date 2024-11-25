@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import {
   Image,
-  StyleSheet,
-  Text,
-  View,
   KeyboardAvoidingView,
   Platform,
-  ViewStyle,
+  StyleSheet,
   Switch,
+  Text,
+  View,
+  ViewStyle,
 } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
@@ -39,19 +41,18 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-// const ENABLE_PRONTO_SWITCH = REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto';
 const ENABLE_PRONTO_SWITCH = true;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
-  const [prontoEnvironment, setProntoEnvironment] = useState(
-    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto',
-  );
   const [loader, setLoader] = useState(false);
   const { t } = useI18n();
   const orientation = useOrientation();
 
   const setState = useAppGlobalStoreSetState();
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
 
   const loginHandler = async () => {
     try {
@@ -66,13 +67,7 @@ const LoginScreen = () => {
         userId: _userId,
         userName: _userId,
         userImageUrl: _userImageUrl,
-        appMode:
-          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
-        appEnvironment: !ENABLE_PRONTO_SWITCH
-          ? REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT
-          : prontoEnvironment
-            ? 'pronto'
-            : 'demo',
+        appMode: appEnvironment === 'demo' ? 'Meeting' : 'None',
       });
     } catch (error) {
       console.log(error);
@@ -92,13 +87,8 @@ const LoginScreen = () => {
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
-        appMode:
-          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
-        appEnvironment: !ENABLE_PRONTO_SWITCH
-          ? REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT
-          : prontoEnvironment
-            ? 'pronto'
-            : 'demo',
+        appMode: appEnvironment === 'demo' ? 'Meeting' : 'None',
+        appEnvironment: appEnvironment,
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {
@@ -123,14 +113,13 @@ const LoginScreen = () => {
           <View style={styles.header}>
             <Text style={styles.envText}>{t('Pronto')}</Text>
             <Switch
-              value={prontoEnvironment}
+              value={appEnvironment === 'pronto'}
               onValueChange={(value) => {
                 if (value === true) {
                   setState({ appEnvironment: 'pronto' });
                 } else {
                   setState({ appEnvironment: 'demo' });
                 }
-                setProntoEnvironment(value);
               }}
               trackColor={{ true: appTheme.colors.light_blue }}
               thumbColor={appTheme.colors.primary}
@@ -141,14 +130,16 @@ const LoginScreen = () => {
           <Image source={require('../assets/Logo.png')} style={styles.logo} />
           <View>
             <Text style={styles.title}>
-              {prontoEnvironment
-                ? t('Stream DogFood App')
+              {appEnvironment === 'pronto' ||
+              appEnvironment === 'pronto-staging'
+                ? t('Pronto')
                 : t('Stream Video Calling')}
             </Text>
             <Text style={styles.subTitle}>
-              {prontoEnvironment
+              {appEnvironment === 'pronto' ||
+              appEnvironment === 'pronto-staging'
                 ? t(
-                    'Please sign in with your Google Stream account or a Custom user id.',
+                    'Please sign in with your Google Stream account or use a custom user id',
                   )
                 : t('Please sign in with Custom User ID')}
             </Text>
@@ -172,17 +163,18 @@ const LoginScreen = () => {
               buttonStyle={styles.loginButton}
             />
           </View>
-          {prontoEnvironment && (
-            <>
-              <Text style={styles.orText}>{t('OR')}</Text>
-              <Button
-                title={t('Google Sign In')}
-                onPress={signInViaGoogle}
-                disabled={loader}
-                buttonStyle={styles.googleSignin}
-              />
-            </>
-          )}
+          {appEnvironment === 'pronto' ||
+            (appEnvironment === 'pronto-staging' && (
+              <>
+                <Text style={styles.orText}>{t('OR')}</Text>
+                <Button
+                  title={t('Google Sign In')}
+                  onPress={signInViaGoogle}
+                  disabled={loader}
+                  buttonStyle={styles.googleSignin}
+                />
+              </>
+            ))}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
