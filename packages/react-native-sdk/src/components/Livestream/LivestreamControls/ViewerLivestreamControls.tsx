@@ -35,9 +35,7 @@ export const ViewerLivestreamControls = ({
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: colors.static_overlay,
-        },
+        { backgroundColor: colors.sheetOverlay },
         viewerLivestreamControls.container,
       ]}
       onLayout={onLayout}

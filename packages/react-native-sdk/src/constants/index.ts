@@ -6,9 +6,13 @@ export const FLOATING_VIDEO_VIEW_STYLE = {
   borderRadius: 10,
 };
 
-export const LOBBY_VIDEO_VIEW_HEIGHT = 240;
-
 export const defaultEmojiReactions: StreamReactionType[] = [
+  {
+    type: 'reaction',
+    emoji_code: ':rolling_on_the_floor_laughing:',
+    custom: {},
+    icon: '🤣',
+  },
   {
     type: 'reaction',
     emoji_code: ':like:',
@@ -16,16 +20,34 @@ export const defaultEmojiReactions: StreamReactionType[] = [
     icon: '👍',
   },
   {
-    type: 'raised-hand',
-    emoji_code: ':raise-hand:',
+    type: 'reaction',
+    emoji_code: ':rocket:',
     custom: {},
-    icon: '✋',
+    icon: '🚀',
+  },
+  {
+    type: 'reaction',
+    emoji_code: ':dislike:',
+    custom: {},
+    icon: '👎',
   },
   {
     type: 'reaction',
     emoji_code: ':fireworks:',
     custom: {},
     icon: '🎉',
+  },
+  {
+    type: 'reaction',
+    emoji_code: ':raised-hands:',
+    custom: {},
+    icon: '🙌',
+  },
+  {
+    type: 'raised-hand',
+    emoji_code: ':raised-hand:',
+    custom: {},
+    icon: '✋',
   },
 ];
 

@@ -9,10 +9,6 @@ import {
   OutgoingCallControls as DefaultOutgoingCallControls,
   OutgoingCallControlsProps,
 } from '../CallControls';
-import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
@@ -20,10 +16,6 @@ import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefau
  * Props for the OutgoingCall Component.
  */
 export type OutgoingCallProps = OutgoingCallControlsProps & {
-  /**
-   * Prop to customize the CallTopView component in the IncomingCall component.
-   */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
   /**
    * Prop to customize the OutgoingCall controls.
    */
@@ -40,7 +32,6 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  * Used after the user has initiated a call.
  */
 export const OutgoingCall = ({
-  CallTopView = DefaultCallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
   landscape,
 }: OutgoingCallProps) => {
@@ -65,7 +56,6 @@ export const OutgoingCall = ({
           outgoingCall.container,
         ]}
       >
-        {CallTopView && <CallTopView />}
         <View
           style={[styles.content, landscapeContentStyles, outgoingCall.content]}
         >
@@ -74,7 +64,7 @@ export const OutgoingCall = ({
             <Text
               style={[
                 styles.callingText,
-                { color: colors.static_white },
+                { color: colors.textPrimary },
                 typefaces.heading6,
                 outgoingCall.callingText,
               ]}
@@ -115,7 +105,7 @@ const Background = () => {
       <View
         style={[
           styles.background,
-          { backgroundColor: colors.static_grey },
+          { backgroundColor: colors.sheetSecondary },
           outgoingCall.background,
         ]}
       />
@@ -125,7 +115,7 @@ const Background = () => {
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.sheetSecondary },
         outgoingCall.background,
       ]}
     >
@@ -147,7 +137,7 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  topContainer: { flex: 1 },
+  topContainer: { flex: 1, justifyContent: 'center' },
   content: {
     flex: 1,
   },

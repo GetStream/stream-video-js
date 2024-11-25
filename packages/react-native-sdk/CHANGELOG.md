@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.8...@stream-io/video-react-native-sdk-1.4.0) (2024-11-25)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.2.0`
+
+### Features
+
+* **design-v2:** sdk and dogfood app design-v2 changes ([#1549](https://github.com/GetStream/stream-video-js/issues/1549)) ([480a359](https://github.com/GetStream/stream-video-js/commit/480a3593516e6662b35a44f97c72259548d08445))
+
 ## [1.3.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.7...@stream-io/video-react-native-sdk-1.3.8) (2024-11-22)
 
 ### Dependency Updates

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { appTheme } from '../../theme';
-import { Chat } from '../../assets/Chat';
+import { LiveStreamChat } from '../../assets/LiveStreamChat';
 import { StyleSheet } from 'react-native';
 
 type LiveStreamChatControlButtonProps = {
@@ -22,7 +22,7 @@ export const LiveStreamChatControlButton = ({
       ]}
     >
       <View style={[styles.icon]}>
-        <Chat color={appTheme.colors.static_white} />
+        <LiveStreamChat color={appTheme.colors.static_white} />
       </View>
     </Pressable>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LobbyProps } from './Lobby';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
@@ -22,6 +22,7 @@ export const JoinCallButton = ({
   const {
     theme: { colors, typefaces, joinCallButton },
   } = useTheme();
+  const styles = useStyles();
   const { t } = useI18n();
   const call = useCall();
 
@@ -45,7 +46,7 @@ export const JoinCallButton = ({
     <Pressable
       style={[
         styles.container,
-        { backgroundColor: colors.primary },
+        { backgroundColor: colors.buttonPrimary },
         joinCallButton.container,
       ]}
       onPress={onPress}
@@ -53,9 +54,7 @@ export const JoinCallButton = ({
       <Text
         style={[
           styles.label,
-          {
-            color: colors.static_white,
-          },
+          { color: colors.textPrimary },
           typefaces.subtitleBold,
           joinCallButton.label,
         ]}
@@ -66,13 +65,20 @@ export const JoinCallButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 10,
-    marginTop: 16,
-    paddingVertical: 8,
-  },
-  label: {
-    textAlign: 'center',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          borderRadius: theme.variants.borderRadiusSizes.lg,
+          marginTop: theme.variants.spacingSizes.md,
+          paddingVertical: theme.variants.spacingSizes.sm,
+        },
+        label: {
+          textAlign: 'center',
+        },
+      }),
+    [theme]
+  );
+};
