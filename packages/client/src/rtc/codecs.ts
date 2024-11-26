@@ -107,7 +107,9 @@ export const getOptimalVideoCodec = (
   if (isReactNative()) {
     const os = getOSInfo()?.name.toLowerCase();
     if (os === 'android') return preferredOr(preferredCodec, 'vp8');
-    if (os === 'ios' || os === 'ipados') return 'h264';
+    if (os === 'ios' || os === 'ipados') {
+      return supportsH264Baseline() ? 'h264' : 'vp8';
+    }
     return preferredOr(preferredCodec, 'h264');
   }
   if (isSafari()) return 'h264';
@@ -137,6 +139,20 @@ const preferredOr = (
   return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType)
     ? codec
     : fallback;
+};
+
+/**
+ * Returns whether the platform supports the H264 baseline codec.
+ */
+const supportsH264Baseline = (): boolean => {
+  if (!('getCapabilities' in RTCRtpSender)) return false;
+  const capabilities = RTCRtpSender.getCapabilities('video');
+  if (!capabilities) return false;
+  return capabilities.codecs.some(
+    (c) =>
+      c.mimeType.toLowerCase() === 'video/h264' &&
+      c.sdpFmtpLine?.includes('profile-level-id=42e01f'),
+  );
 };
 
 /**
