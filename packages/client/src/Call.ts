@@ -516,7 +516,7 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      if (callingState === CallingState.RINGING) {
+      if (callingState === CallingState.RINGING && !this.state.endedAt) {
         if (reject) {
           await this.reject(reason);
         } else {
