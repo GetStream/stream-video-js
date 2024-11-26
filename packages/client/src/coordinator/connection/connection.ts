@@ -9,7 +9,11 @@ import {
   sleep,
 } from './utils';
 import type { LogLevel, StreamVideoEvent, UR } from './types';
-import type { ConnectedEvent, WSAuthMessage } from '../../gen/coordinator';
+import type {
+  ConnectedEvent,
+  ConnectionErrorEvent,
+  WSAuthMessage,
+} from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 
 /**
