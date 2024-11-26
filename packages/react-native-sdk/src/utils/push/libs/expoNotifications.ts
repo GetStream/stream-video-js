@@ -1,5 +1,9 @@
 export type ExpoNotificationsLib = typeof import('expo-notifications');
 
+import type { Notification } from 'expo-notifications';
+
+export type ExpoNotification = Notification;
+
 let expoNotificationsLib: ExpoNotificationsLib | undefined;
 
 try {

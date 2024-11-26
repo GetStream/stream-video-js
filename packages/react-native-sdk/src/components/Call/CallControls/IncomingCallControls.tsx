@@ -24,11 +24,18 @@ export const IncomingCallControls = ({
   onRejectCallHandler,
 }: IncomingCallControlsProps) => {
   const {
-    theme: { incomingCall },
+    theme: {
+      incomingCall,
+      variants: { buttonSizes },
+    },
   } = useTheme();
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
-      <RejectCallButton onPressHandler={onRejectCallHandler} />
+      <RejectCallButton
+        onPressHandler={onRejectCallHandler}
+        size={buttonSizes.md}
+        rejectReason="decline"
+      />
       <ToggleVideoPreviewButton />
       <AcceptCallButton onPressHandler={onAcceptCallHandler} />
     </View>

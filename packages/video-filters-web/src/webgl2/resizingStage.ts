@@ -15,6 +15,7 @@ export function buildResizingStage(
   texCoordBuffer: WebGLBuffer,
   tflite: TFLite,
   segmentationConfig: SegmentationParams,
+  onError?: (error: any) => void,
 ) {
   const fragmentShaderSource = glsl`#version 300 es
 
@@ -81,7 +82,9 @@ export function buildResizingStage(
       gl.RGBA,
       gl.UNSIGNED_BYTE,
       outputPixels,
-    );
+    ).catch((error: any) => {
+      onError?.(error);
+    });
 
     for (let i = 0; i < outputPixelCount; i++) {
       const tfliteIndex = tfliteInputMemoryOffset + i * 3;

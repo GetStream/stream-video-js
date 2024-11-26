@@ -32,7 +32,12 @@ import {
   UserWithId,
 } from './types';
 import { getLocationHint } from './location';
-import { CreateGuestRequest, CreateGuestResponse } from '../../gen/coordinator';
+import {
+  ConnectedEvent,
+  CreateGuestRequest,
+  CreateGuestResponse,
+} from '../../gen/coordinator';
+import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -60,12 +65,12 @@ export class StreamClient {
   userID?: string;
   wsBaseURL?: string;
   wsConnection: StableWSConnection | null;
-  wsPromise: ConnectAPIResponse | null;
+  private wsPromiseSafe: SafePromise<ConnectedEvent | undefined> | null;
   consecutiveFailures: number;
   defaultWSTimeout: number;
   resolveConnectionId?: Function;
   rejectConnectionId?: Function;
-  connectionIdPromise?: Promise<string | undefined>;
+  private connectionIdPromiseSafe?: SafePromise<string | undefined>;
   guestUserCreatePromise?: Promise<CreateGuestResponse>;
 
   /**
@@ -129,7 +134,7 @@ export class StreamClient {
 
     // WS connection is initialized when setUser is called
     this.wsConnection = null;
-    this.wsPromise = null;
+    this.wsPromiseSafe = null;
     this.setUserPromise = null;
 
     // mapping between channel groups and configs
@@ -303,12 +308,13 @@ export class StreamClient {
       );
     }
 
-    if (this.wsConnection?.isConnecting && this.wsPromise) {
+    const wsPromise = this.wsPromiseSafe?.();
+    if (this.wsConnection?.isConnecting && wsPromise) {
       this.logger(
         'info',
         'client:openConnection() - connection already in progress',
       );
-      return this.wsPromise;
+      return await wsPromise;
     }
 
     if (this.wsConnection?.isHealthy && this._hasConnectionID()) {
@@ -317,14 +323,15 @@ export class StreamClient {
         'client:openConnection() - openConnection called twice, healthy connection already exists',
       );
 
-      return Promise.resolve();
+      return;
     }
 
     await this._setupConnectionIdPromise();
 
     this.clientID = `${this.userID}--${randomId()}`;
-    this.wsPromise = this.connect();
-    return this.wsPromise;
+    const newWsPromise = this.connect();
+    this.wsPromiseSafe = makeSafePromise(newWsPromise);
+    return await newWsPromise;
   };
 
   /**
@@ -348,7 +355,7 @@ export class StreamClient {
 
     this.tokenManager.reset();
 
-    this.connectionIdPromise = undefined;
+    this.connectionIdPromiseSafe = undefined;
     this.rejectConnectionId = undefined;
     this.resolveConnectionId = undefined;
   };
@@ -432,15 +439,27 @@ export class StreamClient {
   /**
    * sets up the this.connectionIdPromise
    */
-  _setupConnectionIdPromise = async () => {
+  _setupConnectionIdPromise = () => {
     /** a promise that is resolved once connection id is set */
-    this.connectionIdPromise = new Promise<string | undefined>(
-      (resolve, reject) => {
+    this.connectionIdPromiseSafe = makeSafePromise(
+      new Promise<string | undefined>((resolve, reject) => {
         this.resolveConnectionId = resolve;
         this.rejectConnectionId = reject;
-      },
+      }),
     );
   };
+
+  get connectionIdPromise() {
+    return this.connectionIdPromiseSafe?.();
+  }
+
+  get isConnectionIsPromisePending() {
+    return this.connectionIdPromiseSafe?.checkPending() ?? false;
+  }
+
+  get wsPromise() {
+    return this.wsPromiseSafe?.();
+  }
 
   _logApiRequest = (
     type: string,

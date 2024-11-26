@@ -6,6 +6,7 @@ import { ButtonTestIds } from '../../../constants/TestIds';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { IconWrapper } from '../../../icons/IconWrapper';
 
 /**
  * The props for the Hang up call button in the Call Controls.
@@ -42,7 +43,7 @@ export const HangUpCallButton = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
-    theme: { colors, hangupCallButton },
+    theme: { colors, hangupCallButton, variants },
   } = useTheme();
 
   const onPress = async () => {
@@ -67,20 +68,14 @@ export const HangUpCallButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={colors.error}
+      color={colors.buttonWarning}
       style={hangupCallButton}
       size={size}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
-      <PhoneDown color={colors.static_white} />
+      <IconWrapper>
+        <PhoneDown color={colors.iconPrimary} size={variants.iconSizes.md} />
+      </IconWrapper>
     </CallControlsButton>
   );
 };
-
-// TODO: Check if this style is needed
-// This was passed to CallControlsButton as style prop
-// const styles = StyleSheet.create({
-//   button: {
-//     shadowColor: theme.light.error,
-//   },
-// });

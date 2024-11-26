@@ -49,15 +49,21 @@ To use the `RingingCallContent` you can do the following:
 
 ```tsx {11}
 import {
+  StreamCall,
   useCalls,
   RingingCallContent,
 } from '@stream-io/video-react-native-sdk';
 
 const Call = () => {
-  const calls = useCalls();
+  // filter for ringing calls
+  const calls = useCalls().filter(
+    (c) => c.state.callingState === CallingState.RINGING,
+  );
+  const call = calls[0];
+  if (!call) return null;
 
   return (
-    <StreamCall call={call[0]}>
+    <StreamCall call={call}>
       <RingingCallContent />
     </StreamCall>
   );

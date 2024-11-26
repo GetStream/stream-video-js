@@ -272,8 +272,8 @@ describe('muting logic', () => {
       .mockImplementation(() => Promise.resolve({ duration: '0ms' }));
   });
 
-  it('should mute self', () => {
-    call.muteSelf('audio');
+  it('should mute self', async () => {
+    await call.muteSelf('audio');
 
     expect(spy).toHaveBeenCalledWith(userId, 'audio');
   });

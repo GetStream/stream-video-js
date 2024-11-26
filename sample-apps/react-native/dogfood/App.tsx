@@ -12,7 +12,10 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   navigationRef,
   StaticNavigationService,
@@ -29,9 +32,16 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { LogBox, StyleSheet } from 'react-native';
+import { LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import {
+  defaultTheme,
+  isPushNotificationiOSStreamVideoEvent,
+  onPushNotificationiOSStreamVideoEvent,
+} from '@stream-io/video-react-native-sdk';
+import { appTheme } from './src/theme';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -53,9 +63,26 @@ const StackNavigator = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
+  const { bottom } = useSafeAreaInsets();
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const color =
+    themeMode === 'light'
+      ? appTheme.colors.static_white
+      : defaultTheme.colors.sheetPrimary;
 
   useProntoLinkEffect();
   useSyncPermissions();
+
+  useEffect(() => {
+    PushNotificationIOS.addEventListener('notification', (notification) => {
+      if (isPushNotificationiOSStreamVideoEvent(notification)) {
+        onPushNotificationiOSStreamVideoEvent(notification);
+      }
+    });
+    return () => {
+      PushNotificationIOS.removeEventListener('notification');
+    };
+  }, []);
 
   let mode;
   switch (appMode) {
@@ -130,8 +157,14 @@ const StackNavigator = () => {
     return <LoginScreen />;
   }
 
+  const containerStyle = {
+    flex: 1,
+    paddingBottom: bottom,
+    backgroundColor: color,
+  };
+
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView style={containerStyle}>
       <VideoWrapper>
         <ChatWrapper>
           <Stack.Navigator>{mode}</Stack.Navigator>
@@ -152,9 +185,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

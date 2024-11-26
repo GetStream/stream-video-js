@@ -2,24 +2,15 @@ import { StreamClient } from './client';
 import {
   addConnectionEventListeners,
   isCloseEvent,
-  isPromisePending,
   KnownCodes,
   randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
 } from './utils';
-import type {
-  ConnectAPIResponse,
-  LogLevel,
-  StreamVideoEvent,
-  UR,
-} from './types';
-import {
-  ConnectedEvent,
-  ConnectionErrorEvent,
-  WSAuthMessage,
-} from '../../gen/coordinator';
+import type { LogLevel, StreamVideoEvent, UR } from './types';
+import type { ConnectedEvent, WSAuthMessage } from '../../gen/coordinator';
+import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 
 /**
  * StableWSConnection - A WS connection that reconnects upon failure.
@@ -41,7 +32,7 @@ import {
 export class StableWSConnection {
   // local vars
   connectionID?: string;
-  connectionOpen?: ConnectAPIResponse;
+  private connectionOpenSafe?: SafePromise<ConnectedEvent>;
   consecutiveFailures: number;
   pingInterval: number;
   healthCheckTimeoutRef?: NodeJS.Timeout;
@@ -305,14 +296,8 @@ export class StableWSConnection {
         await this.client.tokenManager.loadToken();
       }
 
-      let mustSetupConnectionIdPromise = true;
-      if (this.client.connectionIdPromise) {
-        if (await isPromisePending(this.client.connectionIdPromise)) {
-          mustSetupConnectionIdPromise = false;
-        }
-      }
-      if (mustSetupConnectionIdPromise) {
-        await this.client._setupConnectionIdPromise();
+      if (!this.client.isConnectionIsPromisePending) {
+        this.client._setupConnectionIdPromise();
       }
       this._setupConnectionPromise();
       const wsURL = this._buildUrl();
@@ -684,11 +669,17 @@ export class StableWSConnection {
   _setupConnectionPromise = () => {
     this.isResolved = false;
     /** a promise that is resolved once ws.open is called */
-    this.connectionOpen = new Promise<ConnectedEvent>((resolve, reject) => {
-      this.resolvePromise = resolve;
-      this.rejectPromise = reject;
-    });
+    this.connectionOpenSafe = makeSafePromise(
+      new Promise<ConnectedEvent>((resolve, reject) => {
+        this.resolvePromise = resolve;
+        this.rejectPromise = reject;
+      }),
+    );
   };
+
+  get connectionOpen() {
+    return this.connectionOpenSafe?.();
+  }
 
   /**
    * Schedules a next health check ping for websocket.

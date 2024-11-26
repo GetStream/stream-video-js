@@ -107,10 +107,12 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** The callback that is called when a call is accepted, used for navigation */
-    navigateAcceptCall: () => void;
-    /** The callback that is called when a push notification is tapped but user did not press accept or decline, used for navigation */
-    navigateToIncomingCall: () => void;
+    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
+    navigateAcceptCall?: () => void;
+    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
+    navigateToIncomingCall?: () => void;
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
       call_cid: string,
@@ -120,9 +122,11 @@ export type StreamVideoConfig = {
   foregroundService: {
     android: {
       /**
+       * The notification channel to keep call alive in the background for Android using a foreground service.
+       */
+      channel: AndroidChannel;
+      /**
        * The texts shown in the notification to keep call alive in the background
-       * for Android 24 and 25 platforms using a foreground service.
-       * On Android 26 and above, Picture in Picture mode is used to keep the call alive.
        */
       notificationTexts: {
         title: string;

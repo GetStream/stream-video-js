@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Pressable,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   Channel,
   MessageInput,
@@ -10,7 +17,7 @@ import { AuthenticationProgress } from '../../components/AuthenticatingProgress'
 import { Channel as ChannelType } from 'stream-chat';
 import { MeetingStackParamList, StreamChatGenerics } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colorPallet, useI18n } from '@stream-io/video-react-native-sdk';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -22,6 +29,7 @@ type ChatScreenProps = NativeStackScreenProps<
 >;
 
 const ChannelHeader = () => {
+  const styles = useStyles();
   const chatLabelNoted = useAppGlobalStoreValue(
     (store) => store.chatLabelNoted,
   );
@@ -78,6 +86,7 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
 
   return (
     <SafeAreaView>
+      <StatusBar barStyle={'light-content'} />
       <Channel channel={channel}>
         <ChannelHeader />
         <MessageList />
@@ -87,22 +96,29 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
-    padding: 10,
-    flexDirection: 'row',
-    backgroundColor: colorPallet.dark.static_black,
-  },
-  headerText: { flex: 1, color: colorPallet.dark.static_white },
-  notedButton: {
-    backgroundColor: colorPallet.light.primary,
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 10,
-    marginLeft: 10,
-  },
-  notedButtonText: {
-    color: colorPallet.dark.static_white,
-    fontWeight: '500',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        header: {
+          padding: 10,
+          flexDirection: 'row',
+          backgroundColor: 'black',
+        },
+        headerText: { flex: 1, color: 'white' },
+        notedButton: {
+          backgroundColor: theme.colors.buttonPrimary,
+          justifyContent: 'center',
+          padding: 10,
+          borderRadius: 10,
+          marginLeft: 10,
+        },
+        notedButtonText: {
+          color: 'white',
+          fontWeight: '500',
+        },
+      }),
+    [theme],
+  );
+};

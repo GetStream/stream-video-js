@@ -33,8 +33,8 @@ export const LivestreamScreenShareToggleButton = () => {
         styles.container,
         {
           backgroundColor: hasPublishedScreenShare
-            ? colors.error
-            : colors.dark_gray,
+            ? colors.buttonWarning
+            : colors.buttonSecondary,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -52,9 +52,9 @@ export const LivestreamScreenShareToggleButton = () => {
         ]}
       >
         {hasPublishedScreenShare ? (
-          <StopScreenShare color={colors.static_white} />
+          <StopScreenShare size={iconSizes.sm} color={colors.iconPrimary} />
         ) : (
-          <ScreenShare color={colors.static_white} />
+          <ScreenShare size={iconSizes.sm} color={colors.iconPrimary} />
         )}
       </View>
       {Platform.OS === 'ios' && (

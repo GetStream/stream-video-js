@@ -38,6 +38,12 @@ export const Meeting = () => {
         component={ChatScreen}
         options={{
           headerTitle: 'Chat',
+          headerStyle: {
+            backgroundColor: 'black',
+          },
+          headerTitleStyle: {
+            color: 'white',
+          },
         }}
       />
     </MeetingStack.Navigator>

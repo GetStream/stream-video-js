@@ -1,7 +1,7 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { PhoneDown } from '../../../icons';
+import { IconWrapper, PhoneDown } from '../../../icons';
 import { CallingState, getLogger } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
@@ -20,16 +20,32 @@ type RejectCallButtonProps = {
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
   onRejectCallHandler?: () => void;
+  /**
+   * Sets the height, width and border-radius (half the value) of the button.
+   */
+  size?: React.ComponentProps<typeof CallControlsButton>['size'];
+  /**
+   * Optional: Reason for rejecting the call.
+   * Pass a predefined or a custom reason.
+   * There are four predefined reasons for rejecting the call: 
+    - `busy` - when the callee is busy and cannot accept the call.
+    - `decline` - when the callee intentionally declines the call.
+    - `cancel` - when the caller cancels the call.
+    - `timeout` - when the **caller** or **callee** rejects the call after `auto_cancel_timeout_ms` or `incoming_call_timeout_ms` accordingly.
+   */
+  rejectReason?: string;
 };
 
 /**
  * Button to reject a call.
  *
- * Mostly calls call.leave({ reject: true }) internally.
+ * Calls call.leave({ reject: true, reason: `OPTIONAL-REASON` }) internally.
  */
 export const RejectCallButton = ({
   onPressHandler,
   onRejectCallHandler,
+  size,
+  rejectReason,
 }: RejectCallButtonProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
@@ -38,7 +54,7 @@ export const RejectCallButton = ({
     theme: {
       colors,
       rejectCallButton,
-      variants: { buttonSizes },
+      variants: { buttonSizes, iconSizes },
     },
   } = useTheme();
   const rejectCallHandler = async () => {
@@ -50,7 +66,7 @@ export const RejectCallButton = ({
       if (callingState === CallingState.LEFT) {
         return;
       }
-      await call?.leave({ reject: true });
+      await call?.leave({ reject: true, reason: rejectReason });
       if (onRejectCallHandler) {
         onRejectCallHandler();
       }
@@ -63,13 +79,15 @@ export const RejectCallButton = ({
   return (
     <CallControlsButton
       onPress={rejectCallHandler}
-      color={colors.error}
-      size={buttonSizes.lg}
+      color={colors.buttonWarning}
+      size={size ?? buttonSizes.md}
       // TODO: check what to do about this random style prop
       // svgContainerStyle={theme.icon.lg}
       style={rejectCallButton}
     >
-      <PhoneDown color={colors.static_white} />
+      <IconWrapper>
+        <PhoneDown color={colors.iconPrimary} size={iconSizes.lg} />
+      </IconWrapper>
     </CallControlsButton>
   );
 };

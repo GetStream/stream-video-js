@@ -145,7 +145,7 @@ export const BackgroundFiltersProvider = (
     backgroundImages = [],
     backgroundFilter: bgFilterFromProps = undefined,
     backgroundImage: bgImageFromProps = undefined,
-    backgroundBlurLevel: bgBlurLevelFromProps = 'high',
+    backgroundBlurLevel: bgBlurLevelFromProps = undefined,
     tfFilePath,
     modelFilePath,
     basePath,
@@ -173,7 +173,7 @@ export const BackgroundFiltersProvider = (
   const disableBackgroundFilter = useCallback(() => {
     setBackgroundFilter(undefined);
     setBackgroundImage(undefined);
-    setBackgroundBlurLevel('high');
+    setBackgroundBlurLevel(undefined);
   }, []);
 
   const [isSupported, setIsSupported] = useState(false);

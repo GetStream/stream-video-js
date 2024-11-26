@@ -1,12 +1,18 @@
 import {
   StreamVideoClient,
   StreamVideoRN,
+  onAndroidNotifeeEvent,
+  isNotifeeStreamVideoEvent,
+  oniOSNotifeeEvent,
 } from '@stream-io/video-react-native-sdk';
 import { AndroidImportance } from '@notifee/react-native';
 import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
+import { Platform } from 'react-native';
+import notifee from '@notifee/react-native';
+import { setFirebaseListeners } from './setFirebaseListeners';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -45,12 +51,6 @@ export function setPushConfig() {
       },
     },
     createStreamVideoClient,
-    navigateAcceptCall: () => {
-      staticNavigate({ name: 'Call', params: undefined });
-    },
-    navigateToIncomingCall: () => {
-      staticNavigate({ name: 'Call', params: undefined });
-    },
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');
       if (callType === 'default') {
@@ -63,6 +63,31 @@ export function setPushConfig() {
       }
     },
   });
+
+  setFirebaseListeners();
+  if (Platform.OS === 'android') {
+    // on press handlers of background notifications
+    notifee.onBackgroundEvent(async (event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        await onAndroidNotifeeEvent({ event, isBackground: true });
+      }
+    });
+    // on press handlers of foreground notifications
+    notifee.onForegroundEvent((event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        onAndroidNotifeeEvent({ event, isBackground: false });
+      }
+    });
+  }
+  if (Platform.OS === 'ios') {
+    // on press handlers of foreground notifications for iOS
+    // note: used only for non-ringing notifications
+    notifee.onForegroundEvent((event) => {
+      if (isNotifeeStreamVideoEvent(event)) {
+        oniOSNotifeeEvent({ event, isBackground: false });
+      }
+    });
+  }
 }
 
 /**
