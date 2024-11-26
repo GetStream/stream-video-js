@@ -120,9 +120,10 @@ import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import {
+  makeSafePromise,
   PromiseWithResolvers,
   promiseWithResolvers,
-} from './helpers/withResolvers';
+} from './helpers/promise';
 
 /**
  * An object representation of a `Call`.
@@ -1192,7 +1193,7 @@ export class Call {
     currentSubscriber?.detachEventHandlers();
     currentPublisher?.detachEventHandlers();
 
-    const migrationTask = currentSfuClient.enterMigration();
+    const migrationTask = makeSafePromise(currentSfuClient.enterMigration());
 
     try {
       const currentSfu = currentSfuClient.edgeName;
@@ -1210,7 +1211,7 @@ export class Call {
       // Wait for the migration to complete, then close the previous SFU client
       // and the peer connection instances. In case of failure, the migration
       // task would throw an error and REJOIN would be attempted.
-      await migrationTask;
+      await migrationTask();
 
       // in MIGRATE, we can consider the call as joined only after
       // `participantMigrationComplete` event is received, signaled by

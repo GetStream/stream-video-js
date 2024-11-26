@@ -33,7 +33,9 @@ import { withoutConcurrency } from './helpers/concurrency';
 import {
   promiseWithResolvers,
   PromiseWithResolvers,
-} from './helpers/withResolvers';
+  makeSafePromise,
+  SafePromise,
+} from './helpers/promise';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -101,7 +103,7 @@ export class StreamSfuClient {
   /**
    * Promise that resolves when the WebSocket connection is ready (open).
    */
-  private signalReady!: Promise<WebSocket>;
+  private signalReady!: SafePromise<WebSocket>;
 
   /**
    * Flag to indicate if the client is in the process of leaving the call.
@@ -124,7 +126,7 @@ export class StreamSfuClient {
   private readonly logTag: string;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
-  private readonly joinResponseTimeout?: number;
+  private readonly joinResponseTimeout: number;
   private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   /**
    * Promise that resolves when the JoinResponse is received.
@@ -229,13 +231,24 @@ export class StreamSfuClient {
     this.signalWs.addEventListener('close', this.handleWebSocketClose);
     this.signalWs.addEventListener('error', this.restoreWebSocket);
 
-    this.signalReady = new Promise((resolve) => {
-      const onOpen = () => {
-        this.signalWs.removeEventListener('open', onOpen);
-        resolve(this.signalWs);
-      };
-      this.signalWs.addEventListener('open', onOpen);
-    });
+    this.signalReady = makeSafePromise(
+      Promise.race<WebSocket>([
+        new Promise((resolve) => {
+          const onOpen = () => {
+            this.signalWs.removeEventListener('open', onOpen);
+            resolve(this.signalWs);
+          };
+          this.signalWs.addEventListener('open', onOpen);
+        }),
+
+        new Promise((resolve, reject) => {
+          setTimeout(
+            () => reject(new Error('SFU WS connection timed out')),
+            this.joinResponseTimeout,
+          );
+        }),
+      ]),
+    );
   };
 
   private cleanUpWebSocket = () => {
@@ -409,7 +422,7 @@ export class StreamSfuClient {
     data: Omit<JoinRequest, 'sessionId' | 'token'>,
   ): Promise<JoinResponse> => {
     // wait for the signal web socket to be ready before sending "joinRequest"
-    await this.signalReady;
+    await this.signalReady();
     if (this.joinResponseTask.isResolved || this.joinResponseTask.isRejected) {
       // we need to lock the RPC requests until we receive a JoinResponse.
       // that's why we have this primitive lock mechanism.
@@ -478,7 +491,7 @@ export class StreamSfuClient {
   };
 
   private send = async (message: SfuRequest) => {
-    await this.signalReady; // wait for the signal ws to be open
+    await this.signalReady(); // wait for the signal ws to be open
     const msgJson = SfuRequest.toJson(message);
     if (this.signalWs.readyState !== WebSocket.OPEN) {
       this.logger('debug', 'Signal WS is not open. Skipping message', msgJson);
