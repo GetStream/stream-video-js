@@ -130,7 +130,7 @@ jobs:
     name: Deploy iOS
     needs: build_ios
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/PBE-5855-feat/react-native-video-design-v2' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/PBE-5855-feat/react-native-video-design-v2' || github.ref == 'refs/heads/use-vp8-on-ios' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
