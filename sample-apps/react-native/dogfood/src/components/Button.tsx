@@ -34,11 +34,11 @@ export const Button = ({
     <Pressable
       disabled={disabled}
       {...rest}
-      style={[
+      style={StyleSheet.flatten([
         styles.button,
         disabled ? styles.disabledButtonStyle : null,
         buttonStyle,
-      ]}
+      ])}
     >
       <Text style={[styles.buttonText, titleStyle]}>{title}</Text>
     </Pressable>

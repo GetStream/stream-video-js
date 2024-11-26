@@ -1,27 +1,31 @@
-import React, { useState } from 'react';
-import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
+import React, { useRef, useState } from 'react';
 import {
   Image,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   View,
-  KeyboardAvoidingView,
-  Platform,
   ViewStyle,
-  Switch,
+  TextInput as NativeTextInput,
 } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
-import { appTheme } from '../theme';
-import { Button } from '../components/Button';
-import { TextInput } from '../components/TextInput';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
+import { appTheme } from '../../theme';
+import { Button } from '../../components/Button';
+import { TextInput } from '../../components/TextInput';
 import { useI18n } from '@stream-io/video-react-native-sdk';
-import { KnownUsers } from '../constants/KnownUsers';
-import { useOrientation } from '../hooks/useOrientation';
+import { KnownUsers } from '../../constants/KnownUsers';
+import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import EnvSwitcherButton from './EnvSwitcherButton';
+import { Alert } from 'react-native';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -39,19 +43,24 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-// const ENABLE_PRONTO_SWITCH = REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto';
 const ENABLE_PRONTO_SWITCH = true;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
-  const [prontoEnvironment, setProntoEnvironment] = useState(
-    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto',
-  );
   const [loader, setLoader] = useState(false);
   const { t } = useI18n();
   const orientation = useOrientation();
 
   const setState = useAppGlobalStoreSetState();
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
+  const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
+  const localIpAddress = useAppGlobalStoreValue(
+    (store) => store.localIpAddress,
+  );
+
+  const sfuIpInputRef = useRef<NativeTextInput>(null);
 
   const loginHandler = async () => {
     try {
@@ -66,18 +75,15 @@ const LoginScreen = () => {
         userId: _userId,
         userName: _userId,
         userImageUrl: _userImageUrl,
-        appMode:
-          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
-        appEnvironment: !ENABLE_PRONTO_SWITCH
-          ? REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT
-          : prontoEnvironment
-            ? 'pronto'
-            : 'demo',
+        appMode: appEnvironment === 'demo' ? 'Meeting' : 'None',
       });
     } catch (error) {
       console.log(error);
     }
   };
+
+  const isProntoEnv =
+    appEnvironment === 'pronto' || appEnvironment === 'pronto-staging';
 
   const signInViaGoogle = async () => {
     try {
@@ -92,13 +98,8 @@ const LoginScreen = () => {
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
-        appMode:
-          REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'demo' ? 'Meeting' : 'None',
-        appEnvironment: !ENABLE_PRONTO_SWITCH
-          ? REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT
-          : prontoEnvironment
-            ? 'pronto'
-            : 'demo',
+        appMode: appEnvironment === 'demo' ? 'Meeting' : 'None',
+        appEnvironment: appEnvironment,
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {
@@ -121,44 +122,34 @@ const LoginScreen = () => {
       >
         {ENABLE_PRONTO_SWITCH && (
           <View style={styles.header}>
-            <Text style={styles.envText}>{t('Pronto')}</Text>
-            <Switch
-              value={prontoEnvironment}
-              onValueChange={(value) => {
-                if (value === true) {
-                  setState({ appEnvironment: 'pronto' });
-                } else {
-                  setState({ appEnvironment: 'demo' });
-                }
-                setProntoEnvironment(value);
-              }}
-              trackColor={{ true: appTheme.colors.light_blue }}
-              thumbColor={appTheme.colors.primary}
-            />
+            <Text
+              style={styles.envText}
+            >{`Current: ${appEnvironment}${useLocalSfu ? ' (local)' : ''}`}</Text>
+            <EnvSwitcherButton />
           </View>
         )}
         <View style={styles.topContainer}>
-          <Image source={require('../assets/Logo.png')} style={styles.logo} />
+          <Image
+            source={require('../../assets/Logo.png')}
+            style={styles.logo}
+          />
           <View>
             <Text style={styles.title}>
-              {prontoEnvironment
-                ? t('Stream DogFood App')
-                : t('Stream Video Calling')}
+              {isProntoEnv ? t('Pronto') : t('Stream Video Calling')}
             </Text>
             <Text style={styles.subTitle}>
-              {prontoEnvironment
+              {isProntoEnv
                 ? t(
-                    'Please sign in with your Google Stream account or a Custom user id.',
+                    'Please sign in with your Google Stream account or use a custom user id',
                   )
                 : t('Please sign in with Custom User ID')}
             </Text>
           </View>
         </View>
         <View style={styles.bottomContainer}>
-          <View style={styles.customUser}>
+          <View style={styles.textBoxContainer}>
             <TextInput
               placeholder={t('Enter User ID')}
-              value={localUserId}
               onChangeText={(text) => {
                 setLocalUserId(text);
               }}
@@ -169,10 +160,38 @@ const LoginScreen = () => {
               title={t('Login')}
               disabled={!localUserId}
               onPress={loginHandler}
-              buttonStyle={styles.loginButton}
+              buttonStyle={styles.textBoxButton}
             />
           </View>
-          {prontoEnvironment && (
+          {useLocalSfu && (
+            <View style={styles.textBoxContainer}>
+              <TextInput
+                placeholder={'Enter Local IP'}
+                ref={sfuIpInputRef}
+                defaultValue={localIpAddress}
+                onEndEditing={(e) => {
+                  if (e.nativeEvent.text) {
+                    setState({ localIpAddress: e.nativeEvent.text });
+                    Alert.alert(
+                      'Local IP Updated',
+                      'Local IP has been updated to ' + e.nativeEvent.text,
+                    );
+                  }
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <Button
+                title={'Update Local Ip'}
+                onPress={() => {
+                  // will make onEndEditing to trigger
+                  sfuIpInputRef.current!.blur();
+                }}
+                buttonStyle={styles.textBoxButton}
+              />
+            </View>
+          )}
+          {isProntoEnv && (
             <>
               <Text style={styles.orText}>{t('OR')}</Text>
               <Button
@@ -238,13 +257,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  customUser: {
+  textBoxContainer: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  loginButton: {
+  textBoxButton: {
     marginLeft: appTheme.spacing.lg,
   },
   orText: {

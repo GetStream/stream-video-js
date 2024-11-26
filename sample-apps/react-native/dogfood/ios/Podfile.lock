@@ -2007,10 +2007,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (125.0.0-rc.1):
+  - stream-react-native-webrtc (125.0.0-rc.2):
     - React-Core
     - WebRTC-SDK (~> 125.6422.05)
-  - stream-video-react-native (1.3.6):
+  - stream-video-react-native (1.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2400,8 +2400,8 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
   stream-io-video-filters-react-native: 8e3d06506767c1a58576bb9d0229cbfc51a709d6
-  stream-react-native-webrtc: 37efc79d757376466513eb89c021c8d9413b46fd
-  stream-video-react-native: 65246483033a7245cb31dae4a97c5ab532fd4906
+  stream-react-native-webrtc: 2930ee2acccc0ba9f52d320055e4b0287a7cbbbc
+  stream-video-react-native: 0c883e0958749d3175397b121f3176b0aae6cf86
   WebRTC-SDK: 1990a1a595bd0b59c17485ce13ff17f575732c12
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 
