@@ -23,6 +23,7 @@ import {
 } from 'react-native';
 import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
 import RaiseHand from '../assets/RaiseHand';
+import { CallStats } from './CallStats';
 
 export type DrawerOption = {
   id: string;
@@ -33,12 +34,14 @@ export type DrawerOption = {
 
 type DrawerProps = {
   isVisible: boolean;
+  showCallStats: boolean;
   onClose: () => void;
   options: DrawerOption[];
 };
 
 export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   isVisible,
+  showCallStats,
   onClose,
   options,
 }) => {
@@ -187,6 +190,14 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
       )}
     />
   );
+  const moreActions = (
+    <>
+      {dragIndicator}
+      {emojiReactions}
+      {raiseHand}
+      {otherButtons}
+    </>
+  );
 
   return (
     <Modal
@@ -203,10 +214,8 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
               {...panResponder.panHandlers}
               style={[styles.container, { transform: [{ translateY }] }]}
             >
-              {dragIndicator}
-              {emojiReactions}
-              {raiseHand}
-              {otherButtons}
+              {!showCallStats && moreActions}
+              {showCallStats && <CallStats showCodecInfo />}
             </Animated.View>
           </SafeAreaView>
         </View>

@@ -15,6 +15,7 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import LightDark from '../../assets/LightDark';
+import Stats from '../../assets/Stats';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -38,6 +39,7 @@ export const MoreActionsButton = ({
     theme: { colors, variants, moreActionsButton, defaults },
   } = useTheme();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const setState = useAppGlobalStoreSetState();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
@@ -79,6 +81,22 @@ export const MoreActionsButton = ({
     },
     {
       id: '2',
+      label: 'Call stats',
+      icon: (
+        <IconWrapper>
+          <Stats
+            color={colors.iconPrimary}
+            size={variants.roundButtonSizes.sm}
+          />
+        </IconWrapper>
+      ),
+      onPress: () => {
+        setShowCallStats(true);
+        setIsDrawerVisible(true);
+      },
+    },
+    {
+      id: '3',
       label: getName(themeMode),
       icon: (
         <IconWrapper>
@@ -116,8 +134,12 @@ export const MoreActionsButton = ({
     >
       <BottomControlsDrawer
         isVisible={isDrawerVisible}
-        onClose={() => setIsDrawerVisible(false)}
+        onClose={() => {
+          setShowCallStats(false);
+          setIsDrawerVisible(false);
+        }}
         options={options}
+        showCallStats={showCallStats}
       />
       <FeedbackModal
         visible={feedbackModalVisible}
