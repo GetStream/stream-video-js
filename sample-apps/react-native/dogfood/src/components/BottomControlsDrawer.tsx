@@ -192,7 +192,6 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   );
   const moreActions = (
     <>
-      {dragIndicator}
       {emojiReactions}
       {raiseHand}
       {otherButtons}
@@ -214,6 +213,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
               {...panResponder.panHandlers}
               style={[styles.container, { transform: [{ translateY }] }]}
             >
+              {dragIndicator}
               {!showCallStats && moreActions}
               {showCallStats && <CallStats showCodecInfo />}
             </Animated.View>
