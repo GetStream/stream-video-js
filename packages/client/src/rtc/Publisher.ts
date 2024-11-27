@@ -256,6 +256,7 @@ export class Publisher {
     const codecPreferences = this.getCodecPreferences(
       trackType,
       trackType === TrackType.VIDEO ? codecInUse : undefined,
+      'receiver',
     );
     if (!codecPreferences) return;
 
@@ -458,13 +459,14 @@ export class Publisher {
 
   private getCodecPreferences = (
     trackType: TrackType,
-    preferredCodec?: string,
-    codecPreferencesSource?: 'sender' | 'receiver',
+    preferredCodec: string | undefined,
+    codecPreferencesSource: 'sender' | 'receiver',
   ) => {
     if (trackType === TrackType.VIDEO) {
       return getPreferredCodecs(
         'video',
         preferredCodec || 'vp8',
+        undefined,
         codecPreferencesSource,
       );
     }
@@ -475,6 +477,7 @@ export class Publisher {
         'audio',
         preferredCodec ?? defaultAudioCodec,
         codecToRemove,
+        codecPreferencesSource,
       );
     }
   };

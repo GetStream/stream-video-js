@@ -14,8 +14,8 @@ import type { PreferredCodec } from '../types';
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
-  codecToRemove?: string,
-  codecPreferencesSource: 'sender' | 'receiver' = 'receiver',
+  codecToRemove: string | undefined,
+  codecPreferencesSource: 'sender' | 'receiver',
 ): RTCRtpCodec[] | undefined => {
   const source =
     codecPreferencesSource === 'receiver' ? RTCRtpReceiver : RTCRtpSender;
@@ -60,12 +60,7 @@ export const getPreferredCodecs = (
       continue;
     }
 
-    // packetization-mode mode is optional; when not present it defaults to 0:
-    // https://datatracker.ietf.org/doc/html/rfc6184#section-6.2
-    if (
-      sdpFmtpLine.includes('packetization-mode=0') ||
-      !sdpFmtpLine.includes('packetization-mode')
-    ) {
+    if (sdpFmtpLine.includes('packetization-mode=1')) {
       preferred.unshift(codec);
     } else {
       preferred.push(codec);
