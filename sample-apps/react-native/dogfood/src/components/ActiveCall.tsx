@@ -3,6 +3,7 @@ import {
   useCall,
   CallContent,
   useTheme,
+  useIsInPiPMode,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -34,6 +35,7 @@ export const ActiveCall = ({
   const styles = useStyles();
   const { selectedLayout } = useLayout();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const isInPiPMode = useIsInPiPMode(false);
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -87,7 +89,7 @@ export const ActiveCall = ({
       <StatusBar
         barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
       />
-      <CustomTopControls />
+      {!isInPiPMode && <CustomTopControls />}
       <CallContent
         onHangupCallHandler={onHangupCallHandler}
         CallControls={CustomBottomControls}

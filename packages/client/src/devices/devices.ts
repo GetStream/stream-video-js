@@ -184,7 +184,7 @@ export const getAudioStream = async (
   const constraints: MediaStreamConstraints = {
     audio: {
       ...audioDeviceConstraints.audio,
-      ...trackConstraints,
+      ...normalizeContraints(trackConstraints),
     },
   };
 
@@ -195,16 +195,6 @@ export const getAudioStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
-      const { deviceId, ...relaxedContraints } = trackConstraints;
-      getLogger(['devices'])(
-        'warn',
-        'Failed to get audio stream, will try again with relaxed contraints',
-        { error, constraints, relaxedContraints },
-      );
-      return getAudioStream(relaxedContraints);
-    }
-
     getLogger(['devices'])('error', 'Failed to get audio stream', {
       error,
       constraints,
@@ -227,7 +217,7 @@ export const getVideoStream = async (
   const constraints: MediaStreamConstraints = {
     video: {
       ...videoDeviceConstraints.video,
-      ...trackConstraints,
+      ...normalizeContraints(trackConstraints),
     },
   };
   try {
@@ -237,16 +227,6 @@ export const getVideoStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
-      const { deviceId, ...relaxedContraints } = trackConstraints;
-      getLogger(['devices'])(
-        'warn',
-        'Failed to get video stream, will try again with relaxed contraints',
-        { error, constraints, relaxedContraints },
-      );
-      return getVideoStream(relaxedContraints);
-    }
-
     getLogger(['devices'])('error', 'Failed to get video stream', {
       error,
       constraints,
@@ -254,6 +234,20 @@ export const getVideoStream = async (
     throw error;
   }
 };
+
+function normalizeContraints(constraints: MediaTrackConstraints | undefined) {
+  if (
+    constraints?.deviceId === 'default' ||
+    (typeof constraints?.deviceId === 'object' &&
+      'exact' in constraints.deviceId &&
+      constraints.deviceId.exact === 'default')
+  ) {
+    const { deviceId, ...contraintsWithoutDeviceId } = constraints;
+    return contraintsWithoutDeviceId;
+  }
+
+  return constraints;
+}
 
 /**
  * Prompts the user for a permission to share a screen.

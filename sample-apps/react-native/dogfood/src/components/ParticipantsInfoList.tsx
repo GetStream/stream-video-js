@@ -33,6 +33,7 @@ import { ParticipantActions } from './ParticipantActions';
 import { generateParticipantTitle } from '../utils';
 import { Z_INDEX } from '../constants';
 import { ButtonTestIds } from '../constants/TestIds';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 export interface ParticipantsInfoListProps {
   /**
@@ -65,12 +66,24 @@ export const ParticipantsInfoList = ({
     StreamVideoParticipant | undefined
   >(undefined);
   const call = useCall();
+
+  const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
+
   const inviteHandler = async () => {
+    if (!call) {
+      throw new Error('Call not found');
+    }
     try {
+      const url =
+        environment === 'pronto'
+          ? `https://pronto.getstream.io/join/${call.id}`
+          : environment === 'pronto-staging'
+            ? `https://pronto-staging.getstream.io/join/${call.id}`
+            : `https://getstream.io/video/demos/join/${call.id}`;
       await Share.share({
-        url: `https://stream-calls-dogfood.vercel.app/join/${call?.id}`,
+        url,
         title: 'Stream Calls | Join Call',
-        message: `Join me on the call using this link https://stream-calls-dogfood.vercel.app/join/${call?.id}`,
+        message: `Join me on the call using this link ${url}`,
       });
     } catch (error: any) {
       console.log(error.message);
