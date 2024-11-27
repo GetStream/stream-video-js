@@ -20,7 +20,7 @@ import {
   isAudioTrackType,
   trackTypeToParticipantStreamKey,
 } from './helpers/tracks';
-import { enableHighQualityAudio, extractMid } from '../helpers/sdp-munging';
+import { enableHighQualityAudio, extractMid } from './helpers/sdp';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { withoutConcurrency } from '../helpers/concurrency';
 

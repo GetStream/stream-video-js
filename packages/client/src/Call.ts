@@ -3,12 +3,13 @@ import {
   Dispatcher,
   findCodec,
   getGenericSdp,
+  getPayloadTypeForCodec,
   isSfuEvent,
+  muteTypeToTrackType,
   Publisher,
   Subscriber,
+  toRtcConfiguration,
 } from './rtc';
-import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -122,7 +123,6 @@ import {
 import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
-import { getPayloadTypeForCodec } from './helpers/sdp-munging';
 import {
   PromiseWithResolvers,
   promiseWithResolvers,

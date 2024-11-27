@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { enableHighQualityAudio, getPayloadTypeForCodec } from '../sdp-munging';
+import { enableHighQualityAudio, getPayloadTypeForCodec } from '../sdp';
 import { initialSdp as HQAudioSDP } from './hq-audio-sdp';
 import { publisherSDP } from './publisher-sdp.mock';
 
