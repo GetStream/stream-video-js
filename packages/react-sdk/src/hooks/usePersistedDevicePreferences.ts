@@ -68,8 +68,14 @@ const usePersistDevicePreferences = (
  *
  * @param key the key to use for local storage.
  */
-const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
+const useApplyDevicePreferences = (
+  key: string,
+  onWillApply: () => void,
+  onApplied: () => void,
+) => {
   const call = useCall();
+  const onWillApplyRef = useRef(onWillApply);
+  onWillApplyRef.current = onWillApply;
   const onAppliedRef = useRef(onApplied);
   onAppliedRef.current = onApplied;
   useEffect(() => {
@@ -121,6 +127,7 @@ const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
       }
     };
 
+    onWillApplyRef.current();
     apply()
       .then(() => onAppliedRef.current())
       .catch((err) => {
@@ -142,7 +149,11 @@ export const usePersistedDevicePreferences = (
   key: string = '@stream-io/device-preferences',
 ) => {
   const shouldPersistRef = useRef(false);
-  useApplyDevicePreferences(key, () => (shouldPersistRef.current = true));
+  useApplyDevicePreferences(
+    key,
+    () => (shouldPersistRef.current = false),
+    () => (shouldPersistRef.current = true),
+  );
   usePersistDevicePreferences(key, shouldPersistRef);
 };
 
