@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
@@ -77,10 +77,22 @@ export const CallParticipantsGrid = ({
       : remoteParticipants
     : allParticipants;
 
+  const [dominantSpeaker, setDominantSpeaker] =
+    useState<StreamVideoParticipant | null>(null);
+
+  useEffect(() => {
+    if (isInPiPMode && remoteParticipants.length > 0) {
+      const speaker = remoteParticipants.find((rp) => rp.isDominantSpeaker);
+      if (speaker) {
+        setDominantSpeaker(speaker as StreamVideoParticipant);
+      }
+    }
+  }, [remoteParticipants, isInPiPMode]);
+
   if (isInPiPMode) {
     participants =
       remoteParticipants.length > 0
-        ? [remoteParticipants[0] as StreamVideoParticipant]
+        ? [dominantSpeaker || (remoteParticipants[0] as StreamVideoParticipant)]
         : localParticipant
           ? [localParticipant]
           : [];
