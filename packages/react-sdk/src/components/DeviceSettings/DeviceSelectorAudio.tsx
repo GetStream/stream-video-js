@@ -1,28 +1,35 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { DeviceSelector } from './DeviceSelector';
+import {
+  createCallControlHandler,
+  PropsWithErrorHandler,
+} from '../../utilities/callControlHandler';
 
-export type DeviceSelectorAudioInputProps = {
+export type DeviceSelectorAudioInputProps = PropsWithErrorHandler<{
   title?: string;
   visualType?: 'list' | 'dropdown';
-};
+}>;
 
-export const DeviceSelectorAudioInput = ({
-  title,
-  visualType,
-}: DeviceSelectorAudioInputProps) => {
+export const DeviceSelectorAudioInput = (
+  props: DeviceSelectorAudioInputProps,
+) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, devices } = useMicrophoneState();
+  const handleChange = createCallControlHandler(
+    props,
+    async (deviceId: string) => {
+      await microphone.select(deviceId);
+    },
+  );
 
   return (
     <DeviceSelector
       devices={devices || []}
       selectedDeviceId={selectedDevice}
       type="audioinput"
-      onChange={async (deviceId) => {
-        await microphone.select(deviceId);
-      }}
-      title={title}
-      visualType={visualType}
+      onChange={handleChange}
+      title={props.title}
+      visualType={props.visualType}
       icon="mic"
     />
   );

@@ -215,6 +215,7 @@ export abstract class InputMediaDeviceManager<
       await this.applySettingsToStream();
     } catch (error) {
       this.state.setDevice(prevDeviceId);
+      await this.applySettingsToStream();
       throw error;
     }
   }
