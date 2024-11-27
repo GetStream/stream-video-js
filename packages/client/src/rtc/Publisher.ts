@@ -29,6 +29,8 @@ import { Dispatcher } from './Dispatcher';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { isReactNative } from '../helpers/platforms';
+import { isFirefox } from '../helpers/browsers';
 
 export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
@@ -581,7 +583,9 @@ export class Publisher {
 
   private removeUnpreferredCodecs(sdp: string, trackType: TrackType): string {
     const opts = this.publishOptsForTrack.get(trackType);
-    if (!opts || !opts.forceSingleCodec) return sdp;
+    const forceSingleCodec =
+      !!opts?.forceSingleCodec || isReactNative() || isFirefox();
+    if (!opts || !forceSingleCodec) return sdp;
 
     const codec = opts.forceCodec || getOptimalVideoCodec(opts.preferredCodec);
     const orderedCodecs = this.getCodecPreferences(trackType, codec, 'sender');
