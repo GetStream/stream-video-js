@@ -1,6 +1,6 @@
 import { useCall } from '@stream-io/video-react-bindings';
 import { getLogger } from '@stream-io/video-client';
-import React from 'react';
+import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Phone } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -38,7 +38,10 @@ export const AcceptCallButton = ({
       acceptCallButton,
     },
   } = useTheme();
+  const [isLoading, setIsLoading] = useState(false);
+
   const acceptCallHandler = async () => {
+    setIsLoading(true);
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -51,6 +54,8 @@ export const AcceptCallButton = ({
     } catch (error) {
       const logger = getLogger(['AcceptCallButton']);
       logger('error', 'Error joining Call', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,6 +65,7 @@ export const AcceptCallButton = ({
       color={colors.buttonSuccess}
       size={buttonSizes.md}
       style={acceptCallButton}
+      disabled={isLoading}
     >
       <IconWrapper>
         <Phone color={colors.iconPrimary} size={iconSizes.lg} />
