@@ -8733,6 +8733,7 @@ __metadata:
     react-native: 0.76.2
     react-native-blob-util: ^0.19.11
     react-native-callkeep: 4.3.11
+    react-native-device-info: ^14.0.1
     react-native-dotenv: ^3.4.11
     react-native-gesture-handler: ^2.21
     react-native-haptic-feedback: ^2.0.3
@@ -23620,6 +23621,15 @@ __metadata:
     jscodeshift: ^0.14.0
     nullthrows: ^1.1.1
   checksum: 3624f18f4a3d12d3ab304b2c5beaeb59bdf7eb2ce74a44a660cb028846a0993437ab733fe2423f9455d96838628853c8e26cea004c1720b358ee5aed2d46278b
+  languageName: node
+  linkType: hard
+
+"react-native-device-info@npm:^14.0.1":
+  version: 14.0.1
+  resolution: "react-native-device-info@npm:14.0.1"
+  peerDependencies:
+    react-native: "*"
+  checksum: d381cc0d21da1d86fe8f9bfdd36ffd1c37a78cefbf89d3716b72a58ee4ebdfa44af47f51aeda5e613c15bd54d78ff0e43048a369eda86f391356351f0ed78462
   languageName: node
   linkType: hard
 

@@ -36,6 +36,7 @@
     "react-native": "0.76.2",
     "react-native-blob-util": "^0.19.11",
     "react-native-callkeep": "4.3.11",
+    "react-native-device-info": "^14.0.1",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "^2.21",
     "react-native-haptic-feedback": "^2.0.3",
