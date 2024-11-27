@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.6...@stream-io/video-client-1.11.7) (2024-11-26)
+
+
+### Bug Fixes
+
+* remove unused code from the coordinator websocket impl ([#1563](https://github.com/GetStream/stream-video-js/issues/1563)) ([921b820](https://github.com/GetStream/stream-video-js/commit/921b820133885dac299dab343cee3fc4b08705ce))
+
 ## [1.11.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.5...@stream-io/video-client-1.11.6) (2024-11-22)
 
 

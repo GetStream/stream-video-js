@@ -1,5 +1,4 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { StableWSConnection } from './connection';
 import { ConnectedEvent, UserRequest, WSEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 
@@ -115,10 +114,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    */
   baseURL?: string;
   browser?: boolean;
-  // device?: BaseDeviceFields;
-  enableInsights?: boolean;
-  /** experimental feature, please contact support if you want this feature enabled for you */
-  enableWSFallback?: boolean;
   logger?: Logger;
   logLevel?: LogLevel;
   /**
@@ -146,10 +141,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    */
   secret?: string;
 
-  warmUp?: boolean;
-  // Set the instance of StableWSConnection on chat client. Its purely for testing purpose and should
-  // not be used in production apps.
-  wsConnection?: StableWSConnection;
+  /**
+   * The WebSocket implementation to use. This is mainly useful for testing.
+   * In Node.js environment, you can use the `ws` package.
+   */
+  WebSocketImpl?: typeof WebSocket;
 };
 
 export type TokenProvider = () => Promise<string>;

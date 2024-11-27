@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LobbyProps } from './Lobby';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
@@ -23,10 +23,12 @@ export const JoinCallButton = ({
     theme: { colors, typefaces, joinCallButton },
   } = useTheme();
   const styles = useStyles();
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useI18n();
   const call = useCall();
 
   const onPress = async () => {
+    setIsLoading(true);
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -39,17 +41,20 @@ export const JoinCallButton = ({
     } catch (error) {
       const logger = getLogger(['JoinCallButton']);
       logger('error', 'Error joining call:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const backgroundColor = isLoading
+    ? colors.buttonDisabled
+    : colors.buttonPrimary;
+
   return (
     <Pressable
-      style={[
-        styles.container,
-        { backgroundColor: colors.buttonPrimary },
-        joinCallButton.container,
-      ]}
+      style={[styles.container, { backgroundColor }, joinCallButton.container]}
       onPress={onPress}
+      disabled={isLoading}
     >
       <Text
         style={[
@@ -59,7 +64,7 @@ export const JoinCallButton = ({
           joinCallButton.label,
         ]}
       >
-        {t('Join')}
+        {isLoading ? t('Joining...') : t('Join')}
       </Text>
     </Pressable>
   );
