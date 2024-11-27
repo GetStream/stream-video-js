@@ -27,12 +27,16 @@ export const preserveCodec = (
     // find the payload id of the desired codec
     const payloads = new Set<number>();
     for (const rtp of media.rtp) {
-      if (
-        rtp.codec.toLowerCase() === codecName &&
-        media.fmtp.some(
-          (f) => f.payload === rtp.payload && equal(toSet(f.config), codecFmtp),
-        )
-      ) {
+      if (rtp.codec.toLowerCase() !== codecName) continue;
+      const match =
+        // vp8 doesn't have any fmtp, we preserve it without any additional checks
+        codecName === 'vp8'
+          ? true
+          : media.fmtp.some(
+              (f) =>
+                f.payload === rtp.payload && equal(toSet(f.config), codecFmtp),
+            );
+      if (match) {
         payloads.add(rtp.payload);
       }
     }
