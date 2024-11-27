@@ -307,6 +307,26 @@ export const useParticipantCount = () => {
 };
 
 /**
+ * Returns the duration of the call session in seconds.
+ *
+ * @category Call State
+ */
+export const useCallSessionDuration = () => {
+  const { sessionDuration$ } = useCallState();
+  return useObservableValue(sessionDuration$);
+};
+
+/**
+ * Returns the duration of the livestream seconds.
+ *
+ * @category Call State
+ */
+export const useCallLiveDuration = () => {
+  const { liveDuration$ } = useCallState();
+  return useObservableValue(liveDuration$);
+};
+
+/**
  * Returns the approximate anonymous participant count of the active call.
  * The regular participants are not included in this count. It is computed on the server.
  *
