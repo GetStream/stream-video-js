@@ -3,6 +3,7 @@ import { Call } from '../Call';
 import type { CallAcceptedEvent, CallRejectedEvent } from '../gen/coordinator';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
+import { REASON_FOR_LEAVE_ON_CALL_ENDED } from './internal';
 
 /**
  * Event handler that watched the delivery of `call.accepted`.
@@ -79,7 +80,7 @@ export const watchCallEnded = (call: Call) => {
       callingState !== CallingState.IDLE &&
       callingState !== CallingState.LEFT
     ) {
-      call.leave({ reason: 'call.ended event received' }).catch((err) => {
+      call.leave({ reason: REASON_FOR_LEAVE_ON_CALL_ENDED }).catch((err) => {
         call.logger('error', 'Failed to leave call after call.ended ', err);
       });
     }

@@ -123,6 +123,7 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/withResolvers';
+import { REASON_FOR_LEAVE_ON_CALL_ENDED } from './events/internal';
 
 /**
  * An object representation of a `Call`.
@@ -516,7 +517,10 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      if (callingState === CallingState.RINGING && !this.state.endedAt) {
+      if (
+        callingState === CallingState.RINGING &&
+        reason !== REASON_FOR_LEAVE_ON_CALL_ENDED
+      ) {
         if (reject) {
           await this.reject(reason);
         } else {
