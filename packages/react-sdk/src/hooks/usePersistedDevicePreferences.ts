@@ -121,18 +121,22 @@ const useApplyDevicePreferences = (
         console.warn('Failed to load device preferences', err);
       }
       if (preferences) {
-        await initMic(preferences.mic);
-        await initCamera(preferences.camera);
+        await initMic(preferences.mic).catch((err) => {
+          console.warn('Failed to apply microphone preferences', err);
+        });
+        await initCamera(preferences.camera).catch((err) => {
+          console.warn('Failed to apply camera preferences', err);
+        });
         initSpeaker(preferences.speaker);
       }
     };
 
     onWillApplyRef.current();
     apply()
-      .then(() => onAppliedRef.current())
       .catch((err) => {
         console.warn('Failed to apply device preferences', err);
-      });
+      })
+      .then(() => onAppliedRef.current());
 
     return () => {
       cancel = true;
