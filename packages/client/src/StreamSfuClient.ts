@@ -25,11 +25,10 @@ import {
 } from './gen/video/sfu/signal_rpc/signal';
 import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
-import { generateUUIDv4, sleep } from './coordinator/connection/utils';
+import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
-import { withoutConcurrency } from './helpers/concurrency';
 import {
   promiseWithResolvers,
   PromiseWithResolvers,
@@ -118,7 +117,6 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
-  private readonly restoreWebSocketConcurrencyTag = Symbol('recoverWebSocket');
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: (() => void) | undefined;
@@ -229,7 +227,6 @@ export class StreamSfuClient {
     });
 
     this.signalWs.addEventListener('close', this.handleWebSocketClose);
-    this.signalWs.addEventListener('error', this.restoreWebSocket);
 
     this.signalReady = makeSafePromise(
       Promise.race<WebSocket>([
@@ -252,18 +249,7 @@ export class StreamSfuClient {
   };
 
   private cleanUpWebSocket = () => {
-    this.signalWs.removeEventListener('error', this.restoreWebSocket);
     this.signalWs.removeEventListener('close', this.handleWebSocketClose);
-  };
-
-  private restoreWebSocket = () => {
-    withoutConcurrency(this.restoreWebSocketConcurrencyTag, async () => {
-      await this.networkAvailableTask?.promise;
-      this.logger('debug', 'Restoring SFU WS connection');
-      this.cleanUpWebSocket();
-      await sleep(500);
-      this.createWebSocket();
-    }).catch((err) => this.logger('debug', `Can't restore WS connection`, err));
   };
 
   get isHealthy() {
