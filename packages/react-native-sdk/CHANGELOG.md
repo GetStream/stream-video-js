@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.1...@stream-io/video-react-native-sdk-1.4.2) (2024-11-27)
+
+
+### Bug Fixes
+
+* disable join call button to prevent multiple call joins ([#1602](https://github.com/GetStream/stream-video-js/issues/1602)) ([9079217](https://github.com/GetStream/stream-video-js/commit/9079217ab7cc5a87a948059d206c334433c7da8f))
+
 ## [1.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.0...@stream-io/video-react-native-sdk-1.4.1) (2024-11-26)
 
 ### Dependency Updates
