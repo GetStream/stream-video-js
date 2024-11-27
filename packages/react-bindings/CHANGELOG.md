@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.2.0...@stream-io/video-react-bindings-1.2.1) (2024-11-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.7`
+## [1.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.1.23...@stream-io/video-react-bindings-1.2.0) (2024-11-25)
+
+
+### Features
+
+* **design-v2:** sdk and dogfood app design-v2 changes ([#1549](https://github.com/GetStream/stream-video-js/issues/1549)) ([480a359](https://github.com/GetStream/stream-video-js/commit/480a3593516e6662b35a44f97c72259548d08445))
+
 ## [1.1.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.1.22...@stream-io/video-react-bindings-1.1.23) (2024-11-22)
 
 ### Dependency Updates

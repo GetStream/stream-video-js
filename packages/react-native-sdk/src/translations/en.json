@@ -4,6 +4,7 @@
   "Mute All": "Mute All",
   "Invite": "Invite",
   "Join": "Join",
+  "Joining...": "Joining...",
   "You": "You",
   "Reconnecting...": "Reconnecting...",
   "Loading...": "Loading...",
@@ -11,7 +12,7 @@
   "End Stream": "End Stream",
   "Leave Stream": "Leave Stream",
   "Live": "Live",
-  "Before Joining": "Before Joining",
+  "Before joining": "Before joining",
   "Setup your audio and video": "Setup your audio and video",
   "Setup your audio": "Setup your audio",
   "You are first to Join the call.": "You are first to Join the call.",
@@ -23,5 +24,9 @@
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",
   "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}.",
   "Preparing call": "Preparing call",
-  "You have left the call": "You have left the call"
+  "You have left the call": "You have left the call",
+  "You are about to join a call.": "You are about to join a call.",
+  "Currently there are no other participants in the call.": "Currently there are no other participants in the call.",
+  "There is {{numberOfParticipants}} more person in the call.": "There is {{numberOfParticipants}} more person in the call.",
+  "There are {{numberOfParticipants}} more people in the call.": "There are {{numberOfParticipants}} more people in the call."
 }

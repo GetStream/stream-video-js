@@ -1,32 +1,38 @@
 import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
 import { colors } from './colors';
-import { ColorScheme, FontStyle, FontTypes } from './types';
+import {
+  ColorScheme,
+  DimensionType,
+  FontStyle,
+  FontTypes,
+  Insets,
+} from './types';
+import { ColorValue } from 'react-native';
 
 export type Theme = {
   variants: {
-    buttonSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
-    iconSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
-    avatarSizes: {
-      xs: number;
-      sm: number;
-      md: number;
-      lg: number;
-      xl: number;
-    };
+    buttonSizes: DimensionType;
+    roundButtonSizes: DimensionType;
+    iconSizes: DimensionType;
+    avatarSizes: DimensionType;
+    fontSizes: DimensionType;
+    spacingSizes: DimensionType;
+    borderRadiusSizes: DimensionType;
+    insets: Insets;
   };
   typefaces: Record<FontTypes, FontStyle>;
+  defaults: {
+    color: ColorValue;
+    backgroundColor: ColorValue;
+    margin: number;
+    padding: number;
+    fontSize: number;
+    iconSize: number;
+    fontWeight: TextStyle['fontWeight'];
+    borderRadius: ViewStyle['borderRadius'];
+    borderColor: ColorValue;
+    borderWidth: ViewStyle['borderWidth'];
+  };
   colors: ColorScheme;
   avatar: {
     container: ViewStyle;
@@ -171,15 +177,6 @@ export type Theme = {
     buttonGroup: ViewStyle;
     deviceControlButtons: ViewStyle;
   };
-  callTopView: {
-    container: ViewStyle;
-    content: ViewStyle;
-    backIconContainer: ViewStyle;
-    leftElement: ViewStyle;
-    centerElement: ViewStyle;
-    rightElement: ViewStyle;
-    title: TextStyle;
-  };
   userInfo: {
     container: ViewStyle;
     avatarGroup: ViewStyle;
@@ -279,10 +276,27 @@ export type Theme = {
     buttonIcon: ViewStyle;
     buttonText: TextStyle;
   };
+
+  // Index signature for additional dynamic properties
+  [component: string]: any;
 };
 
 export const defaultTheme: Theme = {
   variants: {
+    roundButtonSizes: {
+      xs: 16,
+      sm: 24,
+      md: 36,
+      lg: 44,
+      xl: 56,
+    },
+    borderRadiusSizes: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+    },
     buttonSizes: {
       xs: 40,
       sm: 50,
@@ -303,6 +317,26 @@ export const defaultTheme: Theme = {
       md: 100,
       lg: 160,
       xl: 180,
+    },
+    spacingSizes: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+    },
+    fontSizes: {
+      xs: 8,
+      sm: 12,
+      md: 16,
+      lg: 20,
+      xl: 24,
+    },
+    insets: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
     },
   },
   typefaces: {
@@ -334,6 +368,18 @@ export const defaultTheme: Theme = {
       fontSize: 10,
       fontWeight: '400',
     },
+  },
+  defaults: {
+    color: colors.primary,
+    backgroundColor: colors.sheetPrimary,
+    margin: 10,
+    padding: 10,
+    fontSize: 16,
+    fontWeight: '500',
+    borderRadius: 32,
+    iconSize: 28,
+    borderColor: colors.buttonPrimary,
+    borderWidth: 1,
   },
   colors: colors,
   avatar: {
@@ -483,15 +529,6 @@ export const defaultTheme: Theme = {
     deviceControlButtons: {},
   },
   ringingCallContent: { container: {} },
-  callTopView: {
-    container: {},
-    content: {},
-    backIconContainer: {},
-    leftElement: {},
-    centerElement: {},
-    rightElement: {},
-    title: {},
-  },
   userInfo: {
     container: {},
     avatarGroup: {},

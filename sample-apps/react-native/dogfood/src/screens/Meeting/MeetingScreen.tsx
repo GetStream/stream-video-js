@@ -23,6 +23,8 @@ export const MeetingScreen = (props: Props) => {
     }
     return client.call(callType, callId);
   }, [callId, callType, client]);
+  // @ts-ignore
+  globalThis.call = call;
 
   useEffect(() => {
     const getOrCreateCall = async () => {

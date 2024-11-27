@@ -19,6 +19,10 @@ interface CallControlsButtonProps {
    */
   color?: ColorValue;
   /**
+   * The background color of the disabled button.
+   */
+  disabledColor?: ColorValue;
+  /**
    * Boolean to enable/disable the button
    */
   disabled?: boolean;
@@ -49,6 +53,7 @@ export const CallControlsButton = (
     children,
     disabled,
     color: colorProp,
+    disabledColor: disabledColorProp,
     style: styleProp,
     size,
     testID,
@@ -57,8 +62,9 @@ export const CallControlsButton = (
 
   const {
     theme: {
-      variants: { buttonSizes },
       colors,
+      defaults,
+      variants: { roundButtonSizes },
       callControlsButton: { container },
     },
   } = useTheme();
@@ -67,18 +73,18 @@ export const CallControlsButton = (
     styles.container,
     {
       backgroundColor: disabled
-        ? colors.disabled
-        : colorProp || colors.static_white,
+        ? disabledColorProp || colors.buttonDisabled
+        : colorProp || colors.buttonSecondary,
       opacity: pressed ? 0.2 : 1,
-      height: size || buttonSizes.sm,
-      width: size || buttonSizes.sm,
-      borderRadius: (size || buttonSizes.sm) / 2,
-      borderColor: colors.content_bg,
+      height: size || roundButtonSizes.lg,
+      width: size || roundButtonSizes.lg,
+      borderRadius: defaults.borderRadius,
     },
     styleProp?.container ?? null,
     container,
   ];
 
+  const childrenSize = (size || roundButtonSizes.lg) / 2 - 5;
   return (
     <Pressable
       disabled={disabled}
@@ -89,10 +95,7 @@ export const CallControlsButton = (
     >
       <View
         style={[
-          {
-            height: (size || buttonSizes.sm) / 2 - 5,
-            width: (size || buttonSizes.sm) / 2 - 5,
-          },
+          { height: childrenSize, width: childrenSize },
           styleProp?.svgContainer ?? null,
         ]}
       >
@@ -105,16 +108,7 @@ export const CallControlsButton = (
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
-    borderWidth: 1,
     alignItems: 'center',
-    // For iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
 
     // For android
     elevation: 6,

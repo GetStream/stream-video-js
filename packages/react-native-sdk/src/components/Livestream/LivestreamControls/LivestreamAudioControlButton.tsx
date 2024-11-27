@@ -2,7 +2,7 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Mic, MicOff } from '../../../icons';
+import { IconWrapper, Mic, MicOff } from '../../../icons';
 
 /**
  * The LivestreamAudioControlButton controls the audio stream publish/unpublish while in the livestream for the host.
@@ -28,7 +28,7 @@ export const LivestreamAudioControlButton = () => {
       style={[
         styles.container,
         {
-          backgroundColor: colors.dark_gray,
+          backgroundColor: colors.buttonSecondary,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
@@ -45,11 +45,13 @@ export const LivestreamAudioControlButton = () => {
           livestreamAudioControlButton.icon,
         ]}
       >
-        {!optimisticIsMute ? (
-          <Mic color={colors.static_white} />
-        ) : (
-          <MicOff color={colors.static_white} />
-        )}
+        <IconWrapper>
+          {!optimisticIsMute ? (
+            <Mic color={colors.iconPrimary} size={iconSizes.md} />
+          ) : (
+            <MicOff color={colors.iconPrimary} size={iconSizes.md} />
+          )}
+        </IconWrapper>
       </View>
     </Pressable>
   );
