@@ -20,6 +20,7 @@ import { PublishOptions } from '../types';
 import {
   enableHighQualityAudio,
   extractMid,
+  preserveCodec,
   toggleDtx,
 } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
@@ -28,6 +29,8 @@ import { Dispatcher } from './Dispatcher';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 import { TargetResolutionResponse } from '../gen/shims';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { isReactNative } from '../helpers/platforms';
+import { isFirefox } from '../helpers/browsers';
 
 export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
@@ -255,6 +258,7 @@ export class Publisher {
     const codecPreferences = this.getCodecPreferences(
       trackType,
       trackType === TrackType.VIDEO ? codecInUse : undefined,
+      'receiver',
     );
     if (!codecPreferences) return;
 
@@ -457,10 +461,16 @@ export class Publisher {
 
   private getCodecPreferences = (
     trackType: TrackType,
-    preferredCodec?: string,
+    preferredCodec: string | undefined,
+    codecPreferencesSource: 'sender' | 'receiver',
   ) => {
     if (trackType === TrackType.VIDEO) {
-      return getPreferredCodecs('video', preferredCodec || 'vp8');
+      return getPreferredCodecs(
+        'video',
+        preferredCodec || 'vp8',
+        undefined,
+        codecPreferencesSource,
+      );
     }
     if (trackType === TrackType.AUDIO) {
       const defaultAudioCodec = this.isRedEnabled ? 'red' : 'opus';
@@ -469,6 +479,7 @@ export class Publisher {
         'audio',
         preferredCodec ?? defaultAudioCodec,
         codecToRemove,
+        codecPreferencesSource,
       );
     }
   };
@@ -530,6 +541,12 @@ export class Publisher {
       if (this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
         offer.sdp = this.enableHighQualityAudio(offer.sdp);
       }
+      if (this.isPublishing(TrackType.VIDEO)) {
+        // Hotfix for platforms that don't respect the ordered codec list
+        // (Firefox, Android, Linux, etc...).
+        // We remove all the codecs from the SDP except the one we want to use.
+        offer.sdp = this.removeUnpreferredCodecs(offer.sdp, TrackType.VIDEO);
+      }
     }
 
     const trackInfos = this.getAnnouncedTracks(offer.sdp);
@@ -563,6 +580,25 @@ export class Publisher {
       },
     );
   };
+
+  private removeUnpreferredCodecs(sdp: string, trackType: TrackType): string {
+    const opts = this.publishOptsForTrack.get(trackType);
+    const forceSingleCodec =
+      !!opts?.forceSingleCodec || isReactNative() || isFirefox();
+    if (!opts || !forceSingleCodec) return sdp;
+
+    const codec = opts.forceCodec || getOptimalVideoCodec(opts.preferredCodec);
+    const orderedCodecs = this.getCodecPreferences(trackType, codec, 'sender');
+    if (!orderedCodecs || orderedCodecs.length === 0) return sdp;
+
+    const transceiver = this.transceiverCache.get(trackType);
+    if (!transceiver) return sdp;
+
+    const index = this.transceiverInitOrder.indexOf(trackType);
+    const mid = extractMid(transceiver, index, sdp);
+    const [codecToPreserve] = orderedCodecs;
+    return preserveCodec(sdp, mid, codecToPreserve);
+  }
 
   private enableHighQualityAudio = (sdp: string) => {
     const transceiver = this.transceiverCache.get(TrackType.SCREEN_SHARE_AUDIO);
@@ -652,7 +688,8 @@ export class Publisher {
       settings?.screensharing.target_resolution?.bitrate;
 
     const publishOpts = opts || this.publishOptsForTrack.get(trackType);
-    const codecInUse = getOptimalVideoCodec(publishOpts?.preferredCodec);
+    const codecInUse =
+      opts?.forceCodec || getOptimalVideoCodec(opts?.preferredCodec);
     return trackType === TrackType.VIDEO
       ? findOptimalVideoLayers(track, targetResolution, codecInUse, publishOpts)
       : trackType === TrackType.SCREEN_SHARE

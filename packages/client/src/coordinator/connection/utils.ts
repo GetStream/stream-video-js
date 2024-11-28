@@ -1,7 +1,8 @@
-import { Logger } from './types';
+import type { AxiosResponse } from 'axios';
+import type { APIErrorResponse } from './types';
+import type { ConnectionErrorEvent } from '../../gen/coordinator';
 
-export const sleep = (m: number): Promise<void> =>
-  new Promise((r) => setTimeout(r, m));
+export const sleep = (m: number) => new Promise((r) => setTimeout(r, m));
 
 export function isFunction<T>(value: Function | T): value is Function {
   return (
@@ -92,61 +93,15 @@ function getRandomBytes(length: number): Uint8Array {
   return bytes;
 }
 
-export function convertErrorToJson(err: Error) {
-  const jsonObj = {} as Record<string, unknown>;
-
-  if (!err) return jsonObj;
-
-  try {
-    Object.getOwnPropertyNames(err).forEach((key) => {
-      jsonObj[key] = Object.getOwnPropertyDescriptor(err, key);
-    });
-  } catch (_) {
-    return {
-      error: 'failed to serialize the error',
-    };
-  }
-
-  return jsonObj;
-}
-
 /**
  * Informs if a promise is yet to be resolved or rejected
  */
 export async function isPromisePending<T>(promise: Promise<T>) {
   const emptyObj = {};
   return Promise.race([promise, emptyObj]).then(
-    (value) => (value === emptyObj ? true : false),
+    (value) => value === emptyObj,
     () => false,
   );
-}
-
-/**
- * isOnline safely return the navigator.online value for browser env
- * if navigator is not in global object, it always return true
- */
-export function isOnline(logger: Logger) {
-  const nav =
-    typeof navigator !== 'undefined'
-      ? navigator
-      : typeof window !== 'undefined' && window.navigator
-        ? window.navigator
-        : undefined;
-
-  if (!nav) {
-    logger(
-      'warn',
-      'isOnline failed to access window.navigator and assume browser is online',
-    );
-    return true;
-  }
-
-  // RN navigator has undefined for onLine
-  if (typeof nav.onLine !== 'boolean') {
-    return true;
-  }
-
-  return nav.onLine;
 }
 
 /**
@@ -164,4 +119,17 @@ export function removeConnectionEventListeners(cb: (e: Event) => void) {
     window.removeEventListener('offline', cb);
     window.removeEventListener('online', cb);
   }
+}
+
+export function isErrorResponse(
+  res: AxiosResponse<unknown>,
+): res is AxiosResponse<APIErrorResponse> {
+  return !res.status || res.status < 200 || 300 <= res.status;
+}
+
+// Type guards to check WebSocket error type
+export function isCloseEvent(
+  res: CloseEvent | ConnectionErrorEvent,
+): res is CloseEvent {
+  return (res as CloseEvent).code !== undefined;
 }

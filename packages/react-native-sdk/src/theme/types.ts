@@ -1,29 +1,38 @@
 import { ColorValue, TextStyle } from 'react-native';
 
-// TODO: check if this is used somewhere and remove if not
+/**
+ * ColorScheme defines the complete color palette for the application's theme.
+ * It provides a centralized type definition for maintaining consistent colors
+ * across different UI components and contexts.
+ */
 export type ColorScheme = {
   primary: ColorValue;
-  error: ColorValue;
-  info: ColorValue;
-  static_black: ColorValue;
-  static_white: ColorValue;
-  static_overlay: ColorValue;
-  static_grey: ColorValue;
-  disabled: ColorValue;
-  text_low_emphasis: ColorValue;
-  text_high_emphasis: ColorValue;
-  controls_bg: ColorValue;
-  borders: ColorValue;
-  overlay: ColorValue;
-  overlay_dark: ColorValue;
-  bars: ColorValue;
-  content_bg: ColorValue;
-  dark_gray: ColorValue;
+  secondary: ColorValue;
+  success: ColorValue;
+  warning: ColorValue;
+
+  buttonPrimary: ColorValue;
+  buttonSecondary: ColorValue;
+  buttonSuccess: ColorValue;
+  buttonWarning: ColorValue;
+  buttonDisabled: ColorValue;
+
+  iconPrimary: ColorValue;
+  iconSecondary: ColorValue;
+  iconSuccess: ColorValue;
+  iconWarning: ColorValue;
+
+  sheetPrimary: ColorValue;
+  sheetSecondary: ColorValue;
+  sheetTertiary: ColorValue;
+  sheetOverlay: ColorValue;
+
+  textPrimary: ColorValue;
+  textSecondary: ColorValue;
+
   // allow any other color
   [key: string]: ColorValue;
 };
-
-export type ColorType = Record<'light' | 'dark', ColorScheme>;
 
 export type FontTypes =
   | 'heading4'
@@ -38,6 +47,48 @@ export type FontStyle = {
   fontWeight: TextStyle['fontWeight'];
 };
 
-export type FontsScheme = Record<FontTypes, FontStyle>;
+/**
+ * DimensionType defines a set of standardized size values for component scaling.
+ * Each property represents a size tier from extra small (xs) to extra large (xl).
+ *
+ * @property xs - Extra small size (typically used for minimal spacing or compact elements)
+ * @property sm - Small size (used for tight but readable spacing)
+ * @property md - Medium size (default size for most components)
+ * @property lg - Large size (used for emphasized or prominent elements)
+ * @property xl - Extra large size (used for maximum emphasis or touch targets)
+ *
+ * Common use cases:
+ * - Padding and margin values
+ * - Icon sizes
+ * - Button dimensions
+ * - Component spacing
+ */
+export type DimensionType = {
+  xs: number;
+  sm: number;
+  md: number;
+  lg: number;
+  xl: number;
+};
 
-export type Theme = ColorType;
+/**
+ * Insets represent spacing measurements for the four edges of a component or screen.
+ *
+ * @property top - Distance from the upper edge (e.g., status bar, notch)
+ * @property right - Distance from the right edge (e.g., curved screen edges)
+ * @property bottom - Distance from the bottom edge (e.g., home indicator, navigation bar)
+ * @property left - Distance from the left edge (e.g., curved screen edges)
+ *
+ * Common use cases:
+ * - Safe area padding to avoid device UI elements
+ * - Component internal padding
+ * - Layout margin spacing
+ */
+export type Insets = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+export type FontsScheme = Record<FontTypes, FontStyle>;

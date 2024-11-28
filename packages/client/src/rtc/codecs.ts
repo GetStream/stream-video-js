@@ -9,15 +9,19 @@ import type { PreferredCodec } from '../types';
  * @param kind the kind of codec to get.
  * @param preferredCodec the codec to prioritize (vp8, h264, vp9, av1...).
  * @param codecToRemove the codec to exclude from the list.
+ * @param codecPreferencesSource the source of the codec preferences.
  */
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
-  codecToRemove?: string,
-): RTCRtpCodecCapability[] | undefined => {
-  if (!('getCapabilities' in RTCRtpReceiver)) return;
+  codecToRemove: string | undefined,
+  codecPreferencesSource: 'sender' | 'receiver',
+): RTCRtpCodec[] | undefined => {
+  const source =
+    codecPreferencesSource === 'receiver' ? RTCRtpReceiver : RTCRtpSender;
+  if (!('getCapabilities' in source)) return;
 
-  const capabilities = RTCRtpReceiver.getCapabilities(kind);
+  const capabilities = source.getCapabilities(kind);
   if (!capabilities) return;
 
   const preferred: RTCRtpCodecCapability[] = [];
@@ -50,18 +54,13 @@ export const getPreferredCodecs = (
     }
 
     const sdpFmtpLine = codec.sdpFmtpLine;
-    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42e01f')) {
+    if (!sdpFmtpLine || !sdpFmtpLine.includes('profile-level-id=42')) {
       // this is not the baseline h264 codec, prioritize it lower
       partiallyPreferred.push(codec);
       continue;
     }
 
-    // packetization-mode mode is optional; when not present it defaults to 0:
-    // https://datatracker.ietf.org/doc/html/rfc6184#section-6.2
-    if (
-      sdpFmtpLine.includes('packetization-mode=0') ||
-      !sdpFmtpLine.includes('packetization-mode')
-    ) {
+    if (sdpFmtpLine.includes('packetization-mode=1')) {
       preferred.unshift(codec);
     } else {
       preferred.push(codec);
@@ -103,7 +102,9 @@ export const getOptimalVideoCodec = (
   if (isReactNative()) {
     const os = getOSInfo()?.name.toLowerCase();
     if (os === 'android') return preferredOr(preferredCodec, 'vp8');
-    if (os === 'ios' || os === 'ipados') return 'h264';
+    if (os === 'ios' || os === 'ipados') {
+      return supportsH264Baseline() ? 'h264' : 'vp8';
+    }
     return preferredOr(preferredCodec, 'h264');
   }
   if (isSafari()) return 'h264';
@@ -133,6 +134,20 @@ const preferredOr = (
   return codecs.some((c) => c.mimeType.toLowerCase() === codecMimeType)
     ? codec
     : fallback;
+};
+
+/**
+ * Returns whether the platform supports the H264 baseline codec.
+ */
+const supportsH264Baseline = (): boolean => {
+  if (!('getCapabilities' in RTCRtpSender)) return false;
+  const capabilities = RTCRtpSender.getCapabilities('video');
+  if (!capabilities) return false;
+  return capabilities.codecs.some(
+    (c) =>
+      c.mimeType.toLowerCase() === 'video/h264' &&
+      c.sdpFmtpLine?.includes('profile-level-id=42e01f'),
+  );
 };
 
 /**

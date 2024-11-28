@@ -2,7 +2,7 @@ import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import { Video, VideoSlash } from '../../../icons';
+import { IconWrapper, Video, VideoSlash } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -27,7 +27,7 @@ export const ToggleVideoPublishingButton = ({
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
-    theme: { colors },
+    theme: { colors, variants },
   } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
@@ -45,13 +45,20 @@ export const ToggleVideoPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={!optimisticIsMute ? colors.static_white : colors.overlay_dark}
+        color={
+          !optimisticIsMute ? colors.buttonSecondary : colors.buttonWarning
+        }
       >
-        {!optimisticIsMute ? (
-          <Video color={colors.static_black} />
-        ) : (
-          <VideoSlash color={colors.static_white} />
-        )}
+        <IconWrapper>
+          {!optimisticIsMute ? (
+            <Video color={colors.iconPrimary} size={variants.iconSizes.md} />
+          ) : (
+            <VideoSlash
+              color={colors.iconPrimary}
+              size={variants.iconSizes.md}
+            />
+          )}
+        </IconWrapper>
       </CallControlsButton>
     </Restricted>
   );

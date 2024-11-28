@@ -1,16 +1,27 @@
-import React from 'react';
-import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
+import React, { useMemo } from 'react';
+import {
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { useOrientation } from '../hooks/useOrientation';
 
 export const ChooseAppModeScreen = () => {
   const setState = useAppGlobalStoreSetState();
   const { t } = useI18n();
   const orientation = useOrientation();
-
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const styles = useStyles();
   const onMeetingSelect = () => {
     setState({ appMode: 'Meeting' });
   };
@@ -33,6 +44,9 @@ export const ChooseAppModeScreen = () => {
 
   return (
     <View style={[styles.container, landscapeStyles]}>
+      <StatusBar
+        barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
+      />
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />
         <View>
@@ -62,41 +76,48 @@ export const ChooseAppModeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-    backgroundColor: appTheme.colors.static_grey,
-    padding: appTheme.spacing.lg,
-  },
-  topContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  callButton: {
-    marginTop: appTheme.spacing.md,
-  },
-  logo: {
-    height: 100,
-    width: 100,
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
-  title: {
-    fontSize: 30,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
-  },
-  subTitle: {
-    color: appTheme.colors.light_gray,
-    fontSize: 16,
-    textAlign: 'center',
-    marginHorizontal: appTheme.spacing.xl,
-  },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: 'space-evenly',
+          backgroundColor: theme.colors.sheetPrimary,
+          padding: appTheme.spacing.lg,
+        },
+        topContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        callButton: {
+          marginTop: appTheme.spacing.md,
+        },
+        logo: {
+          height: 100,
+          width: 100,
+          borderRadius: 20,
+          alignSelf: 'center',
+        },
+        title: {
+          fontSize: 30,
+          color: theme.colors.textPrimary,
+          fontWeight: '500',
+          textAlign: 'center',
+          marginTop: appTheme.spacing.lg,
+        },
+        subTitle: {
+          color: theme.colors.textSecondary,
+          fontSize: 16,
+          textAlign: 'center',
+          marginHorizontal: appTheme.spacing.xl,
+        },
+        bottomContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+      }),
+    [theme],
+  );
+};

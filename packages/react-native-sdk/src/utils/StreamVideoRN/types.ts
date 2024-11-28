@@ -122,9 +122,11 @@ export type StreamVideoConfig = {
   foregroundService: {
     android: {
       /**
+       * The notification channel to keep call alive in the background for Android using a foreground service.
+       */
+      channel: AndroidChannel;
+      /**
        * The texts shown in the notification to keep call alive in the background
-       * for Android 24 and 25 platforms using a foreground service.
-       * On Android 26 and above, Picture in Picture mode is used to keep the call alive.
        */
       notificationTexts: {
         title: string;

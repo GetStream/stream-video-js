@@ -13,6 +13,7 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
 import { useUnreadCount } from '../hooks/useUnreadCount';
+import { LayoutProvider } from '../contexts/LayoutContext';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -58,9 +59,9 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
 
   const onJoinCallHandler = useCallback(async () => {
     try {
-      setShow('loading');
       call?.updatePublishOptions({
         preferredCodec: 'vp9',
+        forceSingleCodec: true,
       });
       await call?.join({ create: true });
       appStoreSetState({ chatLabelNoted: false });
@@ -129,13 +130,14 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     );
   } else {
     return (
-      <ActiveCall
-        onCallEnded={onCallEnded}
-        onChatOpenHandler={onChatOpenHandler}
-        unreadCountIndicator={unreadCountIndicator}
-        onHangupCallHandler={onHangupCallHandler}
-        onBackPressed={onHangupCallHandler}
-      />
+      <LayoutProvider>
+        <ActiveCall
+          onCallEnded={onCallEnded}
+          onHangupCallHandler={onHangupCallHandler}
+          onChatOpenHandler={onChatOpenHandler}
+          unreadCountIndicator={unreadCountIndicator}
+        />
+      </LayoutProvider>
     );
   }
 };

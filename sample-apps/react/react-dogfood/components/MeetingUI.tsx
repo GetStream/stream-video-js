@@ -50,6 +50,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     | PreferredCodec
     | undefined;
   const bitrateOverride = router.query['bitrate'] as string | undefined;
+  const forceSingleCodec = router.query['force_single_codec'] === 'true';
   const bitrateFactorOverride = router.query['bitrate_factor'] as
     | string
     | undefined;
@@ -72,6 +73,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         call.updatePublishOptions({
           preferredCodec: 'vp9',
           forceCodec: videoCodecOverride,
+          forceSingleCodec,
           scalabilityMode,
           preferredBitrate,
           bitrateDownscaleFactor: bitrateFactorOverride
@@ -94,6 +96,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       bitrateFactorOverride,
       bitrateOverride,
       call,
+      forceSingleCodec,
+      maxSimulcastLayers,
       scalabilityMode,
       videoCodecOverride,
     ],

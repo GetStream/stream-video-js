@@ -49,18 +49,7 @@ export const LobbyViewComponent = ({
         </Text>
         <ThermalInfo />
         <JoinCallButton onPressHandler={onJoinCallHandler} />
-        {route.name === 'MeetingScreen' ? (
-          <Pressable
-            style={styles.anonymousButton}
-            onPress={() => {
-              navigation.navigate('GuestModeScreen', { callId });
-            }}
-          >
-            <Text style={styles.anonymousButtonText}>
-              {t('Join as Guest or Anonymously')}
-            </Text>
-          </Pressable>
-        ) : (
+        {route.name !== 'MeetingScreen' && (
           <Pressable
             style={styles.anonymousButton}
             onPress={() => {

@@ -5,7 +5,7 @@ import './mocks/webrtc.mocks';
 describe('codecs', () => {
   it('should return preferred audio codec', () => {
     RTCRtpReceiver.getCapabilities = vi.fn().mockReturnValue(audioCodecs);
-    const codecs = getPreferredCodecs('audio', 'red');
+    const codecs = getPreferredCodecs('audio', 'red', undefined, 'receiver');
     expect(codecs).toBeDefined();
     expect(codecs?.map((c) => c.mimeType)).toEqual([
       'audio/red',
@@ -20,7 +20,7 @@ describe('codecs', () => {
 
   it('should return preferred video codec', () => {
     RTCRtpReceiver.getCapabilities = vi.fn().mockReturnValue(videoCodecs);
-    const codecs = getPreferredCodecs('video', 'vp8');
+    const codecs = getPreferredCodecs('video', 'vp8', undefined, 'receiver');
     expect(codecs).toBeDefined();
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
@@ -40,12 +40,12 @@ describe('codecs', () => {
 
   it('should pick the baseline H264 codec', () => {
     RTCRtpReceiver.getCapabilities = vi.fn().mockReturnValue(videoCodecs);
-    const codecs = getPreferredCodecs('video', 'h264');
+    const codecs = getPreferredCodecs('video', 'h264', undefined, 'receiver');
     expect(codecs).toBeDefined();
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
-      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'],
+      ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f'],
       ['video/H264', 'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=640c1f'],
       ['video/rtx', undefined],
@@ -62,12 +62,12 @@ describe('codecs', () => {
     RTCRtpReceiver.getCapabilities = vi
       .fn()
       .mockReturnValue(videoCodecsFirefox);
-    const codecs = getPreferredCodecs('video', 'h264');
+    const codecs = getPreferredCodecs('video', 'h264', undefined, 'receiver');
     expect(codecs).toBeDefined();
     // prettier-ignore
     expect(codecs?.map((c) => [c.mimeType, c.sdpFmtpLine])).toEqual([
-      ['video/H264', 'profile-level-id=42e01f;level-asymmetry-allowed=1'],
       ['video/H264', 'profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1'],
+      ['video/H264', 'profile-level-id=42e01f;level-asymmetry-allowed=1'],
       ['video/VP8', 'max-fs=12288;max-fr=60'],
       ['video/rtx', undefined],
       ['video/VP9', 'max-fs=12288;max-fr=60'],

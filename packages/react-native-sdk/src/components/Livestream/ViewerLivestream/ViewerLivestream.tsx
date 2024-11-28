@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
@@ -61,6 +61,7 @@ export const ViewerLivestream = ({
   ViewerLeaveStreamButton,
   onLeaveStreamHandler,
 }: ViewerLivestreamProps) => {
+  const styles = useStyles();
   const {
     theme: { viewerLivestream },
   } = useTheme();
@@ -123,8 +124,20 @@ export const ViewerLivestream = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          paddingBottom: theme.variants.insets.bottom,
+          paddingLeft: theme.variants.insets.left,
+          paddingRight: theme.variants.insets.right,
+          paddingTop: theme.variants.insets.top,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+      }),
+    [theme]
+  );
+};

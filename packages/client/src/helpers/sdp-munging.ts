@@ -130,6 +130,65 @@ export const toggleDtx = (sdp: string, enable: boolean): string => {
 };
 
 /**
+ * Returns and SDP with all the codecs except the given codec removed.
+ */
+export const preserveCodec = (
+  sdp: string,
+  mid: string,
+  codec: RTCRtpCodec,
+): string => {
+  const [kind, codecName] = codec.mimeType.toLowerCase().split('/');
+
+  const toSet = (fmtpLine: string) =>
+    new Set(fmtpLine.split(';').map((f) => f.trim().toLowerCase()));
+
+  const equal = (a: Set<string>, b: Set<string>) => {
+    if (a.size !== b.size) return false;
+    for (const item of a) if (!b.has(item)) return false;
+    return true;
+  };
+
+  const codecFmtp = toSet(codec.sdpFmtpLine || '');
+  const parsedSdp = SDP.parse(sdp);
+  for (const media of parsedSdp.media) {
+    if (media.type !== kind || String(media.mid) !== mid) continue;
+
+    // find the payload id of the desired codec
+    const payloads = new Set<number>();
+    for (const rtp of media.rtp) {
+      if (rtp.codec.toLowerCase() !== codecName) continue;
+      const match =
+        // vp8 doesn't have any fmtp, we preserve it without any additional checks
+        codecName === 'vp8'
+          ? true
+          : media.fmtp.some(
+              (f) =>
+                f.payload === rtp.payload && equal(toSet(f.config), codecFmtp),
+            );
+      if (match) {
+        payloads.add(rtp.payload);
+      }
+    }
+
+    // find the corresponding rtx codec by matching apt=<preserved-codec-payload>
+    for (const fmtp of media.fmtp) {
+      const match = fmtp.config.match(/(apt)=(\d+)/);
+      if (!match) continue;
+      const [, , preservedCodecPayload] = match;
+      if (payloads.has(Number(preservedCodecPayload))) {
+        payloads.add(fmtp.payload);
+      }
+    }
+
+    media.rtp = media.rtp.filter((r) => payloads.has(r.payload));
+    media.fmtp = media.fmtp.filter((f) => payloads.has(f.payload));
+    media.rtcpFb = media.rtcpFb?.filter((f) => payloads.has(f.payload));
+    media.payloads = Array.from(payloads).join(' ');
+  }
+  return SDP.write(parsedSdp);
+};
+
+/**
  * Enables high-quality audio through SDP munging for the given trackMid.
  *
  * @param sdp the SDP to munge.
