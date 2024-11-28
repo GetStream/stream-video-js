@@ -496,7 +496,7 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({
-    reject = false,
+    reject,
     reason = 'user is leaving the call',
   }: CallLeaveOptions = {}) => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
@@ -516,13 +516,14 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      if (callingState === CallingState.RINGING && !this.state.endedAt) {
+      if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
           await this.reject(reason);
         } else {
+          // if reject was undefined, we still have to cancel the call automatically
+          // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
-            // I'm the one who started the call, so I should cancel it when there are no other participants.
             await this.reject('cancel');
           }
         }
