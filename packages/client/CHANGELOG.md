@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.9...@stream-io/video-client-1.11.10) (2024-11-28)
+
+
+### Bug Fixes
+
+* ringing calls not being left when ended ([#1601](https://github.com/GetStream/stream-video-js/issues/1601)) ([1c2b9d1](https://github.com/GetStream/stream-video-js/commit/1c2b9d1a54767652acc52cae9bb3d348c9df566f))
+
 ## [1.11.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.8...@stream-io/video-client-1.11.9) (2024-11-27)
 
 
