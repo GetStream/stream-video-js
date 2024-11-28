@@ -10,8 +10,6 @@ import {
 } from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
 
-export const REASON_FOR_LEAVE_ON_CALL_ENDED = 'call.ended event received';
-
 export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
   state: CallState,
