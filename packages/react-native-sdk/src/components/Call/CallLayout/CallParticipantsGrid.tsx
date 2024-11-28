@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
@@ -52,11 +52,16 @@ export const CallParticipantsGrid = ({
   const {
     theme: { colors, callParticipantsGrid },
   } = useTheme();
-  const { useRemoteParticipants, useParticipants, useLocalParticipant } =
-    useCallStateHooks();
+  const {
+    useRemoteParticipants,
+    useParticipants,
+    useLocalParticipant,
+    useDominantSpeaker,
+  } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
   const localParticipant = useLocalParticipant();
   const _allParticipants = useParticipants();
+  const dominantSpeaker = useDominantSpeaker();
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
@@ -76,18 +81,6 @@ export const CallParticipantsGrid = ({
       ? [localParticipant]
       : remoteParticipants
     : allParticipants;
-
-  const [dominantSpeaker, setDominantSpeaker] =
-    useState<StreamVideoParticipant | null>(null);
-
-  useEffect(() => {
-    if (isInPiPMode && remoteParticipants.length > 0) {
-      const speaker = remoteParticipants.find((rp) => rp.isDominantSpeaker);
-      if (speaker) {
-        setDominantSpeaker(speaker as StreamVideoParticipant);
-      }
-    }
-  }, [remoteParticipants, isInPiPMode]);
 
   if (isInPiPMode) {
     participants =
