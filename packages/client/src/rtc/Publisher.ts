@@ -185,7 +185,7 @@ export class Publisher extends BasePeerConnection {
     track: MediaStreamTrack,
     publishOption: PublishOption,
   ) => {
-    const videoEncodings = this.computeLayers(trackType, track, publishOption);
+    const videoEncodings = this.computeLayers(track, publishOption);
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(videoEncodings)
       : videoEncodings;
@@ -223,16 +223,19 @@ export class Publisher extends BasePeerConnection {
     const transceiver = this.transceiverCache.get(trackType);
     if (!transceiver || !transceiver.sender.track) return;
 
-    const onNegotiationComplete = async () => {
+    const onChangePublishOptionsComplete = async () => {
       this.logger('info', 'Codec negotiation complete');
-      this.dispatcher.off('codecNegotiationComplete', onNegotiationComplete);
+      this.dispatcher.off(
+        'changePublishOptionsComplete',
+        onChangePublishOptionsComplete,
+      );
 
       await transceiver.sender.replaceTrack(null);
     };
     this.unsubscribeCodecNegotiationComplete?.();
     this.unsubscribeCodecNegotiationComplete = this.dispatcher.on(
-      'codecNegotiationComplete',
-      onNegotiationComplete,
+      'changePublishOptionsComplete',
+      onChangePublishOptionsComplete,
     );
 
     const track = transceiver.sender.track.clone();
@@ -506,7 +509,7 @@ export class Publisher extends BasePeerConnection {
         const publishOption = this.getPublishOptionFor(trackType);
         const isTrackLive = track.readyState === 'live';
         const optimalLayers = isTrackLive
-          ? this.computeLayers(trackType, track, publishOption) || []
+          ? this.computeLayers(track, publishOption) || []
           : this.trackLayersCache.get(trackType) || [];
         this.trackLayersCache.set(trackType, optimalLayers);
 
@@ -554,12 +557,10 @@ export class Publisher extends BasePeerConnection {
   };
 
   private computeLayers = (
-    trackType: TrackType,
     track: MediaStreamTrack,
     publishOption: PublishOption,
   ): OptimalVideoLayer[] | undefined => {
-    if (isAudioTrackType(trackType)) return;
-    const targetResolution = this.state.settings?.video.target_resolution;
-    return findOptimalVideoLayers(track, targetResolution, publishOption);
+    if (isAudioTrackType(publishOption.trackType)) return;
+    return findOptimalVideoLayers(track, publishOption);
   };
 }

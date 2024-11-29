@@ -194,33 +194,65 @@ export interface VideoLayer {
   quality: VideoQuality;
 }
 /**
+ * PublishOption represents the configuration options for publishing a track.
+ *
  * @generated from protobuf message stream.video.sfu.models.PublishOption
  */
 export interface PublishOption {
   /**
+   * The type of the track being published (e.g., video, screenshare).
+   *
    * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
    */
   trackType: TrackType;
   /**
+   * The codec to be used for encoding the track (e.g., VP8, VP9, H264).
+   *
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
   codec?: Codec;
   /**
+   * The target bitrate for the published track, in bits per second.
+   *
    * @generated from protobuf field: int32 bitrate = 3;
    */
   bitrate: number;
   /**
+   * The target frames per second (FPS) for video encoding.
+   *
    * @generated from protobuf field: int32 fps = 4;
    */
   fps: number;
   /**
+   * The maximum number of spatial layers to send.
+   * - For SVC (e.g., VP9), spatial layers downscale by a factor of 2:
+   *   - 1 layer: full resolution
+   *   - 2 layers: full resolution + half resolution
+   *   - 3 layers: full resolution + half resolution + quarter resolution
+   * - For non-SVC codecs (e.g., VP8/H264), this determines the number of
+   *   encoded resolutions (e.g., quarter, half, full) sent for simulcast.
+   *
    * @generated from protobuf field: int32 max_spatial_layers = 5;
    */
   maxSpatialLayers: number;
   /**
+   * The maximum number of temporal layers for scalable video coding (SVC).
+   * Temporal layers allow varying frame rates for different bandwidths.
+   *
    * @generated from protobuf field: int32 max_temporal_layers = 6;
    */
   maxTemporalLayers: number;
+  /**
+   * The dimensions of the video (e.g., width and height in pixels).
+   * Spatial layers are based on this base resolution. For example, if the base
+   * resolution is 1280x720:
+   * - Full resolution (1 layer) = 1280x720
+   * - Half resolution (2 layers) = 640x360
+   * - Quarter resolution (3 layers) = 320x180
+   *
+   * @generated from protobuf field: stream.video.sfu.models.VideoDimension video_dimension = 7;
+   */
+  videoDimension?: VideoDimension;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
@@ -1120,6 +1152,12 @@ class PublishOption$Type extends MessageType<PublishOption> {
         name: 'max_temporal_layers',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 7,
+        name: 'video_dimension',
+        kind: 'message',
+        T: () => VideoDimension,
       },
     ]);
   }

@@ -1,6 +1,9 @@
-import type { TargetResolution } from '../gen/coordinator';
 import { isSvcCodec } from './codecs';
-import { PublishOption, VideoQuality } from '../gen/video/sfu/models/models';
+import {
+  PublishOption,
+  VideoDimension,
+  VideoQuality,
+} from '../gen/video/sfu/models/models';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -9,17 +12,10 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   scalabilityMode?: string;
 };
 
-const DEFAULT_BITRATE = 1250000;
-const defaultTargetResolution: TargetResolution = {
-  bitrate: DEFAULT_BITRATE,
-  width: 1280,
-  height: 720,
-};
-
 const defaultBitratePerRid: Record<string, number> = {
   q: 300000,
   h: 750000,
-  f: DEFAULT_BITRATE,
+  f: 1250000,
 };
 
 /**
@@ -58,12 +54,10 @@ const toScalabilityMode = (spatialLayers: number, temporalLayers: number) =>
  * for the given track.
  *
  * @param videoTrack the video track to find optimal layers for.
- * @param targetResolution the expected target resolution.
  * @param publishOption the publish options for the track.
  */
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
-  targetResolution: TargetResolution = defaultTargetResolution,
   publishOption: PublishOption,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
@@ -75,9 +69,10 @@ export const findOptimalVideoLayers = (
     fps,
     maxSpatialLayers = 3,
     maxTemporalLayers = 3,
+    videoDimension = { width: 1280, height: 720 },
   } = publishOption;
   const maxBitrate = getComputedMaxBitrate(
-    targetResolution,
+    videoDimension,
     width,
     height,
     bitrate,
@@ -85,8 +80,7 @@ export const findOptimalVideoLayers = (
   let downscaleFactor = 1;
   let bitrateFactor = 1;
   const svcCodec = isSvcCodec(codec?.name);
-  const totalLayers = svcCodec ? 3 : Math.min(3, maxSpatialLayers);
-  for (const rid of ['f', 'h', 'q'].slice(0, totalLayers)) {
+  for (const rid of ['f', 'h', 'q'].slice(0, maxSpatialLayers)) {
     const layer: OptimalVideoLayer = {
       active: true,
       rid,
@@ -134,7 +128,7 @@ export const findOptimalVideoLayers = (
  * @param bitrate the target bitrate.
  */
 export const getComputedMaxBitrate = (
-  targetResolution: TargetResolution,
+  targetResolution: VideoDimension,
   currentWidth: number,
   currentHeight: number,
   bitrate: number,

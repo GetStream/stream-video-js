@@ -244,14 +244,13 @@ export interface SfuEvent {
         participantMigrationComplete: ParticipantMigrationComplete;
       }
     | {
-        oneofKind: 'codecNegotiationComplete';
+        oneofKind: 'changePublishOptionsComplete';
         /**
-         * CodecNegotiationComplete is sent to signal the completion of a codec negotiation.
-         * SDKs can safely stop previous transceivers
+         * ChangePublishOptionsComplete is sent to signal the completion of a ChangePublishOptions request.
          *
-         * @generated from protobuf field: stream.video.sfu.event.CodecNegotiationComplete codec_negotiation_complete = 26;
+         * @generated from protobuf field: stream.video.sfu.event.ChangePublishOptionsComplete change_publish_options_complete = 26;
          */
-        codecNegotiationComplete: CodecNegotiationComplete;
+        changePublishOptionsComplete: ChangePublishOptionsComplete;
       }
     | {
         oneofKind: 'changePublishOptions';
@@ -276,9 +275,9 @@ export interface ChangePublishOptions {
   publishOption?: PublishOption;
 }
 /**
- * @generated from protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ * @generated from protobuf message stream.video.sfu.event.ChangePublishOptionsComplete
  */
-export interface CodecNegotiationComplete {}
+export interface ChangePublishOptionsComplete {}
 /**
  * @generated from protobuf message stream.video.sfu.event.ParticipantMigrationComplete
  */
@@ -1005,10 +1004,10 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
       },
       {
         no: 26,
-        name: 'codec_negotiation_complete',
+        name: 'change_publish_options_complete',
         kind: 'message',
         oneof: 'eventPayload',
-        T: () => CodecNegotiationComplete,
+        T: () => ChangePublishOptionsComplete,
       },
       {
         no: 27,
@@ -1042,15 +1041,16 @@ class ChangePublishOptions$Type extends MessageType<ChangePublishOptions> {
  */
 export const ChangePublishOptions = new ChangePublishOptions$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CodecNegotiationComplete$Type extends MessageType<CodecNegotiationComplete> {
+class ChangePublishOptionsComplete$Type extends MessageType<ChangePublishOptionsComplete> {
   constructor() {
-    super('stream.video.sfu.event.CodecNegotiationComplete', []);
+    super('stream.video.sfu.event.ChangePublishOptionsComplete', []);
   }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ * @generated MessageType for protobuf message stream.video.sfu.event.ChangePublishOptionsComplete
  */
-export const CodecNegotiationComplete = new CodecNegotiationComplete$Type();
+export const ChangePublishOptionsComplete =
+  new ChangePublishOptionsComplete$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ParticipantMigrationComplete$Type extends MessageType<ParticipantMigrationComplete> {
   constructor() {
