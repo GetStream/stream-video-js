@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsButton,
   useCall,
@@ -44,6 +44,15 @@ export const MoreActionsButton = ({
   const setState = useAppGlobalStoreSetState();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleRating = async (rating: number) => {
     await call
@@ -76,7 +85,10 @@ export const MoreActionsButton = ({
       ),
       onPress: () => {
         setIsDrawerVisible(false);
-        setFeedbackModalVisible(true);
+        // delay the modal to show after the drawer closes
+        timeoutRef.current = setTimeout(() => {
+          setFeedbackModalVisible(true);
+        }, 500);
       },
     },
     {

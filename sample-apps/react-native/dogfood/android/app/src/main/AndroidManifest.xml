@@ -70,7 +70,7 @@
                 <data android:scheme="https" />
                 <data android:host="getstream.io" />
                 <data android:host="pronto.getstream.io" />
-                <data android:host="stream-calls-dogfood.vercel.app" />
+                <data android:host="pronto-staging.getstream.io" />
                 <data android:pathPrefix="/join" />
                 <data android:pathPrefix="/video/demos/join" />
             </intent-filter>

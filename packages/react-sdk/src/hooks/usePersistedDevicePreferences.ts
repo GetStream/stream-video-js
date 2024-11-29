@@ -68,14 +68,8 @@ const usePersistDevicePreferences = (
  *
  * @param key the key to use for local storage.
  */
-const useApplyDevicePreferences = (
-  key: string,
-  onWillApply: () => void,
-  onApplied: () => void,
-) => {
+const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
   const call = useCall();
-  const onWillApplyRef = useRef(onWillApply);
-  onWillApplyRef.current = onWillApply;
   const onAppliedRef = useRef(onApplied);
   onAppliedRef.current = onApplied;
   useEffect(() => {
@@ -121,22 +115,17 @@ const useApplyDevicePreferences = (
         console.warn('Failed to load device preferences', err);
       }
       if (preferences) {
-        await initMic(preferences.mic).catch((err) => {
-          console.warn('Failed to apply microphone preferences', err);
-        });
-        await initCamera(preferences.camera).catch((err) => {
-          console.warn('Failed to apply camera preferences', err);
-        });
+        await initMic(preferences.mic);
+        await initCamera(preferences.camera);
         initSpeaker(preferences.speaker);
       }
     };
 
-    onWillApplyRef.current();
     apply()
+      .then(() => onAppliedRef.current())
       .catch((err) => {
         console.warn('Failed to apply device preferences', err);
-      })
-      .then(() => onAppliedRef.current());
+      });
 
     return () => {
       cancel = true;
@@ -153,11 +142,7 @@ export const usePersistedDevicePreferences = (
   key: string = '@stream-io/device-preferences',
 ) => {
   const shouldPersistRef = useRef(false);
-  useApplyDevicePreferences(
-    key,
-    () => (shouldPersistRef.current = false),
-    () => (shouldPersistRef.current = true),
-  );
+  useApplyDevicePreferences(key, () => (shouldPersistRef.current = true));
   usePersistDevicePreferences(key, shouldPersistRef);
 };
 
