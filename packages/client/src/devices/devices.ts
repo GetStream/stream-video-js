@@ -197,7 +197,7 @@ export const getAudioStream = async (
   } catch (error) {
     if (
       error instanceof DOMException &&
-      error.name === 'OverconstainedError' &&
+      error.name === 'OverconstrainedError' &&
       trackConstraints?.deviceId
     ) {
       const { deviceId, ...relaxedContraints } = trackConstraints;
@@ -243,7 +243,7 @@ export const getVideoStream = async (
   } catch (error) {
     if (
       error instanceof DOMException &&
-      error.name === 'OverconstainedError' &&
+      error.name === 'OverconstrainedError' &&
       trackConstraints?.deviceId
     ) {
       const { deviceId, ...relaxedContraints } = trackConstraints;
