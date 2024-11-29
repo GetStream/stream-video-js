@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.5...@stream-io/video-react-native-sdk-1.4.6) (2024-11-29)
+
+
+### Bug Fixes
+
+* call joining, dominant speaker for pip android, spotlight layout for tablets ([#1603](https://github.com/GetStream/stream-video-js/issues/1603)) ([68ba86b](https://github.com/GetStream/stream-video-js/commit/68ba86b8c940b9559cdfba2db926afe707864a81))
+
 ## [1.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.4...@stream-io/video-react-native-sdk-1.4.5) (2024-11-28)
 
 ### Dependency Updates
