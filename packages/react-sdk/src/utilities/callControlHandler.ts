@@ -16,15 +16,15 @@ export type PropsWithErrorHandler<T = unknown> = T & {
  * @param props component props, including the onError callback
  * @param handler event handler to wrap
  */
-export const createCallControlHandler = <P extends unknown[]>(
+export const createCallControlHandler = (
   props: PropsWithErrorHandler,
-  handler: (...args: P) => Promise<void>,
+  handler: () => Promise<void>,
 ): (() => Promise<void>) => {
   const logger = getLogger(['react-sdk']);
 
-  return async (...args: P) => {
+  return async () => {
     try {
-      await handler(...args);
+      await handler();
     } catch (error) {
       if (props.onError) {
         props.onError(error);
