@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+  useLayoutEffect,
+} from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,7 +21,7 @@ import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
-import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
+import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
 import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { useOrientation } from '../../hooks/useOrientation';
 
@@ -24,10 +30,13 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
   'JoinMeetingScreen'
 >;
 
+// Allows only alphabets, numbers, -(hyphen) and _(underscore)
+const callIdRegex = /^[A-Za-z0-9_-]*$/g;
+const isValidCallId = (callId: string) => callId && callId.match(callIdRegex);
+
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
   const { theme } = useTheme();
-  const [linking, setLinking] = useState<boolean>(false);
   const { t } = useI18n();
   const orientation = useOrientation();
   const styles = useStyles();
@@ -46,31 +55,28 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   };
 
   useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
-        setCallId(prontoCallId);
-        setLinking(true);
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+    const subscription = deeplinkCallId$.subscribe((deeplinkCallId) => {
+      if (deeplinkCallId) {
+        if (isValidCallId(deeplinkCallId)) {
+          // Delay the navigation to wait for the first render to complete
+          setTimeout(() => {
+            navigation.navigate('MeetingScreen', { callId: deeplinkCallId });
+          }, 300);
+        } else {
+          console.warn('Invalid call id from deeplink', deeplinkCallId);
+        }
+        deeplinkCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  // This is done to intentionally cause a rerender when a call id is available through Pronto to move to lobby screen.
-  useEffect(() => {
-    if (linking) {
-      joinCallHandler();
-    }
-  }, [linking, joinCallHandler]);
-
-  // Allows only alphabets, numbers, -(hyphen) and _(underscore)
-  const callIdRegex = /^[A-Za-z0-9_-]*$/g;
-  const isValidCallId = callId && callId.match(callIdRegex);
+  }, [navigation]);
 
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
+
+  const isValidCall = isValidCallId(callId);
 
   return (
     <KeyboardAvoidingView
@@ -103,10 +109,10 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           <Button
             onPress={joinCallHandler}
             title={t('Join Call')}
-            disabled={!isValidCallId}
+            disabled={!isValidCall}
             buttonStyle={{
               ...styles.joinCallButton,
-              backgroundColor: isValidCallId
+              backgroundColor: isValidCall
                 ? theme.colors.buttonPrimary
                 : theme.colors.buttonDisabled,
             }}
