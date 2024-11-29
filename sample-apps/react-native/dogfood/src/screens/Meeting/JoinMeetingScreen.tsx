@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-  useMemo,
-  useLayoutEffect,
-} from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
