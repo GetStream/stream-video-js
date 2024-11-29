@@ -17,6 +17,10 @@
 
 #import "StreamVideoReactNative.h"
 
+// Thermal module related
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application

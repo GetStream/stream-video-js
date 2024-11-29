@@ -10,7 +10,8 @@ import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
 import { ThermalInfo } from './ThermalInfo';
-import { addPowerModeListener } from './PowerMode';
+import { subscribeToThermalStateChanges } from './ThermalInfoModule';
+// import { addPowerModeListener } from './PowerMode';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -31,23 +32,33 @@ export const LobbyViewComponent = ({
 
   const [lowPowerMode, setLowPowerMode] = useState(false);
 
+  // useEffect(() => {
+  //   const subscription = addPowerModeListener((isLowPowerMode: boolean) => {
+  //     console.log('Power mode changed:', isLowPowerMode);
+  //     setLowPowerMode(isLowPowerMode);
+  //   });
+
+  //   return () => subscription.remove();
+  // }, []);
+
+  const [thermalState, setThermalState] = useState<string>('unknown');
 
   useEffect(() => {
-    const subscription = addPowerModeListener((isLowPowerMode: boolean) => {
-      console.log('Power mode changed:', isLowPowerMode);
-      setLowPowerMode(isLowPowerMode);
-    });
+    const unsubscribe = subscribeToThermalStateChanges(setThermalState);
 
-    return () => subscription.remove();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const JoinCallButtonComponent = useCallback(() => {
     return (
       <>
-        <Text style={{ color: lowPowerMode ? 'red' : 'green' }}>
+        {/* <Text style={{ color: lowPowerMode ? 'red' : 'green' }}>
           Low Power Mode: {lowPowerMode ? 'Enabled' : 'Disabled'}
-        </Text>
-        <ThermalInfo />
+        </Text> */}
+        {/* <ThermalInfo /> */}
+        <Text style={{ color: 'red' }}>Thermal State: {thermalState}</Text>
         <JoinCallButton onPressHandler={onJoinCallHandler} />
         {route.name !== 'MeetingScreen' && (
           <Pressable
