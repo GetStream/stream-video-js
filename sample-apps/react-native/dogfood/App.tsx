@@ -4,9 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import {
-  prontoCallId$,
-  useProntoLinkEffect,
-} from './src/hooks/useProntoLinkEffect';
+  deeplinkCallId$,
+  useDeepLinkEffect,
+} from './src/hooks/useDeepLinkEffect';
 import {
   AppGlobalContextProvider,
   useAppGlobalStoreSetState,
@@ -70,7 +70,7 @@ const StackNavigator = () => {
       ? appTheme.colors.static_white
       : defaultTheme.colors.sheetPrimary;
 
-  useProntoLinkEffect();
+  useDeepLinkEffect();
   useSyncPermissions();
 
   useEffect(() => {
@@ -134,8 +134,8 @@ const StackNavigator = () => {
   }
 
   useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && prontoCallId) {
+    const subscription = deeplinkCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
         setState({ appMode: 'Meeting' });
       }
     });
