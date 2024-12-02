@@ -9,7 +9,7 @@ import { AndroidImportance } from '@notifee/react-native';
 import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
-import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
+import { deeplinkCallId$ } from '../hooks/useDeepLinkEffect';
 import { Platform } from 'react-native';
 import notifee from '@notifee/react-native';
 import { setFirebaseListeners } from './setFirebaseListeners';
@@ -54,7 +54,7 @@ export function setPushConfig() {
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');
       if (callType === 'default') {
-        prontoCallId$.next(callId); // reusing the deeplink logic for non ringing calls s
+        deeplinkCallId$.next(callId); // reusing the deeplink logic for non ringing calls s
         staticNavigate({ name: 'Meeting', params: undefined });
       } else {
         console.error(
