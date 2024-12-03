@@ -76,7 +76,6 @@ export async function getKeepCallAliveForegroundServiceTypes() {
   if (types.length === 0) {
     types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
   }
-  console.log({ types });
   return types;
 }
 
