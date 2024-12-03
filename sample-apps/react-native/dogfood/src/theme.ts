@@ -63,18 +63,18 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
   };
 
   const lightThemeColors: DeepPartial<Theme['colors']> = {
-    buttonPrimary: '#005fff',
+    buttonPrimary: '#3399ff',
     buttonSecondary: '#eff0f1',
     buttonDisabled: '#ccdfff',
     buttonWarning: '#dc433b',
     iconPrimary: '#19232d',
-    iconSecondary: '#005fff',
+    iconSecondary: '#3399ff',
     iconSuccess: '#00e2a1',
     iconWarning: '#dc433b',
     sheetPrimary: '#ffffff',
     sheetSecondary: '#eff0f1',
     sheetTertiary: '#e3e4e5',
-    sheetOverlay: '#0c0d0ea6',
+    sheetOverlay: '#eff0f1a6',
     textPrimary: '#000000',
     textSecondary: '#19232d',
   };

@@ -3,6 +3,7 @@ import {
   useCall,
   CallContent,
   useTheme,
+  useIsInPiPMode,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -13,6 +14,7 @@ import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import DeviceInfo from 'react-native-device-info';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -30,10 +32,13 @@ export const ActiveCall = ({
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
   const call = useCall();
-  const currentOrientation = useOrientation();
   const styles = useStyles();
   const { selectedLayout } = useLayout();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const isInPiPMode = useIsInPiPMode(false);
+  const currentOrientation = useOrientation();
+  const isTablet = DeviceInfo.isTablet();
+  const isLandscape = !isTablet && currentOrientation === 'landscape';
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -87,11 +92,11 @@ export const ActiveCall = ({
       <StatusBar
         barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
       />
-      <CustomTopControls />
+      {!isInPiPMode && <CustomTopControls />}
       <CallContent
         onHangupCallHandler={onHangupCallHandler}
         CallControls={CustomBottomControls}
-        landscape={currentOrientation === 'landscape'}
+        landscape={isLandscape}
         layout={selectedLayout}
       />
       <ParticipantsInfoList

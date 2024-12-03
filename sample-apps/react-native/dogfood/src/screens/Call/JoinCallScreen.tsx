@@ -32,8 +32,10 @@ const JoinCallScreen = () => {
   const { t } = useI18n();
   const orientation = useOrientation();
   const styles = useStyles();
+  const [isLoading, setIsLoading] = useState(false);
 
   const startCallHandler = useCallback(async () => {
+    setIsLoading(true);
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
       : ringingUserIdsText.split(',');
@@ -65,6 +67,8 @@ const JoinCallScreen = () => {
         Alert.alert('Error calling users', error.message);
       }
       console.log('Failed to createCall', error);
+    } finally {
+      setIsLoading(false);
     }
   }, [ringingUserIdsText, ringingUsers, videoClient, userId]);
 
@@ -84,6 +88,9 @@ const JoinCallScreen = () => {
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
+
+  const startCallDisabled =
+    (ringingUserIdsText === '' && ringingUsers.length === 0) || isLoading;
 
   return (
     <KeyboardAvoidingView
@@ -127,8 +134,8 @@ const JoinCallScreen = () => {
           style={styles.textInputStyle}
         />
         <Button
-          title={t('Start a New Call')}
-          disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
+          title={isLoading ? t('Calling...') : t('Start a New Call')}
+          disabled={startCallDisabled}
           onPress={startCallHandler}
         />
       </View>

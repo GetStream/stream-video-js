@@ -2,14 +2,17 @@ import { useEffect } from 'react';
 import { Linking } from 'react-native';
 import { BehaviorSubject } from 'rxjs';
 
-export const prontoCallId$ = new BehaviorSubject<string | undefined>(undefined);
+export const deeplinkCallId$ = new BehaviorSubject<string | undefined>(
+  undefined,
+);
 
-export const useProntoLinkEffect = () => {
+export const useDeepLinkEffect = () => {
   useEffect(() => {
     const parseAndSetCallID = (url: string | null) => {
       const matchResponse = url?.match(/.*(join|video\/demos\/join)\/(\w+)\/?/);
       if (matchResponse?.length) {
-        prontoCallId$.next(matchResponse[2]);
+        console.log('Deeplink Call Id received: ' + matchResponse[2]);
+        deeplinkCallId$.next(matchResponse[2]);
       }
     };
     const { remove } = Linking.addEventListener('url', ({ url }) => {

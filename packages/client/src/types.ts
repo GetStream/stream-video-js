@@ -215,8 +215,6 @@ export type CallLeaveOptions = {
   /**
    * If true, the caller will get a `call.rejected` event.
    * Has an effect only if the call is in the `ringing` state.
-   *
-   * @default `false`.
    */
   reject?: boolean;
 
