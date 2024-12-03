@@ -39,14 +39,31 @@ export const isSvcCodec = (codecOrMimeType: string | undefined) => {
 /**
  * Returns whether the codec is supported
  */
-export const findCodec = (mimeType: string): RTCRtpCodec | undefined => {
+export const findCodec = (
+  mimeType: string,
+  fmtpLine: string | undefined,
+): RTCRtpCodec | undefined => {
   if (!('getCapabilities' in RTCRtpSender)) return;
 
+  const toSet = (fmtp: string = '') =>
+    new Set<string>(fmtp.split(';').map((f) => f.trim().toLowerCase()));
+
+  const equal = (a: Set<string>, b: Set<string>) => {
+    if (a.size !== b.size) return false;
+    for (const item of a) if (!b.has(item)) return false;
+    return true;
+  };
+
+  const fmtp = fmtpLine ? toSet(fmtpLine) : new Set<string>();
   mimeType = mimeType.toLowerCase();
   const [kind] = mimeType.split('/');
   const capabilities = RTCRtpSender.getCapabilities(kind);
   if (!capabilities) return;
 
   const { codecs } = capabilities;
-  return codecs.find((c) => c.mimeType.toLowerCase() === mimeType);
+  return codecs.find((c) =>
+    c.mimeType.toLowerCase() === mimeType && fmtp.size === 0
+      ? true
+      : equal(fmtp, toSet(c.sdpFmtpLine)),
+  );
 };

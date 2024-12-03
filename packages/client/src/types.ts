@@ -162,6 +162,10 @@ export type ClientPublishOptions = {
    */
   preferredCodec?: PreferredCodec;
   /**
+   * The fmtp line for the video codec.
+   */
+  fmtpLine?: string;
+  /**
    * The preferred bitrate to use when publishing the video stream.
    */
   preferredBitrate?: number;

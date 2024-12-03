@@ -46,9 +46,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
-  const videoCodecOverride = router.query['video_codec'] as
-    | PreferredCodec
-    | undefined;
+  const videoCodecOverride = (router.query['video_encoder'] ||
+    router.query['video_codec']) as PreferredCodec | undefined;
+  const fmtpOverride = router.query['fmtp'] as string | undefined;
   const bitrateOverride = router.query['bitrate'] as string | undefined;
   const maxSimulcastLayers = router.query['max_simulcast_layers'] as
     | string
@@ -64,6 +64,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           : undefined;
         call.updatePublishOptions({
           preferredCodec: videoCodecOverride || 'vp9',
+          fmtpLine: fmtpOverride,
           preferredBitrate,
           maxSimulcastLayers: maxSimulcastLayers
             ? parseInt(maxSimulcastLayers, 10)
@@ -77,7 +78,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [bitrateOverride, call, maxSimulcastLayers, videoCodecOverride],
+    [
+      bitrateOverride,
+      call,
+      fmtpOverride,
+      maxSimulcastLayers,
+      videoCodecOverride,
+    ],
   );
 
   const onLeave = useCallback(
