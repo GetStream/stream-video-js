@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   Alert,
   Image,
@@ -14,6 +14,7 @@ import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import {
   useI18n,
   useStreamVideoClient,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
 import { appTheme } from '../../theme';
@@ -30,8 +31,11 @@ const JoinCallScreen = () => {
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
   const orientation = useOrientation();
+  const styles = useStyles();
+  const [isLoading, setIsLoading] = useState(false);
 
   const startCallHandler = useCallback(async () => {
+    setIsLoading(true);
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
       : ringingUserIdsText.split(',');
@@ -63,6 +67,8 @@ const JoinCallScreen = () => {
         Alert.alert('Error calling users', error.message);
       }
       console.log('Failed to createCall', error);
+    } finally {
+      setIsLoading(false);
     }
   }, [ringingUserIdsText, ringingUsers, videoClient, userId]);
 
@@ -82,6 +88,9 @@ const JoinCallScreen = () => {
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
+
+  const startCallDisabled =
+    (ringingUserIdsText === '' && ringingUsers.length === 0) || isLoading;
 
   return (
     <KeyboardAvoidingView
@@ -125,8 +134,8 @@ const JoinCallScreen = () => {
           style={styles.textInputStyle}
         />
         <Button
-          title={t('Start a New Call')}
-          disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
+          title={isLoading ? t('Calling...') : t('Start a New Call')}
+          disabled={startCallDisabled}
           onPress={startCallHandler}
         />
       </View>
@@ -134,61 +143,67 @@ const JoinCallScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: appTheme.spacing.lg,
-    backgroundColor: appTheme.colors.static_grey,
-    flex: 1,
-    justifyContent: 'space-evenly',
-  },
-  topContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: appTheme.spacing.lg,
-  },
-  participant: {
-    paddingVertical: appTheme.spacing.sm,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  selectedParticipant: {
-    color: appTheme.colors.primary,
-    fontWeight: 'bold',
-  },
-  headerText: {
-    fontSize: 16,
-    color: appTheme.colors.static_white,
-    fontWeight: 'bold',
-    marginBottom: appTheme.spacing.lg,
-  },
-  avatar: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-  },
-  text: {
-    color: appTheme.colors.static_white,
-    marginLeft: appTheme.spacing.md,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  orText: {
-    fontSize: 17,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    marginVertical: appTheme.spacing.lg,
-    textAlign: 'center',
-  },
-  textInputStyle: {
-    flex: 0,
-  },
-});
-
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          padding: appTheme.spacing.lg,
+          backgroundColor: theme.colors.sheetPrimary,
+          flex: 1,
+          justifyContent: 'space-evenly',
+        },
+        topContainer: {
+          flex: 1,
+          justifyContent: 'center',
+          paddingHorizontal: appTheme.spacing.lg,
+        },
+        participant: {
+          paddingVertical: appTheme.spacing.sm,
+          borderBottomColor: 'gray',
+          borderBottomWidth: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        selectedParticipant: {
+          color: appTheme.colors.primary,
+          fontWeight: 'bold',
+        },
+        headerText: {
+          fontSize: 16,
+          color: theme.colors.textPrimary,
+          fontWeight: 'bold',
+          marginBottom: appTheme.spacing.lg,
+        },
+        avatar: {
+          height: 40,
+          width: 40,
+          borderRadius: 20,
+        },
+        text: {
+          color: theme.colors.textPrimary,
+          marginLeft: appTheme.spacing.md,
+          fontSize: 16,
+          fontWeight: '500',
+        },
+        bottomContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        orText: {
+          fontSize: 17,
+          color: theme.colors.textPrimary,
+          fontWeight: '500',
+          marginVertical: appTheme.spacing.lg,
+          textAlign: 'center',
+        },
+        textInputStyle: {
+          flex: 0,
+        },
+      }),
+    [theme],
+  );
+};
 export default JoinCallScreen;

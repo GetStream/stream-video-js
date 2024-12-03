@@ -26,7 +26,7 @@ export const FollowerCount = ({}: FollowerCountProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.dark_gray },
+        { backgroundColor: colors.sheetTertiary },
         followerCount.container,
       ]}
     >
@@ -42,7 +42,7 @@ export const FollowerCount = ({}: FollowerCountProps) => {
       <Text
         style={[
           styles.label,
-          { color: colors.static_white },
+          { color: colors.textPrimary },
           followerCount.label,
         ]}
       >

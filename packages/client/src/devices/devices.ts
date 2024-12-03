@@ -195,7 +195,11 @@ export const getAudioStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
+    if (
+      error instanceof DOMException &&
+      error.name === 'OverconstrainedError' &&
+      trackConstraints?.deviceId
+    ) {
       const { deviceId, ...relaxedContraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -237,7 +241,11 @@ export const getVideoStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
+    if (
+      error instanceof DOMException &&
+      error.name === 'OverconstrainedError' &&
+      trackConstraints?.deviceId
+    ) {
       const { deviceId, ...relaxedContraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',

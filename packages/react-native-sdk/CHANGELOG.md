@@ -2,6 +2,78 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.7...@stream-io/video-react-native-sdk-1.4.8) (2024-12-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.12`
+* `@stream-io/video-react-bindings` updated to version `1.2.6`
+## [1.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.6...@stream-io/video-react-native-sdk-1.4.7) (2024-11-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.11`
+* `@stream-io/video-react-bindings` updated to version `1.2.5`
+## [1.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.5...@stream-io/video-react-native-sdk-1.4.6) (2024-11-29)
+
+
+### Bug Fixes
+
+* call joining, dominant speaker for pip android, spotlight layout for tablets ([#1603](https://github.com/GetStream/stream-video-js/issues/1603)) ([68ba86b](https://github.com/GetStream/stream-video-js/commit/68ba86b8c940b9559cdfba2db926afe707864a81))
+
+## [1.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.4...@stream-io/video-react-native-sdk-1.4.5) (2024-11-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.10`
+* `@stream-io/video-react-bindings` updated to version `1.2.4`
+## [1.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.3...@stream-io/video-react-native-sdk-1.4.4) (2024-11-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.9`
+* `@stream-io/video-react-bindings` updated to version `1.2.3`
+## [1.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.2...@stream-io/video-react-native-sdk-1.4.3) (2024-11-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.8`
+* `@stream-io/video-react-bindings` updated to version `1.2.2`
+## [1.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.1...@stream-io/video-react-native-sdk-1.4.2) (2024-11-27)
+
+
+### Bug Fixes
+
+* disable join call button to prevent multiple call joins ([#1602](https://github.com/GetStream/stream-video-js/issues/1602)) ([9079217](https://github.com/GetStream/stream-video-js/commit/9079217ab7cc5a87a948059d206c334433c7da8f))
+
+## [1.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.0...@stream-io/video-react-native-sdk-1.4.1) (2024-11-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.7`
+* `@stream-io/video-react-bindings` updated to version `1.2.1`
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.8...@stream-io/video-react-native-sdk-1.4.0) (2024-11-25)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `1.2.0`
+
+### Features
+
+* **design-v2:** sdk and dogfood app design-v2 changes ([#1549](https://github.com/GetStream/stream-video-js/issues/1549)) ([480a359](https://github.com/GetStream/stream-video-js/commit/480a3593516e6662b35a44f97c72259548d08445))
+
+## [1.3.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.7...@stream-io/video-react-native-sdk-1.3.8) (2024-11-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.6`
+* `@stream-io/video-react-bindings` updated to version `1.1.23`
+## [1.3.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.6...@stream-io/video-react-native-sdk-1.3.7) (2024-11-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.5`
+* `@stream-io/video-react-bindings` updated to version `1.1.22`
 ## [1.3.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.3.5...@stream-io/video-react-native-sdk-1.3.6) (2024-11-21)
 
 ### Dependency Updates

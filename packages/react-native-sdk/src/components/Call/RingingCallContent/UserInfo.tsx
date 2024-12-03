@@ -109,7 +109,7 @@ export const UserInfo = ({
         style={[
           styles.name,
           fontStyleByMembersCount,
-          { color: colors.static_white },
+          { color: colors.textPrimary },
           userInfo.name,
         ]}
       >

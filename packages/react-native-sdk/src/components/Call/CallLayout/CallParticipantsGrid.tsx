@@ -52,11 +52,16 @@ export const CallParticipantsGrid = ({
   const {
     theme: { colors, callParticipantsGrid },
   } = useTheme();
-  const { useRemoteParticipants, useParticipants, useLocalParticipant } =
-    useCallStateHooks();
+  const {
+    useRemoteParticipants,
+    useParticipants,
+    useLocalParticipant,
+    useDominantSpeaker,
+  } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
   const localParticipant = useLocalParticipant();
   const _allParticipants = useParticipants();
+  const dominantSpeaker = useDominantSpeaker();
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
@@ -80,7 +85,7 @@ export const CallParticipantsGrid = ({
   if (isInPiPMode) {
     participants =
       remoteParticipants.length > 0
-        ? [remoteParticipants[0] as StreamVideoParticipant]
+        ? [dominantSpeaker || (remoteParticipants[0] as StreamVideoParticipant)]
         : localParticipant
           ? [localParticipant]
           : [];
@@ -100,7 +105,7 @@ export const CallParticipantsGrid = ({
       style={[
         styles.container,
         landscapeStyles,
-        { backgroundColor: colors.dark_gray },
+        { backgroundColor: colors.sheetPrimary },
         callParticipantsGrid.container,
       ]}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
@@ -118,7 +123,5 @@ export const CallParticipantsGrid = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
 });

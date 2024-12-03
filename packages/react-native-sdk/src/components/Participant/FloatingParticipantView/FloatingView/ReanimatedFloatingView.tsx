@@ -64,7 +64,6 @@ try {
           [FloatingViewAlignment.bottomRight]: { x: 0, y: 0 },
         };
       }
-
       return getSnapAlignments({
         rootContainerDimensions: {
           width: containerWidth,

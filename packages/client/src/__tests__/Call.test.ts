@@ -10,7 +10,7 @@ import {
 import { StreamVideoClient } from '../StreamVideoClient';
 import 'dotenv/config';
 import { StreamClient } from '@stream-io/node-sdk';
-import { generateUUIDv4 } from '../coordinator/connection/utils';
+import { generateUUIDv4, sleep } from '../coordinator/connection/utils';
 import { CallingState } from '../store';
 import { Dispatcher } from '../rtc';
 import { Call } from '../Call';
@@ -22,7 +22,7 @@ const secret = process.env.STREAM_SECRET!;
 const serverClient = new StreamClient(apiKey, secret);
 const userId = 'jane';
 const tokenProvider = async () =>
-  serverClient.createToken(userId, undefined, Date.now() / 1000 - 10);
+  serverClient.generateUserToken({ user_id: userId, role: 'user' });
 
 let client: StreamVideoClient;
 
@@ -34,6 +34,7 @@ beforeEach(async () => {
     user: { id: 'jane' },
   });
 
+  await sleep(50);
   await client.streamClient.wsPromise;
 });
 
@@ -271,8 +272,8 @@ describe('muting logic', () => {
       .mockImplementation(() => Promise.resolve({ duration: '0ms' }));
   });
 
-  it('should mute self', () => {
-    call.muteSelf('audio');
+  it('should mute self', async () => {
+    await call.muteSelf('audio');
 
     expect(spy).toHaveBeenCalledWith(userId, 'audio');
   });

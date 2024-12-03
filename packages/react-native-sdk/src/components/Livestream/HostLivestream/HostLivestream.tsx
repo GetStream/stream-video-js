@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 
@@ -73,6 +73,7 @@ export const HostLivestream = ({
   hls,
   disableStopPublishedStreamsOnEndStream,
 }: HostLivestreamProps) => {
+  const styles = useStyles();
   const {
     theme: { colors, hostLivestream },
   } = useTheme();
@@ -108,9 +109,7 @@ export const HostLivestream = ({
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: colors.dark_gray,
-        },
+        { backgroundColor: colors.sheetTertiary },
         hostLivestream.container,
       ]}
     >
@@ -161,22 +160,34 @@ export const HostLivestream = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  topViewContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-  controlsViewContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          paddingBottom: theme.variants.insets.bottom,
+          paddingLeft: theme.variants.insets.left,
+          paddingRight: theme.variants.insets.right,
+          paddingTop: theme.variants.insets.top,
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        topViewContainer: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+        controlsViewContainer: {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: Z_INDEX.IN_FRONT,
+        },
+      }),
+    [theme]
+  );
+};

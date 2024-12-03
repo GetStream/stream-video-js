@@ -45,7 +45,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
@@ -68,7 +69,7 @@
                 <data android:scheme="https" />
                 <data android:host="getstream.io" />
                 <data android:host="pronto.getstream.io" />
-                <data android:host="stream-calls-dogfood.vercel.app" />
+                <data android:host="pronto-staging.getstream.io" />
                 <data android:pathPrefix="/join" />
                 <data android:pathPrefix="/video/demos/join" />
             </intent-filter>

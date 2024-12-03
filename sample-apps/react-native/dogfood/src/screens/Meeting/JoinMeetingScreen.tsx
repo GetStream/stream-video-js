@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,8 +15,8 @@ import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
-import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { useOrientation } from '../../hooks/useOrientation';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
@@ -24,11 +24,16 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
   'JoinMeetingScreen'
 >;
 
+// Allows only alphabets, numbers, -(hyphen) and _(underscore)
+const callIdRegex = /^[A-Za-z0-9_-]*$/g;
+const isValidCallId = (callId: string) => callId && callId.match(callIdRegex);
+
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
-  const [linking, setLinking] = useState<boolean>(false);
+  const { theme } = useTheme();
   const { t } = useI18n();
   const orientation = useOrientation();
+  const styles = useStyles();
 
   const { navigation } = props;
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
@@ -44,31 +49,28 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   };
 
   useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
-        setCallId(prontoCallId);
-        setLinking(true);
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+    const subscription = deeplinkCallId$.subscribe((deeplinkCallId) => {
+      if (deeplinkCallId) {
+        if (isValidCallId(deeplinkCallId)) {
+          // Delay the navigation to wait for the first render to complete
+          setTimeout(() => {
+            navigation.navigate('MeetingScreen', { callId: deeplinkCallId });
+          }, 300);
+        } else {
+          console.warn('Invalid call id from deeplink', deeplinkCallId);
+        }
+        deeplinkCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  // This is done to intentionally cause a rerender when a call id is available through Pronto to move to lobby screen.
-  useEffect(() => {
-    if (linking) {
-      joinCallHandler();
-    }
-  }, [linking, joinCallHandler]);
-
-  // Allows only alphabets, numbers, -(hyphen) and _(underscore)
-  const callIdRegex = /^[A-Za-z0-9_-]*$/g;
-  const isValidCallId = callId && callId.match(callIdRegex);
+  }, [navigation]);
 
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
+
+  const isValidCall = isValidCallId(callId);
 
   return (
     <KeyboardAvoidingView
@@ -101,8 +103,13 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           <Button
             onPress={joinCallHandler}
             title={t('Join Call')}
-            disabled={!isValidCallId}
-            buttonStyle={styles.joinCallButton}
+            disabled={!isValidCall}
+            buttonStyle={{
+              ...styles.joinCallButton,
+              backgroundColor: isValidCall
+                ? theme.colors.buttonPrimary
+                : theme.colors.buttonDisabled,
+            }}
           />
         </View>
         <Button
@@ -118,55 +125,66 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: appTheme.spacing.lg,
-    backgroundColor: appTheme.colors.static_grey,
-    flex: 1,
-    justifyContent: 'space-evenly',
-  },
-  topContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  logo: {
-    height: 100,
-    width: 100,
-    borderRadius: 50,
-    alignSelf: 'center',
-  },
-  title: {
-    fontSize: 30,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
-  },
-  subTitle: {
-    color: appTheme.colors.light_gray,
-    fontSize: 16,
-    textAlign: 'center',
-    marginHorizontal: appTheme.spacing.xl,
-  },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  joinCallButton: {
-    marginLeft: appTheme.spacing.lg,
-  },
-  startNewCallButton: {
-    width: '100%',
-  },
-  iconButton: {
-    width: 40,
-  },
-  createCall: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          padding: appTheme.spacing.lg,
+          backgroundColor: theme.colors.sheetPrimary,
+          flex: 1,
+          justifyContent: 'space-evenly',
+          paddingRight:
+            theme.variants.insets.right + theme.variants.spacingSizes.lg,
+          paddingLeft:
+            theme.variants.insets.left + theme.variants.spacingSizes.lg,
+        },
+        topContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        logo: {
+          height: 100,
+          width: 100,
+          borderRadius: 50,
+          alignSelf: 'center',
+        },
+        title: {
+          fontSize: 30,
+          color: appTheme.colors.static_white,
+          fontWeight: '500',
+          textAlign: 'center',
+          marginTop: appTheme.spacing.lg,
+        },
+        subTitle: {
+          color: appTheme.colors.light_gray,
+          fontSize: 16,
+          textAlign: 'center',
+          marginHorizontal: appTheme.spacing.xl,
+        },
+        bottomContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        joinCallButton: {
+          marginLeft: appTheme.spacing.lg,
+        },
+        startNewCallButton: {
+          width: '100%',
+        },
+        iconButton: {
+          width: 40,
+        },
+        createCall: {
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        },
+      }),
+    [theme],
+  );
+};
 
 export default JoinMeetingScreen;

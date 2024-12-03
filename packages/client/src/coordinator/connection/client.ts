@@ -1,27 +1,22 @@
 import axios, {
   AxiosError,
-  AxiosHeaders,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
 } from 'axios';
 import https from 'https';
 import { StableWSConnection } from './connection';
-import { DevToken } from './signing';
 import { TokenManager } from './token_manager';
-import { WSConnectionFallback } from './connection_fallback';
-import { isErrorResponse, isWSFailure } from './errors';
 import {
   addConnectionEventListeners,
+  isErrorResponse,
   isFunction,
-  isOnline,
   KnownCodes,
   randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
 } from './utils';
-
 import {
   AllClientEvents,
   AllClientEventTypes,
@@ -36,9 +31,13 @@ import {
   User,
   UserWithId,
 } from './types';
-import { InsightMetrics, postInsights } from './insights';
 import { getLocationHint } from './location';
-import { CreateGuestRequest, CreateGuestResponse } from '../../gen/coordinator';
+import {
+  ConnectedEvent,
+  CreateGuestRequest,
+  CreateGuestResponse,
+} from '../../gen/coordinator';
+import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -66,15 +65,12 @@ export class StreamClient {
   userID?: string;
   wsBaseURL?: string;
   wsConnection: StableWSConnection | null;
-  wsFallback?: WSConnectionFallback;
-  wsPromise: ConnectAPIResponse | null;
+  private wsPromiseSafe: SafePromise<ConnectedEvent | undefined> | null;
   consecutiveFailures: number;
-  insightMetrics: InsightMetrics;
-  defaultWSTimeoutWithFallback: number;
   defaultWSTimeout: number;
   resolveConnectionId?: Function;
   rejectConnectionId?: Function;
-  connectionIdPromise?: Promise<string | undefined>;
+  private connectionIdPromiseSafe?: SafePromise<string | undefined>;
   guestUserCreatePromise?: Promise<CreateGuestResponse>;
 
   /**
@@ -117,7 +113,6 @@ export class StreamClient {
     this.options = {
       timeout: 5000,
       withCredentials: false, // making sure cookies are not sent
-      warmUp: false,
       ...inputOptions,
     };
 
@@ -132,22 +127,6 @@ export class StreamClient {
       this.options.baseURL || 'https://video.stream-io-api.com/video',
     );
 
-    if (
-      typeof process !== 'undefined' &&
-      'env' in process &&
-      process.env.STREAM_LOCAL_TEST_RUN
-    ) {
-      this.setBaseURL('http://localhost:3030/video');
-    }
-
-    if (
-      typeof process !== 'undefined' &&
-      'env' in process &&
-      process.env.STREAM_LOCAL_TEST_HOST
-    ) {
-      this.setBaseURL(`http://${process.env.STREAM_LOCAL_TEST_HOST}/video`);
-    }
-
     this.axiosInstance = axios.create({
       ...this.options,
       baseURL: this.baseURL,
@@ -155,7 +134,7 @@ export class StreamClient {
 
     // WS connection is initialized when setUser is called
     this.wsConnection = null;
-    this.wsPromise = null;
+    this.wsPromiseSafe = null;
     this.setUserPromise = null;
 
     // mapping between channel groups and configs
@@ -167,19 +146,13 @@ export class StreamClient {
     // generated from secret.
     this.tokenManager = new TokenManager(this.secret);
     this.consecutiveFailures = 0;
-    this.insightMetrics = new InsightMetrics();
 
-    this.defaultWSTimeoutWithFallback = 6000;
     this.defaultWSTimeout = 15000;
 
     this.logger = isFunction(inputOptions.logger)
       ? inputOptions.logger
       : () => null;
   }
-
-  devToken = (userID: string) => {
-    return DevToken(userID);
-  };
 
   getAuthType = () => {
     return this.anonymous ? 'anonymous' : 'jwt';
@@ -207,8 +180,7 @@ export class StreamClient {
     return hint;
   };
 
-  _getConnectionID = () =>
-    this.wsConnection?.connectionID || this.wsFallback?.connectionID;
+  _getConnectionID = () => this.wsConnection?.connectionID;
 
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
@@ -323,11 +295,7 @@ export class StreamClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   closeConnection = async (timeout?: number) => {
-    await Promise.all([
-      this.wsConnection?.disconnect(timeout),
-      this.wsFallback?.disconnect(timeout),
-    ]);
-    return Promise.resolve();
+    await this.wsConnection?.disconnect(timeout);
   };
 
   /**
@@ -340,31 +308,30 @@ export class StreamClient {
       );
     }
 
-    if (this.wsConnection?.isConnecting && this.wsPromise) {
+    const wsPromise = this.wsPromiseSafe?.();
+    if (this.wsConnection?.isConnecting && wsPromise) {
       this.logger(
         'info',
         'client:openConnection() - connection already in progress',
       );
-      return this.wsPromise;
+      return await wsPromise;
     }
 
-    if (
-      (this.wsConnection?.isHealthy || this.wsFallback?.isHealthy()) &&
-      this._hasConnectionID()
-    ) {
+    if (this.wsConnection?.isHealthy && this._hasConnectionID()) {
       this.logger(
         'info',
         'client:openConnection() - openConnection called twice, healthy connection already exists',
       );
 
-      return Promise.resolve();
+      return;
     }
 
-    this._setupConnectionIdPromise();
+    await this._setupConnectionIdPromise();
 
     this.clientID = `${this.userID}--${randomId()}`;
-    this.wsPromise = this.connect();
-    return this.wsPromise;
+    const newWsPromise = this.connect();
+    this.wsPromiseSafe = makeSafePromise(newWsPromise);
+    return await newWsPromise;
   };
 
   /**
@@ -388,7 +355,7 @@ export class StreamClient {
 
     this.tokenManager.reset();
 
-    this.connectionIdPromise = undefined;
+    this.connectionIdPromiseSafe = undefined;
     this.rejectConnectionId = undefined;
     this.resolveConnectionId = undefined;
   };
@@ -397,16 +364,7 @@ export class StreamClient {
     this.guestUserCreatePromise = this.doAxiosRequest<
       CreateGuestResponse,
       CreateGuestRequest
-    >(
-      'post',
-      '/guest',
-      {
-        user: {
-          ...user,
-        },
-      },
-      { publicEndpoint: true },
-    );
+    >('post', '/guest', { user }, { publicEndpoint: true });
 
     const response = await this.guestUserCreatePromise;
     this.guestUserCreatePromise.finally(
@@ -424,7 +382,7 @@ export class StreamClient {
     tokenOrProvider: TokenOrProvider,
   ) => {
     addConnectionEventListeners(this.updateNetworkConnectionStatus);
-    this._setupConnectionIdPromise();
+    await this._setupConnectionIdPromise();
 
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
@@ -481,15 +439,27 @@ export class StreamClient {
   /**
    * sets up the this.connectionIdPromise
    */
-  _setupConnectionIdPromise = async () => {
+  _setupConnectionIdPromise = () => {
     /** a promise that is resolved once connection id is set */
-    this.connectionIdPromise = new Promise<string | undefined>(
-      (resolve, reject) => {
+    this.connectionIdPromiseSafe = makeSafePromise(
+      new Promise<string | undefined>((resolve, reject) => {
         this.resolveConnectionId = resolve;
         this.rejectConnectionId = reject;
-      },
+      }),
     );
   };
+
+  get connectionIdPromise() {
+    return this.connectionIdPromiseSafe?.();
+  }
+
+  get isConnectionIsPromisePending() {
+    return this.connectionIdPromiseSafe?.checkPending() ?? false;
+  }
+
+  get wsPromise() {
+    return this.wsPromiseSafe?.();
+  }
 
   _logApiRequest = (
     type: string,
@@ -686,89 +656,14 @@ export class StreamClient {
         'Call connectUser or connectAnonymousUser before starting the connection',
       );
     }
-    if (!this.wsBaseURL) {
-      throw Error('Websocket base url not set');
-    }
-    if (!this.clientID) {
-      throw Error('clientID is not set');
-    }
+    if (!this.wsBaseURL) throw Error('Websocket base url not set');
+    if (!this.clientID) throw Error('clientID is not set');
 
-    if (
-      !this.wsConnection &&
-      (this.options.warmUp || this.options.enableInsights)
-    ) {
-      this._sayHi();
-    }
     // The StableWSConnection handles all the reconnection logic.
-    if (this.options.wsConnection && this.node) {
-      // Intentionally avoiding adding ts generics on wsConnection in options since its only useful for unit test purpose.
-      (this.options.wsConnection as unknown as StableWSConnection).setClient(
-        this,
-      );
-      this.wsConnection = this.options
-        .wsConnection as unknown as StableWSConnection;
-    } else {
-      this.wsConnection = new StableWSConnection(this);
-    }
+    this.wsConnection = new StableWSConnection(this);
 
-    try {
-      // if fallback is used before, continue using it instead of waiting for WS to fail
-      if (this.wsFallback) {
-        return await this.wsFallback.connect();
-      }
-      this.logger('info', 'StreamClient.connect: this.wsConnection.connect()');
-      // if WSFallback is enabled, ws connect should timeout faster so fallback can try
-      return await this.wsConnection.connect(
-        this.options.enableWSFallback
-          ? this.defaultWSTimeoutWithFallback
-          : this.defaultWSTimeout,
-      );
-    } catch (err) {
-      // run fallback only if it's WS/Network error and not a normal API error
-      // make sure browser is online before even trying the longpoll
-      if (
-        this.options.enableWSFallback &&
-        // @ts-ignore
-        isWSFailure(err) &&
-        isOnline(this.logger)
-      ) {
-        this.logger(
-          'warn',
-          'client:connect() - WS failed, fallback to longpoll',
-        );
-        this.dispatchEvent({ type: 'transport.changed', mode: 'longpoll' });
-
-        this.wsConnection._destroyCurrentWSConnection();
-        this.wsConnection.disconnect().then(); // close WS so no retry
-        this.wsFallback = new WSConnectionFallback(this);
-        return await this.wsFallback.connect();
-      }
-
-      throw err;
-    }
-  };
-
-  /**
-   * Check the connectivity with server for warmup purpose.
-   *
-   * @private
-   */
-  _sayHi = () => {
-    const client_request_id = randomId();
-    const opts = {
-      headers: AxiosHeaders.from({
-        'x-client-request-id': client_request_id,
-      }),
-    };
-    this.doAxiosRequest('get', this.baseURL + '/hi', null, opts).catch((e) => {
-      if (this.options.enableInsights) {
-        postInsights('http_hi_failed', {
-          api_key: this.key,
-          err: e,
-          client_request_id,
-        });
-      }
-    });
+    this.logger('info', 'StreamClient.connect: this.wsConnection.connect()');
+    return await this.wsConnection.connect(this.defaultWSTimeout);
   };
 
   getUserAgent = () => {
@@ -835,19 +730,6 @@ export class StreamClient {
     if (!this.tokenManager) return null;
 
     return this.tokenManager.getToken();
-  };
-
-  /**
-   * encode ws url payload
-   * @private
-   * @returns json string
-   */
-  _buildWSPayload = (client_request_id?: string) => {
-    return JSON.stringify({
-      user_id: this.userID,
-      user_details: this._user,
-      client_request_id,
-    });
   };
 
   updateNetworkConnectionStatus = (

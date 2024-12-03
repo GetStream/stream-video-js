@@ -40,7 +40,7 @@ export const CallControls = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.sheetPrimary },
         callControls.container,
         landscapeStyles,
         style,
@@ -49,7 +49,7 @@ export const CallControls = ({
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />
-      <HangUpCallButton onHangupCallHandler={onHangupCallHandler} />
+      <HangUpCallButton onPressHandler={onHangupCallHandler} />
     </View>
   );
 };
