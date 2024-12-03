@@ -7,6 +7,7 @@ import {
   OptimalVideoLayer,
   ridToVideoQuality,
   toSvcEncodings,
+  toVideoLayers,
 } from '../videoLayers';
 
 describe('videoLayers', () => {
@@ -158,6 +159,38 @@ describe('videoLayers', () => {
     expect(ridToVideoQuality('h')).toBe(VideoQuality.MID);
     expect(ridToVideoQuality('f')).toBe(VideoQuality.HIGH);
     expect(ridToVideoQuality('')).toBe(VideoQuality.HIGH);
+  });
+
+  it('should map optimal video layers to SFU VideoLayers', () => {
+    const layers: Array<Partial<OptimalVideoLayer>> = [
+      { rid: 'f', width: 1920, height: 1080, maxBitrate: 3000000 },
+      { rid: 'h', width: 960, height: 540, maxBitrate: 750000 },
+      { rid: 'q', width: 480, height: 270, maxBitrate: 187500 },
+    ];
+
+    const videoLayers = toVideoLayers(layers as OptimalVideoLayer[]);
+    expect(videoLayers.length).toBe(3);
+    expect(videoLayers[0]).toEqual({
+      rid: 'f',
+      bitrate: 3000000,
+      fps: 0,
+      quality: VideoQuality.HIGH,
+      videoDimension: { width: 1920, height: 1080 },
+    });
+    expect(videoLayers[1]).toEqual({
+      rid: 'h',
+      bitrate: 750000,
+      fps: 0,
+      quality: VideoQuality.MID,
+      videoDimension: { width: 960, height: 540 },
+    });
+    expect(videoLayers[2]).toEqual({
+      rid: 'q',
+      bitrate: 187500,
+      fps: 0,
+      quality: VideoQuality.LOW_UNSPECIFIED,
+      videoDimension: { width: 480, height: 270 },
+    });
   });
 
   it('should map OptimalVideoLayer to SVC encodings', () => {

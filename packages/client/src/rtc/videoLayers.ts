@@ -2,6 +2,7 @@ import { isSvcCodec } from './codecs';
 import {
   PublishOption,
   VideoDimension,
+  VideoLayer,
   VideoQuality,
 } from '../gen/video/sfu/models/models';
 
@@ -41,6 +42,21 @@ export const ridToVideoQuality = (rid: string): VideoQuality => {
     : rid === 'h'
       ? VideoQuality.MID
       : VideoQuality.HIGH; // default to HIGH
+};
+
+/**
+ * Converts the given video layers to SFU video layers.
+ */
+export const toVideoLayers = (
+  layers: OptimalVideoLayer[] | undefined = [],
+): VideoLayer[] => {
+  return layers.map<VideoLayer>((layer) => ({
+    rid: layer.rid || '',
+    bitrate: layer.maxBitrate || 0,
+    fps: layer.maxFramerate || 0,
+    quality: ridToVideoQuality(layer.rid || ''),
+    videoDimension: { width: layer.width, height: layer.height },
+  }));
 };
 
 /**

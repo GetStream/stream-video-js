@@ -244,15 +244,6 @@ export interface SfuEvent {
         participantMigrationComplete: ParticipantMigrationComplete;
       }
     | {
-        oneofKind: 'changePublishOptionsComplete';
-        /**
-         * ChangePublishOptionsComplete is sent to signal the completion of a ChangePublishOptions request.
-         *
-         * @generated from protobuf field: stream.video.sfu.event.ChangePublishOptionsComplete change_publish_options_complete = 26;
-         */
-        changePublishOptionsComplete: ChangePublishOptionsComplete;
-      }
-    | {
         oneofKind: 'changePublishOptions';
         /**
          * ChangePublishOptions is sent to signal the change in publish options such as a new codec or simulcast layers
@@ -270,9 +261,13 @@ export interface SfuEvent {
  */
 export interface ChangePublishOptions {
   /**
-   * @generated from protobuf field: stream.video.sfu.models.PublishOption publish_option = 1;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption publish_options = 1;
    */
-  publishOption?: PublishOption;
+  publishOptions: PublishOption[];
+  /**
+   * @generated from protobuf field: string reason = 2;
+   */
+  reason: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ChangePublishOptionsComplete
@@ -731,6 +726,14 @@ export interface AudioSender {
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
   codec?: Codec;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 3;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: int32 publish_option_id = 4;
+   */
+  publishOptionId: number;
 }
 /**
  * VideoLayerSetting is used to specify various parameters of a particular encoding in simulcast.
@@ -781,6 +784,14 @@ export interface VideoSender {
    * @generated from protobuf field: repeated stream.video.sfu.event.VideoLayerSetting layers = 3;
    */
   layers: VideoLayerSetting[];
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 4;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: int32 publish_option_id = 5;
+   */
+  publishOptionId: number;
 }
 /**
  * sent to users when they need to change the quality of their video
@@ -1003,13 +1014,6 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         T: () => ParticipantMigrationComplete,
       },
       {
-        no: 26,
-        name: 'change_publish_options_complete',
-        kind: 'message',
-        oneof: 'eventPayload',
-        T: () => ChangePublishOptionsComplete,
-      },
-      {
         no: 27,
         name: 'change_publish_options',
         kind: 'message',
@@ -1029,10 +1033,12 @@ class ChangePublishOptions$Type extends MessageType<ChangePublishOptions> {
     super('stream.video.sfu.event.ChangePublishOptions', [
       {
         no: 1,
-        name: 'publish_option',
+        name: 'publish_options',
         kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
         T: () => PublishOption,
       },
+      { no: 2, name: 'reason', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }
@@ -1589,6 +1595,22 @@ class AudioSender$Type extends MessageType<AudioSender> {
   constructor() {
     super('stream.video.sfu.event.AudioSender', [
       { no: 2, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 3,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      {
+        no: 4,
+        name: 'publish_option_id',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
     ]);
   }
 }
@@ -1640,6 +1662,22 @@ class VideoSender$Type extends MessageType<VideoSender> {
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
         T: () => VideoLayerSetting,
+      },
+      {
+        no: 4,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      {
+        no: 5,
+        name: 'publish_option_id',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
       },
     ]);
   }

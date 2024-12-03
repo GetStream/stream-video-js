@@ -1,15 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { enableHighQualityAudio, getPayloadTypeForCodec } from '../sdp';
-import { initialSdp as HQAudioSDP } from './hq-audio-sdp';
+import { getPayloadTypeForCodec } from '../sdp';
 import { publisherSDP } from './publisher-sdp.mock';
 
 describe('sdp-munging', () => {
-  it('enables HighQuality audio for Opus', () => {
-    const sdpWithHighQualityAudio = enableHighQualityAudio(HQAudioSDP, '3');
-    expect(sdpWithHighQualityAudio).toContain('maxaveragebitrate=510000');
-    expect(sdpWithHighQualityAudio).toContain('stereo=1');
-  });
-
   it('extracts payload type for codec', () => {
     const payload = getPayloadTypeForCodec(
       publisherSDP,

@@ -253,6 +253,23 @@ export interface PublishOption {
    * @generated from protobuf field: stream.video.sfu.models.VideoDimension video_dimension = 7;
    */
   videoDimension?: VideoDimension;
+  /**
+   * The unique identifier for the publish request.
+   * - This `id` is assigned exclusively by the SFU. Any `id` set by the client
+   *   in the `PublishOption` will be ignored and overwritten by the SFU.
+   * - The primary purpose of this `id` is to uniquely identify each publish
+   *   request, even in scenarios where multiple publish requests for the same
+   *   `track_type` and `codec` are active simultaneously.
+   *   For example:
+   *     - A user may publish two tracks of the same type (e.g., video) and codec
+   *       (e.g., VP9) concurrently.
+   * - This uniqueness ensures that individual requests can be managed
+   *   independently. For instance, an `id` is critical when stopping a specific
+   *   publish request without affecting others.
+   *
+   * @generated from protobuf field: int32 id = 8;
+   */
+  id: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
@@ -1159,6 +1176,7 @@ class PublishOption$Type extends MessageType<PublishOption> {
         kind: 'message',
         T: () => VideoDimension,
       },
+      { no: 8, name: 'id', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }
