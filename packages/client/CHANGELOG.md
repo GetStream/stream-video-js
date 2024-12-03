@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.11...@stream-io/video-client-1.11.12) (2024-12-03)
+
+
+### Bug Fixes
+
+* handle timeout on SFU WS connections ([#1600](https://github.com/GetStream/stream-video-js/issues/1600)) ([5f2db7b](https://github.com/GetStream/stream-video-js/commit/5f2db7bd5cfdf57cdc04d6a6ed752f43e5b06657))
+
 ## [1.11.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.10...@stream-io/video-client-1.11.11) (2024-11-29)
 
 
