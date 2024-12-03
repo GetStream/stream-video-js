@@ -9,7 +9,12 @@ class TimerWorker {
   private worker: Worker | undefined;
   private fallback = false;
 
-  setup(): void {
+  setup({ useTimerWorker = true }: { useTimerWorker?: boolean } = {}): void {
+    if (!useTimerWorker) {
+      this.fallback = true;
+      return;
+    }
+
     try {
       const source = timerWorker.src;
       const blob = new Blob([source], {
@@ -119,8 +124,14 @@ class TimerWorker {
   }
 }
 
+let timerWorkerEnabled = false;
+
+export const enableTimerWorker = () => {
+  timerWorkerEnabled = true;
+};
+
 export const getTimers = lazy(() => {
   const instance = new TimerWorker();
-  instance.setup();
+  instance.setup({ useTimerWorker: timerWorkerEnabled });
   return instance;
 });
