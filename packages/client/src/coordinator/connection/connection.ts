@@ -15,6 +15,7 @@ import type {
   WSAuthMessage,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
+import { getTimers } from '../../timers';
 
 /**
  * StableWSConnection - A WS connection that reconnects upon failure.
@@ -39,7 +40,7 @@ export class StableWSConnection {
   private connectionOpenSafe?: SafePromise<ConnectedEvent>;
   consecutiveFailures: number;
   pingInterval: number;
-  healthCheckTimeoutRef?: NodeJS.Timeout;
+  healthCheckTimeoutRef?: number;
   isConnecting: boolean;
   isDisconnected: boolean;
   isHealthy: boolean;
@@ -224,8 +225,12 @@ export class StableWSConnection {
     this.isDisconnected = true;
 
     // start by removing all the listeners
-    clearInterval(this.healthCheckTimeoutRef);
-    clearInterval(this.connectionCheckTimeoutRef);
+    if (this.healthCheckTimeoutRef) {
+      getTimers().clearInterval(this.healthCheckTimeoutRef);
+    }
+    if (this.connectionCheckTimeoutRef) {
+      clearInterval(this.connectionCheckTimeoutRef);
+    }
 
     removeConnectionEventListeners(this.onlineStatusChanged);
 
@@ -689,9 +694,13 @@ export class StableWSConnection {
    * Schedules a next health check ping for websocket.
    */
   scheduleNextPing = () => {
+    const timers = getTimers();
+    if (this.healthCheckTimeoutRef) {
+      timers.clearTimeout(this.healthCheckTimeoutRef);
+    }
+
     // 30 seconds is the recommended interval (messenger uses this)
-    clearTimeout(this.healthCheckTimeoutRef);
-    this.healthCheckTimeoutRef = setTimeout(() => {
+    this.healthCheckTimeoutRef = timers.setTimeout(() => {
       // send the healthcheck..., server replies with a health check event
       const data = [{ type: 'health.check', client_id: this.client.clientID }];
       // try to send on the connection
