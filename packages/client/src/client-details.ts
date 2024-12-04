@@ -1,4 +1,8 @@
 import {
+  AndroidState,
+  AndroidThermalState,
+  AppleState,
+  AppleThermalState,
   ClientDetails,
   Device,
   OS,
@@ -11,6 +15,19 @@ import { UAParser } from 'ua-parser-js';
 type WebRTCInfoType = {
   version: string;
 };
+
+type DeviceState =
+  | {
+      oneofKind: 'android';
+      android: AndroidState;
+    }
+  | {
+      oneofKind: 'apple';
+      apple: AppleState;
+    }
+  | {
+      oneofKind: undefined;
+    };
 
 const version = process.env.PKG_VERSION || '0.0.0';
 const [major, minor, patch] = version.split('.');
@@ -25,6 +42,7 @@ let sdkInfo: Sdk | undefined = {
 let osInfo: OS | undefined;
 let deviceInfo: Device | undefined;
 let webRtcInfo: WebRTCInfoType | undefined;
+let deviceState: DeviceState;
 
 export const setSdkInfo = (info: Sdk) => {
   sdkInfo = info;
@@ -60,6 +78,76 @@ export const setWebRTCInfo = (info: WebRTCInfoType) => {
 
 export type LocalClientDetailsType = ClientDetails & {
   webRTCInfo?: WebRTCInfoType;
+};
+
+const getAndroidThermalState = (state: string) => {
+  switch (state) {
+    case 'UNKNOWN':
+      return AndroidThermalState.UNSPECIFIED;
+    case 'NONE':
+      return AndroidThermalState.NONE;
+    case 'LIGHT':
+      return AndroidThermalState.LIGHT;
+    case 'MODERATE':
+      return AndroidThermalState.MODERATE;
+    case 'SEVERE':
+      return AndroidThermalState.SEVERE;
+    case 'CRITICAL':
+      return AndroidThermalState.CRITICAL;
+    case 'EMERGENCY':
+      return AndroidThermalState.EMERGENCY;
+    case 'SHUTDOWN':
+      return AndroidThermalState.SHUTDOWN;
+    default:
+      return AndroidThermalState.UNSPECIFIED;
+  }
+};
+
+const getAppleThermalState = (state: string) => {
+  switch (state.toString()) {
+    case '0':
+      return AppleThermalState.UNSPECIFIED;
+    case '1':
+      return AppleThermalState.NOMINAL;
+    case '2':
+      return AppleThermalState.FAIR;
+    case '3':
+      return AppleThermalState.SERIOUS;
+    case '4':
+      return AppleThermalState.CRITICAL;
+    default:
+      return AppleThermalState.UNSPECIFIED;
+  }
+};
+
+export const setDeviceState = (state: {
+  os: string;
+  thermal: string;
+  isLowPowerMode: boolean;
+}) => {
+  if (state.os === 'android') {
+    deviceState = {
+      oneofKind: 'android',
+      android: {
+        thermalState: getAndroidThermalState(state.thermal),
+        isPowerSaverMode: state.isLowPowerMode,
+      },
+    };
+  } else if (state.os === 'ios') {
+    deviceState = {
+      oneofKind: 'apple',
+      apple: {
+        thermalState: getAppleThermalState(state.thermal),
+        isLowPowerModeEnabled: state.isLowPowerMode,
+      },
+    };
+  } else {
+    deviceState = { oneofKind: undefined };
+  }
+};
+
+export const getDeviceState = () => {
+  return deviceState;
 };
 
 export const getClientDetails = (): LocalClientDetailsType => {
