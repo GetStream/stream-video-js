@@ -195,17 +195,11 @@ export const getAudioStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (
-      error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      error.name === 'OverconstrainedError' &&
-      trackConstraints?.deviceId
-    ) {
+    if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
-        'Failed to get audio stream, will try again with relaxed contraints',
+        'Failed to get audio stream, will try again with relaxed constraints',
         { error, constraints, relaxedConstraints },
       );
       return getAudioStream(relaxedConstraints);
@@ -243,13 +237,7 @@ export const getVideoStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (
-      error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      error.name === 'OverconstrainedError' &&
-      trackConstraints?.deviceId
-    ) {
+    if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -300,6 +288,17 @@ export const getScreenShareStream = async (
     throw e;
   }
 };
+
+function isOverconstrainedError(error: unknown) {
+  return (
+    error &&
+    typeof error === 'object' &&
+    (('name' in error && error.name === 'OverconstrainedError') ||
+      ('message' in error &&
+        typeof error.message === 'string' &&
+        error.message.startsWith('OverconstrainedError')))
+  );
+}
 
 export const deviceIds$ =
   typeof navigator !== 'undefined' &&
