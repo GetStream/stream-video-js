@@ -35,6 +35,7 @@ import {
   makeSafePromise,
   SafePromise,
 } from './helpers/promise';
+import { getTimers } from './timers';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -111,7 +112,7 @@ export class StreamSfuClient {
   isLeaving = false;
 
   private readonly rpc: SignalServerClient;
-  private keepAliveInterval?: NodeJS.Timeout;
+  private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
   private migrateAwayTimeout?: NodeJS.Timeout;
   private pingIntervalInMs = 10 * 1000;
@@ -262,7 +263,7 @@ export class StreamSfuClient {
 
   private handleWebSocketClose = () => {
     this.signalWs.removeEventListener('close', this.handleWebSocketClose);
-    clearInterval(this.keepAliveInterval);
+    getTimers().clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
     this.onSignalClose?.();
   };
@@ -488,8 +489,9 @@ export class StreamSfuClient {
   };
 
   private keepAlive = () => {
-    clearInterval(this.keepAliveInterval);
-    this.keepAliveInterval = setInterval(() => {
+    const timers = getTimers();
+    timers.clearInterval(this.keepAliveInterval);
+    this.keepAliveInterval = timers.setInterval(() => {
       this.ping().catch((e) => {
         this.logger('error', 'Error sending healthCheckRequest to SFU', e);
       });

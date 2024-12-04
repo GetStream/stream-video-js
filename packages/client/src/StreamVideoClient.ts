@@ -31,6 +31,7 @@ import { getLogger, logToConsole, setLogger } from './logger';
 import { getSdkInfo } from './client-details';
 import { SdkType } from './gen/video/sfu/models/models';
 import { withoutConcurrency } from './helpers/concurrency';
+import { enableTimerWorker } from './timers';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -86,9 +87,12 @@ export class StreamVideoClient {
     if (typeof apiKeyOrArgs === 'string') {
       logLevel = opts?.logLevel || logLevel;
       logger = opts?.logger || logger;
+      if (opts?.expertimental_enableTimerWorker) enableTimerWorker();
     } else {
       logLevel = apiKeyOrArgs.options?.logLevel || logLevel;
       logger = apiKeyOrArgs.options?.logger || logger;
+      if (apiKeyOrArgs.options?.expertimental_enableTimerWorker)
+        enableTimerWorker();
     }
 
     setLogger(logger, logLevel);
