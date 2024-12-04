@@ -32,8 +32,6 @@ export type AggregatedStatsReport = {
   codec: string;
   timestamp: number;
   rawReport: StatsReport;
-  thermalStatus?: string;
-  powerMode?: string;
 };
 
 export type ParticipantsStatsReport = {
