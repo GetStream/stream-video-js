@@ -91,7 +91,11 @@ export class BrowserPermission {
           this.setState('granted');
           return true;
         } catch (e) {
-          if (e instanceof DOMException && e.name === 'NotAllowedError') {
+          if (
+            global.DOMException &&
+            e instanceof DOMException &&
+            e.name === 'NotAllowedError'
+          ) {
             this.logger('info', 'Browser permission was not granted', {
               permission: this.permission,
             });

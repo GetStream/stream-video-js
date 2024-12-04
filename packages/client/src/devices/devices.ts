@@ -9,7 +9,7 @@ import {
   startWith,
 } from 'rxjs';
 import { getLogger } from '../logger';
-import { BrowserPermission } from './BrowserPermission';
+import { BrowserPermission, canQueryPermissions } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
 
@@ -191,11 +191,12 @@ export const getAudioStream = async (
   try {
     await getAudioBrowserPermission().prompt({
       throwOnNotAllowed: true,
-      forcePrompt: true,
+      forcePrompt: canQueryPermissions(),
     });
     return await getStream(constraints);
   } catch (error) {
     if (
+      global.DOMException &&
       error instanceof DOMException &&
       error.name === 'OverconstrainedError' &&
       trackConstraints?.deviceId
@@ -237,7 +238,7 @@ export const getVideoStream = async (
   try {
     await getVideoBrowserPermission().prompt({
       throwOnNotAllowed: true,
-      forcePrompt: true,
+      forcePrompt: canQueryPermissions(),
     });
     return await getStream(constraints);
   } catch (error) {
