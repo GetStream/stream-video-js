@@ -3,7 +3,11 @@ import {
   AxiosResponseTransformer,
   default as axios,
 } from 'axios';
-import { JoinCallRequest, JoinCallResponse } from '@stream-io/video-react-sdk';
+import {
+  GetOrCreateCallResponse,
+  JoinCallRequest,
+  JoinCallResponse,
+} from '@stream-io/video-react-sdk';
 
 const cascadingTransformer: AxiosRequestTransformer =
   /**
@@ -115,6 +119,32 @@ const sfuOverrideTransformer: AxiosResponseTransformer =
     return data;
   };
 
+const targetResolutionOverrideTransformer: AxiosResponseTransformer =
+  /**
+   * This transformer is used to override the target resolution returned by the
+   * backend with the one provided in the URL query params.
+   *
+   * Useful for testing with a specific target resolution.
+   *
+   * Note: it needs to be declared as a `function` instead of an arrow function
+   * as it executes in the context of the current axios instance.
+   */
+  function targetResolutionOverrideTransformer(data: GetOrCreateCallResponse) {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const width = params.get('width') || params.get('w');
+      const height = params.get('height') || params.get('h');
+      if (width && height && data?.call?.settings?.video?.target_resolution) {
+        data.call.settings.video.target_resolution = {
+          ...data.call.settings.video.target_resolution,
+          width: parseInt(width, 10),
+          height: parseInt(height, 10),
+        };
+      }
+    }
+    return data;
+  };
+
 /**
  * Default request transformers.
  */
@@ -130,4 +160,5 @@ export const defaultRequestTransformers: AxiosRequestTransformer[] = [
 export const defaultResponseTransformers: AxiosResponseTransformer[] = [
   ...(axios.defaults.transformResponse as AxiosResponseTransformer[]),
   sfuOverrideTransformer,
+  targetResolutionOverrideTransformer,
 ];
