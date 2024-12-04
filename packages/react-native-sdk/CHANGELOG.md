@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.9...@stream-io/video-react-native-sdk-1.4.10) (2024-12-03)
+
+
+### Bug Fixes
+
+* remove cameraroll permissions ([#1610](https://github.com/GetStream/stream-video-js/issues/1610)) ([973d00e](https://github.com/GetStream/stream-video-js/commit/973d00ec73381211cd42711e2d76625f69b93a7c))
+
+## [1.4.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.8...@stream-io/video-react-native-sdk-1.4.9) (2024-12-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.13`
+* `@stream-io/video-react-bindings` updated to version `1.2.7`
+## [1.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.7...@stream-io/video-react-native-sdk-1.4.8) (2024-12-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.12`
+* `@stream-io/video-react-bindings` updated to version `1.2.6`
 ## [1.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.6...@stream-io/video-react-native-sdk-1.4.7) (2024-11-29)
 
 ### Dependency Updates

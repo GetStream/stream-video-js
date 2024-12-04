@@ -120,9 +120,10 @@ import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import {
+  makeSafePromise,
   PromiseWithResolvers,
   promiseWithResolvers,
-} from './helpers/withResolvers';
+} from './helpers/promise';
 
 /**
  * An object representation of a `Call`.
@@ -213,6 +214,7 @@ export class Call {
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
   private fastReconnectDeadlineSeconds: number = 0;
+  private disconnectionTimeoutSeconds: number = 0;
   private lastOfflineTimestamp: number = 0;
   private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   // maintain the order of publishing tracks to restore them after a reconnection
@@ -1051,6 +1053,9 @@ export class Call {
    */
   private handleSfuSignalClose = (sfuClient: StreamSfuClient) => {
     this.logger('debug', '[Reconnect] SFU signal connection closed');
+    // SFU WS closed before we finished current join, no need to schedule reconnect
+    // because join operation will fail
+    if (this.state.callingState === CallingState.JOINING) return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
     this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
@@ -1068,14 +1073,35 @@ export class Call {
   private reconnect = async (
     strategy: WebsocketReconnectStrategy,
   ): Promise<void> => {
+    if (
+      this.state.callingState === CallingState.RECONNECTING ||
+      this.state.callingState === CallingState.RECONNECTING_FAILED
+    )
+      return;
+
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
       this.logger(
         'info',
         `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
       );
 
+      let reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
+
       do {
+        if (
+          this.disconnectionTimeoutSeconds > 0 &&
+          (Date.now() - reconnectStartTime) / 1000 >
+            this.disconnectionTimeoutSeconds
+        ) {
+          this.logger(
+            'warn',
+            '[Reconnect] Stopping reconnection attempts after reaching disconnection timeout',
+          );
+          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          return;
+        }
+
         // we don't increment reconnect attempts for the FAST strategy.
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
           this.reconnectAttempts++;
@@ -1193,7 +1219,7 @@ export class Call {
     currentSubscriber?.detachEventHandlers();
     currentPublisher?.detachEventHandlers();
 
-    const migrationTask = currentSfuClient.enterMigration();
+    const migrationTask = makeSafePromise(currentSfuClient.enterMigration());
 
     try {
       const currentSfu = currentSfuClient.edgeName;
@@ -1211,7 +1237,7 @@ export class Call {
       // Wait for the migration to complete, then close the previous SFU client
       // and the peer connection instances. In case of failure, the migration
       // task would throw an error and REJOIN would be attempted.
-      await migrationTask;
+      await migrationTask();
 
       // in MIGRATE, we can consider the call as joined only after
       // `participantMigrationComplete` event is received, signaled by
@@ -2336,5 +2362,14 @@ export class Call {
       enabled ? undefined : { enabled: false },
     );
     this.dynascaleManager.applyTrackSubscriptions();
+  };
+
+  /**
+   * Sets the maximum amount of time a user can remain waiting for a reconnect
+   * after a network disruption
+   * @param timeoutSeconds Timeout in seconds, or 0 to keep reconnecting indefinetely
+   */
+  setDisconnectionTimeout = (timeoutSeconds: number) => {
+    this.disconnectionTimeoutSeconds = timeoutSeconds;
   };
 }

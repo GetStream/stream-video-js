@@ -146,6 +146,12 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * In Node.js environment, you can use the `ws` package.
    */
   WebSocketImpl?: typeof WebSocket;
+
+  /**
+   * Create Web Worker to initiate timer events like health checks. Can possibly prevent
+   * timer throttling issues in inactive browser tabs.
+   */
+  expertimental_enableTimerWorker?: boolean;
 };
 
 export type TokenProvider = () => Promise<string>;
