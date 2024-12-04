@@ -12,6 +12,7 @@ import { getLogger } from '../logger';
 import { BrowserPermission, canQueryPermissions } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
+import { isReactNative } from '../helpers/platforms';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -196,18 +197,19 @@ export const getAudioStream = async (
     return await getStream(constraints);
   } catch (error) {
     if (
-      global.DOMException &&
-      error instanceof DOMException &&
+      error &&
+      typeof error === 'object' &&
+      'name' in error &&
       error.name === 'OverconstrainedError' &&
       trackConstraints?.deviceId
     ) {
-      const { deviceId, ...relaxedContraints } = trackConstraints;
+      const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
         'Failed to get audio stream, will try again with relaxed contraints',
-        { error, constraints, relaxedContraints },
+        { error, constraints, relaxedConstraints },
       );
-      return getAudioStream(relaxedContraints);
+      return getAudioStream(relaxedConstraints);
     }
 
     getLogger(['devices'])('error', 'Failed to get audio stream', {
@@ -243,17 +245,19 @@ export const getVideoStream = async (
     return await getStream(constraints);
   } catch (error) {
     if (
-      error instanceof DOMException &&
+      error &&
+      typeof error === 'object' &&
+      'name' in error &&
       error.name === 'OverconstrainedError' &&
       trackConstraints?.deviceId
     ) {
-      const { deviceId, ...relaxedContraints } = trackConstraints;
+      const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
-        'Failed to get video stream, will try again with relaxed contraints',
-        { error, constraints, relaxedContraints },
+        'Failed to get video stream, will try again with relaxed constraints',
+        { error, constraints, relaxedConstraints },
       );
-      return getVideoStream(relaxedContraints);
+      return getVideoStream(relaxedConstraints);
     }
 
     getLogger(['devices'])('error', 'Failed to get video stream', {

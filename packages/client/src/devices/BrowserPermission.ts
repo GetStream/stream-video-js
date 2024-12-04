@@ -73,10 +73,16 @@ export class BrowserPermission {
           const isGranted = this.state === 'granted';
 
           if (!isGranted && throwOnNotAllowed) {
-            throw new DOMException(
-              'Permission was not granted previously, and prompting again is not allowed',
-              'NotAllowedError',
-            );
+            if (typeof DOMException !== 'undefined') {
+              throw new DOMException(
+                'Permission was not granted previously, and prompting again is not allowed',
+                'NotAllowedError',
+              );
+            } else {
+              throw new Error(
+                'Permission was not granted previously, and prompting again is not allowed',
+              );
+            }
           }
 
           return isGranted;
@@ -92,9 +98,10 @@ export class BrowserPermission {
           return true;
         } catch (e) {
           if (
-            global.DOMException &&
-            e instanceof DOMException &&
-            e.name === 'NotAllowedError'
+            e &&
+            typeof e === 'object' &&
+            'name' in e &&
+            (e.name === 'NotAllowedError' || e.name === 'SecurityError')
           ) {
             this.logger('info', 'Browser permission was not granted', {
               permission: this.permission,
