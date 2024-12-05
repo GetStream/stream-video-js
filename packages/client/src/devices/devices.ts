@@ -9,7 +9,7 @@ import {
   startWith,
 } from 'rxjs';
 import { getLogger } from '../logger';
-import { BrowserPermission, canQueryPermissions } from './BrowserPermission';
+import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
 
@@ -170,6 +170,17 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   return stream;
 };
 
+function isOverconstrainedError(error: unknown) {
+  return (
+    error &&
+    typeof error === 'object' &&
+    (('name' in error && error.name === 'OverconstrainedError') ||
+      ('message' in error &&
+        typeof error.message === 'string' &&
+        error.message.startsWith('OverconstrainedError')))
+  );
+}
+
 /**
  * Returns an audio media stream that fulfills the given constraints.
  * If no constraints are provided, it uses the browser's default ones.
@@ -191,7 +202,7 @@ export const getAudioStream = async (
   try {
     await getAudioBrowserPermission().prompt({
       throwOnNotAllowed: true,
-      forcePrompt: canQueryPermissions(),
+      forcePrompt: true,
     });
     return await getStream(constraints);
   } catch (error) {
@@ -233,7 +244,7 @@ export const getVideoStream = async (
   try {
     await getVideoBrowserPermission().prompt({
       throwOnNotAllowed: true,
-      forcePrompt: canQueryPermissions(),
+      forcePrompt: true,
     });
     return await getStream(constraints);
   } catch (error) {
@@ -288,17 +299,6 @@ export const getScreenShareStream = async (
     throw e;
   }
 };
-
-function isOverconstrainedError(error: unknown) {
-  return (
-    error &&
-    typeof error === 'object' &&
-    (('name' in error && error.name === 'OverconstrainedError') ||
-      ('message' in error &&
-        typeof error.message === 'string' &&
-        error.message.startsWith('OverconstrainedError')))
-  );
-}
 
 export const deviceIds$ =
   typeof navigator !== 'undefined' &&
