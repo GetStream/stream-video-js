@@ -11,7 +11,7 @@ import {
 import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
-import { usePaginatedLayoutSortPreset } from './hooks';
+import { useFilteredParticipants, usePaginatedLayoutSortPreset } from './hooks';
 
 const GROUP_SIZE = 16;
 
@@ -107,9 +107,12 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   ] = useState<HTMLDivElement | null>(null);
 
   const call = useCall();
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
-  const participants = useParticipants();
+  const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
+  const participants = useFilteredParticipants({
+    excludeLocalParticipant,
+    filterParticipants,
+  });
 
   usePaginatedLayoutSortPreset(call);
 
@@ -123,20 +126,8 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
 
   // only used to render video elements
   const participantGroups = useMemo(
-    () =>
-      chunk(
-        (excludeLocalParticipant ? remoteParticipants : participants).filter(
-          (participant) => filterParticipants?.(participant) ?? true,
-        ),
-        groupSize,
-      ),
-    [
-      excludeLocalParticipant,
-      remoteParticipants,
-      participants,
-      groupSize,
-      filterParticipants,
-    ],
+    () => chunk(participants, groupSize),
+    [participants, groupSize],
   );
 
   const pageCount = participantGroups.length;

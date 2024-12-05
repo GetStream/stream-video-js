@@ -16,7 +16,7 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import { useSpeakerLayoutSortPreset } from './hooks';
+import { useFilteredParticipants, useSpeakerLayoutSortPreset } from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
@@ -83,9 +83,8 @@ export const SpeakerLayout = ({
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
-  const [participantInSpotlight, ...otherParticipants] = (
-    excludeLocalParticipant ? remoteParticipants : allParticipants
-  ).filter((participant) => filterParticipants?.(participant) ?? true);
+  const [participantInSpotlight, ...otherParticipants] =
+    useFilteredParticipants({ excludeLocalParticipant, filterParticipants });
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =
     useState<HTMLDivElement | null>(null);
   const [participantsBarElement, setParticipantsBarElement] =
