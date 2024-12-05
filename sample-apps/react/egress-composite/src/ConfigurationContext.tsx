@@ -81,6 +81,7 @@ export type ConfigurationValue = {
     'participant.outline_width'?: string;
     'participant.border_radius'?: string | number;
     'participant.placeholder_background_color'?: string;
+    'participant.include_roles'?: string[];
 
     // ✅
     'participant_label.display'?: boolean;

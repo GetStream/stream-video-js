@@ -71,6 +71,11 @@ export type PaginatedGridLayoutProps = {
   excludeLocalParticipant?: boolean;
 
   /**
+   * Predicate to filter call participants.
+   */
+  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+
+  /**
    * When set to `false` disables mirroring of the local partipant's video.
    * @default true
    */
@@ -89,6 +94,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
       ? props.groupSize || GROUP_SIZE
       : GROUP_SIZE,
     excludeLocalParticipant = false,
+    filterParticipants,
     mirrorLocalParticipantVideo = true,
     pageArrowsVisible = true,
     VideoPlaceholder,
@@ -119,10 +125,18 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   const participantGroups = useMemo(
     () =>
       chunk(
-        excludeLocalParticipant ? remoteParticipants : participants,
+        (excludeLocalParticipant ? remoteParticipants : participants).filter(
+          (participant) => filterParticipants?.(participant) ?? true,
+        ),
         groupSize,
       ),
-    [excludeLocalParticipant, remoteParticipants, participants, groupSize],
+    [
+      excludeLocalParticipant,
+      remoteParticipants,
+      participants,
+      groupSize,
+      filterParticipants,
+    ],
   );
 
   const pageCount = participantGroups.length;
