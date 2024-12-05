@@ -1,9 +1,7 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import {
   Dispatcher,
-  findCodec,
   getGenericSdp,
-  getPayloadTypeForCodec,
   isSfuEvent,
   muteTypeToTrackType,
   Publisher,
@@ -806,9 +804,7 @@ export class Call {
           clientDetails,
           fastReconnect: performingFastReconnect,
           reconnectDetails,
-          preferredPublishOptions: this.getPreferredCodecs(
-            publishingCapabilitiesSdp,
-          ),
+          preferredPublishOptions: this.getPreferredCodecs(),
         });
 
       this.initialPublishOptions = publishOptions;
@@ -911,27 +907,19 @@ export class Call {
    * This is an experimental client feature and subject to change.
    * @internal
    */
-  private getPreferredCodecs = (sdp: string): PublishOption[] => {
+  private getPreferredCodecs = (): PublishOption[] => {
     const { preferredCodec, fmtpLine, preferredBitrate, maxSimulcastLayers } =
       this.clientPublishOptions || {};
     if (!preferredCodec && !preferredBitrate && !maxSimulcastLayers) return [];
 
-    let sfuCodec: Codec | undefined;
-    const codec = findCodec(`video/${preferredCodec}`, fmtpLine);
-    if (codec) {
-      const { clockRate, mimeType, sdpFmtpLine } = codec;
-      sfuCodec = Codec.create({
-        name: preferredCodec, // e.g. 'vp9'
-        fmtp: sdpFmtpLine || '',
-        clockRate: clockRate,
-        payloadType: getPayloadTypeForCodec(sdp, mimeType, sdpFmtpLine),
-      });
-    }
+    const codec = preferredCodec
+      ? Codec.create({ name: preferredCodec.split('/').pop(), fmtp: fmtpLine })
+      : undefined;
 
     const preferredPublishOptions = [
       PublishOption.create({
         trackType: TrackType.VIDEO,
-        codec: sfuCodec,
+        codec,
         bitrate: preferredBitrate,
         maxSpatialLayers: maxSimulcastLayers,
       }),

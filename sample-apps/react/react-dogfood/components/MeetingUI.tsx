@@ -63,12 +63,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           ? parseInt(bitrateOverride, 10)
           : undefined;
         call.updatePublishOptions({
-          preferredCodec: videoCodecOverride || 'vp9',
+          preferredCodec: videoCodecOverride,
           fmtpLine: fmtpOverride,
           preferredBitrate,
           maxSimulcastLayers: maxSimulcastLayers
             ? parseInt(maxSimulcastLayers, 10)
-            : 3, // default to 3
+            : undefined,
         });
         await call.join({ create: true });
         setShow('active-call');
