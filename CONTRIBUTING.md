@@ -31,32 +31,17 @@ Please note that some packages could require extra setup steps:
 - please check the README of each package as well
 - please check for `.env-example` files that show you how to create a local `.env` file for the given package to hold credentials
 
-### Running docs
-
-Some packages contain documentation pages, these are located in the `docusaurus` folder of the given package's root directory (for example: `packages/react-sdk/docusaurus`).
-
-To run them:
-
-```bach
-# navigate to the given package
-cd packages/react-sdk
-# start docs
-stream-chat-docusaurus -s
-```
-
-Follow this guide to set up [stream-chat-docusaurus](https://github.com/GetStream/stream-chat-docusaurus-cli)
-
 ## Guidelines
 
 ### React SDK
 
-- Don't forget to update the documentation located in `packages/react-sdk/docusaurus`
+- Don't forget to update [the documentation](https://github.com/GetStream/docs-content/tree/main/chat-sdk/react)
 - If you need to update tutorials, don't forget to also update the [relevant codesandboxes](https://codesandbox.io/dashboard/recent?workspace=cc639528-2089-4e83-ad4c-d161569e2f37) as well (in case we have one)
 - Don't forget to update relevant sample apps located in `sample-apps/react`
 
 ### React Native SDK
 
-- Don't forget to update the documentation located in `packages/react-native-sdk/docusaurus`
+- Don't forget to update [the documentation](https://github.com/GetStream/docs-content/tree/main/chat-sdk/react-native)
   // TODO
 
 ### Client

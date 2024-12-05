@@ -10,8 +10,7 @@
     "clean": "rimraf dist",
     "start": "rollup -c -w",
     "build": "rimraf dist && NODE_ENV=production rollup -c && yarn copy-css",
-    "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
-    "start:docs": "npx stream-chat-docusaurus -s"
+    "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/"
   },
   "repository": {
     "type": "git",
