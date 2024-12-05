@@ -5,16 +5,11 @@ import {
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
 import './PaginatedGrid.scss';
-import { useFilterParticipantByRole } from '../../../hooks/useFilterParticipantsByRole';
 
 export const PaginatedGrid = () => {
   const {
-    options: {
-      'layout.grid.page_size': pageSize = 20,
-      'participant.include_roles': includeRoles,
-    },
+    options: { 'layout.grid.page_size': pageSize = 20 },
   } = useConfigurationContext();
-  const filterParticipants = useFilterParticipantByRole(includeRoles);
 
   return (
     <div className="paginated-grid" data-testid="grid">
@@ -26,7 +21,6 @@ export const PaginatedGrid = () => {
           />
         }
         excludeLocalParticipant
-        filterParticipants={filterParticipants}
         pageArrowsVisible={false}
         groupSize={pageSize}
       />
