@@ -10,6 +10,7 @@ type AppGlobalStore = {
   userImageUrl?: string;
   userName: string;
   appMode: AppMode;
+  callId?: string;
   appEnvironment: AppEnvironment;
   chatLabelNoted?: boolean;
   themeMode: ThemeMode;
@@ -28,6 +29,7 @@ export const {
     userImageUrl: '',
     userName: '',
     appMode: 'None',
+    callId: Math.random().toString(36).substring(6),
     appEnvironment:
       (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT as AppEnvironment) || 'demo',
     chatLabelNoted: false,
@@ -38,6 +40,7 @@ export const {
   [
     'apiKey',
     'appEnvironment',
+    'callId',
     'userId',
     'userName',
     'userImageUrl',
