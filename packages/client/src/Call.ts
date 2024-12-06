@@ -289,7 +289,7 @@ export class Call {
     this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
   }
 
-  private async setup() {
+  private setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
@@ -297,6 +297,12 @@ export class Call {
         this.on('all', (event) => {
           // update state with the latest event data
           this.state.updateFromEvent(event);
+        }),
+      );
+
+      this.leaveCallHooks.add(
+        this.on('changePublishOptions', (event) => {
+          this.initialPublishOptions = event.publishOptions;
         }),
       );
 
@@ -310,9 +316,9 @@ export class Call {
 
       this.initialized = true;
     });
-  }
+  };
 
-  private registerEffects() {
+  private registerEffects = () => {
     this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
       createSubscription(this.state.settings$, (settings) => {
@@ -401,7 +407,7 @@ export class Call {
         }
       }),
     );
-  }
+  };
 
   private handleOwnCapabilitiesUpdated = async (
     ownCapabilities: OwnCapability[],
