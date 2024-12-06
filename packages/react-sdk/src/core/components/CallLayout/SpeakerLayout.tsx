@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { hasScreenShare } from '@stream-io/video-client';
+import {
+  hasScreenShare,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
@@ -13,7 +16,7 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import { useSpeakerLayoutSortPreset } from './hooks';
+import { useFilteredParticipants, useSpeakerLayoutSortPreset } from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
@@ -42,6 +45,10 @@ export type SpeakerLayoutProps = {
    */
   excludeLocalParticipant?: boolean;
   /**
+   * Predicate to filter call participants.
+   */
+  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+  /**
    * When set to `false` disables mirroring of the local participant's video.
    * @default true
    */
@@ -69,15 +76,15 @@ export const SpeakerLayout = ({
   participantsBarLimit,
   mirrorLocalParticipantVideo = true,
   excludeLocalParticipant = false,
+  filterParticipants,
   pageArrowsVisible = true,
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
-  const [participantInSpotlight, ...otherParticipants] = excludeLocalParticipant
-    ? remoteParticipants
-    : allParticipants;
+  const [participantInSpotlight, ...otherParticipants] =
+    useFilteredParticipants({ excludeLocalParticipant, filterParticipants });
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =
     useState<HTMLDivElement | null>(null);
   const [participantsBarElement, setParticipantsBarElement] =
