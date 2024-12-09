@@ -72,7 +72,7 @@ The monorepo consists of multiple folders, the most important of which are `pack
 - The `sample-apps` folder contains the sample apps that are built using the packages from the `packages` folder.
   React Native's most relevant sample app is the `dogfooding` app which is a complete app that implements most of the features of the SDK.
 
-- The `react-native-sdk/docusaurus` folder contains the documentation and guides.
+- The [`docs-content`](https://github.com/GetStream/docs-content/tree/main/chat-sdk/react-native) repo contains the documentation and guides.
 
 ## **Requirements** 🛠
 

@@ -18,7 +18,6 @@ on:
       - 'sample-apps/react/**'
       - 'packages/**'
       - '!packages/react-native-sdk/**'
-      - '!**/docusaurus/**'
   workflow_dispatch:
 
 concurrency:
