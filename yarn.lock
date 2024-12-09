@@ -8488,16 +8488,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:125.0.2-alpha.3":
-  version: 125.0.2-alpha.3
-  resolution: "@stream-io/react-native-webrtc@npm:125.0.2-alpha.3"
+"@stream-io/react-native-webrtc@npm:125.0.2-alpha.4":
+  version: 125.0.2-alpha.4
+  resolution: "@stream-io/react-native-webrtc@npm:125.0.2-alpha.4"
   dependencies:
     base64-js: 1.5.1
     debug: 4.3.4
     event-target-shim: 6.0.2
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: d1037a178bf339c975364515a0e414586bc7e4ad529f1037d1ccda878309856f04ca25d4d7f6e262606e299dfb15dbd9593bfa07ea9d4e00b509003e0a418e7b
+  checksum: be5336f0ebc9c923ea49463cfbf2272735e13b218588c30c0a852debc92ae675e25f708715cf95936539ad813e9f339cf3c82e80215d3515d0364990f6c5a5bc
   languageName: node
   linkType: hard
 
@@ -8714,7 +8714,7 @@ __metadata:
     "@rnx-kit/babel-preset-metro-react-native": ^1.1.3
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
-    "@stream-io/react-native-webrtc": 125.0.2-alpha.3
+    "@stream-io/react-native-webrtc": 125.0.2-alpha.4
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/eslint": ^8.56.10
