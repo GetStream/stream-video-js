@@ -92,6 +92,7 @@ import {
   ClientDetails,
   Codec,
   PublishOption,
+  SubscribeOption,
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
@@ -810,7 +811,8 @@ export class Call {
           clientDetails,
           fastReconnect: performingFastReconnect,
           reconnectDetails,
-          preferredPublishOptions: this.getPreferredCodecs(),
+          preferredPublishOptions: this.getPreferredPublishOptions(),
+          preferredSubscribeOptions: this.getPreferredSubscribeOptions(),
         });
 
       this.initialPublishOptions = publishOptions;
@@ -913,7 +915,7 @@ export class Call {
    * This is an experimental client feature and subject to change.
    * @internal
    */
-  private getPreferredCodecs = (): PublishOption[] => {
+  private getPreferredPublishOptions = (): PublishOption[] => {
     const { preferredCodec, fmtpLine, preferredBitrate, maxSimulcastLayers } =
       this.clientPublishOptions || {};
     if (!preferredCodec && !preferredBitrate && !maxSimulcastLayers) return [];
@@ -943,6 +945,25 @@ export class Call {
     }
 
     return preferredPublishOptions;
+  };
+
+  /**
+   * Prepares the preferred options for subscribing to tracks.
+   * This is an experimental client feature and subject to change.
+   * @internal
+   */
+  private getPreferredSubscribeOptions = (): SubscribeOption[] => {
+    const { subscriberCodec, subscriberFmtpLine } =
+      this.clientPublishOptions || {};
+    if (!subscriberCodec || !subscriberFmtpLine) return [];
+    return [
+      SubscribeOption.create({
+        trackType: TrackType.VIDEO,
+        codec: [
+          { name: subscriberCodec.split('/').pop(), fmtp: subscriberFmtpLine },
+        ],
+      }),
+    ];
   };
 
   /**

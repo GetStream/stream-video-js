@@ -174,6 +174,14 @@ export type ClientPublishOptions = {
    */
   maxSimulcastLayers?: number;
   /**
+   * The preferred subscription (incoming video stream) codec.
+   */
+  subscriberCodec?: PreferredCodec;
+  /**
+   * The fmtp line for the subscriber codec.
+   */
+  subscriberFmtpLine?: string;
+  /**
    * Screen share settings.
    */
   screenShareSettings?: ScreenShareSettings;

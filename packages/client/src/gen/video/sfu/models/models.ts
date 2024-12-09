@@ -5,6 +5,7 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
+
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -192,6 +193,25 @@ export interface VideoLayer {
    * @generated from protobuf field: stream.video.sfu.models.VideoQuality quality = 6;
    */
   quality: VideoQuality;
+}
+/**
+ * SubscribeOption represents the configuration options for subscribing to a track.
+ *
+ * @generated from protobuf message stream.video.sfu.models.SubscribeOption
+ */
+export interface SubscribeOption {
+  /**
+   * The type of the track being subscribed (e.g., video, screenshare).
+   *
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
+   */
+  trackType: TrackType;
+  /**
+   * The codecs supported by the subscriber for decoding tracks.
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.Codec codec = 2;
+   */
+  codec: Codec[];
 }
 /**
  * PublishOption represents the configuration options for publishing a track.
@@ -1141,6 +1161,34 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
  * @generated MessageType for protobuf message stream.video.sfu.models.VideoLayer
  */
 export const VideoLayer = new VideoLayer$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SubscribeOption$Type extends MessageType<SubscribeOption> {
+  constructor() {
+    super('stream.video.sfu.models.SubscribeOption', [
+      {
+        no: 1,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      {
+        no: 2,
+        name: 'codec',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => Codec,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.SubscribeOption
+ */
+export const SubscribeOption = new SubscribeOption$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PublishOption$Type extends MessageType<PublishOption> {
   constructor() {

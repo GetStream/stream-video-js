@@ -50,6 +50,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     router.query['video_codec']) as PreferredCodec | undefined;
   const fmtpOverride = router.query['fmtp'] as string | undefined;
   const bitrateOverride = router.query['bitrate'] as string | undefined;
+  const videoDecoderOverride = router.query['video_decoder'] as
+    | PreferredCodec
+    | undefined;
+  const videoDecoderFmtpOverride = router.query['video_decoder_fmtp'] as
+    | string
+    | undefined;
   const maxSimulcastLayers = router.query['max_simulcast_layers'] as
     | string
     | undefined;
@@ -66,6 +72,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           preferredCodec: videoCodecOverride,
           fmtpLine: fmtpOverride,
           preferredBitrate,
+          subscriberCodec: videoDecoderOverride,
+          subscriberFmtpLine: videoDecoderFmtpOverride,
           maxSimulcastLayers: maxSimulcastLayers
             ? parseInt(maxSimulcastLayers, 10)
             : undefined,
@@ -84,6 +92,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       fmtpOverride,
       maxSimulcastLayers,
       videoCodecOverride,
+      videoDecoderFmtpOverride,
+      videoDecoderOverride,
     ],
   );
 
@@ -253,14 +263,11 @@ const ErrorPage = ({
 export const LoadingScreen = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const [message, setMessage] = useState('');
-  useEffect(() => {
-    if (callingState === CallingState.RECONNECTING) {
-      setMessage('Please wait, we are connecting you to the call...');
-    } else if (callingState === CallingState.JOINED) {
-      setMessage('');
-    }
-  }, [callingState]);
+  const message =
+    callingState === CallingState.RECONNECTING
+      ? 'Please wait, we are connecting you to the call...'
+      : '';
+
   return (
     <div className="str-video__call">
       <div className="str-video__call__loading-screen">
