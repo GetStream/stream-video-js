@@ -34,6 +34,7 @@ yarn openapi-generator-cli generate \
   -i "$SCHEMA_FILE" \
   -g typescript-fetch \
   -o "$TEMP_OUTPUT_DIR" \
+  --skip-validate-spec \
   --additional-properties=supportsES6=true \
   --additional-properties=modelPropertyNaming=original \
   --additional-properties=enumPropertyNaming=UPPERCASE \

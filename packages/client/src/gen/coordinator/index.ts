@@ -4824,6 +4824,397 @@ export interface PushNotificationSettingsResponse {
 /**
  *
  * @export
+ * @interface QueryAggregateCallStatsRequest
+ */
+export interface QueryAggregateCallStatsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryAggregateCallStatsRequest
+   */
+  from?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof QueryAggregateCallStatsRequest
+   */
+  report_types?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryAggregateCallStatsRequest
+   */
+  to?: string;
+}
+
+/**
+ *
+ * @export
+ * @interface CallDurationReportResponse
+ */
+export interface CallDurationReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<CallDurationReport>>}
+   * @memberof CallDurationReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<CallDurationReport>>;
+}
+/**
+ *
+ * @export
+ * @interface CallDurationReport
+ */
+export interface CallDurationReport {
+  /**
+   *
+   * @type {Array<ReportByHistogramBucket>}
+   * @memberof CallDurationReport
+   */
+  histogram: Array<ReportByHistogramBucket>;
+}
+
+/**
+ *
+ * @export
+ * @interface CallParticipantCountReportResponse
+ */
+export interface CallParticipantCountReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<CallParticipantCountReport>>}
+   * @memberof CallParticipantCountReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<CallParticipantCountReport>>;
+}
+
+/**
+ *
+ * @export
+ * @interface CallParticipantCountReport
+ */
+export interface CallParticipantCountReport {
+  /**
+   *
+   * @type {Array<ReportByHistogramBucket>}
+   * @memberof CallParticipantCountReport
+   */
+  histogram: Array<ReportByHistogramBucket>;
+}
+
+/**
+ *
+ * @export
+ * @interface CallsPerDayReportResponse
+ */
+export interface CallsPerDayReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<CallsPerDayReport>>}
+   * @memberof CallsPerDayReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<CallsPerDayReport>>;
+}
+
+/**
+ *
+ * @export
+ * @interface CallsPerDayReport
+ */
+export interface CallsPerDayReport {
+  /**
+   *
+   * @type {number}
+   * @memberof CallsPerDayReport
+   */
+  count: number;
+}
+
+/**
+ *
+ * @export
+ * @interface NetworkMetricsReportResponse
+ */
+export interface NetworkMetricsReportResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_connection_time?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_jitter?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_latency?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_time_to_reconnect?: number;
+}
+
+/**
+ *
+ * @export
+ * @interface DailyAggregateCallStatsResponse
+ */
+export interface DailyAggregateCallStatsResponse<T = any> {
+  /**
+   *
+   * @type {string}
+   * @memberof DailyAggregateCallStatsResponse<T>
+   */
+  date: string;
+    /**
+   *
+   * @type {T}
+   * @memberof DailyAggregateCallStatsResponse<T>
+   */
+  report: T;
+}
+
+/**
+ *
+ * @export
+ * @interface QualityScoreReportResponse
+ */
+export interface QualityScoreReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<QualityScoreReport>>}
+   * @memberof QualityScoreReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<QualityScoreReport>>;
+}
+
+/**
+ *
+ * @export
+ * @interface QualityScoreReport
+ */
+export interface QualityScoreReport {
+  /**
+   *
+   * @type {Array<ReportByHistogramBucket>}
+   * @memberof QualityScoreReport
+   */
+  histogram: Array<ReportByHistogramBucket>;
+}
+
+/**
+ *
+ * @export
+ * @interface ReportByHistogramBucket
+ */
+export interface ReportByHistogramBucket {
+  /**
+   *
+   * @type {string}
+   * @memberof ReportByHistogramBucket
+   */
+  category: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ReportByHistogramBucket
+   */
+  count: number;
+  /**
+   *
+   * @type {Bound}
+   * @memberof ReportByHistogramBucket
+   */
+  lower_bound?: Bound;
+  /**
+   *
+   * @type {number}
+   * @memberof ReportByHistogramBucket
+   */
+  mean: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ReportByHistogramBucket
+   */
+  sum: number;
+  /**
+   *
+   * @type {Bound}
+   * @memberof ReportByHistogramBucket
+   */
+  upper_bound?: Bound;
+}
+
+/**
+ *
+ * @export
+ * @interface Bound
+ */
+export interface Bound {
+  /**
+   *
+   * @type {boolean}
+   * @memberof Bound
+   */
+  inclusive: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof Bound
+   */
+  value: number;
+}
+
+/**
+ *
+ * @export
+ * @interface SDKUsageReportResponse
+ */
+export interface SDKUsageReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<SDKUsageReport>>}
+   * @memberof SDKUsageReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<SDKUsageReport>>;
+}
+
+/**
+ *
+ * @export
+ * @interface SDKUsageReport
+ */
+export interface SDKUsageReport {
+  /**
+   *
+   * @type {{ [key: string]: PerSDKUsageReport; }}
+   * @memberof SDKUsageReport
+   */
+  per_sdk_usage: { [key: string]: PerSDKUsageReport };
+}
+
+/**
+ *
+ * @export
+ * @interface PerSDKUsageReport
+ */
+export interface PerSDKUsageReport {
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof PerSDKUsageReport
+   */
+  by_version: { [key: string]: number };
+  /**
+   *
+   * @type {number}
+   * @memberof PerSDKUsageReport
+   */
+  total: number;
+}
+
+/**
+ *
+ * @export
+ * @interface UserFeedbackReportResponse
+ */
+export interface UserFeedbackReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<UserFeedbackReport>>}
+   * @memberof UserFeedbackReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<UserFeedbackReport>>;
+}
+
+/**
+ *
+ * @export
+ * @interface UserFeedbackReport
+ */
+export interface UserFeedbackReport {
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof UserFeedbackReport
+   */
+  count_by_rating: { [key: string]: number };
+  /**
+   *
+   * @type {number}
+   * @memberof UserFeedbackReport
+   */
+  unreported_count: number;
+}
+
+/**
+ * Basic response information
+ * @export
+ * @interface QueryAggregateCallStatsResponse
+ */
+export interface QueryAggregateCallStatsResponse {
+  /**
+   *
+   * @type {CallDurationReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  call_duration_report?: CallDurationReportResponse;
+  /**
+   *
+   * @type {CallParticipantCountReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  call_participant_count_report?: CallParticipantCountReportResponse;
+  /**
+   *
+   * @type {CallsPerDayReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  calls_per_day_report?: CallsPerDayReportResponse;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {NetworkMetricsReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  network_metrics_report?: NetworkMetricsReportResponse;
+  /**
+   *
+   * @type {QualityScoreReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  quality_score_report?: QualityScoreReportResponse;
+  /**
+   *
+   * @type {SDKUsageReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  sdk_usage_report?: SDKUsageReportResponse;
+  /**
+   *
+   * @type {UserFeedbackReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  user_feedback_report?: UserFeedbackReportResponse;
+}
+
+/**
+ *
+ * @export
  * @interface QueryCallMembersRequest
  */
 export interface QueryCallMembersRequest {
