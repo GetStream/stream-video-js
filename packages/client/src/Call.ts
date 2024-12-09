@@ -26,6 +26,7 @@ import type {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
+  CallRingEvent,
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
@@ -594,6 +595,30 @@ export class Call {
   get isCreatedByMe() {
     return this.state.createdBy?.id === this.currentUserId;
   }
+
+  /**
+   * Update from the call response from the "call.ring" event
+   * @internal
+   */
+  updateFromRingingEvent = async (event: CallRingEvent) => {
+    await this.setup();
+    // call.ring event excludes the call creator in the members list
+    // as the creator does not get the ring event
+    // so update the member list accordingly
+    const creator = this.state.members.find(
+      (m) => m.user.id === event.call.created_by.id,
+    );
+    if (!creator) {
+      this.state.setMembers(event.members);
+    } else {
+      this.state.setMembers([creator, ...event.members]);
+    }
+    // update the call state with the latest event data
+    this.state.updateFromCallResponse(event.call);
+    this.ringingSubject.next(true);
+    this.watching = true;
+    await this.applyDeviceConfig(false);
+  };
 
   /**
    * Loads the information about the call.
