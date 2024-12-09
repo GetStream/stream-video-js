@@ -3429,6 +3429,12 @@ export interface GetCallStatsResponse {
    * @type {number}
    * @memberof GetCallStatsResponse
    */
+  average_connection_time?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
   call_duration_seconds: number;
   /**
    *
@@ -7127,6 +7133,12 @@ export interface UserResponse {
  * @interface UserSessionStats
  */
 export interface UserSessionStats {
+    /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+    average_connection_time?: number;
   /**
    *
    * @type {string}
