@@ -13,7 +13,6 @@
     "start": "rollup -w -c",
     "build": "yarn clean && ./generate-timer-worker.sh && rollup -c",
     "test": "vitest",
-    "clean:docs": "rimraf generated-docs",
     "test-ci": "vitest --coverage",
     "generate:open-api": "./generate-openapi.sh protocol",
     "generate:open-api:dev": "./generate-openapi.sh chat",
