@@ -445,11 +445,13 @@ export class StreamVideoClient {
 
   /**
    * Retrieve the list of available reports aggregated from the call stats.
-   * 
+   *
    * @param data Specify filter conditions like from and to (within last 30 days) and the report types
    * @returns Requested reports with (mostly) raw daily data for each report type requested
    */
-  queryAggregateCallStats = async (data: QueryAggregateCallStatsRequest = {}) => {
+  queryAggregateCallStats = async (
+    data: QueryAggregateCallStatsRequest = {},
+  ) => {
     return this.streamClient.post<
       QueryAggregateCallStatsResponse,
       QueryAggregateCallStatsRequest

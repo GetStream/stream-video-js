@@ -9,18 +9,18 @@ export type TargetResolutionResponse = Required<TargetResolution>;
  * @interface Bound
  */
 export interface Bound {
-    /**
-     *
-     * @type {boolean}
-     * @memberof Bound
-     */
-    inclusive: boolean;
-    /**
-     *
-     * @type {number}
-     * @memberof Bound
-     */
-    value: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof Bound
+   */
+  inclusive: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof Bound
+   */
+  value: number;
 }
 
 /**
@@ -29,17 +29,16 @@ export interface Bound {
  * @interface DailyAggregateCallStatsResponse
  */
 export interface DailyAggregateCallStatsResponse<T = any> {
-    /**
-     *
-     * @type {string}
-     * @memberof DailyAggregateCallStatsResponse<T>
-     */
-    date: string;
-      /**
-     *
-     * @type {T}
-     * @memberof DailyAggregateCallStatsResponse<T>
-     */
-    report: T;
+  /**
+   *
+   * @type {string}
+   * @memberof DailyAggregateCallStatsResponse<T>
+   */
+  date: string;
+  /**
+   *
+   * @type {T}
+   * @memberof DailyAggregateCallStatsResponse<T>
+   */
+  report: T;
 }
-
