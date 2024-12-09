@@ -9,6 +9,7 @@ import {
   TrackInfo,
   TrackType,
 } from '../gen/video/sfu/models/models';
+import { VideoSender } from '../gen/video/sfu/event/events';
 import {
   findOptimalVideoLayers,
   OptimalVideoLayer,
@@ -21,7 +22,6 @@ import {
   trackTypeToParticipantStreamKey,
 } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
-import { VideoSender } from '../gen/video/sfu/event/events';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
@@ -161,7 +161,7 @@ export class Publisher extends BasePeerConnection {
       const trackToPublish = track.clone();
 
       const transceiver = this.transceiverCache.get(publishOption);
-      if (!transceiver || !transceiver.sender.track) {
+      if (!transceiver) {
         this.addTransceiver(trackToPublish, publishOption);
       } else {
         await this.updateTransceiver(transceiver, trackToPublish);

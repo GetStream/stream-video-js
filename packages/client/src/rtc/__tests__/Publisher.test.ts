@@ -5,7 +5,11 @@ import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { DispatchableMessage, Dispatcher } from '../Dispatcher';
-import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import {
+  PeerType,
+  PublishOption,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -526,6 +530,92 @@ describe('Publisher', () => {
           scalabilityMode: 'L1T3',
         },
       ]);
+    });
+  });
+
+  describe('changePublishOptions', () => {
+    it('adds missing transceivers', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      vi.spyOn(track, 'getSettings').mockReturnValue({
+        width: 640,
+        height: 480,
+      });
+      vi.spyOn(track, 'clone').mockReturnValue(track);
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'addTransceiver');
+
+      publisher['publishOptions'] = [
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 0, codec: { name: 'vp8' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1, codec: { name: 'av1' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
+      ];
+
+      publisher['transceiverCache'].add(
+        publisher['publishOptions'][0],
+        transceiver,
+      );
+
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+
+      // enable av1 and vp9
+      await publisher['syncPublishOptions']();
+
+      expect(publisher['transceiverCache'].items().length).toBe(3);
+      expect(publisher['addTransceiver']).toHaveBeenCalledTimes(2);
+      expect(publisher['addTransceiver']).toHaveBeenCalledWith(
+        track,
+        expect.objectContaining({
+          trackType: TrackType.VIDEO,
+          id: 1,
+          codec: { name: 'av1' },
+        }),
+      );
+      expect(publisher['addTransceiver']).toHaveBeenCalledWith(
+        track,
+        expect.objectContaining({
+          trackType: TrackType.VIDEO,
+          id: 2,
+          codec: { name: 'vp9' },
+        }),
+      );
+    });
+
+    it('disables extra transceivers', async () => {
+      const publishOptions: PublishOption[] = [
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 0, codec: { name: 'vp8' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1, codec: { name: 'av1' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
+      ];
+
+      const track = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-ignore test setup
+      transceiver.sender.track = track;
+
+      publisher['transceiverCache'].add(publishOptions[0], transceiver);
+      publisher['transceiverCache'].add(publishOptions[1], transceiver);
+      publisher['transceiverCache'].add(publishOptions[2], transceiver);
+
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+      // disable av1
+      publisher['publishOptions'] = publishOptions.filter(
+        (o) => o.codec?.name !== 'av1',
+      );
+
+      await publisher['syncPublishOptions']();
+
+      expect(publisher['transceiverCache'].items().length).toBe(3);
+      expect(track.stop).toHaveBeenCalledOnce();
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledOnce();
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(null);
     });
   });
 });
