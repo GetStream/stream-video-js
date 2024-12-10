@@ -174,6 +174,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     override fun onCatalystInstanceDestroy() {
         super.onCatalystInstanceDestroy()
         reactApplicationContext.unregisterReceiver(powerReceiver)
+        stopThermalStatusUpdates()
     }
 
     private fun sendPowerModeEvent() {

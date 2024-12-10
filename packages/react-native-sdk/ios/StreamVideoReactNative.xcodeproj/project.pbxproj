@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		05424AC72CFFAF72007ACDAA /* DeviceState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05424AC62CFFAF72007ACDAA /* DeviceState.swift */; };
 		05424ACA2CFFB7EC007ACDAA /* DeviceState.m in Sources */ = {isa = PBXBuildFile; fileRef = 05424AC92CFFB7EC007ACDAA /* DeviceState.m */; };
+		05424AD02D00663D007ACDAA /* StreamVideoReactNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05424ACF2D00663D007ACDAA /* StreamVideoReactNative.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,6 +27,7 @@
 /* Begin PBXFileReference section */
 		05424AC62CFFAF72007ACDAA /* DeviceState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceState.swift; sourceTree = "<group>"; };
 		05424AC92CFFB7EC007ACDAA /* DeviceState.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeviceState.m; sourceTree = "<group>"; };
+		05424ACF2D00663D007ACDAA /* StreamVideoReactNative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamVideoReactNative.swift; sourceTree = "<group>"; };
 		134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStreamVideoReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3E7B5891CC2AC0600A0062D /* StreamVideoReactNative.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamVideoReactNative.m; sourceTree = "<group>"; };
 		D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StreamVideoReactNative.h; sourceTree = "<group>"; };
@@ -71,6 +73,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				05424ACF2D00663D007ACDAA /* StreamVideoReactNative.swift */,
 				05424AC92CFFB7EC007ACDAA /* DeviceState.m */,
 				05424AC62CFFAF72007ACDAA /* DeviceState.swift */,
 				DDCF7DCC2C90359D00420842 /* PictureInPicture */,
@@ -170,6 +173,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05424AD02D00663D007ACDAA /* StreamVideoReactNative.swift in Sources */,
 				05424AC72CFFAF72007ACDAA /* DeviceState.swift in Sources */,
 				05424ACA2CFFB7EC007ACDAA /* DeviceState.m in Sources */,
 			);

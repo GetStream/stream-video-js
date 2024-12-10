@@ -162,30 +162,17 @@ const DeviceStats = () => {
   const [lowPowerMode, setLowPowerMode] = useState<boolean | null>(null);
   const [thermalState, setThermalState] = useState<string | null>(null);
 
-  const [androidPowerSubscription, setAndroidPowerSubscription] =
+  const [powerModeSubscription, setPowerModeSubscription] =
     useState<EmitterSubscription | null>(null);
-  const [androidThermalSubscription, setAndroidThermalSubscription] =
-    useState<EmitterSubscription | null>(null);
-  const [iosPowerSubscription, setIosPowerSubscription] =
-    useState<EmitterSubscription | null>(null);
-  const [iosThermalSubscription, setIosThermalSubscription] =
+  const [thermalStateSubscription, setThermalStateSubscription] =
     useState<EmitterSubscription | null>(null);
 
-  const { StreamVideoReactNative, DeviceState } = NativeModules;
-  if (Platform.OS === 'android' && !StreamVideoReactNative) {
+  const { StreamVideoReactNative } = NativeModules;
+  if (!StreamVideoReactNative) {
     throw new Error('StreamVideoReactNative is not properly linked.');
   }
 
-  if (Platform.OS === 'ios' && !DeviceState) {
-    throw new Error('DeviceState is not properly linked.');
-  }
-
-  let eventEmitter: NativeEventEmitter;
-  if (Platform.OS === 'android') {
-    eventEmitter = new NativeEventEmitter(StreamVideoReactNative);
-  } else {
-    eventEmitter = new NativeEventEmitter(DeviceState);
-  }
+  const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
 
   const handleLowPowerMode = useCallback(
     (isLowPowerMode: boolean, operatingSystem: string) => {
@@ -212,99 +199,55 @@ const DeviceStats = () => {
   );
 
   useEffect(() => {
+    if (!eventEmitterRef.current) {
+      eventEmitterRef.current = new NativeEventEmitter(StreamVideoReactNative);
+    }
+    const eventEmitter = eventEmitterRef.current;
+
     if (callingState === CallingState.JOINED) {
-      if (Platform.OS === 'android') {
-        if (lowPowerMode === null) {
-          StreamVideoReactNative.isLowPowerModeEnabled().then(
-            (isLowPowerMode: boolean) =>
-              handleLowPowerMode(isLowPowerMode, 'android')
-          );
-        }
+      if (lowPowerMode === null) {
+        StreamVideoReactNative.isLowPowerModeEnabled().then(
+          (isLowPowerMode: boolean) =>
+            handleLowPowerMode(isLowPowerMode, Platform.OS)
+        );
+      }
 
-        if (!androidPowerSubscription) {
-          const sub = eventEmitter.addListener(
-            StreamVideoReactNative.POWER_MODE_EVENT,
-            (isLowPowerMode: boolean) =>
-              handleLowPowerMode(isLowPowerMode, 'android')
-          );
-          setAndroidPowerSubscription(sub);
-        }
+      if (!powerModeSubscription) {
+        const sub = eventEmitter.addListener(
+          StreamVideoReactNative.POWER_MODE_EVENT,
+          (isLowPowerMode: boolean) =>
+            handleLowPowerMode(isLowPowerMode, Platform.OS)
+        );
+        setPowerModeSubscription(sub);
+      }
 
-        if (thermalState === null) {
-          StreamVideoReactNative.startThermalStatusUpdates().then(
-            (initialState: string) =>
-              handleThermalState(initialState, 'android')
-          );
-        }
+      if (thermalState === null) {
+        StreamVideoReactNative.startThermalStatusUpdates().then(
+          (initialState: string) =>
+            handleThermalState(initialState, Platform.OS)
+        );
+      }
 
-        if (!androidThermalSubscription) {
-          const sub = eventEmitter.addListener(
-            StreamVideoReactNative.THERMAL_EVENT,
-            (status: string) => handleThermalState(status, 'android')
-          );
-          setAndroidThermalSubscription(sub);
-        }
-      } else if (Platform.OS === 'ios') {
-        if (lowPowerMode === null) {
-          DeviceState?.isLowPowerModeEnabled()?.then(
-            (isLowPowerMode: boolean) =>
-              handleLowPowerMode(isLowPowerMode, 'ios')
-          );
-        }
-
-        if (thermalState === null) {
-          DeviceState?.currentThermalState()?.then((state: any) =>
-            handleThermalState(state, 'ios')
-          );
-        }
-
-        if (!iosPowerSubscription) {
-          const sub = eventEmitter.addListener(
-            'isLowPowerModeEnabled',
-            (res: any) => {
-              handleLowPowerMode(res, 'ios');
-            }
-          );
-          setIosPowerSubscription(sub);
-        }
-
-        if (!iosThermalSubscription) {
-          const sub = eventEmitter.addListener(
-            'thermalStateDidChange',
-            (state: string) => {
-              handleThermalState(state, 'ios');
-            }
-          );
-          setIosThermalSubscription(sub);
-        }
+      if (!thermalStateSubscription) {
+        const sub = eventEmitter.addListener(
+          StreamVideoReactNative.THERMAL_EVENT,
+          (status: string) => handleThermalState(status, Platform.OS)
+        );
+        setThermalStateSubscription(sub);
       }
     } else {
-      if (Platform.OS === 'android') {
-        eventEmitter.removeAllListeners(
-          StreamVideoReactNative.POWER_MODE_EVENT
-        );
-        eventEmitter.removeAllListeners(StreamVideoReactNative.THERMAL_EVENT);
-        StreamVideoReactNative.stopThermalStatusUpdates();
-      } else if (Platform.OS === 'ios') {
-        eventEmitter.removeAllListeners('isLowPowerModeEnabled');
-        eventEmitter.removeAllListeners('thermalStateDidChange');
-      }
+      eventEmitter.removeAllListeners(StreamVideoReactNative.POWER_MODE_EVENT);
+      eventEmitter.removeAllListeners(StreamVideoReactNative.THERMAL_EVENT);
     }
   }, [
+    thermalState,
     callingState,
     lowPowerMode,
     handleLowPowerMode,
-    thermalState,
     handleThermalState,
-    eventEmitter,
     StreamVideoReactNative,
-    StreamVideoReactNative.POWER_MODE_EVENT,
-    StreamVideoReactNative.THERMAL_EVENT,
-    DeviceState,
-    androidPowerSubscription,
-    androidThermalSubscription,
-    iosPowerSubscription,
-    iosThermalSubscription,
+    powerModeSubscription,
+    thermalStateSubscription,
   ]);
 
   return null;
