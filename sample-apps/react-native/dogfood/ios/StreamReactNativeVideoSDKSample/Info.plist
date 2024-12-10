@@ -68,6 +68,9 @@
 	<string>$(PRODUCT_NAME) requires camera access in order to capture and transmit video</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>$(PRODUCT_NAME) requires access to photo library to allow you to share photo
+			attachments</string>
 	<key>RTCAppGroupIdentifier</key>
 	<string>group.io.getstream.rn.videodogfood</string>
 	<key>RTCScreenSharingExtension</key>

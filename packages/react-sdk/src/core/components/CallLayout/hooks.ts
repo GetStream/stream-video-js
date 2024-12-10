@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Call,
   CallTypes,
@@ -10,6 +10,34 @@ import {
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+
+export const useFilteredParticipants = ({
+  excludeLocalParticipant = false,
+  filterParticipants,
+}: {
+  excludeLocalParticipant?: boolean;
+  filterParticipants?: (paritcipant: StreamVideoParticipant) => boolean;
+}) => {
+  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
+  const allParticipants = useParticipants();
+  const remoteParticipants = useRemoteParticipants();
+  return useMemo(() => {
+    const unfilteredParticipants = excludeLocalParticipant
+      ? remoteParticipants
+      : allParticipants;
+    return filterParticipants
+      ? unfilteredParticipants.filter((participant) =>
+          filterParticipants(participant),
+        )
+      : unfilteredParticipants;
+  }, [
+    allParticipants,
+    remoteParticipants,
+    excludeLocalParticipant,
+    filterParticipants,
+  ]);
+};
 
 export const usePaginatedLayoutSortPreset = (call: Call | undefined) => {
   useEffect(() => {

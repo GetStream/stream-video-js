@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.30...@stream-io/video-react-sdk-1.8.0) (2024-12-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.15`
+* `@stream-io/video-react-bindings` updated to version `1.2.9`
+
+### Features
+
+* add an option to filter participants in layouts ([#1612](https://github.com/GetStream/stream-video-js/issues/1612)) ([e1eac3f](https://github.com/GetStream/stream-video-js/commit/e1eac3fa4aa9239b9f0e75b6f33d51cd39c788e5))
+
+## [1.7.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.29...@stream-io/video-react-sdk-1.7.30) (2024-12-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.11.14`
+* `@stream-io/video-react-bindings` updated to version `1.2.8`
 ## [1.7.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.7.28...@stream-io/video-react-sdk-1.7.29) (2024-12-03)
 
 ### Dependency Updates
