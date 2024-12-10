@@ -5,7 +5,6 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
-
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -209,9 +208,9 @@ export interface SubscribeOption {
   /**
    * The codecs supported by the subscriber for decoding tracks.
    *
-   * @generated from protobuf field: repeated stream.video.sfu.models.Codec codec = 2;
+   * @generated from protobuf field: repeated stream.video.sfu.models.Codec codecs = 2;
    */
-  codec: Codec[];
+  codecs: Codec[];
 }
 /**
  * PublishOption represents the configuration options for publishing a track.
@@ -1177,7 +1176,7 @@ class SubscribeOption$Type extends MessageType<SubscribeOption> {
       },
       {
         no: 2,
-        name: 'codec',
+        name: 'codecs',
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
         T: () => Codec,

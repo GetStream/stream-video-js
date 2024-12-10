@@ -984,7 +984,7 @@ export class Call {
     return [
       SubscribeOption.create({
         trackType: TrackType.VIDEO,
-        codec: [
+        codecs: [
           { name: subscriberCodec.split('/').pop(), fmtp: subscriberFmtpLine },
         ],
       }),
