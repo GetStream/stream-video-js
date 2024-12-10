@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Bound, DailyAggregateCallStatsResponse } from "../shims";
+import type { Bound, DailyAggregateCallStatsResponse } from '../shims';
 
 /**
  *
@@ -7079,12 +7079,12 @@ export interface UserResponse {
  * @interface UserSessionStats
  */
 export interface UserSessionStats {
-    /**
+  /**
    *
    * @type {number}
    * @memberof UserSessionStats
    */
-    average_connection_time?: number;
+  average_connection_time?: number;
   /**
    *
    * @type {string}
