@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.15...@stream-io/video-client-1.12.0) (2024-12-10)
+
+
+### Features
+
+* Aggregate stats reports - request and response objects ([#1614](https://github.com/GetStream/stream-video-js/issues/1614)) ([8a47fea](https://github.com/GetStream/stream-video-js/commit/8a47fea491232e524b1de780c12c0d00e0f02bcd))
+
 ## [1.11.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.14...@stream-io/video-client-1.11.15) (2024-12-09)
 
 
