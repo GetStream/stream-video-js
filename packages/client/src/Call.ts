@@ -1619,6 +1619,11 @@ export class Call {
    * @param options the options to use.
    */
   updatePublishOptions = (options: ClientPublishOptions) => {
+    this.logger(
+      'warn',
+      '[call.updatePublishOptions]: You are manually overriding the publish options for this call. ' +
+        'This is not recommended, and it can cause call stability/compatibility issues. Use with caution.',
+    );
     if (this.state.callingState === CallingState.JOINED) {
       this.logger(
         'warn',
