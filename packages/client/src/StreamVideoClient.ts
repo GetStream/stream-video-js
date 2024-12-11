@@ -89,12 +89,11 @@ export class StreamVideoClient {
     if (typeof apiKeyOrArgs === 'string') {
       logLevel = opts?.logLevel || logLevel;
       logger = opts?.logger || logger;
-      if (opts?.expertimental_enableTimerWorker) enableTimerWorker();
+      if (opts?.enableTimerWorker) enableTimerWorker();
     } else {
       logLevel = apiKeyOrArgs.options?.logLevel || logLevel;
       logger = apiKeyOrArgs.options?.logger || logger;
-      if (apiKeyOrArgs.options?.expertimental_enableTimerWorker)
-        enableTimerWorker();
+      if (apiKeyOrArgs.options?.enableTimerWorker) enableTimerWorker();
     }
 
     setLogger(logger, logLevel);

@@ -151,7 +151,7 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * Create Web Worker to initiate timer events like health checks. Can possibly prevent
    * timer throttling issues in inactive browser tabs.
    */
-  expertimental_enableTimerWorker?: boolean;
+  enableTimerWorker?: boolean;
 };
 
 export type TokenProvider = () => Promise<string>;
