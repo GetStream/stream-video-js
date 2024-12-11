@@ -52,7 +52,7 @@ const JoinCallScreen = () => {
           settings_override: {
             ring: {
               auto_cancel_timeout_ms: 30000,
-              incoming_call_timeout_ms: 5000,
+              incoming_call_timeout_ms: 30000,
             },
           },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
