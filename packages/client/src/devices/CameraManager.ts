@@ -4,7 +4,6 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { PreferredCodec } from '../types';
 import { isMobile } from '../compatibility';
 import { isReactNative } from '../helpers/platforms';
 
@@ -83,17 +82,6 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         );
       }
     }
-  }
-
-  /**
-   * Sets the preferred codec for encoding the video.
-   *
-   * @internal internal use only, not part of the public API.
-   * @deprecated use {@link call.updatePublishOptions} instead.
-   * @param codec the codec to use for encoding the video.
-   */
-  setPreferredCodec(codec: PreferredCodec | undefined) {
-    this.call.updatePublishOptions({ preferredCodec: codec });
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {

@@ -1,3 +1,5 @@
+import { TrackType } from '../gen/video/sfu/models/models';
+
 export type BaseStats = {
   audioLevel?: number;
   bytesSent?: number;
@@ -9,9 +11,11 @@ export type BaseStats = {
   framesPerSecond?: number;
   jitter?: number;
   kind?: string;
+  mediaSourceId?: string;
   qualityLimitationReason?: string;
   rid?: string;
   ssrc?: number;
+  trackType?: TrackType;
 };
 
 export type StatsReport = {
@@ -30,6 +34,7 @@ export type AggregatedStatsReport = {
   highestFrameHeight: number;
   highestFramesPerSecond: number;
   codec: string;
+  codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;
   rawReport: StatsReport;
 };
@@ -48,3 +53,10 @@ export type CallStatsReport = {
   participants: ParticipantsStatsReport;
   timestamp: number;
 };
+
+// shim for RTCMediaSourceStats, not yet available in the standard types
+// https://www.w3.org/TR/webrtc-stats/#mediasourcestats-dict*
+export interface RTCMediaSourceStats {
+  kind: string;
+  trackIdentifier: string;
+}
