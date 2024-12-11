@@ -342,6 +342,22 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
+      createSubscription(this.state.session$, (session) => {
+        if (!this.ringing) return;
+
+        const receiverId = this.clientStore.connectedUser?.id;
+        if (!receiverId) return;
+
+        const isAcceptedByMe = Boolean(session?.accepted_by[receiverId]);
+        const isRejectedByMe = Boolean(session?.rejected_by[receiverId]);
+
+        if (isAcceptedByMe || isRejectedByMe) {
+          this.cancelAutoDrop();
+        }
+      }),
+    );
+
+    this.leaveCallHooks.add(
       // watch for auto drop cancellation
       createSubscription(this.state.callingState$, (callingState) => {
         if (!this.ringing) return;
@@ -2000,28 +2016,33 @@ export class Call {
    * Applicable only for ringing calls.
    */
   private scheduleAutoDrop = () => {
+    this.cancelAutoDrop();
+
+    const settings = this.state.settings;
+    if (!settings) return;
+    // ignore if the call is not ringing
+    if (this.state.callingState !== CallingState.RINGING) return;
+
+    const timeoutInMs = this.isCreatedByMe
+      ? settings.ring.auto_cancel_timeout_ms
+      : settings.ring.incoming_call_timeout_ms;
+
+    // 0 means no auto-drop
+    if (timeoutInMs <= 0) return;
+
+    this.dropTimeout = setTimeout(() => {
+      this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
+        this.logger('error', 'Failed to drop call', err);
+      });
+    }, timeoutInMs);
+  };
+
+  /**
+   * Cancels a scheduled auto-drop timeout.
+   */
+  private cancelAutoDrop = () => {
     clearTimeout(this.dropTimeout);
-    this.leaveCallHooks.add(
-      createSubscription(this.state.settings$, (settings) => {
-        if (!settings) return;
-        // ignore if the call is not ringing
-        if (this.state.callingState !== CallingState.RINGING) return;
-
-        const timeoutInMs = this.isCreatedByMe
-          ? settings.ring.auto_cancel_timeout_ms
-          : settings.ring.incoming_call_timeout_ms;
-
-        // 0 means no auto-drop
-        if (timeoutInMs <= 0) return;
-
-        clearTimeout(this.dropTimeout);
-        this.dropTimeout = setTimeout(() => {
-          this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
-            this.logger('error', 'Failed to drop call', err);
-          });
-        }, timeoutInMs);
-      }),
-    );
+    this.dropTimeout = undefined;
   };
 
   /**
