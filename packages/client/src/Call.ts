@@ -342,6 +342,7 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
+      // cancel auto-drop when call is
       createSubscription(this.state.session$, (session) => {
         if (!this.ringing) return;
 
@@ -353,21 +354,6 @@ export class Call {
 
         if (isAcceptedByMe || isRejectedByMe) {
           this.cancelAutoDrop();
-        }
-      }),
-    );
-
-    this.leaveCallHooks.add(
-      // watch for auto drop cancellation
-      createSubscription(this.state.callingState$, (callingState) => {
-        if (!this.ringing) return;
-        if (
-          callingState === CallingState.JOINED ||
-          callingState === CallingState.JOINING ||
-          callingState === CallingState.LEFT
-        ) {
-          clearTimeout(this.dropTimeout);
-          this.dropTimeout = undefined;
         }
       }),
     );
@@ -2031,6 +2017,9 @@ export class Call {
     if (timeoutInMs <= 0) return;
 
     this.dropTimeout = setTimeout(() => {
+      // the call might have stopped ringing by this point,
+      // e.g. it was already accepted and joined
+      if (this.state.callingState !== CallingState.RINGING) return;
       this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
         this.logger('error', 'Failed to drop call', err);
       });
