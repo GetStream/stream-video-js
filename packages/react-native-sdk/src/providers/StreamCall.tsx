@@ -1,13 +1,29 @@
-import { StreamCallProvider, useCall } from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren, useEffect, useRef } from 'react';
-import { Call } from '@stream-io/video-client';
+import {
+  StreamCallProvider,
+  useCall,
+  useCallStateHooks,
+} from '@stream-io/video-react-bindings';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { Call, CallingState, setDeviceState } from '@stream-io/video-client';
 import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
 import {
   canAddPushWSSubscriptionsRef,
   clearPushWSEventSubscriptions,
 } from '../utils/push/internal/utils';
 import { useAndroidKeepCallAliveEffect } from '../hooks/useAndroidKeepCallAliveEffect';
-import { AppState, NativeModules, Platform } from 'react-native';
+import {
+  AppState,
+  NativeModules,
+  Platform,
+  NativeEventEmitter,
+  EmitterSubscription,
+} from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
 export type StreamCallProps = {
@@ -34,6 +50,7 @@ export const StreamCall = ({
       <AndroidKeepCallAlive />
       <IosInformCallkeepCallEnd />
       <ClearPushWSSubscriptions />
+      <DeviceStats />
       {children}
     </StreamCallProvider>
   );
@@ -132,5 +149,106 @@ const ClearPushWSSubscriptions = () => {
       canAddPushWSSubscriptionsRef.current = true;
     };
   }, []);
+  return null;
+};
+
+/**
+ * This is a renderless component to get the device stats like thermal state and power saver mode.
+ */
+const DeviceStats = () => {
+  const { useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
+
+  const [lowPowerMode, setLowPowerMode] = useState<boolean | null>(null);
+  const [thermalState, setThermalState] = useState<string | null>(null);
+
+  const [powerModeSubscription, setPowerModeSubscription] =
+    useState<EmitterSubscription | null>(null);
+  const [thermalStateSubscription, setThermalStateSubscription] =
+    useState<EmitterSubscription | null>(null);
+
+  const { StreamVideoReactNative } = NativeModules;
+  if (!StreamVideoReactNative) {
+    throw new Error('StreamVideoReactNative is not properly linked.');
+  }
+
+  const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
+
+  const handleLowPowerMode = useCallback(
+    (isLowPowerMode: boolean, operatingSystem: string) => {
+      setLowPowerMode(isLowPowerMode);
+      setDeviceState({
+        os: operatingSystem,
+        thermal: thermalState || 'UNKNOWN',
+        isLowPowerMode,
+      });
+    },
+    [thermalState]
+  );
+
+  const handleThermalState = useCallback(
+    (state: string, operatingSystem: string) => {
+      setThermalState(state);
+      setDeviceState({
+        os: operatingSystem,
+        thermal: state,
+        isLowPowerMode: lowPowerMode || false,
+      });
+    },
+    [lowPowerMode]
+  );
+
+  useEffect(() => {
+    if (!eventEmitterRef.current) {
+      eventEmitterRef.current = new NativeEventEmitter(StreamVideoReactNative);
+    }
+    const eventEmitter = eventEmitterRef.current;
+
+    if (callingState === CallingState.JOINED) {
+      if (lowPowerMode === null) {
+        StreamVideoReactNative.isLowPowerModeEnabled().then(
+          (isLowPowerMode: boolean) =>
+            handleLowPowerMode(isLowPowerMode, Platform.OS)
+        );
+      }
+
+      if (!powerModeSubscription) {
+        const sub = eventEmitter.addListener(
+          StreamVideoReactNative.POWER_MODE_EVENT,
+          (isLowPowerMode: boolean) =>
+            handleLowPowerMode(isLowPowerMode, Platform.OS)
+        );
+        setPowerModeSubscription(sub);
+      }
+
+      if (thermalState === null) {
+        StreamVideoReactNative.startThermalStatusUpdates().then(
+          (initialState: string) =>
+            handleThermalState(initialState, Platform.OS)
+        );
+      }
+
+      if (!thermalStateSubscription) {
+        const sub = eventEmitter.addListener(
+          StreamVideoReactNative.THERMAL_EVENT,
+          (status: string) => handleThermalState(status, Platform.OS)
+        );
+        setThermalStateSubscription(sub);
+      }
+    } else {
+      eventEmitter.removeAllListeners(StreamVideoReactNative.POWER_MODE_EVENT);
+      eventEmitter.removeAllListeners(StreamVideoReactNative.THERMAL_EVENT);
+    }
+  }, [
+    thermalState,
+    callingState,
+    lowPowerMode,
+    handleLowPowerMode,
+    handleThermalState,
+    StreamVideoReactNative,
+    powerModeSubscription,
+    thermalStateSubscription,
+  ]);
+
   return null;
 };
