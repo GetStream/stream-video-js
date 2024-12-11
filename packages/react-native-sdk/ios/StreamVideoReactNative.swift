@@ -13,12 +13,13 @@ import React
 class StreamVideoReactNative: RCTEventEmitter {
     
     private var hasListeners: Bool = false
-    private let notificationCenter = CFNotificationCenterGetDarwinNotifyCenter()
+    private let notificationCenter: CFNotificationCenter = CFNotificationCenterGetDarwinNotifyCenter()
     private static var incomingCallDictionary: [String: String] = [:]
     
     // Do not change these consts, it is what is used react-native-webrtc
-    static let broadcastStartedNotification = "iOS_BroadcastStarted"
-    static let broadcastStoppedNotification = "iOS_BroadcastStopped"
+    static let broadcastStartedNotification: CFString = "iOS_BroadcastStarted" as CFString
+    static let broadcastStoppedNotification: CFString = "iOS_BroadcastStopped" as CFString
+
     
     override init() {
         super.init()
@@ -30,7 +31,7 @@ class StreamVideoReactNative: RCTEventEmitter {
         clearObserver()
     }
     
-    static func requiresMainQueueSetup() -> Bool {
+    override static func requiresMainQueueSetup() -> Bool {
         return false
     }
     
@@ -47,14 +48,14 @@ class StreamVideoReactNative: RCTEventEmitter {
         CFNotificationCenterAddObserver(notificationCenter,
                                         Unmanaged.passUnretained(self).toOpaque(),
                                         broadcastNotificationCallback,
-                                        StreamVideoReactNative.broadcastStartedNotification as CFString,
+                                        CFNotificationName(StreamVideoReactNative.broadcastStartedNotification as CFString),
                                         nil,
                                         .deliverImmediately)
         
         CFNotificationCenterAddObserver(notificationCenter,
                                         Unmanaged.passUnretained(self).toOpaque(),
                                         broadcastNotificationCallback,
-                                        StreamVideoReactNative.broadcastStoppedNotification as CFString,
+                                        CFNotificationName(StreamVideoReactNative.broadcastStoppedNotification as CFString),
                                         nil,
                                         .deliverImmediately)
         
@@ -72,12 +73,12 @@ class StreamVideoReactNative: RCTEventEmitter {
 
         CFNotificationCenterRemoveObserver(notificationCenter,
                                            Unmanaged.passUnretained(self).toOpaque(),
-                                           StreamVideoReactNative.broadcastStartedNotification as CFString,
+                                           CFNotificationName(StreamVideoReactNative.broadcastStartedNotification as CFString),
                                            nil)
         
         CFNotificationCenterRemoveObserver(notificationCenter,
                                            Unmanaged.passUnretained(self).toOpaque(),
-                                           StreamVideoReactNative.broadcastStoppedNotification as CFString,
+                                           CFNotificationName(StreamVideoReactNative.broadcastStoppedNotification as CFString),
                                            nil)
     
         NotificationCenter.default.removeObserver(self,
@@ -91,7 +92,7 @@ class StreamVideoReactNative: RCTEventEmitter {
         return ["StreamVideoReactNative_Ios_Screenshare_Event", "powerModeChanged", "onThermalStatusChanged"]
     }
     
-    private func screenShareEventReceived(_ event: String) {
+    func screenShareEventReceived(_ event: String) {
         if hasListeners {
             sendEvent(withName: "StreamVideoReactNative_Ios_Screenshare_Event", body: ["name": event])
         }
