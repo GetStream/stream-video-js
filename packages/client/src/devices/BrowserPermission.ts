@@ -152,7 +152,7 @@ export class BrowserPermission {
   }
 }
 
-export function canQueryPermissions() {
+function canQueryPermissions() {
   return (
     !isReactNative() &&
     typeof navigator !== 'undefined' &&

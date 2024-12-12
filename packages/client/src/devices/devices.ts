@@ -12,6 +12,7 @@ import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
+import { isReactNative } from '../helpers/platforms';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -200,10 +201,12 @@ export const getAudioStream = async (
   };
 
   try {
-    await getAudioBrowserPermission().prompt({
-      throwOnNotAllowed: true,
-      forcePrompt: true,
-    });
+    if (!isReactNative()) {
+      await getAudioBrowserPermission().prompt({
+        throwOnNotAllowed: true,
+        forcePrompt: true,
+      });
+    }
     return await getStream(constraints);
   } catch (error) {
     if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
@@ -242,10 +245,12 @@ export const getVideoStream = async (
     },
   };
   try {
-    await getVideoBrowserPermission().prompt({
-      throwOnNotAllowed: true,
-      forcePrompt: true,
-    });
+    if (!isReactNative()) {
+      await getVideoBrowserPermission().prompt({
+        throwOnNotAllowed: true,
+        forcePrompt: true,
+      });
+    }
     return await getStream(constraints);
   } catch (error) {
     if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
