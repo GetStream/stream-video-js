@@ -9,7 +9,6 @@ import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
-  hasPending,
   settled,
   withCancellation,
   withoutConcurrency,
@@ -130,13 +129,11 @@ export abstract class InputMediaDeviceManager<
    * If status was previously enabled, it will re-enable the device.
    */
   async resume() {
-    if (!hasPending(this.statusChangeConcurrencyTag)) {
-      if (
-        this.state.prevStatus === 'enabled' &&
-        this.state.status !== 'enabled'
-      ) {
-        await this.enable();
-      }
+    if (
+      this.state.prevStatus === 'enabled' &&
+      this.state.status !== 'enabled'
+    ) {
+      await this.enable();
     }
   }
 
