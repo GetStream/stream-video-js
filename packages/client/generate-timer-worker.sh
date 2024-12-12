@@ -4,6 +4,7 @@ npx tsc src/timers/worker.ts \
   --skipLibCheck \
   --removeComments \
   --module preserve \
+  --target ES2020 \
   --lib ES2020,WebWorker \
   --outDir worker-dist
 

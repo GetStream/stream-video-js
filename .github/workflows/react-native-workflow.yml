@@ -34,7 +34,6 @@ on:
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
       - 'packages/video-filters-react-native/**'
-      - '!**/docusaurus/**'
       - '!**.md'
   workflow_dispatch:
 
