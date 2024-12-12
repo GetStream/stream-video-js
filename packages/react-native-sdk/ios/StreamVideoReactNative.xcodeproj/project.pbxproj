@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05424AD02D00663D007ACDAA /* StreamVideoReactNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05424ACF2D00663D007ACDAA /* StreamVideoReactNative.swift */; };
+		0559D0662D0B6DDD008E3A73 /* StreamVideoReactNative.m in Sources */ = {isa = PBXBuildFile; fileRef = 0559D0652D0B6DDD008E3A73 /* StreamVideoReactNative.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,7 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		05424ACF2D00663D007ACDAA /* StreamVideoReactNative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamVideoReactNative.swift; sourceTree = "<group>"; };
+		0559D0652D0B6DDD008E3A73 /* StreamVideoReactNative.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StreamVideoReactNative.m; sourceTree = "<group>"; };
 		134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStreamVideoReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StreamVideoReactNative.h; sourceTree = "<group>"; };
 		DDCF7DC92C90359D00420842 /* RTCViewPipManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RTCViewPipManager.mm; sourceTree = "<group>"; };
@@ -68,7 +68,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				05424ACF2D00663D007ACDAA /* StreamVideoReactNative.swift */,
+				0559D0652D0B6DDD008E3A73 /* StreamVideoReactNative.m */,
 				DDCF7DCC2C90359D00420842 /* PictureInPicture */,
 				DDCF7DCA2C90359D00420842 /* RTCViewPip.swift */,
 				DDCF7DC92C90359D00420842 /* RTCViewPipManager.mm */,
@@ -165,7 +165,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				05424AD02D00663D007ACDAA /* StreamVideoReactNative.swift in Sources */
+				0559D0662D0B6DDD008E3A73 /* StreamVideoReactNative.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
