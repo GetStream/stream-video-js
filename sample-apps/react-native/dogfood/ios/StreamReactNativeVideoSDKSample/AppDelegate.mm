@@ -17,7 +17,6 @@
 
 #import "StreamVideoReactNative.h"
 
-
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application

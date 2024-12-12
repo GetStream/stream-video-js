@@ -113,7 +113,7 @@ RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
      } else {
         reject(@"access_failure", @"requested incoming call found", nil);
      }
-
+    
 }
 
 -(NSArray<NSString *> *)supportedEvents {
