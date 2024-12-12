@@ -63,7 +63,7 @@ export class BrowserPermission {
     forcePrompt = false,
     throwOnNotAllowed = false,
   }: { forcePrompt?: boolean; throwOnNotAllowed?: boolean } = {}) {
-    await withoutConcurrency(
+    return await withoutConcurrency(
       `permission-prompt-${this.permission.queryName}`,
       async () => {
         if (

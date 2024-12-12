@@ -30,8 +30,7 @@ const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
       const shouldPromptForBrowserPermission = devices.some(
         (device) => device.kind === kind && device.label === '',
       );
-      if (shouldPromptForBrowserPermission) {
-        await permission.prompt({ throwOnNotAllowed: true });
+      if (shouldPromptForBrowserPermission && (await permission.prompt())) {
         devices = await navigator.mediaDevices.enumerateDevices();
       }
       return devices.filter(

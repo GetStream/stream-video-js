@@ -2,6 +2,44 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.1...@stream-io/video-client-1.12.2) (2024-12-11)
+
+
+* drop docusaurus docs ([#1613](https://github.com/GetStream/stream-video-js/issues/1613)) ([8743c8d](https://github.com/GetStream/stream-video-js/commit/8743c8d221191759266010c6cd053480da1d71a5))
+
+
+### Bug Fixes
+
+* pre-built timer worker ([#1617](https://github.com/GetStream/stream-video-js/issues/1617)) ([94dacef](https://github.com/GetStream/stream-video-js/commit/94dacef1c2b1e8794a42657ddab29a3b584eb0b4)), closes [#1557](https://github.com/GetStream/stream-video-js/issues/1557)
+
+## [1.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.0...@stream-io/video-client-1.12.1) (2024-12-11)
+
+
+### Bug Fixes
+
+* reenable usage of ringing filters with useCalls ([1dffaed](https://github.com/GetStream/stream-video-js/commit/1dffaed609ac147a6030a4fb103c4dd586db775e))
+
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.15...@stream-io/video-client-1.12.0) (2024-12-10)
+
+
+### Features
+
+* Aggregate stats reports - request and response objects ([#1614](https://github.com/GetStream/stream-video-js/issues/1614)) ([8a47fea](https://github.com/GetStream/stream-video-js/commit/8a47fea491232e524b1de780c12c0d00e0f02bcd))
+
+## [1.11.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.14...@stream-io/video-client-1.11.15) (2024-12-09)
+
+
+### Bug Fixes
+
+* avoid call.get in all call.ring events ([#1615](https://github.com/GetStream/stream-video-js/issues/1615)) ([c757370](https://github.com/GetStream/stream-video-js/commit/c7573701a20b4a29cd2b6fd08a55d4eff503f77f))
+
+## [1.11.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.13...@stream-io/video-client-1.11.14) (2024-12-04)
+
+
+### Bug Fixes
+
+* prevent device list observable from erroring ([#1608](https://github.com/GetStream/stream-video-js/issues/1608)) ([06af3e7](https://github.com/GetStream/stream-video-js/commit/06af3e7e03b63551c781512c797ac10c0486d0c7))
+
 ## [1.11.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.12...@stream-io/video-client-1.11.13) (2024-12-03)
 
 
