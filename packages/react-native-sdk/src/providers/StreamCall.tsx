@@ -73,7 +73,6 @@ const AppStateListener = () => {
           NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
             (isInPiP: boolean | null | undefined) => {
               if (!isInPiP) {
-                // const currentState = appState.current;
                 if (AppState.currentState === 'active') {
                   // this is to handle the case that the app became active as soon as it went to background
                   // in this case, we dont want to disable the camera
