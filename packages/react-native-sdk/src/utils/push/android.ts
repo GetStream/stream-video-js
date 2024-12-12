@@ -229,8 +229,10 @@ export const firebaseDataHandler = async (
       data,
       android: {
         channelId,
+        importance: 4, // high importance
         foregroundServiceTypes: getIncomingCallForegroundServiceTypes(),
         asForegroundService,
+        ongoing: true,
         sound: incomingCallChannel.sound,
         vibrationPattern: incomingCallChannel.vibrationPattern,
         pressAction: {
@@ -305,6 +307,7 @@ export const firebaseDataHandler = async (
         sound: callChannel.sound,
         vibrationPattern: callChannel.vibrationPattern,
         channelId,
+        importance: 4, // high importance
         pressAction: {
           id: 'default',
           launchActivity: 'default', // open the app when the notification is pressed
