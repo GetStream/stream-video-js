@@ -50,7 +50,6 @@ const AppStateListener = () => {
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (appState.current.match(/background/) && nextAppState === 'active') {
-        console.log('background to active');
         if (
           call?.camera?.state.status === 'enabled' &&
           Platform.OS === 'android'
@@ -68,7 +67,6 @@ const AppStateListener = () => {
         appState.current === 'active' &&
         nextAppState.match(/background/)
       ) {
-        console.log('active to background');
         if (Platform.OS === 'android') {
           // in Android, we need to check if we are in PiP mode
           // in PiP mode, we don't want to disable the camera
