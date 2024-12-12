@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.14...@stream-io/video-react-native-sdk-1.4.15) (2024-12-11)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.12.2`
+* `@stream-io/video-react-bindings` updated to version `1.2.12`
+
+* drop docusaurus docs ([#1613](https://github.com/GetStream/stream-video-js/issues/1613)) ([8743c8d](https://github.com/GetStream/stream-video-js/commit/8743c8d221191759266010c6cd053480da1d71a5))
+
+## [1.4.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.13...@stream-io/video-react-native-sdk-1.4.14) (2024-12-11)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.12.1`
+* `@stream-io/video-react-bindings` updated to version `1.2.11`
 ## [1.4.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.12...@stream-io/video-react-native-sdk-1.4.13) (2024-12-10)
 
 ### Dependency Updates

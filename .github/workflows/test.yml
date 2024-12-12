@@ -10,12 +10,8 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '**/docusaurus/**'
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore:
-      - '**/docusaurus/**'
 
 jobs:
   test-and-build:

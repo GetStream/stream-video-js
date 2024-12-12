@@ -625,8 +625,12 @@ export class Call {
     }
     // update the call state with the latest event data
     this.state.updateFromCallResponse(event.call);
-    this.ringingSubject.next(true);
     this.watching = true;
+    this.ringingSubject.next(true);
+    // we remove the instance from the calls list to enable the following filter in useCalls hook
+    // const calls = useCalls().filter((c) => c.ringing);
+    const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
+    this.clientStore.setCalls([this, ...calls]);
     await this.applyDeviceConfig(false);
   };
 

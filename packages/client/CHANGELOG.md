@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.1...@stream-io/video-client-1.12.2) (2024-12-11)
+
+
+* drop docusaurus docs ([#1613](https://github.com/GetStream/stream-video-js/issues/1613)) ([8743c8d](https://github.com/GetStream/stream-video-js/commit/8743c8d221191759266010c6cd053480da1d71a5))
+
+
+### Bug Fixes
+
+* pre-built timer worker ([#1617](https://github.com/GetStream/stream-video-js/issues/1617)) ([94dacef](https://github.com/GetStream/stream-video-js/commit/94dacef1c2b1e8794a42657ddab29a3b584eb0b4)), closes [#1557](https://github.com/GetStream/stream-video-js/issues/1557)
+
+## [1.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.0...@stream-io/video-client-1.12.1) (2024-12-11)
+
+
+### Bug Fixes
+
+* reenable usage of ringing filters with useCalls ([1dffaed](https://github.com/GetStream/stream-video-js/commit/1dffaed609ac147a6030a4fb103c4dd586db775e))
+
 ## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.15...@stream-io/video-client-1.12.0) (2024-12-10)
 
 
