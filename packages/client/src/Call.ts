@@ -835,7 +835,7 @@ export class Call {
         : undefined;
       const preferredPublishOptions = !isReconnecting
         ? this.getPreferredPublishOptions()
-        : [];
+        : this.initialPublishOptions || [];
       const preferredSubscribeOptions = !isReconnecting
         ? this.getPreferredSubscribeOptions()
         : [];
