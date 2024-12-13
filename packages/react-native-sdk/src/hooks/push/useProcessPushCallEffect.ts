@@ -11,7 +11,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { BehaviorSubject } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { processCallFromPush } from '../../utils/push/internal/utils';
 import { StreamVideoClient } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
@@ -89,7 +89,7 @@ const createCallSubscription = (
   action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered'
 ) => {
   return behaviourSubjectWithCallCid
-    .pipe(filter(cidIsNotUndefined))
+    .pipe(filter(cidIsNotUndefined), distinctUntilChanged())
     .subscribe(async (callCId) => {
       await processCallFromPush(client, callCId, action, pushConfig);
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
