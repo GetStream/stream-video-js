@@ -822,26 +822,32 @@ export class Call {
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
       // prepare a generic SDP and send it to the SFU.
-      // this is a throw-away SDP that the SFU will use to determine
+      // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
-      const [receivingCapabilitiesSdp, publishingCapabilitiesSdp] =
-        await Promise.all([
-          getGenericSdp('recvonly'),
-          getGenericSdp('sendonly'),
-        ]);
-      const reconnectDetails =
-        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
-          ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
-          : undefined;
+      const [subscriberSdp, publisherSdp] = await Promise.all([
+        getGenericSdp('recvonly'),
+        getGenericSdp('sendonly'),
+      ]);
+      const isReconnecting =
+        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
+      const reconnectDetails = isReconnecting
+        ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
+        : undefined;
+      const preferredPublishOptions = !isReconnecting
+        ? this.getPreferredPublishOptions()
+        : [];
+      const preferredSubscribeOptions = !isReconnecting
+        ? this.getPreferredSubscribeOptions()
+        : [];
       const { callState, fastReconnectDeadlineSeconds, publishOptions } =
         await sfuClient.join({
-          subscriberSdp: receivingCapabilitiesSdp,
-          publisherSdp: publishingCapabilitiesSdp,
+          subscriberSdp,
+          publisherSdp,
           clientDetails,
           fastReconnect: performingFastReconnect,
           reconnectDetails,
-          preferredPublishOptions: this.getPreferredPublishOptions(),
-          preferredSubscribeOptions: this.getPreferredSubscribeOptions(),
+          preferredPublishOptions,
+          preferredSubscribeOptions,
         });
 
       this.initialPublishOptions = publishOptions;
@@ -911,6 +917,8 @@ export class Call {
     // we will spam the other participants with push notifications and `call.ring` events.
     delete this.joinCallData?.ring;
     delete this.joinCallData?.notify;
+    // reset the reconnect strategy to unspecified after a successful reconnection
+    this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
 
     this.logger('info', `Joined call ${this.cid}`);
   };
