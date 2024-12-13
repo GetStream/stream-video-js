@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.16...@stream-io/video-react-native-sdk-1.4.17) (2024-12-13)
+
+
+### Bug Fixes
+
+* **rn-sdk:** allow prop component ParticipantVideoFallback in FloatingParticipantView ([#1623](https://github.com/GetStream/stream-video-js/issues/1623)) ([d69ee13](https://github.com/GetStream/stream-video-js/commit/d69ee13f6fc882c006e3948c359ea8946c2a92f0))
+
 ## [1.4.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.15...@stream-io/video-react-native-sdk-1.4.16) (2024-12-13)
 
 ### Dependency Updates
