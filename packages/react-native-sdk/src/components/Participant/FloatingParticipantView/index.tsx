@@ -60,7 +60,7 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
     onPressHandler?: () => void;
   };
 
-const CustomLocalParticipantViewVideoFallback = () => {
+const DefaultLocalParticipantViewVideoFallback = () => {
   const {
     theme: {
       colors,
@@ -96,6 +96,7 @@ export const FloatingParticipantView = ({
   draggableContainerStyle,
   ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
+  ParticipantVideoFallback = DefaultLocalParticipantViewVideoFallback,
   ParticipantReaction,
   VideoRenderer,
   supportedReactions,
@@ -125,7 +126,7 @@ export const FloatingParticipantView = ({
     ParticipantLabel: null,
     ParticipantNetworkQualityIndicator,
     ParticipantReaction,
-    ParticipantVideoFallback: CustomLocalParticipantViewVideoFallback,
+    ParticipantVideoFallback,
     VideoRenderer,
   };
 
