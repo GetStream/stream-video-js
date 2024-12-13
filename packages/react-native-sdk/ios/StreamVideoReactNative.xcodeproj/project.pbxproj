@@ -6,10 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		0559D0682D0B7626008E3A73 /* DeviceStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0559D0672D0B7626008E3A73 /* DeviceStats.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		58B511D91A9E6C8500147676 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -23,7 +19,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0559D0672D0B7626008E3A73 /* DeviceStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceStats.swift; sourceTree = "<group>"; };
 		134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStreamVideoReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3E7B5891CC2AC0600A0062D /* StreamVideoReactNative.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamVideoReactNative.m; sourceTree = "<group>"; };
 		D7A6507C28C3C54500AC4DB2 /* StreamVideoReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StreamVideoReactNative.h; sourceTree = "<group>"; };
@@ -69,7 +64,6 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				0559D0672D0B7626008E3A73 /* DeviceStats.swift */,
 				DDCF7DCC2C90359D00420842 /* PictureInPicture */,
 				DDCF7DCA2C90359D00420842 /* RTCViewPip.swift */,
 				DDCF7DC92C90359D00420842 /* RTCViewPipManager.mm */,
@@ -167,7 +161,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0559D0682D0B7626008E3A73 /* DeviceStats.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
