@@ -1,7 +1,8 @@
 import { getLogger } from '@stream-io/video-client';
 import { PermissionsAndroid } from 'react-native';
+import { Type, lib } from './lib';
 
-export type NotifeeLib = typeof import('@notifee/react-native');
+export type NotifeeLib = Type;
 
 enum AndroidForegroundServiceType {
   FOREGROUND_SERVICE_TYPE_CAMERA = 64,
@@ -21,34 +22,28 @@ enum AndroidForegroundServiceType {
   FOREGROUND_SERVICE_TYPE_MANIFEST = -1,
 }
 
-let notifeeLib: NotifeeLib | undefined;
-
-try {
-  notifeeLib = require('@notifee/react-native');
-} catch (_e) {}
-
 const INSTALLATION_INSTRUCTION =
   'Please see https://notifee.app/react-native/docs/installation for installation instructions';
 
 export function getNotifeeLibThrowIfNotInstalledForPush() {
-  if (!notifeeLib) {
+  if (!lib) {
     throw Error(
       '@notifee/react-native is not installed. It is required for implementing push notifications. ' +
         INSTALLATION_INSTRUCTION
     );
   }
-  return notifeeLib;
+  return lib;
 }
 
 export function getNotifeeLibNoThrowForKeepCallAlive() {
-  if (!notifeeLib) {
+  if (!lib) {
     const logger = getLogger(['getNotifeeLibNoThrow']);
     logger(
       'info',
       `${'@notifee/react-native library not installed. It is required to keep call alive in the background for Android. '}${INSTALLATION_INSTRUCTION}`
     );
   }
-  return notifeeLib;
+  return lib;
 }
 
 export async function getKeepCallAliveForegroundServiceTypes() {
