@@ -200,12 +200,10 @@ export const getAudioStream = async (
   };
 
   try {
-    if (!isReactNative()) {
-      await getAudioBrowserPermission().prompt({
-        throwOnNotAllowed: true,
-        forcePrompt: true,
-      });
-    }
+    await getAudioBrowserPermission().prompt({
+      throwOnNotAllowed: true,
+      forcePrompt: true,
+    });
     return await getStream(constraints);
   } catch (error) {
     if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
@@ -244,12 +242,10 @@ export const getVideoStream = async (
     },
   };
   try {
-    if (!isReactNative()) {
-      await getVideoBrowserPermission().prompt({
-        throwOnNotAllowed: true,
-        forcePrompt: true,
-      });
-    }
+    await getVideoBrowserPermission().prompt({
+      throwOnNotAllowed: true,
+      forcePrompt: true,
+    });
     return await getStream(constraints);
   } catch (error) {
     if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
