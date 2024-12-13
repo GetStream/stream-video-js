@@ -17,7 +17,6 @@ import {
   IncomingCallControlsProps,
 } from '../CallControls';
 import { useTheme } from '../../../contexts';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the IncomingCall Component.
@@ -48,8 +47,6 @@ export const IncomingCall = ({
   const {
     theme: { colors, incomingCall, typefaces },
   } = useTheme();
-
-  useApplyDefaultMediaStreamSettings();
 
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',

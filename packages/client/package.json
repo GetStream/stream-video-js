@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "1.12.0",
+  "version": "1.12.3",
   "packageManager": "yarn@3.2.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -11,10 +11,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -w -c",
-    "build": "yarn clean && ./generate-timer-worker.sh && rollup -c",
+    "build": "yarn clean && rollup -c",
     "test": "vitest",
-    "clean:docs": "rimraf generated-docs",
-    "test-ci": "vitest --coverage",
+    "test-ci": "vitest run --coverage",
     "generate:open-api": "./generate-openapi.sh protocol",
     "generate:open-api:dev": "./generate-openapi.sh chat",
     "generate:timer-worker": "./generate-timer-worker.sh"
@@ -46,7 +45,7 @@
     "@stream-io/node-sdk": "^0.4.3",
     "@types/sdp-transform": "^2.4.7",
     "@types/ua-parser-js": "^0.7.37",
-    "@vitest/coverage-v8": "^2.1.4",
+    "@vitest/coverage-v8": "^2.1.8",
     "dotenv": "^16.3.1",
     "happy-dom": "^11.0.2",
     "prettier": "^3.3.2",
@@ -54,7 +53,7 @@
     "rollup": "^4.22.0",
     "typescript": "^5.5.2",
     "vite": "^5.4.6",
-    "vitest": "^2.1.4",
+    "vitest": "^2.1.8",
     "vitest-mock-extended": "^2.0.2"
   }
 }

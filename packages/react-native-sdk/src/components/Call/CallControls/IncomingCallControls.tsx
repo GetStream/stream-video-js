@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { AcceptCallButton } from './AcceptCallButton';
 import { RejectCallButton } from './RejectCallButton';
-import { ToggleVideoPreviewButton } from './ToggleVideoPreviewButton';
 
 /**
  * Props for the IncomingCallControls Component.
@@ -36,7 +35,6 @@ export const IncomingCallControls = ({
         size={buttonSizes.md}
         rejectReason="decline"
       />
-      <ToggleVideoPreviewButton />
       <AcceptCallButton onPressHandler={onAcceptCallHandler} />
     </View>
   );

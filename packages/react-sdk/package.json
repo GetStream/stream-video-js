@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "1.8.1",
+  "version": "1.8.4",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
@@ -10,8 +10,7 @@
     "clean": "rimraf dist",
     "start": "rollup -c -w",
     "build": "rimraf dist && NODE_ENV=production rollup -c && yarn copy-css",
-    "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
-    "start:docs": "npx stream-chat-docusaurus -s"
+    "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/"
   },
   "repository": {
     "type": "git",

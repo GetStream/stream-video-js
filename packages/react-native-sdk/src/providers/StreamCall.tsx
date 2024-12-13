@@ -73,21 +73,24 @@ const AppStateListener = () => {
           NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
             (isInPiP: boolean | null | undefined) => {
               if (!isInPiP) {
-                const currentState = appState.current;
-                if (currentState === 'active') {
+                if (AppState.currentState === 'active') {
                   // this is to handle the case that the app became active as soon as it went to background
                   // in this case, we dont want to disable the camera
                   // this happens on foreground push notifications
                   return;
                 }
-                call?.camera?.disable();
+                if (call?.camera?.state.status === 'enabled') {
+                  call?.camera?.disable();
+                }
               }
             }
           );
         } else {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
-            call?.camera?.disable();
+            if (call?.camera?.state.status === 'enabled') {
+              call?.camera?.disable();
+            }
           }
         }
         appState.current = nextAppState;
