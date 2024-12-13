@@ -12,7 +12,6 @@ import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
-import { isReactNative } from '../helpers/platforms';
 
 /**
  * Returns an Observable that emits the list of available devices
