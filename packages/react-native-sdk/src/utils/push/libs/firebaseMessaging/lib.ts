@@ -9,6 +9,6 @@ try {
 export { lib };
 
 /*
-    IMPORT: must keep a failing import in a different file
+    IMPORTANT: must keep a failing import in a different file
     Else on commonjs, metro doesnt resolve any other modules properly in a file, if one of the module is not installed
 */
