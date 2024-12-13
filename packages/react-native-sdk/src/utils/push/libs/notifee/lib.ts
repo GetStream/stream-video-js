@@ -1,4 +1,4 @@
-type Type = typeof import('@notifee/react-native');
+export type Type = typeof import('@notifee/react-native');
 
 let lib: Type | undefined;
 
@@ -6,7 +6,7 @@ try {
   lib = require('@notifee/react-native');
 } catch (_e) {}
 
-export { Type, lib };
+export { lib };
 
 /*
     IMPORT: must keep a failing import in a different file

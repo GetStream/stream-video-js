@@ -1,4 +1,4 @@
-type Type = typeof import('@react-native-firebase/messaging').default;
+export type Type = typeof import('@react-native-firebase/messaging').default;
 
 let lib: Type | undefined;
 
@@ -6,7 +6,7 @@ try {
   lib = require('@react-native-firebase/messaging').default;
 } catch (_e) {}
 
-export { Type, lib };
+export { lib };
 
 /*
     IMPORT: must keep a failing import in a different file
