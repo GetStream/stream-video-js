@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.19...@stream-io/video-react-native-sdk-1.4.20) (2024-12-16)
+
+
+### Bug Fixes
+
+* **expo:** tools not present when notifee service is added ([edccf62](https://github.com/GetStream/stream-video-js/commit/edccf62261183198871f3962ef19650ed4fc1729))
+
 ## [1.4.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.18...@stream-io/video-react-native-sdk-1.4.19) (2024-12-16)
 
 
