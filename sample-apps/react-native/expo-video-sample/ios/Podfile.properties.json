@@ -1,8 +1,8 @@
 {
   "expo.jsEngine": "hermes",
   "EX_DEV_CLIENT_NETWORK_INSPECTOR": "true",
-  "ios.useFrameworks": "static",
   "apple.extraPods": "[]",
   "apple.ccacheEnabled": "false",
-  "apple.privacyManifestAggregationEnabled": "true"
+  "apple.privacyManifestAggregationEnabled": "true",
+  "ios.useFrameworks": "static"
 }
