@@ -205,7 +205,7 @@ export class Call {
   private readonly dispatcher = new Dispatcher();
 
   private clientPublishOptions?: ClientPublishOptions;
-  private initialPublishOptions?: PublishOption[];
+  private currentPublishOptions?: PublishOption[];
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -304,7 +304,7 @@ export class Call {
 
       this.leaveCallHooks.add(
         this.on('changePublishOptions', (event) => {
-          this.initialPublishOptions = event.publishOptions;
+          this.currentPublishOptions = event.publishOptions;
         }),
       );
 
@@ -835,7 +835,7 @@ export class Call {
         : undefined;
       const preferredPublishOptions = !isReconnecting
         ? this.getPreferredPublishOptions()
-        : this.initialPublishOptions || [];
+        : this.currentPublishOptions || [];
       const preferredSubscribeOptions = !isReconnecting
         ? this.getPreferredSubscribeOptions()
         : [];
@@ -850,7 +850,7 @@ export class Call {
           preferredSubscribeOptions,
         });
 
-      this.initialPublishOptions = publishOptions;
+      this.currentPublishOptions = publishOptions;
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
@@ -880,7 +880,7 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
-        publishOptions: this.initialPublishOptions || [],
+        publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
       });
     }
