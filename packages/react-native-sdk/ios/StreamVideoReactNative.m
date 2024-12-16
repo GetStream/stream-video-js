@@ -92,7 +92,6 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 
 -(void)startObserving {
     hasListeners = YES;
-    self.hasListeners = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(powerModeDidChange)
                                                  name:NSProcessInfoPowerStateDidChangeNotification
@@ -114,7 +113,7 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 }
 
 - (void)powerModeDidChange {
-    if (!self.hasListeners) {
+    if (!hasListeners) {
         return;
     }
     BOOL lowPowerEnabled = [NSProcessInfo processInfo].lowPowerModeEnabled;
@@ -122,7 +121,7 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 }
 
 - (void)thermalStateDidChange {
-    if (!self.hasListeners) {
+    if (!hasListeners) {
         return;
     }
     NSInteger thermalState = [NSProcessInfo processInfo].thermalState;

@@ -208,25 +208,25 @@ const DeviceStats = () => {
       }
 
       powerModeSubscription = eventEmitter.addListener(
-        StreamVideoReactNative.POWER_MODE_EVENT,
+        'isLowPowerModeEnabled',
         (isLowPowerMode: boolean) =>
           handleLowPowerMode(isLowPowerMode, Platform.OS)
       );
 
       if (thermalState === null) {
-        StreamVideoReactNative.startThermalStatusUpdates().then(
+        StreamVideoReactNative.currentThermalState().then(
           (initialState: string) =>
             handleThermalState(initialState, Platform.OS)
         );
       }
 
       thermalStateSubscription = eventEmitter.addListener(
-        StreamVideoReactNative.THERMAL_EVENT,
+        'thermalStateDidChange',
         (status: string) => handleThermalState(status, Platform.OS)
       );
     } else {
-      eventEmitter.removeAllListeners(StreamVideoReactNative.POWER_MODE_EVENT);
-      eventEmitter.removeAllListeners(StreamVideoReactNative.THERMAL_EVENT);
+      eventEmitter.removeAllListeners('isLowPowerModeEnabled');
+      eventEmitter.removeAllListeners('thermalStateDidChange');
     }
 
     return () => {

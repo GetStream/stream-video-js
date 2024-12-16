@@ -125,6 +125,7 @@ export const setDeviceState = (state: {
   thermal: string;
   isLowPowerMode: boolean;
 }) => {
+  console.log('🚀 ~ isLowPowerMode:', state.isLowPowerMode);
   if (state.os === 'android') {
     deviceState = {
       oneofKind: 'android',

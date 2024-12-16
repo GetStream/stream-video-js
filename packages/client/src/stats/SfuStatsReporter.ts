@@ -128,6 +128,10 @@ export class SfuStatsReporter {
       this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
     ]);
 
+    console.log(
+      '🚀 ~ SfuStatsReporter ~ run= ~ getDeviceState():',
+      getDeviceState(),
+    );
     await this.sfuClient.sendStats({
       sdk: this.sdkName,
       sdkVersion: this.sdkVersion,
