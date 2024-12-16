@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.17...@stream-io/video-react-native-sdk-1.4.18) (2024-12-16)
+
+
+### Bug Fixes
+
+* metro commonjs issues with optional libs ([#1625](https://github.com/GetStream/stream-video-js/issues/1625)) ([78b5f05](https://github.com/GetStream/stream-video-js/commit/78b5f050c20c67f77c154a8fd5d1c4e59b72989f)), closes [#1620](https://github.com/GetStream/stream-video-js/issues/1620)
+
 ## [1.4.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.16...@stream-io/video-react-native-sdk-1.4.17) (2024-12-13)
 
 

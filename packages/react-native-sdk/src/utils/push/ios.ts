@@ -4,12 +4,13 @@ import { pushNonRingingCallData$ } from './internal/rxSubjects';
 import {
   ExpoNotification,
   getExpoNotificationsLib,
+  getNotifeeLibThrowIfNotInstalledForPush,
   getPushNotificationIosLib,
   PushNotificationiOSType,
 } from './libs';
 import { StreamVideoClient, getLogger } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import { EventType, Event } from '@notifee/react-native';
+import type { Event } from '@notifee/react-native';
 import { StreamVideoRN } from '../StreamVideoRN';
 import { StreamPushPayload } from './utils';
 
@@ -51,7 +52,8 @@ export const oniOSNotifeeEvent = ({
   if (Platform.OS !== 'ios') return;
   const pushConfig = StreamVideoRN.getConfig().push;
   const { type, detail } = event;
-  if (pushConfig && type === EventType.PRESS) {
+  const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+  if (pushConfig && type === notifeeLib.EventType.PRESS) {
     const streamPayload = detail.notification?.data?.stream as
       | StreamPushPayload
       | undefined;
