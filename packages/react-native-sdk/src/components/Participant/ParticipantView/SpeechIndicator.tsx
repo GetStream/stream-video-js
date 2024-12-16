@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { useTheme } from '../../..';
+import { useTheme } from '../../../contexts';
 
 /**
  * Props for the SpeechIndicator component.
