@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.18...@stream-io/video-react-native-sdk-1.4.19) (2024-12-16)
+
+
+### Bug Fixes
+
+* **rn:** break cyclic dependencies issue ([#1626](https://github.com/GetStream/stream-video-js/issues/1626)) ([ef30579](https://github.com/GetStream/stream-video-js/commit/ef3057949648581a5e17775661c859f693191f92))
+
 ## [1.4.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.17...@stream-io/video-react-native-sdk-1.4.18) (2024-12-16)
 
 
