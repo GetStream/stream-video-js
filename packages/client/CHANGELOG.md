@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.3...@stream-io/video-client-1.12.4) (2024-12-17)
+
+
+* improve test coverage reporting ([#1624](https://github.com/GetStream/stream-video-js/issues/1624)) ([32bb870](https://github.com/GetStream/stream-video-js/commit/32bb870187f0627c32d2b5692ce3de633d743582))
+
+
+### Bug Fixes
+
+* adjust dynascale debouncing for upscaling and downscaling ([#1621](https://github.com/GetStream/stream-video-js/issues/1621)) [skip ci] ([7b3a721](https://github.com/GetStream/stream-video-js/commit/7b3a72192fab79d8af8d1c392a9f0135e2d25b16))
+* prevent auto-dropping already accepted or rejected calls ([#1619](https://github.com/GetStream/stream-video-js/issues/1619)) ([113406a](https://github.com/GetStream/stream-video-js/commit/113406a9ba7fdf2e193a1933b73963e0011f28f0))
+
 ## [1.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.2...@stream-io/video-client-1.12.3) (2024-12-13)
 
 
