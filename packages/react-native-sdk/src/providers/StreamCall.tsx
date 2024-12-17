@@ -155,11 +155,9 @@ const ClearPushWSSubscriptions = () => {
   return null;
 };
 
-const { StreamVideoReactNative } = NativeModules;
-if (!StreamVideoReactNative) {
-  throw new Error('StreamVideoReactNative is not properly linked.');
-}
-const eventEmitter = new NativeEventEmitter(StreamVideoReactNative);
+const eventEmitter =
+  NativeModules?.StreamVideoReactNative &&
+  new NativeEventEmitter(NativeModules?.StreamVideoReactNative);
 
 /**
  * This is a renderless component to get the device stats like thermal state and power saver mode.
@@ -201,39 +199,39 @@ const DeviceStats = () => {
 
     if (callingState === CallingState.JOINED) {
       if (lowPowerMode === null) {
-        StreamVideoReactNative.isLowPowerModeEnabled().then(
+        NativeModules?.StreamVideoReactNative.isLowPowerModeEnabled().then(
           (isLowPowerMode: boolean) =>
             handleLowPowerMode(isLowPowerMode, Platform.OS)
         );
       }
 
-      powerModeSubscription = eventEmitter.addListener(
+      powerModeSubscription = eventEmitter?.addListener(
         'isLowPowerModeEnabled',
         (isLowPowerMode: boolean) =>
           handleLowPowerMode(isLowPowerMode, Platform.OS)
       );
 
       if (thermalState === null) {
-        StreamVideoReactNative.currentThermalState().then(
+        NativeModules?.StreamVideoReactNative.currentThermalState().then(
           (initialState: string) =>
             handleThermalState(initialState, Platform.OS)
         );
       }
 
-      thermalStateSubscription = eventEmitter.addListener(
+      thermalStateSubscription = eventEmitter?.addListener(
         'thermalStateDidChange',
         (status: string) => handleThermalState(status, Platform.OS)
       );
 
       // on android we need to explicitly start and stop the thermal status updates
       if (Platform.OS === 'android') {
-        StreamVideoReactNative.startThermalStatusUpdates();
+        NativeModules?.StreamVideoReactNative.startThermalStatusUpdates();
       }
     } else {
-      eventEmitter.removeAllListeners('isLowPowerModeEnabled');
-      eventEmitter.removeAllListeners('thermalStateDidChange');
+      eventEmitter?.removeAllListeners('isLowPowerModeEnabled');
+      eventEmitter?.removeAllListeners('thermalStateDidChange');
       if (Platform.OS === 'android') {
-        StreamVideoReactNative.stopThermalStatusUpdates();
+        NativeModules?.StreamVideoReactNative.stopThermalStatusUpdates();
       }
     }
 
@@ -241,7 +239,7 @@ const DeviceStats = () => {
       powerModeSubscription?.remove();
       thermalStateSubscription?.remove();
       if (Platform.OS === 'android') {
-        StreamVideoReactNative.stopThermalStatusUpdates();
+        NativeModules?.StreamVideoReactNative.stopThermalStatusUpdates();
       }
     };
   }, [
