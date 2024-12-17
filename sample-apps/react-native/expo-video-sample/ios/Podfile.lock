@@ -5,9 +5,9 @@ PODS:
     - ExpoModulesCore
   - EXConstants (16.0.2):
     - ExpoModulesCore
-  - EXNotifications (0.28.18):
+  - EXNotifications (0.28.19):
     - ExpoModulesCore
-  - Expo (51.0.37):
+  - Expo (51.0.39):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
@@ -15,11 +15,11 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (12.0.10):
     - ExpoModulesCore
-  - ExpoHead (3.5.23):
+  - ExpoHead (3.5.24):
     - ExpoModulesCore
   - ExpoKeepAwake (13.0.2):
     - ExpoModulesCore
-  - ExpoModulesCore (1.12.25):
+  - ExpoModulesCore (1.12.26):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -42,7 +42,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - EXSplashScreen (0.27.6):
+  - EXSplashScreen (0.27.7):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -64,9 +64,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - EXTaskManager (11.8.2):
-    - ExpoModulesCore
-    - UMAppLoader
   - FBLazyVector (0.74.5)
   - Firebase/CoreOnly (10.24.0):
     - FirebaseCore (= 10.24.0)
@@ -1332,10 +1329,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNNotifee (9.1.1):
+  - RNNotifee (9.1.4):
     - React-Core
-    - RNNotifee/NotifeeCore (= 9.1.1)
-  - RNNotifee/NotifeeCore (9.1.1):
+    - RNNotifee/NotifeeCore (= 9.1.4)
+  - RNNotifee/NotifeeCore (9.1.4):
     - React-Core
   - RNReanimated (3.10.1):
     - DoubleConversion
@@ -1388,7 +1385,7 @@ PODS:
   - stream-react-native-webrtc (118.1.0):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - stream-video-react-native (1.1.4):
+  - stream-video-react-native (1.4.18):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1410,7 +1407,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - UMAppLoader (4.6.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1427,7 +1423,6 @@ DEPENDENCIES:
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
-  - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -1496,7 +1491,6 @@ DEPENDENCIES:
   - RNVoipPushNotification (from `../node_modules/react-native-voip-push-notification`)
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
   - "stream-video-react-native (from `../node_modules/@stream-io/video-react-native-sdk`)"
-  - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1541,8 +1535,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
-  EXTaskManager:
-    :path: "../node_modules/expo-task-manager/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   fmt:
@@ -1676,8 +1668,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@stream-io/react-native-webrtc"
   stream-video-react-native:
     :path: "../node_modules/@stream-io/video-react-native-sdk"
-  UMAppLoader:
-    :path: "../node_modules/unimodules-app-loader/ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1686,16 +1676,15 @@ SPEC CHECKSUMS:
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXApplication: c08200c34daca7af7fd76ac4b9d606077410e8ad
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
-  EXNotifications: dd289340c26bc5388e440fc90d0b2c661cbd0285
-  Expo: 67b60b3b80a3c8e9f3bcaaa84d06d140229a246d
+  EXNotifications: 85496c9fab09d759d0e4ff594bca078ab817c40c
+  Expo: 8c995afb875c15bf8439af0b20bcb9ed8f90d0bd
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
   ExpoFont: 00756e6c796d8f7ee8d211e29c8b619e75cbf238
-  ExpoHead: fcb28a68ed4ba28f177394d2dfb8a0a8824cd103
+  ExpoHead: a79e263b73039b41940c220dd67b83572e7cac09
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
-  ExpoModulesCore: 3f83202e3cfec3aa1485eaf2e68cc902b2b10737
-  EXSplashScreen: 20d60cb03f05e50c23745bf2dc2573b9b2eb42ec
-  EXTaskManager: 9c3520305c3aa1b4a12a7c6d1e3f85f2779c06e9
+  ExpoModulesCore: 1914927fe4a693215b1ed57eb934c15641d4aef7
+  EXSplashScreen: e9758d6c15f77f8f358cb98513f1f9e32eca388c
   FBLazyVector: ac12dc084d1c8ec4cc4d7b3cf1b0ebda6dab85af
   Firebase: 91fefd38712feb9186ea8996af6cbdef41473442
   FirebaseCore: 11dc8a16dfb7c5e3c3f45ba0e191a33ac4f50894
@@ -1766,15 +1755,14 @@ SPEC CHECKSUMS:
   RNFBApp: 614f1621b49db54ebd258df8c45427370d8d84a2
   RNFBMessaging: 74754ed198239360950f54f3e3de365fe85db451
   RNGestureHandler: 20a4307fd21cbff339abfcfa68192f3f0a6a518b
-  RNNotifee: 35b5f984d11083b02d7f2990b3408cd99a0aeeac
+  RNNotifee: 1e2738edefe1b80b97dcbc128edb8f52e07d3662
   RNReanimated: d51431fd3597a8f8320319dce8e42cee82a5445f
   RNScreens: 30249f9331c3b00ae7cb7922e11f58b3ed369c07
   RNSVG: 43b64ed39c14ce830d840903774154ca0c1f27ec
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   stream-react-native-webrtc: 4ccf61161f77c57b9aa45f78cb7f69b7d91f3e9f
-  stream-video-react-native: c2213992fcac5dea37fb29e2fe3d355b31c4780c
-  UMAppLoader: f17a5ee8e85b536ace0fc254b447a37ed198d57e
+  stream-video-react-native: 8d8b34169e2a937e19619b86be6601d9ed75391e
   Yoga: 33622183a85805e12703cd618b2c16bfd18bfffb
 
 PODFILE CHECKSUM: bcdd2355f4023e32afa92c59366350f1e0302dc3

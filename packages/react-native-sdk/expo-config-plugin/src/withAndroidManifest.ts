@@ -4,8 +4,12 @@ import {
   withAndroidManifest,
 } from '@expo/config-plugins';
 import { ConfigProps } from './common/types';
-const { prefixAndroidKeys, getMainApplicationOrThrow, getMainActivityOrThrow } =
-  AndroidConfig.Manifest;
+const {
+  prefixAndroidKeys,
+  getMainApplicationOrThrow,
+  getMainActivityOrThrow,
+  ensureToolsAvailable,
+} = AndroidConfig.Manifest;
 
 // extract the type from array
 type Unpacked<T> =
@@ -46,6 +50,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
     const androidManifest = config.modResults;
     const mainApplication = getMainApplicationOrThrow(androidManifest);
     if (props?.ringingPushNotifications || props?.androidKeepCallAlive) {
+      ensureToolsAvailable(androidManifest);
       /* Add the notifee foreground Service */
       let services = mainApplication.service ?? [];
       // we filter out the existing notifee service (if any) so that we can override it

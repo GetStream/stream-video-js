@@ -1,29 +1,24 @@
 import { getLogger } from '@stream-io/video-client';
+import { Type, lib } from './lib';
 
 export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-export type FirebaseMessagingType =
-  typeof import('@react-native-firebase/messaging').default;
-
-let messaging: FirebaseMessagingType | undefined;
-
-try {
-  messaging = require('@react-native-firebase/messaging').default;
-} catch (_e) {}
+export type FirebaseMessagingType = Type;
 
 const INSTALLATION_INSTRUCTION =
   'Please see https://rnfirebase.io/messaging/usage#installation for installation instructions';
+
 export function getFirebaseMessagingLib() {
-  if (!messaging) {
+  if (!lib) {
     throw Error(
       '@react-native-firebase/messaging is not installed. ' +
         INSTALLATION_INSTRUCTION
     );
   }
-  return messaging;
+  return lib;
 }
 
 export function getFirebaseMessagingLibNoThrow(isExpo: boolean) {
-  if (!messaging) {
+  if (!lib) {
     const logger = getLogger(['getFirebaseMessagingLibNoThrow']);
     logger(
       'warn',
@@ -34,5 +29,5 @@ export function getFirebaseMessagingLibNoThrow(isExpo: boolean) {
       }${INSTALLATION_INSTRUCTION}`
     );
   }
-  return messaging;
+  return lib;
 }

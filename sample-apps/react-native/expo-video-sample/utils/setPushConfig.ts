@@ -20,7 +20,7 @@ export function setPushConfig() {
       pushProviderName: 'rn-expo-apn-video',
     },
     android: {
-      pushProviderName: 'rn-fcm-video',
+      pushProviderName: 'expo-fcm-video',
       callChannel: {
         id: 'stream_call_notifications',
         name: 'Call notifications',
