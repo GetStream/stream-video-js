@@ -22,6 +22,7 @@ import {
 import { ActiveCall } from './ActiveCall';
 import { Feedback } from './Feedback/Feedback';
 import { DefaultAppHeader } from './DefaultAppHeader';
+import { EndCallSummary } from './EndCallSummary';
 
 const contents = {
   'error-join': {
@@ -182,9 +183,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       <>
         <DefaultAppHeader />
         <div className="rd__leave">
-          <div className="rd__leave-content">
-            <Feedback inMeeting={false} callId={call?.id} />
-          </div>
+          <EndCallSummary></EndCallSummary>
         </div>
       </>
     );
