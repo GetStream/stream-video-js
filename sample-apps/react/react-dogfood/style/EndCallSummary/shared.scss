@@ -1,0 +1,41 @@
+.rd__leave{
+  .rd__leave--button{
+    border-radius: var(--str-video__border-radius-sm);
+    font-weight: 600;
+    font-size: var(--str-video__font-size-md);
+    border: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    width: fit-content;
+    text-transform: capitalize;
+    border-radius: var(--str-video__border-radius-lg);
+    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+    border: 1px solid transparent;
+
+    &-primary{
+      background-color: var(--str-video__button-primary-active);
+      border: 1px solid var(--str-video__button-primary-active);
+      color: var( --str-video__text-color);
+    }
+
+    &-secondary{
+      border: 1px solid var(--str-video__base-color6);
+      background-color: var(--str-video__base-color6);
+      color: var(--str-video__text-color1);
+
+    }
+
+    &-border{
+      color: var(--str-video__text-color1);
+      border: 1px solid var(--str-video__button-default-hover);
+    }
+  }
+
+  .rd__leave--hover{
+    &:hover{
+      cursor: pointer;
+
+    }
+  }
+}

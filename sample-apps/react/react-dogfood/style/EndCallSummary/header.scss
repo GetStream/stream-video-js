@@ -1,0 +1,113 @@
+
+.rd__leave{
+  &--header{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--str-video__spacing-md);
+    width: 100%;
+
+    @include respond-above(md) {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+
+    }
+
+    &-logo{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--str-video__spacing-md);
+      width: 100%;
+    }
+
+    &-text{
+      display: flex;
+      flex-direction: column;
+      gap: var(--str-video__spacing-xs);
+    }
+
+    &-title{
+      margin: 0;
+      font-size: var(--str-video__font-size-xxl);
+      font-weight: 600;
+      color: #EFF0F1;
+      text-transform: capitalize;
+    }
+
+    &-description{
+      margin: 0;
+      font-size: var(--str-video__font-size-md);
+      font-weight: 600;
+      color: #656B72;
+      text-transform: capitalize;
+      margin: 0;
+    }
+
+    &-links{
+      display: flex;
+      flex-direction: row;
+      gap: var(--str-video__spacing-lg);
+      justify-content: space-between;
+      width: 100%;
+
+      @include respond-above(md) {
+        justify-content: flex-end;
+      }
+
+      &-buttons{
+        display: flex;
+        flex-direction: row;
+        gap: var(--str-video__spacing-md);
+      }
+    }
+
+    &-link{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--str-video__spacing-sm);
+      font-size: var(--str-video__font-size-md);
+      font-weight: 600;
+      color: var(--str-video__text-color1);
+      text-transform: capitalize;
+      margin: 0;
+      text-decoration: none;
+      padding: var(--str-video__spacing-md) var(--str-video__spacing-lg);
+      background-color: var(--str-video__base-color4);
+      border: none;
+
+      &:hover{
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      &--rejoin{
+        border-radius: var(--str-video__border-radius-lg);
+        border: 1px solid var(--str-video__button-default-hover);
+
+        &:hover{
+          background-color: var(--str-video__bage-hover);
+          color: var(--str-video__badge-hover-text);
+          cursor: pointer;
+          text-decoration: none;
+        }
+      }
+
+      &--new-call{
+        border-radius: var(--str-video__border-radius-lg);
+        border: 1px solid var(--str-video__base-color6);
+        background-color: var(--str-video__base-color6);
+
+        &:hover{
+          background-color: var(--str-video__bage-hover);
+          color: var(--str-video__badge-hover-text);
+          cursor: pointer;
+          text-decoration: none;
+        }
+
+      }
+    }
+  }
+}

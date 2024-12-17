@@ -1,0 +1,36 @@
+.rd__leave{
+  .rd__network-status{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    font-size: var(--str-video__font-size-md);
+    font-weight: 600;
+
+    .rd__network-bars{
+      display: flex;
+      flex-direction: row;
+      gap: var(--str-video__spacing-xxs);
+
+      .rd__network-bar {
+        width: 8px;
+        height: 24px;
+        background-color: #e0e0e0;
+        border-radius: var(--str-video__border-radius-sm);
+
+        &--good {
+          background-color: var(--str-video__network-bar-good);
+        }
+
+       &--average {
+          background-color: var(--str-video__network-bar-average);
+        }
+
+       &--bad {
+          background-color: var(--str-video__network-bar-bad);
+        }
+      }
+    }
+  }
+}

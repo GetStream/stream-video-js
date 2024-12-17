@@ -20,8 +20,7 @@ import {
   useWakeLock,
 } from '../hooks';
 import { ActiveCall } from './ActiveCall';
-import { Feedback } from './Feedback/Feedback';
-import { DefaultAppHeader } from './DefaultAppHeader';
+import { EndCallSummaryView } from './EndCallSummary/EndCallSummaryView';
 
 const contents = {
   'error-join': {
@@ -179,14 +178,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     ComponentToRender = <LoadingScreen />;
   } else if (show === 'left') {
     ComponentToRender = (
-      <>
-        <DefaultAppHeader />
-        <div className="rd__leave">
-          <div className="rd__leave-content">
-            <Feedback inMeeting={false} callId={call?.id} />
-          </div>
-        </div>
-      </>
+      <div className="rd__leave">
+        <EndCallSummaryView
+          rejoin={() => setShow('active-call')}
+          startNewCall={() => setShow('lobby')}
+        />
+      </div>
     );
   } else if (!call) {
     ComponentToRender = (

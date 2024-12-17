@@ -1,0 +1,9 @@
+.rd__leave{
+  .rd__edge-server{
+    display: flex;
+    flex-direction: column;
+    max-height: 120px;
+    overflow-y: scroll;
+    gap: var(--str-video__spacing-md);
+  }
+}

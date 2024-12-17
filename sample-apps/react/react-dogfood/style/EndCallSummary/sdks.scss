@@ -1,0 +1,28 @@
+.rd__leave{
+  .rd__sdks{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--str-video__spacing-md);
+
+
+
+    &--link{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 90px;
+
+      &-icon{
+        padding: var(--str-video__spacing-lg) var(--str-video__spacing-sm);
+
+        .str-video__icon{
+          height: 40px;
+          width: 40px;
+        }
+      }
+    }
+  }
+}

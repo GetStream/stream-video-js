@@ -74,8 +74,7 @@ type FeedbackFormType = {
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-export const Feedback = ({ callId, inMeeting = true }: Props) => {
-  const [rating, setRating] = useState({ current: 0, maxAmount: 5 });
+export const Feedback = ({ className, callId, inMeeting = true }: Props) => {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [errorMessage, setError] = useState<string | null>(null);
   const call = useCall();
@@ -128,15 +127,11 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
     debugForm: false,
   });
 
-  const handleSetRating = useCallback((value: number) => {
-    setRating((currentRating) => ({ ...currentRating, current: value }));
-  }, []);
-
   const { close } = useMenuContext();
 
   if (feedbackSent) {
     return (
-      <div className="rd__feedback rd__feedback--sent">
+      <div className={clsx('rd__feedback rd__feedback--sent', className)}>
         <img
           className="rd__feedback-image"
           src={`${basePath}/feedback.png`}
@@ -178,7 +173,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
   }
 
   return (
-    <div className="rd__feedback">
+    <div className={clsx('rd__feedback', className)}>
       <img
         className="rd__feedback-image"
         src={`${basePath}/feedback.png`}
@@ -198,28 +193,6 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         {!inMeeting && !errorMessage && 'How was your calling experience?'}
       </p>
       <Form className="rd__feedback-form">
-        <div className="rd__feedback-rating-stars">
-          {[...new Array(rating.maxAmount)].map((_, index) => {
-            const grade = index + 1;
-            const active = grade <= rating.current;
-            const color = (v: number) =>
-              v <= 2 ? 'bad' : v > 2 && v <= 4 ? 'good' : 'great';
-            const modifier = color(grade);
-            const activeModifier = color(rating.current);
-            return (
-              <div key={index} onClick={() => handleSetRating(grade)}>
-                <Icon
-                  icon="star"
-                  className={clsx(
-                    'rd__feedback-star',
-                    `rd__feedback-star--${modifier}`,
-                    active && `rd__feedback-star--active-${activeModifier}`,
-                  )}
-                />
-              </div>
-            );
-          })}
-        </div>
         <Input
           className="rd__feedback-input"
           name="email"
@@ -256,7 +229,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
             <button
               className="rd__button rd__button--primary"
               type="submit"
-              disabled={rating.current === 0 || isSubmitting}
+              disabled={isSubmitting}
             >
               Submit
             </button>

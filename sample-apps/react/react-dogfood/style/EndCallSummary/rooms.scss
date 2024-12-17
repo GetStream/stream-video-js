@@ -1,0 +1,13 @@
+.rd__leave{
+  .rd__leave--rooms{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--str-video__spacing-sm);
+  }
+
+  .rd__leave--rooms-link{
+    text-decoration: none;
+  }
+}
