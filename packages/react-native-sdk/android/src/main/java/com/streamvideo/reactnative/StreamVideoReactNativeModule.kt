@@ -110,13 +110,13 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
                     
                     reactApplicationContext
                         .getJSModule(RCTDeviceEventEmitter::class.java)
-                        .emit("onThermalStatusChanged", thermalStatus)
+                        .emit("thermalStateDidChange", thermalStatus)
                 }
                 
                 thermalStatusListener = listener
                 powerManager.addThermalStatusListener(listener)
                 // Get initial status
-                getCurrentThermalStatus(promise)
+                currentThermalState(promise)
             } else {
                 promise.resolve("NOT_SUPPORTED")
             }
@@ -139,7 +139,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     }
 
     @ReactMethod
-    fun getCurrentThermalStatus(promise: Promise) {
+    fun currentThermalState(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val powerManager = reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
@@ -182,7 +182,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         val isLowPowerMode = powerManager.isPowerSaveMode
         reactApplicationContext
             .getJSModule(RCTDeviceEventEmitter::class.java)
-            .emit("powerModeChanged", isLowPowerMode)
+            .emit("isLowPowerModeEnabled", isLowPowerMode)
     }
 
     @ReactMethod
@@ -197,8 +197,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     override fun getConstants(): Map<String, Any> {
         return mapOf(
-            "POWER_MODE_EVENT" to "powerModeChanged",
-            "THERMAL_EVENT" to "onThermalStatusChanged"
+            "POWER_MODE_EVENT" to "isLowPowerModeEnabled",
+            "THERMAL_EVENT" to "thermalStateDidChange"
         )
     }
 

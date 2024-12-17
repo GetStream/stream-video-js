@@ -224,14 +224,25 @@ const DeviceStats = () => {
         'thermalStateDidChange',
         (status: string) => handleThermalState(status, Platform.OS)
       );
+
+      // on android we need to explicitly start and stop the thermal status updates
+      if (Platform.OS === 'android') {
+        StreamVideoReactNative.startThermalStatusUpdates();
+      }
     } else {
       eventEmitter.removeAllListeners('isLowPowerModeEnabled');
       eventEmitter.removeAllListeners('thermalStateDidChange');
+      if (Platform.OS === 'android') {
+        StreamVideoReactNative.stopThermalStatusUpdates();
+      }
     }
 
     return () => {
       powerModeSubscription?.remove();
       thermalStateSubscription?.remove();
+      if (Platform.OS === 'android') {
+        StreamVideoReactNative.stopThermalStatusUpdates();
+      }
     };
   }, [
     thermalState,
