@@ -1,4 +1,4 @@
-import { Event } from '@notifee/react-native';
+import type { Event } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from './libs/firebaseMessaging';
 import { ExpoNotification } from './libs/expoNotifications';
 import { NonRingingPushEvent } from '../StreamVideoRN/types';

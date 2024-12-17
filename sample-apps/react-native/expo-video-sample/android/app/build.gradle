@@ -198,8 +198,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-    
-    implementation project(':notifee_react-native')
 }
 
 if (rnVersion < versionToNumber(0, 75, 0)) {
