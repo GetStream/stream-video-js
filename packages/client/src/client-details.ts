@@ -1,7 +1,5 @@
 import {
-  AndroidState,
   AndroidThermalState,
-  AppleState,
   AppleThermalState,
   ClientDetails,
   Device,
@@ -90,7 +88,7 @@ export const setThermalState = (state: string) => {
     };
   }
 
-  if (osInfo.name === 'iOS') {
+  if (osInfo.name.toLowerCase() === 'ios') {
     const thermalState =
       AppleThermalState[state as keyof typeof AppleThermalState] ||
       AppleThermalState.UNSPECIFIED;
@@ -126,7 +124,7 @@ export const setPowerState = (powerMode: boolean) => {
     };
   }
 
-  if (osInfo.name === 'iOS') {
+  if (osInfo.name.toLowerCase() === 'ios') {
     deviceState = {
       oneofKind: 'apple',
       apple: {

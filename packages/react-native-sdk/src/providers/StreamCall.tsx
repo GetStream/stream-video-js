@@ -154,9 +154,9 @@ const ClearPushWSSubscriptions = () => {
   return null;
 };
 
-const eventEmitter =
-  NativeModules?.StreamVideoReactNative &&
-  new NativeEventEmitter(NativeModules?.StreamVideoReactNative);
+const eventEmitter = NativeModules?.StreamVideoReactNative
+  ? new NativeEventEmitter(NativeModules?.StreamVideoReactNative)
+  : undefined;
 
 /**
  * This is a renderless component to get the device stats like thermal state and power saver mode.
@@ -166,9 +166,6 @@ const DeviceStats = () => {
   const callingState = useCallCallingState();
 
   useEffect(() => {
-    let powerModeSubscription: EmitterSubscription;
-    let thermalStateSubscription: EmitterSubscription;
-
     if (callingState !== CallingState.JOINED) {
       return;
     }
@@ -177,7 +174,7 @@ const DeviceStats = () => {
       (initialPowerMode: boolean) => setPowerState(initialPowerMode)
     );
 
-    powerModeSubscription = eventEmitter?.addListener(
+    let powerModeSubscription = eventEmitter?.addListener(
       'isLowPowerModeEnabled',
       (isLowPowerMode: boolean) => setPowerState(isLowPowerMode)
     );
@@ -186,7 +183,7 @@ const DeviceStats = () => {
       (initialState: string) => setThermalState(initialState)
     );
 
-    thermalStateSubscription = eventEmitter?.addListener(
+    let thermalStateSubscription = eventEmitter?.addListener(
       'thermalStateDidChange',
       (thermalState: string) => setThermalState(thermalState)
     );
