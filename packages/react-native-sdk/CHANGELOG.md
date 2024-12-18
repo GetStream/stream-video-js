@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.20...@stream-io/video-react-native-sdk-1.4.21) (2024-12-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.12.4`
+* `@stream-io/video-react-bindings` updated to version `1.2.14`
+## [1.4.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.19...@stream-io/video-react-native-sdk-1.4.20) (2024-12-16)
+
+
+### Bug Fixes
+
+* **expo:** tools not present when notifee service is added ([edccf62](https://github.com/GetStream/stream-video-js/commit/edccf62261183198871f3962ef19650ed4fc1729))
+
+## [1.4.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.18...@stream-io/video-react-native-sdk-1.4.19) (2024-12-16)
+
+
+### Bug Fixes
+
+* **rn:** break cyclic dependencies issue ([#1626](https://github.com/GetStream/stream-video-js/issues/1626)) ([ef30579](https://github.com/GetStream/stream-video-js/commit/ef3057949648581a5e17775661c859f693191f92))
+
 ## [1.4.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.17...@stream-io/video-react-native-sdk-1.4.18) (2024-12-16)
 
 
