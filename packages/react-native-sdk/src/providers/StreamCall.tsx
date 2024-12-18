@@ -21,7 +21,6 @@ import {
   NativeModules,
   Platform,
   NativeEventEmitter,
-  EmitterSubscription,
 } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
