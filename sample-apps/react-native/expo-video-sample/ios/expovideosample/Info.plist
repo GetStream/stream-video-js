@@ -31,6 +31,12 @@
           <string>io.getstream.expovideosample</string>
         </array>
       </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.347024607410-4jqjakcd24c5i2c5m1rrcpo5oq6t5gqe</string>
+        </array>
+      </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
@@ -50,8 +56,6 @@
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
-      <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
-      <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
     </array>
     <key>RTCAppGroupIdentifier</key>
     <string>group.io.getstream.expovideosample.appgroup</string>
@@ -59,7 +63,6 @@
     <string>io.getstream.expovideosample.broadcast</string>
     <key>UIBackgroundModes</key>
     <array>
-      <string>fetch</string>
       <string>voip</string>
       <string>audio</string>
       <string>remote-notification</string>
