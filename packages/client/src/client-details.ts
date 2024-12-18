@@ -9,25 +9,13 @@ import {
   Sdk,
   SdkType,
 } from './gen/video/sfu/models/models';
+import { SendStatsRequest } from './gen/video/sfu/signal_rpc/signal';
 import { isReactNative } from './helpers/platforms';
 import { UAParser } from 'ua-parser-js';
 
 type WebRTCInfoType = {
   version: string;
 };
-
-type DeviceState =
-  | {
-      oneofKind: 'android';
-      android: AndroidState;
-    }
-  | {
-      oneofKind: 'apple';
-      apple: AppleState;
-    }
-  | {
-      oneofKind: undefined;
-    };
 
 const version = process.env.PKG_VERSION || '0.0.0';
 const [major, minor, patch] = version.split('.');
@@ -42,7 +30,7 @@ let sdkInfo: Sdk | undefined = {
 let osInfo: OS | undefined;
 let deviceInfo: Device | undefined;
 let webRtcInfo: WebRTCInfoType | undefined;
-let deviceState: DeviceState;
+let deviceState: SendStatsRequest['deviceState'];
 
 export const setSdkInfo = (info: Sdk) => {
   sdkInfo = info;
@@ -80,69 +68,75 @@ export type LocalClientDetailsType = ClientDetails & {
   webRTCInfo?: WebRTCInfoType;
 };
 
-const getAndroidThermalState = (state: string) => {
-  switch (state) {
-    case 'UNKNOWN':
-      return AndroidThermalState.UNSPECIFIED;
-    case 'NONE':
-      return AndroidThermalState.NONE;
-    case 'LIGHT':
-      return AndroidThermalState.LIGHT;
-    case 'MODERATE':
-      return AndroidThermalState.MODERATE;
-    case 'SEVERE':
-      return AndroidThermalState.SEVERE;
-    case 'CRITICAL':
-      return AndroidThermalState.CRITICAL;
-    case 'EMERGENCY':
-      return AndroidThermalState.EMERGENCY;
-    case 'SHUTDOWN':
-      return AndroidThermalState.SHUTDOWN;
-    default:
-      return AndroidThermalState.UNSPECIFIED;
+export const setThermalState = (state: string) => {
+  if (!osInfo) {
+    deviceState = { oneofKind: undefined };
+    return;
   }
-};
 
-const getAppleThermalState = (state: string) => {
-  switch (state.toString()) {
-    case '0':
-      return AppleThermalState.UNSPECIFIED;
-    case '1':
-      return AppleThermalState.NOMINAL;
-    case '2':
-      return AppleThermalState.FAIR;
-    case '3':
-      return AppleThermalState.SERIOUS;
-    case '4':
-      return AppleThermalState.CRITICAL;
-    default:
-      return AppleThermalState.UNSPECIFIED;
-  }
-};
+  if (osInfo.name === 'android') {
+    const thermalState =
+      AndroidThermalState[state as keyof typeof AndroidThermalState] ||
+      AndroidThermalState.UNSPECIFIED;
 
-export const setDeviceState = (state: {
-  os: string;
-  thermal: string;
-  isLowPowerMode: boolean;
-}) => {
-  if (state.os === 'android') {
     deviceState = {
       oneofKind: 'android',
       android: {
-        thermalState: getAndroidThermalState(state.thermal),
-        isPowerSaverMode: state.isLowPowerMode,
+        thermalState,
+        isPowerSaverMode:
+          deviceState?.oneofKind === 'android' &&
+          deviceState.android.isPowerSaverMode,
       },
     };
-  } else if (state.os === 'ios') {
+  }
+
+  if (osInfo.name === 'iOS') {
+    const thermalState =
+      AppleThermalState[state as keyof typeof AppleThermalState] ||
+      AppleThermalState.UNSPECIFIED;
+
     deviceState = {
       oneofKind: 'apple',
       apple: {
-        thermalState: getAppleThermalState(state.thermal),
-        isLowPowerModeEnabled: state.isLowPowerMode,
+        thermalState,
+        isLowPowerModeEnabled:
+          deviceState?.oneofKind === 'apple' &&
+          deviceState.apple.isLowPowerModeEnabled,
       },
     };
-  } else {
+  }
+};
+
+export const setPowerState = (powerMode: boolean) => {
+  if (!osInfo) {
     deviceState = { oneofKind: undefined };
+    return;
+  }
+
+  if (osInfo.name === 'android') {
+    deviceState = {
+      oneofKind: 'android',
+      android: {
+        thermalState:
+          deviceState?.oneofKind === 'android'
+            ? deviceState.android.thermalState
+            : AndroidThermalState.UNSPECIFIED,
+        isPowerSaverMode: powerMode,
+      },
+    };
+  }
+
+  if (osInfo.name === 'iOS') {
+    deviceState = {
+      oneofKind: 'apple',
+      apple: {
+        thermalState:
+          deviceState?.oneofKind === 'apple'
+            ? deviceState.apple.thermalState
+            : AppleThermalState.UNSPECIFIED,
+        isLowPowerModeEnabled: powerMode,
+      },
+    };
   }
 };
 

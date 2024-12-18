@@ -3,14 +3,13 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-bindings';
-import React, {
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { Call, CallingState, setDeviceState } from '@stream-io/video-client';
+import React, { PropsWithChildren, useEffect, useRef } from 'react';
+import {
+  Call,
+  CallingState,
+  setThermalState,
+  setPowerState,
+} from '@stream-io/video-client';
 import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
 import {
   canAddPushWSSubscriptionsRef,
@@ -166,73 +165,35 @@ const DeviceStats = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  const [lowPowerMode, setLowPowerMode] = useState<boolean | null>(null);
-  const [thermalState, setThermalState] = useState<string | null>(null);
-
-  const handleLowPowerMode = useCallback(
-    (isLowPowerMode: boolean, operatingSystem: string) => {
-      setLowPowerMode(isLowPowerMode);
-      setDeviceState({
-        os: operatingSystem,
-        thermal: thermalState || 'UNKNOWN',
-        isLowPowerMode,
-      });
-    },
-    [thermalState]
-  );
-
-  const handleThermalState = useCallback(
-    (state: string, operatingSystem: string) => {
-      setThermalState(state);
-      setDeviceState({
-        os: operatingSystem,
-        thermal: state,
-        isLowPowerMode: lowPowerMode || false,
-      });
-    },
-    [lowPowerMode]
-  );
-
   useEffect(() => {
     let powerModeSubscription: EmitterSubscription;
     let thermalStateSubscription: EmitterSubscription;
 
-    if (callingState === CallingState.JOINED) {
-      if (lowPowerMode === null) {
-        NativeModules?.StreamVideoReactNative.isLowPowerModeEnabled().then(
-          (isLowPowerMode: boolean) =>
-            handleLowPowerMode(isLowPowerMode, Platform.OS)
-        );
-      }
+    if (callingState !== CallingState.JOINED) {
+      return;
+    }
 
-      powerModeSubscription = eventEmitter?.addListener(
-        'isLowPowerModeEnabled',
-        (isLowPowerMode: boolean) =>
-          handleLowPowerMode(isLowPowerMode, Platform.OS)
-      );
+    NativeModules?.StreamVideoReactNative.isLowPowerModeEnabled().then(
+      (initialPowerMode: boolean) => setPowerState(initialPowerMode)
+    );
 
-      if (thermalState === null) {
-        NativeModules?.StreamVideoReactNative.currentThermalState().then(
-          (initialState: string) =>
-            handleThermalState(initialState, Platform.OS)
-        );
-      }
+    powerModeSubscription = eventEmitter?.addListener(
+      'isLowPowerModeEnabled',
+      (isLowPowerMode: boolean) => setPowerState(isLowPowerMode)
+    );
 
-      thermalStateSubscription = eventEmitter?.addListener(
-        'thermalStateDidChange',
-        (status: string) => handleThermalState(status, Platform.OS)
-      );
+    NativeModules?.StreamVideoReactNative.currentThermalState().then(
+      (initialState: string) => setThermalState(initialState)
+    );
 
-      // on android we need to explicitly start and stop the thermal status updates
-      if (Platform.OS === 'android') {
-        NativeModules?.StreamVideoReactNative.startThermalStatusUpdates();
-      }
-    } else {
-      eventEmitter?.removeAllListeners('isLowPowerModeEnabled');
-      eventEmitter?.removeAllListeners('thermalStateDidChange');
-      if (Platform.OS === 'android') {
-        NativeModules?.StreamVideoReactNative.stopThermalStatusUpdates();
-      }
+    thermalStateSubscription = eventEmitter?.addListener(
+      'thermalStateDidChange',
+      (thermalState: string) => setThermalState(thermalState)
+    );
+
+    // on android we need to explicitly start and stop the thermal status updates
+    if (Platform.OS === 'android') {
+      NativeModules?.StreamVideoReactNative.startThermalStatusUpdates();
     }
 
     return () => {
@@ -242,13 +203,7 @@ const DeviceStats = () => {
         NativeModules?.StreamVideoReactNative.stopThermalStatusUpdates();
       }
     };
-  }, [
-    thermalState,
-    callingState,
-    lowPowerMode,
-    handleLowPowerMode,
-    handleThermalState,
-  ]);
+  }, [callingState]);
 
   return null;
 };

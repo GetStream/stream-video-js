@@ -195,13 +195,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         }
     }
 
-    override fun getConstants(): Map<String, Any> {
-        return mapOf(
-            "POWER_MODE_EVENT" to "isLowPowerModeEnabled",
-            "THERMAL_EVENT" to "thermalStateDidChange"
-        )
-    }
-
     private fun hasPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             val appOps =
