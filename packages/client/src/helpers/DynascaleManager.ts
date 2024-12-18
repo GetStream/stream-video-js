@@ -371,11 +371,14 @@ export class DynascaleManager {
               });
             });
 
-    let lastDimensions: string | undefined;
+    let lastDimensions: VideoDimension | undefined;
     const resizeObserver = boundParticipant.isLocalParticipant
       ? null
       : new ResizeObserver(() => {
-          const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
+          const currentDimensions = {
+            width: videoElement.clientWidth,
+            height: videoElement.clientHeight,
+          };
 
           // skip initial trigger
           if (!lastDimensions) {
@@ -384,13 +387,24 @@ export class DynascaleManager {
           }
 
           if (
-            lastDimensions === currentDimensions ||
+            (lastDimensions.width === currentDimensions.width &&
+              lastDimensions.height === currentDimensions.height) ||
             viewportVisibilityState === VisibilityState.INVISIBLE
           ) {
             return;
           }
 
-          requestTrackWithDimensions(DebounceType.SLOW, {
+          const relativeDelta = Math.max(
+            currentDimensions.width / lastDimensions.width,
+            currentDimensions.height / lastDimensions.height,
+          );
+          // Low quality video in an upscaled video element is very noticable.
+          // We try to upscale faster, and downscale slower. We also update debounce
+          // more if the size change is not significant, gurading against fast-firing
+          // resize events.
+          const debounceType =
+            relativeDelta > 1.2 ? DebounceType.IMMEDIATE : DebounceType.MEDIUM;
+          requestTrackWithDimensions(debounceType, {
             width: videoElement.clientWidth,
             height: videoElement.clientHeight,
           });
@@ -413,7 +427,7 @@ export class DynascaleManager {
           .subscribe((isPublishing) => {
             if (isPublishing) {
               // the participant just started to publish a track
-              requestTrackWithDimensions(DebounceType.FAST, {
+              requestTrackWithDimensions(DebounceType.IMMEDIATE, {
                 width: videoElement.clientWidth,
                 height: videoElement.clientHeight,
               });

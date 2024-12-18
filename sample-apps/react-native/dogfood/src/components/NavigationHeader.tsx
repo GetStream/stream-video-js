@@ -3,8 +3,9 @@ import {
   StreamVideoRN,
   useI18n,
   useStreamVideoClient,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import {
   useAppGlobalStoreSetState,
@@ -16,12 +17,13 @@ import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
 import { Button } from './Button';
 import { ButtonTestIds } from '../constants/TestIds';
-import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
+  const styles = useStyles();
   const userName = useAppGlobalStoreValue((store) => store.userName);
+  const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
   const appStoreSetState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
@@ -60,7 +62,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   };
 
   const showChooseModeButton =
-    REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' &&
+    (environment === 'pronto' || environment === 'pronto-staging') &&
     (route.name === 'JoinMeetingScreen' ||
       route.name === 'JoinCallScreen' ||
       route.name === 'AudioRoom' ||
@@ -91,41 +93,48 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: appTheme.spacing.lg,
-    paddingVertical: appTheme.spacing.lg,
-    backgroundColor: appTheme.colors.static_grey,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        header: {
+          width: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: appTheme.spacing.lg,
+          paddingVertical: appTheme.spacing.lg,
+          backgroundColor: theme.colors.sheetSecondary,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.23,
+          shadowRadius: 2.62,
 
-    elevation: 4,
-  },
-  headerText: {
-    flexShrink: 1,
-    fontSize: 20,
-    fontWeight: '500',
-    color: appTheme.colors.static_white,
-    marginRight: appTheme.spacing.lg,
-  },
-  avatar: {
-    height: AVATAR_SIZE,
-    width: AVATAR_SIZE,
-    borderRadius: 50,
-  },
-  chooseAppMode: {
-    fontWeight: 'bold',
-  },
-  buttonText: {
-    fontSize: 12,
-  },
-});
+          elevation: 4,
+        },
+        headerText: {
+          flexShrink: 1,
+          fontSize: 20,
+          fontWeight: '500',
+          color: theme.colors.textPrimary,
+          marginRight: appTheme.spacing.lg,
+        },
+        avatar: {
+          height: AVATAR_SIZE,
+          width: AVATAR_SIZE,
+          borderRadius: 50,
+        },
+        chooseAppMode: {
+          fontWeight: 'bold',
+        },
+        buttonText: {
+          fontSize: 12,
+        },
+      }),
+    [theme],
+  );
+};

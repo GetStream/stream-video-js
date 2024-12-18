@@ -60,12 +60,13 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
     onPressHandler?: () => void;
   };
 
-const CustomLocalParticipantViewVideoFallback = () => {
+const DefaultLocalParticipantViewVideoFallback = () => {
   const {
     theme: {
       colors,
       floatingParticipantsView,
       variants: { iconSizes },
+      defaults,
     },
   } = useTheme();
 
@@ -73,12 +74,12 @@ const CustomLocalParticipantViewVideoFallback = () => {
     <View
       style={[
         styles.videoFallback,
-        { backgroundColor: colors.disabled },
+        { backgroundColor: colors.sheetSecondary },
         floatingParticipantsView.videoFallback,
       ]}
     >
       <View style={{ height: iconSizes.md, width: iconSizes.md }}>
-        <VideoSlash color={colors.static_white} />
+        <VideoSlash color={colors.iconPrimary} size={defaults.iconSize} />
       </View>
     </View>
   );
@@ -95,6 +96,7 @@ export const FloatingParticipantView = ({
   draggableContainerStyle,
   ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
+  ParticipantVideoFallback = DefaultLocalParticipantViewVideoFallback,
   ParticipantReaction,
   VideoRenderer,
   supportedReactions,
@@ -124,7 +126,7 @@ export const FloatingParticipantView = ({
     ParticipantLabel: null,
     ParticipantNetworkQualityIndicator,
     ParticipantReaction,
-    ParticipantVideoFallback: CustomLocalParticipantViewVideoFallback,
+    ParticipantVideoFallback,
     VideoRenderer,
   };
 
@@ -170,9 +172,7 @@ export const FloatingParticipantView = ({
                 style={[
                   styles.participantViewContainer,
                   participantViewStyle,
-                  {
-                    shadowColor: colors.static_black,
-                  },
+                  { shadowColor: colors.sheetPrimary },
                   floatingParticipantsView.participantViewContainer,
                 ]}
                 // video z order must be one above the one used in grid view
@@ -192,7 +192,6 @@ export const FloatingParticipantView = ({
 
 const styles = StyleSheet.create({
   container: {
-    margin: 8,
     // Needed to make the view on top and draggable
     zIndex: Z_INDEX.IN_MIDDLE,
     flex: 1,

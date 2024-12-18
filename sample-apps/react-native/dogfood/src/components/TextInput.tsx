@@ -1,35 +1,55 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TextInput as NativeTextInput,
   StyleSheet,
   TextInputProps,
 } from 'react-native';
-import { appTheme } from '../theme';
 import { INPUT_HEIGHT } from '../constants';
+import {
+  Theme,
+  defaultTheme,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
 
-export const TextInput = (
-  props: Omit<TextInputProps, 'placeholderTextColor'>,
-) => {
+export const TextInput = React.forwardRef<
+  NativeTextInput,
+  Omit<TextInputProps, 'placeholderTextColor'>
+>((props, ref) => {
+  const styles = useStyles();
   return (
     <NativeTextInput
+      ref={ref}
       placeholderTextColor={'#8C8C8CFF'}
       {...props}
       style={[styles.input, props.style]}
     />
   );
-};
-
-const styles = StyleSheet.create({
-  input: {
-    paddingLeft: appTheme.spacing.lg,
-    marginVertical: appTheme.spacing.md,
-    height: INPUT_HEIGHT,
-    backgroundColor: appTheme.colors.dark_gray,
-    borderRadius: 8,
-    borderColor: appTheme.colors.disabled,
-    borderWidth: 1,
-    color: appTheme.colors.static_white,
-    fontSize: 17,
-    flex: 1,
-  },
 });
+
+const useStyles = () => {
+  let appTheme: Theme;
+  try {
+    /* eslint-disable react-hooks/rules-of-hooks */
+    appTheme = useTheme()?.theme;
+  } catch (e) {
+    appTheme = defaultTheme;
+  }
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        input: {
+          paddingLeft: appTheme.variants.spacingSizes.lg,
+          marginVertical: appTheme.variants.spacingSizes.md,
+          height: INPUT_HEIGHT,
+          backgroundColor: appTheme.colors.sheetSecondary,
+          borderRadius: 8,
+          borderColor: appTheme.colors.buttonDisabled,
+          borderWidth: 1,
+          color: appTheme.colors.textPrimary,
+          fontSize: 17,
+          flex: 1,
+        },
+      }),
+    [appTheme],
+  );
+};

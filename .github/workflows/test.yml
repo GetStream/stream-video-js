@@ -10,12 +10,8 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '**/docusaurus/**'
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore:
-      - '**/docusaurus/**'
 
 jobs:
   test-and-build:
@@ -27,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'yarn'
 
       - name: ESLint Cache

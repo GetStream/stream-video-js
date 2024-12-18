@@ -12,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
@@ -30,11 +28,27 @@
       "package": "io.getstream.expovideosample"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24,
+            "extraMavenRepos": [
+              "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
+            ]
+          },
+          "ios": {
+            "flipper": false,
+            "useFrameworks": "static"
+          }
+        }
+      ],
       "@react-native-firebase/app",
       [
         "@stream-io/video-react-native-sdk",
         {
           "enableScreenshare": true,
+          "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
             "disableVideoIos": false,
@@ -53,21 +67,6 @@
         {
           "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "minSdkVersion": 24,
-            "extraMavenRepos": [
-              "../../../node_modules/@notifee/react-native/android/libs"
-            ]
-          },
-          "ios": {
-            "flipper": false,
-            "useFrameworks": "static"
-          }
         }
       ],
       "expo-router"

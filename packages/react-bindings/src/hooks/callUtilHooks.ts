@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCall } from '../contexts';
 import { useIsCallRecordingInProgress } from './callStateHooks';
+
 /**
  * Custom hook for toggling call recording in a video call.
  *

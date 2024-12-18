@@ -1,5 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
+
+import type { Bound, DailyAggregateCallStatsResponse } from '../shims';
+
 /**
  *
  * @export
@@ -578,6 +581,32 @@ export interface CallDeletedEvent {
   type: string;
 }
 /**
+ *
+ * @export
+ * @interface CallDurationReportResponse
+ */
+export interface CallDurationReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<CallDurationReport>>}
+   * @memberof CallDurationReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<CallDurationReport>>;
+}
+/**
+ *
+ * @export
+ * @interface CallDurationReport
+ */
+export interface CallDurationReport {
+  /**
+   *
+   * @type {Array<ReportByHistogramBucket>}
+   * @memberof CallDurationReport
+   */
+  histogram: Array<ReportByHistogramBucket>;
+}
+/**
  * This event is sent when a call is mark as ended for all its participants. Clients receiving this event should leave the call screen
  * @export
  * @interface CallEndedEvent
@@ -1094,6 +1123,32 @@ export interface CallParticipantResponse {
    * @memberof CallParticipantResponse
    */
   user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallParticipantCountReportResponse
+ */
+export interface CallParticipantCountReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<CallParticipantCountReport>>}
+   * @memberof CallParticipantCountReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<CallParticipantCountReport>>;
+}
+/**
+ *
+ * @export
+ * @interface CallParticipantCountReport
+ */
+export interface CallParticipantCountReport {
+  /**
+   *
+   * @type {Array<ReportByHistogramBucket>}
+   * @memberof CallParticipantCountReport
+   */
+  histogram: Array<ReportByHistogramBucket>;
 }
 /**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
@@ -1960,7 +2015,33 @@ export interface CallSettingsResponse {
   video: VideoSettingsResponse;
 }
 /**
- * CallStateResponseFields is the payload for call state response
+ *
+ * @export
+ * @interface CallsPerDayReportResponse
+ */
+export interface CallsPerDayReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<CallsPerDayReport>>}
+   * @memberof CallsPerDayReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<CallsPerDayReport>>;
+}
+/**
+ *
+ * @export
+ * @interface CallsPerDayReport
+ */
+export interface CallsPerDayReport {
+  /**
+   *
+   * @type {number}
+   * @memberof CallsPerDayReport
+   */
+  count: number;
+}
+/**
+ *
  * @export
  * @interface CallStateResponseFields
  */
@@ -3671,6 +3752,12 @@ export interface GetCallStatsResponse {
    * @type {number}
    * @memberof GetCallStatsResponse
    */
+  average_connection_time?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallStatsResponse
+   */
   call_duration_seconds: number;
   /**
    *
@@ -4443,6 +4530,37 @@ export interface MuteUsersResponse {
 /**
  *
  * @export
+ * @interface NetworkMetricsReportResponse
+ */
+export interface NetworkMetricsReportResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_connection_time?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_jitter?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_latency?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof NetworkMetricsReportResponse
+   */
+  average_time_to_reconnect?: number;
+}
+/**
+ *
+ * @export
  * @interface NoiseCancellationSettings
  */
 export interface NoiseCancellationSettings {
@@ -4748,7 +4866,26 @@ export interface PermissionRequestEvent {
   user: UserResponse;
 }
 /**
- * PinRequest is the payload for pinning a message.
+ *
+ * @export
+ * @interface PerSDKUsageReport
+ */
+export interface PerSDKUsageReport {
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof PerSDKUsageReport
+   */
+  by_version: { [key: string]: number };
+  /**
+   *
+   * @type {number}
+   * @memberof PerSDKUsageReport
+   */
+  total: number;
+}
+/**
+ *
  * @export
  * @interface PinRequest
  */
@@ -4898,6 +5035,112 @@ export interface PushNotificationSettingsResponse {
    * @memberof PushNotificationSettingsResponse
    */
   disabled_until?: string;
+}
+/**
+ *
+ * @export
+ * @interface QualityScoreReportResponse
+ */
+export interface QualityScoreReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<QualityScoreReport>>}
+   * @memberof QualityScoreReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<QualityScoreReport>>;
+}
+/**
+ *
+ * @export
+ * @interface QualityScoreReport
+ */
+export interface QualityScoreReport {
+  /**
+   *
+   * @type {Array<ReportByHistogramBucket>}
+   * @memberof QualityScoreReport
+   */
+  histogram: Array<ReportByHistogramBucket>;
+}
+/**
+ *
+ * @export
+ * @interface QueryAggregateCallStatsRequest
+ */
+export interface QueryAggregateCallStatsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryAggregateCallStatsRequest
+   */
+  from?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof QueryAggregateCallStatsRequest
+   */
+  report_types?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryAggregateCallStatsRequest
+   */
+  to?: string;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryAggregateCallStatsResponse
+ */
+export interface QueryAggregateCallStatsResponse {
+  /**
+   *
+   * @type {CallDurationReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  call_duration_report?: CallDurationReportResponse;
+  /**
+   *
+   * @type {CallParticipantCountReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  call_participant_count_report?: CallParticipantCountReportResponse;
+  /**
+   *
+   * @type {CallsPerDayReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  calls_per_day_report?: CallsPerDayReportResponse;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {NetworkMetricsReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  network_metrics_report?: NetworkMetricsReportResponse;
+  /**
+   *
+   * @type {QualityScoreReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  quality_score_report?: QualityScoreReportResponse;
+  /**
+   *
+   * @type {SDKUsageReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  sdk_usage_report?: SDKUsageReportResponse;
+  /**
+   *
+   * @type {UserFeedbackReportResponse}
+   * @memberof QueryAggregateCallStatsResponse
+   */
+  user_feedback_report?: UserFeedbackReportResponse;
 }
 /**
  *
@@ -5300,6 +5543,49 @@ export interface RejectCallResponse {
 /**
  *
  * @export
+ * @interface ReportByHistogramBucket
+ */
+export interface ReportByHistogramBucket {
+  /**
+   *
+   * @type {string}
+   * @memberof ReportByHistogramBucket
+   */
+  category: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ReportByHistogramBucket
+   */
+  count: number;
+  /**
+   *
+   * @type {Bound}
+   * @memberof ReportByHistogramBucket
+   */
+  lower_bound?: Bound;
+  /**
+   *
+   * @type {number}
+   * @memberof ReportByHistogramBucket
+   */
+  mean: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ReportByHistogramBucket
+   */
+  sum: number;
+  /**
+   *
+   * @type {Bound}
+   * @memberof ReportByHistogramBucket
+   */
+  upper_bound?: Bound;
+}
+/**
+ *
+ * @export
  * @interface RequestPermissionRequest
  */
 export interface RequestPermissionRequest {
@@ -5493,7 +5779,33 @@ export interface ScreensharingSettingsResponse {
   target_resolution?: TargetResolution;
 }
 /**
- * Send a call event to the other user
+ *
+ * @export
+ * @interface SDKUsageReportResponse
+ */
+export interface SDKUsageReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<SDKUsageReport>>}
+   * @memberof SDKUsageReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<SDKUsageReport>>;
+}
+/**
+ *
+ * @export
+ * @interface SDKUsageReport
+ */
+export interface SDKUsageReport {
+  /**
+   *
+   * @type {{ [key: string]: PerSDKUsageReport; }}
+   * @memberof SDKUsageReport
+   */
+  per_sdk_usage: { [key: string]: PerSDKUsageReport };
+}
+/**
+ *
  * @export
  * @interface SendCallEventRequest
  */
@@ -6692,6 +7004,38 @@ export interface UserFlaggedEvent {
 /**
  *
  * @export
+ * @interface UserFeedbackReportResponse
+ */
+export interface UserFeedbackReportResponse {
+  /**
+   *
+   * @type {Array<DailyAggregateCallStatsResponse<UserFeedbackReport>>}
+   * @memberof UserFeedbackReportResponse
+   */
+  daily: Array<DailyAggregateCallStatsResponse<UserFeedbackReport>>;
+}
+/**
+ *
+ * @export
+ * @interface UserFeedbackReport
+ */
+export interface UserFeedbackReport {
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof UserFeedbackReport
+   */
+  count_by_rating: { [key: string]: number };
+  /**
+   *
+   * @type {number}
+   * @memberof UserFeedbackReport
+   */
+  unreported_count: number;
+}
+/**
+ *
+ * @export
  * @interface UserInfoResponse
  */
 export interface UserInfoResponse {
@@ -7014,6 +7358,12 @@ export interface UserResponse {
  * @interface UserSessionStats
  */
 export interface UserSessionStats {
+  /**
+   *
+   * @type {number}
+   * @memberof UserSessionStats
+   */
+  average_connection_time?: number;
   /**
    *
    * @type {string}

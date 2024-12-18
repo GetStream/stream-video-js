@@ -2,6 +2,146 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.3...@stream-io/video-client-1.12.4) (2024-12-17)
+
+
+* improve test coverage reporting ([#1624](https://github.com/GetStream/stream-video-js/issues/1624)) ([32bb870](https://github.com/GetStream/stream-video-js/commit/32bb870187f0627c32d2b5692ce3de633d743582))
+
+
+### Bug Fixes
+
+* adjust dynascale debouncing for upscaling and downscaling ([#1621](https://github.com/GetStream/stream-video-js/issues/1621)) [skip ci] ([7b3a721](https://github.com/GetStream/stream-video-js/commit/7b3a72192fab79d8af8d1c392a9f0135e2d25b16))
+* prevent auto-dropping already accepted or rejected calls ([#1619](https://github.com/GetStream/stream-video-js/issues/1619)) ([113406a](https://github.com/GetStream/stream-video-js/commit/113406a9ba7fdf2e193a1933b73963e0011f28f0))
+
+## [1.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.2...@stream-io/video-client-1.12.3) (2024-12-13)
+
+
+### Bug Fixes
+
+* multiple rare ringing issues in react-native ([#1611](https://github.com/GetStream/stream-video-js/issues/1611)) ([4e25264](https://github.com/GetStream/stream-video-js/commit/4e25264808eab469b7b7ab184fb19961d47bdff3))
+
+## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.1...@stream-io/video-client-1.12.2) (2024-12-11)
+
+
+* drop docusaurus docs ([#1613](https://github.com/GetStream/stream-video-js/issues/1613)) ([8743c8d](https://github.com/GetStream/stream-video-js/commit/8743c8d221191759266010c6cd053480da1d71a5))
+
+
+### Bug Fixes
+
+* pre-built timer worker ([#1617](https://github.com/GetStream/stream-video-js/issues/1617)) ([94dacef](https://github.com/GetStream/stream-video-js/commit/94dacef1c2b1e8794a42657ddab29a3b584eb0b4)), closes [#1557](https://github.com/GetStream/stream-video-js/issues/1557)
+
+## [1.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.0...@stream-io/video-client-1.12.1) (2024-12-11)
+
+
+### Bug Fixes
+
+* reenable usage of ringing filters with useCalls ([1dffaed](https://github.com/GetStream/stream-video-js/commit/1dffaed609ac147a6030a4fb103c4dd586db775e))
+
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.15...@stream-io/video-client-1.12.0) (2024-12-10)
+
+
+### Features
+
+* Aggregate stats reports - request and response objects ([#1614](https://github.com/GetStream/stream-video-js/issues/1614)) ([8a47fea](https://github.com/GetStream/stream-video-js/commit/8a47fea491232e524b1de780c12c0d00e0f02bcd))
+
+## [1.11.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.14...@stream-io/video-client-1.11.15) (2024-12-09)
+
+
+### Bug Fixes
+
+* avoid call.get in all call.ring events ([#1615](https://github.com/GetStream/stream-video-js/issues/1615)) ([c757370](https://github.com/GetStream/stream-video-js/commit/c7573701a20b4a29cd2b6fd08a55d4eff503f77f))
+
+## [1.11.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.13...@stream-io/video-client-1.11.14) (2024-12-04)
+
+
+### Bug Fixes
+
+* prevent device list observable from erroring ([#1608](https://github.com/GetStream/stream-video-js/issues/1608)) ([06af3e7](https://github.com/GetStream/stream-video-js/commit/06af3e7e03b63551c781512c797ac10c0486d0c7))
+
+## [1.11.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.12...@stream-io/video-client-1.11.13) (2024-12-03)
+
+
+### Bug Fixes
+
+* use worker to prevent timer throttling ([#1557](https://github.com/GetStream/stream-video-js/issues/1557)) ([c11c3ca](https://github.com/GetStream/stream-video-js/commit/c11c3caf455787fe531c83601bad71e7a0a0e9b9))
+
+## [1.11.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.11...@stream-io/video-client-1.11.12) (2024-12-03)
+
+
+### Bug Fixes
+
+* handle timeout on SFU WS connections ([#1600](https://github.com/GetStream/stream-video-js/issues/1600)) ([5f2db7b](https://github.com/GetStream/stream-video-js/commit/5f2db7bd5cfdf57cdc04d6a6ed752f43e5b06657))
+
+## [1.11.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.10...@stream-io/video-client-1.11.11) (2024-11-29)
+
+
+### Bug Fixes
+
+* revert [#1604](https://github.com/GetStream/stream-video-js/issues/1604) ([#1607](https://github.com/GetStream/stream-video-js/issues/1607)) ([567e4fb](https://github.com/GetStream/stream-video-js/commit/567e4fb309509b6b0d814826856d0a15efe16271))
+
+## [1.11.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.9...@stream-io/video-client-1.11.10) (2024-11-28)
+
+
+### Bug Fixes
+
+* ringing calls not being left when ended ([#1601](https://github.com/GetStream/stream-video-js/issues/1601)) ([1c2b9d1](https://github.com/GetStream/stream-video-js/commit/1c2b9d1a54767652acc52cae9bb3d348c9df566f))
+
+## [1.11.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.8...@stream-io/video-client-1.11.9) (2024-11-27)
+
+
+### Bug Fixes
+
+* cover some device selection edge cases ([#1604](https://github.com/GetStream/stream-video-js/issues/1604)) ([a8fc0ea](https://github.com/GetStream/stream-video-js/commit/a8fc0eaf1ed6c79ce24f77f52351a1e90701bd02))
+
+## [1.11.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.7...@stream-io/video-client-1.11.8) (2024-11-27)
+
+
+### Bug Fixes
+
+* **ios:** use vp8 when h264 constrainted baseline isn't available ([#1597](https://github.com/GetStream/stream-video-js/issues/1597)) ([6281216](https://github.com/GetStream/stream-video-js/commit/62812161cef5e9917c504dbc4cd9257709ea5fa1))
+
+## [1.11.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.6...@stream-io/video-client-1.11.7) (2024-11-26)
+
+
+### Bug Fixes
+
+* remove unused code from the coordinator websocket impl ([#1563](https://github.com/GetStream/stream-video-js/issues/1563)) ([921b820](https://github.com/GetStream/stream-video-js/commit/921b820133885dac299dab343cee3fc4b08705ce))
+
+## [1.11.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.5...@stream-io/video-client-1.11.6) (2024-11-22)
+
+
+### Bug Fixes
+
+* force single codec preference in the SDP ([#1588](https://github.com/GetStream/stream-video-js/issues/1588)) ([4afff09](https://github.com/GetStream/stream-video-js/commit/4afff09a778f8567176d22bcc22d36001dca7cd3)), closes [#1581](https://github.com/GetStream/stream-video-js/issues/1581)
+
+## [1.11.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.4...@stream-io/video-client-1.11.5) (2024-11-22)
+
+
+### Bug Fixes
+
+* unhandled promise rejections during reconnect ([#1585](https://github.com/GetStream/stream-video-js/issues/1585)) ([920c4ea](https://github.com/GetStream/stream-video-js/commit/920c4ea3b3f622430b35ac1bade74a6206ee17e5)), closes [/github.com/GetStream/stream-video-js/pull/1585/files#diff-420f6ddab47c1be72fd9ce8c99e1fa2b9f5f0495b7c367546ee0ff634beaed81](https://github.com/GetStream//github.com/GetStream/stream-video-js/pull/1585/files/issues/diff-420f6ddab47c1be72fd9ce8c99e1fa2b9f5f0495b7c367546ee0ff634beaed81)
+
+## [1.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.3...@stream-io/video-client-1.11.4) (2024-11-21)
+
+
+### Bug Fixes
+
+* experimental option to force single codec preference in the SDP ([#1581](https://github.com/GetStream/stream-video-js/issues/1581)) ([894a86e](https://github.com/GetStream/stream-video-js/commit/894a86e407dc0dd36b7463bb964c86da0c3055d1))
+
+## [1.11.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.2...@stream-io/video-client-1.11.3) (2024-11-20)
+
+
+### Bug Fixes
+
+* respect codec overrides when computing the video layers ([#1582](https://github.com/GetStream/stream-video-js/issues/1582)) ([c22b83e](https://github.com/GetStream/stream-video-js/commit/c22b83ef710f2188e680b73790154de046a824e9))
+
+## [1.11.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.1...@stream-io/video-client-1.11.2) (2024-11-14)
+
+
+### Bug Fixes
+
+* fully reset token manager on user disconnect ([#1578](https://github.com/GetStream/stream-video-js/issues/1578)) ([6751abc](https://github.com/GetStream/stream-video-js/commit/6751abc0507085bd7c9f3f803f4c5929e0598bea)), closes [#1573](https://github.com/GetStream/stream-video-js/issues/1573)
+
 ## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.11.0...@stream-io/video-client-1.11.1) (2024-11-14)
 
 

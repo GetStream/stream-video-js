@@ -18,7 +18,7 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
   } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.static_grey }]}>
+    <View style={[styles.container, { backgroundColor: colors.sheetTertiary }]}>
       {props.onBackPress && (
         <View style={styles.backContainer}>
           <Pressable
@@ -31,7 +31,7 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
               },
             ]}
           >
-            <Back color={colors.static_white} />
+            <Back color={colors.iconPrimary} />
           </Pressable>
         </View>
       )}
@@ -39,7 +39,7 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
         <Text
           style={[
             styles.text,
-            { color: colors.static_white },
+            { color: colors.textPrimary },
             typefaces.heading6,
           ]}
         >

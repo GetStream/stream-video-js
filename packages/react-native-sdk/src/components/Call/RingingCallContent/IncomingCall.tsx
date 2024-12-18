@@ -13,24 +13,15 @@ import {
 } from '@stream-io/video-react-bindings';
 import { UserInfo } from './UserInfo';
 import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
-import {
   IncomingCallControls as DefaultIncomingCallControls,
   IncomingCallControlsProps,
 } from '../CallControls';
 import { useTheme } from '../../../contexts';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the IncomingCall Component.
  */
 export type IncomingCallProps = IncomingCallControlsProps & {
-  /**
-   * Prop to customize the CallTopView component in the IncomingCall component.
-   */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
   /**
    * Prop to customize the IncomingCall controls.
    */
@@ -49,7 +40,6 @@ export type IncomingCallProps = IncomingCallControlsProps & {
 export const IncomingCall = ({
   onAcceptCallHandler,
   onRejectCallHandler,
-  CallTopView = DefaultCallTopView,
   IncomingCallControls = DefaultIncomingCallControls,
   landscape,
 }: IncomingCallProps) => {
@@ -58,15 +48,12 @@ export const IncomingCall = ({
     theme: { colors, incomingCall, typefaces },
   } = useTheme();
 
-  useApplyDefaultMediaStreamSettings();
-
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
   return (
     <Background>
-      {CallTopView && <CallTopView />}
       <View
         style={[styles.content, landscapeContentStyles, incomingCall.content]}
       >
@@ -75,7 +62,7 @@ export const IncomingCall = ({
           <Text
             style={[
               styles.incomingCallText,
-              { color: colors.static_white },
+              { color: colors.textPrimary },
               typefaces.heading6,
               incomingCall.incomingCallText,
             ]}
@@ -128,7 +115,7 @@ const Background: React.FunctionComponent<{
         }}
         style={[
           styles.background,
-          { backgroundColor: colors.static_grey },
+          { backgroundColor: colors.sheetTertiary },
           incomingCall.background,
         ]}
       >
@@ -140,7 +127,7 @@ const Background: React.FunctionComponent<{
     <View
       style={[
         styles.background,
-        { backgroundColor: colors.static_grey },
+        { backgroundColor: colors.sheetTertiary },
         incomingCall.background,
       ]}
     >
@@ -156,7 +143,7 @@ export const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  topContainer: { flex: 1 },
+  topContainer: { flex: 1, justifyContent: 'center' },
   incomingCallText: {
     marginTop: 8,
     textAlign: 'center',

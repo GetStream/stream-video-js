@@ -59,10 +59,10 @@ buck-out/
 
 # Bundle artifact
 *.jsbundle
+*.tgz
 
 # Ruby / CocoaPods
 /ios/Pods/
 /vendor/bundle/
 
 version.ts
-!docusaurus/.env

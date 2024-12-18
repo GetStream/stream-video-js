@@ -37,7 +37,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.347024607410-a466jkdqm1mma55s90on17aovv5gp4ss</string>
+				<string>com.googleusercontent.apps.347024607410-rouq076vsrsm1f410o4c59idevc1b6gf</string>
 			</array>
 		</dict>
 		<dict>
@@ -68,9 +68,6 @@
 	<string>$(PRODUCT_NAME) requires camera access in order to capture and transmit video</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>$(PRODUCT_NAME) requires access to photo library to allow you to share photo
-			attachments</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) requires access to photo library to allow you to share photo
 			attachments</string>
@@ -89,13 +86,14 @@
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

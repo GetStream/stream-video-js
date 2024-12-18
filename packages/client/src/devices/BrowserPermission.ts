@@ -63,7 +63,7 @@ export class BrowserPermission {
     forcePrompt = false,
     throwOnNotAllowed = false,
   }: { forcePrompt?: boolean; throwOnNotAllowed?: boolean } = {}) {
-    await withoutConcurrency(
+    return await withoutConcurrency(
       `permission-prompt-${this.permission.queryName}`,
       async () => {
         if (
@@ -73,9 +73,8 @@ export class BrowserPermission {
           const isGranted = this.state === 'granted';
 
           if (!isGranted && throwOnNotAllowed) {
-            throw new DOMException(
+            throw new Error(
               'Permission was not granted previously, and prompting again is not allowed',
-              'NotAllowedError',
             );
           }
 
@@ -91,7 +90,12 @@ export class BrowserPermission {
           this.setState('granted');
           return true;
         } catch (e) {
-          if (e instanceof DOMException && e.name === 'NotAllowedError') {
+          if (
+            e &&
+            typeof e === 'object' &&
+            'name' in e &&
+            (e.name === 'NotAllowedError' || e.name === 'SecurityError')
+          ) {
             this.logger('info', 'Browser permission was not granted', {
               permission: this.permission,
             });

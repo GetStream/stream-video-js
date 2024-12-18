@@ -1,6 +1,5 @@
 import {
   Avatar,
-  colorPallet,
   hasAudio,
   hasVideo,
   OwnCapability,
@@ -8,6 +7,7 @@ import {
   useCall,
   useCallStateHooks,
   useI18n,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { Cross } from '../assets/Cross';
 import { Mic } from '../assets/Mic';
@@ -18,7 +18,7 @@ import { Video } from '../assets/Video';
 import { VideoDisabled } from '../assets/VideoDisabled';
 import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { generateParticipantTitle } from '../utils';
 
 type CallParticipantOptionType = {
@@ -37,6 +37,10 @@ type ParticipantActionsType = {
 export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
+  const {
+    theme: { colors },
+  } = useTheme();
+  const styles = useStyles();
   const { t } = useI18n();
   const { useHasPermissions } = useCallStateHooks();
   const userHasMuteUsersCapability = useHasPermissions(
@@ -99,7 +103,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserVideoOption = participantPublishesVideo
     ? {
-        icon: <VideoSlash color={colorPallet.dark.text_high_emphasis} />,
+        icon: <VideoSlash color={colors.iconPrimary} />,
         title: 'Mute Video',
         onPressHandler: muteUserVideo,
       }
@@ -107,7 +111,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserAudioOption = participantPublishesAudio
     ? {
-        icon: <MicOff color={colorPallet.dark.text_high_emphasis} />,
+        icon: <MicOff color={colors.iconPrimary} />,
         title: 'Mute Audio',
         onPressHandler: muteUserAudio,
       }
@@ -121,37 +125,37 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasUpdateCallPermissionsCapability
       ? [
           {
-            icon: <VideoDisabled color={colorPallet.dark.text_high_emphasis} />,
+            icon: <VideoDisabled color={colors.iconPrimary} />,
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <MicOff color={colorPallet.dark.text_high_emphasis} />,
+            icon: <MicOff color={colors.iconPrimary} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Mic color={colorPallet.dark.text_high_emphasis} />,
+            icon: <Mic color={colors.iconPrimary} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Video color={colorPallet.dark.text_high_emphasis} />,
+            icon: <Video color={colors.iconPrimary} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <ScreenShare color={colorPallet.dark.text_high_emphasis} />,
+            icon: <ScreenShare color={colors.iconPrimary} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
-            icon: <Cross color={colorPallet.dark.text_high_emphasis} />,
+            icon: <Cross color={colors.iconPrimary} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -163,7 +167,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasBlockUserCapability
       ? [
           {
-            icon: <Cross color={colorPallet.dark.text_high_emphasis} />,
+            icon: <Cross color={colors.iconPrimary} />,
             title: 'Block',
             onPressHandler: blockUser,
           },
@@ -173,7 +177,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
   const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
     ? {
-        icon: <Pin color={colorPallet.dark.text_high_emphasis} />,
+        icon: <Pin color={colors.iconPrimary} />,
         title: participant.pin ? 'Unpin' : 'Pin',
         onPressHandler: toggleParticipantPinnedAt,
       }
@@ -187,7 +191,6 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   ];
 
   const showYouLabel = participant.isLocalParticipant;
-
   return (
     <View style={styles.outerContainer}>
       <View style={styles.modalContainer}>
@@ -203,7 +206,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross color={colorPallet.dark.primary} style={styles.crossIcon} />
+            <Cross color={colors.iconPrimary} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -234,59 +237,66 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   );
 };
 
-const styles = StyleSheet.create({
-  outerContainer: {
-    justifyContent: 'center',
-    flex: 1,
-  },
-  modalContainer: {
-    backgroundColor: colorPallet.dark.bars,
-    borderRadius: 15,
-    marginHorizontal: 32,
-  },
-  participantInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 12,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  name: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: '500',
-    color: colorPallet.dark.text_high_emphasis,
-  },
-  option: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    height: 20,
-    width: 20,
-  },
-  title: {
-    marginLeft: 16,
-    color: colorPallet.dark.text_high_emphasis,
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  borderBottom: {
-    borderBottomColor: colorPallet.dark.borders,
-    borderBottomWidth: 1,
-  },
-  crossIcon: {
-    height: 15,
-    width: 15,
-  },
-  closePressable: {
-    padding: 8,
-    borderRadius: 5,
-    backgroundColor: colorPallet.light.static_grey,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        outerContainer: {
+          justifyContent: 'center',
+          flex: 1,
+        },
+        modalContainer: {
+          backgroundColor: theme.colors.sheetPrimary,
+          borderRadius: 15,
+          marginHorizontal: 32,
+        },
+        participantInfo: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          padding: 12,
+        },
+        userInfo: {
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        name: {
+          marginLeft: 8,
+          fontSize: 16,
+          fontWeight: '500',
+          color: theme.colors.iconPrimary,
+        },
+        option: {
+          paddingHorizontal: 24,
+          paddingVertical: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        iconContainer: {
+          height: 20,
+          width: 20,
+        },
+        title: {
+          marginLeft: 16,
+          color: theme.colors.iconPrimary,
+          fontSize: 16,
+          fontWeight: '400',
+        },
+        borderBottom: {
+          borderBottomColor: theme.colors.sheetTertiary,
+          borderBottomWidth: 1,
+        },
+        crossIcon: {
+          height: 15,
+          width: 15,
+        },
+        closePressable: {
+          padding: 8,
+          borderRadius: 15,
+          backgroundColor: theme.colors.buttonSecondary,
+        },
+      }),
+    [theme],
+  );
+};

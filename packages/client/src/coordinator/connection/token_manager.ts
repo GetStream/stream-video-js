@@ -1,4 +1,4 @@
-import { UserFromToken } from './signing';
+import { getUserFromToken } from './signing';
 import { isFunction } from './utils';
 import type { TokenOrProvider, UserWithId } from './types';
 
@@ -16,15 +16,10 @@ export class TokenManager {
   user?: UserWithId;
   /**
    * Constructor
-   *
-   * @param {Secret} secret
    */
   constructor(secret?: string) {
     this.loadTokenPromise = null;
-    if (secret) {
-      this.secret = secret;
-    }
-
+    this.secret = secret;
     this.type = 'static';
   }
 
@@ -63,6 +58,8 @@ export class TokenManager {
    */
   reset = () => {
     this.token = undefined;
+    this.tokenProvider = undefined;
+    this.type = 'static';
     this.user = undefined;
     this.loadTokenPromise = null;
   };
@@ -93,7 +90,7 @@ export class TokenManager {
       // Allow empty token for anonymous users
       if (isAnonymous && tokenOrProvider === '') return;
 
-      const tokenUserId = UserFromToken(tokenOrProvider);
+      const tokenUserId = getUserFromToken(tokenOrProvider);
       if (
         tokenOrProvider != null &&
         (tokenUserId == null ||
@@ -114,7 +111,6 @@ export class TokenManager {
   // Fetches a token from tokenProvider function and sets in tokenManager.
   // In case of static token, it will simply resolve to static token.
   loadToken = () => {
-    // eslint-disable-next-line no-async-promise-executor
     this.loadTokenPromise = new Promise(async (resolve, reject) => {
       if (this.type === 'static') {
         return resolve(this.token as string);

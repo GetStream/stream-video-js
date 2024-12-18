@@ -1,5 +1,5 @@
-import { useI18n } from '@stream-io/video-react-native-sdk';
-import React from 'react';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Button } from '../../components/Button';
 import { appTheme } from '../../theme';
@@ -17,6 +17,7 @@ export const LiveStreamChooseScreen = ({
 }: LiveStreamScreenProps) => {
   const { t } = useI18n();
   const orientation = useOrientation();
+  const styles = useStyles();
 
   const onHostViewSelect = () => {
     navigation.navigate('JoinLiveStream', { mode: 'host' });
@@ -53,41 +54,48 @@ export const LiveStreamChooseScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-    backgroundColor: appTheme.colors.static_grey,
-    padding: appTheme.spacing.lg,
-  },
-  topContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  viewerButton: {
-    marginTop: appTheme.spacing.md,
-  },
-  logo: {
-    height: 100,
-    width: 100,
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 30,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
-  },
-  subTitle: {
-    color: appTheme.colors.light_gray,
-    fontSize: 16,
-    textAlign: 'center',
-    marginHorizontal: appTheme.spacing.xl,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: 'space-evenly',
+          backgroundColor: theme.colors.sheetPrimary,
+          padding: appTheme.spacing.lg,
+        },
+        topContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        viewerButton: {
+          marginTop: appTheme.spacing.md,
+        },
+        logo: {
+          height: 100,
+          width: 100,
+          borderRadius: 20,
+          alignSelf: 'center',
+        },
+        bottomContainer: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        title: {
+          fontSize: 30,
+          color: theme.colors.textPrimary,
+          fontWeight: '500',
+          textAlign: 'center',
+          marginTop: appTheme.spacing.lg,
+        },
+        subTitle: {
+          color: theme.colors.textSecondary,
+          fontSize: 16,
+          textAlign: 'center',
+          marginHorizontal: appTheme.spacing.xl,
+        },
+      }),
+    [theme],
+  );
+};

@@ -1,5 +1,6 @@
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import {
+  JoinCallResponse,
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -9,6 +10,8 @@ import {
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
+import { useCustomTheme } from '../theme';
+import axios, { AxiosResponseTransformer } from 'axios';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -17,6 +20,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const localIpAddress = useAppGlobalStoreValue(
+    (store) => store.localIpAddress,
+  );
+  const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
@@ -45,7 +54,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         apiKey,
         user,
         tokenProvider,
-        options: { logLevel: 'warn' },
+        options: {
+          logLevel: 'warn',
+          transformResponse: useLocalSfu
+            ? getCustomSfuResponseTransformers(localIpAddress)
+            : undefined,
+        },
       });
       setVideoClient(_videoClient);
     };
@@ -57,15 +71,45 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [appEnvironment, setState, user]);
+  }, [appEnvironment, setState, useLocalSfu, localIpAddress, user]);
 
   if (!videoClient) {
     return null;
   }
 
   return (
-    <StreamVideo client={videoClient} translationsOverrides={translations}>
+    <StreamVideo
+      client={videoClient}
+      style={customTheme}
+      translationsOverrides={translations}
+    >
       {children}
     </StreamVideo>
   );
 };
+
+const getCustomSfuResponseTransformers = (localIpAddress: string) =>
+  (axios.defaults.transformResponse as AxiosResponseTransformer[]).concat(
+    function (data) {
+      /**
+       * This transformer is used to override the SFU URL and WS URL returned by the
+       * backend with the ones provided in the textbox.
+       *
+       * Useful for testing with a local SFU.
+       *
+       * Note: it needs to be declared as a `function` instead of an arrow function
+       * as it executes in the context of the current axios instance.
+       */
+      const sfuUrlOverride = `http://${localIpAddress}:3031/twirp`;
+      const sfuWsUrlOverride = `ws://${localIpAddress}:3031/ws`;
+      if (sfuUrlOverride && sfuWsUrlOverride && this.url?.endsWith('/join')) {
+        (data as JoinCallResponse).credentials.server = {
+          ...(data as JoinCallResponse).credentials.server,
+          url: sfuUrlOverride,
+          ws_endpoint: sfuWsUrlOverride,
+          edge_name: sfuUrlOverride,
+        };
+        return data;
+      }
+    },
+  );

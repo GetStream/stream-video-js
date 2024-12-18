@@ -11,38 +11,42 @@ npm install @stream-io/video-filters-react-native @stream-io/react-native-webrtc
 ## Usage
 
 ```ts
-import { registerBackgroundBlurVideoFilters, registerVirtualBackgroundFilter } from '@stream-io/video-filters-react-native'
+import {
+  registerBackgroundBlurVideoFilters,
+  registerVirtualBackgroundFilter,
+} from '@stream-io/video-filters-react-native';
 
 // step 1: register your filters for once in your app's lifecycle
 await registerBackgroundBlurVideoFilters();
-const imageOneUri = await registerVirtualBackgroundFilter({ uri: 'https://example.com/path/to/remoteImage.png' })
-const imageTwoUri = await registerVirtualBackgroundFilter(require('../path/to/localImage.jpg'))
+const imageOneUri = await registerVirtualBackgroundFilter({
+  uri: 'https://example.com/path/to/remoteImage.png',
+});
+const imageTwoUri = await registerVirtualBackgroundFilter(
+  require('../path/to/localImage.jpg'),
+);
 
 // step 2: apply the filter to the local media stream
 function setMediumBlurFilter() {
-    // the names of background filters are 'BackgroundBlurLight', 'BackgroundBlurMedium' and 'BackgroundBlurHeavy'
-    localMediaStream?.getVideoTracks()
-        .forEach((track) => {
-            track._setVideoEffect('BackgroundBlurMedium');
-        });
+  // the names of background filters are 'BackgroundBlurLight', 'BackgroundBlurMedium' and 'BackgroundBlurHeavy'
+  localMediaStream?.getVideoTracks().forEach((track) => {
+    track._setVideoEffect('BackgroundBlurMedium');
+  });
 }
 
 function setImageBackgroundFilter(uri: string) {
-    // the filter name is derived from the image uri
-    const filterName = `VirtualBackground-${imageUri}`
-    localMediaStream?.getVideoTracks()
-        .forEach((track) => {
-            track._setVideoEffect(filterName);
-        });
+  // the filter name is derived from the image uri
+  const filterName = `VirtualBackground-${imageUri}`;
+  localMediaStream?.getVideoTracks().forEach((track) => {
+    track._setVideoEffect(filterName);
+  });
 }
 
-// to remove all filters 
+// to remove all filters
 function clearVideoFilters() {
-    // pass null as the filter name to clear the video filters
-    localMediaStream?.getVideoTracks()
-        .forEach((track) => {
-            track._setVideoEffect(null);
-        });
+  // pass null as the filter name to clear the video filters
+  localMediaStream?.getVideoTracks().forEach((track) => {
+    track._setVideoEffect(null);
+  });
 }
 ```
 
@@ -52,10 +56,10 @@ The Stream Video React Native SDK is a comprehensive toolkit designed to help yo
 
 ## Preview
 
-Preview of background blur filter  | Preview of background image replacement filter
-:-------------------------:|:-------------------------:
-![](../../packages/react-native-sdk/docusaurus/docs/reactnative/assets/06-advanced/10-apply-video-filters/preview-blur-filter.png)  |  ![](../../packages/react-native-sdk/docusaurus/docs/reactnative/assets/06-advanced/10-apply-video-filters/preview-image-filter.png) 
+|                     Preview of background blur filter                     |               Preview of background image replacement filter               |
+| :-----------------------------------------------------------------------: | :------------------------------------------------------------------------: |
+| ![](https://getstream.io/_astro/preview-blur-filter.CUGKSbS1_11qSrf.webp) | ![](https://getstream.io/_astro/preview-image-filter.CjN7b2zD_1c6jkz.webp) |
 
---- 
+---
 
 Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

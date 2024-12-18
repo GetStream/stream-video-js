@@ -183,6 +183,12 @@ export type PublishOptions = {
    */
   forceCodec?: PreferredCodec;
   /**
+   * When using a preferred codec, force the use of a single codec.
+   * Enabling this, it will remove all other supported codecs from the SDP.
+   * Defaults to false.
+   */
+  forceSingleCodec?: boolean;
+  /**
    * The preferred scalability to use when publishing the video stream.
    * Applicable only for SVC codecs.
    */
@@ -224,8 +230,6 @@ export type CallLeaveOptions = {
   /**
    * If true, the caller will get a `call.rejected` event.
    * Has an effect only if the call is in the `ringing` state.
-   *
-   * @default `false`.
    */
   reject?: boolean;
 

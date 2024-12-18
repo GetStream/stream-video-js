@@ -29,8 +29,7 @@ const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
       const shouldPromptForBrowserPermission = devices.some(
         (device) => device.kind === kind && device.label === '',
       );
-      if (shouldPromptForBrowserPermission) {
-        await permission.prompt({ throwOnNotAllowed: true });
+      if (shouldPromptForBrowserPermission && (await permission.prompt())) {
         devices = await navigator.mediaDevices.enumerateDevices();
       }
       return devices.filter(
@@ -170,6 +169,17 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   return stream;
 };
 
+function isOverconstrainedError(error: unknown) {
+  return (
+    error &&
+    typeof error === 'object' &&
+    (('name' in error && error.name === 'OverconstrainedError') ||
+      ('message' in error &&
+        typeof error.message === 'string' &&
+        error.message.startsWith('OverconstrainedError')))
+  );
+}
+
 /**
  * Returns an audio media stream that fulfills the given constraints.
  * If no constraints are provided, it uses the browser's default ones.
@@ -195,14 +205,14 @@ export const getAudioStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
-      const { deviceId, ...relaxedContraints } = trackConstraints;
+    if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
+      const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
-        'Failed to get audio stream, will try again with relaxed contraints',
-        { error, constraints, relaxedContraints },
+        'Failed to get audio stream, will try again with relaxed constraints',
+        { error, constraints, relaxedConstraints },
       );
-      return getAudioStream(relaxedContraints);
+      return getAudioStream(relaxedConstraints);
     }
 
     getLogger(['devices'])('error', 'Failed to get audio stream', {
@@ -237,14 +247,14 @@ export const getVideoStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (error instanceof OverconstrainedError && trackConstraints?.deviceId) {
-      const { deviceId, ...relaxedContraints } = trackConstraints;
+    if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
+      const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
-        'Failed to get video stream, will try again with relaxed contraints',
-        { error, constraints, relaxedContraints },
+        'Failed to get video stream, will try again with relaxed constraints',
+        { error, constraints, relaxedConstraints },
       );
-      return getVideoStream(relaxedContraints);
+      return getVideoStream(relaxedConstraints);
     }
 
     getLogger(['devices'])('error', 'Failed to get video stream', {

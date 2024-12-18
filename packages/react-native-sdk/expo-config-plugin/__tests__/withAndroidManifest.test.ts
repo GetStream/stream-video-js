@@ -41,6 +41,7 @@ const props: ConfigProps = {
   androidPictureInPicture: {
     enableAutomaticEnter: true,
   },
+  androidKeepCallAlive: true,
 };
 
 describe('withStreamVideoReactNativeSDKManifest', () => {

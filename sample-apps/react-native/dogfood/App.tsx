@@ -4,15 +4,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import {
-  prontoCallId$,
-  useProntoLinkEffect,
-} from './src/hooks/useProntoLinkEffect';
+  deeplinkCallId$,
+  useDeepLinkEffect,
+} from './src/hooks/useDeepLinkEffect';
 import {
   AppGlobalContextProvider,
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   navigationRef,
   StaticNavigationService,
@@ -29,14 +32,16 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { LogBox, StyleSheet } from 'react-native';
+import { LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
+  defaultTheme,
   isPushNotificationiOSStreamVideoEvent,
   onPushNotificationiOSStreamVideoEvent,
 } from '@stream-io/video-react-native-sdk';
+import { appTheme } from './src/theme';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -58,8 +63,14 @@ const StackNavigator = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
+  const { bottom } = useSafeAreaInsets();
+  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const color =
+    themeMode === 'light'
+      ? appTheme.colors.static_white
+      : defaultTheme.colors.sheetPrimary;
 
-  useProntoLinkEffect();
+  useDeepLinkEffect();
   useSyncPermissions();
 
   useEffect(() => {
@@ -123,8 +134,8 @@ const StackNavigator = () => {
   }
 
   useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT === 'pronto' && prontoCallId) {
+    const subscription = deeplinkCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
         setState({ appMode: 'Meeting' });
       }
     });
@@ -146,8 +157,14 @@ const StackNavigator = () => {
     return <LoginScreen />;
   }
 
+  const containerStyle = {
+    flex: 1,
+    paddingBottom: bottom,
+    backgroundColor: color,
+  };
+
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView style={containerStyle}>
       <VideoWrapper>
         <ChatWrapper>
           <Stack.Navigator>{mode}</Stack.Navigator>
@@ -168,9 +185,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

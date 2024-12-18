@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   PressableProps,
@@ -8,8 +8,12 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
-import { appTheme } from '../theme';
 import { BUTTON_HEIGHT } from '../constants';
+import {
+  Theme,
+  defaultTheme,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
 
 type ButtonPropTypes = Omit<PressableProps, 'style'> & {
   title: string;
@@ -24,36 +28,52 @@ export const Button = ({
   titleStyle,
   ...rest
 }: ButtonPropTypes) => {
+  const styles = useStyles();
+
   return (
     <Pressable
       disabled={disabled}
       {...rest}
-      style={[
+      style={StyleSheet.flatten([
         styles.button,
         disabled ? styles.disabledButtonStyle : null,
         buttonStyle,
-      ]}
+      ])}
     >
       <Text style={[styles.buttonText, titleStyle]}>{title}</Text>
     </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: appTheme.colors.primary,
-    justifyContent: 'center',
-    borderRadius: 8,
-    height: BUTTON_HEIGHT,
-    paddingHorizontal: appTheme.spacing.lg,
-  },
-  buttonText: {
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    textAlign: 'center',
-    fontSize: 17,
-  },
-  disabledButtonStyle: {
-    backgroundColor: appTheme.colors.disabled,
-  },
-});
+const useStyles = () => {
+  let appTheme: Theme;
+  try {
+    /* eslint-disable react-hooks/rules-of-hooks */
+    appTheme = useTheme()?.theme;
+  } catch (e) {
+    appTheme = defaultTheme;
+  }
+
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        button: {
+          backgroundColor: appTheme.colors.buttonPrimary,
+          justifyContent: 'center',
+          borderRadius: 8,
+          height: BUTTON_HEIGHT,
+          paddingHorizontal: appTheme.variants.spacingSizes.md,
+        },
+        buttonText: {
+          color: appTheme.colors.iconPrimary,
+          fontWeight: appTheme.typefaces.heading6.fontWeight,
+          textAlign: 'center',
+          fontSize: 17,
+        },
+        disabledButtonStyle: {
+          backgroundColor: appTheme.colors.disabled,
+        },
+      }),
+    [appTheme],
+  );
+};

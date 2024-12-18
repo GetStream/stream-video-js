@@ -20,14 +20,14 @@ export const LiveIndicator = ({}: LiveIndicatorProps) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.primary },
+        { backgroundColor: colors.buttonPrimary },
         liveIndicator.container,
       ]}
     >
       <Text
         style={[
           styles.label,
-          { color: colors.static_white },
+          { color: colors.textPrimary },
           typefaces.subtitleBold,
           liveIndicator.label,
         ]}

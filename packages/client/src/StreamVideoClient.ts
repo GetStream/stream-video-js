@@ -11,6 +11,8 @@ import type {
   CreateGuestResponse,
   GetEdgesResponse,
   ListDevicesResponse,
+  QueryAggregateCallStatsRequest,
+  QueryAggregateCallStatsResponse,
   QueryCallsRequest,
   QueryCallsResponse,
   QueryCallStatsRequest,
@@ -30,6 +32,8 @@ import {
 import { getLogger, logToConsole, setLogger } from './logger';
 import { getSdkInfo } from './client-details';
 import { SdkType } from './gen/video/sfu/models/models';
+import { withoutConcurrency } from './helpers/concurrency';
+import { enableTimerWorker } from './timers';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -51,8 +55,9 @@ export class StreamVideoClient {
   streamClient: StreamClient;
 
   protected eventHandlersToUnregister: Array<() => void> = [];
-  protected connectionPromise: Promise<void | ConnectedEvent> | undefined;
-  protected disconnectionPromise: Promise<void> | undefined;
+  private readonly connectionConcurrencyTag = Symbol(
+    'connectionConcurrencyTag',
+  );
 
   private static _instanceMap: Map<string, StreamVideoClient> = new Map();
 
@@ -84,9 +89,11 @@ export class StreamVideoClient {
     if (typeof apiKeyOrArgs === 'string') {
       logLevel = opts?.logLevel || logLevel;
       logger = opts?.logger || logger;
+      if (opts?.enableTimerWorker) enableTimerWorker();
     } else {
       logLevel = apiKeyOrArgs.options?.logLevel || logLevel;
       logger = apiKeyOrArgs.options?.logger || logger;
+      if (apiKeyOrArgs.options?.enableTimerWorker) enableTimerWorker();
     }
 
     setLogger(logger, logLevel);
@@ -209,12 +216,11 @@ export class StreamVideoClient {
         return this.streamClient.connectGuestUser(user);
       };
     }
-    this.connectionPromise = this.disconnectionPromise
-      ? this.disconnectionPromise.then(() => connectUser())
-      : connectUser();
 
-    this.connectionPromise?.finally(() => (this.connectionPromise = undefined));
-    const connectUserResponse = await this.connectionPromise;
+    const connectUserResponse = await withoutConcurrency(
+      this.connectionConcurrencyTag,
+      () => connectUser(),
+    );
     // connectUserResponse will be void if connectUser called twice for the same user
     if (connectUserResponse?.me) {
       this.writeableStateStore.setConnectedUser(connectUserResponse.me);
@@ -258,7 +264,6 @@ export class StreamVideoClient {
           );
           return;
         }
-
         this.logger('info', `New call created and registered: ${call.cid}`);
         const newCall = new Call({
           streamClient: this.streamClient,
@@ -282,25 +287,24 @@ export class StreamVideoClient {
           );
           return;
         }
-
-        // The call might already be tracked by the client,
         // if `call.created` was received before `call.ring`.
-        // In that case, we cleanup the already tracked call.
-        const prevCall = this.writeableStateStore.findCall(call.type, call.id);
-        await prevCall?.leave({ reason: 'cleaning-up in call.ring' });
-        // we create a new call
-        const theCall = new Call({
-          streamClient: this.streamClient,
-          type: call.type,
-          id: call.id,
-          members,
-          clientStore: this.writeableStateStore,
-          ringing: true,
-        });
-        theCall.state.updateFromCallResponse(call);
-        // we fetch the latest metadata for the call from the server
-        await theCall.get();
-        this.writeableStateStore.registerCall(theCall);
+        // the client already has the call instance and we just need to update the state
+        const theCall = this.writeableStateStore.findCall(call.type, call.id);
+        if (theCall) {
+          await theCall.updateFromRingingEvent(event);
+        } else {
+          // if client doesn't have the call instance, create the instance and fetch the latest state
+          // Note: related - we also have onRingingCall method to handle this case from push notifications
+          const newCallInstance = new Call({
+            streamClient: this.streamClient,
+            type: call.type,
+            id: call.id,
+            members,
+            clientStore: this.writeableStateStore,
+            ringing: true,
+          });
+          await newCallInstance.get();
+        }
       }),
     );
 
@@ -316,19 +320,15 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    if (!this.streamClient.user && !this.connectionPromise) {
+    if (!this.streamClient.user) {
       return;
     }
     const userId = this.streamClient.user?.id;
     const apiKey = this.streamClient.key;
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
-    this.disconnectionPromise = this.connectionPromise
-      ? this.connectionPromise.then(() => disconnectUser())
-      : disconnectUser();
-    this.disconnectionPromise.finally(
-      () => (this.disconnectionPromise = undefined),
+    await withoutConcurrency(this.connectionConcurrencyTag, () =>
+      disconnectUser(),
     );
-    await this.disconnectionPromise;
     if (userId) {
       StreamVideoClient._instanceMap.delete(apiKey + userId);
     }
@@ -438,6 +438,21 @@ export class StreamVideoClient {
       QueryCallStatsResponse,
       QueryCallStatsRequest
     >(`/call/stats`, data);
+  };
+
+  /**
+   * Retrieve the list of available reports aggregated from the call stats.
+   *
+   * @param data Specify filter conditions like from and to (within last 30 days) and the report types
+   * @returns Requested reports with (mostly) raw daily data for each report type requested
+   */
+  queryAggregateCallStats = async (
+    data: QueryAggregateCallStatsRequest = {},
+  ) => {
+    return this.streamClient.post<
+      QueryAggregateCallStatsResponse,
+      QueryAggregateCallStatsRequest
+    >(`/stats`, data);
   };
 
   /**
@@ -556,10 +571,8 @@ export class StreamVideoClient {
   ) => {
     const connectAnonymousUser = () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider);
-    this.connectionPromise = this.disconnectionPromise
-      ? this.disconnectionPromise.then(() => connectAnonymousUser())
-      : connectAnonymousUser();
-    this.connectionPromise.finally(() => (this.connectionPromise = undefined));
-    return this.connectionPromise;
+    return await withoutConcurrency(this.connectionConcurrencyTag, () =>
+      connectAnonymousUser(),
+    );
   };
 }

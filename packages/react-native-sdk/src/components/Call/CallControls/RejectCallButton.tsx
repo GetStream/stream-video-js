@@ -1,7 +1,7 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import React from 'react';
+import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { PhoneDown } from '../../../icons';
+import { IconWrapper, PhoneDown } from '../../../icons';
 import { CallingState, getLogger } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
@@ -54,10 +54,13 @@ export const RejectCallButton = ({
     theme: {
       colors,
       rejectCallButton,
-      variants: { buttonSizes },
+      variants: { buttonSizes, iconSizes },
     },
   } = useTheme();
+  const [isLoading, setIsLoading] = useState(false);
+
   const rejectCallHandler = async () => {
+    setIsLoading(true);
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -73,19 +76,24 @@ export const RejectCallButton = ({
     } catch (error) {
       const logger = getLogger(['RejectCallButton']);
       logger('error', 'Error rejecting Call', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <CallControlsButton
       onPress={rejectCallHandler}
-      color={colors.error}
-      size={size ?? buttonSizes.lg}
+      color={colors.buttonWarning}
+      size={size ?? buttonSizes.md}
       // TODO: check what to do about this random style prop
       // svgContainerStyle={theme.icon.lg}
       style={rejectCallButton}
+      disabled={isLoading}
     >
-      <PhoneDown color={colors.static_white} />
+      <IconWrapper>
+        <PhoneDown color={colors.iconPrimary} size={iconSizes.lg} />
+      </IconWrapper>
     </CallControlsButton>
   );
 };
