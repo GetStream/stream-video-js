@@ -43,14 +43,16 @@ window.setupLayout = (configuration: ConfigurationValue) => {
 
 // Uncomment and tweak this setup script
 /**
-(() => {
+(async () => {
+  const { apiKey, token } = await fetch(
+    'https://pronto.getstream.io/api/auth/create-token?environment=pronto&user_id=egress',
+  ).then((res) => res.json());
   const v = document.createElement('script');
   v.innerHTML = `window.setupLayout(${JSON.stringify({
-    call_id: 'yb-rec-test',
-    call_type: 'oliver',
-    api_key: 'par8f5s3gn2j',
-    token:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZWdyZXNzLXVzZXIiLCJpc3MiOiJodHRwczovL3Byb250by5nZXRzdHJlYW0uaW8iLCJzdWIiOiJ1c2VyL2VncmVzcy11c2VyIiwiaWF0IjoxNzE1NTk1ODMzLCJleHAiOjE3MTYyMDA2Mzh9.vEj47kFkliwqriammHXpypYdedWi8HDON222eOh0LWA',
+    call_id: 'recording-test',
+    call_type: 'default',
+    api_key: apiKey,
+    token,
     layout: 'single-participant',
     screenshare_layout: 'spotlight',
     // ext_css: cssUrl,
