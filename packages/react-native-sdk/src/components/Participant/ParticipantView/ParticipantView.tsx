@@ -117,9 +117,9 @@ export const ParticipantView = ({
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
-    styles.highligtedContainer,
+    styles.highlightedContainer,
     { borderColor: colors.buttonPrimary },
-    participantView.highligtedContainer,
+    participantView.highlightedContainer,
   ];
 
   return (
@@ -180,7 +180,7 @@ const useStyles = () => {
           justifyContent: 'space-between',
           alignItems: 'center',
         },
-        highligtedContainer: {
+        highlightedContainer: {
           borderWidth: 2,
         },
         networkIndicatorOnly: { justifyContent: 'flex-end' },

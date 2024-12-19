@@ -148,7 +148,7 @@ export type Theme = {
   participantView: {
     container: ViewStyle;
     footerContainer: ViewStyle;
-    highligtedContainer: ViewStyle;
+    highlightedContainer: ViewStyle;
   };
   videoRenderer: {
     container: ViewStyle;
@@ -496,7 +496,7 @@ export const defaultTheme: Theme = {
   participantView: {
     container: {},
     footerContainer: {},
-    highligtedContainer: {},
+    highlightedContainer: {},
   },
   reactionsPicker: {
     reactionsPopup: {},
