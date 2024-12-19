@@ -12,7 +12,7 @@ import {
   VisibilityState,
 } from '../types';
 import { CallState } from '../store';
-import { trackTypeToParticipantStreamKey } from '../rtc/helpers/tracks';
+import { trackTypeToParticipantStreamKey } from '../rtc';
 
 /**
  * An event responder which handles the `participantJoined` event.
