@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.21...@stream-io/video-react-native-sdk-1.4.22) (2024-12-19)
+
+
+### Bug Fixes
+
+* **rn-video:** highlightedContainer prop typo ([#1627](https://github.com/GetStream/stream-video-js/issues/1627)) ([56d9137](https://github.com/GetStream/stream-video-js/commit/56d9137514701b9313a6ea9ee8ba2f6ff2f61209))
+
 ## [1.4.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.20...@stream-io/video-react-native-sdk-1.4.21) (2024-12-17)
 
 ### Dependency Updates
