@@ -55,12 +55,14 @@ import type {
   SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
+  StartClosedCaptionsResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
+  StopClosedCaptionsResponse,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
@@ -75,13 +77,14 @@ import type {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-  VideoResolution,
+  VideoDimension,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  ClosedCaptionsSettings,
   JoinCallData,
   PublishOptions,
   TrackMuteType,
@@ -551,6 +554,7 @@ export class Call {
       this.dynascaleManager.setSfuClient(undefined);
 
       this.state.setCallingState(CallingState.LEFT);
+      this.state.dispose();
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
@@ -1771,7 +1775,48 @@ export class Call {
   };
 
   /**
-   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   * Starts the closed captions of the call.
+   */
+  startClosedCaptions = async (): Promise<StartClosedCaptionsResponse> => {
+    const trx = this.state.setCaptioning(true); // optimistic update
+    try {
+      return await this.streamClient.post<StartClosedCaptionsResponse>(
+        `${this.streamClientBasePath}/start_closed_captions`,
+      );
+    } catch (err) {
+      trx.rollback(); // revert the optimistic update
+      throw err;
+    }
+  };
+
+  /**
+   * Stops the closed captions of the call.
+   */
+  stopClosedCaptions = async (): Promise<StopClosedCaptionsResponse> => {
+    const trx = this.state.setCaptioning(false); // optimistic update
+    try {
+      return await this.streamClient.post<StopClosedCaptionsResponse>(
+        `${this.streamClientBasePath}/stop_closed_captions`,
+      );
+    } catch (err) {
+      trx.rollback(); // revert the optimistic update
+      throw err;
+    }
+  };
+
+  /**
+   * Updates the closed caption settings.
+   *
+   * @param config the closed caption settings to apply
+   */
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
+    this.state.updateClosedCaptionSettings(config);
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call.
+   * The call settings object contains information about which permissions can be requested during a call
+   * (for example, a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
     data: RequestPermissionRequest,
@@ -2377,7 +2422,7 @@ export class Call {
    * preference has effect on. Affects all participants by default.
    */
   setPreferredIncomingVideoResolution = (
-    resolution: VideoResolution | undefined,
+    resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
     this.dynascaleManager.setVideoTrackSubscriptionOverrides(
