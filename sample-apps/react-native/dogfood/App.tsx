@@ -34,7 +34,6 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
-import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
   defaultTheme,
