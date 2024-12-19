@@ -1,10 +1,13 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
   TranscriptionSettingsRequestModeEnum,
   useCall,
+  useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
 
 const languages = [
   { code: null, label: 'None' },
@@ -46,6 +49,7 @@ export const TranscriptionSettings = () => {
   const call = useCall();
   const [firstLanguage, setFirstLanguage] = useState<string | null>('en');
   const [secondLanguage, setSecondLanguage] = useState<string | null>(null);
+
   useEffect(() => {
     if (!call) return;
     call
@@ -67,6 +71,13 @@ export const TranscriptionSettings = () => {
 
   return (
     <div className="rd__transcriptions">
+      <div className="str-video__call-stats">
+        <div className="str-video__call-stats__card-container">
+          <ClosedCaptionStatus />
+          <TranscriptionStatus />
+        </div>
+      </div>
+
       <h4>Primary language</h4>
       <DropDownSelect
         icon="language-sign"
@@ -102,6 +113,74 @@ export const TranscriptionSettings = () => {
           />
         ))}
       </DropDownSelect>
+    </div>
+  );
+};
+
+const ClosedCaptionStatus = () => {
+  const { t } = useI18n();
+  const { useCallSettings, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
+  const settings = useCallSettings();
+  const inProgress = useIsCallCaptioningInProgress();
+
+  return (
+    <StatusCard
+      label={t('Closed Captions')}
+      value={settings?.transcription.closed_caption_mode}
+      status={inProgress ? 'on' : 'off'}
+    />
+  );
+};
+
+const TranscriptionStatus = () => {
+  const { t } = useI18n();
+  const { useCallSettings, useIsCallTranscribingInProgress } =
+    useCallStateHooks();
+  const settings = useCallSettings();
+  const inProgress = useIsCallTranscribingInProgress();
+
+  return (
+    <StatusCard
+      label={t('Transcription')}
+      value={settings?.transcription.closed_caption_mode}
+      status={inProgress ? 'on' : 'off'}
+    />
+  );
+};
+
+const StatusCard = (props: {
+  label: string;
+  value: string | ReactNode;
+  status?: 'on' | 'off';
+}) => {
+  const { t } = useI18n();
+  const { label, value, status } = props;
+
+  return (
+    <div className="str-video__call-stats__card">
+      <div className="str-video__call-stats__card-content">
+        <div className="str-video__call-stats__card-label">{label}</div>
+        <div className="str-video__call-stats__card-value">{value}</div>
+      </div>
+      {status && <StatusIndicator status={status}>{t(status)}</StatusIndicator>}
+    </div>
+  );
+};
+
+const StatusIndicator = (props: {
+  children: ReactNode;
+  status: 'on' | 'off';
+}) => {
+  const { children, status } = props;
+  return (
+    <div
+      className={clsx('str-video__call-stats__tag', {
+        'str-video__call-stats__tag--good': status === 'on',
+        'str-video__call-stats__tag--bad': status === 'off',
+      })}
+    >
+      <div className="str-video__call-stats__tag__text">{children}</div>
     </div>
   );
 };
