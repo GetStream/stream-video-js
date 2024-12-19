@@ -1384,20 +1384,20 @@ export class CallState {
 
       const nextQueue = [...queue, closed_caption];
 
-      const { retentionTimeInMs = 2700, queueSize = 2 } =
+      const { visibilityDurationMs = 2700, maxVisibleCaptions = 2 } =
         this.closedCaptionsSettings || {};
       // schedule the removal of the closed caption after the retention time
-      if (retentionTimeInMs > 0) {
+      if (visibilityDurationMs > 0) {
         const taskId = setTimeout(() => {
           this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
             captions.filter((caption) => caption !== closed_caption),
           );
           this.closedCaptionsTasks.delete(currentKey);
-        }, retentionTimeInMs);
+        }, visibilityDurationMs);
         this.closedCaptionsTasks.set(currentKey, taskId);
 
         // cancel the cleanup tasks for the closed captions that are no longer in the queue
-        for (let i = 0; i < nextQueue.length - queueSize; i++) {
+        for (let i = 0; i < nextQueue.length - maxVisibleCaptions; i++) {
           const key = keyOf(nextQueue[i]);
           const task = this.closedCaptionsTasks.get(key);
           clearTimeout(task);
@@ -1406,7 +1406,7 @@ export class CallState {
       }
 
       // trim the queue
-      return nextQueue.slice(-queueSize);
+      return nextQueue.slice(-maxVisibleCaptions);
     });
   };
 }
