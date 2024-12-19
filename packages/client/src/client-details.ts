@@ -1,10 +1,13 @@
 import {
+  AndroidThermalState,
+  AppleThermalState,
   ClientDetails,
   Device,
   OS,
   Sdk,
   SdkType,
 } from './gen/video/sfu/models/models';
+import { SendStatsRequest } from './gen/video/sfu/signal_rpc/signal';
 import { isReactNative } from './helpers/platforms';
 import { UAParser } from 'ua-parser-js';
 
@@ -25,6 +28,7 @@ let sdkInfo: Sdk | undefined = {
 let osInfo: OS | undefined;
 let deviceInfo: Device | undefined;
 let webRtcInfo: WebRTCInfoType | undefined;
+let deviceState: SendStatsRequest['deviceState'];
 
 export const setSdkInfo = (info: Sdk) => {
   sdkInfo = info;
@@ -60,6 +64,82 @@ export const setWebRTCInfo = (info: WebRTCInfoType) => {
 
 export type LocalClientDetailsType = ClientDetails & {
   webRTCInfo?: WebRTCInfoType;
+};
+
+export const setThermalState = (state: string) => {
+  if (!osInfo) {
+    deviceState = { oneofKind: undefined };
+    return;
+  }
+
+  if (osInfo.name === 'android') {
+    const thermalState =
+      AndroidThermalState[state as keyof typeof AndroidThermalState] ||
+      AndroidThermalState.UNSPECIFIED;
+
+    deviceState = {
+      oneofKind: 'android',
+      android: {
+        thermalState,
+        isPowerSaverMode:
+          deviceState?.oneofKind === 'android' &&
+          deviceState.android.isPowerSaverMode,
+      },
+    };
+  }
+
+  if (osInfo.name.toLowerCase() === 'ios') {
+    const thermalState =
+      AppleThermalState[state as keyof typeof AppleThermalState] ||
+      AppleThermalState.UNSPECIFIED;
+
+    deviceState = {
+      oneofKind: 'apple',
+      apple: {
+        thermalState,
+        isLowPowerModeEnabled:
+          deviceState?.oneofKind === 'apple' &&
+          deviceState.apple.isLowPowerModeEnabled,
+      },
+    };
+  }
+};
+
+export const setPowerState = (powerMode: boolean) => {
+  if (!osInfo) {
+    deviceState = { oneofKind: undefined };
+    return;
+  }
+
+  if (osInfo.name === 'android') {
+    deviceState = {
+      oneofKind: 'android',
+      android: {
+        thermalState:
+          deviceState?.oneofKind === 'android'
+            ? deviceState.android.thermalState
+            : AndroidThermalState.UNSPECIFIED,
+        isPowerSaverMode: powerMode,
+      },
+    };
+  }
+
+  if (osInfo.name.toLowerCase() === 'ios') {
+    deviceState = {
+      oneofKind: 'apple',
+      apple: {
+        thermalState:
+          deviceState?.oneofKind === 'apple'
+            ? deviceState.apple.thermalState
+            : AppleThermalState.UNSPECIFIED,
+        isLowPowerModeEnabled: powerMode,
+      },
+    };
+  }
+};
+
+export const getDeviceState = () => {
+  return deviceState;
 };
 
 export const getClientDetails = (): LocalClientDetailsType => {
