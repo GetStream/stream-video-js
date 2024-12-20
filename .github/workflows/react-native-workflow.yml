@@ -96,7 +96,7 @@ jobs:
   test_ios:
     name: Test iOS
     needs: build_ios
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codec-negotiation' }}
     timeout-minutes: 100
     runs-on: macos-latest
     steps:
@@ -199,7 +199,7 @@ jobs:
     name: Test Android
     needs: build_android
     timeout-minutes: 100
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codec-negotiation'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
