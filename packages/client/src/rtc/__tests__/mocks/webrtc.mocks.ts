@@ -33,6 +33,7 @@ const MediaStreamTrackMock = vi.fn((): Partial<MediaStreamTrack> => {
     removeEventListener: vi.fn(),
     getSettings: vi.fn(),
     stop: vi.fn(),
+    clone: vi.fn(),
     readyState: 'live',
     kind: 'video',
   };
@@ -69,3 +70,10 @@ const RTCRtpReceiverMock = vi.fn((): Partial<typeof RTCRtpReceiver> => {
   };
 });
 vi.stubGlobal('RTCRtpReceiver', RTCRtpReceiverMock);
+
+const RTCRtpSenderMock = vi.fn((): Partial<typeof RTCRtpSender> => {
+  return {
+    getCapabilities: vi.fn(),
+  };
+});
+vi.stubGlobal('RTCRtpSender', RTCRtpSenderMock);

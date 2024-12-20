@@ -5,7 +5,11 @@ import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { DispatchableMessage, Dispatcher } from '../Dispatcher';
-import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import {
+  PeerType,
+  PublishOption,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -14,22 +18,6 @@ vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
   return {
     StreamSfuClient: vi.fn(),
-  };
-});
-
-vi.mock('../codecs', async () => {
-  const codecs = await vi.importActual('../codecs');
-  return {
-    getPreferredCodecs: vi.fn((): RTCRtpCodecCapability[] => [
-      {
-        channels: 1,
-        clockRate: 48000,
-        mimeType: 'video/h264',
-        sdpFmtpLine: 'profile-level-id=42e01f',
-      },
-    ]),
-    getOptimalVideoCodec: codecs.getOptimalVideoCodec,
-    isSvcCodec: codecs.isSvcCodec,
   };
 });
 
@@ -69,9 +57,19 @@ describe('Publisher', () => {
       sfuClient,
       dispatcher,
       state,
-      isDtxEnabled: true,
-      isRedEnabled: true,
       logTag: 'test',
+      publishOptions: [
+        {
+          id: 1,
+          trackType: TrackType.VIDEO,
+          bitrate: 1000,
+          // @ts-expect-error - incomplete data
+          codec: { name: 'vp9' },
+          fps: 30,
+          maxTemporalLayers: 3,
+          maxSpatialLayers: 3,
+        },
+      ],
     });
   });
 
@@ -101,6 +99,7 @@ describe('Publisher', () => {
       height: 480,
       deviceId: 'test-device-id',
     });
+    vi.spyOn(track, 'clone').mockReturnValue(track);
 
     const transceiver = new RTCRtpTransceiver();
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
@@ -114,7 +113,6 @@ describe('Publisher', () => {
 
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);
-    expect(transceiver.setCodecPreferences).toHaveBeenCalled();
     expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
       TrackType.VIDEO,
       false,
@@ -134,6 +132,7 @@ describe('Publisher', () => {
       height: 720,
       deviceId: 'test-device-id-2',
     });
+    vi.spyOn(newTrack, 'clone').mockReturnValue(newTrack);
 
     await publisher.publishStream(newMediaStream, newTrack, TrackType.VIDEO);
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(newTrack);
@@ -173,6 +172,7 @@ describe('Publisher', () => {
       height: 480,
       deviceId: 'test-device-id',
     });
+    vi.spyOn(track, 'clone').mockReturnValue(track);
 
     const transceiver = new RTCRtpTransceiver();
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
@@ -187,7 +187,6 @@ describe('Publisher', () => {
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(track.enabled).toBe(true);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);
-    expect(transceiver.setCodecPreferences).toHaveBeenCalled();
     expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
       TrackType.VIDEO,
       false,
@@ -304,34 +303,42 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
+      publisher['transceiverCache'].add(
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+      );
 
-      await publisher['changePublishQuality']([
-        {
-          name: 'q',
-          active: true,
-          maxBitrate: 100,
-          scaleResolutionDownBy: 4,
-          maxFramerate: 30,
-          scalabilityMode: '',
-        },
-        {
-          name: 'h',
-          active: false,
-          maxBitrate: 150,
-          scaleResolutionDownBy: 2,
-          maxFramerate: 30,
-          scalabilityMode: '',
-        },
-        {
-          name: 'f',
-          active: true,
-          maxBitrate: 200,
-          scaleResolutionDownBy: 1,
-          maxFramerate: 30,
-          scalabilityMode: '',
-        },
-      ]);
+      await publisher['changePublishQuality']({
+        publishOptionId: 1,
+        trackType: TrackType.VIDEO,
+        layers: [
+          {
+            name: 'q',
+            active: true,
+            maxBitrate: 100,
+            scaleResolutionDownBy: 4,
+            maxFramerate: 30,
+            scalabilityMode: '',
+          },
+          {
+            name: 'h',
+            active: false,
+            maxBitrate: 150,
+            scaleResolutionDownBy: 2,
+            maxFramerate: 30,
+            scalabilityMode: '',
+          },
+          {
+            name: 'f',
+            active: true,
+            maxBitrate: 200,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+            scalabilityMode: '',
+          },
+        ],
+      });
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -346,9 +353,6 @@ describe('Publisher', () => {
         {
           rid: 'h',
           active: false,
-          maxBitrate: 150,
-          scaleResolutionDownBy: 2,
-          maxFramerate: 30,
         },
         {
           rid: 'f',
@@ -374,18 +378,26 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
+      publisher['transceiverCache'].add(
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+      );
 
-      await publisher['changePublishQuality']([
-        {
-          name: 'q',
-          active: true,
-          maxBitrate: 100,
-          scaleResolutionDownBy: 4,
-          maxFramerate: 30,
-          scalabilityMode: '',
-        },
-      ]);
+      await publisher['changePublishQuality']({
+        publishOptionId: 1,
+        trackType: TrackType.VIDEO,
+        layers: [
+          {
+            name: 'q',
+            active: true,
+            maxBitrate: 100,
+            scaleResolutionDownBy: 4,
+            maxFramerate: 30,
+            scalabilityMode: '',
+          },
+        ],
+      });
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -429,18 +441,25 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
-
-      await publisher['changePublishQuality']([
-        {
-          name: 'q',
-          active: true,
-          maxBitrate: 50,
-          scaleResolutionDownBy: 1,
-          maxFramerate: 30,
-          scalabilityMode: 'L1T3',
-        },
-      ]);
+      publisher['transceiverCache'].add(
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+      );
+      await publisher['changePublishQuality']({
+        publishOptionId: 1,
+        trackType: TrackType.VIDEO,
+        layers: [
+          {
+            name: 'q',
+            active: true,
+            maxBitrate: 50,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+            scalabilityMode: 'L1T3',
+          },
+        ],
+      });
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -479,18 +498,26 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].set(TrackType.VIDEO, transceiver);
+      publisher['transceiverCache'].add(
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+      );
 
-      await publisher['changePublishQuality']([
-        {
-          name: 'q',
-          active: true,
-          maxBitrate: 50,
-          scaleResolutionDownBy: 1,
-          maxFramerate: 30,
-          scalabilityMode: 'L1T3',
-        },
-      ]);
+      await publisher['changePublishQuality']({
+        publishOptionId: 1,
+        trackType: TrackType.VIDEO,
+        layers: [
+          {
+            name: 'q',
+            active: true,
+            maxBitrate: 50,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+            scalabilityMode: 'L1T3',
+          },
+        ],
+      });
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -503,6 +530,92 @@ describe('Publisher', () => {
           scalabilityMode: 'L1T3',
         },
       ]);
+    });
+  });
+
+  describe('changePublishOptions', () => {
+    it('adds missing transceivers', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      vi.spyOn(track, 'getSettings').mockReturnValue({
+        width: 640,
+        height: 480,
+      });
+      vi.spyOn(track, 'clone').mockReturnValue(track);
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'addTransceiver');
+
+      publisher['publishOptions'] = [
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 0, codec: { name: 'vp8' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1, codec: { name: 'av1' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
+      ];
+
+      publisher['transceiverCache'].add(
+        publisher['publishOptions'][0],
+        transceiver,
+      );
+
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+
+      // enable av1 and vp9
+      await publisher['syncPublishOptions']();
+
+      expect(publisher['transceiverCache'].items().length).toBe(3);
+      expect(publisher['addTransceiver']).toHaveBeenCalledTimes(2);
+      expect(publisher['addTransceiver']).toHaveBeenCalledWith(
+        track,
+        expect.objectContaining({
+          trackType: TrackType.VIDEO,
+          id: 1,
+          codec: { name: 'av1' },
+        }),
+      );
+      expect(publisher['addTransceiver']).toHaveBeenCalledWith(
+        track,
+        expect.objectContaining({
+          trackType: TrackType.VIDEO,
+          id: 2,
+          codec: { name: 'vp9' },
+        }),
+      );
+    });
+
+    it('disables extra transceivers', async () => {
+      const publishOptions: PublishOption[] = [
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 0, codec: { name: 'vp8' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 1, codec: { name: 'av1' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
+      ];
+
+      const track = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-ignore test setup
+      transceiver.sender.track = track;
+
+      publisher['transceiverCache'].add(publishOptions[0], transceiver);
+      publisher['transceiverCache'].add(publishOptions[1], transceiver);
+      publisher['transceiverCache'].add(publishOptions[2], transceiver);
+
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+      // disable av1
+      publisher['publishOptions'] = publishOptions.filter(
+        (o) => o.codec?.name !== 'av1',
+      );
+
+      await publisher['syncPublishOptions']();
+
+      expect(publisher['transceiverCache'].items().length).toBe(3);
+      expect(track.stop).toHaveBeenCalledOnce();
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledOnce();
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(null);
     });
   });
 });
