@@ -4,7 +4,11 @@ import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
-import { getWebRTCInfo, LocalClientDetailsType } from '../client-details';
+import {
+  getDeviceState,
+  getWebRTCInfo,
+  LocalClientDetailsType,
+} from '../client-details';
 import { InputDevices } from '../gen/video/sfu/models/models';
 import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
@@ -132,7 +136,7 @@ export class SfuStatsReporter {
       publisherStats,
       audioDevices: this.inputDevices.get('mic'),
       videoDevices: this.inputDevices.get('camera'),
-      deviceState: { oneofKind: undefined },
+      deviceState: getDeviceState(),
       telemetry: telemetryData,
     });
   };
