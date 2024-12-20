@@ -28,7 +28,7 @@ let sdkInfo: Sdk | undefined = {
 let osInfo: OS | undefined;
 let deviceInfo: Device | undefined;
 let webRtcInfo: WebRTCInfoType | undefined;
-let deviceState: SendStatsRequest['deviceState'];
+let deviceState: SendStatsRequest['deviceState'] = { oneofKind: undefined };
 
 export const setSdkInfo = (info: Sdk) => {
   sdkInfo = info;

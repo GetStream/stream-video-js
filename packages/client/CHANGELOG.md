@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.13.0...@stream-io/video-client-1.13.1) (2024-12-20)
+
+
+### Bug Fixes
+
+* **client:** fix the initial value of deviceState in clientDetails ([#1629](https://github.com/GetStream/stream-video-js/issues/1629)) ([afefb67](https://github.com/GetStream/stream-video-js/commit/afefb67a568899e2ce500e6dad36e64b6b0e5a3d))
+
 ## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.4...@stream-io/video-client-1.13.0) (2024-12-20)
 
 
