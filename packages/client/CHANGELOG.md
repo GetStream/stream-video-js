@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.4...@stream-io/video-client-1.13.0) (2024-12-20)
+
+
+### Features
+
+* report low power mode and thermal info to stats ([#1583](https://github.com/GetStream/stream-video-js/issues/1583)) ([ef49cee](https://github.com/GetStream/stream-video-js/commit/ef49ceef032fc3e4bb055fbc32c2b5b18c3a24d2))
+
 ## [1.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.3...@stream-io/video-client-1.12.4) (2024-12-17)
 
 
