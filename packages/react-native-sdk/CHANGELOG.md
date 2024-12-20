@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.22...@stream-io/video-react-native-sdk-1.5.0) (2024-12-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.13.0`
+* `@stream-io/video-react-bindings` updated to version `1.2.15`
+
+### Features
+
+* report low power mode and thermal info to stats ([#1583](https://github.com/GetStream/stream-video-js/issues/1583)) ([ef49cee](https://github.com/GetStream/stream-video-js/commit/ef49ceef032fc3e4bb055fbc32c2b5b18c3a24d2))
+
 ## [1.4.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.21...@stream-io/video-react-native-sdk-1.4.22) (2024-12-19)
 
 
