@@ -935,7 +935,8 @@ export class Call {
   ): ReconnectDetails => {
     const strategy = this.reconnectStrategy;
     const performingRejoin = strategy === WebsocketReconnectStrategy.REJOIN;
-    const announcedTracks = this.publisher?.getAnnouncedTracks() || [];
+    const announcedTracks =
+      this.publisher?.getAnnouncedTracksForReconnect() || [];
     return {
       strategy,
       announcedTracks,

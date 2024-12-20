@@ -500,11 +500,9 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Returns a list of tracks that are currently being published.
-   *
-   * @internal
    * @param sdp an optional SDP to extract the `mid` from.
    */
-  getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
+  private getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
     sdp = sdp || this.pc.localDescription?.sdp;
     const trackInfos: TrackInfo[] = [];
     for (const transceiverId of this.transceiverCache.items()) {
@@ -512,30 +510,58 @@ export class Publisher extends BasePeerConnection {
       const track = transceiver.sender.track;
       if (!track) continue;
 
-      const isTrackLive = track.readyState === 'live';
-      const layers = isTrackLive
-        ? this.computeLayers(track, publishOption)
-        : this.transceiverCache.getLayers(publishOption);
-      this.transceiverCache.setLayers(publishOption, layers);
-
-      const isAudioTrack = isAudioTrackType(publishOption.trackType);
-      const isStereo = isAudioTrack && track.getSettings().channelCount === 2;
-      const transceiverIndex = this.transceiverCache.indexOf(transceiver);
-      const mid = extractMid(transceiver, transceiverIndex, sdp);
-
-      const audioSettings = this.state.settings?.audio;
-      trackInfos.push({
-        trackId: track.id,
-        layers: toVideoLayers(layers),
-        trackType: publishOption.trackType,
-        mid,
-        stereo: isStereo,
-        dtx: isAudioTrack && !!audioSettings?.opus_dtx_enabled,
-        red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
-        muted: !isTrackLive,
-      });
+      trackInfos.push(this.toTrackInfo(transceiver, publishOption, sdp));
     }
     return trackInfos;
+  };
+
+  /**
+   * Returns a list of tracks that are currently being published.
+   * This method shall be used for the reconnection flow.
+   * There we shouldn't announce the tracks that have been stopped due to a codec switch.
+   */
+  getAnnouncedTracksForReconnect = (): TrackInfo[] => {
+    const sdp = this.pc.localDescription?.sdp;
+    const trackInfos: TrackInfo[] = [];
+    for (const publishOption of this.publishOptions) {
+      const transceiver = this.transceiverCache.get(publishOption);
+      if (!transceiver || !transceiver.sender.track) continue;
+
+      trackInfos.push(this.toTrackInfo(transceiver, publishOption, sdp));
+    }
+    return trackInfos;
+  };
+
+  /**
+   * Converts the given transceiver to a `TrackInfo` object.
+   */
+  private toTrackInfo = (
+    transceiver: RTCRtpTransceiver,
+    publishOption: PublishOption,
+    sdp: string | undefined,
+  ) => {
+    const track = transceiver.sender.track!;
+    const isTrackLive = track.readyState === 'live';
+    const layers = isTrackLive
+      ? this.computeLayers(track, publishOption)
+      : this.transceiverCache.getLayers(publishOption);
+    this.transceiverCache.setLayers(publishOption, layers);
+
+    const isAudioTrack = isAudioTrackType(publishOption.trackType);
+    const isStereo = isAudioTrack && track.getSettings().channelCount === 2;
+    const transceiverIndex = this.transceiverCache.indexOf(transceiver);
+    const audioSettings = this.state.settings?.audio;
+
+    return {
+      trackId: track.id,
+      layers: toVideoLayers(layers),
+      trackType: publishOption.trackType,
+      mid: extractMid(transceiver, transceiverIndex, sdp),
+      stereo: isStereo,
+      dtx: isAudioTrack && !!audioSettings?.opus_dtx_enabled,
+      red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
+      muted: !isTrackLive,
+    };
   };
 
   private computeLayers = (
