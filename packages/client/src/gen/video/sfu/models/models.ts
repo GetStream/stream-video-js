@@ -5,6 +5,7 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
+
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -370,6 +371,10 @@ export interface TrackInfo {
    * @generated from protobuf field: bool muted = 10;
    */
   muted: boolean;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec codec = 11;
+   */
+  codec?: Codec;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -1313,6 +1318,7 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 8, name: 'stereo', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 10, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      { no: 11, name: 'codec', kind: 'message', T: () => Codec },
     ]);
   }
 }

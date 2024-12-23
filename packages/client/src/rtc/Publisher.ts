@@ -505,8 +505,8 @@ export class Publisher extends BasePeerConnection {
   private getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
     sdp = sdp || this.pc.localDescription?.sdp;
     const trackInfos: TrackInfo[] = [];
-    for (const transceiverId of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = transceiverId;
+    for (const bundle of this.transceiverCache.items()) {
+      const { transceiver, publishOption } = bundle;
       const track = transceiver.sender.track;
       if (!track) continue;
 
@@ -539,7 +539,7 @@ export class Publisher extends BasePeerConnection {
     transceiver: RTCRtpTransceiver,
     publishOption: PublishOption,
     sdp: string | undefined,
-  ) => {
+  ): TrackInfo => {
     const track = transceiver.sender.track!;
     const isTrackLive = track.readyState === 'live';
     const layers = isTrackLive
@@ -561,6 +561,7 @@ export class Publisher extends BasePeerConnection {
       dtx: isAudioTrack && !!audioSettings?.opus_dtx_enabled,
       red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
       muted: !isTrackLive,
+      codec: publishOption.codec,
     };
   };
 
