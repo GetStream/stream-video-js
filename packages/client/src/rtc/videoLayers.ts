@@ -29,8 +29,14 @@ const defaultBitratePerRid: Record<string, number> = {
 export const toSvcEncodings = (
   layers: OptimalVideoLayer[] | undefined,
 ): RTCRtpEncodingParameters[] | undefined => {
-  // we take the `f` layer, and we rename it to `q`.
-  return layers?.filter((l) => l.rid === 'f').map((l) => ({ ...l, rid: 'q' }));
+  if (!layers) return undefined;
+  // we take the highest quality layer, and we assign it to `q` encoder.
+  const withRid = (rid: string) => (l: OptimalVideoLayer) => l.rid === rid;
+  const highestLayer =
+    layers.find(withRid('f')) ||
+    layers.find(withRid('h')) ||
+    layers.find(withRid('q'));
+  return [{ ...highestLayer, rid: 'q' }];
 };
 
 /**

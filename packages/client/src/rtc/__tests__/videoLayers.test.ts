@@ -193,7 +193,7 @@ describe('videoLayers', () => {
     });
   });
 
-  it('should map OptimalVideoLayer to SVC encodings', () => {
+  it('should map OptimalVideoLayer to SVC encodings (three layers)', () => {
     const layers: Array<Partial<OptimalVideoLayer>> = [
       { rid: 'f', width: 1920, height: 1080, maxBitrate: 3000000 },
       { rid: 'h', width: 960, height: 540, maxBitrate: 750000 },
@@ -207,6 +207,37 @@ describe('videoLayers', () => {
       width: 1920,
       height: 1080,
       maxBitrate: 3000000,
+    });
+  });
+
+  it('should map OptimalVideoLayer to SVC encodings (two layers)', () => {
+    const layers: Array<Partial<OptimalVideoLayer>> = [
+      { rid: 'h', width: 960, height: 540, maxBitrate: 750000 },
+      { rid: 'q', width: 480, height: 270, maxBitrate: 187500 },
+    ];
+
+    const svcLayers = toSvcEncodings(layers as OptimalVideoLayer[]);
+    expect(svcLayers.length).toBe(1);
+    expect(svcLayers[0]).toEqual({
+      rid: 'q',
+      width: 960,
+      height: 540,
+      maxBitrate: 750000,
+    });
+  });
+
+  it('should map OptimalVideoLayer to SVC encodings (two layers)', () => {
+    const layers: Array<Partial<OptimalVideoLayer>> = [
+      { rid: 'q', width: 480, height: 270, maxBitrate: 187500 },
+    ];
+
+    const svcLayers = toSvcEncodings(layers as OptimalVideoLayer[]);
+    expect(svcLayers.length).toBe(1);
+    expect(svcLayers[0]).toEqual({
+      rid: 'q',
+      width: 480,
+      height: 270,
+      maxBitrate: 187500,
     });
   });
 
