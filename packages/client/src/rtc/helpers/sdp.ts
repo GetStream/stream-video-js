@@ -13,7 +13,7 @@ export const extractMid = (
   sdp: string | undefined,
 ): string => {
   if (transceiver.mid) return transceiver.mid;
-  if (!sdp) return '';
+  if (!sdp) return String(transceiverInitIndex);
 
   const track = transceiver.sender.track!;
   const parsedSdp = SDP.parse(sdp);
@@ -25,6 +25,6 @@ export const extractMid = (
     );
   });
   if (typeof media?.mid !== 'undefined') return String(media.mid);
-  if (transceiverInitIndex === -1) return '';
+  if (transceiverInitIndex < 0) return '';
   return String(transceiverInitIndex);
 };

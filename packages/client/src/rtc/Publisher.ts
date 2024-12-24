@@ -514,7 +514,7 @@ export class Publisher extends BasePeerConnection {
    * Returns a list of tracks that are currently being published.
    * @param sdp an optional SDP to extract the `mid` from.
    */
-  private getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
+  getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
     sdp = sdp || this.pc.localDescription?.sdp;
     const trackInfos: TrackInfo[] = [];
     for (const bundle of this.transceiverCache.items()) {

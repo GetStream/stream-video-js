@@ -8,11 +8,13 @@ import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
   PeerType,
   PublishOption,
+  TrackInfo,
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
+import { TransceiverCache } from '../TransceiverCache';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -138,7 +140,7 @@ describe('Publisher', () => {
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(newTrack);
 
     expect(track.stop).toHaveBeenCalled();
-    expect(newTrack.addEventListener).not.toHaveBeenCalledWith(
+    expect(newTrack.addEventListener).toHaveBeenCalledWith(
       'ended',
       expect.any(Function),
     );
@@ -616,6 +618,159 @@ describe('Publisher', () => {
       expect(track.stop).toHaveBeenCalledOnce();
       expect(transceiver.sender.replaceTrack).toHaveBeenCalledOnce();
       expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('negotiation and track management', () => {
+    let cache: TransceiverCache;
+    let cachedTracks: MediaStreamTrack[] = [];
+
+    beforeEach(() => {
+      cache = publisher['transceiverCache'];
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(track, 'enabled', 'get').mockReturnValue(true);
+      vi.spyOn(track, 'getSettings').mockReturnValue({
+        width: 640,
+        height: 480,
+      });
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+
+      const inactiveTransceiver = new RTCRtpTransceiver();
+      const inactiveTrack = new MediaStreamTrack();
+      vi.spyOn(inactiveTrack, 'enabled', 'get').mockReturnValue(false);
+      vi.spyOn(inactiveTrack, 'getSettings').mockReturnValue({
+        width: 640,
+        height: 480,
+      });
+      vi.spyOn(inactiveTransceiver.sender, 'track', 'get').mockReturnValue(
+        inactiveTrack,
+      );
+      vi.spyOn(inactiveTrack, 'readyState', 'get').mockReturnValue('ended');
+
+      // @ts-expect-error incomplete data
+      cache.add({ trackType: TrackType.VIDEO, id: 1 }, transceiver);
+      // @ts-expect-error incomplete data
+      cache.add({ trackType: TrackType.VIDEO, id: 2 }, inactiveTransceiver);
+
+      // store for later use
+      cachedTracks.push(track, inactiveTrack);
+    });
+
+    it('negotiate should set up the local and remote descriptions', async () => {
+      const spyOffer: RTCSessionDescriptionInit = {
+        sdp: 'offer-sdp',
+        type: 'offer',
+      };
+      const createOfferSpy = vi
+        .spyOn(publisher['pc'], 'createOffer')
+        // @ts-expect-error TS picks up the wrong overload
+        .mockResolvedValue(spyOffer);
+
+      const setLocalDescriptionSpy = vi
+        .spyOn(publisher['pc'], 'setLocalDescription')
+        .mockResolvedValue();
+
+      const setRemoteDescriptionSpy = vi
+        .spyOn(publisher['pc'], 'setRemoteDescription')
+        .mockResolvedValue();
+
+      const addIceCandidateSpy = vi
+        .spyOn(publisher['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+
+      sfuClient.setPublisher = vi.fn().mockResolvedValue({
+        response: {
+          sdp: 'answer-sdp',
+        },
+      });
+
+      // @ts-expect-error incomplete data
+      const trackInfosMock: TrackInfo[] = [{ trackId: '123' }];
+      vi.spyOn(publisher, 'getAnnouncedTracks').mockReturnValue(trackInfosMock);
+
+      sfuClient['iceTrickleBuffer'].push({
+        peerType: PeerType.PUBLISHER_UNSPECIFIED,
+        iceCandidate: '{ "ufrag": "test", "candidate": "test" }',
+      });
+
+      await publisher['negotiate']();
+
+      expect(sfuClient.setPublisher).toHaveBeenCalledWith({
+        sdp: 'offer-sdp',
+        tracks: trackInfosMock,
+      });
+      expect(createOfferSpy).toHaveBeenCalled();
+      expect(setLocalDescriptionSpy).toHaveBeenCalledWith(spyOffer);
+      expect(setRemoteDescriptionSpy).toHaveBeenCalledWith({
+        sdp: 'answer-sdp',
+        type: 'answer',
+      });
+      expect(addIceCandidateSpy).toHaveBeenCalledWith({
+        ufrag: 'test',
+        candidate: 'test',
+      });
+    });
+
+    it('onNegotiationNeeded delegates to negotiate', () => {
+      publisher['negotiate'] = vi.fn().mockResolvedValue(void 0);
+      publisher['onNegotiationNeeded']();
+      expect(publisher['negotiate']).toHaveBeenCalled();
+    });
+
+    it('getPublishedTracks returns the published tracks', () => {
+      const tracks = publisher.getPublishedTracks();
+      expect(tracks).toHaveLength(1);
+      expect(tracks[0].readyState).toBe('live');
+    });
+
+    it('getAnnouncedTracks should return all tracks', () => {
+      const trackInfos = publisher.getAnnouncedTracks();
+      expect(trackInfos).toHaveLength(2);
+      expect(trackInfos[0].muted).toBe(false);
+      expect(trackInfos[0].mid).toBe('0');
+      expect(trackInfos[1].muted).toBe(true);
+      expect(trackInfos[1].mid).toBe('1');
+    });
+
+    it('getAnnouncedTracksForReconnect should return only the active tracks', () => {
+      const trackInfos = publisher.getAnnouncedTracksForReconnect();
+      expect(trackInfos).toHaveLength(1);
+      expect(trackInfos[0].muted).toBe(false);
+      expect(trackInfos[0].mid).toBe('0');
+    });
+
+    it('isPublishing should return true if there are active tracks', () => {
+      expect(publisher.isPublishing(TrackType.VIDEO)).toBe(true);
+      expect(publisher.isPublishing(TrackType.SCREEN_SHARE_AUDIO)).toBe(false);
+    });
+
+    it('getTrackType should return the track type', () => {
+      expect(
+        publisher.getTrackType(cache['cache'][0].transceiver.sender.track!.id),
+      ).toBe(TrackType.VIDEO);
+      expect(publisher.getTrackType('unknown')).toBeUndefined();
+    });
+
+    it('stopPublishing should stop tracks and remove them from the peer connection', () => {
+      vi.spyOn(publisher['pc'], 'getSenders').mockReturnValue(
+        cachedTracks.map((t) => {
+          const sender = new RTCRtpSender();
+          // @ts-ignore
+          sender.track = t;
+          return sender;
+        }),
+      );
+      const trackStopSpies = cachedTracks.map((t) => vi.spyOn(t, 'stop'));
+      publisher.close({ stopTracks: true });
+
+      for (const stop of trackStopSpies) {
+        expect(stop).toHaveBeenCalled();
+      }
+      expect(publisher['pc'].close).toHaveBeenCalled();
+      expect(publisher['pc'].removeTrack).toHaveBeenCalledTimes(
+        cachedTracks.length,
+      );
     });
   });
 });
