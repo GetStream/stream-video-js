@@ -500,6 +500,18 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Returns a list of tracks that are currently being published.
+   */
+  getPublishedTracks = (): MediaStreamTrack[] => {
+    const tracks: MediaStreamTrack[] = [];
+    for (const { transceiver } of this.transceiverCache.items()) {
+      const track = transceiver.sender.track;
+      if (track && track.readyState === 'live') tracks.push(track);
+    }
+    return tracks;
+  };
+
+  /**
+   * Returns a list of tracks that are currently being published.
    * @param sdp an optional SDP to extract the `mid` from.
    */
   private getAnnouncedTracks = (sdp?: string): TrackInfo[] => {

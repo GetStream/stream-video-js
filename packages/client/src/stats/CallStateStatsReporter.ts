@@ -44,7 +44,7 @@ export type StatsReporter = {
    */
   getStatsForStream: (
     kind: 'subscriber' | 'publisher',
-    mediaStream: MediaStream,
+    tracks: MediaStreamTrack[],
   ) => Promise<StatsReport[]>;
 
   /**
@@ -90,12 +90,12 @@ export const createStatsReporter = ({
 
   const getStatsForStream = async (
     kind: 'subscriber' | 'publisher',
-    mediaStream: MediaStream,
+    tracks: MediaStreamTrack[],
   ) => {
     const pc = kind === 'subscriber' ? subscriber : publisher;
     if (!pc) return [];
     const statsForStream: StatsReport[] = [];
-    for (let track of mediaStream.getTracks()) {
+    for (const track of tracks) {
       const report = await pc.getStats(track);
       const stats = transform(report, {
         // @ts-ignore
@@ -124,31 +124,28 @@ export const createStatsReporter = ({
    */
   const run = async () => {
     const participantStats: ParticipantsStatsReport = {};
-    const sessionIds = new Set(sessionIdsToTrack);
-    if (sessionIds.size > 0) {
-      for (let participant of state.participants) {
+    if (sessionIdsToTrack.size > 0) {
+      const sessionIds = new Set(sessionIdsToTrack);
+      for (const participant of state.participants) {
         if (!sessionIds.has(participant.sessionId)) continue;
-        const kind = participant.isLocalParticipant
-          ? 'publisher'
-          : 'subscriber';
+        const {
+          audioStream,
+          isLocalParticipant,
+          sessionId,
+          userId,
+          videoStream,
+        } = participant;
+        const kind = isLocalParticipant ? 'publisher' : 'subscriber';
         try {
-          const mergedStream = new MediaStream([
-            ...(participant.videoStream?.getVideoTracks() || []),
-            ...(participant.audioStream?.getAudioTracks() || []),
-          ]);
-          participantStats[participant.sessionId] = await getStatsForStream(
-            kind,
-            mergedStream,
-          );
-          mergedStream.getTracks().forEach((t) => {
-            mergedStream.removeTrack(t);
-          });
+          const tracks = isLocalParticipant
+            ? publisher?.getPublishedTracks() || []
+            : [
+                ...(videoStream?.getVideoTracks() || []),
+                ...(audioStream?.getAudioTracks() || []),
+              ];
+          participantStats[sessionId] = await getStatsForStream(kind, tracks);
         } catch (e) {
-          logger(
-            'error',
-            `Failed to collect stats for ${kind} of ${participant.userId}`,
-            e,
-          );
+          logger('warn', `Failed to collect ${kind} stats for ${userId}`, e);
         }
       }
     }
