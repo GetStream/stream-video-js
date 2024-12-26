@@ -3,6 +3,10 @@ import { FirebaseMessagingTypes } from './libs/firebaseMessaging';
 import { ExpoNotification } from './libs/expoNotifications';
 import { NonRingingPushEvent } from '../StreamVideoRN/types';
 import { PushNotificationiOSType } from './libs/iosPushNotification';
+import {
+  NotificationTrigger,
+  PushNotificationTrigger,
+} from 'expo-notifications';
 
 export type StreamPushPayload =
   | {
@@ -25,17 +29,28 @@ export function isNotifeeStreamVideoEvent(event: Event) {
 }
 
 export function isExpoNotificationStreamVideoEvent(event: ExpoNotification) {
-  if (event.request.trigger.type === 'push') {
+  const trigger = event.request.trigger;
+  if (isPushNotification(trigger)) {
     // iOS
-    const streamPayload = event.request.trigger.payload
-      ?.stream as StreamPushPayload;
+    const streamPayload = trigger.payload?.stream as StreamPushPayload;
     // Android
-    const remoteMessageData = event.request.trigger.remoteMessage?.data;
+    const remoteMessageData = trigger.remoteMessage?.data;
     return (
       streamPayload?.sender === 'stream.video' ||
       remoteMessageData?.sender === 'stream.video'
     );
   }
+}
+
+export function isPushNotification(
+  trigger: NotificationTrigger
+): trigger is PushNotificationTrigger {
+  return (
+    typeof trigger === 'object' &&
+    trigger !== null &&
+    'type' in trigger &&
+    (trigger as PushNotificationTrigger).type === 'push'
+  );
 }
 
 export function isPushNotificationiOSStreamVideoEvent(
