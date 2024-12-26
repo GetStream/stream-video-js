@@ -36,7 +36,7 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-vi.mock('../../compatibility.ts', () => {
+vi.mock('../../helpers/compatibility.ts', () => {
   console.log('MOCKING mobile device');
   return {
     isMobile: () => true,

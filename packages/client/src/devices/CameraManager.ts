@@ -4,7 +4,7 @@ import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { isMobile } from '../compatibility';
+import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
