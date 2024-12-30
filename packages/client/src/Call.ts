@@ -7,6 +7,7 @@ import {
   Publisher,
   Subscriber,
   toRtcConfiguration,
+  trackTypeToParticipantStreamKey,
 } from './rtc';
 import {
   registerEventHandlers,
@@ -123,6 +124,7 @@ import {
 import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
+import { pushToIfMissing } from './helpers/array';
 import {
   makeSafePromise,
   PromiseWithResolvers,
@@ -1504,15 +1506,9 @@ export class Call {
     const [videoTrack] = videoStream.getVideoTracks();
     if (!videoTrack) throw new Error('There is no video track in the stream');
 
-    if (!this.trackPublishOrder.includes(TrackType.VIDEO)) {
-      this.trackPublishOrder.push(TrackType.VIDEO);
-    }
-
-    await this.publisher.publishStream(
-      videoStream,
-      videoTrack,
-      TrackType.VIDEO,
-    );
+    pushToIfMissing(this.trackPublishOrder, TrackType.VIDEO);
+    await this.publisher.publish(videoTrack, TrackType.VIDEO);
+    await this.updateLocalStreamState(videoStream, TrackType.VIDEO);
   };
 
   /**
@@ -1538,14 +1534,9 @@ export class Call {
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack) throw new Error('There is no audio track in the stream');
 
-    if (!this.trackPublishOrder.includes(TrackType.AUDIO)) {
-      this.trackPublishOrder.push(TrackType.AUDIO);
-    }
-    await this.publisher.publishStream(
-      audioStream,
-      audioTrack,
-      TrackType.AUDIO,
-    );
+    pushToIfMissing(this.trackPublishOrder, TrackType.AUDIO);
+    await this.publisher.publish(audioTrack, TrackType.AUDIO);
+    await this.updateLocalStreamState(audioStream, TrackType.AUDIO);
   };
 
   /**
@@ -1572,41 +1563,63 @@ export class Call {
       throw new Error('There is no screen share track in the stream');
     }
 
-    if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
-      this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
-    }
-    await this.publisher.publishStream(
-      screenShareStream,
-      screenShareTrack,
-      TrackType.SCREEN_SHARE,
-    );
+    pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE);
+    await this.publisher.publish(screenShareTrack, TrackType.SCREEN_SHARE);
 
     const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
     if (screenShareAudioTrack) {
-      if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE_AUDIO)) {
-        this.trackPublishOrder.push(TrackType.SCREEN_SHARE_AUDIO);
-      }
-      await this.publisher.publishStream(
-        screenShareStream,
+      pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
+      await this.publisher.publish(
         screenShareAudioTrack,
         TrackType.SCREEN_SHARE_AUDIO,
       );
     }
+    await this.updateLocalStreamState(
+      screenShareStream,
+      ...(screenShareAudioTrack
+        ? [TrackType.SCREEN_SHARE, TrackType.SCREEN_SHARE_AUDIO]
+        : [TrackType.SCREEN_SHARE]),
+    );
   };
 
   /**
    * Stops publishing the given track type to the call, if it is currently being published.
-   * Underlying track will be stopped and removed from the publisher.
    *
-   * @param trackType the track type to stop publishing.
-   * @param stopTrack if `true` the track will be stopped, else it will be just disabled
+   * @param trackTypes the track types to stop publishing.
    */
-  stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
-    this.logger(
-      'info',
-      `stopPublish ${TrackType[trackType]}, stop tracks: ${stopTrack}`,
+  stopPublish = async (...trackTypes: TrackType[]) => {
+    if (!this.sfuClient || !this.publisher) return;
+    await this.updateLocalStreamState(undefined, ...trackTypes);
+  };
+
+  /**
+   * Updates the call state with the new stream.
+   *
+   * @param mediaStream the new stream to update the call state with.
+   * If undefined, the stream will be removed from the call state.
+   * @param trackTypes the track types to update the call state with.
+   */
+  private updateLocalStreamState = async (
+    mediaStream: MediaStream | undefined,
+    ...trackTypes: TrackType[]
+  ) => {
+    if (!this.sfuClient || !this.sfuClient.sessionId) return;
+    await this.sfuClient.updateMuteStates(
+      trackTypes.map((trackType) => ({ trackType, muted: !mediaStream })),
     );
-    await this.publisher?.unpublishStream(trackType, stopTrack);
+
+    const sessionId = this.sfuClient.sessionId;
+    for (const trackType of trackTypes) {
+      const streamStateProp = trackTypeToParticipantStreamKey(trackType);
+      if (!streamStateProp) continue;
+
+      this.state.updateParticipant(sessionId, (p) => ({
+        publishedTracks: mediaStream
+          ? pushToIfMissing([...p.publishedTracks], trackType)
+          : p.publishedTracks.filter((t) => t !== trackType),
+        [streamStateProp]: mediaStream,
+      }));
+    }
   };
 
   /**

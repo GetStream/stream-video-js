@@ -17,10 +17,7 @@ import {
   toVideoLayers,
 } from './videoLayers';
 import { isSvcCodec } from './codecs';
-import {
-  isAudioTrackType,
-  trackTypeToParticipantStreamKey,
-} from './helpers/tracks';
+import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 
@@ -35,7 +32,6 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
  */
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
-  private readonly knownTrackIds = new Set<string>();
 
   private readonly unsubscribeOnIceRestart: () => void;
   private readonly unsubscribeChangePublishQuality: () => void;
@@ -119,42 +115,16 @@ export class Publisher extends BasePeerConnection {
    * Consecutive calls to this method will replace the stream.
    * The previous stream will be stopped.
    *
-   * @param mediaStream the media stream to publish.
    * @param track the track to publish.
    * @param trackType the track type to publish.
    */
-  publishStream = async (
-    mediaStream: MediaStream,
-    track: MediaStreamTrack,
-    trackType: TrackType,
-  ) => {
+  publish = async (track: MediaStreamTrack, trackType: TrackType) => {
     if (track.readyState === 'ended') {
       throw new Error(`Can't publish a track that has ended already.`);
     }
 
     if (!this.publishOptions.some((o) => o.trackType === trackType)) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);
-    }
-
-    // enable the track if it is disabled
-    if (!track.enabled) track.enabled = true;
-
-    if (!this.knownTrackIds.has(track.id)) {
-      // listen for 'ended' event on the track as it might be ended abruptly
-      // by an external factors such as permission revokes, a disconnected device, etc.
-      // keep in mind that `track.stop()` doesn't trigger this event.
-      const handleTrackEnded = () => {
-        this.logger('info', `Track ${TrackType[trackType]} has ended abruptly`);
-        track.removeEventListener('ended', handleTrackEnded);
-        this.notifyTrackMuteStateChanged(mediaStream, trackType, true).catch(
-          (err) => this.logger('warn', `Couldn't notify track mute state`, err),
-        );
-      };
-      track.addEventListener('ended', handleTrackEnded);
-
-      // we now publish clones, hence we need to keep track of the original track ids
-      // to avoid assigning the same event listener multiple times
-      this.knownTrackIds.add(track.id);
     }
 
     for (const publishOption of this.publishOptions) {
@@ -171,8 +141,6 @@ export class Publisher extends BasePeerConnection {
         await this.updateTransceiver(transceiver, trackToPublish);
       }
     }
-
-    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
   };
 
   /**
@@ -253,32 +221,6 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Stops publishing the given track type to the SFU, if it is currently being published.
-   * Underlying track will be stopped and removed from the publisher.
-   * @param trackType the track type to unpublish.
-   * @param stopTrack specifies whether track should be stopped or just disabled
-   */
-  unpublishStream = async (trackType: TrackType, stopTrack: boolean) => {
-    for (const option of this.publishOptions) {
-      if (option.trackType !== trackType) continue;
-
-      const transceiver = this.transceiverCache.get(option);
-      const track = transceiver?.sender.track;
-      if (!track) continue;
-
-      if (stopTrack && track.readyState === 'live') {
-        track.stop();
-      } else if (track.enabled) {
-        track.enabled = false;
-      }
-    }
-
-    if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
-      await this.notifyTrackMuteStateChanged(undefined, trackType, true);
-    }
-  };
-
-  /**
    * Returns true if the given track type is currently being published to the SFU.
    *
    * @param trackType the track type to check.
@@ -306,34 +248,6 @@ export class Publisher extends BasePeerConnection {
       }
     }
     return undefined;
-  };
-
-  // FIXME move to InputMediaDeviceManager
-  private notifyTrackMuteStateChanged = async (
-    mediaStream: MediaStream | undefined,
-    trackType: TrackType,
-    isMuted: boolean,
-  ) => {
-    await this.sfuClient.updateMuteState(trackType, isMuted);
-
-    const audioOrVideoOrScreenShareStream =
-      trackTypeToParticipantStreamKey(trackType);
-    if (!audioOrVideoOrScreenShareStream) return;
-    if (isMuted) {
-      this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
-        publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
-        [audioOrVideoOrScreenShareStream]: undefined,
-      }));
-    } else {
-      this.state.updateParticipant(this.sfuClient.sessionId, (p) => {
-        return {
-          publishedTracks: p.publishedTracks.includes(trackType)
-            ? p.publishedTracks
-            : [...p.publishedTracks, trackType],
-          [audioOrVideoOrScreenShareStream]: mediaStream,
-        };
-      });
-    }
   };
 
   /**
@@ -514,8 +428,7 @@ export class Publisher extends BasePeerConnection {
    * Returns a list of tracks that are currently being published.
    * @param sdp an optional SDP to extract the `mid` from.
    */
-  getAnnouncedTracks = (sdp?: string): TrackInfo[] => {
-    sdp = sdp || this.pc.localDescription?.sdp;
+  getAnnouncedTracks = (sdp: string | undefined): TrackInfo[] => {
     const trackInfos: TrackInfo[] = [];
     for (const bundle of this.transceiverCache.items()) {
       const { transceiver, publishOption } = bundle;

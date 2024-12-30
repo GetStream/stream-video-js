@@ -243,7 +243,7 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract publishStream(stream: MediaStream): Promise<void>;
 
-  protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
+  protected abstract stopPublishStream(): Promise<void>;
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];
@@ -253,7 +253,7 @@ export abstract class InputMediaDeviceManager<
     if (!this.state.mediaStream) return;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream(stopTracks);
+      await this.stopPublishStream();
     }
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');

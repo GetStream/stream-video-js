@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from '../rtc';
+import { pushToIfMissing } from '../helpers/array';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -88,7 +89,7 @@ export const watchTrackPublished = (state: CallState) => {
       state.updateOrAddParticipant(sessionId, participant);
     } else {
       state.updateParticipant(sessionId, (p) => ({
-        publishedTracks: [...p.publishedTracks, type].filter(unique),
+        publishedTracks: pushToIfMissing([...p.publishedTracks], type),
       }));
     }
   };
@@ -113,8 +114,6 @@ export const watchTrackUnpublished = (state: CallState) => {
     }
   };
 };
-
-const unique = <T>(v: T, i: number, arr: T[]) => arr.indexOf(v) === i;
 
 /**
  * Reconciles orphaned tracks (if any) for the given participant.

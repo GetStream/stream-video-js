@@ -111,7 +111,7 @@ describe('Publisher', () => {
     sfuClient.updateMuteState = vi.fn();
 
     // initial publish
-    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
+    await publisher.publish(track, TrackType.VIDEO);
 
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);
@@ -136,7 +136,7 @@ describe('Publisher', () => {
     });
     vi.spyOn(newTrack, 'clone').mockReturnValue(newTrack);
 
-    await publisher.publishStream(newMediaStream, newTrack, TrackType.VIDEO);
+    await publisher.publish(newTrack, TrackType.VIDEO);
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(newTrack);
 
     expect(track.stop).toHaveBeenCalled();
@@ -145,13 +145,6 @@ describe('Publisher', () => {
       expect.any(Function),
     );
     expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(newTrack);
-
-    // stop publishing
-    await publisher.unpublishStream(TrackType.VIDEO, true);
-    expect(newTrack.stop).toHaveBeenCalled();
-    expect(state.localParticipant?.publishedTracks).not.toContain(
-      TrackType.VIDEO,
-    );
   });
 
   it('can publish and un-publish with just enabling and disabling tracks', async () => {
@@ -184,7 +177,7 @@ describe('Publisher', () => {
     sfuClient.updateMuteState = vi.fn();
 
     // initial publish
-    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
+    await publisher.publish(track, TrackType.VIDEO);
 
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(track.enabled).toBe(true);
@@ -212,7 +205,7 @@ describe('Publisher', () => {
     const removeEventListenerSpy = vi.spyOn(track, 'removeEventListener');
 
     // start publish again
-    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
+    await publisher.publish(track, TrackType.VIDEO);
 
     expect(track.enabled).toBe(true);
     // republishing the same stream should use the previously registered event handlers
