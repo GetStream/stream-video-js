@@ -138,7 +138,7 @@ export class Publisher extends BasePeerConnection {
       if (!transceiver) {
         this.addTransceiver(trackToPublish, publishOption);
       } else {
-        await this.updateTransceiver(transceiver, trackToPublish);
+        await transceiver.sender.replaceTrack(trackToPublish);
       }
     }
   };
@@ -164,22 +164,6 @@ export class Publisher extends BasePeerConnection {
     const trackType = publishOption.trackType;
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverCache.add(publishOption, transceiver);
-  };
-
-  /**
-   * Updates the given transceiver with the new track.
-   * Stops the previous track and replaces it with the new one.
-   */
-  private updateTransceiver = async (
-    transceiver: RTCRtpTransceiver,
-    track: MediaStreamTrack,
-  ) => {
-    const previousTrack = transceiver.sender.track;
-    // don't stop the track if we are re-publishing the same track
-    if (previousTrack && previousTrack !== track) {
-      previousTrack.stop();
-    }
-    await transceiver.sender.replaceTrack(track);
   };
 
   /**

@@ -250,7 +250,8 @@ export abstract class InputMediaDeviceManager<
   }
 
   protected async muteStream(stopTracks: boolean = true) {
-    if (!this.state.mediaStream) return;
+    const mediaStream = this.state.mediaStream;
+    if (!mediaStream) return;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream();
@@ -258,26 +259,23 @@ export abstract class InputMediaDeviceManager<
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
-      if (
-        this.state.mediaStream &&
-        // @ts-expect-error release() is present in react-native-webrtc
-        typeof this.state.mediaStream.release === 'function'
-      ) {
+      // @ts-expect-error release() is present in react-native-webrtc
+      if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
-        this.state.mediaStream.release();
+        mediaStream.release();
       }
       this.state.setMediaStream(undefined, undefined);
       this.filters.forEach((entry) => entry.stop?.());
     }
   }
 
-  private muteTracks() {
+  private disableTracks() {
     this.getTracks().forEach((track) => {
       if (track.enabled) track.enabled = false;
     });
   }
 
-  private unmuteTracks() {
+  private enableTracks() {
     this.getTracks().forEach((track) => {
       if (!track.enabled) track.enabled = true;
     });
@@ -296,7 +294,7 @@ export abstract class InputMediaDeviceManager<
     if (stopTracks) {
       this.stopTracks();
     } else {
-      this.muteTracks();
+      this.disableTracks();
     }
   }
 
@@ -309,7 +307,7 @@ export abstract class InputMediaDeviceManager<
       this.getTracks().every((t) => t.readyState === 'live')
     ) {
       stream = this.state.mediaStream;
-      this.unmuteTracks();
+      this.enableTracks();
     } else {
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
@@ -447,11 +445,8 @@ export abstract class InputMediaDeviceManager<
 
             let isDeviceDisconnected = false;
             let isDeviceReplaced = false;
-            const currentDevice = this.findDeviceInList(
-              currentDevices,
-              deviceId,
-            );
-            const prevDevice = this.findDeviceInList(prevDevices, deviceId);
+            const currentDevice = this.findDevice(currentDevices, deviceId);
+            const prevDevice = this.findDevice(prevDevices, deviceId);
             if (!currentDevice && prevDevice) {
               isDeviceDisconnected = true;
             } else if (
@@ -490,9 +485,8 @@ export abstract class InputMediaDeviceManager<
     );
   }
 
-  private findDeviceInList(devices: MediaDeviceInfo[], deviceId: string) {
-    return devices.find(
-      (d) => d.deviceId === deviceId && d.kind === this.mediaDeviceKind,
-    );
+  private findDevice(devices: MediaDeviceInfo[], deviceId: string) {
+    const kind = this.mediaDeviceKind;
+    return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
   }
 }
