@@ -35,7 +35,7 @@ const MediaStreamTrackMock = vi.fn((): Partial<MediaStreamTrack> => {
   return {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
-    getSettings: vi.fn(),
+    getSettings: vi.fn().mockReturnValue({ width: 1280, height: 720 }),
     stop: vi.fn(),
     clone: vi.fn(),
     readyState: 'live',

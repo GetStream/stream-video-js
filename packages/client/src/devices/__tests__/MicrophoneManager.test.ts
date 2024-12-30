@@ -60,7 +60,7 @@ class NoiseCancellationStub implements INoiseCancellation {
   enable = () => this.listeners['change']?.forEach((l) => l(true));
   disable = () => this.listeners['change']?.forEach((l) => l(false));
   dispose = () => Promise.resolve(undefined);
-  toFilter = () => async (ms: MediaStream) => ms;
+  toFilter = () => (ms: MediaStream) => ({ output: ms });
   on = (event, callback) => {
     (this.listeners[event] ??= []).push(callback);
     return () => {};
@@ -121,10 +121,7 @@ describe('MicrophoneManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.AUDIO,
-      false,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
   });
 
   it('disable-enable mic should set track.enabled', async () => {

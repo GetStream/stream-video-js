@@ -105,10 +105,7 @@ describe('CameraManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.VIDEO,
-      true,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
   });
 
   it('flip', async () => {
