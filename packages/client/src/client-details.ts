@@ -89,9 +89,8 @@ export const setThermalState = (state: string) => {
   }
 
   if (osInfo.name.toLowerCase() === 'ios') {
-    const thermalState =
-      AppleThermalState[state as keyof typeof AppleThermalState] ||
-      AppleThermalState.UNSPECIFIED;
+    // the thermal state is sent as number from the native side
+    const thermalState = parseInt(state) || 0;
 
     deviceState = {
       oneofKind: 'apple',
