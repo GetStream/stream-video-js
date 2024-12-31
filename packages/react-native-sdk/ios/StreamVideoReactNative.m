@@ -17,7 +17,7 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     StreamVideoReactNative *this = (__bridge StreamVideoReactNative*)observer;
     NSString *eventName = (__bridge NSString*)name;
     [this screenShareEventReceived: eventName];
-    
+
 }
 
 @implementation StreamVideoReactNative
@@ -44,8 +44,19 @@ RCT_EXPORT_MODULE();
         _notificationCenter = CFNotificationCenterGetDarwinNotifyCenter();
         [self setupObserver];
     }
-    
+    if (self) {
+        [UIDevice currentDevice].batteryMonitoringEnabled = YES;
+    }
+
     return self;
+}
+
+RCT_EXPORT_METHOD(isLowPowerModeEnabled:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+    resolve(@([NSProcessInfo processInfo].lowPowerModeEnabled));
+}
+
+RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+    resolve(@([NSProcessInfo processInfo].thermalState));
 }
 
 -(void)dealloc {
@@ -81,10 +92,40 @@ RCT_EXPORT_MODULE();
 
 -(void)startObserving {
     hasListeners = YES;
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(powerModeDidChange)
+                                                 name:NSProcessInfoPowerStateDidChangeNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(thermalStateDidChange)
+                                                 name:NSProcessInfoThermalStateDidChangeNotification
+                                               object:nil];
 }
 
 -(void)stopObserving {
     hasListeners = NO;
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:NSProcessInfoPowerStateDidChangeNotification
+                                                  object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:NSProcessInfoThermalStateDidChangeNotification
+                                                  object:nil];
+}
+
+- (void)powerModeDidChange {
+    if (!hasListeners) {
+        return;
+    }
+    BOOL lowPowerEnabled = [NSProcessInfo processInfo].lowPowerModeEnabled;
+    [self sendEventWithName:@"isLowPowerModeEnabled" body:@(lowPowerEnabled)];
+}
+
+- (void)thermalStateDidChange {
+    if (!hasListeners) {
+        return;
+    }
+    NSInteger thermalState = [NSProcessInfo processInfo].thermalState;
+    [self sendEventWithName:@"thermalStateDidChange" body:@(thermalState)];
 }
 
 -(void)screenShareEventReceived:(NSString*)event {
@@ -113,11 +154,11 @@ RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
      } else {
         reject(@"access_failure", @"requested incoming call found", nil);
      }
-    
+
 }
 
 -(NSArray<NSString *> *)supportedEvents {
-    return @[@"StreamVideoReactNative_Ios_Screenshare_Event"];
+    return @[@"StreamVideoReactNative_Ios_Screenshare_Event", @"isLowPowerModeEnabled", @"thermalStateDidChange"];
 }
 
 @end
