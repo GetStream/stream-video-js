@@ -55,7 +55,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         user,
         tokenProvider,
         options: {
-          logLevel: 'warn',
+          logLevel: 'debug',
           transformResponse: useLocalSfu
             ? getCustomSfuResponseTransformers(localIpAddress)
             : undefined,
