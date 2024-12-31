@@ -25,8 +25,10 @@ vi.stubGlobal('RTCPeerConnection', RTCPeerConnectionMock);
 
 const MediaStreamMock = vi.fn((): Partial<MediaStream> => {
   return {
-    getTracks: vi.fn(),
+    getTracks: vi.fn().mockReturnValue([]),
     addTrack: vi.fn(),
+    getAudioTracks: vi.fn().mockReturnValue([]),
+    getVideoTracks: vi.fn().mockReturnValue([]),
   };
 });
 vi.stubGlobal('MediaStream', MediaStreamMock);
