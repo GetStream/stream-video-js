@@ -986,7 +986,7 @@ describe('CallState', () => {
 
     it('should maintain predefined queue size', () => {
       const state = new CallState();
-      state.updateClosedCaptionSettings({ queueSize: 2 });
+      state.updateClosedCaptionSettings({ maxVisibleCaptions: 2 });
       for (let i = 0; i < 5; i++) {
         state.updateFromEvent({
           type: 'call.closed_caption',
@@ -1030,7 +1030,7 @@ describe('CallState', () => {
 
     it('should remove stale captions from the queue after timer runs', () => {
       const state = new CallState();
-      state.updateClosedCaptionSettings({ retentionTimeInMs: 100 });
+      state.updateClosedCaptionSettings({ visibilityDurationMs: 100 });
       vi.useFakeTimers();
       state.updateFromEvent({
         type: 'call.closed_caption',
