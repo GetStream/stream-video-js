@@ -137,6 +137,48 @@ describe('Publisher', () => {
     });
   });
 
+  describe('Event Handling', () => {
+    it('handles changePublishQuality events', () => {
+      publisher['changePublishQuality'] = vi.fn();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishQuality',
+            changePublishQuality: {
+              audioSenders: [],
+              videoSenders: [
+                {
+                  publishOptionId: 1,
+                  trackType: TrackType.VIDEO,
+                  layers: [],
+                },
+                {
+                  publishOptionId: 2,
+                  trackType: TrackType.SCREEN_SHARE,
+                  layers: [],
+                },
+              ],
+            },
+          },
+        }) as DispatchableMessage<'changePublishQuality'>,
+      );
+      expect(publisher['changePublishQuality']).toHaveBeenCalled();
+    });
+
+    it('handles changePublishOptions events', () => {
+      publisher['syncPublishOptions'] = vi.fn();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishOptions',
+            changePublishOptions: { publishOptions: [], reason: 'test' },
+          },
+        }) as DispatchableMessage<'changePublishOptions'>,
+      );
+      expect(publisher['syncPublishOptions']).toHaveBeenCalled();
+    });
+  });
+
   describe('Publisher ICE Restart', () => {
     it('should perform ICE restart when iceRestart event is received', () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
