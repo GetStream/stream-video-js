@@ -3954,6 +3954,12 @@ export interface GoLiveRequest {
    * @type {boolean}
    * @memberof GoLiveRequest
    */
+  start_closed_caption?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
   start_hls?: boolean;
   /**
    *
@@ -5896,6 +5902,31 @@ export interface SortParamRequest {
 /**
  *
  * @export
+ * @interface StartClosedCaptionsRequest
+ */
+export interface StartClosedCaptionsRequest {
+  /**
+   * Enable transcriptions along with closed captions
+   * @type {boolean}
+   * @memberof StartClosedCaptionsRequest
+   */
+  enable_transcription?: boolean;
+  /**
+   * Which external storage to use for transcriptions (only applicable if enable_transcription is true)
+   * @type {string}
+   * @memberof StartClosedCaptionsRequest
+   */
+  external_storage?: string;
+  /**
+   * The spoken language in the call, if not provided the language defined in the transcription settings will be used
+   * @type {string}
+   * @memberof StartClosedCaptionsRequest
+   */
+  language?: string;
+}
+/**
+ *
+ * @export
  * @interface StartClosedCaptionsResponse
  */
 export interface StartClosedCaptionsResponse {
@@ -5958,7 +5989,19 @@ export interface StartRecordingResponse {
  */
 export interface StartTranscriptionRequest {
   /**
-   *
+   * Enable closed captions along with transcriptions
+   * @type {boolean}
+   * @memberof StartTranscriptionRequest
+   */
+  enable_closed_captions?: boolean;
+  /**
+   * The spoken language in the call, if not provided the language defined in the transcription settings will be used
+   * @type {string}
+   * @memberof StartTranscriptionRequest
+   */
+  language?: string;
+  /**
+   * Store transcriptions in this external storage
    * @type {string}
    * @memberof StartTranscriptionRequest
    */
@@ -5989,6 +6032,19 @@ export interface StatsOptions {
    * @memberof StatsOptions
    */
   reporting_interval_ms: number;
+}
+/**
+ *
+ * @export
+ * @interface StopClosedCaptionsRequest
+ */
+export interface StopClosedCaptionsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopClosedCaptionsRequest
+   */
+  stop_transcription?: boolean;
 }
 /**
  * Basic response information
@@ -6047,6 +6103,19 @@ export interface StopRecordingResponse {
    * @memberof StopRecordingResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StopTranscriptionRequest
+ */
+export interface StopTranscriptionRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopTranscriptionRequest
+   */
+  stop_closed_captions?: boolean;
 }
 /**
  * Basic response information
@@ -6214,10 +6283,10 @@ export interface TranscriptionSettingsRequest {
   closed_caption_mode?: TranscriptionSettingsRequestClosedCaptionModeEnum;
   /**
    *
-   * @type {Array<string>}
+   * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  languages?: Array<string>;
+  language?: string;
   /**
    *
    * @type {string}
@@ -6262,10 +6331,10 @@ export interface TranscriptionSettingsResponse {
   closed_caption_mode: TranscriptionSettingsResponseClosedCaptionModeEnum;
   /**
    *
-   * @type {Array<string>}
+   * @type {string}
    * @memberof TranscriptionSettingsResponse
    */
-  languages: Array<string>;
+  language: string;
   /**
    *
    * @type {string}
