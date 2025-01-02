@@ -8195,7 +8195,7 @@ __metadata:
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": ~18.3.12
     "@types/react-native-incall-manager": ^4
-    expo: ^52.0.0
+    expo: ~52.0.23
     expo-build-properties: ~0.13.1
     expo-constants: ~17.0.3
     expo-linking: ~7.0.3
@@ -15105,7 +15105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:^52.0.0":
+"expo@npm:~52.0.23":
   version: 52.0.23
   resolution: "expo@npm:52.0.23"
   dependencies:
@@ -27248,6 +27248,7 @@ __metadata:
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
+  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
   languageName: node
   linkType: hard
 
@@ -27257,6 +27258,7 @@ __metadata:
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
+  checksum: 9d89bac0de650e15d6846485f238d1e65f1013f2c260d9e53e86a1da6ecf8109d9fad9402575c5c36a6592dc5d4370db090e12971c8630ae84453654baabb6b4
   languageName: node
   linkType: hard
 
@@ -27266,6 +27268,7 @@ __metadata:
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
+  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
   languageName: node
   linkType: hard
 
