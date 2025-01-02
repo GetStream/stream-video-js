@@ -4,7 +4,6 @@ import {
 } from './BasePeerConnection';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
-import { withoutConcurrency } from '../helpers/concurrency';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 
 /**
@@ -14,8 +13,6 @@ import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
  * @internal
  */
 export class Subscriber extends BasePeerConnection {
-  private readonly unregisterOnSubscriberOffer: () => void;
-
   /**
    * Constructs a new `Subscriber` instance.
    */
@@ -23,17 +20,11 @@ export class Subscriber extends BasePeerConnection {
     super(PeerType.SUBSCRIBER, opts);
     this.pc.addEventListener('track', this.handleOnTrack);
 
-    const subscriberOfferConcurrencyTag = Symbol('subscriberOffer');
-    this.unregisterOnSubscriberOffer = this.dispatcher.on(
-      'subscriberOffer',
-      (subscriberOffer) => {
-        withoutConcurrency(subscriberOfferConcurrencyTag, () => {
-          return this.negotiate(subscriberOffer);
-        }).catch((err) => {
-          this.logger('error', `Negotiation failed.`, err);
-        });
-      },
-    );
+    this.on('subscriberOffer', async (subscriberOffer) => {
+      return this.negotiate(subscriberOffer).catch((err) => {
+        this.logger('error', `Negotiation failed.`, err);
+      });
+    });
   }
 
   /**
@@ -49,8 +40,6 @@ export class Subscriber extends BasePeerConnection {
    * instance with a new one (in case of migration).
    */
   detachEventHandlers() {
-    this.unregisterOnSubscriberOffer();
-
     super.detachEventHandlers();
     this.pc.removeEventListener('track', this.handleOnTrack);
   }

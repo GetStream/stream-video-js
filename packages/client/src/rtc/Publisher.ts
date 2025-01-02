@@ -32,11 +32,6 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
  */
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
-
-  private readonly unsubscribeOnIceRestart: () => void;
-  private readonly unsubscribeChangePublishQuality: () => void;
-  private readonly unsubscribeChangePublishOptions: () => void;
-
   private publishOptions: PublishOption[];
 
   /**
@@ -47,41 +42,24 @@ export class Publisher extends BasePeerConnection {
     this.publishOptions = publishOptions;
     this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
-    this.unsubscribeOnIceRestart = this.dispatcher.on(
-      'iceRestart',
-      (iceRestart) => {
-        if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
-        this.restartIce().catch((err) => {
-          this.logger('warn', `ICERestart failed`, err);
-          this.onUnrecoverableError?.();
-        });
-      },
-    );
+    this.on('iceRestart', (iceRestart) => {
+      if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
+      this.restartIce().catch((err) => {
+        this.logger('warn', `ICERestart failed`, err);
+        this.onUnrecoverableError?.();
+      });
+    });
 
-    this.unsubscribeChangePublishQuality = this.dispatcher.on(
-      'changePublishQuality',
-      ({ videoSenders }) => {
-        withoutConcurrency('publisher.changePublishQuality', async () => {
-          for (const videoSender of videoSenders) {
-            await this.changePublishQuality(videoSender);
-          }
-        }).catch((err) => {
-          this.logger('warn', 'Failed to change publish quality', err);
-        });
-      },
-    );
+    this.on('changePublishQuality', async (event) => {
+      for (const videoSender of event.videoSenders) {
+        await this.changePublishQuality(videoSender);
+      }
+    });
 
-    this.unsubscribeChangePublishOptions = this.dispatcher.on(
-      'changePublishOptions',
-      (event) => {
-        withoutConcurrency('publisher.changePublishOptions', async () => {
-          this.publishOptions = event.publishOptions;
-          return this.syncPublishOptions();
-        }).catch((err) => {
-          this.logger('warn', 'Failed to change publish options', err);
-        });
-      },
-    );
+    this.on('changePublishOptions', (event) => {
+      this.publishOptions = event.publishOptions;
+      return this.syncPublishOptions();
+    });
   }
 
   /**
@@ -101,10 +79,6 @@ export class Publisher extends BasePeerConnection {
    * instance with a new one (in case of migration).
    */
   detachEventHandlers() {
-    this.unsubscribeOnIceRestart();
-    this.unsubscribeChangePublishQuality();
-    this.unsubscribeChangePublishOptions();
-
     super.detachEventHandlers();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
   }

@@ -1,9 +1,13 @@
 import { getLogger } from '../logger';
-import type { Logger } from '../coordinator/connection/types';
+import type {
+  CallEventListener,
+  Logger,
+} from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { Dispatcher } from './Dispatcher';
+import { AllSfuEvents, Dispatcher } from './Dispatcher';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -28,6 +32,8 @@ export abstract class BasePeerConnection {
 
   protected readonly onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
+
+  private readonly subscriptions: (() => void)[] = [];
 
   /**
    * Constructs a new `BasePeerConnection` instance.
@@ -87,12 +93,30 @@ export abstract class BasePeerConnection {
       'icegatheringstatechange',
       this.onIceGatherChange,
     );
+    this.subscriptions.forEach((unsubscribe) => unsubscribe());
   }
 
   /**
    * Performs an ICE restart on the `RTCPeerConnection`.
    */
   protected abstract restartIce(): Promise<void>;
+
+  /**
+   * Handles events synchronously.
+   * Consecutive events are queued and executed one after the other.
+   */
+  protected on = <E extends keyof AllSfuEvents>(
+    event: E,
+    fn: CallEventListener<E>,
+  ): void => {
+    this.subscriptions.push(
+      this.dispatcher.on(event, (e) => {
+        withoutConcurrency(`pc.${event}`, async () => fn(e)).catch((err) => {
+          this.logger('warn', `Error handling ${event}`, err);
+        });
+      }),
+    );
+  };
 
   /**
    * Sets the SFU client to use.
