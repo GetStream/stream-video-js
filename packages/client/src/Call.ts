@@ -55,6 +55,7 @@ import type {
   SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
+  StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
@@ -62,6 +63,7 @@ import type {
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
+  StopClosedCaptionsRequest,
   StopClosedCaptionsResponse,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
@@ -1777,12 +1779,15 @@ export class Call {
   /**
    * Starts the closed captions of the call.
    */
-  startClosedCaptions = async (): Promise<StartClosedCaptionsResponse> => {
+  startClosedCaptions = async (
+    options?: StartClosedCaptionsRequest,
+  ): Promise<StartClosedCaptionsResponse> => {
     const trx = this.state.setCaptioning(true); // optimistic update
     try {
-      return await this.streamClient.post<StartClosedCaptionsResponse>(
-        `${this.streamClientBasePath}/start_closed_captions`,
-      );
+      return await this.streamClient.post<
+        StartClosedCaptionsResponse,
+        StartClosedCaptionsRequest
+      >(`${this.streamClientBasePath}/start_closed_captions`, options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -1792,12 +1797,15 @@ export class Call {
   /**
    * Stops the closed captions of the call.
    */
-  stopClosedCaptions = async (): Promise<StopClosedCaptionsResponse> => {
+  stopClosedCaptions = async (
+    options?: StopClosedCaptionsRequest,
+  ): Promise<StopClosedCaptionsResponse> => {
     const trx = this.state.setCaptioning(false); // optimistic update
     try {
-      return await this.streamClient.post<StopClosedCaptionsResponse>(
-        `${this.streamClientBasePath}/stop_closed_captions`,
-      );
+      return await this.streamClient.post<
+        StopClosedCaptionsResponse,
+        StopClosedCaptionsRequest
+      >(`${this.streamClientBasePath}/stop_closed_captions`, options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
