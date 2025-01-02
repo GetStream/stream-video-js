@@ -1,118 +1,83 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CallClosedCaption,
+  CompositeButton,
+  Icon,
+  OwnCapability,
   useCall,
   useCallStateHooks,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 
-const useDeduplicatedQueue = (initialQueue: CallClosedCaption[] = []) => {
-  const [queue, setQueue] = useState<CallClosedCaption[]>(initialQueue);
-
-  const addToQueue = useCallback((newCaption: CallClosedCaption) => {
-    setQueue((prevQueue) => {
-      const key = `${newCaption.speaker_id}-${newCaption.start_time}`;
-      const isDuplicate = prevQueue.some(
-        (caption) => `${caption.speaker_id}-${caption.start_time}` === key,
-      );
-
-      if (isDuplicate) {
-        return prevQueue;
-      }
-
-      return [...prevQueue, newCaption];
-    });
-  }, []);
-
-  return [queue, addToQueue, setQueue] as const;
+export const ToggleClosedCaptionsButton = () => {
+  const call = useCall();
+  const { useIsCallCaptioningInProgress, useHasPermissions } =
+    useCallStateHooks();
+  const isCaptioned = useIsCallCaptioningInProgress();
+  const canToggle = useHasPermissions(
+    OwnCapability.START_CLOSED_CAPTIONS_CALL,
+    OwnCapability.STOP_CLOSED_CAPTIONS_CALL,
+  );
+  return (
+    <WithTooltip title="Toggle closed captions">
+      <CompositeButton
+        active={isCaptioned}
+        disabled={!canToggle}
+        variant="primary"
+        onClick={async () => {
+          if (!call) return;
+          try {
+            if (isCaptioned) {
+              await call.stopClosedCaptions();
+            } else {
+              await call.startClosedCaptions();
+            }
+          } catch (e) {
+            console.error('Failed to toggle closed captions', e);
+          }
+        }}
+      >
+        <Icon icon="closed-captions" />
+      </CompositeButton>
+    </WithTooltip>
+  );
 };
 
 export const ClosedCaptions = () => {
-  const call = useCall();
-  const [queue, addToQueue, setQueue] = useDeduplicatedQueue();
-
-  useEffect(() => {
-    if (!call) return;
-    return call.on('call.closed_caption', (e) => {
-      if (e.type !== 'call.closed_caption') return;
-      if (e.closed_caption.text.trim() === '') return;
-      addToQueue(e.closed_caption);
-    });
-  }, [call, addToQueue]);
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setQueue((prevQueue) =>
-        prevQueue.length !== 0 ? prevQueue.slice(1) : prevQueue,
-      );
-    }, 2700);
-    return () => clearTimeout(id);
-  }, [queue, setQueue]);
-
-  const userNameMapping = useUserIdToUserNameMapping();
-
+  const { useCallClosedCaptions } = useCallStateHooks();
+  const closedCaptions = useCallClosedCaptions();
   return (
     <div className="rd__closed-captions">
-      {queue.slice(-2).map(({ speaker_id, text, start_time }) => (
-        <p
-          className="rd__closed-captions__line"
-          key={`${speaker_id}-${start_time}`}
-        >
-          <span className="rd__closed-captions__speaker">
-            {userNameMapping[speaker_id] || speaker_id}:
-          </span>
-          <span className="rd__closed-captions__text"> {text}</span>
-        </p>
-      ))}
+      <ClosedCaptionList queue={closedCaptions} />
     </div>
   );
 };
 
 export const ClosedCaptionsSidebar = () => {
   const call = useCall();
-  const [queue, addToQueue] = useDeduplicatedQueue();
-
+  const [queue, addToQueue] = useState<CallClosedCaption[]>([]);
   useEffect(() => {
     if (!call) return;
     return call.on('call.closed_caption', (e) => {
-      if (e.type !== 'call.closed_caption') return;
-      if (e.closed_caption.text.trim() === '') return;
-      addToQueue(e.closed_caption);
+      addToQueue((q) => [...q, e.closed_caption]);
     });
-  }, [call, addToQueue]);
-
-  const userNameMapping = useUserIdToUserNameMapping();
-
+  }, [call]);
   return (
     <div className="rd__closed-captions-sidebar">
       <h3>Closed Captions</h3>
       <div className="rd__closed-captions-sidebar__container">
-        {queue.map(({ speaker_id, text, start_time }) => (
-          <p
-            className="rd__closed-captions__line"
-            key={`${speaker_id}-${start_time}`}
-          >
-            <span className="rd__closed-captions__speaker">
-              {userNameMapping[speaker_id] || speaker_id}:
-            </span>
-            <span className="rd__closed-captions__text"> {text}</span>
-          </p>
-        ))}
+        <ClosedCaptionList queue={queue} />
       </div>
     </div>
   );
 };
 
-const useUserIdToUserNameMapping = () => {
-  const { useCallSession } = useCallStateHooks();
-  const session = useCallSession();
-  return useMemo(() => {
-    if (!session) return {};
-    return session.participants.reduce<Record<string, string | undefined>>(
-      (result, participant) => {
-        result[participant.user.id] = participant.user.name;
-        return result;
-      },
-      {},
-    );
-  }, [session]);
+const ClosedCaptionList = (props: { queue: CallClosedCaption[] }) => {
+  const { queue } = props;
+  return queue.map(({ user, text, start_time }) => (
+    <p className="rd__closed-captions__line" key={`${user.id}-${start_time}`}>
+      <span className="rd__closed-captions__speaker">{user.name}:</span>
+      <span className="rd__closed-captions__text">{text}</span>
+    </p>
+  ));
 };

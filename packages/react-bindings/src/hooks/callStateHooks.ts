@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import {
   Call,
+  CallClosedCaption,
   CallIngressResponse,
   CallSessionResponse,
   CallSettingsResponse,
@@ -478,4 +479,20 @@ export const useIncomingVideoSettings = () => {
     call.dynascaleManager.incomingVideoSettings$,
   );
   return settings;
+};
+
+/**
+ * Returns the current call's closed captions queue.
+ */
+export const useCallClosedCaptions = (): CallClosedCaption[] => {
+  const { closedCaptions$ } = useCallState();
+  return useObservableValue(closedCaptions$);
+};
+
+/**
+ * Returns the current call's closed captions queue.
+ */
+export const useIsCallCaptioningInProgress = (): boolean => {
+  const { captioning$ } = useCallState();
+  return useObservableValue(captioning$);
 };
