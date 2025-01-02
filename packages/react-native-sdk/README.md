@@ -136,6 +136,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Speaking while muted
 - [x] Demo app on play-store and app-store
 - [x] Transcriptions
+- [x] Closed Captions
 - [x] Speaker management
 - [x] PiP on iOS
 - [x] Video filters
