@@ -56,7 +56,9 @@ RCT_EXPORT_METHOD(isLowPowerModeEnabled:(RCTPromiseResolveBlock)resolve rejecter
 }
 
 RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-    resolve(@([NSProcessInfo processInfo].thermalState));
+    NSInteger thermalState = [NSProcessInfo processInfo].thermalState;
+    NSString *thermalStateString = [self stringForThermalState:thermalState];
+    resolve(thermalStateString);
 }
 
 -(void)dealloc {
@@ -125,7 +127,23 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
         return;
     }
     NSInteger thermalState = [NSProcessInfo processInfo].thermalState;
-    [self sendEventWithName:@"thermalStateDidChange" body:@(thermalState)];
+    NSString *thermalStateString = [self stringForThermalState:thermalState];
+    [self sendEventWithName:@"thermalStateDidChange" body:thermalStateString];
+}
+
+- (NSString *)stringForThermalState:(NSInteger)thermalState {
+    switch (thermalState) {
+        case NSProcessInfoThermalStateNominal:
+            return @"NOMINAL";
+        case NSProcessInfoThermalStateFair:
+            return @"FAIR";
+        case NSProcessInfoThermalStateSerious:
+            return @"SERIOUS";
+        case NSProcessInfoThermalStateCritical:
+            return @"CRITICAL";
+        default:
+            return @"UNSPECIFIED";
+    }
 }
 
 -(void)screenShareEventReceived:(NSString*)event {
