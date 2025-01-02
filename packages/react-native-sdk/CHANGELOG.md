@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.5.1...@stream-io/video-react-native-sdk-1.5.2) (2024-12-31)
+
+
+### Bug Fixes
+
+* iOS thermal state issue ([#1633](https://github.com/GetStream/stream-video-js/issues/1633)) ([3d2a4c4](https://github.com/GetStream/stream-video-js/commit/3d2a4c42a4de2eb0e8f43586c6d4b0aaed1d34e4))
+
 ## [1.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.5.0...@stream-io/video-react-native-sdk-1.5.1) (2024-12-20)
 
 ### Dependency Updates
