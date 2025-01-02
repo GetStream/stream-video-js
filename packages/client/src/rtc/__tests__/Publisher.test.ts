@@ -81,143 +81,60 @@ describe('Publisher', () => {
     dispatcher.offAll();
   });
 
-  it('can publish, re-publish and un-publish a stream', async () => {
-    const mediaStream = new MediaStream();
-    const track = new MediaStreamTrack();
-    mediaStream.addTrack(track);
-
-    state.setParticipants([
-      // @ts-ignore
-      {
-        isLocalParticipant: true,
-        userId: 'test-user-id',
-        sessionId: sessionId,
-        publishedTracks: [],
-      },
-    ]);
-
-    vi.spyOn(track, 'getSettings').mockReturnValue({
-      width: 640,
-      height: 480,
-      deviceId: 'test-device-id',
+  describe('Publishing', () => {
+    it('should throw when publishing ended tracks', async () => {
+      const track = new MediaStreamTrack();
+      // @ts-ignore readonly field
+      track.readyState = 'ended';
+      await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toThrow();
     });
-    vi.spyOn(track, 'clone').mockReturnValue(track);
 
-    const transceiver = new RTCRtpTransceiver();
-    vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
-    vi.spyOn(publisher['pc'], 'addTransceiver').mockReturnValue(transceiver);
-    vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([transceiver]);
-
-    sfuClient.updateMuteState = vi.fn();
-
-    // initial publish
-    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
-
-    expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
-    expect(state.localParticipant?.videoStream).toEqual(mediaStream);
-    expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
-      TrackType.VIDEO,
-      false,
-    );
-    expect(track.addEventListener).toHaveBeenCalledWith(
-      'ended',
-      expect.any(Function),
-    );
-
-    // re-publish a new track
-    const newMediaStream = new MediaStream();
-    const newTrack = new MediaStreamTrack();
-    newMediaStream.addTrack(newTrack);
-
-    vi.spyOn(newTrack, 'getSettings').mockReturnValue({
-      width: 1280,
-      height: 720,
-      deviceId: 'test-device-id-2',
+    it('should throw when attempting to publish a track that has no publish options', async () => {
+      const track = new MediaStreamTrack();
+      await expect(publisher.publish(track, TrackType.AUDIO)).rejects.toThrow();
     });
-    vi.spyOn(newTrack, 'clone').mockReturnValue(newTrack);
 
-    await publisher.publishStream(newMediaStream, newTrack, TrackType.VIDEO);
-    vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(newTrack);
+    it('should add a transceiver for new tracks', async () => {
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
 
-    expect(track.stop).toHaveBeenCalled();
-    expect(newTrack.addEventListener).toHaveBeenCalledWith(
-      'ended',
-      expect.any(Function),
-    );
-    expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(newTrack);
+      await publisher.publish(track, TrackType.VIDEO);
 
-    // stop publishing
-    await publisher.unpublishStream(TrackType.VIDEO, true);
-    expect(newTrack.stop).toHaveBeenCalled();
-    expect(state.localParticipant?.publishedTracks).not.toContain(
-      TrackType.VIDEO,
-    );
-  });
-
-  it('can publish and un-publish with just enabling and disabling tracks', async () => {
-    const mediaStream = new MediaStream();
-    const track = new MediaStreamTrack();
-    mediaStream.addTrack(track);
-
-    state.setParticipants([
-      // @ts-ignore
-      {
-        isLocalParticipant: true,
-        userId: 'test-user-id',
-        sessionId: sessionId,
-        publishedTracks: [],
-      },
-    ]);
-
-    vi.spyOn(track, 'getSettings').mockReturnValue({
-      width: 640,
-      height: 480,
-      deviceId: 'test-device-id',
+      expect(track.clone).toHaveBeenCalled();
+      expect(publisher['pc'].addTransceiver).toHaveBeenCalledWith(clone, {
+        direction: 'sendonly',
+        sendEncodings: [
+          {
+            rid: 'q',
+            active: true,
+            maxBitrate: 1000,
+            height: 720,
+            width: 1280,
+            maxFramerate: 30,
+            scalabilityMode: 'L3T3_KEY',
+          },
+        ],
+      });
     });
-    vi.spyOn(track, 'clone').mockReturnValue(track);
 
-    const transceiver = new RTCRtpTransceiver();
-    vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
-    vi.spyOn(publisher['pc'], 'addTransceiver').mockReturnValue(transceiver);
-    vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([transceiver]);
+    it('should update an existing transceiver for a new track', async () => {
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
 
-    sfuClient.updateMuteState = vi.fn();
+      const transceiver = new RTCRtpTransceiver();
+      publisher['transceiverCache'].add(
+        publisher['publishOptions'][0],
+        transceiver,
+      );
 
-    // initial publish
-    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
+      await publisher.publish(track, TrackType.VIDEO);
 
-    expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
-    expect(track.enabled).toBe(true);
-    expect(state.localParticipant?.videoStream).toEqual(mediaStream);
-    expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
-      TrackType.VIDEO,
-      false,
-    );
-
-    expect(track.addEventListener).toHaveBeenCalledWith(
-      'ended',
-      expect.any(Function),
-    );
-
-    // stop publishing
-    await publisher.unpublishStream(TrackType.VIDEO, false);
-    expect(track.stop).not.toHaveBeenCalled();
-    expect(track.enabled).toBe(false);
-    expect(state.localParticipant?.publishedTracks).not.toContain(
-      TrackType.VIDEO,
-    );
-    expect(state.localParticipant?.videoStream).toBeUndefined();
-
-    const addEventListenerSpy = vi.spyOn(track, 'addEventListener');
-    const removeEventListenerSpy = vi.spyOn(track, 'removeEventListener');
-
-    // start publish again
-    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
-
-    expect(track.enabled).toBe(true);
-    // republishing the same stream should use the previously registered event handlers
-    expect(removeEventListenerSpy).not.toHaveBeenCalled();
-    expect(addEventListenerSpy).not.toHaveBeenCalled();
+      expect(track.clone).toHaveBeenCalled();
+      expect(publisher['pc'].addTransceiver).not.toHaveBeenCalled();
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+    });
   });
 
   describe('Publisher ICE Restart', () => {
@@ -540,10 +457,6 @@ describe('Publisher', () => {
       const transceiver = new RTCRtpTransceiver();
       const track = new MediaStreamTrack();
       vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
-      vi.spyOn(track, 'getSettings').mockReturnValue({
-        width: 640,
-        height: 480,
-      });
       vi.spyOn(track, 'clone').mockReturnValue(track);
       // @ts-expect-error private method
       vi.spyOn(publisher, 'addTransceiver');
@@ -630,19 +543,11 @@ describe('Publisher', () => {
       const transceiver = new RTCRtpTransceiver();
       const track = new MediaStreamTrack();
       vi.spyOn(track, 'enabled', 'get').mockReturnValue(true);
-      vi.spyOn(track, 'getSettings').mockReturnValue({
-        width: 640,
-        height: 480,
-      });
       vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
 
       const inactiveTransceiver = new RTCRtpTransceiver();
       const inactiveTrack = new MediaStreamTrack();
       vi.spyOn(inactiveTrack, 'enabled', 'get').mockReturnValue(false);
-      vi.spyOn(inactiveTrack, 'getSettings').mockReturnValue({
-        width: 640,
-        height: 480,
-      });
       vi.spyOn(inactiveTransceiver.sender, 'track', 'get').mockReturnValue(
         inactiveTrack,
       );
@@ -725,7 +630,7 @@ describe('Publisher', () => {
     });
 
     it('getAnnouncedTracks should return all tracks', () => {
-      const trackInfos = publisher.getAnnouncedTracks();
+      const trackInfos = publisher.getAnnouncedTracks('');
       expect(trackInfos).toHaveLength(2);
       expect(trackInfos[0].muted).toBe(false);
       expect(trackInfos[0].mid).toBe('0');
