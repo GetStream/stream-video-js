@@ -9,6 +9,7 @@ import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { CallingState } from './CallingState';
 import {
+  type ClosedCaptionsSettings,
   type StreamVideoParticipant,
   type StreamVideoParticipantPatch,
   type StreamVideoParticipantPatches,
@@ -19,6 +20,7 @@ import {
 import { CallStatsReport } from '../stats';
 import {
   BlockedUserEvent,
+  CallClosedCaption,
   CallHLSBroadcastingStartedEvent,
   CallIngressResponse,
   CallMemberAddedEvent,
@@ -32,6 +34,7 @@ import {
   CallSessionParticipantLeftEvent,
   CallSessionResponse,
   CallSettingsResponse,
+  ClosedCaptionEvent,
   EgressResponse,
   MemberResponse,
   OwnCapability,
@@ -97,6 +100,7 @@ export class CallState {
     CallSettingsResponse | undefined
   >(undefined);
   private transcribingSubject = new BehaviorSubject<boolean>(false);
+  private captioningSubject = new BehaviorSubject<boolean>(false);
   private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
     undefined,
   );
@@ -117,6 +121,7 @@ export class CallState {
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
+  private closedCaptionsSubject = new BehaviorSubject<CallClosedCaption[]>([]);
 
   // These are tracks that were delivered to the Subscriber's onTrack event
   // that we couldn't associate with a participant yet.
@@ -276,6 +281,11 @@ export class CallState {
   transcribing$: Observable<boolean>;
 
   /**
+   * Will provide the closed captioning state of this call.
+   */
+  captioning$: Observable<boolean>;
+
+  /**
    * Will provide the user who ended this call.
    */
   endedBy$: Observable<UserResponse | undefined>;
@@ -285,14 +295,23 @@ export class CallState {
    */
   thumbnails$: Observable<ThumbnailResponse | undefined>;
 
+  /**
+   * The queue of closed captions.
+   */
+  closedCaptions$: Observable<CallClosedCaption[]>;
+
   readonly logger = getLogger(['CallState']);
 
   /**
    * A list of comparators that are used to sort the participants.
-   *
-   * @private
    */
   private sortParticipantsBy = defaultSortPreset;
+
+  /**
+   * The closed captions configuration.
+   */
+  private closedCaptionsSettings: ClosedCaptionsSettings | undefined;
+  private closedCaptionsTasks = new Map<string, NodeJS.Timeout>();
 
   private readonly eventHandlers: {
     [EventType in WSEvent['type']]:
@@ -357,6 +376,7 @@ export class CallState {
     this.settings$ = this.settingsSubject.asObservable();
     this.endedBy$ = this.endedBySubject.asObservable();
     this.thumbnails$ = this.thumbnailsSubject.asObservable();
+    this.closedCaptions$ = this.closedCaptionsSubject.asObservable();
 
     /**
      * Performs shallow comparison of two arrays.
@@ -390,10 +410,10 @@ export class CallState {
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
+    this.captioning$ = duc(this.captioningSubject);
 
     this.eventHandlers = {
       // these events are not updating the call state:
-      'call.closed_caption': undefined,
       'call.deleted': undefined,
       'call.permission_request': undefined,
       'call.recording_ready': undefined,
@@ -415,6 +435,16 @@ export class CallState {
       // events that update call state:
       'call.accepted': (e) => this.updateFromCallResponse(e.call),
       'call.blocked_user': this.blockUser,
+      'call.closed_caption': this.updateFromClosedCaptions,
+      'call.closed_captions_failed': () => {
+        this.setCurrentValue(this.captioningSubject, false);
+      },
+      'call.closed_captions_started': () => {
+        this.setCurrentValue(this.captioningSubject, true);
+      },
+      'call.closed_captions_stopped': () => {
+        this.setCurrentValue(this.captioningSubject, false);
+      },
       'call.created': (e) => this.updateFromCallResponse(e.call),
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
@@ -463,6 +493,16 @@ export class CallState {
       'call.updated': (e) => this.updateFromCallResponse(e.call),
     };
   }
+
+  /**
+   * Runs the cleanup tasks.
+   */
+  dispose = () => {
+    for (const [ccKey, taskId] of this.closedCaptionsTasks.entries()) {
+      clearTimeout(taskId);
+      this.closedCaptionsTasks.delete(ccKey);
+    }
+  };
 
   /**
    * Sets the list of criteria that are used to sort the participants.
@@ -531,6 +571,23 @@ export class CallState {
    */
   setStartedAt = (startedAt: Patch<Date | undefined>) => {
     return this.setCurrentValue(this.startedAtSubject, startedAt);
+  };
+
+  /**
+   * Returns whether closed captions are enabled in the current call.
+   */
+  get captioning() {
+    return this.getCurrentValue(this.captioning$);
+  }
+
+  /**
+   * Sets the closed captioning state of the current call.
+   *
+   * @internal
+   * @param captioning the closed captioning state.
+   */
+  setCaptioning = (captioning: boolean) => {
+    return RxUtils.updateValue(this.captioningSubject, captioning);
   };
 
   /**
@@ -793,6 +850,13 @@ export class CallState {
   }
 
   /**
+   * Returns the current queue of closed captions.
+   */
+  get closedCaptions() {
+    return this.getCurrentValue(this.closedCaptions$);
+  }
+
+  /**
    * Will try to find the participant with the given sessionId in the current call.
    *
    * @param sessionId the sessionId of the participant to find.
@@ -840,7 +904,6 @@ export class CallState {
 
     const thePatch = typeof patch === 'function' ? patch(participant) : patch;
     const updatedParticipant: StreamVideoParticipant = {
-      // FIXME OL: this is not a deep merge, we might want to revisit this
       ...participant,
       ...thePatch,
     };
@@ -912,7 +975,6 @@ export class CallState {
    *
    * @param trackType the kind of subscription to update.
    * @param changes the list of subscription changes to do.
-   * @param type the debounce type to use for the update.
    */
   updateParticipantTracks = (
     trackType: VideoTrackType,
@@ -1041,6 +1103,15 @@ export class CallState {
   };
 
   /**
+   * Updates the closed captions settings.
+   *
+   * @param config the new closed captions settings.
+   */
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
+    this.closedCaptionsSettings = { ...this.closedCaptionsSettings, ...config };
+  };
+
+  /**
    * Updates the call state with the data received from the server.
    *
    * @internal
@@ -1066,6 +1137,7 @@ export class CallState {
     this.updateParticipantCountFromSession(s);
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
+    this.setCurrentValue(this.captioningSubject, call.captioning);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
   };
 
@@ -1298,5 +1370,43 @@ export class CallState {
     if (event.user.id === this.localParticipant?.userId) {
       this.setCurrentValue(this.ownCapabilitiesSubject, event.own_capabilities);
     }
+  };
+
+  private updateFromClosedCaptions = (event: ClosedCaptionEvent) => {
+    this.setCurrentValue(this.closedCaptionsSubject, (queue) => {
+      const { closed_caption } = event;
+
+      const keyOf = (c: CallClosedCaption) => `${c.speaker_id}/${c.start_time}`;
+      const currentKey = keyOf(closed_caption);
+
+      const duplicate = queue.some((caption) => keyOf(caption) === currentKey);
+      if (duplicate) return queue;
+
+      const nextQueue = [...queue, closed_caption];
+
+      const { visibilityDurationMs = 2700, maxVisibleCaptions = 2 } =
+        this.closedCaptionsSettings || {};
+      // schedule the removal of the closed caption after the retention time
+      if (visibilityDurationMs > 0) {
+        const taskId = setTimeout(() => {
+          this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
+            captions.filter((caption) => caption !== closed_caption),
+          );
+          this.closedCaptionsTasks.delete(currentKey);
+        }, visibilityDurationMs);
+        this.closedCaptionsTasks.set(currentKey, taskId);
+
+        // cancel the cleanup tasks for the closed captions that are no longer in the queue
+        for (let i = 0; i < nextQueue.length - maxVisibleCaptions; i++) {
+          const key = keyOf(nextQueue[i]);
+          const task = this.closedCaptionsTasks.get(key);
+          clearTimeout(task);
+          this.closedCaptionsTasks.delete(key);
+        }
+      }
+
+      // trim the queue
+      return nextQueue.slice(-maxVisibleCaptions);
+    });
   };
 }

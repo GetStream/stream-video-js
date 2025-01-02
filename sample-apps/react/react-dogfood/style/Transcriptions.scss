@@ -1,2 +1,9 @@
 .rd__transcriptions {
+  .str-video__call-stats {
+    padding: 0;
+
+    .str-video__call-stats__card {
+      background-color: var(--str-video__background-color2);
+    }
+  }
 }

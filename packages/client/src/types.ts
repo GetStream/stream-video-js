@@ -122,6 +122,21 @@ export type ParticipantPin = {
   pinnedAt: number;
 };
 
+export type ClosedCaptionsSettings = {
+  /**
+   * The time in milliseconds to keep a closed caption in the state (visible).
+   * Default is 2700 ms.
+   */
+  visibilityDurationMs?: number;
+  /**
+   * The maximum number of closed captions to keep in the state (visible).
+   * When the maximum number is reached, the oldest closed caption is removed.
+   *
+   * Default is 2.
+   */
+  maxVisibleCaptions?: number;
+};
+
 /**
  * A partial representation of the StreamVideoParticipant.
  */

@@ -86,7 +86,7 @@ Here are some of the features we support:
 
 - [ ] Break-out rooms
 - [ ] Waiting rooms
-- [ ] Closed captions
+- [x] Closed captions
 - [ ] Query call session endpoint
 - [ ] Logging 2.0
 - [x] Hardware-accelerated video encoding on supported platforms
