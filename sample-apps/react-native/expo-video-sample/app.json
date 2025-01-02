@@ -6,7 +6,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
@@ -26,7 +27,6 @@
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 24,
             "extraMavenRepos": [
               "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
             ]
@@ -63,6 +63,7 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
+      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -71,8 +72,10 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],
-      "expo-router"
-    ]
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
