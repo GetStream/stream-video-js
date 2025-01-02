@@ -10,7 +10,7 @@ import {
 import clsx from 'clsx';
 
 const languages = [
-  { code: null, label: 'None' },
+  { code: undefined, label: 'None' },
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'French' },
   { code: 'es', label: 'Spanish' },
@@ -47,8 +47,9 @@ const languages = [
 
 export const TranscriptionSettings = () => {
   const call = useCall();
-  const [firstLanguage, setFirstLanguage] = useState<string | null>('en');
-  const [secondLanguage, setSecondLanguage] = useState<string | null>(null);
+  const [transcriptionLanguage, setTranscriptionLanguage] = useState<
+    string | undefined
+  >('en');
 
   useEffect(() => {
     if (!call) return;
@@ -58,16 +59,14 @@ export const TranscriptionSettings = () => {
           transcription: {
             ...call.state.settings?.transcription,
             mode: TranscriptionSettingsRequestModeEnum.AUTO_ON,
-            languages: [firstLanguage, secondLanguage].filter(
-              Boolean,
-            ) as string[],
+            language: transcriptionLanguage,
           },
         },
       })
       .catch((err) => {
         console.error('Error updating call settings:', err);
       });
-  }, [call, firstLanguage, secondLanguage]);
+  }, [call, transcriptionLanguage]);
 
   return (
     <div className="rd__transcriptions">
@@ -78,12 +77,14 @@ export const TranscriptionSettings = () => {
         </div>
       </div>
 
-      <h4>Primary language</h4>
+      <h4>Language</h4>
       <DropDownSelect
         icon="language-sign"
         defaultSelectedLabel="English"
         defaultSelectedIndex={1}
-        handleSelect={(index) => setFirstLanguage(languages[index + 1].code)}
+        handleSelect={(index) =>
+          setTranscriptionLanguage(languages[index + 1].code)
+        }
       >
         {languages.map((language) =>
           language.code ? (
@@ -96,22 +97,6 @@ export const TranscriptionSettings = () => {
             <Fragment key="none" />
           ),
         )}
-      </DropDownSelect>
-
-      <h4>Secondary language</h4>
-      <DropDownSelect
-        icon="language-sign"
-        defaultSelectedLabel="None"
-        defaultSelectedIndex={0}
-        handleSelect={(index) => setSecondLanguage(languages[index].code)}
-      >
-        {languages.map((language) => (
-          <DropDownSelectOption
-            key={language.code || 'none'}
-            label={language.label}
-            icon="language-sign"
-          />
-        ))}
       </DropDownSelect>
     </div>
   );
