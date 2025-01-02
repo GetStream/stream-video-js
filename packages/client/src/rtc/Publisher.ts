@@ -11,8 +11,7 @@ import {
 } from '../gen/video/sfu/models/models';
 import { VideoSender } from '../gen/video/sfu/event/events';
 import {
-  findOptimalVideoLayers,
-  OptimalVideoLayer,
+  computeVideoLayers,
   toSvcEncodings,
   toVideoLayers,
 } from './videoLayers';
@@ -126,7 +125,7 @@ export class Publisher extends BasePeerConnection {
     track: MediaStreamTrack,
     publishOption: PublishOption,
   ) => {
-    const videoEncodings = this.computeLayers(track, publishOption);
+    const videoEncodings = computeVideoLayers(track, publishOption);
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(videoEncodings)
       : videoEncodings;
@@ -426,7 +425,7 @@ export class Publisher extends BasePeerConnection {
     const track = transceiver.sender.track!;
     const isTrackLive = track.readyState === 'live';
     const layers = isTrackLive
-      ? this.computeLayers(track, publishOption)
+      ? computeVideoLayers(track, publishOption)
       : this.transceiverCache.getLayers(publishOption);
     this.transceiverCache.setLayers(publishOption, layers);
 
@@ -446,13 +445,5 @@ export class Publisher extends BasePeerConnection {
       muted: !isTrackLive,
       codec: publishOption.codec,
     };
-  };
-
-  private computeLayers = (
-    track: MediaStreamTrack,
-    publishOption: PublishOption,
-  ): OptimalVideoLayer[] | undefined => {
-    if (isAudioTrackType(publishOption.trackType)) return;
-    return findOptimalVideoLayers(track, publishOption);
   };
 }

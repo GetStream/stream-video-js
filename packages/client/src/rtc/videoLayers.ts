@@ -5,6 +5,7 @@ import {
   VideoLayer,
   VideoQuality,
 } from '../gen/video/sfu/models/models';
+import { isAudioTrackType } from './helpers/tracks';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -29,7 +30,7 @@ const defaultBitratePerRid: Record<string, number> = {
 export const toSvcEncodings = (
   layers: OptimalVideoLayer[] | undefined,
 ): RTCRtpEncodingParameters[] | undefined => {
-  if (!layers) return undefined;
+  if (!layers) return;
   // we take the highest quality layer, and we assign it to `q` encoder.
   const withRid = (rid: string) => (l: OptimalVideoLayer) => l.rid === rid;
   const highestLayer =
@@ -72,16 +73,16 @@ const toScalabilityMode = (spatialLayers: number, temporalLayers: number) =>
   `L${spatialLayers}T${temporalLayers}${spatialLayers > 1 ? '_KEY' : ''}`;
 
 /**
- * Determines the most optimal video layers for simulcasting
- * for the given track.
+ * Determines the most optimal video layers for the given track.
  *
  * @param videoTrack the video track to find optimal layers for.
  * @param publishOption the publish options for the track.
  */
-export const findOptimalVideoLayers = (
+export const computeVideoLayers = (
   videoTrack: MediaStreamTrack,
   publishOption: PublishOption,
-) => {
+): OptimalVideoLayer[] | undefined => {
+  if (isAudioTrackType(publishOption.trackType)) return;
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
   const { width = 0, height = 0 } = settings;

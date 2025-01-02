@@ -1,8 +1,12 @@
 import './mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
-import { PublishOption, VideoQuality } from '../../gen/video/sfu/models/models';
 import {
-  findOptimalVideoLayers,
+  PublishOption,
+  TrackType,
+  VideoQuality,
+} from '../../gen/video/sfu/models/models';
+import {
+  computeVideoLayers,
   getComputedMaxBitrate,
   OptimalVideoLayer,
   ridToVideoQuality,
@@ -25,7 +29,7 @@ describe('videoLayers', () => {
       videoDimension: { width, height },
       fps: 30,
     };
-    const layers = findOptimalVideoLayers(track, publishOption);
+    const layers = computeVideoLayers(track, publishOption);
     expect(layers).toEqual([
       {
         active: true,
@@ -57,13 +61,25 @@ describe('videoLayers', () => {
     ]);
   });
 
+  it('should return undefined for audio track', () => {
+    const track = new MediaStreamTrack();
+    expect(
+      // @ts-expect-error - incomplete data
+      computeVideoLayers(track, { trackType: TrackType.AUDIO }),
+    ).toBeUndefined();
+    expect(
+      // @ts-expect-error - incomplete data
+      computeVideoLayers(track, { trackType: TrackType.SCREEN_SHARE_AUDIO }),
+    ).toBeUndefined();
+  });
+
   it('should use predefined bitrate values when track dimensions cant be determined', () => {
     const width = 0;
     const height = 0;
     const bitrate = 3000000;
     const track = new MediaStreamTrack();
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track, {
+    const layers = computeVideoLayers(track, {
       bitrate,
       // @ts-expect-error - incomplete data
       codec: { name: 'vp8' },
@@ -88,7 +104,7 @@ describe('videoLayers', () => {
     const width = 320;
     const height = 240;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track, {
+    const layers = computeVideoLayers(track, {
       bitrate: 0,
       // @ts-expect-error - incomplete data
       codec: { name: 'vp8' },
@@ -104,7 +120,7 @@ describe('videoLayers', () => {
     const width = 640;
     const height = 480;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track, {
+    const layers = computeVideoLayers(track, {
       bitrate: 0,
       // @ts-expect-error - incomplete data
       codec: { name: 'vp8' },
@@ -121,7 +137,7 @@ describe('videoLayers', () => {
     const width = 1280;
     const height = 720;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = findOptimalVideoLayers(track, {
+    const layers = computeVideoLayers(track, {
       bitrate: 0,
       // @ts-expect-error - incomplete data
       codec: { name: 'vp8' },
@@ -140,7 +156,7 @@ describe('videoLayers', () => {
       width: 1280,
       height: 720,
     });
-    const layers = findOptimalVideoLayers(track, {
+    const layers = computeVideoLayers(track, {
       maxTemporalLayers: 3,
       maxSpatialLayers: 3,
       // @ts-expect-error - incomplete data
