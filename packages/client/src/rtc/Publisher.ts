@@ -444,6 +444,7 @@ export class Publisher extends BasePeerConnection {
       red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
       muted: !isTrackLive,
       codec: publishOption.codec,
+      publishOptionId: publishOption.id,
     };
   };
 }

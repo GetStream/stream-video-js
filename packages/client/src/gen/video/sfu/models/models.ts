@@ -375,6 +375,10 @@ export interface TrackInfo {
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 11;
    */
   codec?: Codec;
+  /**
+   * @generated from protobuf field: int32 publish_option_id = 12;
+   */
+  publishOptionId: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -1319,6 +1323,12 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 10, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 11, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 12,
+        name: 'publish_option_id',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
     ]);
   }
 }

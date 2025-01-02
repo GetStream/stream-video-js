@@ -2012,7 +2012,7 @@ PODS:
   - stream-react-native-webrtc (125.0.2-alpha.12):
     - React-Core
     - StreamWebRTC (~> 125.6422.064)
-  - stream-video-react-native (1.5.2):
+  - stream-video-react-native (1.6.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2407,7 +2407,7 @@ SPEC CHECKSUMS:
   stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
   stream-io-video-filters-react-native: 8e3d06506767c1a58576bb9d0229cbfc51a709d6
   stream-react-native-webrtc: fd7c3cd7bcbed789dfd05ed5b249bd1987a31c43
-  stream-video-react-native: fcda54d92914a7b13b6097ce89b9da1aafe12109
+  stream-video-react-native: a5782f1fdba6006fdad0bdef6fb905fa25129a8b
   StreamWebRTC: a77d2450a19a9d7d9a28b416cc0cb336d998dc62
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 
