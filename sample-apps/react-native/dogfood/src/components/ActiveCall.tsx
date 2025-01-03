@@ -4,6 +4,8 @@ import {
   CallContent,
   useTheme,
   useIsInPiPMode,
+  useCallStateHooks,
+  useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -12,9 +14,9 @@ import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
-import { useToggleCallRecording } from '@stream-io/video-react-bindings';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
+import { ClosedCaptions } from './ClosedCaptions';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -52,17 +54,22 @@ export const ActiveCall = ({
 
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
+  const { useIsCallCaptioningInProgress } = useCallStateHooks();
+  const isCaptioningInProgress = useIsCallCaptioningInProgress();
 
   const CustomBottomControls = useCallback(() => {
     return (
-      <BottomControls
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
-        onChatOpenHandler={onChatOpenHandler}
-        unreadCountIndicator={unreadCountIndicator}
-        toggleCallRecording={toggleCallRecording}
-        isCallRecordingInProgress={isCallRecordingInProgress}
-        isAwaitingResponse={isAwaitingResponse}
-      />
+      <>
+        {isCaptioningInProgress && <ClosedCaptions />}
+        <BottomControls
+          onParticipantInfoPress={onOpenCallParticipantsInfo}
+          onChatOpenHandler={onChatOpenHandler}
+          unreadCountIndicator={unreadCountIndicator}
+          toggleCallRecording={toggleCallRecording}
+          isCallRecordingInProgress={isCallRecordingInProgress}
+          isAwaitingResponse={isAwaitingResponse}
+        />
+      </>
     );
   }, [
     onChatOpenHandler,
@@ -71,6 +78,7 @@ export const ActiveCall = ({
     toggleCallRecording,
     isAwaitingResponse,
     isCallRecordingInProgress,
+    isCaptioningInProgress,
   ]);
 
   const CustomTopControls = useCallback(() => {
