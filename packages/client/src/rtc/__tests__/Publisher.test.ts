@@ -78,7 +78,7 @@ describe('Publisher', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
-    dispatcher.offAll();
+    publisher.dispose();
   });
 
   describe('Publishing', () => {

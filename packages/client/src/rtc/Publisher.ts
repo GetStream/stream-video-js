@@ -336,16 +336,7 @@ export class Publisher extends BasePeerConnection {
       this.isIceRestarting = false;
     }
 
-    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
-      async (candidate) => {
-        try {
-          const iceCandidate = JSON.parse(candidate.iceCandidate);
-          await this.pc.addIceCandidate(iceCandidate);
-        } catch (e) {
-          this.logger('warn', `ICE candidate error`, e, candidate);
-        }
-      },
-    );
+    this.addTrickledIceCandidates();
   };
 
   /**

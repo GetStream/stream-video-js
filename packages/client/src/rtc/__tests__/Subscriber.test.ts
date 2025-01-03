@@ -1,11 +1,12 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Dispatcher } from '../Dispatcher';
+import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import { SfuEvent, SubscriberOffer } from '../../gen/video/sfu/event/events';
+import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -54,7 +55,7 @@ describe('Subscriber', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
-    dispatcher.offAll();
+    subscriber.dispose();
   });
 
   describe('Subscriber ICE restart', () => {
@@ -74,6 +75,17 @@ describe('Subscriber', () => {
 
       await subscriber.restartIce();
       expect(sfuClient.iceRestart).not.toHaveBeenCalled();
+    });
+
+    it('should ask the SFU for ICE restart', async () => {
+      sfuClient.iceRestart = vi.fn();
+      // @ts-ignore
+      subscriber['pc'].connectionState = 'connected';
+
+      await subscriber.restartIce();
+      expect(sfuClient.iceRestart).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+      });
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
@@ -139,6 +151,81 @@ describe('Subscriber', () => {
       expect(updateParticipantSpy).toHaveBeenCalledWith('session-id', {
         videoStream: mediaStream,
       });
+    });
+
+    it('should replace participant stream when a new one arrives', () => {
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      // @ts-ignore - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const updateParticipantSpy = vi.spyOn(state, 'updateParticipant');
+
+      const baseStream = new MediaStream();
+      const baseTrack = new MediaStreamTrack();
+      vi.spyOn(baseStream, 'getTracks').mockReturnValue([baseTrack]);
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        trackLookupPrefix: '123',
+        videoStream: baseStream,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack });
+
+      expect(updateParticipantSpy).toHaveBeenCalledWith('session-id', {
+        videoStream: mediaStream,
+      });
+      expect(baseStream.getTracks).toHaveBeenCalled();
+      expect(baseTrack.stop).toHaveBeenCalled();
+      expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
+    });
+  });
+
+  describe('Negotiation', () => {
+    it('negotiates with the SFU', async () => {
+      sfuClient.sendAnswer = vi.fn();
+      subscriber['pc'].createAnswer = vi
+        .fn()
+        .mockResolvedValue({ sdp: 'answer-sdp' });
+
+      const offer = SubscriberOffer.create({ sdp: 'offer-sdp' });
+      // @ts-expect-error - private method
+      await subscriber.negotiate(offer);
+      expect(subscriber['pc'].setRemoteDescription).toHaveBeenCalledWith({
+        type: 'offer',
+        sdp: 'offer-sdp',
+      });
+
+      expect(subscriber['pc'].createAnswer).toHaveBeenCalled();
+      expect(sfuClient.sendAnswer).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: 'answer-sdp',
+      });
+    });
+  });
+
+  describe('Event handling', () => {
+    it('handles SubscriberOffer', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn();
+      const subscriberOffer = SubscriberOffer.create({
+        sdp: 'offer-sdp',
+        iceRestart: false,
+      });
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+      );
+
+      // @ts-expect-error - private method
+      expect(subscriber.negotiate).toHaveBeenCalledWith(subscriberOffer);
     });
   });
 });

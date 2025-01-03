@@ -94,12 +94,4 @@ export class Dispatcher {
       (f) => f !== fn,
     );
   };
-
-  offAll = (eventName?: SfuEventKinds) => {
-    if (eventName) {
-      this.subscribers[eventName] = [];
-    } else {
-      this.subscribers = {};
-    }
-  };
 }

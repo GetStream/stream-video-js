@@ -27,6 +27,7 @@ const MediaStreamMock = vi.fn((): Partial<MediaStream> => {
   return {
     getTracks: vi.fn().mockReturnValue([]),
     addTrack: vi.fn(),
+    removeTrack: vi.fn(),
     getAudioTracks: vi.fn().mockReturnValue([]),
     getVideoTracks: vi.fn().mockReturnValue([]),
   };

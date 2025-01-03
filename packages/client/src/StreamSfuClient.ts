@@ -277,7 +277,7 @@ export class StreamSfuClient {
     this.dispose();
   };
 
-  dispose = () => {
+  private dispose = () => {
     this.logger('debug', 'Disposing SFU client');
     this.unsubscribeIceTrickle();
     this.unsubscribeNetworkChanged();
@@ -286,6 +286,7 @@ export class StreamSfuClient {
     clearTimeout(this.migrateAwayTimeout);
     this.abortController.abort();
     this.migrationTask?.resolve();
+    this.iceTrickleBuffer.dispose();
   };
 
   leaveAndClose = async (reason: string) => {

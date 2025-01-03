@@ -151,16 +151,7 @@ export class Subscriber extends BasePeerConnection {
       sdp: subscriberOffer.sdp,
     });
 
-    this.sfuClient.iceTrickleBuffer.subscriberCandidates.subscribe(
-      async (candidate) => {
-        try {
-          const iceCandidate = JSON.parse(candidate.iceCandidate);
-          await this.pc.addIceCandidate(iceCandidate);
-        } catch (e) {
-          this.logger('warn', `ICE candidate error`, [e, candidate]);
-        }
-      },
-    );
+    this.addTrickledIceCandidates();
 
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);

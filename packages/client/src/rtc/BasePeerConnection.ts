@@ -4,6 +4,7 @@ import type {
   Logger,
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
+import { createSafeAsyncSubscription } from '../store/rxUtils';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
@@ -34,6 +35,7 @@ export abstract class BasePeerConnection {
   protected isIceRestarting = false;
 
   private readonly subscriptions: (() => void)[] = [];
+  private unsubscribeIceTrickle?: () => void;
 
   /**
    * Constructs a new `BasePeerConnection` instance.
@@ -93,6 +95,7 @@ export abstract class BasePeerConnection {
       'icegatheringstatechange',
       this.onIceGatherChange,
     );
+    this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
   }
 
@@ -115,6 +118,27 @@ export abstract class BasePeerConnection {
           this.logger('warn', `Error handling ${event}`, err);
         });
       }),
+    );
+  };
+
+  /**
+   * Appends the trickled ICE candidates to the `RTCPeerConnection`.
+   */
+  protected addTrickledIceCandidates = () => {
+    const { iceTrickleBuffer } = this.sfuClient;
+    const observable =
+      this.peerType === PeerType.SUBSCRIBER
+        ? iceTrickleBuffer.subscriberCandidates
+        : iceTrickleBuffer.publisherCandidates;
+
+    this.unsubscribeIceTrickle?.();
+    this.unsubscribeIceTrickle = createSafeAsyncSubscription(
+      observable,
+      async (candidate) => {
+        return this.pc.addIceCandidate(candidate).catch((e) => {
+          this.logger('warn', `ICE candidate error`, e, candidate);
+        });
+      },
     );
   };
 
