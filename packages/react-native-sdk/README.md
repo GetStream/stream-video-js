@@ -144,5 +144,5 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [ ] Audio filters and Noise Cancellation
 - [ ] Analytics Integration
 - [ ] Long press to focus
-- [ ] Dynascale 2.0
+- [x] Dynascale 2.0 (codec switching)
 - [ ] Test coverage

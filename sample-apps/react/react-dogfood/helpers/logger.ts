@@ -13,7 +13,7 @@ export const customSentryLogger: Logger = (
   message: string,
   ...args: unknown[]
 ) => {
-  if (logLevel === 'warn' || logLevel === 'error') {
+  if (logLevel === 'error') {
     Sentry.captureEvent({
       level: logLevelMapping.get(logLevel),
       message,

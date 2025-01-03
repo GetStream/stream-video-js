@@ -36,12 +36,7 @@ const getCachedEdges = (): CachedEdges | undefined => {
 };
 
 export const useEdges = () => {
-  const [edges, setEdges] = useState<CachedEdges | undefined>(getCachedEdges);
-  const [fastestEdge] = useState<{
-    id: string;
-    latency: number;
-  }>();
-
+  const [edges, setEdges] = useState(() => getCachedEdges());
   const client = useStreamVideoClient();
   useEffect(() => {
     if (!client || (edges?.expires_at ?? 0 > new Date().getTime())) return;
@@ -50,8 +45,5 @@ export const useEdges = () => {
     });
   }, [client, edges?.expires_at]);
 
-  return {
-    edges: edges?.edges,
-    fastestEdge,
-  };
+  return edges?.edges;
 };

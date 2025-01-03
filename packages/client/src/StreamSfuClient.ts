@@ -20,19 +20,19 @@ import {
   SendAnswerRequest,
   SendStatsRequest,
   SetPublisherRequest,
+  TrackMuteState,
   TrackSubscriptionDetails,
-  UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
+import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
 import {
-  promiseWithResolvers,
-  PromiseWithResolvers,
   makeSafePromise,
+  PromiseWithResolvers,
+  promiseWithResolvers,
   SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
@@ -277,7 +277,7 @@ export class StreamSfuClient {
     this.dispose();
   };
 
-  dispose = () => {
+  private dispose = () => {
     this.logger('debug', 'Disposing SFU client');
     this.unsubscribeIceTrickle();
     this.unsubscribeNetworkChanged();
@@ -286,6 +286,7 @@ export class StreamSfuClient {
     clearTimeout(this.migrateAwayTimeout);
     this.abortController.abort();
     this.migrationTask?.resolve();
+    this.iceTrickleBuffer.dispose();
   };
 
   leaveAndClose = async (reason: string) => {
@@ -340,17 +341,11 @@ export class StreamSfuClient {
     );
   };
 
-  updateMuteState = async (trackType: TrackType, muted: boolean) => {
-    await this.joinTask;
-    return this.updateMuteStates({ muteStates: [{ trackType, muted }] });
-  };
-
-  updateMuteStates = async (
-    data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
-  ) => {
+  updateMuteStates = async (muteStates: TrackMuteState[]) => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.updateMuteStates({ ...data, sessionId: this.sessionId }),
+      () =>
+        this.rpc.updateMuteStates({ muteStates, sessionId: this.sessionId }),
       this.abortController.signal,
     );
   };

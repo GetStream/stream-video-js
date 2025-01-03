@@ -215,8 +215,8 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return this.call.publishAudioStream(stream);
   }
 
-  protected stopPublishStream(stopTracks: boolean): Promise<void> {
-    return this.call.stopPublish(TrackType.AUDIO, stopTracks);
+  protected stopPublishStream(): Promise<void> {
+    return this.call.stopPublish(TrackType.AUDIO);
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {

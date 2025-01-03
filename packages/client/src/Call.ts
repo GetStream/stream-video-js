@@ -3,11 +3,12 @@ import {
   Dispatcher,
   getGenericSdp,
   isSfuEvent,
+  muteTypeToTrackType,
   Publisher,
   Subscriber,
+  toRtcConfiguration,
+  trackTypeToParticipantStreamKey,
 } from './rtc';
-import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -86,9 +87,9 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
-  PublishOptions,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -96,6 +97,9 @@ import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
+  Codec,
+  PublishOption,
+  SubscribeOption,
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
@@ -125,6 +129,7 @@ import {
 import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
+import { pushToIfMissing } from './helpers/array';
 import {
   makeSafePromise,
   PromiseWithResolvers,
@@ -206,7 +211,8 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
-  private publishOptions?: PublishOptions;
+  private clientPublishOptions?: ClientPublishOptions;
+  private currentPublishOptions?: PublishOption[];
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -292,7 +298,7 @@ export class Call {
     this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
   }
 
-  private async setup() {
+  private setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
@@ -300,6 +306,12 @@ export class Call {
         this.on('all', (event) => {
           // update state with the latest event data
           this.state.updateFromEvent(event);
+        }),
+      );
+
+      this.leaveCallHooks.add(
+        this.on('changePublishOptions', (event) => {
+          this.currentPublishOptions = event.publishOptions;
         }),
       );
 
@@ -313,9 +325,9 @@ export class Call {
 
       this.initialized = true;
     });
-  }
+  };
 
-  private registerEffects() {
+  private registerEffects = () => {
     this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
       createSubscription(this.state.settings$, (settings) => {
@@ -406,7 +418,7 @@ export class Call {
         }
       }),
     );
-  }
+  };
 
   private handleOwnCapabilitiesUpdated = async (
     ownCapabilities: OwnCapability[],
@@ -545,10 +557,10 @@ export class Call {
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 
-      this.subscriber?.close();
+      this.subscriber?.dispose();
       this.subscriber = undefined;
 
-      this.publisher?.close({ stopTracks: true });
+      this.publisher?.dispose();
       this.publisher = undefined;
 
       await this.sfuClient?.leaveAndClose(reason);
@@ -820,20 +832,35 @@ export class Call {
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
       // prepare a generic SDP and send it to the SFU.
-      // this is a throw-away SDP that the SFU will use to determine
+      // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
-      const receivingCapabilitiesSdp = await getGenericSdp('recvonly');
-      const reconnectDetails =
-        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
-          ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
-          : undefined;
-      const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
-        subscriberSdp: receivingCapabilitiesSdp,
-        publisherSdp: '',
-        clientDetails,
-        fastReconnect: performingFastReconnect,
-        reconnectDetails,
-      });
+      const [subscriberSdp, publisherSdp] = await Promise.all([
+        getGenericSdp('recvonly'),
+        getGenericSdp('sendonly'),
+      ]);
+      const isReconnecting =
+        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
+      const reconnectDetails = isReconnecting
+        ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
+        : undefined;
+      const preferredPublishOptions = !isReconnecting
+        ? this.getPreferredPublishOptions()
+        : this.currentPublishOptions || [];
+      const preferredSubscribeOptions = !isReconnecting
+        ? this.getPreferredSubscribeOptions()
+        : [];
+      const { callState, fastReconnectDeadlineSeconds, publishOptions } =
+        await sfuClient.join({
+          subscriberSdp,
+          publisherSdp,
+          clientDetails,
+          fastReconnect: performingFastReconnect,
+          reconnectDetails,
+          preferredPublishOptions,
+          preferredSubscribeOptions,
+        });
+
+      this.currentPublishOptions = publishOptions;
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
@@ -863,18 +890,16 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
+        publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
       });
     }
 
     // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
     if (!performingRejoin && !performingFastReconnect && !performingMigration) {
-      this.sfuStatsReporter?.sendTelemetryData({
-        data: {
-          oneofKind: 'connectionTimeSeconds',
-          connectionTimeSeconds: (Date.now() - connectStartTime) / 1000,
-        },
-      });
+      this.sfuStatsReporter?.sendConnectionTime(
+        (Date.now() - connectStartTime) / 1000,
+      );
     }
 
     if (performingRejoin) {
@@ -902,6 +927,8 @@ export class Call {
     // we will spam the other participants with push notifications and `call.ring` events.
     delete this.joinCallData?.ring;
     delete this.joinCallData?.notify;
+    // reset the reconnect strategy to unspecified after a successful reconnection
+    this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
 
     this.logger('info', `Joined call ${this.cid}`);
   };
@@ -916,7 +943,8 @@ export class Call {
   ): ReconnectDetails => {
     const strategy = this.reconnectStrategy;
     const performingRejoin = strategy === WebsocketReconnectStrategy.REJOIN;
-    const announcedTracks = this.publisher?.getAnnouncedTracks() || [];
+    const announcedTracks =
+      this.publisher?.getAnnouncedTracksForReconnect() || [];
     return {
       strategy,
       announcedTracks,
@@ -925,6 +953,62 @@ export class Call {
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
     };
+  };
+
+  /**
+   * Prepares the preferred codec for the call.
+   * This is an experimental client feature and subject to change.
+   * @internal
+   */
+  private getPreferredPublishOptions = (): PublishOption[] => {
+    const { preferredCodec, fmtpLine, preferredBitrate, maxSimulcastLayers } =
+      this.clientPublishOptions || {};
+    if (!preferredCodec && !preferredBitrate && !maxSimulcastLayers) return [];
+
+    const codec = preferredCodec
+      ? Codec.create({ name: preferredCodec.split('/').pop(), fmtp: fmtpLine })
+      : undefined;
+
+    const preferredPublishOptions = [
+      PublishOption.create({
+        trackType: TrackType.VIDEO,
+        codec,
+        bitrate: preferredBitrate,
+        maxSpatialLayers: maxSimulcastLayers,
+      }),
+    ];
+
+    const screenShareSettings = this.screenShare.getSettings();
+    if (screenShareSettings) {
+      preferredPublishOptions.push(
+        PublishOption.create({
+          trackType: TrackType.SCREEN_SHARE,
+          fps: screenShareSettings.maxFramerate,
+          bitrate: screenShareSettings.maxBitrate,
+        }),
+      );
+    }
+
+    return preferredPublishOptions;
+  };
+
+  /**
+   * Prepares the preferred options for subscribing to tracks.
+   * This is an experimental client feature and subject to change.
+   * @internal
+   */
+  private getPreferredSubscribeOptions = (): SubscribeOption[] => {
+    const { subscriberCodec, subscriberFmtpLine } =
+      this.clientPublishOptions || {};
+    if (!subscriberCodec || !subscriberFmtpLine) return [];
+    return [
+      SubscribeOption.create({
+        trackType: TrackType.VIDEO,
+        codecs: [
+          { name: subscriberCodec.split('/').pop(), fmtp: subscriberFmtpLine },
+        ],
+      }),
+    ];
   };
 
   /**
@@ -965,6 +1049,7 @@ export class Call {
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
     clientDetails: ClientDetails;
+    publishOptions: PublishOption[];
     closePreviousInstances: boolean;
   }) => {
     const {
@@ -972,10 +1057,11 @@ export class Call {
       connectionConfig,
       clientDetails,
       statsOptions,
+      publishOptions,
       closePreviousInstances,
     } = opts;
     if (closePreviousInstances && this.subscriber) {
-      this.subscriber.close();
+      this.subscriber.dispose();
     }
     this.subscriber = new Subscriber({
       sfuClient,
@@ -999,18 +1085,14 @@ export class Call {
     const isAnonymous = this.streamClient.user?.type === 'anonymous';
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
-        this.publisher.close({ stopTracks: false });
+        this.publisher.dispose();
       }
-      const audioSettings = this.state.settings?.audio;
-      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
       this.publisher = new Publisher({
         sfuClient,
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
-        isDtxEnabled,
-        isRedEnabled,
+        publishOptions,
         logTag: String(this.sfuClientTag),
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
@@ -1200,19 +1282,14 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
-    let reconnectStartTime = Date.now();
+    const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
-    this.sfuStatsReporter?.sendTelemetryData({
-      data: {
-        oneofKind: 'reconnection',
-        reconnection: {
-          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: WebsocketReconnectStrategy.FAST,
-        },
-      },
-    });
+    this.sfuStatsReporter?.sendReconnectionTime(
+      WebsocketReconnectStrategy.FAST,
+      (Date.now() - reconnectStartTime) / 1000,
+    );
   };
 
   /**
@@ -1220,21 +1297,16 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
-    let reconnectStartTime = Date.now();
+    const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
-    this.sfuStatsReporter?.sendTelemetryData({
-      data: {
-        oneofKind: 'reconnection',
-        reconnection: {
-          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: WebsocketReconnectStrategy.REJOIN,
-        },
-      },
-    });
+    this.sfuStatsReporter?.sendReconnectionTime(
+      WebsocketReconnectStrategy.REJOIN,
+      (Date.now() - reconnectStartTime) / 1000,
+    );
   };
 
   /**
@@ -1242,7 +1314,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
-    let reconnectStartTime = Date.now();
+    const reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
       throw new Error('Cannot migrate without an active SFU client');
@@ -1281,21 +1353,16 @@ export class Call {
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
     } finally {
-      currentSubscriber?.close();
-      currentPublisher?.close({ stopTracks: false });
+      currentSubscriber?.dispose();
+      currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close();
     }
-    this.sfuStatsReporter?.sendTelemetryData({
-      data: {
-        oneofKind: 'reconnection',
-        reconnection: {
-          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: WebsocketReconnectStrategy.MIGRATE,
-        },
-      },
-    });
+    this.sfuStatsReporter?.sendReconnectionTime(
+      WebsocketReconnectStrategy.MIGRATE,
+      (Date.now() - reconnectStartTime) / 1000,
+    );
   };
 
   /**
@@ -1445,16 +1512,9 @@ export class Call {
     const [videoTrack] = videoStream.getVideoTracks();
     if (!videoTrack) throw new Error('There is no video track in the stream');
 
-    if (!this.trackPublishOrder.includes(TrackType.VIDEO)) {
-      this.trackPublishOrder.push(TrackType.VIDEO);
-    }
-
-    await this.publisher.publishStream(
-      videoStream,
-      videoTrack,
-      TrackType.VIDEO,
-      this.publishOptions,
-    );
+    pushToIfMissing(this.trackPublishOrder, TrackType.VIDEO);
+    await this.publisher.publish(videoTrack, TrackType.VIDEO);
+    await this.updateLocalStreamState(videoStream, TrackType.VIDEO);
   };
 
   /**
@@ -1480,14 +1540,9 @@ export class Call {
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack) throw new Error('There is no audio track in the stream');
 
-    if (!this.trackPublishOrder.includes(TrackType.AUDIO)) {
-      this.trackPublishOrder.push(TrackType.AUDIO);
-    }
-    await this.publisher.publishStream(
-      audioStream,
-      audioTrack,
-      TrackType.AUDIO,
-    );
+    pushToIfMissing(this.trackPublishOrder, TrackType.AUDIO);
+    await this.publisher.publish(audioTrack, TrackType.AUDIO);
+    await this.updateLocalStreamState(audioStream, TrackType.AUDIO);
   };
 
   /**
@@ -1514,46 +1569,64 @@ export class Call {
       throw new Error('There is no screen share track in the stream');
     }
 
-    if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
-      this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
-    }
-    const opts: PublishOptions = {
-      screenShareSettings: this.screenShare.getSettings(),
-    };
-    await this.publisher.publishStream(
-      screenShareStream,
-      screenShareTrack,
-      TrackType.SCREEN_SHARE,
-      opts,
-    );
+    pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE);
+    await this.publisher.publish(screenShareTrack, TrackType.SCREEN_SHARE);
 
     const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
     if (screenShareAudioTrack) {
-      if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE_AUDIO)) {
-        this.trackPublishOrder.push(TrackType.SCREEN_SHARE_AUDIO);
-      }
-      await this.publisher.publishStream(
-        screenShareStream,
+      pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
+      await this.publisher.publish(
         screenShareAudioTrack,
         TrackType.SCREEN_SHARE_AUDIO,
-        opts,
       );
     }
+    await this.updateLocalStreamState(
+      screenShareStream,
+      ...(screenShareAudioTrack
+        ? [TrackType.SCREEN_SHARE, TrackType.SCREEN_SHARE_AUDIO]
+        : [TrackType.SCREEN_SHARE]),
+    );
   };
 
   /**
    * Stops publishing the given track type to the call, if it is currently being published.
-   * Underlying track will be stopped and removed from the publisher.
    *
-   * @param trackType the track type to stop publishing.
-   * @param stopTrack if `true` the track will be stopped, else it will be just disabled
+   * @param trackTypes the track types to stop publishing.
    */
-  stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
-    this.logger(
-      'info',
-      `stopPublish ${TrackType[trackType]}, stop tracks: ${stopTrack}`,
+  stopPublish = async (...trackTypes: TrackType[]) => {
+    if (!this.sfuClient || !this.publisher) return;
+    this.publisher.stopTracks(...trackTypes);
+    await this.updateLocalStreamState(undefined, ...trackTypes);
+  };
+
+  /**
+   * Updates the call state with the new stream.
+   *
+   * @param mediaStream the new stream to update the call state with.
+   * If undefined, the stream will be removed from the call state.
+   * @param trackTypes the track types to update the call state with.
+   */
+  private updateLocalStreamState = async (
+    mediaStream: MediaStream | undefined,
+    ...trackTypes: TrackType[]
+  ) => {
+    if (!this.sfuClient || !this.sfuClient.sessionId) return;
+    await this.sfuClient.updateMuteStates(
+      trackTypes.map((trackType) => ({ trackType, muted: !mediaStream })),
     );
-    await this.publisher?.unpublishStream(trackType, stopTrack);
+
+    const sessionId = this.sfuClient.sessionId;
+    for (const trackType of trackTypes) {
+      const streamStateProp = trackTypeToParticipantStreamKey(trackType);
+      if (!streamStateProp) continue;
+
+      this.state.updateParticipant(sessionId, (p) => ({
+        publishedTracks: mediaStream
+          ? pushToIfMissing([...p.publishedTracks], trackType)
+          : p.publishedTracks.filter((t) => t !== trackType),
+        [streamStateProp]: mediaStream,
+      }));
+    }
   };
 
   /**
@@ -1562,9 +1635,20 @@ export class Call {
    * @internal
    * @param options the options to use.
    */
-  updatePublishOptions(options: PublishOptions) {
-    this.publishOptions = { ...this.publishOptions, ...options };
-  }
+  updatePublishOptions = (options: ClientPublishOptions) => {
+    this.logger(
+      'warn',
+      '[call.updatePublishOptions]: You are manually overriding the publish options for this call. ' +
+        'This is not recommended, and it can cause call stability/compatibility issues. Use with caution.',
+    );
+    if (this.state.callingState === CallingState.JOINED) {
+      this.logger(
+        'warn',
+        'Cannot update publish options after joining the call',
+      );
+    }
+    this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
+  };
 
   /**
    * Notifies the SFU that a noise cancellation process has started.

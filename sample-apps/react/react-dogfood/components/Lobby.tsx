@@ -56,7 +56,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const currentUser = useConnectedUser();
 
   const { t } = useI18n();
-  const { edges } = useEdges();
+  const edges = useEdges();
 
   const router = useRouter();
   const skipLobby =

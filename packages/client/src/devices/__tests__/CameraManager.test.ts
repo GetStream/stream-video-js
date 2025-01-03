@@ -36,7 +36,7 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-vi.mock('../../compatibility.ts', () => {
+vi.mock('../../helpers/compatibility.ts', () => {
   console.log('MOCKING mobile device');
   return {
     isMobile: () => true,
@@ -105,10 +105,7 @@ describe('CameraManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.VIDEO,
-      true,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
   });
 
   it('flip', async () => {

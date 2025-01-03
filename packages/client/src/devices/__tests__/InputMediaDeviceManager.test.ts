@@ -4,11 +4,11 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  MockTrack,
   emitDeviceIds,
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
+  MockTrack,
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
@@ -123,7 +123,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     await manager.disable();
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
+    expect(manager.stopPublishStream).toHaveBeenCalled();
   });
 
   it('disable device with forceStop', async () => {
@@ -134,7 +134,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     await manager.disable(true);
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
+    expect(manager.stopPublishStream).toHaveBeenCalled();
     expect(manager.state.mediaStream).toBeUndefined();
     expect(manager.state.status).toBe('disabled');
   });
@@ -179,7 +179,7 @@ describe('InputMediaDeviceManager.test', () => {
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
+    expect(manager.stopPublishStream).toHaveBeenCalled();
     expect(manager.getStream).toHaveBeenCalledWith({
       deviceId: { exact: deviceId },
     });
