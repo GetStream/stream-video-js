@@ -35,9 +35,15 @@ function processNonRingingNotificationStreamPayload(
 export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {
   const pushConfig = StreamVideoRN.getConfig().push;
   if (pushConfig) {
-    if (event.request.trigger.type === 'push') {
-      const streamPayload = event.request.trigger.payload
-        ?.stream as StreamPushPayload;
+    const trigger = event.request.trigger;
+    if (
+      trigger &&
+      typeof trigger === 'object' &&
+      'type' in trigger &&
+      trigger.type === 'push' &&
+      trigger.payload?.stream
+    ) {
+      const streamPayload = trigger.payload.stream as StreamPushPayload;
       processNonRingingNotificationStreamPayload(streamPayload);
     }
   }
