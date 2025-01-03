@@ -1,5 +1,5 @@
 import { EdgeResponse } from '@stream-io/video-react-sdk';
-import { Feature, FeatureCollection, Geometry } from 'geojson';
+import { Feature, FeatureCollection } from 'geojson';
 
 const continents: any = {
   AF: 'Africa',
@@ -18,7 +18,7 @@ export interface EdgeResponseExtended extends EdgeResponse {
 
 export const createGeoJsonFeatures = (
   edges: EdgeResponseExtended[],
-): FeatureCollection<Geometry> => {
+): FeatureCollection => {
   const features = edges.map((edge, index): Feature => {
     return {
       id: index + 1,
