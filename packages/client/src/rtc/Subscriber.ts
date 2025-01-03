@@ -28,13 +28,6 @@ export class Subscriber extends BasePeerConnection {
   }
 
   /**
-   * Closes the `RTCPeerConnection` and unsubscribes from the dispatcher.
-   */
-  close = () => {
-    this.dispose();
-  };
-
-  /**
    * Detaches the event handlers from the `RTCPeerConnection`.
    * This is useful when we want to replace the `RTCPeerConnection`
    * instance with a new one (in case of migration).

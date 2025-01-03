@@ -116,6 +116,7 @@ describe('Publishing and Unpublishing tracks', () => {
 
       publisher = vi.fn() as unknown as Publisher;
       publisher.publish = vi.fn();
+      publisher.stopTracks = vi.fn();
 
       call['sfuClient'] = sfuClient;
       call.publisher = publisher;
@@ -225,6 +226,7 @@ describe('Publishing and Unpublishing tracks', () => {
       });
       await call.stopPublish(TrackType.VIDEO);
       expect(publisher.publish).not.toHaveBeenCalled();
+      expect(publisher.stopTracks).toHaveBeenCalledWith(TrackType.VIDEO);
       const participant = call.state.findParticipantBySessionId(sessionId);
       expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
       expect(participant!.videoStream).toBeUndefined();
@@ -238,6 +240,7 @@ describe('Publishing and Unpublishing tracks', () => {
       });
       await call.stopPublish(TrackType.AUDIO);
       expect(publisher.publish).not.toHaveBeenCalled();
+      expect(publisher.stopTracks).toHaveBeenCalledWith(TrackType.AUDIO);
       const participant = call.state.findParticipantBySessionId(sessionId);
       expect(participant!.publishedTracks).toEqual([TrackType.VIDEO]);
       expect(participant!.audioStream).toBeUndefined();
@@ -255,6 +258,10 @@ describe('Publishing and Unpublishing tracks', () => {
         TrackType.SCREEN_SHARE_AUDIO,
       );
       expect(publisher.publish).not.toHaveBeenCalled();
+      expect(publisher.stopTracks).toHaveBeenCalledWith(
+        TrackType.SCREEN_SHARE,
+        TrackType.SCREEN_SHARE_AUDIO,
+      );
       const participant = call.state.findParticipantBySessionId(sessionId);
       expect(participant!.publishedTracks).toEqual([]);
       expect(participant!.screenShareStream).toBeUndefined();

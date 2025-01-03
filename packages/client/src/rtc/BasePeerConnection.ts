@@ -73,7 +73,7 @@ export abstract class BasePeerConnection {
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
-  protected dispose = () => {
+  dispose = () => {
     this.detachEventHandlers();
     this.pc.close();
   };

@@ -62,17 +62,6 @@ export class Publisher extends BasePeerConnection {
   }
 
   /**
-   * Closes the publisher PeerConnection and cleans up the resources.
-   */
-  close = ({ stopTracks }: { stopTracks: boolean }) => {
-    if (stopTracks) {
-      this.stopPublishing();
-    }
-
-    this.dispose();
-  };
-
-  /**
    * Detaches the event handlers from the `RTCPeerConnection`.
    * This is useful when we want to replace the `RTCPeerConnection`
    * instance with a new one (in case of migration).
@@ -140,7 +129,7 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Switches the codec of the given track type.
+   * Synchronizes the current Publisher state with the provided publish options.
    */
   private syncPublishOptions = async () => {
     // enable publishing with new options -> [av1, vp9]
@@ -186,7 +175,7 @@ export class Publisher extends BasePeerConnection {
     for (const item of this.transceiverCache.items()) {
       if (item.publishOption.trackType !== trackType) continue;
 
-      const track = item.transceiver?.sender.track;
+      const track = item.transceiver.sender.track;
       if (!track) continue;
 
       if (track.readyState === 'live' && track.enabled) return true;
@@ -208,43 +197,34 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Stops publishing all tracks and stop all tracks.
+   * Stops the cloned track that is being published to the SFU.
    */
-  private stopPublishing = () => {
-    this.logger('debug', 'Stopping publishing all tracks');
-    this.pc.getSenders().forEach((s) => {
-      s.track?.stop();
-      if (this.pc.signalingState !== 'closed') {
-        this.pc.removeTrack(s);
-      }
-    });
+  stopTracks = (...trackTypes: TrackType[]) => {
+    for (const item of this.transceiverCache.items()) {
+      const { publishOption, transceiver } = item;
+      if (!trackTypes.includes(publishOption.trackType)) continue;
+      transceiver.sender.track?.stop();
+    }
   };
 
   private changePublishQuality = async (videoSender: VideoSender) => {
     const { trackType, layers, publishOptionId } = videoSender;
     const enabledLayers = layers.filter((l) => l.active);
-    this.logger(
-      'info',
-      'Update publish quality, requested layers by SFU:',
-      enabledLayers,
-    );
+
+    const tag = 'Update publish quality:';
+    this.logger('info', `${tag} requested layers by SFU:`, enabledLayers);
 
     const sender = this.transceiverCache.getWith(
       trackType,
       publishOptionId,
     )?.sender;
     if (!sender) {
-      this.logger('warn', 'Update publish quality, no video sender found.');
-      return;
+      return this.logger('warn', `${tag} no video sender found.`);
     }
 
     const params = sender.getParameters();
     if (params.encodings.length === 0) {
-      this.logger(
-        'warn',
-        'Update publish quality, No suitable video encoding quality found',
-      );
-      return;
+      return this.logger('warn', `${tag} there are no encodings set.`);
     }
 
     const [codecInUse] = params.codecs;
@@ -298,14 +278,13 @@ export class Publisher extends BasePeerConnection {
       }
     }
 
-    const activeLayers = params.encodings.filter((e) => e.active);
+    const activeEncoders = params.encodings.filter((e) => e.active);
     if (!changed) {
-      this.logger('info', `Update publish quality, no change:`, activeLayers);
-      return;
+      return this.logger('info', `${tag} no change:`, activeEncoders);
     }
 
     await sender.setParameters(params);
-    this.logger('info', `Update publish quality, enabled rids:`, activeLayers);
+    this.logger('info', `${tag} enabled rids:`, activeEncoders);
   };
 
   /**

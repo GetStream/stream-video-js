@@ -557,10 +557,10 @@ export class Call {
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 
-      this.subscriber?.close();
+      this.subscriber?.dispose();
       this.subscriber = undefined;
 
-      this.publisher?.close({ stopTracks: true });
+      this.publisher?.dispose();
       this.publisher = undefined;
 
       await this.sfuClient?.leaveAndClose(reason);
@@ -1061,7 +1061,7 @@ export class Call {
       closePreviousInstances,
     } = opts;
     if (closePreviousInstances && this.subscriber) {
-      this.subscriber.close();
+      this.subscriber.dispose();
     }
     this.subscriber = new Subscriber({
       sfuClient,
@@ -1085,7 +1085,7 @@ export class Call {
     const isAnonymous = this.streamClient.user?.type === 'anonymous';
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
-        this.publisher.close({ stopTracks: false });
+        this.publisher.dispose();
       }
       this.publisher = new Publisher({
         sfuClient,
@@ -1353,8 +1353,8 @@ export class Call {
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
     } finally {
-      currentSubscriber?.close();
-      currentPublisher?.close({ stopTracks: false });
+      currentSubscriber?.dispose();
+      currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close();
@@ -1595,6 +1595,7 @@ export class Call {
    */
   stopPublish = async (...trackTypes: TrackType[]) => {
     if (!this.sfuClient || !this.publisher) return;
+    this.publisher.stopTracks(...trackTypes);
     await this.updateLocalStreamState(undefined, ...trackTypes);
   };
 

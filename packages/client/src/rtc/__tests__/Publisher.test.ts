@@ -578,7 +578,6 @@ describe('Publisher', () => {
 
   describe('negotiation and track management', () => {
     let cache: TransceiverCache;
-    let cachedTracks: MediaStreamTrack[] = [];
 
     beforeEach(() => {
       cache = publisher['transceiverCache'];
@@ -599,9 +598,6 @@ describe('Publisher', () => {
       cache.add({ trackType: TrackType.VIDEO, id: 1 }, transceiver);
       // @ts-expect-error incomplete data
       cache.add({ trackType: TrackType.VIDEO, id: 2 }, inactiveTransceiver);
-
-      // store for later use
-      cachedTracks.push(track, inactiveTrack);
     });
 
     it('negotiate should set up the local and remote descriptions', async () => {
@@ -699,25 +695,11 @@ describe('Publisher', () => {
       expect(publisher.getTrackType('unknown')).toBeUndefined();
     });
 
-    it('stopPublishing should stop tracks and remove them from the peer connection', () => {
-      vi.spyOn(publisher['pc'], 'getSenders').mockReturnValue(
-        cachedTracks.map((t) => {
-          const sender = new RTCRtpSender();
-          // @ts-ignore
-          sender.track = t;
-          return sender;
-        }),
-      );
-      const trackStopSpies = cachedTracks.map((t) => vi.spyOn(t, 'stop'));
-      publisher.close({ stopTracks: true });
-
-      for (const stop of trackStopSpies) {
-        expect(stop).toHaveBeenCalled();
-      }
-      expect(publisher['pc'].close).toHaveBeenCalled();
-      expect(publisher['pc'].removeTrack).toHaveBeenCalledTimes(
-        cachedTracks.length,
-      );
+    it('stopTracks should stop tracks', () => {
+      const track = cache['cache'][0].transceiver.sender.track;
+      vi.spyOn(track, 'stop');
+      publisher.stopTracks(TrackType.VIDEO);
+      expect(track!.stop).toHaveBeenCalled();
     });
   });
 });
