@@ -31,4 +31,4 @@ cd sample-apps/react-native/expo-video-sample
 
 4. Run the app
 
-You can run the app either with [EAS Build](https://docs.expo.dev/build/introduction/) or [locally on your computer](https://docs.expo.dev/develop/development-builds/development-workflows/#build-locally-with-android-studio-and-xcode).
+You can run the app either with [EAS Build](https://docs.expo.dev/build/introduction/) or [locally on your computer](https://docs.expo.dev/guides/local-app-development/).
