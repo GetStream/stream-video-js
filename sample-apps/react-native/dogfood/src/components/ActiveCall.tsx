@@ -4,6 +4,8 @@ import {
   CallContent,
   useTheme,
   useIsInPiPMode,
+  useCallStateHooks,
+  useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -12,10 +14,6 @@ import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
-import {
-  useCallStateHooks,
-  useToggleCallRecording,
-} from '@stream-io/video-react-bindings';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import { ClosedCaptions } from './ClosedCaptions';
