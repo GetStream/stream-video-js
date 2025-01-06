@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.6.0...@stream-io/video-react-native-sdk-1.6.1) (2025-01-06)
+
+
+* **rn-video:** upgrade to expo ver 52 ([#1630](https://github.com/GetStream/stream-video-js/issues/1630)) ([7eec9b0](https://github.com/GetStream/stream-video-js/commit/7eec9b0616a6c8f397a00d0c48da8932fd2b7dfc))
+
+
+### Bug Fixes
+
+*  foreground service cannot be started in background exception ([#1635](https://github.com/GetStream/stream-video-js/issues/1635)) ([bb82021](https://github.com/GetStream/stream-video-js/commit/bb820214b85e08c7be726e0da27b6739681e07e2))
+
 ## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.5.2...@stream-io/video-react-native-sdk-1.6.0) (2025-01-02)
 
 ### Dependency Updates
