@@ -2009,10 +2009,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (125.0.2-alpha.8):
+  - stream-react-native-webrtc (125.0.3):
     - React-Core
-    - StreamWebRTC (~> 125.6422.064)
-  - stream-video-react-native (1.4.15):
+    - WebRTC-SDK (~> 125.6422.05)
+  - stream-video-react-native (1.6.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2034,7 +2034,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - StreamWebRTC (125.6422.064)
+  - WebRTC-SDK (125.6422.06)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2136,7 +2136,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - React-Codegen
     - SocketRocket
-    - StreamWebRTC
+    - WebRTC-SDK
 
 EXTERNAL SOURCES:
   boost:
@@ -2406,9 +2406,9 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
   stream-io-video-filters-react-native: 8e3d06506767c1a58576bb9d0229cbfc51a709d6
-  stream-react-native-webrtc: 99978e790f6e3bb28839f0f5f79a945e6b5096d1
-  stream-video-react-native: fc57f0a3f580682d98a29173fb78b2be7655aa18
-  StreamWebRTC: a77d2450a19a9d7d9a28b416cc0cb336d998dc62
+  stream-react-native-webrtc: b47233709aa82ffde44025c65032059e74b33c1a
+  stream-video-react-native: f5b2dc931bf34eaf3368e7b5e41db4681299e647
+  WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 
 PODFILE CHECKSUM: 22e502ced1a8b5a5e637f60837d3de140b3387b8
