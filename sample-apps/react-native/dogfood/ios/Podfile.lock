@@ -2009,10 +2009,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (125.0.2-alpha.12):
+  - stream-react-native-webrtc (125.0.3):
     - React-Core
-    - StreamWebRTC (~> 125.6422.064)
-  - stream-video-react-native (1.6.0):
+    - WebRTC-SDK (~> 125.6422.05)
+  - stream-video-react-native (1.6.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2034,7 +2034,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - StreamWebRTC (125.6422.064)
+  - WebRTC-SDK (125.6422.06)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2136,7 +2136,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - React-Codegen
     - SocketRocket
-    - StreamWebRTC
+    - WebRTC-SDK
 
 EXTERNAL SOURCES:
   boost:
@@ -2326,7 +2326,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: 3852e37f6158a2fcfad23e31215ed495da3a6a40
-  RCT-Folly: bf5c0376ffe4dd2cf438dcf86db385df9fdce648
+  RCT-Folly: 84578c8756030547307e4572ab1947de1685c599
   RCTDeprecation: d575d28132f93e5deef4849d5afffb4ac4e63226
   RCTRequired: e2e5df1df76aac8685aabfebca389e6bec64792b
   RCTTypeSafety: 30e36ceafa26979860e13fb3f234fb61692924c2
@@ -2406,11 +2406,11 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
   stream-io-video-filters-react-native: 8e3d06506767c1a58576bb9d0229cbfc51a709d6
-  stream-react-native-webrtc: fd7c3cd7bcbed789dfd05ed5b249bd1987a31c43
-  stream-video-react-native: a5782f1fdba6006fdad0bdef6fb905fa25129a8b
-  StreamWebRTC: a77d2450a19a9d7d9a28b416cc0cb336d998dc62
+  stream-react-native-webrtc: b47233709aa82ffde44025c65032059e74b33c1a
+  stream-video-react-native: f5b2dc931bf34eaf3368e7b5e41db4681299e647
+  WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 
 PODFILE CHECKSUM: 22e502ced1a8b5a5e637f60837d3de140b3387b8
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2
