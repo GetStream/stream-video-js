@@ -2138,14 +2138,18 @@ export class Call {
 
   /**
    * Retrieve call report for a participant call session (current or historical).
-   * Here `callSessionID` is mandatory.
+   *
    *
    * @param callSessionID the call session ID to retrieve the report for.
    * @returns The call report and stats.
    */
-  getCallReport = async (callSessionID: string) => {
-    const endpoint = `${this.streamClientBasePath}/report/${callSessionID}`;
-    return this.streamClient.get<GetCallReportResponse>(endpoint);
+  getCallReport = async (callSessionID?: string) => {
+    const endpoint = `${this.streamClientBasePath}/report`;
+    let params = {};
+    if (callSessionID) {
+      params = { session_id: callSessionID };
+    }
+    return this.streamClient.get<GetCallReportResponse>(endpoint, params);
   };
 
   /**
