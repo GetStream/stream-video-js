@@ -2138,7 +2138,11 @@ export class Call {
 
   /**
    * Retrieve call report for a participant call session (current or historical).
+   * If `callSessionID` is not specified, then the report for the latest call
+   * session ID is retrieved.
    *
+   * If you are not re-using call ID, then most likely you don't have to worry
+   * about the call session ID and just call `getCallReport()`.
    *
    * @param callSessionID the call session ID to retrieve the report for.
    * @returns The call report and stats.
