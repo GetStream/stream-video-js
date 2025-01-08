@@ -106,9 +106,7 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Adds a new transceiver to the peer connection.
-   * This needs to be called when a new track kind is added to the peer connection.
-   * In other cases, use `updateTransceiver` method.
+   * Adds a new transceiver carrying the given track to the peer connection.
    */
   private addTransceiver = (
     track: MediaStreamTrack,

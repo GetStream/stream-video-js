@@ -48,11 +48,17 @@ export const withRequestLogger = (
       input: object,
       options: RpcOptions,
     ): UnaryCall => {
-      logger(level, `Calling SFU RPC method ${method.name}`, {
-        input,
-        options,
-      });
-      return next(method, input, options);
+      let invocation: UnaryCall | undefined;
+      try {
+        invocation = next(method, input, options);
+      } finally {
+        logger(level, `Invoked SFU RPC method ${method.name}`, {
+          request: invocation?.request,
+          headers: invocation?.requestHeaders,
+          response: invocation?.response,
+        });
+      }
+      return invocation;
     },
   };
 };
