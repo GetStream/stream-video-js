@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.6.1...@stream-io/video-react-native-sdk-1.7.0) (2025-01-08)
+
+
+### Features
+
+* update peer deps and sample app to webrtc v125 ([#1638](https://github.com/GetStream/stream-video-js/issues/1638)) ([2b9074f](https://github.com/GetStream/stream-video-js/commit/2b9074f8fdb857699fa5fa429be424dc0496363e))
+
 ## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.6.0...@stream-io/video-react-native-sdk-1.6.1) (2025-01-06)
 
 
