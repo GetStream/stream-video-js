@@ -3200,6 +3200,25 @@ export interface Coordinates {
   longitude: number;
 }
 /**
+ *
+ * @export
+ * @interface Count
+ */
+export interface Count {
+  /**
+   *
+   * @type {boolean}
+   * @memberof Count
+   */
+  approximate: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof Count
+   */
+  value: number;
+}
+/**
  * Create device request
  * @export
  * @interface CreateDeviceRequest
@@ -3740,6 +3759,43 @@ export interface GetCallResponse {
    * @memberof GetCallResponse
    */
   own_capabilities: Array<OwnCapability>;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface GetCallReportResponse
+ */
+export interface GetCallReportResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof GetCallReportResponse
+   */
+  call_duration_seconds?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
+  call_status?: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Count}
+   * @memberof GetCallReportResponse
+   */
+  total_participants?: Count;
+  /**
+   *
+   * @type {Count}
+   * @memberof GetCallReportResponse
+   */
+  unique_users?: Count;
 }
 /**
  * Basic response information

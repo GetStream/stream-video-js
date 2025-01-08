@@ -81,7 +81,7 @@ import type {
   UpdateUserPermissionsResponse,
   VideoDimension,
 } from './gen/coordinator';
-import { OwnCapability } from './gen/coordinator';
+import { GetCallReportResponse, OwnCapability } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
@@ -2124,7 +2124,8 @@ export class Call {
 
   /**
    * Retrieve call statistics for a particular call session (historical).
-   * Here `callSessionID` is mandatory.
+   * Here `callSessionID` is mandatory. Note that this endpoint is NOT
+   * considered stable. Use `getCallReport` instead.
    *
    * @param callSessionID the call session ID to retrieve statistics for.
    * @returns The call stats.
@@ -2133,6 +2134,18 @@ export class Call {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
   };
+
+  /**
+   * Retrieve call report for a participant call session (current or historical).
+   * Here `callSessionID` is mandatory.
+   * 
+   * @param callSessionID the call session ID to retrieve the report for
+   * @returns The call report and stats
+   */
+  getCallReport = async (callSessionID: string) => {
+    const endpoint = `${this.streamClientBasePath}/report/${callSessionID}`;
+    return this.streamClient.get<GetCallReportResponse>(endpoint);
+  }
 
   /**
    * Submit user feedback for the call
