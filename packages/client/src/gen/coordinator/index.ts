@@ -3777,6 +3777,12 @@ export interface GetCallReportResponse {
    * @type {string}
    * @memberof GetCallReportResponse
    */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
   call_status?: string;
   /**
    * Duration of the request in milliseconds
