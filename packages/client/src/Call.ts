@@ -32,6 +32,7 @@ import type {
   Credentials,
   EndCallResponse,
   GetCallResponse,
+  GetCallReportResponse,
   GetCallStatsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -81,7 +82,7 @@ import type {
   UpdateUserPermissionsResponse,
   VideoDimension,
 } from './gen/coordinator';
-import { GetCallReportResponse, OwnCapability } from './gen/coordinator';
+import { OwnCapability } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
