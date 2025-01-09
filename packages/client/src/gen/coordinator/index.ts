@@ -1362,6 +1362,31 @@ export interface CallRejectedEvent {
   user: UserResponse;
 }
 /**
+ *
+ * @export
+ * @interface CallReportResponse
+ */
+export interface CallReportResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallReportResponse
+   */
+  ended_at: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallReportResponse
+   */
+  score: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallReportResponse
+   */
+  started_at: string;
+}
+/**
  * CallRequest is the payload for creating a call.
  * @export
  * @interface CallRequest
@@ -3767,24 +3792,6 @@ export interface GetCallResponse {
  */
 export interface GetCallReportResponse {
   /**
-   *
-   * @type {number}
-   * @memberof GetCallReportResponse
-   */
-  call_duration_seconds?: number;
-  /**
-   *
-   * @type {string}
-   * @memberof GetCallReportResponse
-   */
-  call_session_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof GetCallReportResponse
-   */
-  call_status?: string;
-  /**
    * Duration of the request in milliseconds
    * @type {string}
    * @memberof GetCallReportResponse
@@ -3792,16 +3799,16 @@ export interface GetCallReportResponse {
   duration: string;
   /**
    *
-   * @type {Count}
+   * @type {ReportResponse}
    * @memberof GetCallReportResponse
    */
-  total_participants?: Count;
+  report: ReportResponse;
   /**
    *
-   * @type {Count}
+   * @type {string}
    * @memberof GetCallReportResponse
    */
-  unique_users?: Count;
+  session_id: string;
 }
 /**
  * Basic response information
@@ -4896,6 +4903,25 @@ export interface OwnUserResponse {
   updated_at: string;
 }
 /**
+ *
+ * @export
+ * @interface ParticipantReportResponse
+ */
+export interface ParticipantReportResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  sum: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  unique: number;
+}
+/**
  * This event is sent when a user requests access to a feature on a call,
  * clients receiving this event should display a permission request to the user
  * @export
@@ -5650,6 +5676,31 @@ export interface ReportByHistogramBucket {
    * @memberof ReportByHistogramBucket
    */
   upper_bound?: Bound;
+}
+/**
+ *
+ * @export
+ * @interface ReportResponse
+ */
+export interface ReportResponse {
+  /**
+   *
+   * @type {CallReportResponse}
+   * @memberof ReportResponse
+   */
+  call: CallReportResponse;
+  /**
+   *
+   * @type {ParticipantReportResponse}
+   * @memberof ReportResponse
+   */
+  participants: ParticipantReportResponse;
+  /**
+   *
+   * @type {UserRatingReportResponse}
+   * @memberof ReportResponse
+   */
+  user_ratings: UserRatingReportResponse;
 }
 /**
  *
@@ -7299,6 +7350,25 @@ export interface UserPresenceChangedEvent {
    * @memberof UserPresenceChangedEvent
    */
   user?: UserObject;
+}
+/**
+ *
+ * @export
+ * @interface UserRatingReportResponse
+ */
+export interface UserRatingReportResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof UserRatingReportResponse
+   */
+  average: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserRatingReportResponse
+   */
+  count: number;
 }
 /**
  *
