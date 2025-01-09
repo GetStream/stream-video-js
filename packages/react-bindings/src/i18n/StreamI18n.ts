@@ -1,19 +1,24 @@
 import i18next from 'i18next';
-import { mapToRegistry } from './utils';
 import {
   TranslationLanguage,
   TranslationSheet,
   TranslationsMap,
+  TranslationsRegistry,
   TranslatorFunction,
 } from './types';
 
-export const DEFAULT_LANGUAGE = 'en';
-export const DEFAULT_NAMESPACE = 'stream-video';
+const DEFAULT_NAMESPACE = 'stream-video';
 const DEFAULT_CONFIG = {
   debug: false,
-  currentLanguage: DEFAULT_LANGUAGE,
+  currentLanguage: 'en',
   fallbackLanguage: false,
 } as const;
+
+const mapToRegistry = (translationsMap: TranslationsMap, namespace: string) =>
+  Object.entries(translationsMap).reduce((acc, [lng, translations]) => {
+    acc[lng] = { [namespace]: translations };
+    return acc;
+  }, {} as TranslationsRegistry);
 
 const DEFAULT_TRANSLATIONS_REGISTRY = mapToRegistry({}, DEFAULT_NAMESPACE);
 
