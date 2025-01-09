@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsButton,
+  OwnCapability,
   useCall,
+  useCallStateHooks,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
@@ -16,6 +18,7 @@ import {
 } from '../../contexts/AppContext';
 import LightDark from '../../assets/LightDark';
 import Stats from '../../assets/Stats';
+import ClosedCaptions from '../../assets/ClosedCaptions';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -45,6 +48,13 @@ export const MoreActionsButton = ({
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { useIsCallCaptioningInProgress, useHasPermissions } =
+    useCallStateHooks();
+  const isCaptioningInProgress = useIsCallCaptioningInProgress();
+  const canToggle = useHasPermissions(
+    OwnCapability.START_CLOSED_CAPTIONS_CALL,
+    OwnCapability.STOP_CLOSED_CAPTIONS_CALL,
+  );
 
   useEffect(() => {
     return () => {
@@ -70,6 +80,11 @@ export const MoreActionsButton = ({
     }
     return 'Light mode';
   };
+
+  const getCaptionsLabel = () =>
+    isCaptioningInProgress
+      ? 'Disable closed captions'
+      : 'Enable closed captions';
 
   const options: DrawerOption[] = [
     {
@@ -127,6 +142,30 @@ export const MoreActionsButton = ({
         setIsDrawerVisible(false);
       },
     },
+    ...(canToggle
+      ? [
+          {
+            id: '4',
+            label: getCaptionsLabel(),
+            icon: (
+              <IconWrapper>
+                <ClosedCaptions
+                  color={colors.iconPrimary}
+                  size={variants.roundButtonSizes.sm}
+                />
+              </IconWrapper>
+            ),
+            onPress: () => {
+              if (isCaptioningInProgress) {
+                call?.stopClosedCaptions();
+              } else {
+                call?.startClosedCaptions();
+              }
+              setIsDrawerVisible(false);
+            },
+          },
+        ]
+      : []),
   ];
 
   const buttonColor = isDrawerVisible
