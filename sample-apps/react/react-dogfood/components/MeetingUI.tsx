@@ -20,8 +20,7 @@ import {
   useWakeLock,
 } from '../hooks';
 import { ActiveCall } from './ActiveCall';
-import { Feedback } from './Feedback/Feedback';
-import { DefaultAppHeader } from './DefaultAppHeader';
+import { EndCallSummaryView } from './EndCallSummary/EndCallSummaryView';
 
 const contents = {
   'error-join': {
@@ -40,6 +39,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
   >('lobby');
+  const [joinTime, setJoinTime] = useState<Date | undefined>(undefined);
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
@@ -63,6 +63,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
+      setJoinTime(new Date());
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
@@ -179,14 +180,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     ComponentToRender = <LoadingScreen />;
   } else if (show === 'left') {
     ComponentToRender = (
-      <>
-        <DefaultAppHeader />
-        <div className="rd__leave">
-          <div className="rd__leave-content">
-            <Feedback inMeeting={false} callId={call?.id} />
-          </div>
-        </div>
-      </>
+      <EndCallSummaryView
+        rejoin={() => setShow('active-call')}
+        startNewCall={() => setShow('lobby')}
+        joinTime={joinTime}
+      />
     );
   } else if (!call) {
     ComponentToRender = (
