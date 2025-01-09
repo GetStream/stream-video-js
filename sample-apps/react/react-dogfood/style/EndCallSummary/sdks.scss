@@ -3,10 +3,25 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     gap: var(--str-video__spacing-md);
 
 
+    @include respond-above(xs) {
+      justify-content: center;
+
+    }
+
+    @include respond-above(sm) {
+      justify-content: flex-start;
+    }
+    @include respond-above(md) {
+      justify-content: flex-start;
+    }
+
+    @include respond-above(lg) {
+      justify-content: center;
+    }
 
     &--link{
       display: flex;

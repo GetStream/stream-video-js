@@ -1,0 +1,42 @@
+.rd__summary-recordings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  background-color: #19232D !important;
+  border-radius: var(--str-video__border-radius-lg);
+  padding: 32px;
+
+  width: 100%;
+  border: 1px solid #323B44;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.75);
+
+  height: 100%;
+
+  @include respond-above(md) {
+    height: auto;
+  }
+}
+
+.rd__summary-recordings-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  .str-video__icon{
+    height: 28px;
+    width: 28px;
+    background-color: #656B72;
+  }
+
+
+  &:hover{
+    cursor: pointer;
+
+
+    .str-video__icon{
+      background-color: var(--str-video__text-color1);
+    }
+  }
+}

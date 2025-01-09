@@ -6,4 +6,15 @@
     overflow-y: scroll;
     gap: var(--str-video__spacing-md);
   }
+
+  .rd__edge-server--country{
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 80px;
+
+    @include respond-above(md) {
+      max-width: 100%;
+    }
+  }
 }

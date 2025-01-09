@@ -4,6 +4,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    gap: var(--str-video__spacing-md);
 
     font-size: var(--str-video__font-size-md);
     font-weight: 600;

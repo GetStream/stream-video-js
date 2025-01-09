@@ -39,6 +39,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
   >('lobby');
+  const [joinTime, setJoinTime] = useState<Date | undefined>(undefined);
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
@@ -62,6 +63,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
   const onJoin = useCallback(
     async ({ fastJoin = false } = {}) => {
+      setJoinTime(new Date());
       if (!fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
@@ -178,12 +180,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     ComponentToRender = <LoadingScreen />;
   } else if (show === 'left') {
     ComponentToRender = (
-      <div className="rd__leave">
-        <EndCallSummaryView
-          rejoin={() => setShow('active-call')}
-          startNewCall={() => setShow('lobby')}
-        />
-      </div>
+      <EndCallSummaryView
+        rejoin={() => setShow('active-call')}
+        startNewCall={() => setShow('lobby')}
+        joinTime={joinTime}
+      />
     );
   } else if (!call) {
     ComponentToRender = (

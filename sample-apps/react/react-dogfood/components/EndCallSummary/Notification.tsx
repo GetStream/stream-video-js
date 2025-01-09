@@ -8,10 +8,10 @@ type NotificationProps = {
 
 export const Notification = ({ message, variant }: NotificationProps) => {
   const icon = {
-    success: 'info',
-    error: 'info',
+    success: 'success',
+    error: 'error',
     info: 'info',
-    caution: 'info',
+    caution: 'caution',
   };
 
   return (

@@ -17,6 +17,8 @@
 
     box-shadow: 0px 0px 24px 8px rgba(0, 0, 0, 0.05);
 
+
+
     @include respond-above(md) {
       &--fill{
         width: 100%;
@@ -28,13 +30,21 @@
     }
 
     &--small{
-      font-size: var(--str-video__font-size-md);
+      font-size: var(--str-video__font-size-sm);
       min-height: 40px;
+
+      @include respond-above(md) {
+        font-size: var(--str-video__font-size-md);
+      }
     }
 
     &--large{
       font-size: var(--str-video__font-size-xxl);
       min-height: 32px;
+
+      @include respond-above(md) {
+        font-size: var(--str-video__font-size-md);
+      }
     }
 
     &--link{

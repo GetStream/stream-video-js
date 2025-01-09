@@ -6,6 +6,7 @@
     gap: var(--str-video__spacing-sm);
     height: 100%;
     width: 100%;
+    min-height: 350px;
 
     background-size: cover;
     background-position: left;
@@ -64,6 +65,7 @@
       width: fit-content;
       border-radius: var(--str-video__border-radius-lg);
       padding: var(--str-video__spacing-md) var(--str-video__spacing-lg);
+      text-decoration: none;
     }
   }
 }

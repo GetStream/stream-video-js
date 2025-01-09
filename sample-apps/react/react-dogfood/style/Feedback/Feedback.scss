@@ -12,8 +12,17 @@
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.75);
 }
 
+
+
+.rd__feedback-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .rd__feedback-image {
-  width: 300px;
+  width: 140px;
 }
 
 .rd__feedback-heading {
@@ -25,7 +34,7 @@
 .rd__feedback-description {
   color: var(--str-video__base-color2);
   font-size: var(--str-video__font-size-sm);
-  margin: var(--str-video__spacing-lg) 0 var(--str-video__spacing-md) 0;
+  margin: 0;
 }
 
 .rd__feedback-form {

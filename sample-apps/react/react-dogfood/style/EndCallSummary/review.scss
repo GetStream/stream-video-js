@@ -40,7 +40,17 @@
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+
+    gap: var(--str-video__spacing-xs);
+
+
+    @include respond-above(sm) {
+      gap: var(--str-video__spacing-md);
+    }
+
+    @include respond-above(md) {
+      justify-content: space-between;
+    }
   }
 
   .rd__feedback-star {

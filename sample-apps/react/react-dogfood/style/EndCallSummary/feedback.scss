@@ -1,0 +1,138 @@
+.rd__summary-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  background-color: #19232D !important;
+  border-radius: var(--str-video__border-radius-lg);
+  padding: 32px;
+
+  width: 100%;
+  border: 1px solid #323B44;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.75);
+
+  height: 100%;
+
+  @include respond-above(md) {
+    height: auto;
+  }
+}
+
+.rd__summary-feedback-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  .str-video__icon{
+    height: 28px;
+    width: 28px;
+    background-color: #656B72;
+  }
+
+
+  &:hover{
+    cursor: pointer;
+
+
+    .str-video__icon{
+      background-color: var(--str-video__text-color1);
+    }
+  }
+}
+
+.rd__summary-feedback-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--str-video__spacing-md);
+}
+
+.rd__summary-feedback-image {
+  width: 140px;
+}
+
+.rd__summary-feedback-heading {
+  font-weight: 500;
+  font-size: 24px;
+  margin: 0;
+}
+
+.rd__summary-feedback-description {
+  color: var(--str-video__description-default);
+  font-size: var(--str-video__font-size-md);
+  margin: 0;
+}
+
+.rd__summary-feedback-type {
+
+  margin-top: var(--str-video__spacing-lg);
+}
+
+.rd__summary-feedback-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--str-video__spacing-lg);
+  width: 100%;
+}
+
+.rd__summary-feedback-input,
+.rd__summary-feedback-textarea {
+  background-color: #323B44;
+  border-radius: var(--str-video__border-radius-md);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
+  margin-bottom: var(--str-video__spacing-md);
+  border: 1px solid var(--str-video__base-color3);
+  width: 100%;
+  color:#EFF0F1;
+  border: 1px solid transparent;
+
+  &:placeholder {
+    color: #EFF0F1;
+  }
+
+  &:focus,
+  &:focus-visible {
+    border: 1px solid var(--str-video__base-color1);
+  }
+}
+
+.rd__summary-feedback-textarea {
+  height: 100px;
+}
+
+.rd__summary-feedback-footer {
+  width: 100%;
+  padding-top: var(--str-video__spacing-lg);
+  padding-bottom: var(--str-video__spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--str-video__spacing-sm);
+}
+.rd__summary-feedback-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--str-video__spacing-md);
+}
+
+.rd__summary-feedback-consent {
+  color: var(--str-video__icon-pressed);
+  font-size: 10px;
+}
+
+.rd__summary-feedback-submit { background-color: var(--str-video__button-primary-active);
+  border-radius: var(--str-video__border-radius-sm);
+  font-weight: 600;
+  color: var( --str-video__text-color);
+  font-size: var(--str-video__font-size-md);
+  border: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-radius: var(--str-video__border-radius-lg);
+  padding: var(--str-video__spacing-md) var(--str-video__spacing-lg);
+  justify-content: center;
+}

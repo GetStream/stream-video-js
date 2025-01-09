@@ -47,12 +47,13 @@
 
     &-links{
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       gap: var(--str-video__spacing-lg);
       justify-content: space-between;
       width: 100%;
 
       @include respond-above(md) {
+        flex-direction: row;
         justify-content: flex-end;
       }
 
