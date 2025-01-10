@@ -64,13 +64,11 @@ const AppStateListener = () => {
     // we dont check for inactive states
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      const cameraStatus = call?.camera?.state.status;
-      if (
-        appState.current.match(/background/) &&
-        nextAppState === 'active' &&
-        cameraStatus === 'enabled'
-      ) {
-        if (Platform.OS === 'android') {
+      if (appState.current.match(/background/) && nextAppState === 'active') {
+        if (
+          call?.camera?.state.status === 'enabled' &&
+          Platform.OS === 'android'
+        ) {
           // when device is locked and resumed, the status isnt made disabled but stays enabled
           // as a workaround we stop the track and enable again if its already in enabled state
           call?.camera?.disable(true).then(() => {
@@ -96,7 +94,7 @@ const AppStateListener = () => {
                   // this happens on foreground push notifications
                   return;
                 }
-                if (cameraStatus === 'enabled') {
+                if (call?.camera?.state.status === 'enabled') {
                   call?.camera?.disable();
                 }
               }
@@ -105,7 +103,7 @@ const AppStateListener = () => {
         } else {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
-            if (cameraStatus === 'enabled') {
+            if (call?.camera?.state.status === 'enabled') {
               call?.camera?.disable();
             }
           }
