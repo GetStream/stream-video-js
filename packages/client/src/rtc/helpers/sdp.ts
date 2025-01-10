@@ -1,4 +1,4 @@
-import * as SDP from 'sdp-transform';
+import { parse } from 'sdp-transform';
 
 /**
  * Extracts the mid from the transceiver or the SDP.
@@ -16,7 +16,7 @@ export const extractMid = (
   if (!sdp) return String(transceiverInitIndex);
 
   const track = transceiver.sender.track!;
-  const parsedSdp = SDP.parse(sdp);
+  const parsedSdp = parse(sdp);
   const media = parsedSdp.media.find((m) => {
     return (
       m.type === track.kind &&
