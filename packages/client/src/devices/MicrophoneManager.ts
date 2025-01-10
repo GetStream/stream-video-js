@@ -9,6 +9,7 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
+  AudioSettingsResponse,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../gen/coordinator';
@@ -199,6 +200,34 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   async disableSpeakingWhileMutedNotification() {
     this.speakingWhileMutedNotificationEnabled = false;
     await this.stopSpeakingWhileMutedDetection();
+  }
+
+  /**
+   * Applies the audio settings to the microphone.
+   * @param settings the audio settings to apply.
+   * @param publish whether to publish the stream after applying the settings.
+   */
+  async apply(settings: AudioSettingsResponse, publish: boolean) {
+    if (!publish) return;
+
+    const hasPublishedAudio = !!this.call.state.localParticipant?.audioStream;
+    const hasPermission = this.call.permissionsContext.hasPermission(
+      OwnCapability.SEND_AUDIO,
+    );
+    if (hasPublishedAudio || !hasPermission) return;
+
+    // Wait for any in progress mic operation
+    await this.statusChangeSettled();
+
+    // Publish media stream that was set before we joined
+    const { mediaStream } = this.state;
+    if (this.enabled && mediaStream) {
+      // The mic is already enabled (e.g. lobby screen). Publish the stream
+      await this.publishStream(mediaStream);
+    } else if (this.state.status === undefined && settings.mic_default_on) {
+      // Start mic if backend config specifies, and there is no local setting
+      await this.enable();
+    }
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {

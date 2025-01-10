@@ -2,6 +2,7 @@ import { StreamSfuClient } from './StreamSfuClient';
 import {
   Dispatcher,
   getGenericSdp,
+  isAudioTrackType,
   isSfuEvent,
   muteTypeToTrackType,
   Publisher,
@@ -28,6 +29,7 @@ import type {
   BlockUserRequest,
   BlockUserResponse,
   CallRingEvent,
+  CallSettingsResponse,
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
@@ -120,7 +122,6 @@ import {
 import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
 import {
-  CameraDirection,
   CameraManager,
   MicrophoneManager,
   ScreenShareManager,
@@ -625,9 +626,8 @@ export class Call {
     // call.ring event excludes the call creator in the members list
     // as the creator does not get the ring event
     // so update the member list accordingly
-    const creator = this.state.members.find(
-      (m) => m.user.id === event.call.created_by.id,
-    );
+    const { created_by, settings } = event.call;
+    const creator = this.state.members.find((m) => m.user.id === created_by.id);
     if (!creator) {
       this.state.setMembers(event.members);
     } else {
@@ -641,7 +641,7 @@ export class Call {
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
-    await this.applyDeviceConfig(false);
+    await this.applyDeviceConfig(settings, false);
   };
 
   /**
@@ -676,7 +676,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    await this.applyDeviceConfig(false);
+    await this.applyDeviceConfig(response.call.settings, false);
 
     return response;
   };
@@ -707,7 +707,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    await this.applyDeviceConfig(false);
+    await this.applyDeviceConfig(response.call.settings, false);
 
     return response;
   };
@@ -916,8 +916,8 @@ export class Call {
 
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
-    if (!this.deviceSettingsAppliedOnce) {
-      await this.applyDeviceConfig(true);
+    if (!this.deviceSettingsAppliedOnce && this.state.settings) {
+      await this.applyDeviceConfig(this.state.settings, true);
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -2286,91 +2286,16 @@ export class Call {
    *
    * @internal
    */
-  applyDeviceConfig = async (status: boolean) => {
-    await this.initCamera({ setStatus: status }).catch((err) => {
+  applyDeviceConfig = async (
+    settings: CallSettingsResponse,
+    publish: boolean,
+  ) => {
+    await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
-    await this.initMic({ setStatus: status }).catch((err) => {
+    await this.microphone.apply(settings.audio, publish).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
-  };
-
-  private initCamera = async (options: { setStatus: boolean }) => {
-    // Wait for any in progress camera operation
-    await this.camera.statusChangeSettled();
-
-    if (
-      this.state.localParticipant?.videoStream ||
-      !this.permissionsContext.hasPermission('send-video')
-    ) {
-      return;
-    }
-
-    // Set camera direction if it's not yet set
-    if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
-      let defaultDirection: CameraDirection = 'front';
-      const backendSetting = this.state.settings?.video.camera_facing;
-      if (backendSetting) {
-        defaultDirection = backendSetting === 'front' ? 'front' : 'back';
-      }
-      this.camera.state.setDirection(defaultDirection);
-    }
-
-    // Set target resolution
-    const targetResolution = this.state.settings?.video.target_resolution;
-    if (targetResolution) {
-      await this.camera.selectTargetResolution(targetResolution);
-    }
-
-    if (options.setStatus) {
-      // Publish already that was set before we joined
-      if (
-        this.camera.enabled &&
-        this.camera.state.mediaStream &&
-        !this.publisher?.isPublishing(TrackType.VIDEO)
-      ) {
-        await this.publishVideoStream(this.camera.state.mediaStream);
-      }
-
-      // Start camera if backend config specifies, and there is no local setting
-      if (
-        this.camera.state.status === undefined &&
-        this.state.settings?.video.camera_default_on
-      ) {
-        await this.camera.enable();
-      }
-    }
-  };
-
-  private initMic = async (options: { setStatus: boolean }) => {
-    // Wait for any in progress mic operation
-    await this.microphone.statusChangeSettled();
-
-    if (
-      this.state.localParticipant?.audioStream ||
-      !this.permissionsContext.hasPermission('send-audio')
-    ) {
-      return;
-    }
-
-    if (options.setStatus) {
-      // Publish media stream that was set before we joined
-      if (
-        this.microphone.enabled &&
-        this.microphone.state.mediaStream &&
-        !this.publisher?.isPublishing(TrackType.AUDIO)
-      ) {
-        await this.publishAudioStream(this.microphone.state.mediaStream);
-      }
-
-      // Start mic if backend config specifies, and there is no local setting
-      if (
-        this.microphone.state.status === undefined &&
-        this.state.settings?.audio.mic_default_on
-      ) {
-        await this.microphone.enable();
-      }
-    }
   };
 
   /**
