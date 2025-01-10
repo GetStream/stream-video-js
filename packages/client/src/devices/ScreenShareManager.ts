@@ -79,10 +79,6 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return getScreenShareStream(constraints);
   }
 
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishScreenShareStream(stream);
-  }
-
   protected async stopPublishStream(): Promise<void> {
     return this.call.stopPublish(
       TrackType.SCREEN_SHARE,

@@ -14,6 +14,7 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
+import { PermissionsContext } from '../../permissions';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -94,8 +95,9 @@ describe('CameraManager', () => {
 
     await manager.enable();
 
-    expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
+    expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      TrackType.VIDEO,
     );
   });
 

@@ -240,14 +240,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return getAudioStream(constraints);
   }
 
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishAudioStream(stream);
-  }
-
-  protected stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(TrackType.AUDIO);
-  }
-
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
       await this.stopSpeakingWhileMutedDetection();

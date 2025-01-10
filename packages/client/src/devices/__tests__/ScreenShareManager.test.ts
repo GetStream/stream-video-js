@@ -113,8 +113,9 @@ describe('ScreenShareManager', () => {
     const call = manager['call'];
     call.state.setCallingState(CallingState.JOINED);
     await manager.enable();
-    expect(call.publishScreenShareStream).toHaveBeenCalledWith(
+    expect(call.publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      TrackType.SCREEN_SHARE,
     );
   });
 

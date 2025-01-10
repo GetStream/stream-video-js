@@ -81,10 +81,6 @@ export class Publisher extends BasePeerConnection {
    * @param trackType the track type to publish.
    */
   publish = async (track: MediaStreamTrack, trackType: TrackType) => {
-    if (track.readyState === 'ended') {
-      throw new Error(`Can't publish a track that has ended already.`);
-    }
-
     if (!this.publishOptions.some((o) => o.trackType === trackType)) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);
     }

@@ -143,12 +143,4 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     }
     return getVideoStream(constraints);
   }
-
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream);
-  }
-
-  protected stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(TrackType.VIDEO);
-  }
 }

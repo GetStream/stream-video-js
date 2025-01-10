@@ -110,8 +110,9 @@ describe('MicrophoneManager', () => {
 
     await manager.enable();
 
-    expect(manager['call'].publishAudioStream).toHaveBeenCalledWith(
+    expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      TrackType.AUDIO,
     );
   });
 

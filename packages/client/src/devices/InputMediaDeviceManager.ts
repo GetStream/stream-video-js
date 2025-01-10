@@ -241,9 +241,13 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
-  protected abstract publishStream(stream: MediaStream): Promise<void>;
+  protected publishStream(stream: MediaStream): Promise<void> {
+    return this.call.publish(stream, this.trackType);
+  }
 
-  protected abstract stopPublishStream(): Promise<void>;
+  protected stopPublishStream(): Promise<void> {
+    return this.call.stopPublish(this.trackType);
+  }
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];

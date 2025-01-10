@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { TrackType } from '../../gen/video/sfu/models/models';
 import { CallSettingsResponse, OwnCapability } from '../../gen/coordinator';
 import { PermissionsContext } from '../PermissionsContext';
 
@@ -25,5 +26,15 @@ describe('PermissionsContext', () => {
     expect(ctx.canRequest(OwnCapability.SEND_VIDEO)).toBe(false);
     expect(ctx.canRequest(OwnCapability.SCREENSHARE)).toBe(false);
     expect(ctx.canRequest(OwnCapability.BLOCK_USERS)).toBe(false);
+  });
+
+  it('should check if user can publish', () => {
+    const ctx = new PermissionsContext();
+    ctx.setPermissions([OwnCapability.SEND_AUDIO]);
+    expect(ctx.canPublish(TrackType.AUDIO)).toBe(true);
+    expect(ctx.canPublish(TrackType.VIDEO)).toBe(false);
+    expect(ctx.canPublish(TrackType.SCREEN_SHARE)).toBe(false);
+    expect(ctx.canPublish(TrackType.SCREEN_SHARE_AUDIO)).toBe(false);
+    expect(ctx.canPublish(TrackType.UNSPECIFIED)).toBe(false);
   });
 });

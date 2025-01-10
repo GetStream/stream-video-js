@@ -1451,22 +1451,16 @@ export class Call {
     // the tracks need to be restored in their original order of publishing
     // otherwise, we might get `m-lines order mismatch` errors
     for (const trackType of this.trackPublishOrder) {
+      let mediaStream: MediaStream | undefined;
       switch (trackType) {
         case TrackType.AUDIO:
-          const audioStream = this.microphone.state.mediaStream;
-          if (audioStream) {
-            await this.publishAudioStream(audioStream);
-          }
+          mediaStream = this.microphone.state.mediaStream;
           break;
         case TrackType.VIDEO:
-          const videoStream = this.camera.state.mediaStream;
-          if (videoStream) await this.publishVideoStream(videoStream);
+          mediaStream = this.camera.state.mediaStream;
           break;
         case TrackType.SCREEN_SHARE:
-          const screenShareStream = this.screenShare.state.mediaStream;
-          if (screenShareStream) {
-            await this.publishScreenShareStream(screenShareStream);
-          }
+          mediaStream = this.screenShare.state.mediaStream;
           break;
         // screen share audio can't exist without a screen share, so we handle it there
         case TrackType.SCREEN_SHARE_AUDIO:
@@ -1476,6 +1470,8 @@ export class Call {
           ensureExhausted(trackType, 'Unknown track type');
           break;
       }
+
+      if (mediaStream) await this.publish(mediaStream, trackType);
     }
   };
 
@@ -1491,101 +1487,73 @@ export class Call {
 
   /**
    * Starts publishing the given video stream to the call.
-   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
-   *
-   * Consecutive calls to this method will replace the previously published stream.
-   * The previous video stream will be stopped.
-   *
-   * @param videoStream the video stream to publish.
+   * @deprecated use `call.publish()`.
    */
   publishVideoStream = async (videoStream: MediaStream) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
-    // joining is in progress, and we should wait until the client is ready
-    await this.sfuClient.joinTask;
-
-    if (!this.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
-      throw new Error('No permission to publish video');
-    }
-
-    if (!this.publisher) throw new Error('Publisher is not initialized');
-
-    const [videoTrack] = videoStream.getVideoTracks();
-    if (!videoTrack) throw new Error('There is no video track in the stream');
-
-    pushToIfMissing(this.trackPublishOrder, TrackType.VIDEO);
-    await this.publisher.publish(videoTrack, TrackType.VIDEO);
-    await this.updateLocalStreamState(videoStream, TrackType.VIDEO);
+    await this.publish(videoStream, TrackType.VIDEO);
   };
 
   /**
    * Starts publishing the given audio stream to the call.
-   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
-   *
-   * Consecutive calls to this method will replace the audio stream that is currently being published.
-   * The previous audio stream will be stopped.
-   *
-   * @param audioStream the audio stream to publish.
+   * @deprecated use `call.publish()`
    */
   publishAudioStream = async (audioStream: MediaStream) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
-    // joining is in progress, and we should wait until the client is ready
-    await this.sfuClient.joinTask;
-
-    if (!this.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)) {
-      throw new Error('No permission to publish audio');
-    }
-
-    if (!this.publisher) throw new Error('Publisher is not initialized');
-
-    const [audioTrack] = audioStream.getAudioTracks();
-    if (!audioTrack) throw new Error('There is no audio track in the stream');
-
-    pushToIfMissing(this.trackPublishOrder, TrackType.AUDIO);
-    await this.publisher.publish(audioTrack, TrackType.AUDIO);
-    await this.updateLocalStreamState(audioStream, TrackType.AUDIO);
+    await this.publish(audioStream, TrackType.AUDIO);
   };
 
   /**
    * Starts publishing the given screen-share stream to the call.
-   *
-   * Consecutive calls to this method will replace the previous screen-share stream.
-   * The previous screen-share stream will be stopped.
-   *
-   * @param screenShareStream the screen-share stream to publish.
+   * @deprecated use `call.publish()`
    */
   publishScreenShareStream = async (screenShareStream: MediaStream) => {
+    await this.publish(screenShareStream, TrackType.SCREEN_SHARE);
+  };
+
+  /**
+   * Publishes the given media stream.
+   *
+   * @param ms the media stream to publish.
+   * @param trackType the type of the track to announce.
+   */
+  publish = async (ms: MediaStream, trackType: TrackType) => {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
 
-    if (!this.permissionsContext.hasPermission(OwnCapability.SCREENSHARE)) {
-      throw new Error('No permission to publish screen share');
+    if (!this.permissionsContext.canPublish(trackType)) {
+      throw new Error(`No permission to publish ${TrackType[trackType]}`);
     }
 
     if (!this.publisher) throw new Error('Publisher is not initialized');
 
-    const [screenShareTrack] = screenShareStream.getVideoTracks();
-    if (!screenShareTrack) {
-      throw new Error('There is no screen share track in the stream');
-    }
+    const [track] = isAudioTrackType(trackType)
+      ? ms.getAudioTracks()
+      : ms.getVideoTracks();
 
-    pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE);
-    await this.publisher.publish(screenShareTrack, TrackType.SCREEN_SHARE);
-
-    const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
-    if (screenShareAudioTrack) {
-      pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
-      await this.publisher.publish(
-        screenShareAudioTrack,
-        TrackType.SCREEN_SHARE_AUDIO,
+    if (!track) {
+      throw new Error(
+        `There is no ${TrackType[trackType]} track in the stream`,
       );
     }
-    await this.updateLocalStreamState(
-      screenShareStream,
-      ...(screenShareAudioTrack
-        ? [TrackType.SCREEN_SHARE, TrackType.SCREEN_SHARE_AUDIO]
-        : [TrackType.SCREEN_SHARE]),
-    );
+
+    if (track.readyState === 'ended') {
+      throw new Error(`Can't publish ended tracks.`);
+    }
+
+    pushToIfMissing(this.trackPublishOrder, trackType);
+    await this.publisher.publish(track, trackType);
+
+    const trackTypes = [trackType];
+    if (trackType === TrackType.SCREEN_SHARE) {
+      const [audioTrack] = ms.getAudioTracks();
+      if (audioTrack) {
+        pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
+        await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
+        trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
+      }
+    }
+
+    await this.updateLocalStreamState(ms, ...trackTypes);
   };
 
   /**
