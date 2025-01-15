@@ -96,7 +96,7 @@ jobs:
   test_ios:
     name: Test iOS
     needs: build_ios
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codec-negotiation' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     timeout-minutes: 100
     runs-on: macos-latest
     steps:
@@ -129,7 +129,7 @@ jobs:
     name: Deploy iOS
     needs: build_ios
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codec-negotiation' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -199,7 +199,7 @@ jobs:
     name: Test Android
     needs: build_android
     timeout-minutes: 100
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codec-negotiation'}}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -266,7 +266,7 @@ jobs:
     name: Deploy Android
     needs: build_android
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codec-negotiation' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
