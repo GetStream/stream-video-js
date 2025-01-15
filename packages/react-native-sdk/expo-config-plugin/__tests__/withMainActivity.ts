@@ -41,9 +41,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
 
     const props: ConfigProps = {
-      androidPictureInPicture: {
-        enableAutomaticEnter: true,
-      },
+      androidPictureInPicture: true,
       enableScreenshare: true,
     };
 
@@ -62,9 +60,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
 
     const props2: ConfigProps = {
-      androidPictureInPicture: {
-        enableAutomaticEnter: false,
-      },
+      androidPictureInPicture: false,
       enableScreenshare: false,
     };
 
@@ -103,9 +99,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      androidPictureInPicture: {
-        enableAutomaticEnter: true,
-      },
+      androidPictureInPicture: true,
     };
     expect(() => withMainActivity(config, props)).toThrow();
   });

@@ -31,7 +31,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
-
     override fun initialize() {
         super.initialize()
         StreamVideoReactNative.addPipListener { isInPictureInPictureMode, newConfig ->
