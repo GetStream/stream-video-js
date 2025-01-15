@@ -1,6 +1,5 @@
 package com.streamvideo.reactnative
 
-import android.app.Activity
 import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.BroadcastReceiver
@@ -11,16 +10,11 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
 import android.os.Process
-import android.util.Log
 import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.facebook.react.ReactActivity
-import com.facebook.react.bridge.BaseActivityEventListener
-import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
