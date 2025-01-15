@@ -1512,10 +1512,10 @@ export class Call {
   /**
    * Publishes the given media stream.
    *
-   * @param ms the media stream to publish.
+   * @param mediaStream the media stream to publish.
    * @param trackType the type of the track to announce.
    */
-  publish = async (ms: MediaStream, trackType: TrackType) => {
+  publish = async (mediaStream: MediaStream, trackType: TrackType) => {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
@@ -1527,8 +1527,8 @@ export class Call {
     if (!this.publisher) throw new Error('Publisher is not initialized');
 
     const [track] = isAudioTrackType(trackType)
-      ? ms.getAudioTracks()
-      : ms.getVideoTracks();
+      ? mediaStream.getAudioTracks()
+      : mediaStream.getVideoTracks();
 
     if (!track) {
       throw new Error(
@@ -1545,7 +1545,7 @@ export class Call {
 
     const trackTypes = [trackType];
     if (trackType === TrackType.SCREEN_SHARE) {
-      const [audioTrack] = ms.getAudioTracks();
+      const [audioTrack] = mediaStream.getAudioTracks();
       if (audioTrack) {
         pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
         await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
@@ -1553,7 +1553,7 @@ export class Call {
       }
     }
 
-    await this.updateLocalStreamState(ms, ...trackTypes);
+    await this.updateLocalStreamState(mediaStream, ...trackTypes);
   };
 
   /**
@@ -1579,11 +1579,9 @@ export class Call {
     ...trackTypes: TrackType[]
   ) => {
     if (!this.sfuClient || !this.sfuClient.sessionId) return;
-    await this.sfuClient.updateMuteStates(
-      trackTypes.map((trackType) => ({ trackType, muted: !mediaStream })),
-    );
+    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
 
-    const sessionId = this.sfuClient.sessionId;
+    const { sessionId } = this.sfuClient;
     for (const trackType of trackTypes) {
       const streamStateProp = trackTypeToParticipantStreamKey(trackType);
       if (!streamStateProp) continue;
@@ -1612,7 +1610,7 @@ export class Call {
     if (this.state.callingState === CallingState.JOINED) {
       this.logger(
         'warn',
-        'Cannot update publish options after joining the call',
+        'Updating publish options after joining the call does not have an effect',
       );
     }
     this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
@@ -1638,6 +1636,17 @@ export class Call {
     return this.sfuClient?.stopNoiseCancellation().catch((err) => {
       this.logger('warn', 'Failed to notify stop of noise cancellation', err);
     });
+  };
+
+  /**
+   * Notifies the SFU about the mute state of the given track types.
+   * @internal
+   */
+  notifyTrackMuteState = async (muted: boolean, ...trackTypes: TrackType[]) => {
+    if (!this.sfuClient) return;
+    await this.sfuClient.updateMuteStates(
+      trackTypes.map((trackType) => ({ trackType, muted })),
+    );
   };
 
   /**

@@ -416,11 +416,22 @@ export abstract class InputMediaDeviceManager<
           await this.disable();
         }
       };
-      this.getTracks().forEach((track) => {
+      const createTrackMuteHandler = (muted: boolean) => () => {
+        this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
+          this.logger('warn', 'Error while notifying track mute state', err);
+        });
+      };
+      stream.getTracks().forEach((track) => {
+        const muteHandler = createTrackMuteHandler(true);
+        const unmuteHandler = createTrackMuteHandler(false);
+        track.addEventListener('mute', muteHandler);
+        track.addEventListener('unmute', unmuteHandler);
         track.addEventListener('ended', handleTrackEnded);
-        this.subscriptions.push(() =>
-          track.removeEventListener('ended', handleTrackEnded),
-        );
+        this.subscriptions.push(() => {
+          track.removeEventListener('mute', muteHandler);
+          track.removeEventListener('unmute', unmuteHandler);
+          track.removeEventListener('ended', handleTrackEnded);
+        });
       });
     }
   }
