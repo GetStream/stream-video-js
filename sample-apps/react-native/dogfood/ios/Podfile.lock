@@ -1787,7 +1787,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNReanimated (3.16.2):
+  - RNReanimated (3.16.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1807,10 +1807,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.16.2)
-    - RNReanimated/worklets (= 3.16.2)
+    - RNReanimated/reanimated (= 3.16.6)
+    - RNReanimated/worklets (= 3.16.6)
     - Yoga
-  - RNReanimated/reanimated (3.16.2):
+  - RNReanimated/reanimated (3.16.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1830,9 +1830,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 3.16.2)
+    - RNReanimated/reanimated/apple (= 3.16.6)
     - Yoga
-  - RNReanimated/reanimated/apple (3.16.2):
+  - RNReanimated/reanimated/apple (3.16.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1853,7 +1853,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.16.2):
+  - RNReanimated/worklets (3.16.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2012,7 +2012,7 @@ PODS:
   - stream-react-native-webrtc (125.0.3):
     - React-Core
     - WebRTC-SDK (~> 125.6422.05)
-  - stream-video-react-native (1.6.1):
+  - stream-video-react-native (1.7.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2399,7 +2399,7 @@ SPEC CHECKSUMS:
   RNNotifee: 52b319634ba89a2eacdfbadc01e059fd18505f04
   RNPermissions: a9ea34e4f88ced1f9664d6589f57b4931b23e3aa
   RNReactNativeHapticFeedback: d557285118551f215efe4b8fbbd24d2c4ae6c1b9
-  RNReanimated: 9ebacf9fbe1b8aeb2fc19de93d4a6779b89d0b89
+  RNReanimated: fb3896d9010787799eb5748e50fd59746a503001
   RNScreens: d6b3735a362dab6a8cef14d032bdbdaf6e1b8dfa
   RNSVG: b24f7dfe496d5463a79b330713226587e4b13956
   RNVoipPushNotification: e5edde96849c0133ebc7e900dc30c8c221cfb690
@@ -2407,10 +2407,10 @@ SPEC CHECKSUMS:
   stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
   stream-io-video-filters-react-native: 8e3d06506767c1a58576bb9d0229cbfc51a709d6
   stream-react-native-webrtc: b47233709aa82ffde44025c65032059e74b33c1a
-  stream-video-react-native: f5b2dc931bf34eaf3368e7b5e41db4681299e647
+  stream-video-react-native: fe54f4cb040a9555b4201e9f19f24e4b04133d62
   WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 
 PODFILE CHECKSUM: 22e502ced1a8b5a5e637f60837d3de140b3387b8
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

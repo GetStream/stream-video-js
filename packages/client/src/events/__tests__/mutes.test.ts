@@ -20,12 +20,9 @@ describe('mutes', () => {
         id: 'test',
         streamClient: new StreamClient('api-key'),
       });
-      // disable all event handlers
-      call['dispatcher'].offAll();
 
       // @ts-expect-error partial data
       call.publisher = vi.fn();
-      // @ts-expect-error partial data
       call.publisher.isPublishing = vi.fn().mockReturnValue(true);
 
       vi.spyOn(call.camera, 'disable').mockResolvedValue(undefined);

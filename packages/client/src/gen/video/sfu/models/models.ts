@@ -5,6 +5,7 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
+
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -194,49 +195,108 @@ export interface VideoLayer {
   quality: VideoQuality;
 }
 /**
- * @generated from protobuf message stream.video.sfu.models.PublishOptions
+ * SubscribeOption represents the configuration options for subscribing to a track.
+ *
+ * @generated from protobuf message stream.video.sfu.models.SubscribeOption
  */
-export interface PublishOptions {
+export interface SubscribeOption {
   /**
-   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption codecs = 1;
-   */
-  codecs: PublishOption[];
-}
-/**
- * @generated from protobuf message stream.video.sfu.models.PublishOption
- */
-export interface PublishOption {
-  /**
+   * The type of the track being subscribed (e.g., video, screenshare).
+   *
    * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
    */
   trackType: TrackType;
   /**
+   * The codecs supported by the subscriber for decoding tracks.
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.Codec codecs = 2;
+   */
+  codecs: Codec[];
+}
+/**
+ * PublishOption represents the configuration options for publishing a track.
+ *
+ * @generated from protobuf message stream.video.sfu.models.PublishOption
+ */
+export interface PublishOption {
+  /**
+   * The type of the track being published (e.g., video, screenshare).
+   *
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
+   */
+  trackType: TrackType;
+  /**
+   * The codec to be used for encoding the track (e.g., VP8, VP9, H264).
+   *
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
   codec?: Codec;
   /**
+   * The target bitrate for the published track, in bits per second.
+   *
    * @generated from protobuf field: int32 bitrate = 3;
    */
   bitrate: number;
   /**
+   * The target frames per second (FPS) for video encoding.
+   *
    * @generated from protobuf field: int32 fps = 4;
    */
   fps: number;
   /**
+   * The maximum number of spatial layers to send.
+   * - For SVC (e.g., VP9), spatial layers downscale by a factor of 2:
+   *   - 1 layer: full resolution
+   *   - 2 layers: full resolution + half resolution
+   *   - 3 layers: full resolution + half resolution + quarter resolution
+   * - For non-SVC codecs (e.g., VP8/H264), this determines the number of
+   *   encoded resolutions (e.g., quarter, half, full) sent for simulcast.
+   *
    * @generated from protobuf field: int32 max_spatial_layers = 5;
    */
   maxSpatialLayers: number;
   /**
+   * The maximum number of temporal layers for scalable video coding (SVC).
+   * Temporal layers allow varying frame rates for different bandwidths.
+   *
    * @generated from protobuf field: int32 max_temporal_layers = 6;
    */
   maxTemporalLayers: number;
+  /**
+   * The dimensions of the video (e.g., width and height in pixels).
+   * Spatial layers are based on this base resolution. For example, if the base
+   * resolution is 1280x720:
+   * - Full resolution (1 layer) = 1280x720
+   * - Half resolution (2 layers) = 640x360
+   * - Quarter resolution (3 layers) = 320x180
+   *
+   * @generated from protobuf field: stream.video.sfu.models.VideoDimension video_dimension = 7;
+   */
+  videoDimension?: VideoDimension;
+  /**
+   * The unique identifier for the publish request.
+   * - This `id` is assigned exclusively by the SFU. Any `id` set by the client
+   *   in the `PublishOption` will be ignored and overwritten by the SFU.
+   * - The primary purpose of this `id` is to uniquely identify each publish
+   *   request, even in scenarios where multiple publish requests for the same
+   *   `track_type` and `codec` are active simultaneously.
+   *   For example:
+   *     - A user may publish two tracks of the same type (e.g., video) and codec
+   *       (e.g., VP9) concurrently.
+   * - This uniqueness ensures that individual requests can be managed
+   *   independently. For instance, an `id` is critical when stopping a specific
+   *   publish request without affecting others.
+   *
+   * @generated from protobuf field: int32 id = 8;
+   */
+  id: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
  */
 export interface Codec {
   /**
-   * @generated from protobuf field: uint32 payload_type = 11;
+   * @generated from protobuf field: uint32 payload_type = 16;
    */
   payloadType: number;
   /**
@@ -248,7 +308,7 @@ export interface Codec {
    */
   clockRate: number;
   /**
-   * @generated from protobuf field: string encoding_parameters = 13;
+   * @generated from protobuf field: string encoding_parameters = 15;
    */
   encodingParameters: string;
   /**
@@ -311,6 +371,14 @@ export interface TrackInfo {
    * @generated from protobuf field: bool muted = 10;
    */
   muted: boolean;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec codec = 11;
+   */
+  codec?: Codec;
+  /**
+   * @generated from protobuf field: int32 publish_option_id = 12;
+   */
+  publishOptionId: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -1102,23 +1170,33 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
  */
 export const VideoLayer = new VideoLayer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class PublishOptions$Type extends MessageType<PublishOptions> {
+class SubscribeOption$Type extends MessageType<SubscribeOption> {
   constructor() {
-    super('stream.video.sfu.models.PublishOptions', [
+    super('stream.video.sfu.models.SubscribeOption', [
       {
         no: 1,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      {
+        no: 2,
         name: 'codecs',
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
-        T: () => PublishOption,
+        T: () => Codec,
       },
     ]);
   }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.models.PublishOptions
+ * @generated MessageType for protobuf message stream.video.sfu.models.SubscribeOption
  */
-export const PublishOptions = new PublishOptions$Type();
+export const SubscribeOption = new SubscribeOption$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PublishOption$Type extends MessageType<PublishOption> {
   constructor() {
@@ -1148,6 +1226,13 @@ class PublishOption$Type extends MessageType<PublishOption> {
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
       },
+      {
+        no: 7,
+        name: 'video_dimension',
+        kind: 'message',
+        T: () => VideoDimension,
+      },
+      { no: 8, name: 'id', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }
@@ -1160,7 +1245,7 @@ class Codec$Type extends MessageType<Codec> {
   constructor() {
     super('stream.video.sfu.models.Codec', [
       {
-        no: 11,
+        no: 16,
         name: 'payload_type',
         kind: 'scalar',
         T: 13 /*ScalarType.UINT32*/,
@@ -1173,7 +1258,7 @@ class Codec$Type extends MessageType<Codec> {
         T: 13 /*ScalarType.UINT32*/,
       },
       {
-        no: 13,
+        no: 15,
         name: 'encoding_parameters',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
@@ -1237,6 +1322,13 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 8, name: 'stereo', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 10, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      { no: 11, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 12,
+        name: 'publish_option_id',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
     ]);
   }
 }

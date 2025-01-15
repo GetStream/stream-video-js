@@ -23,6 +23,7 @@ import {
   createSoundDetector,
   SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
+import { PermissionsContext } from '../../permissions';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -60,7 +61,7 @@ class NoiseCancellationStub implements INoiseCancellation {
   enable = () => this.listeners['change']?.forEach((l) => l(true));
   disable = () => this.listeners['change']?.forEach((l) => l(false));
   dispose = () => Promise.resolve(undefined);
-  toFilter = () => async (ms: MediaStream) => ms;
+  toFilter = () => (ms: MediaStream) => ({ output: ms });
   on = (event, callback) => {
     (this.listeners[event] ??= []).push(callback);
     return () => {};
@@ -70,17 +71,16 @@ class NoiseCancellationStub implements INoiseCancellation {
 
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;
+  let call: Call;
 
   beforeEach(() => {
-    manager = new MicrophoneManager(
-      new Call({
-        id: '',
-        type: '',
-        streamClient: new StreamClient('abc123'),
-        clientStore: new StreamVideoWriteableStateStore(),
-      }),
-      'disable-tracks',
-    );
+    call = new Call({
+      id: '',
+      type: '',
+      streamClient: new StreamClient('abc123'),
+      clientStore: new StreamVideoWriteableStateStore(),
+    });
+    manager = new MicrophoneManager(call, 'disable-tracks');
   });
   it('list devices', () => {
     const spy = vi.fn();
@@ -110,8 +110,9 @@ describe('MicrophoneManager', () => {
 
     await manager.enable();
 
-    expect(manager['call'].publishAudioStream).toHaveBeenCalledWith(
+    expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      TrackType.AUDIO,
     );
   });
 
@@ -121,10 +122,7 @@ describe('MicrophoneManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.AUDIO,
-      false,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
   });
 
   it('disable-enable mic should set track.enabled', async () => {
@@ -244,7 +242,6 @@ describe('MicrophoneManager', () => {
 
   describe('Noise Cancellation', () => {
     it('should register filter if all preconditions are met', async () => {
-      const call = manager['call'];
       call.state.setCallingState(CallingState.IDLE);
       const registerFilter = vi.spyOn(manager, 'registerFilter');
       const noiseCancellation = new NoiseCancellationStub();
@@ -259,12 +256,10 @@ describe('MicrophoneManager', () => {
       const noiseCancellation = new NoiseCancellationStub();
       await manager.enableNoiseCancellation(noiseCancellation);
       await manager.disableNoiseCancellation();
-      const call = manager['call'];
       expect(call.notifyNoiseCancellationStopped).toBeCalled();
     });
 
     it('should throw when own capabilities are missing', async () => {
-      const call = manager['call'];
       call.state.setOwnCapabilities([]);
 
       await expect(() =>
@@ -273,7 +268,6 @@ describe('MicrophoneManager', () => {
     });
 
     it('should throw when noise cancellation is disabled in call settings', async () => {
-      const call = manager['call'];
       call.state.setOwnCapabilities([OwnCapability.ENABLE_NOISE_CANCELLATION]);
       call.state.updateFromCallResponse({
         // @ts-expect-error partial data
@@ -289,7 +283,6 @@ describe('MicrophoneManager', () => {
     });
 
     it('should automatically enable noise noise suppression after joining a call', async () => {
-      const call = manager['call'];
       call.state.setCallingState(CallingState.IDLE); // reset state
       call.state.updateFromCallResponse({
         settings: {
@@ -320,7 +313,6 @@ describe('MicrophoneManager', () => {
     });
 
     it('should automatically disable noise suppression after leaving the call', async () => {
-      const call = manager['call'];
       const noiseCancellation = new NoiseCancellationStub();
       const noiseSuppressionDisable = vi.spyOn(noiseCancellation, 'disable');
       await manager.enableNoiseCancellation(noiseCancellation);
@@ -336,6 +328,52 @@ describe('MicrophoneManager', () => {
 
       expect(noiseSuppressionDisable).toBeCalled();
       expect(call.notifyNoiseCancellationStopped).toBeCalled();
+    });
+  });
+
+  describe('Audio Settings', () => {
+    beforeEach(() => {
+      // @ts-expect-error - read only property
+      call.permissionsContext = new PermissionsContext();
+      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(true);
+    });
+
+    it('should turn the mic on when set on dashboard', async () => {
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+      expect(enable).toHaveBeenCalled();
+    });
+
+    it('should not turn the mic on when set on dashboard', async () => {
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: false }, true);
+      expect(enable).not.toHaveBeenCalled();
+    });
+
+    it('should not turn on the mic when publish is false', async () => {
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, false);
+      expect(enable).not.toHaveBeenCalled();
+    });
+
+    it('should not turn on the mic when permission is missing', async () => {
+      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(false);
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+      expect(enable).not.toHaveBeenCalled();
+    });
+
+    it('should publish the audio stream when mic is turned on before settings are applied', async () => {
+      await manager.enable();
+      // @ts-expect-error - private api
+      vi.spyOn(manager, 'publishStream');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+      expect(manager['publishStream']).toHaveBeenCalled();
     });
   });
 

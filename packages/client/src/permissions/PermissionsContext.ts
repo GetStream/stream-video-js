@@ -1,4 +1,6 @@
 import { CallSettingsResponse, OwnCapability } from '../gen/coordinator';
+import { TrackType } from '../gen/video/sfu/models/models';
+import { ensureExhausted } from '../helpers/ensureExhausted';
 
 /**
  * Stores the permissions for the current user and exposes
@@ -37,6 +39,26 @@ export class PermissionsContext {
    */
   hasPermission = (permission: OwnCapability) => {
     return this.permissions.includes(permission);
+  };
+
+  /**
+   * Helper method that checks whether the current user has the permission
+   * to publish the given track type.
+   */
+  canPublish = (trackType: TrackType) => {
+    switch (trackType) {
+      case TrackType.AUDIO:
+        return this.hasPermission(OwnCapability.SEND_AUDIO);
+      case TrackType.VIDEO:
+        return this.hasPermission(OwnCapability.SEND_VIDEO);
+      case TrackType.SCREEN_SHARE:
+      case TrackType.SCREEN_SHARE_AUDIO:
+        return this.hasPermission(OwnCapability.SCREENSHARE);
+      case TrackType.UNSPECIFIED:
+        return false;
+      default:
+        ensureExhausted(trackType, 'Unknown track type');
+    }
   };
 
   /**

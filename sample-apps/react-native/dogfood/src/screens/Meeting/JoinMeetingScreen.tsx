@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -8,7 +8,10 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { useAppGlobalStoreValue } from '../../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
 import { randomId } from '../../modules/helpers/randomId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
@@ -29,7 +32,8 @@ const callIdRegex = /^[A-Za-z0-9_-]*$/g;
 const isValidCallId = (callId: string) => callId && callId.match(callIdRegex);
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
-  const [callId, setCallId] = useState<string>('');
+  const setState = useAppGlobalStoreSetState();
+  const callId = useAppGlobalStoreValue((store) => store.callId) || '';
   const { theme } = useTheme();
   const { t } = useI18n();
   const orientation = useOrientation();
@@ -71,7 +75,6 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   };
 
   const isValidCall = isValidCallId(callId);
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -97,7 +100,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             autoCapitalize="none"
             autoCorrect={false}
             onChangeText={(text) => {
-              setCallId(text.trim().split(' ').join('-'));
+              setState({ callId: text.trim().split(' ').join('-') });
             }}
           />
           <Button

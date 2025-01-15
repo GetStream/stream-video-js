@@ -129,7 +129,7 @@ jobs:
     name: Deploy iOS
     needs: build_ios
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/use-vp8-on-ios' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4

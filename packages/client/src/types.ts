@@ -162,7 +162,7 @@ export type SubscriptionChanges = {
 };
 
 /**
- * A preferred codec to use when publishing a video track.
+ * A preferred codec to use when publishing a video or audio track.
  * @internal
  */
 export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1';
@@ -171,41 +171,31 @@ export type PreferredCodec = 'vp8' | 'h264' | 'vp9' | 'av1';
  * A collection of track publication options.
  * @internal
  */
-export type PublishOptions = {
+export type ClientPublishOptions = {
   /**
    * The preferred codec to use when publishing the video stream.
    */
   preferredCodec?: PreferredCodec;
   /**
-   * Force the codec to use when publishing the video stream.
-   * This will override the preferred codec and the internal codec selection logic.
-   * Use with caution.
+   * The fmtp line for the video codec.
    */
-  forceCodec?: PreferredCodec;
-  /**
-   * When using a preferred codec, force the use of a single codec.
-   * Enabling this, it will remove all other supported codecs from the SDP.
-   * Defaults to false.
-   */
-  forceSingleCodec?: boolean;
-  /**
-   * The preferred scalability to use when publishing the video stream.
-   * Applicable only for SVC codecs.
-   */
-  scalabilityMode?: string;
+  fmtpLine?: string;
   /**
    * The preferred bitrate to use when publishing the video stream.
    */
   preferredBitrate?: number;
   /**
-   * The preferred downscale factor to use when publishing the video stream
-   * in simulcast mode (non-SVC).
-   */
-  bitrateDownscaleFactor?: number;
-  /**
    * The maximum number of simulcast layers to use when publishing the video stream.
    */
   maxSimulcastLayers?: number;
+  /**
+   * The preferred subscription (incoming video stream) codec.
+   */
+  subscriberCodec?: PreferredCodec;
+  /**
+   * The fmtp line for the subscriber codec.
+   */
+  subscriberFmtpLine?: string;
   /**
    * Screen share settings.
    */

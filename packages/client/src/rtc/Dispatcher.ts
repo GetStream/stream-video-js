@@ -42,7 +42,6 @@ const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   callEnded: undefined,
   participantUpdated: undefined,
   participantMigrationComplete: undefined,
-  codecNegotiationComplete: undefined,
   changePublishOptions: undefined,
 };
 
@@ -94,13 +93,5 @@ export class Dispatcher {
     this.subscribers[eventName] = (this.subscribers[eventName] || []).filter(
       (f) => f !== fn,
     );
-  };
-
-  offAll = (eventName?: SfuEventKinds) => {
-    if (eventName) {
-      this.subscribers[eventName] = [];
-    } else {
-      this.subscribers = {};
-    }
   };
 }

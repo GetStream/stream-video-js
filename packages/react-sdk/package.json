@@ -36,7 +36,7 @@
     "@stream-io/video-react-bindings": "workspace:*",
     "chart.js": "^4.4.4",
     "clsx": "^2.0.0",
-    "react-chartjs-2": "^5.2.0"
+    "react-chartjs-2": "^5.3.0"
   },
   "peerDependencies": {
     "react": "^17 || ^18 || ^19",
