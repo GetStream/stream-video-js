@@ -52,7 +52,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.canAutoEnterPictureInPictureMode/
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
@@ -79,7 +79,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     ) as CustomExpoConfig;
 
     expect(updatedConfig2.modResults.contents).not.toMatch(
-      /StreamVideoReactNative.canAutoEnterPictureInPictureMode/
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/
     );
 
     expect(updatedConfig2.modResults.contents).not.toMatch(

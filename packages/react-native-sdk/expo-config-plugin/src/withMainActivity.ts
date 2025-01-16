@@ -89,14 +89,14 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
 }
 
 function addOnUserLeaveHint(contents: string, isJava: boolean) {
-  if (
-    !contents.includes(
-      'StreamVideoReactNative.canAutoEnterPictureInPictureMode'
-    )
-  ) {
-    let statementToInsert = '';
+  let statementToInsert = '';
 
-    if (isJava) {
+  if (isJava) {
+    if (
+      !contents.includes(
+        'StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode'
+      )
+    ) {
       statementToInsert = `
       @Override
       protected void onUserLeaveHint() {
@@ -107,7 +107,13 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
               onPictureInPictureModeChanged(true, config);
           }
       }`;
-    } else {
+    }
+  } else {
+    if (
+      !contents.includes(
+        'StreamVideoReactNative.canAutoEnterPictureInPictureMode'
+      )
+    ) {
       statementToInsert = `           
       override fun onUserLeaveHint() {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
@@ -118,12 +124,15 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
           }
       }`;
     }
+  }
 
+  if (statementToInsert) {
     contents = addNewLinesToMainActivity(
       contents,
       statementToInsert.trim().split('\n')
     );
   }
+
   return contents;
 }
 
