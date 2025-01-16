@@ -1,60 +1,24 @@
 import { useEffect, useState } from 'react';
-import {
-  AppState,
-  NativeEventEmitter,
-  NativeModules,
-  Platform,
-} from 'react-native';
+import { RxUtils } from '@stream-io/video-client';
+import { isInPiPModeAndroid$ } from '../utils/internal/rxSubjects';
 
-const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
-
-const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
-
-export function useIsInPiPMode(disablePictureInPicture: boolean | undefined) {
-  const [isInPiPMode, setIsInPiPMode] = useState(
-    disablePictureInPicture &&
-      isAndroid8OrAbove &&
-      AppState.currentState === 'background'
-  );
+export function useIsInPiPMode() {
+  const [value, setValue] = useState<boolean>(() => {
+    return RxUtils.getCurrentValue(isInPiPModeAndroid$);
+  });
 
   useEffect(() => {
-    if (!isAndroid8OrAbove) {
-      return;
-    }
-
-    const eventEmitter = new NativeEventEmitter(
-      NativeModules.StreamVideoReactNative
-    );
-
-    const subscriptionPiPChange = eventEmitter.addListener(
-      PIP_CHANGE_EVENT,
-      setIsInPiPMode
-    );
-
-    const setFromNativeMethod = async () => {
-      const isInPiPNativeMethod: boolean | null | undefined =
-        await NativeModules?.StreamVideoReactNative?.isInPiPMode();
-      setIsInPiPMode(!!isInPiPNativeMethod);
-    };
-
-    const subscriptionAppState = AppState.addEventListener(
-      'change',
-      (nextAppState) => {
-        if (nextAppState === 'background') {
-          setIsInPiPMode(!disablePictureInPicture); // set with an assumption that its enabled so that UI disabling happens faster
-          // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
-        }
-        setFromNativeMethod();
-      }
-    );
-
-    setFromNativeMethod();
-
+    const subscription = isInPiPModeAndroid$.subscribe({
+      next: setValue,
+      error: (err) => {
+        console.log('An error occurred while reading isInPiPModeAndroid$', err);
+        setValue(false);
+      },
+    });
     return () => {
-      subscriptionPiPChange.remove();
-      subscriptionAppState.remove();
+      subscription.unsubscribe();
     };
-  }, [disablePictureInPicture]);
+  }, []);
 
-  return isInPiPMode;
+  return value;
 }

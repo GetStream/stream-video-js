@@ -127,7 +127,7 @@ export const CallContent = ({
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
-  const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
+  const isInPiPMode = useIsInPiPMode();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
@@ -136,6 +136,7 @@ export const CallContent = ({
     !isInPiPMode &&
     remoteParticipants.length > 0 &&
     remoteParticipants.length < 3;
+
   const isRemoteParticipantInFloatingView =
     showFloatingView &&
     showRemoteParticipantInFloatingView &&

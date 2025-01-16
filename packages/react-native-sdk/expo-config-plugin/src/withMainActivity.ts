@@ -18,9 +18,8 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
       [
         'com.streamvideo.reactnative.StreamVideoReactNative',
         'android.os.Build',
-        'android.util.Rational',
+        'android.content.res.Configuration',
         'androidx.lifecycle.Lifecycle',
-        'android.app.PictureInPictureParams',
         'com.oney.WebRTCModule.WebRTCModuleOptions',
       ],
       isMainActivityJava
@@ -29,7 +28,7 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
       config.modResults.contents,
       isMainActivityJava
     );
-    if (props?.androidPictureInPicture?.enableAutomaticEnter) {
+    if (props?.androidPictureInPicture) {
       config.modResults.contents = addOnUserLeaveHint(
         config.modResults.contents,
         isMainActivityJava
@@ -48,33 +47,36 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
 
 function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
   if (
-    !contents.includes('StreamVideoReactNative.onPictureInPictureModeChanged')
+    !contents.includes(
+      'StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)'
+    )
   ) {
     let statementToInsert = '';
 
     if (isJava) {
       statementToInsert = `
       @Override
-      public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
-          // when user clicks on Close button of PIP
-          finishAndRemoveTask();
-        } else {
-          StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
-        }
+      public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+          super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+
+          if (lifecycleOwner.getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
+              // When user clicks on Close button of PIP
+              finishAndRemoveTask();
+          } else {
+              StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+          }
       }`;
     } else {
       // Kotlin
       statementToInsert = `         
-      override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
-          super.onPictureInPictureModeChanged(isInPictureInPictureMode)
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && lifecycle.currentState == Lifecycle.State.CREATED) {
-              // when user clicks on Close button of PIP
-              finishAndRemoveTask()
-          } else {
-              StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode)
-          }
+      override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        if (lifecycle.currentState === Lifecycle.State.CREATED) {
+            // when user clicks on Close button of PIP
+            finishAndRemoveTask()
+        } else {
+            StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        }
       }`;
     }
 
@@ -87,39 +89,50 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
 }
 
 function addOnUserLeaveHint(contents: string, isJava: boolean) {
-  if (
-    !contents.includes(
-      'StreamVideoReactNative.canAutoEnterPictureInPictureMode'
-    )
-  ) {
-    let statementToInsert = '';
+  let statementToInsert = '';
 
-    if (isJava) {
+  if (isJava) {
+    if (
+      !contents.includes(
+        'StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode'
+      )
+    ) {
       statementToInsert = `
       @Override
-      public void onUserLeaveHint () {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
-          PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-          builder.setAspectRatio(new Rational(480, 640));
-          enterPictureInPictureMode(builder.build());
-        }
-      }`;
-    } else {
-      statementToInsert = `           
-      override fun onUserLeaveHint () {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
-          val builder = PictureInPictureParams.Builder()
-          builder.setAspectRatio(Rational(480, 640))
-          enterPictureInPictureMode(builder.build())
-        }
+      protected void onUserLeaveHint() {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+              Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
+              StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode()) {
+              Configuration config = getResources().getConfiguration();
+              onPictureInPictureModeChanged(true, config);
+          }
       }`;
     }
+  } else {
+    if (
+      !contents.includes(
+        'StreamVideoReactNative.canAutoEnterPictureInPictureMode'
+      )
+    ) {
+      statementToInsert = `           
+      override fun onUserLeaveHint() {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+              Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
+              StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+              val config = resources.configuration
+              onPictureInPictureModeChanged(true,  config)
+          }
+      }`;
+    }
+  }
 
+  if (statementToInsert) {
     contents = addNewLinesToMainActivity(
       contents,
       statementToInsert.trim().split('\n')
     );
   }
+
   return contents;
 }
 
