@@ -1,11 +1,6 @@
 import { useMemo } from 'react';
 
 export function CapabilitiesDash() {
-  const videoEncodingCapabilities = useMemo(
-    () => getCodecCapabilties('send', 'video'),
-    [],
-  );
-
   return (
     <>
       Video encoding support:
@@ -34,6 +29,12 @@ export function CodecCapabilitiesDash(props: {
   );
 }
 
+const skippedCodecMimeTypes = new Set([
+  'video/rtx',
+  'video/ulpfec',
+  'video/flexfec-03',
+]);
+
 function getCodecCapabilties(
   direction: 'send' | 'recv',
   kind: string,
@@ -49,6 +50,10 @@ function getCodecCapabilties(
   const capabilities = new Set<string>();
 
   for (const codec of codecs) {
+    if (skippedCodecMimeTypes.has(codec.mimeType)) {
+      continue;
+    }
+
     const prefix = `${kind}/`;
     const mimeType = codec.mimeType.startsWith(prefix)
       ? codec.mimeType.substring(prefix.length)
