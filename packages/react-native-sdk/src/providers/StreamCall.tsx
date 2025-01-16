@@ -59,6 +59,9 @@ export const StreamCall = ({
 const AppStateListener = () => {
   const call = useCall();
   const appState = useRef(AppState.currentState);
+  const [cameraDisabledByAppState, setCameraDisabledByAppState] =
+    React.useState<boolean>(false);
+
   useEffect(() => {
     // due to strange behavior in iOS when app goes to "inactive" state
     // we dont check for inactive states
@@ -75,7 +78,10 @@ const AppStateListener = () => {
             call?.camera?.enable();
           });
         } else {
-          call?.camera?.resume();
+          if (cameraDisabledByAppState) {
+            call?.camera?.resume();
+            setCameraDisabledByAppState(false);
+          }
         }
         appState.current = nextAppState;
       } else if (
@@ -95,6 +101,7 @@ const AppStateListener = () => {
                   return;
                 }
                 if (call?.camera?.state.status === 'enabled') {
+                  setCameraDisabledByAppState(true);
                   call?.camera?.disable();
                 }
               }
@@ -104,6 +111,7 @@ const AppStateListener = () => {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
             if (call?.camera?.state.status === 'enabled') {
+              setCameraDisabledByAppState(true);
               call?.camera?.disable();
             }
           }
@@ -115,7 +123,7 @@ const AppStateListener = () => {
     return () => {
       subscription.remove();
     };
-  }, [call]);
+  }, [call, cameraDisabledByAppState]);
 
   return null;
 };

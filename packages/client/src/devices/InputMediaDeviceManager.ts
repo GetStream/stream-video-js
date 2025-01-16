@@ -129,11 +129,6 @@ export abstract class InputMediaDeviceManager<
    * If status was previously enabled, it will re-enable the device.
    */
   async resume() {
-    if (this.state.optimisticStatus === 'disabled') {
-      // UI state of the camera is disabled so we don't enable it
-      return;
-    }
-
     if (
       this.state.prevStatus === 'enabled' &&
       this.state.status !== 'enabled'
