@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { ConnectivityDash } from './ConnectivityDash';
 import { CapabilitiesDash } from './CapabiltiesDash';
+import { DevicesDash } from './DevicesDash';
 
 interface Credentials {
   callType: string;
@@ -30,13 +31,14 @@ export default function InspectorPage() {
     return <>Connecting user...</>;
   }
 
-  // if (!call) {
-  //   return <>Joining call...</>;
-  // }
+  if (!call) {
+    return <>Joining call...</>;
+  }
 
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
+        <DevicesDash />
         <CapabilitiesDash />
         <ConnectivityDash />
         <CallStatsInspector />
