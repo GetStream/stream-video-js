@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "packageManager": "yarn@3.2.4",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
@@ -121,7 +121,7 @@
     "@react-native-firebase/app": "19.2.2",
     "@react-native-firebase/messaging": "19.2.2",
     "@react-native/eslint-config": "^0.74.84",
-    "@stream-io/react-native-webrtc": "118.1.0",
+    "@stream-io/react-native-webrtc": "125.0.3",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",

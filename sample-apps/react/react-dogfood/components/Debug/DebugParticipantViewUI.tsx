@@ -22,8 +22,9 @@ import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 
 export const DebugParticipantViewUI = () => {
   const call = useCall();
-  const { participant } = useParticipantViewContext();
-  const { sessionId, userId, videoStream } = participant;
+  const {
+    participant: { sessionId, userId },
+  } = useParticipantViewContext();
 
   const isDemoEnvironment = useIsDemoEnvironment();
   const participantContextMenuActions = isDemoEnvironment
@@ -44,12 +45,7 @@ export const DebugParticipantViewUI = () => {
         ParticipantActionsContextMenu={participantContextMenuActions}
       />
       <div className="rd__debug__extra">
-        <DebugStatsView
-          call={call!}
-          sessionId={sessionId}
-          userId={userId}
-          mediaStream={videoStream}
-        />
+        <DebugStatsView call={call!} sessionId={sessionId} userId={userId} />
       </div>
     </>
   );

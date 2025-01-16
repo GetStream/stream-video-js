@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.2.5...@stream-io/video-filters-react-native-0.2.6) (2025-01-15)
+
+
+### Features
+
+* Codec Negotiation ([#1527](https://github.com/GetStream/stream-video-js/issues/1527)) ([2e9e344](https://github.com/GetStream/stream-video-js/commit/2e9e344d5259e3069dddb17846013becef24829e))
+
 ## [0.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.2.4...@stream-io/video-filters-react-native-0.2.5) (2024-11-21)
 
 

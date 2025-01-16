@@ -46,15 +46,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
-  const videoCodecOverride = router.query['video_codec'] as
+  const videoCodecOverride = (router.query['video_encoder'] ||
+    router.query['video_codec']) as PreferredCodec | undefined;
+  const fmtpOverride = router.query['fmtp'] as string | undefined;
+  const bitrateOverride = router.query['bitrate'] as string | undefined;
+  const videoDecoderOverride = router.query['video_decoder'] as
     | PreferredCodec
     | undefined;
-  const bitrateOverride = router.query['bitrate'] as string | undefined;
-  const forceSingleCodec = router.query['force_single_codec'] === 'true';
-  const bitrateFactorOverride = router.query['bitrate_factor'] as
-    | string
-    | undefined;
-  const scalabilityMode = router.query['scalability_mode'] as
+  const videoDecoderFmtpOverride = router.query['video_decoder_fmtp'] as
     | string
     | undefined;
   const maxSimulcastLayers = router.query['max_simulcast_layers'] as
@@ -69,21 +68,16 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         const preferredBitrate = bitrateOverride
           ? parseInt(bitrateOverride, 10)
           : undefined;
-
         call.updatePublishOptions({
-          preferredCodec: 'vp9',
-          forceCodec: videoCodecOverride,
-          forceSingleCodec,
-          scalabilityMode,
+          preferredCodec: videoCodecOverride,
+          fmtpLine: fmtpOverride,
           preferredBitrate,
-          bitrateDownscaleFactor: bitrateFactorOverride
-            ? parseInt(bitrateFactorOverride, 10)
-            : 2, // default to 2
+          subscriberCodec: videoDecoderOverride,
+          subscriberFmtpLine: videoDecoderFmtpOverride,
           maxSimulcastLayers: maxSimulcastLayers
             ? parseInt(maxSimulcastLayers, 10)
-            : 3, // default to 3
+            : undefined,
         });
-
         await call.join({ create: true });
         setShow('active-call');
       } catch (e) {
@@ -93,13 +87,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       }
     },
     [
-      bitrateFactorOverride,
       bitrateOverride,
       call,
-      forceSingleCodec,
+      fmtpOverride,
       maxSimulcastLayers,
-      scalabilityMode,
       videoCodecOverride,
+      videoDecoderFmtpOverride,
+      videoDecoderOverride,
     ],
   );
 
@@ -269,14 +263,11 @@ const ErrorPage = ({
 export const LoadingScreen = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const [message, setMessage] = useState('');
-  useEffect(() => {
-    if (callingState === CallingState.RECONNECTING) {
-      setMessage('Please wait, we are connecting you to the call...');
-    } else if (callingState === CallingState.JOINED) {
-      setMessage('');
-    }
-  }, [callingState]);
+  const message =
+    callingState === CallingState.RECONNECTING
+      ? 'Please wait, we are connecting you to the call...'
+      : '';
+
   return (
     <div className="str-video__call">
       <div className="str-video__call__loading-screen">

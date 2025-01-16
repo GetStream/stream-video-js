@@ -46,7 +46,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
   async disableScreenShareAudio(): Promise<void> {
     this.state.setAudioEnabled(false);
     if (this.call.publisher?.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-      await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, true);
+      await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO);
     }
   }
 
@@ -79,13 +79,11 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return getScreenShareStream(constraints);
   }
 
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishScreenShareStream(stream);
-  }
-
-  protected async stopPublishStream(stopTracks: boolean): Promise<void> {
-    await this.call.stopPublish(TrackType.SCREEN_SHARE, stopTracks);
-    await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, stopTracks);
+  protected async stopPublishStream(): Promise<void> {
+    return this.call.stopPublish(
+      TrackType.SCREEN_SHARE,
+      TrackType.SCREEN_SHARE_AUDIO,
+    );
   }
 
   /**

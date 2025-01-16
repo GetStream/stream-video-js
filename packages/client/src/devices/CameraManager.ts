@@ -3,9 +3,9 @@ import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
+import { OwnCapability, VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { PreferredCodec } from '../types';
-import { isMobile } from '../compatibility';
+import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
@@ -86,14 +86,39 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   /**
-   * Sets the preferred codec for encoding the video.
+   * Applies the video settings to the camera.
    *
-   * @internal internal use only, not part of the public API.
-   * @deprecated use {@link call.updatePublishOptions} instead.
-   * @param codec the codec to use for encoding the video.
+   * @param settings the video settings to apply.
+   * @param publish whether to publish the stream after applying the settings.
    */
-  setPreferredCodec(codec: PreferredCodec | undefined) {
-    this.call.updatePublishOptions({ preferredCodec: codec });
+  async apply(settings: VideoSettingsResponse, publish: boolean) {
+    const hasPublishedVideo = !!this.call.state.localParticipant?.videoStream;
+    const hasPermission = this.call.permissionsContext.hasPermission(
+      OwnCapability.SEND_AUDIO,
+    );
+    if (hasPublishedVideo || !hasPermission) return;
+
+    // Wait for any in progress camera operation
+    await this.statusChangeSettled();
+
+    const { target_resolution, camera_facing, camera_default_on } = settings;
+    await this.selectTargetResolution(target_resolution);
+
+    // Set camera direction if it's not yet set
+    if (!this.state.direction && !this.state.selectedDevice) {
+      this.state.setDirection(camera_facing === 'front' ? 'front' : 'back');
+    }
+
+    if (!publish) return;
+
+    const { mediaStream } = this.state;
+    if (this.enabled && mediaStream) {
+      // The camera is already enabled (e.g. lobby screen). Publish the stream
+      await this.publishStream(mediaStream);
+    } else if (this.state.status === undefined && camera_default_on) {
+      // Start camera if backend config specifies, and there is no local setting
+      await this.enable();
+    }
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -117,13 +142,5 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         this.state.direction === 'front' ? 'user' : 'environment';
     }
     return getVideoStream(constraints);
-  }
-
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream);
-  }
-
-  protected stopPublishStream(stopTracks: boolean): Promise<void> {
-    return this.call.stopPublish(TrackType.VIDEO, stopTracks);
   }
 }

@@ -1,5 +1,7 @@
 import * as CallStateHooks from './callStateHooks';
 
+export * from './useObservableValue';
+
 export * from './store';
 export * from './callUtilHooks';
 

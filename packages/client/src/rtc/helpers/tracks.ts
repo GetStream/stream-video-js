@@ -57,3 +57,6 @@ export const toTrackType = (trackType: string): TrackType | undefined => {
       return undefined;
   }
 };
+
+export const isAudioTrackType = (trackType: TrackType): boolean =>
+  trackType === TrackType.AUDIO || trackType === TrackType.SCREEN_SHARE_AUDIO;
