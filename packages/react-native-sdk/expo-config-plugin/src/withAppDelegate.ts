@@ -54,7 +54,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
             config.modResults.contents
           );
         }
-        addDidFinishLaunchingWithOptions(
+        config.modResults.contents = addDidFinishLaunchingWithOptions(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess
         );
@@ -77,9 +77,11 @@ function addDidFinishLaunchingWithOptions(
   iOSEnableMultitaskingCameraAccess: boolean | undefined
 ) {
   if (iOSEnableMultitaskingCameraAccess) {
-    addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
+    contents = addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
+
     const setupMethod = `WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
   options.enableMultitaskingCameraAccess = YES;`;
+
     if (!contents.includes('options.enableMultitaskingCameraAccess = YES')) {
       contents = insertContentsInsideObjcFunctionBlock(
         contents,
