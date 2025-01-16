@@ -69,7 +69,7 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
     } else {
       // Kotlin
       statementToInsert = `         
-      fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+      override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         if (lifecycle.currentState === Lifecycle.State.CREATED) {
             // when user clicks on Close button of PIP
