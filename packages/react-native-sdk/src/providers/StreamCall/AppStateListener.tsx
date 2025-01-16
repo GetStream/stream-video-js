@@ -1,5 +1,5 @@
 import { useCall } from '@stream-io/video-react-bindings';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AppState,
   NativeEventEmitter,
@@ -23,7 +23,8 @@ const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
 export const AppStateListener = () => {
   const call = useCall();
   const appState = useRef(AppState.currentState);
-  const cameraDisabledByAppState = useRef<boolean>(false);
+  const [cameraDisabledByAppState, setCameraDisabledByAppState] =
+    useState<boolean>(false);
 
   // on mount: set initial PiP mode and listen to PiP events
   useEffect(() => {
@@ -70,7 +71,7 @@ export const AppStateListener = () => {
         } else {
           if (cameraDisabledByAppState) {
             call?.camera?.resume();
-            cameraDisabledByAppState.current = false;
+            setCameraDisabledByAppState(false);
           }
         }
         appState.current = nextAppState;
@@ -83,7 +84,7 @@ export const AppStateListener = () => {
           // in PiP mode, we don't want to disable the camera
           const disableCameraIfNeeded = () => {
             if (call?.camera?.state.status === 'enabled') {
-              cameraDisabledByAppState.current = true;
+              setCameraDisabledByAppState(true);
               call?.camera?.disable();
             }
           };
@@ -113,7 +114,7 @@ export const AppStateListener = () => {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
             if (call?.camera?.state.status === 'enabled') {
-              cameraDisabledByAppState.current = true;
+              setCameraDisabledByAppState(true);
               call?.camera?.disable();
             }
           }
@@ -125,7 +126,7 @@ export const AppStateListener = () => {
     return () => {
       subscription.remove();
     };
-  }, [call]);
+  }, [call, cameraDisabledByAppState]);
 
   return null;
 };
