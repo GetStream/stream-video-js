@@ -1,28 +1,40 @@
 package com.streamvideo.reactnative
-import kotlin.properties.Delegates
 
+import android.content.res.Configuration
+import java.util.concurrent.CopyOnWriteArrayList // For thread safety
 
 object StreamVideoReactNative {
 
-    var pipListeners = ArrayList<(b: Boolean) -> Unit>()
+    // Use CopyOnWriteArrayList for thread safety
+    private val pipListeners = CopyOnWriteArrayList<(isInPip: Boolean, newConfig: Configuration) -> Unit>()
 
     @JvmField
     var canAutoEnterPictureInPictureMode = false
 
-    // fires off every time value of the property changes
-    private var isInPictureInPictureMode: Boolean by Delegates.observable(false) { _, _, newValue ->
-        pipListeners.forEach {listener ->
-            listener(newValue)
-        }
-    }
+    private var isInPictureInPictureMode: Boolean = false
 
-    @JvmStatic @Deprecated("No need to use setup() anymore")
+    @Deprecated("No need to use setup() anymore")
+    @JvmStatic
     fun setup() {
-        // do nothing
+        // Do nothing
     }
 
     @JvmStatic
-    fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+    fun addPipListener(listener: (isInPip: Boolean, newConfig: Configuration) -> Unit) {
+        pipListeners.add(listener)
+    }
+
+    @JvmStatic
+    fun clearPipListeners() {
+        pipListeners.clear()
+    }
+
+    @JvmStatic
+    fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         this.isInPictureInPictureMode = isInPictureInPictureMode
+        // Iterate safely over the list
+        pipListeners.forEach { listener ->
+            listener(isInPictureInPictureMode, newConfig)
+        }
     }
 }

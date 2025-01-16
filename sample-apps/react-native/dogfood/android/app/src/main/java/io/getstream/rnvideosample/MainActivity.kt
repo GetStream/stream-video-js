@@ -1,17 +1,14 @@
 package io.getstream.rnvideosample
 
-import android.app.PictureInPictureParams
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.util.Rational
 import androidx.lifecycle.Lifecycle
-
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.oney.WebRTCModule.WebRTCModuleOptions
-
 import com.streamvideo.reactnative.StreamVideoReactNative
 
 class MainActivity : ReactActivity() {
@@ -35,21 +32,22 @@ class MainActivity : ReactActivity() {
     override fun createReactActivityDelegate(): ReactActivityDelegate =
         DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         if (lifecycle.currentState == Lifecycle.State.CREATED) {
             // when user clicks on Close button of PIP
             finishAndRemoveTask()
         } else {
-            StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode)
+            StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         }
     }
 
-    public override fun onUserLeaveHint() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
-            val builder = PictureInPictureParams.Builder()
-            builder.setAspectRatio(Rational(480, 640))
-            enterPictureInPictureMode(builder.build())
+    override fun onUserLeaveHint() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
+            StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+            val config = resources.configuration
+            onPictureInPictureModeChanged(true,  config)
         }
     }
 }

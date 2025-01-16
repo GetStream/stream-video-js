@@ -41,9 +41,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
 
     const props: ConfigProps = {
-      androidPictureInPicture: {
-        enableAutomaticEnter: true,
-      },
+      androidPictureInPicture: true,
       enableScreenshare: true,
     };
 
@@ -54,7 +52,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.canAutoEnterPictureInPictureMode/
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
@@ -62,9 +60,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
 
     const props2: ConfigProps = {
-      androidPictureInPicture: {
-        enableAutomaticEnter: false,
-      },
+      androidPictureInPicture: false,
       enableScreenshare: false,
     };
 
@@ -83,7 +79,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     ) as CustomExpoConfig;
 
     expect(updatedConfig2.modResults.contents).not.toMatch(
-      /StreamVideoReactNative.canAutoEnterPictureInPictureMode/
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/
     );
 
     expect(updatedConfig2.modResults.contents).not.toMatch(
@@ -103,9 +99,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      androidPictureInPicture: {
-        enableAutomaticEnter: true,
-      },
+      androidPictureInPicture: true,
     };
     expect(() => withMainActivity(config, props)).toThrow();
   });

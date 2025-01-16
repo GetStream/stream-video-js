@@ -37,7 +37,7 @@ export const ActiveCall = ({
   const styles = useStyles();
   const { selectedLayout } = useLayout();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const isInPiPMode = useIsInPiPMode(false);
+  const isInPiPMode = useIsInPiPMode();
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';

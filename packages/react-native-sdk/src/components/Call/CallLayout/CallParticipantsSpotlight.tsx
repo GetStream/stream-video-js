@@ -25,10 +25,7 @@ import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
   Pick<
     CallContentProps,
-    | 'supportedReactions'
-    | 'CallParticipantsList'
-    | 'ScreenShareOverlay'
-    | 'disablePictureInPicture'
+    'supportedReactions' | 'CallParticipantsList' | 'ScreenShareOverlay'
   > &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
@@ -53,7 +50,6 @@ export const CallParticipantsSpotlight = ({
   VideoRenderer,
   supportedReactions,
   landscape,
-  disablePictureInPicture,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { callParticipantsSpotlight, variants },
@@ -69,7 +65,7 @@ export const CallParticipantsSpotlight = ({
     participantInSpotlight && hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
 
-  const isInPiP = useIsInPiPMode(disablePictureInPicture);
+  const isInPiP = useIsInPiPMode();
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
