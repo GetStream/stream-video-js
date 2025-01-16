@@ -125,6 +125,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
   center.delegate = self;
   
   WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+  options.enableMultitaskingCameraAccess = YES;
 //  uncomment below to see native webrtc logs
 //  options.loggingSeverity = RTCLoggingSeverityInfo;
   

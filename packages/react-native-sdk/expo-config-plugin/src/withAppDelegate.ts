@@ -1,4 +1,7 @@
-import { ConfigPlugin, withAppDelegate } from '@expo/config-plugins';
+import {
+  ConfigPlugin,
+  withAppDelegate as withAppDelegateUtil,
+} from '@expo/config-plugins';
 import {
   addObjcImports,
   insertContentsInsideObjcFunctionBlock,
@@ -15,39 +18,45 @@ const DID_UPDATE_PUSH_CREDENTIALS =
 const DID_RECEIVE_INCOMING_PUSH =
   'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
 
-const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
-  configuration,
-  props
-) => {
-  return withAppDelegate(configuration, (config) => {
-    if (!props?.ringingPushNotifications) {
-      // user doesnt want to use ringing push notifications, so quit early
+const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
+  return withAppDelegateUtil(configuration, (config) => {
+    if (
+      !props?.ringingPushNotifications &&
+      !props?.iOSEnableMultitaskingCameraAccess
+    ) {
+      // quit early if no change is necessary
       return config;
     }
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
       try {
         // all the imports that are needed
-        config.modResults.contents = addObjcImports(
+        if (props?.ringingPushNotifications) {
+          config.modResults.contents = addObjcImports(
+            config.modResults.contents,
+            [
+              '"RNCallKeep.h"',
+              '<PushKit/PushKit.h>',
+              '"RNVoipPushNotificationManager.h"',
+              '"StreamVideoReactNative.h"',
+            ]
+          );
+
+          config.modResults.contents = addDidFinishLaunchingWithOptionsRinging(
+            config.modResults.contents,
+            props.ringingPushNotifications
+          );
+
+          config.modResults.contents = addDidUpdatePushCredentials(
+            config.modResults.contents
+          );
+
+          config.modResults.contents = addDidReceiveIncomingPushCallback(
+            config.modResults.contents
+          );
+        }
+        addDidFinishLaunchingWithOptions(
           config.modResults.contents,
-          [
-            '"RNCallKeep.h"',
-            '<PushKit/PushKit.h>',
-            '"RNVoipPushNotificationManager.h"',
-            '"StreamVideoReactNative.h"',
-          ]
-        );
-
-        config.modResults.contents = addDidFinishLaunchingWithOptions(
-          config.modResults.contents,
-          props.ringingPushNotifications
-        );
-
-        config.modResults.contents = addDidUpdatePushCredentials(
-          config.modResults.contents
-        );
-
-        config.modResults.contents = addDidReceiveIncomingPushCallback(
-          config.modResults.contents
+          props.iOSEnableMultitaskingCameraAccess
         );
         return config;
       } catch (error: any) {
@@ -64,6 +73,26 @@ const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
 };
 
 function addDidFinishLaunchingWithOptions(
+  contents: string,
+  iOSEnableMultitaskingCameraAccess: boolean | undefined
+) {
+  if (iOSEnableMultitaskingCameraAccess) {
+    addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
+    const setupMethod = `WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+  options.enableMultitaskingCameraAccess = YES;`;
+    if (!contents.includes('options.enableMultitaskingCameraAccess = YES')) {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        DID_FINISH_LAUNCHING_WITH_OPTIONS,
+        setupMethod,
+        { position: 'tailBeforeLastReturn' }
+      );
+    }
+  }
+  return contents;
+}
+
+function addDidFinishLaunchingWithOptionsRinging(
   contents: string,
   ringingPushNotifications: RingingPushNotifications
 ) {
@@ -183,4 +212,4 @@ function addDidReceiveIncomingPushCallback(contents: string) {
   return contents;
 }
 
-export default withPushAppDelegate;
+export default withAppDelegate;
