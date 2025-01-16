@@ -84,7 +84,7 @@ export const AppStateListener = () => {
           // in PiP mode, we don't want to disable the camera
           const disableCameraIfNeeded = () => {
             if (call?.camera?.state.status === 'enabled') {
-              setCameraDisabledByAppState(false);
+              setCameraDisabledByAppState(true);
               call?.camera?.disable();
             }
           };
@@ -114,7 +114,7 @@ export const AppStateListener = () => {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
             if (call?.camera?.state.status === 'enabled') {
-              setCameraDisabledByAppState(false);
+              setCameraDisabledByAppState(true);
               call?.camera?.disable();
             }
           }
