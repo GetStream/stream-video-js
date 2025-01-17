@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.1...@stream-io/video-react-native-sdk-1.9.2) (2025-01-17)
+
+
+### Bug Fixes
+
+* **rn-sdk:** fixes the camera status on app restore from background ([#1641](https://github.com/GetStream/stream-video-js/issues/1641)) ([0ff2506](https://github.com/GetStream/stream-video-js/commit/0ff2506de4d3db30a86ab27ee8dcfaa2fe8f0ddc))
+
 ## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.0...@stream-io/video-react-native-sdk-1.9.1) (2025-01-16)
 
 ### Dependency Updates
