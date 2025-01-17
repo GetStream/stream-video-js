@@ -23,6 +23,7 @@ const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
 export const AppStateListener = () => {
   const call = useCall();
   const appState = useRef(AppState.currentState);
+  const cameraDisabledByAppState = useRef<boolean>(false);
 
   // on mount: set initial PiP mode and listen to PiP events
   useEffect(() => {
@@ -67,7 +68,10 @@ export const AppStateListener = () => {
             call?.camera?.enable();
           });
         } else {
-          call?.camera?.resume();
+          if (cameraDisabledByAppState.current) {
+            call?.camera?.resume();
+            cameraDisabledByAppState.current = false;
+          }
         }
         appState.current = nextAppState;
       } else if (
@@ -79,6 +83,7 @@ export const AppStateListener = () => {
           // in PiP mode, we don't want to disable the camera
           const disableCameraIfNeeded = () => {
             if (call?.camera?.state.status === 'enabled') {
+              cameraDisabledByAppState.current = true;
               call?.camera?.disable();
             }
           };
@@ -108,6 +113,7 @@ export const AppStateListener = () => {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
             if (call?.camera?.state.status === 'enabled') {
+              cameraDisabledByAppState.current = true;
               call?.camera?.disable();
             }
           }
