@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.0...@stream-io/video-client-1.15.1) (2025-01-16)
+
+
+### Bug Fixes
+
+* update mute state only for video track on mobile ([#1645](https://github.com/GetStream/stream-video-js/issues/1645)) ([c0507cb](https://github.com/GetStream/stream-video-js/commit/c0507cb02e0058b8b968237220234771c9a30e6f)), closes [#1527](https://github.com/GetStream/stream-video-js/issues/1527)
+
 ## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.14.0...@stream-io/video-client-1.15.0) (2025-01-15)
 
 

@@ -38,9 +38,7 @@ const props: ConfigProps = {
   ringingPushNotifications: {
     disableVideoIos: false,
   },
-  androidPictureInPicture: {
-    enableAutomaticEnter: true,
-  },
+  androidPictureInPicture: true,
   androidKeepCallAlive: true,
 };
 

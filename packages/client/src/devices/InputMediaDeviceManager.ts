@@ -3,6 +3,7 @@ import { Call } from '../Call';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
@@ -417,6 +418,7 @@ export abstract class InputMediaDeviceManager<
         }
       };
       const createTrackMuteHandler = (muted: boolean) => () => {
+        if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
         this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
           this.logger('warn', 'Error while notifying track mute state', err);
         });

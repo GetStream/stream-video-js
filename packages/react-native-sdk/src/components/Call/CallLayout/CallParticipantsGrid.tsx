@@ -17,10 +17,7 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
  * Props for the CallParticipantsGrid component.
  */
 export type CallParticipantsGridProps = ParticipantViewComponentProps &
-  Pick<
-    CallContentProps,
-    'supportedReactions' | 'CallParticipantsList' | 'disablePictureInPicture'
-  > &
+  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
@@ -47,7 +44,6 @@ export const CallParticipantsGrid = ({
   showLocalParticipant = false,
   supportedReactions,
   landscape,
-  disablePictureInPicture,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
@@ -69,7 +65,7 @@ export const CallParticipantsGrid = ({
     flexDirection: landscape ? 'row' : 'column',
   };
 
-  const isInPiPMode = useIsInPiPMode(disablePictureInPicture);
+  const isInPiPMode = useIsInPiPMode();
 
   const showFloatingView =
     !isInPiPMode &&
