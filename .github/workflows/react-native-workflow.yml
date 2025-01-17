@@ -86,7 +86,7 @@ jobs:
         run: bundle exec fastlane build_ios
 
       - name: Upload .ipa
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ipa
           path: |
@@ -116,7 +116,7 @@ jobs:
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane test_ios
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: iOS Test Data
@@ -184,13 +184,13 @@ jobs:
         run: bundle exec fastlane build_android_play_store
 
       - name: Upload .apk
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: apk
           path: '**/dist/*.apk'
 
       - name: Upload .aab
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: aab
           path: '**/dist/*.aab'
@@ -253,7 +253,7 @@ jobs:
           working-directory: sample-apps/react-native/dogfood
           script: bundle exec fastlane test_android
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: Android Test Data

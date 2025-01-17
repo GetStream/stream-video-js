@@ -151,7 +151,9 @@ import Foundation
     }
     
     @objc func cleanup() {
+        sourceView = nil
         contentViewController?.track = nil
+        contentViewController = nil
         if #available(iOS 15.0, *) {
             pictureInPictureController?.contentSource = nil
         }

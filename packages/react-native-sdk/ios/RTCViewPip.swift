@@ -35,12 +35,13 @@ class RTCViewPip: UIView {
     }
     
     @objc func setStreamURL(_ streamReactTag: NSString) {
+        let tag = String(streamReactTag)
         webRtcModule?.workerQueue.async {
-            let stream = self.webRtcModule?.stream(forReactTag: String(streamReactTag))
+            let stream = self.webRtcModule?.stream(forReactTag: tag)
             let videoTracks = stream?.videoTracks ?? []
             let videoTrack = videoTracks.first
             if videoTrack == nil {
-                NSLog("PiP - No video stream for react tag: -\(streamReactTag)")
+                NSLog("PiP - No video stream for react tag: -\(tag)")
             } else {
                 DispatchQueue.main.async {
                     self.pictureInPictureController?.track = videoTrack
