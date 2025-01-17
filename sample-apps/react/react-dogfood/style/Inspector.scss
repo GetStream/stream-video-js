@@ -1,0 +1,26 @@
+.rd__value-poller::after {
+  content: '';
+  display: inline-block;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  animation: rd__heartbeat linear infinite;
+  animation-duration: inherit;
+  animation-delay: inherit;
+}
+
+@keyframes rd__heartbeat {
+  from {
+    transform: scale(1);
+  }
+
+  92% {
+    transform: scale(0.75);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
