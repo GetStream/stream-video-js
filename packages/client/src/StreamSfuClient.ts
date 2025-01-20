@@ -235,12 +235,15 @@ export class StreamSfuClient {
             resolve(this.signalWs);
           };
 
-          this.signalWs.addEventListener('close', () => {
-            reject();
-            this.handleWebSocketClose();
-          });
-
           this.signalWs.addEventListener('open', onOpen);
+
+          this.signalWs.addEventListener('close', () => {
+            this.handleWebSocketClose();
+            // Normally, this shouldn't have any effect, because WS should never emit 'close'
+            // before emitting 'open'. However, strager things have happened, and we don't
+            // want to leave signalReady in pending state.
+            reject(new Error('SFU WS closed unexpectedly'));
+          });
         }),
 
         new Promise((resolve, reject) => {
