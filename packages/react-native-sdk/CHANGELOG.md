@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.2...@stream-io/video-react-native-sdk-1.9.3) (2025-01-20)
+
+
+### Bug Fixes
+
+* ios 18 pip support ([#1646](https://github.com/GetStream/stream-video-js/issues/1646)) ([242bd1f](https://github.com/GetStream/stream-video-js/commit/242bd1fe08381805a24cc8d17671dd009b79cb09)), closes [#1647](https://github.com/GetStream/stream-video-js/issues/1647)
+
 ## [1.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.1...@stream-io/video-react-native-sdk-1.9.2) (2025-01-17)
 
 
