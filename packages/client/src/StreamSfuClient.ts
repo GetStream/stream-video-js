@@ -227,15 +227,19 @@ export class StreamSfuClient {
       },
     });
 
-    this.signalWs.addEventListener('close', this.handleWebSocketClose);
-
     this.signalReady = makeSafePromise(
       Promise.race<WebSocket>([
-        new Promise((resolve) => {
+        new Promise((resolve, reject) => {
           const onOpen = () => {
             this.signalWs.removeEventListener('open', onOpen);
             resolve(this.signalWs);
           };
+
+          this.signalWs.addEventListener('close', () => {
+            reject();
+            this.handleWebSocketClose();
+          });
+
           this.signalWs.addEventListener('open', onOpen);
         }),
 
