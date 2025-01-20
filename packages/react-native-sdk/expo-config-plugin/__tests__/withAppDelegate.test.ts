@@ -1,5 +1,5 @@
 import { getFixture } from '../fixtures/index';
-import withPushAppDelegate from '../src/withPushAppDelegate';
+import withAppDelegate from '../src/withAppDelegate';
 import { ExpoConfig } from '@expo/config-types';
 import { ConfigProps } from '../src/common/types';
 
@@ -41,10 +41,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
 
     const props: ConfigProps = {};
-    const updatedConfig = withPushAppDelegate(
-      config,
-      props
-    ) as CustomExpoConfig;
+    const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
 
     expect(
       updatedConfig.modResults.contents === config.modResults.contents
@@ -64,17 +61,21 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
 
     const props: ConfigProps = {
+      iOSEnableMultitaskingCameraAccess: true,
       ringingPushNotifications: {
         disableVideoIos: true,
         includesCallsInRecentsIos: true,
       },
     };
 
-    const updatedConfig = withPushAppDelegate(
-      config,
-      props
-    ) as CustomExpoConfig;
+    const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
 
+    expect(updatedConfig.modResults.contents).toMatch(
+      /#import <WebRTCModuleOptions.h>/
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /options.enableMultitaskingCameraAccess = YES/
+    );
     expect(updatedConfig.modResults.contents).toMatch(/#import "RNCallKeep.h"/);
     expect(updatedConfig.modResults.contents).toMatch(
       /#import <PushKit\/PushKit.h>/
@@ -99,13 +100,14 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
   it('should not modify config if already added', () => {
     const props: ConfigProps = {
+      iOSEnableMultitaskingCameraAccess: true,
       ringingPushNotifications: {
         disableVideoIos: true,
         includesCallsInRecentsIos: true,
       },
     };
 
-    const updatedConfig = withPushAppDelegate(
+    const updatedConfig = withAppDelegate(
       modifiedConfig!,
       props
     ) as CustomExpoConfig;
@@ -132,7 +134,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
         includesCallsInRecentsIos: false,
       },
     };
-    expect(() => withPushAppDelegate(config, props)).toThrow();
+    expect(() => withAppDelegate(config, props)).toThrow();
 
     config = {
       name: 'test-app',
@@ -143,6 +145,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
         contents: ExpoModulesAppDelegate,
       },
     };
-    expect(() => withPushAppDelegate(config, props)).toThrow();
+    expect(() => withAppDelegate(config, props)).toThrow();
   });
 });

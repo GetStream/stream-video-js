@@ -12,5 +12,6 @@ export type ConfigProps =
       androidKeepCallAlive?: boolean;
       enableScreenshare?: boolean;
       appleTeamId?: string;
+      iOSEnableMultitaskingCameraAccess?: boolean;
     }
   | undefined;
