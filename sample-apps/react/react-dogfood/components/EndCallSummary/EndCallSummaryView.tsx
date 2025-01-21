@@ -221,108 +221,39 @@ export function EndCallSummaryView({
       </div>
 
       <div className="rd__leave--row rd__leave--row-second">
-        <Card
-          className="rd__leave--row-user-network"
-          title="User Network"
-          tooltip="The network and device a user is using, often the most common cause of poor audio or video quality."
-        >
-          <Notification
-            message={networkNotification.message}
-            variant={networkNotification.type}
-          />
-          <NetworkStatus
-            status={toNetworkStatus(callStats?.quality_score || 0)}
-          >
-            Network
-          </NetworkStatus>
-          <NetworkStatus status={'green'}>Device</NetworkStatus>
-        </Card>
-        <Card
-          className="rd__leave--row-rooms"
-          title="Video & Audio products"
-          link="https://getstream.io/video/"
-        >
-          <div className="rd__leave--rooms">
-            <LinkBadge
-              className="rd__leave--rooms-link"
-              variant="small"
-              fit="fill"
-              link="https://getstream.io/video/video-calling/"
-            >
-              <Icon icon="camera" />
-              Video Calling
-            </LinkBadge>
-            <LinkBadge
-              className="rd__leave--rooms-link"
-              variant="small"
-              fit="fill"
-              link="https://getstream.io/video/livestreaming/"
-            >
-              <Icon icon="layout-speaker-live-stream" />
-              Live Stream
-            </LinkBadge>
-            <LinkBadge
-              className="rd__leave--rooms-link"
-              variant="small"
-              fit="fill"
-              link="https://getstream.io/video/voice-calling/"
-            >
-              <Icon icon="mic" />
-              Audio Calling
-            </LinkBadge>
-            <LinkBadge
-              className="rd__leave--rooms-link"
-              variant="small"
-              fit="fill"
-              link="https://getstream.io/video/audio-rooms/"
-            >
-              <Icon icon="speaker" />
-              Audio Rooms
-            </LinkBadge>
-          </div>
-        </Card>
-        <Card
-          className={clsx(
-            'rd__leave--review-container rd__leave--row-review',
-            rating.success && 'rd__leave--review-container-success',
-          )}
-        >
-          <div
-            className={clsx(
-              'rd__leave--review',
-              rating.success && 'rd__leave--review-success',
-            )}
-          >
-            <h2
-              className={clsx(
-                'rd__leave--review-title',
-                rating.success && 'rd__leave--review-title-success',
-              )}
-            >
-              {rating.success
-                ? 'Thank you for your feedback!'
-                : 'How Was your Call Experience?'}
-            </h2>
-            {rating.success ? null : (
-              <Rating rating={rating} handleSetRating={handleSetRating} />
-            )}
-          </div>
-        </Card>
-      </div>
-
-      <div className="rd__leave--row rd__leave--row-third">
         <Card className="rd__leave--row-edge-networks" variant="parent">
+          <Card
+            className="rd__leave--row-user-network"
+            title="User Network"
+            tooltip="The network and device a user is using, often the most common cause of poor audio or video quality."
+          >
+            <Notification
+              message={networkNotification.message}
+              variant={networkNotification.type}
+            />
+            <NetworkStatus
+              status={toNetworkStatus(callStats?.quality_score || 0)}
+            >
+              Network
+            </NetworkStatus>
+          </Card>
           <Card
             title="Edge networks used"
             tooltip="Displays the quality of the edge network being used for this call."
           >
-            <NetworkStatus status={'green'}>
+            <NetworkStatus
+              className="rd__leave--row-edge-networks-used"
+              status={'neutral'}
+            >
               <Badge variant="small">
                 <Icon icon="language" />
                 Amsterdam
               </Badge>
             </NetworkStatus>
-            <NetworkStatus status={'green'}>
+            <NetworkStatus
+              className="rd__leave--row-edge-networks-used"
+              status={'neutral'}
+            >
               <Badge variant="small">
                 <Icon icon="language" />
                 Boston
@@ -336,7 +267,7 @@ export function EndCallSummaryView({
           >
             <div className="rd__edge-server">
               {edges?.map((edge) => (
-                <NetworkStatus key={edge.id} status={toEdgeStatus(edge)}>
+                <NetworkStatus key={edge.id} status={'neutral'}>
                   <Badge variant="small">
                     <Icon icon="language" />
                     <span className="rd__edge-server--country">
@@ -348,80 +279,162 @@ export function EndCallSummaryView({
             </div>
           </Card>
         </Card>
-        <Card
-          className="rd__leave---row-sdks"
-          title="SDK's"
-          link="https://getstream.io/video/"
-        >
-          <div className="rd__sdks">
-            <LinkBadge
-              className="rd__sdks--link"
-              link="https://getstream.io/video/sdk/react/"
-            >
-              <div className="rd__sdks--link-icon">
-                <Icon icon="react" />
-              </div>
-            </LinkBadge>
-            <LinkBadge
-              className="rd__sdks--link"
-              link="https://getstream.io/video/sdk/ios/"
-            >
-              <div className="rd__sdks--link-icon">
-                <Icon icon="swift" />
-              </div>
-            </LinkBadge>
-            <LinkBadge
-              className="rd__sdks--link"
-              link="https://getstream.io/video/sdk/javascript/"
-            >
-              <div className="rd__sdks--link-icon">
-                <Icon icon="javascript" />
-              </div>
-            </LinkBadge>
-            <LinkBadge
-              className="rd__sdks--link"
-              link="https://getstream.io/video/sdk/flutter/"
-            >
-              <div className="rd__sdks--link-icon">
-                <Icon icon="flutter" />
-              </div>
-            </LinkBadge>
-            <LinkBadge
-              className="rd__sdks--link"
-              link="https://getstream.io/video/sdk/android/"
-            >
-              <div className="rd__sdks--link-icon">
-                <Icon icon="android" />
-              </div>
-            </LinkBadge>
-            <LinkBadge
-              className="rd__sdks--link"
-              link="https://getstream.io/video/sdk/unity/"
-            >
-              <div className="rd__sdks--link-icon">
-                <Icon icon="unity" />
-              </div>
-            </LinkBadge>
-          </div>
-        </Card>
-        <Card className="rd__build-and-ship rd__leave--row-build-and-ship">
-          <div className="rd__build-and-ship--content">
-            <div className="rd__build-and-ship--content-text">
-              <h2 className="rd__build-and-ship--title">
-                Build and Ship With Confidence
-              </h2>
-              <p className="rd__build-and-ship--description">
-                Join industry leaders who trust Stream’s SDKs to power
-                connections for billions of users.
-              </p>
+
+        <div className="rd__leave--row rd__leave--row-third">
+          <Card
+            className="rd__leave--row-rooms"
+            title="Video & Audio products"
+            link="https://getstream.io/video/"
+          >
+            <div className="rd__leave--rooms">
+              <LinkBadge
+                className="rd__leave--rooms-link"
+                variant="small"
+                fit="fill"
+                link="https://getstream.io/video/video-calling/"
+              >
+                <Icon icon="camera" />
+                Video Calling
+              </LinkBadge>
+              <LinkBadge
+                className="rd__leave--rooms-link"
+                variant="small"
+                fit="fill"
+                link="https://getstream.io/video/livestreaming/"
+              >
+                <Icon icon="layout-speaker-live-stream" />
+                Live Stream
+              </LinkBadge>
+              <LinkBadge
+                className="rd__leave--rooms-link"
+                variant="small"
+                fit="fill"
+                link="https://getstream.io/video/voice-calling/"
+              >
+                <Icon icon="mic" />
+                Audio Calling
+              </LinkBadge>
+              <LinkBadge
+                className="rd__leave--rooms-link"
+                variant="small"
+                fit="fill"
+                link="https://getstream.io/video/audio-rooms/"
+              >
+                <Icon icon="speaker" />
+                Audio Rooms
+              </LinkBadge>
             </div>
-          </div>
-          <div className="rd__build-and-ship--button-container">
-            <Link href="/contact/" className="rd__build-and-ship--button">
-              Contact Us
-            </Link>
-          </div>
-        </Card>
+          </Card>
+          <Card
+            className={clsx(
+              'rd__leave--review-container rd__leave--row-review',
+              rating.success && 'rd__leave--review-container-success',
+            )}
+          >
+            <div
+              className={clsx(
+                'rd__leave--review',
+                rating.success && 'rd__leave--review-success',
+              )}
+            >
+              <h2
+                className={clsx(
+                  'rd__leave--review-title',
+                  rating.success && 'rd__leave--review-title-success',
+                )}
+              >
+                {rating.success
+                  ? 'Thank you for your feedback!'
+                  : 'How Was your Call Experience?'}
+              </h2>
+              {rating.success ? null : (
+                <Rating rating={rating} handleSetRating={handleSetRating} />
+              )}
+            </div>
+          </Card>
+        </div>
+
+        <div className="rd__leave--row rd__leave--row-fourth">
+          <Card
+            className="rd__leave---row-sdks"
+            title="SDK's"
+            link="https://getstream.io/video/"
+          >
+            <div className="rd__sdks">
+              <LinkBadge
+                className="rd__sdks--link"
+                link="https://getstream.io/video/sdk/react/"
+              >
+                <div className="rd__sdks--link-icon">
+                  <Icon icon="react" />
+                </div>
+              </LinkBadge>
+              <LinkBadge
+                className="rd__sdks--link"
+                link="https://getstream.io/video/sdk/ios/"
+              >
+                <div className="rd__sdks--link-icon">
+                  <Icon icon="swift" />
+                </div>
+              </LinkBadge>
+              <LinkBadge
+                className="rd__sdks--link"
+                link="https://getstream.io/video/sdk/javascript/"
+              >
+                <div className="rd__sdks--link-icon">
+                  <Icon icon="javascript" />
+                </div>
+              </LinkBadge>
+              <LinkBadge
+                className="rd__sdks--link"
+                link="https://getstream.io/video/sdk/flutter/"
+              >
+                <div className="rd__sdks--link-icon">
+                  <Icon icon="flutter" />
+                </div>
+              </LinkBadge>
+              <LinkBadge
+                className="rd__sdks--link"
+                link="https://getstream.io/video/sdk/android/"
+              >
+                <div className="rd__sdks--link-icon">
+                  <Icon icon="android" />
+                </div>
+              </LinkBadge>
+              <LinkBadge
+                className="rd__sdks--link"
+                link="https://getstream.io/video/sdk/unity/"
+              >
+                <div className="rd__sdks--link-icon">
+                  <Icon icon="unity" />
+                </div>
+              </LinkBadge>
+            </div>
+          </Card>
+          <Card
+            className="rd__build-and-ship rd__leave--row-build-and-ship"
+            style={{
+              backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/video-demo-clients.png)`,
+            }}
+          >
+            <div className="rd__build-and-ship--content">
+              <div className="rd__build-and-ship--content-text">
+                <h2 className="rd__build-and-ship--title">
+                  Build and Ship With Confidence
+                </h2>
+                <p className="rd__build-and-ship--description">
+                  Join industry leaders who trust Stream’s SDKs to power
+                  connections for billions of users.
+                </p>
+              </div>
+            </div>
+            <div className="rd__build-and-ship--button-container">
+              <Link href="/contact/" className="rd__build-and-ship--button">
+                Contact Us
+              </Link>
+            </div>
+          </Card>
+        </div>
       </div>
       {rating.current !== 0 && rating.current < 3 && (
         <div className="rd__modal">

@@ -4,28 +4,43 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--str-video__spacing-md);
+    justify-content: center;
+    gap: var(--str-video__spacing-xl);
     width: 100%;
 
     @include respond-above(md) {
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
+      gap: var(--str-video__spacing-sm);
 
     }
 
     &-logo{
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: var(--str-video__spacing-md);
       width: 100%;
+
+      @include respond-above(md) {
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+
+      }
     }
 
     &-text{
       display: flex;
       flex-direction: column;
       gap: var(--str-video__spacing-xs);
+      align-items: center;
+
+      @include respond-above(md) {
+        align-items: flex-start;
+      }
     }
 
     &-title{
@@ -38,19 +53,30 @@
 
     &-description{
       margin: 0;
-      font-size: var(--str-video__font-size-md);
+      font-size: var(--str-video__font-size-sm);
       font-weight: 600;
       color: #656B72;
-      text-transform: capitalize;
-      margin: 0;
+      text-align: center;
+
+
+      @include respond-above(md) {
+        text-align: left;
+        font-size: var(--str-video__font-size-md);
+        font-weight: 600;
+        color: #656B72;
+        text-align: left;
+        text-transform: capitalize;
+      }
     }
 
     &-links{
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: var(--str-video__spacing-lg);
       justify-content: space-between;
       width: 100%;
+
+      flex-direction: row-reverse;
 
       @include respond-above(md) {
         flex-direction: row;
@@ -84,6 +110,18 @@
         text-decoration: underline;
         text-underline-offset: 4px;
       }
+
+      &--recordings{
+
+        .rd__leave--header-link-text{
+          display: none;
+
+          @include respond-above(md) {
+            display: block;
+          }
+        }
+      }
+
       &--rejoin{
         border-radius: var(--str-video__border-radius-lg);
         border: 1px solid var(--str-video__button-default-hover);

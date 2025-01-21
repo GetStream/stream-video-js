@@ -18,7 +18,7 @@ export function Header({
       <div className="rd__leave--header-logo">
         <Link href="/">
           <Image
-            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo-blue.png`}
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo-blue.svg`}
             alt="Stream logo"
             width={54}
             height={54}
@@ -32,9 +32,12 @@ export function Header({
         </div>
       </div>
       <div className="rd__leave--header-links">
-        <button className="rd__leave--header-link" onClick={setShowRecordings}>
+        <button
+          className="rd__leave--header-link rd__leave--header-link--recordings"
+          onClick={setShowRecordings}
+        >
           <Icon icon="film-roll" />
-          View Recordings
+          <span className="rd__leave--header-link-text">View Recordings</span>
         </button>
         <div className="rd__leave--header-links-buttons">
           <button

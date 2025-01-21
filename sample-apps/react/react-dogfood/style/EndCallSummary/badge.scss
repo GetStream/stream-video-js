@@ -3,7 +3,7 @@
     background-color: var(--str-video__bage-default);
     color: var(--str-video__badge-default-text);
     border-radius: var(--str-video__border-radius-sm);
-    padding: var(--str-video__spacing-xxs) var(--str-video__spacing-lg);
+    padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -39,11 +39,11 @@
     }
 
     &--large{
-      font-size: var(--str-video__font-size-xxl);
+      font-size: var(--str-video__font-size-md);
       min-height: 32px;
 
       @include respond-above(md) {
-        font-size: var(--str-video__font-size-md);
+        font-size: var(--str-video__font-size-xxl);
       }
     }
 

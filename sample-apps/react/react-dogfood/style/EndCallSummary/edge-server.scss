@@ -2,9 +2,10 @@
   .rd__edge-server{
     display: flex;
     flex-direction: column;
-    max-height: 120px;
+    max-height: 100px;
     overflow-y: scroll;
-    gap: var(--str-video__spacing-md);
+    overflow-x: hidden;
+    gap: var(--str-video__spacing-sm);
   }
 
   .rd__edge-server--country{

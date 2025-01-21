@@ -27,7 +27,7 @@
       color: var(--str-video__icon-default);
       text-transform: capitalize;
       margin: 0;
-      max-width: 60%;
+      max-width: 80%;
 
       &-success{
         text-align: center;
@@ -49,29 +49,29 @@
     }
 
     @include respond-above(md) {
-      justify-content: space-between;
+      // justify-content: space-between;
     }
   }
 
   .rd__feedback-star {
     cursor: pointer;
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
     background-color: var(--str-video__icon-pressed);
   }
 
   .rd__feedback-star--active-bad,
   .rd__feedback-star--bad:hover {
-    background-color: var(--str-video__alert-warning);
+    background-color: var(--str-video__bad);
   }
 
   .rd__feedback-star--active-good,
   .rd__feedback-star--good:hover {
-    background-color: var(--str-video__alert-caution);
+    background-color: var(--str-video__average);
   }
 
   .rd__feedback-star--active-great,
   .rd__feedback-star--great:hover {
-    background-color: var(--str-video__alert-success);
+    background-color: var(--str-video__good);
   }
 }

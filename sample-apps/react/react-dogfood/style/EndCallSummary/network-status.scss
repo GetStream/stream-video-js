@@ -31,7 +31,17 @@
        &--bad {
           background-color: var(--str-video__network-bar-bad);
         }
+
+        &--neutral {
+          background-color: var(--str-video__network-bar-neutral);
+        }
       }
+    }
+  }
+
+ .rd__leave--row-edge-networks-used{
+    .str-video__icon{
+      background-color: var(--str-video__network-bar-neutral);
     }
   }
 }

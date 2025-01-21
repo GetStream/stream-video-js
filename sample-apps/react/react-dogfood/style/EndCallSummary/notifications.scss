@@ -16,18 +16,18 @@
     }
 
     &--success{
-      color: var(--str-video__alert-success);
-      background-color: var(--str-video__alert-success-background);
+      color: var(--str-video__good);
+      background-color: var(  --str-video__notification-background-good);
       .str-video__icon{
-        background-color:  var(--str-video__alert-success);
+        background-color:  var(--str-video__good);
       }
     }
 
     &--error{
-      color: var(--str-video__alert-warning);
+      color: var(--str-video__bad);
       background-color: var(--str-video__alert-warning-background);
       .str-video__icon{
-        background-color:  var(--str-video__alert-warning);
+        background-color:  var(--str-video_bad);
       }
     }
 
@@ -40,10 +40,10 @@
     }
 
     &--caution{
-      color: var(--str-video__alert-caution);
+      color: var(--str-video__average);
       background-color: var(--str-video__alert-caution-background);
       .str-video__icon{
-        background-color:  var(--str-video__alert-caution);
+        background-color:  var(--str-video__average);
       }
     }
   }

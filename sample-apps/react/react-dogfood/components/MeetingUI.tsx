@@ -180,11 +180,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     ComponentToRender = <LoadingScreen />;
   } else if (show === 'left') {
     ComponentToRender = (
-      <EndCallSummaryView
-        rejoin={() => setShow('active-call')}
-        startNewCall={() => setShow('lobby')}
-        joinTime={joinTime}
-      />
+      <div className="rd__leave-container">
+        <EndCallSummaryView
+          rejoin={() => setShow('active-call')}
+          startNewCall={() => setShow('lobby')}
+          joinTime={joinTime}
+        />
+      </div>
     );
   } else if (!call) {
     ComponentToRender = (

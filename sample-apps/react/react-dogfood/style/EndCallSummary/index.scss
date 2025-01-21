@@ -14,6 +14,14 @@
 @import './sdks.scss';
 @import './shared.scss';
 
+.rd__leave-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
 .rd__leave{
   display: flex;
   flex-direction: column;
@@ -24,7 +32,8 @@
 
   color: var(--str-video__icon-default);
   padding: var(--str-video__spacing-lg);
-  gap: var(--str-video__spacing-lg);
+  gap: var(--str-video__spacing-sm);
+  max-width: 1092px;
 
   @include respond-above(md) {
     justify-content: center;
@@ -35,13 +44,13 @@
     display: grid;
     width: 100%;
 
-    gap: var(--str-video__spacing-lg);
+    gap: var(--str-video__spacing-sm);
 
 
     &-first{
       grid-template-columns: 1fr 1fr;
       grid-template-areas: 'quality time-to-connect'
-      'latency-average video-codex';
+                            'latency-average video-codex';
 
       .rd__leave--row-quality{
         grid-area: quality;
@@ -62,9 +71,10 @@
 
     &-second{
       grid-template-columns: 1fr;
-      grid-template-areas: 'review' 'rooms''user-network' ;
-      .rd__leave--row-user-network{
-        grid-area: user-network;
+      grid-template-areas: 'edge-networks' 'third' 'fourth' ;
+
+      .rd__leave--row-edge-networks{
+        grid-area: edge-networks;
       }
 
       .rd__leave--row-rooms{
@@ -74,15 +84,6 @@
       .rd__leave--row-review{
         grid-area: review;
       }
-    }
-
-    &-third{
-      grid-template-columns: 1fr;
-      grid-template-areas: 'edge-servers' 'sdks' 'build-and-ship';
-
-      .rd__leave--row-edge-servers{
-        grid-area: edge-servers;
-      }
 
       .rd__leave--row-build-and-ship{
         grid-area: build-and-ship;
@@ -91,7 +92,28 @@
       .rd__leave--row-sdks{
         grid-area: sdks;
       }
+
+      .rd__leave--row-third{
+        grid-area: third;
+        display: grid;
+      }
+
+      .rd__leave--row-fourth{
+        grid-area: fourth;
+        display: grid;
+
+      }
     }
+
+    &-third{
+        grid-template-columns: 1fr;
+        grid-template-areas:  'rooms' 'review';
+      }
+
+      &-fourth{
+        grid-template-columns: 1fr;
+        grid-template-areas:  'sdks' 'build-and-ship';
+      }
   }
 
   @include respond-above(sm) {
@@ -112,33 +134,19 @@
       }
 
       &-second{
-        grid-template-columns: 1.55fr 1.8fr 1.3fr;
-        grid-template-areas: 'user-network rooms review';
-
+        grid-template-columns: minmax(347.5px, 0.25fr) 1fr;
+        grid-template-areas:  'edge-networks third'
+                              'edge-networks fourth';
       }
 
       &-third{
-        grid-template-columns: 1.5fr 1fr 2fr;
-        grid-template-areas: 'edge-servers sdks build-and-ship';
-
-
-      }
-    }
-  }
-
-  @include respond-above(xl) {
-    &--row{
-
-      &-first{
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1.1fr 0.9fr;
+        grid-template-areas:  'rooms review';
       }
 
-      &-second{
-        grid-template-columns: 1.6fr 1.8fr 1.3fr;
-      }
-
-      &-third{
-        grid-template-columns: 1.5fr 0.8fr 2.3fr;
+      &-fourth{
+        grid-template-columns: 0.5fr 1.5fr;
+        grid-template-areas:  'sdks build-and-ship';
       }
     }
   }
@@ -146,20 +154,27 @@
 
 
 :root {
-  --str-video__network-bar-good: #4caf50;
-  --str-video__network-bar-average: #ffc107;
-  --str-video__network-bar-bad: #f44336;
+  --str-video__network-bar-good: #00E2A1;
+  --str-video__network-bar-average: #FFD646;
+  --str-video__network-bar-bad: #DC433B;
+
+  --str-video__network-bar-neutral: #005FFF;
+
+  --str-video__good: #00E2A1;
+  --str-video__average: #FFD646;
+  --str-video__bad: #DC433B;
+
+  --str-video__notification-background-good: #1D2F34;
+  --str-video__notification-background-average: #353830;
+  --str-video__notification-background-bad: #31292F;
 
   --str-video__border-radius-card: 16px;
 
   --str-video__header-color: #EFF0F1;
-
   --str-video__description-default:  #b0b4b7;
-
 
   --str-video__sdkIcon-default: #b0b4b7;
   --str-video__sdkIcon-hover: #eff0f1;
-
 
   --str-video__bage-default: #323B44;
   --str-video__bage-hover:#4C535B;

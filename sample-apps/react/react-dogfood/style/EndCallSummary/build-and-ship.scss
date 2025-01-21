@@ -11,13 +11,17 @@
     background-size: cover;
     background-position: left;
     background-repeat: no-repeat;
-    background-image: url("/video-demo-clients.png");
+    // background-image: url("/video-demo-clients.png");
     background-position-y: 40px;
+
+    @include respond-above(md) {
+      min-height: auto;
+    }
 
     &--title{
       font-size: var(--str-video__font-size-xxl);
-      font-weight: 600;
-      color: #B0B4B7;
+      font-weight: 500;
+      color: var(--str-video__icon-default);
       text-transform: capitalize;
       margin: 0;
       color: var(--str-video__header-color);
