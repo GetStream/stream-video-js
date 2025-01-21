@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.2...@stream-io/video-client-1.15.3) (2025-01-21)
+
+
+### Bug Fixes
+
+* restore calling state if SFU connection fails during join ([#1652](https://github.com/GetStream/stream-video-js/issues/1652)) ([ff7f221](https://github.com/GetStream/stream-video-js/commit/ff7f221ad285ca1994fc3a780aa8183df2de3e99))
+
 ## [1.15.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.1...@stream-io/video-client-1.15.2) (2025-01-20)
 
 
