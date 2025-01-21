@@ -3,11 +3,13 @@ package com.streamvideo.reactnative
 import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -39,7 +41,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
                 RCTDeviceEventEmitter::class.java
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
             // inform the activity
-            if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasPiPSupport()) {
                 (reactApplicationContext.currentActivity as? ReactActivity)?.let { activity ->
                     val params = getPiPParams()
                     val aspect =
@@ -105,7 +107,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     @ReactMethod
     fun canAutoEnterPipMode(value: Boolean) {
         StreamVideoReactNative.canAutoEnterPictureInPictureMode = value
-        if (!hasPermission() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        if (!hasPiPSupport() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val activity = reactApplicationContext!!.currentActivity!!
         if (value) {
             activity.setPictureInPictureParams(getPiPParams().build())
@@ -218,8 +220,25 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         }
     }
 
-    private fun hasPermission(): Boolean {
+    private fun hasPiPSupport(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            val activity = reactApplicationContext.currentActivity!!
+            val packageManager: PackageManager = activity.packageManager
+            val componentName: ComponentName = activity.componentName
+            try {
+                val activityInfo = packageManager.getActivityInfo(
+                    componentName,
+                    PackageManager.GET_META_DATA
+                )
+
+                val supportsPip = activityInfo.metaData?.getBoolean(
+                    "android.supportsPictureInPicture",
+                    false
+                ) ?: false
+                if (!supportsPip) return false
+            } catch (e: NameNotFoundException) {
+                return false
+            }
             val appOps =
                 reactApplicationContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val packageName = reactApplicationContext.packageName
