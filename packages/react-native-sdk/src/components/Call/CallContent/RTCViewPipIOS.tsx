@@ -5,7 +5,7 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   findNodeHandle,
   HostComponent,
@@ -22,44 +22,29 @@ type RTCViewPipNativeProps = {
   streamURL?: string;
 };
 
-// workaround to support hot reloading
-// https://medium.com/tribalscale/beyond-the-framework-using-react-native-with-swift-and-kotlin-cfccf4bb9a03
-let RTCViewPipNative: HostComponent<RTCViewPipNativeProps>;
-
-if (__DEV__) {
-  /* @ts-ignore */
-  const cachedView = global.RTCViewPipNative as
-    | HostComponent<RTCViewPipNativeProps>
-    | undefined;
-  if (!cachedView) {
-    RTCViewPipNative = requireNativeComponent(COMPONENT_NAME);
-    /* @ts-ignore */
-    global.RTCViewPipNative = RTCViewPipNative;
-  } else {
-    RTCViewPipNative = cachedView;
-  }
-} else {
-  RTCViewPipNative = requireNativeComponent(COMPONENT_NAME);
-}
+const RTCViewPipNative: HostComponent<RTCViewPipNativeProps> =
+  requireNativeComponent(COMPONENT_NAME);
 
 /** Wrapper for the native view
  * meant to stay private and not exposed */
-const RTCViewPip = React.forwardRef<
-  React.Ref<any>,
-  {
-    streamURL?: string;
-  }
->((props, ref) => {
-  if (Platform.OS !== 'ios') return null;
-  // @ts-ignore
-  return <RTCViewPipNative streamURL={props.streamURL} ref={ref} />;
-});
+const RTCViewPip = React.memo(
+  React.forwardRef<
+    React.Ref<any>,
+    {
+      streamURL?: string;
+    }
+  >((props, ref) => {
+    if (Platform.OS !== 'ios') return null;
+    // @ts-ignore
+    return <RTCViewPipNative streamURL={props.streamURL} ref={ref} />;
+  })
+);
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
 };
 
-const RTCViewPipIOS = ({ includeLocalParticipantVideo }: Props) => {
+const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
@@ -76,26 +61,7 @@ const RTCViewPipIOS = ({ includeLocalParticipantVideo }: Props) => {
       !includeLocalParticipantVideo;
   }, [includeLocalParticipantVideo]);
 
-  const [videoStreamToRender, setVideoStreamToRender] =
-    React.useState<MediaStream>();
-
   const nativeRef = React.useRef<any>(null);
-
-  React.useEffect(() => {
-    if (!participantInSpotlight) {
-      setVideoStreamToRender(undefined);
-      return;
-    }
-    const { videoStream, screenShareStream } = participantInSpotlight;
-
-    const isScreenSharing = hasScreenShare(participantInSpotlight);
-
-    const _videoStreamToRender = (isScreenSharing
-      ? screenShareStream
-      : videoStream) as unknown as MediaStream | undefined;
-
-    setVideoStreamToRender(_videoStreamToRender);
-  }, [participantInSpotlight]);
 
   React.useEffect(() => {
     let callClosedInvokedOnce = false;
@@ -130,9 +96,23 @@ const RTCViewPipIOS = ({ includeLocalParticipantVideo }: Props) => {
     };
   }, [call]);
 
-  return (
-    <RTCViewPip streamURL={videoStreamToRender?.toURL()} ref={nativeRef} />
-  );
-};
+  const streamURL = useMemo(() => {
+    if (!participantInSpotlight) {
+      return undefined;
+    }
+
+    const { videoStream, screenShareStream } = participantInSpotlight;
+
+    const isScreenSharing = hasScreenShare(participantInSpotlight);
+
+    const videoStreamToRender = (isScreenSharing
+      ? screenShareStream
+      : videoStream) as unknown as MediaStream | undefined;
+
+    return videoStreamToRender?.toURL();
+  }, [participantInSpotlight]);
+
+  return <RTCViewPip streamURL={streamURL} ref={nativeRef} />;
+});
 
 export default RTCViewPipIOS;

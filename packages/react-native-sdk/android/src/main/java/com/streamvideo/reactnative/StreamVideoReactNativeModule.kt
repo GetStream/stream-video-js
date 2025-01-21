@@ -58,7 +58,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
                     }
                     // NOTE: workaround - on PiP mode, android goes to "paused but can render" state
                     // RN pauses rendering in paused mode, so we instruct it to resume here
-                    activity.reactDelegate?.onHostResume()
+                    reactApplicationContext?.onHostResume(activity)
                 }
             }
         }

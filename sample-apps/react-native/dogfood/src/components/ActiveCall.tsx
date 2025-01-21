@@ -102,6 +102,7 @@ export const ActiveCall = ({
       />
       {!isInPiPMode && <CustomTopControls />}
       <CallContent
+        iOSPiPIncludeLocalParticipantVideo
         onHangupCallHandler={onHangupCallHandler}
         CallControls={CustomBottomControls}
         landscape={isLandscape}
