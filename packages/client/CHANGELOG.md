@@ -2,6 +2,59 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.1...@stream-io/video-client-1.15.2) (2025-01-20)
+
+
+### Bug Fixes
+
+* improved error handling when connecting to an SFU ([#1648](https://github.com/GetStream/stream-video-js/issues/1648)) ([27332b4](https://github.com/GetStream/stream-video-js/commit/27332b484094e26a123a1dfe8bb614c35ce1022a))
+
+## [1.15.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.0...@stream-io/video-client-1.15.1) (2025-01-16)
+
+
+### Bug Fixes
+
+* update mute state only for video track on mobile ([#1645](https://github.com/GetStream/stream-video-js/issues/1645)) ([c0507cb](https://github.com/GetStream/stream-video-js/commit/c0507cb02e0058b8b968237220234771c9a30e6f)), closes [#1527](https://github.com/GetStream/stream-video-js/issues/1527)
+
+## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.14.0...@stream-io/video-client-1.15.0) (2025-01-15)
+
+
+### Features
+
+* Codec Negotiation ([#1527](https://github.com/GetStream/stream-video-js/issues/1527)) ([2e9e344](https://github.com/GetStream/stream-video-js/commit/2e9e344d5259e3069dddb17846013becef24829e))
+
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.13.1...@stream-io/video-client-1.14.0) (2025-01-02)
+
+
+### Features
+
+* **closed captions:** Integration in the SDKs ([#1508](https://github.com/GetStream/stream-video-js/issues/1508)) ([bcb8589](https://github.com/GetStream/stream-video-js/commit/bcb85892c0dafcb03f9debf8d2fd361622224166))
+
+## [1.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.13.0...@stream-io/video-client-1.13.1) (2024-12-20)
+
+
+### Bug Fixes
+
+* **client:** fix the initial value of deviceState in clientDetails ([#1629](https://github.com/GetStream/stream-video-js/issues/1629)) ([afefb67](https://github.com/GetStream/stream-video-js/commit/afefb67a568899e2ce500e6dad36e64b6b0e5a3d))
+
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.4...@stream-io/video-client-1.13.0) (2024-12-20)
+
+
+### Features
+
+* report low power mode and thermal info to stats ([#1583](https://github.com/GetStream/stream-video-js/issues/1583)) ([ef49cee](https://github.com/GetStream/stream-video-js/commit/ef49ceef032fc3e4bb055fbc32c2b5b18c3a24d2))
+
+## [1.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.3...@stream-io/video-client-1.12.4) (2024-12-17)
+
+
+* improve test coverage reporting ([#1624](https://github.com/GetStream/stream-video-js/issues/1624)) ([32bb870](https://github.com/GetStream/stream-video-js/commit/32bb870187f0627c32d2b5692ce3de633d743582))
+
+
+### Bug Fixes
+
+* adjust dynascale debouncing for upscaling and downscaling ([#1621](https://github.com/GetStream/stream-video-js/issues/1621)) [skip ci] ([7b3a721](https://github.com/GetStream/stream-video-js/commit/7b3a72192fab79d8af8d1c392a9f0135e2d25b16))
+* prevent auto-dropping already accepted or rejected calls ([#1619](https://github.com/GetStream/stream-video-js/issues/1619)) ([113406a](https://github.com/GetStream/stream-video-js/commit/113406a9ba7fdf2e193a1933b73963e0011f28f0))
+
 ## [1.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.12.2...@stream-io/video-client-1.12.3) (2024-12-13)
 
 

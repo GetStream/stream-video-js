@@ -1,3 +1,3 @@
-export * from './stateStoreStatsReporter';
+export * from './CallStateStatsReporter';
 export * from './SfuStatsReporter';
 export * from './types';

@@ -3,6 +3,7 @@ import { Call } from '../Call';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
@@ -241,43 +242,45 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
-  protected abstract publishStream(stream: MediaStream): Promise<void>;
+  protected publishStream(stream: MediaStream): Promise<void> {
+    return this.call.publish(stream, this.trackType);
+  }
 
-  protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
+  protected stopPublishStream(): Promise<void> {
+    return this.call.stopPublish(this.trackType);
+  }
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];
   }
 
   protected async muteStream(stopTracks: boolean = true) {
-    if (!this.state.mediaStream) return;
+    const mediaStream = this.state.mediaStream;
+    if (!mediaStream) return;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream(stopTracks);
+      await this.stopPublishStream();
     }
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
-      if (
-        this.state.mediaStream &&
-        // @ts-expect-error release() is present in react-native-webrtc
-        typeof this.state.mediaStream.release === 'function'
-      ) {
+      // @ts-expect-error release() is present in react-native-webrtc
+      if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
-        this.state.mediaStream.release();
+        mediaStream.release();
       }
       this.state.setMediaStream(undefined, undefined);
       this.filters.forEach((entry) => entry.stop?.());
     }
   }
 
-  private muteTracks() {
+  private disableTracks() {
     this.getTracks().forEach((track) => {
       if (track.enabled) track.enabled = false;
     });
   }
 
-  private unmuteTracks() {
+  private enableTracks() {
     this.getTracks().forEach((track) => {
       if (!track.enabled) track.enabled = true;
     });
@@ -296,7 +299,7 @@ export abstract class InputMediaDeviceManager<
     if (stopTracks) {
       this.stopTracks();
     } else {
-      this.muteTracks();
+      this.disableTracks();
     }
   }
 
@@ -309,7 +312,7 @@ export abstract class InputMediaDeviceManager<
       this.getTracks().every((t) => t.readyState === 'live')
     ) {
       stream = this.state.mediaStream;
-      this.unmuteTracks();
+      this.enableTracks();
     } else {
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
@@ -414,11 +417,23 @@ export abstract class InputMediaDeviceManager<
           await this.disable();
         }
       };
-      this.getTracks().forEach((track) => {
+      const createTrackMuteHandler = (muted: boolean) => () => {
+        if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
+        this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
+          this.logger('warn', 'Error while notifying track mute state', err);
+        });
+      };
+      stream.getTracks().forEach((track) => {
+        const muteHandler = createTrackMuteHandler(true);
+        const unmuteHandler = createTrackMuteHandler(false);
+        track.addEventListener('mute', muteHandler);
+        track.addEventListener('unmute', unmuteHandler);
         track.addEventListener('ended', handleTrackEnded);
-        this.subscriptions.push(() =>
-          track.removeEventListener('ended', handleTrackEnded),
-        );
+        this.subscriptions.push(() => {
+          track.removeEventListener('mute', muteHandler);
+          track.removeEventListener('unmute', unmuteHandler);
+          track.removeEventListener('ended', handleTrackEnded);
+        });
       });
     }
   }
@@ -447,11 +462,8 @@ export abstract class InputMediaDeviceManager<
 
             let isDeviceDisconnected = false;
             let isDeviceReplaced = false;
-            const currentDevice = this.findDeviceInList(
-              currentDevices,
-              deviceId,
-            );
-            const prevDevice = this.findDeviceInList(prevDevices, deviceId);
+            const currentDevice = this.findDevice(currentDevices, deviceId);
+            const prevDevice = this.findDevice(prevDevices, deviceId);
             if (!currentDevice && prevDevice) {
               isDeviceDisconnected = true;
             } else if (
@@ -490,9 +502,8 @@ export abstract class InputMediaDeviceManager<
     );
   }
 
-  private findDeviceInList(devices: MediaDeviceInfo[], deviceId: string) {
-    return devices.find(
-      (d) => d.deviceId === deviceId && d.kind === this.mediaDeviceKind,
-    );
+  private findDevice(devices: MediaDeviceInfo[], deviceId: string) {
+    const kind = this.mediaDeviceKind;
+    return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
   }
 }

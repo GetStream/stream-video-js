@@ -1,6 +1,6 @@
 import React, {
-  PropsWithChildren,
   createContext,
+  PropsWithChildren,
   useCallback,
   useContext,
   useMemo,
@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { MediaStream } from '@stream-io/react-native-webrtc';
 import { useCall } from '@stream-io/video-react-bindings';
-import { Platform } from 'react-native';
+import { Image, Platform } from 'react-native';
 
 const isSupported = (function () {
   if (Platform.OS === 'ios') {
@@ -28,8 +28,6 @@ let videoFiltersModule: VideoFiltersModuleType | undefined;
 try {
   videoFiltersModule = require('@stream-io/video-filters-react-native');
 } catch (_e) {}
-
-import { Image } from 'react-native';
 
 const resolveAssetSourceFunc = Image.resolveAssetSource;
 
@@ -173,7 +171,6 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
     (call?.camera.state.mediaStream as MediaStream | undefined)
       ?.getVideoTracks()
       .forEach((track) => {
-        // @ts-expect-error - webrtc typing is wrong, null is supported
         track._setVideoEffect(null);
       });
     setCurrentBackgroundFilter(undefined);

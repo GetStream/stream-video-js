@@ -2,12 +2,14 @@ import { StreamSfuClient } from './StreamSfuClient';
 import {
   Dispatcher,
   getGenericSdp,
+  isAudioTrackType,
   isSfuEvent,
+  muteTypeToTrackType,
   Publisher,
   Subscriber,
+  toRtcConfiguration,
+  trackTypeToParticipantStreamKey,
 } from './rtc';
-import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { toRtcConfiguration } from './rtc/helpers/rtcConfiguration';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -27,6 +29,7 @@ import type {
   BlockUserRequest,
   BlockUserResponse,
   CallRingEvent,
+  CallSettingsResponse,
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
@@ -55,12 +58,16 @@ import type {
   SendCallEventResponse,
   SendReactionRequest,
   SendReactionResponse,
+  StartClosedCaptionsRequest,
+  StartClosedCaptionsResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
+  StopClosedCaptionsRequest,
+  StopClosedCaptionsResponse,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
@@ -75,15 +82,16 @@ import type {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-  VideoResolution,
+  VideoDimension,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  ClientPublishOptions,
+  ClosedCaptionsSettings,
   JoinCallData,
-  PublishOptions,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -91,6 +99,9 @@ import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientDetails,
+  Codec,
+  PublishOption,
+  SubscribeOption,
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
@@ -111,7 +122,6 @@ import {
 import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
 import {
-  CameraDirection,
   CameraManager,
   MicrophoneManager,
   ScreenShareManager,
@@ -120,6 +130,7 @@ import {
 import { getSdkSignature } from './stats/utils';
 import { withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
+import { pushToIfMissing } from './helpers/array';
 import {
   makeSafePromise,
   PromiseWithResolvers,
@@ -201,7 +212,8 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
-  private publishOptions?: PublishOptions;
+  private clientPublishOptions?: ClientPublishOptions;
+  private currentPublishOptions?: PublishOption[];
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -287,7 +299,7 @@ export class Call {
     this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
   }
 
-  private async setup() {
+  private setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
@@ -295,6 +307,12 @@ export class Call {
         this.on('all', (event) => {
           // update state with the latest event data
           this.state.updateFromEvent(event);
+        }),
+      );
+
+      this.leaveCallHooks.add(
+        this.on('changePublishOptions', (event) => {
+          this.currentPublishOptions = event.publishOptions;
         }),
       );
 
@@ -308,9 +326,9 @@ export class Call {
 
       this.initialized = true;
     });
-  }
+  };
 
-  private registerEffects() {
+  private registerEffects = () => {
     this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
       createSubscription(this.state.settings$, (settings) => {
@@ -342,16 +360,18 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
-      // watch for auto drop cancellation
-      createSubscription(this.state.callingState$, (callingState) => {
+      // cancel auto-drop when call is
+      createSubscription(this.state.session$, (session) => {
         if (!this.ringing) return;
-        if (
-          callingState === CallingState.JOINED ||
-          callingState === CallingState.JOINING ||
-          callingState === CallingState.LEFT
-        ) {
-          clearTimeout(this.dropTimeout);
-          this.dropTimeout = undefined;
+
+        const receiverId = this.clientStore.connectedUser?.id;
+        if (!receiverId) return;
+
+        const isAcceptedByMe = Boolean(session?.accepted_by[receiverId]);
+        const isRejectedByMe = Boolean(session?.rejected_by[receiverId]);
+
+        if (isAcceptedByMe || isRejectedByMe) {
+          this.cancelAutoDrop();
         }
       }),
     );
@@ -399,7 +419,7 @@ export class Call {
         }
       }),
     );
-  }
+  };
 
   private handleOwnCapabilitiesUpdated = async (
     ownCapabilities: OwnCapability[],
@@ -538,10 +558,10 @@ export class Call {
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 
-      this.subscriber?.close();
+      this.subscriber?.dispose();
       this.subscriber = undefined;
 
-      this.publisher?.close({ stopTracks: true });
+      this.publisher?.dispose();
       this.publisher = undefined;
 
       await this.sfuClient?.leaveAndClose(reason);
@@ -549,6 +569,7 @@ export class Call {
       this.dynascaleManager.setSfuClient(undefined);
 
       this.state.setCallingState(CallingState.LEFT);
+      this.state.dispose();
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
@@ -605,9 +626,8 @@ export class Call {
     // call.ring event excludes the call creator in the members list
     // as the creator does not get the ring event
     // so update the member list accordingly
-    const creator = this.state.members.find(
-      (m) => m.user.id === event.call.created_by.id,
-    );
+    const { created_by, settings } = event.call;
+    const creator = this.state.members.find((m) => m.user.id === created_by.id);
     if (!creator) {
       this.state.setMembers(event.members);
     } else {
@@ -621,7 +641,7 @@ export class Call {
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
-    await this.applyDeviceConfig(false);
+    await this.applyDeviceConfig(settings, false);
   };
 
   /**
@@ -656,7 +676,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    await this.applyDeviceConfig(false);
+    await this.applyDeviceConfig(response.call.settings, false);
 
     return response;
   };
@@ -687,7 +707,7 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
-    await this.applyDeviceConfig(false);
+    await this.applyDeviceConfig(response.call.settings, false);
 
     return response;
   };
@@ -812,20 +832,35 @@ export class Call {
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
       // prepare a generic SDP and send it to the SFU.
-      // this is a throw-away SDP that the SFU will use to determine
+      // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
-      const receivingCapabilitiesSdp = await getGenericSdp('recvonly');
-      const reconnectDetails =
-        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED
-          ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
-          : undefined;
-      const { callState, fastReconnectDeadlineSeconds } = await sfuClient.join({
-        subscriberSdp: receivingCapabilitiesSdp,
-        publisherSdp: '',
-        clientDetails,
-        fastReconnect: performingFastReconnect,
-        reconnectDetails,
-      });
+      const [subscriberSdp, publisherSdp] = await Promise.all([
+        getGenericSdp('recvonly'),
+        getGenericSdp('sendonly'),
+      ]);
+      const isReconnecting =
+        this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
+      const reconnectDetails = isReconnecting
+        ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
+        : undefined;
+      const preferredPublishOptions = !isReconnecting
+        ? this.getPreferredPublishOptions()
+        : this.currentPublishOptions || [];
+      const preferredSubscribeOptions = !isReconnecting
+        ? this.getPreferredSubscribeOptions()
+        : [];
+      const { callState, fastReconnectDeadlineSeconds, publishOptions } =
+        await sfuClient.join({
+          subscriberSdp,
+          publisherSdp,
+          clientDetails,
+          fastReconnect: performingFastReconnect,
+          reconnectDetails,
+          preferredPublishOptions,
+          preferredSubscribeOptions,
+        });
+
+      this.currentPublishOptions = publishOptions;
       this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
       if (callState) {
         this.state.updateFromSfuCallState(
@@ -855,18 +890,16 @@ export class Call {
         connectionConfig,
         clientDetails,
         statsOptions,
+        publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
       });
     }
 
     // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
     if (!performingRejoin && !performingFastReconnect && !performingMigration) {
-      this.sfuStatsReporter?.sendTelemetryData({
-        data: {
-          oneofKind: 'connectionTimeSeconds',
-          connectionTimeSeconds: (Date.now() - connectStartTime) / 1000,
-        },
-      });
+      this.sfuStatsReporter?.sendConnectionTime(
+        (Date.now() - connectStartTime) / 1000,
+      );
     }
 
     if (performingRejoin) {
@@ -883,8 +916,8 @@ export class Call {
 
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
-    if (!this.deviceSettingsAppliedOnce) {
-      await this.applyDeviceConfig(true);
+    if (!this.deviceSettingsAppliedOnce && this.state.settings) {
+      await this.applyDeviceConfig(this.state.settings, true);
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -894,6 +927,8 @@ export class Call {
     // we will spam the other participants with push notifications and `call.ring` events.
     delete this.joinCallData?.ring;
     delete this.joinCallData?.notify;
+    // reset the reconnect strategy to unspecified after a successful reconnection
+    this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
 
     this.logger('info', `Joined call ${this.cid}`);
   };
@@ -908,7 +943,8 @@ export class Call {
   ): ReconnectDetails => {
     const strategy = this.reconnectStrategy;
     const performingRejoin = strategy === WebsocketReconnectStrategy.REJOIN;
-    const announcedTracks = this.publisher?.getAnnouncedTracks() || [];
+    const announcedTracks =
+      this.publisher?.getAnnouncedTracksForReconnect() || [];
     return {
       strategy,
       announcedTracks,
@@ -917,6 +953,62 @@ export class Call {
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
     };
+  };
+
+  /**
+   * Prepares the preferred codec for the call.
+   * This is an experimental client feature and subject to change.
+   * @internal
+   */
+  private getPreferredPublishOptions = (): PublishOption[] => {
+    const { preferredCodec, fmtpLine, preferredBitrate, maxSimulcastLayers } =
+      this.clientPublishOptions || {};
+    if (!preferredCodec && !preferredBitrate && !maxSimulcastLayers) return [];
+
+    const codec = preferredCodec
+      ? Codec.create({ name: preferredCodec.split('/').pop(), fmtp: fmtpLine })
+      : undefined;
+
+    const preferredPublishOptions = [
+      PublishOption.create({
+        trackType: TrackType.VIDEO,
+        codec,
+        bitrate: preferredBitrate,
+        maxSpatialLayers: maxSimulcastLayers,
+      }),
+    ];
+
+    const screenShareSettings = this.screenShare.getSettings();
+    if (screenShareSettings) {
+      preferredPublishOptions.push(
+        PublishOption.create({
+          trackType: TrackType.SCREEN_SHARE,
+          fps: screenShareSettings.maxFramerate,
+          bitrate: screenShareSettings.maxBitrate,
+        }),
+      );
+    }
+
+    return preferredPublishOptions;
+  };
+
+  /**
+   * Prepares the preferred options for subscribing to tracks.
+   * This is an experimental client feature and subject to change.
+   * @internal
+   */
+  private getPreferredSubscribeOptions = (): SubscribeOption[] => {
+    const { subscriberCodec, subscriberFmtpLine } =
+      this.clientPublishOptions || {};
+    if (!subscriberCodec || !subscriberFmtpLine) return [];
+    return [
+      SubscribeOption.create({
+        trackType: TrackType.VIDEO,
+        codecs: [
+          { name: subscriberCodec.split('/').pop(), fmtp: subscriberFmtpLine },
+        ],
+      }),
+    ];
   };
 
   /**
@@ -957,6 +1049,7 @@ export class Call {
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
     clientDetails: ClientDetails;
+    publishOptions: PublishOption[];
     closePreviousInstances: boolean;
   }) => {
     const {
@@ -964,10 +1057,11 @@ export class Call {
       connectionConfig,
       clientDetails,
       statsOptions,
+      publishOptions,
       closePreviousInstances,
     } = opts;
     if (closePreviousInstances && this.subscriber) {
-      this.subscriber.close();
+      this.subscriber.dispose();
     }
     this.subscriber = new Subscriber({
       sfuClient,
@@ -991,18 +1085,14 @@ export class Call {
     const isAnonymous = this.streamClient.user?.type === 'anonymous';
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
-        this.publisher.close({ stopTracks: false });
+        this.publisher.dispose();
       }
-      const audioSettings = this.state.settings?.audio;
-      const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
-      const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
       this.publisher = new Publisher({
         sfuClient,
         dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
-        isDtxEnabled,
-        isRedEnabled,
+        publishOptions,
         logTag: String(this.sfuClientTag),
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
@@ -1192,19 +1282,14 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
-    let reconnectStartTime = Date.now();
+    const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
-    this.sfuStatsReporter?.sendTelemetryData({
-      data: {
-        oneofKind: 'reconnection',
-        reconnection: {
-          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: WebsocketReconnectStrategy.FAST,
-        },
-      },
-    });
+    this.sfuStatsReporter?.sendReconnectionTime(
+      WebsocketReconnectStrategy.FAST,
+      (Date.now() - reconnectStartTime) / 1000,
+    );
   };
 
   /**
@@ -1212,21 +1297,16 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
-    let reconnectStartTime = Date.now();
+    const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.join(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
-    this.sfuStatsReporter?.sendTelemetryData({
-      data: {
-        oneofKind: 'reconnection',
-        reconnection: {
-          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: WebsocketReconnectStrategy.REJOIN,
-        },
-      },
-    });
+    this.sfuStatsReporter?.sendReconnectionTime(
+      WebsocketReconnectStrategy.REJOIN,
+      (Date.now() - reconnectStartTime) / 1000,
+    );
   };
 
   /**
@@ -1234,7 +1314,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
-    let reconnectStartTime = Date.now();
+    const reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
       throw new Error('Cannot migrate without an active SFU client');
@@ -1273,21 +1353,16 @@ export class Call {
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
     } finally {
-      currentSubscriber?.close();
-      currentPublisher?.close({ stopTracks: false });
+      currentSubscriber?.dispose();
+      currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close();
     }
-    this.sfuStatsReporter?.sendTelemetryData({
-      data: {
-        oneofKind: 'reconnection',
-        reconnection: {
-          timeSeconds: (Date.now() - reconnectStartTime) / 1000,
-          strategy: WebsocketReconnectStrategy.MIGRATE,
-        },
-      },
-    });
+    this.sfuStatsReporter?.sendReconnectionTime(
+      WebsocketReconnectStrategy.MIGRATE,
+      (Date.now() - reconnectStartTime) / 1000,
+    );
   };
 
   /**
@@ -1376,22 +1451,16 @@ export class Call {
     // the tracks need to be restored in their original order of publishing
     // otherwise, we might get `m-lines order mismatch` errors
     for (const trackType of this.trackPublishOrder) {
+      let mediaStream: MediaStream | undefined;
       switch (trackType) {
         case TrackType.AUDIO:
-          const audioStream = this.microphone.state.mediaStream;
-          if (audioStream) {
-            await this.publishAudioStream(audioStream);
-          }
+          mediaStream = this.microphone.state.mediaStream;
           break;
         case TrackType.VIDEO:
-          const videoStream = this.camera.state.mediaStream;
-          if (videoStream) await this.publishVideoStream(videoStream);
+          mediaStream = this.camera.state.mediaStream;
           break;
         case TrackType.SCREEN_SHARE:
-          const screenShareStream = this.screenShare.state.mediaStream;
-          if (screenShareStream) {
-            await this.publishScreenShareStream(screenShareStream);
-          }
+          mediaStream = this.screenShare.state.mediaStream;
           break;
         // screen share audio can't exist without a screen share, so we handle it there
         case TrackType.SCREEN_SHARE_AUDIO:
@@ -1401,6 +1470,8 @@ export class Call {
           ensureExhausted(trackType, 'Unknown track type');
           break;
       }
+
+      if (mediaStream) await this.publish(mediaStream, trackType);
     }
   };
 
@@ -1416,136 +1487,112 @@ export class Call {
 
   /**
    * Starts publishing the given video stream to the call.
-   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
-   *
-   * Consecutive calls to this method will replace the previously published stream.
-   * The previous video stream will be stopped.
-   *
-   * @param videoStream the video stream to publish.
+   * @deprecated use `call.publish()`.
    */
   publishVideoStream = async (videoStream: MediaStream) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
-    // joining is in progress, and we should wait until the client is ready
-    await this.sfuClient.joinTask;
-
-    if (!this.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
-      throw new Error('No permission to publish video');
-    }
-
-    if (!this.publisher) throw new Error('Publisher is not initialized');
-
-    const [videoTrack] = videoStream.getVideoTracks();
-    if (!videoTrack) throw new Error('There is no video track in the stream');
-
-    if (!this.trackPublishOrder.includes(TrackType.VIDEO)) {
-      this.trackPublishOrder.push(TrackType.VIDEO);
-    }
-
-    await this.publisher.publishStream(
-      videoStream,
-      videoTrack,
-      TrackType.VIDEO,
-      this.publishOptions,
-    );
+    await this.publish(videoStream, TrackType.VIDEO);
   };
 
   /**
    * Starts publishing the given audio stream to the call.
-   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
-   *
-   * Consecutive calls to this method will replace the audio stream that is currently being published.
-   * The previous audio stream will be stopped.
-   *
-   * @param audioStream the audio stream to publish.
+   * @deprecated use `call.publish()`
    */
   publishAudioStream = async (audioStream: MediaStream) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
-    // joining is in progress, and we should wait until the client is ready
-    await this.sfuClient.joinTask;
-
-    if (!this.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)) {
-      throw new Error('No permission to publish audio');
-    }
-
-    if (!this.publisher) throw new Error('Publisher is not initialized');
-
-    const [audioTrack] = audioStream.getAudioTracks();
-    if (!audioTrack) throw new Error('There is no audio track in the stream');
-
-    if (!this.trackPublishOrder.includes(TrackType.AUDIO)) {
-      this.trackPublishOrder.push(TrackType.AUDIO);
-    }
-    await this.publisher.publishStream(
-      audioStream,
-      audioTrack,
-      TrackType.AUDIO,
-    );
+    await this.publish(audioStream, TrackType.AUDIO);
   };
 
   /**
    * Starts publishing the given screen-share stream to the call.
-   *
-   * Consecutive calls to this method will replace the previous screen-share stream.
-   * The previous screen-share stream will be stopped.
-   *
-   * @param screenShareStream the screen-share stream to publish.
+   * @deprecated use `call.publish()`
    */
   publishScreenShareStream = async (screenShareStream: MediaStream) => {
+    await this.publish(screenShareStream, TrackType.SCREEN_SHARE);
+  };
+
+  /**
+   * Publishes the given media stream.
+   *
+   * @param mediaStream the media stream to publish.
+   * @param trackType the type of the track to announce.
+   */
+  publish = async (mediaStream: MediaStream, trackType: TrackType) => {
     if (!this.sfuClient) throw new Error(`Call not joined yet.`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
 
-    if (!this.permissionsContext.hasPermission(OwnCapability.SCREENSHARE)) {
-      throw new Error('No permission to publish screen share');
+    if (!this.permissionsContext.canPublish(trackType)) {
+      throw new Error(`No permission to publish ${TrackType[trackType]}`);
     }
 
     if (!this.publisher) throw new Error('Publisher is not initialized');
 
-    const [screenShareTrack] = screenShareStream.getVideoTracks();
-    if (!screenShareTrack) {
-      throw new Error('There is no screen share track in the stream');
-    }
+    const [track] = isAudioTrackType(trackType)
+      ? mediaStream.getAudioTracks()
+      : mediaStream.getVideoTracks();
 
-    if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE)) {
-      this.trackPublishOrder.push(TrackType.SCREEN_SHARE);
-    }
-    const opts: PublishOptions = {
-      screenShareSettings: this.screenShare.getSettings(),
-    };
-    await this.publisher.publishStream(
-      screenShareStream,
-      screenShareTrack,
-      TrackType.SCREEN_SHARE,
-      opts,
-    );
-
-    const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
-    if (screenShareAudioTrack) {
-      if (!this.trackPublishOrder.includes(TrackType.SCREEN_SHARE_AUDIO)) {
-        this.trackPublishOrder.push(TrackType.SCREEN_SHARE_AUDIO);
-      }
-      await this.publisher.publishStream(
-        screenShareStream,
-        screenShareAudioTrack,
-        TrackType.SCREEN_SHARE_AUDIO,
-        opts,
+    if (!track) {
+      throw new Error(
+        `There is no ${TrackType[trackType]} track in the stream`,
       );
     }
+
+    if (track.readyState === 'ended') {
+      throw new Error(`Can't publish ended tracks.`);
+    }
+
+    pushToIfMissing(this.trackPublishOrder, trackType);
+    await this.publisher.publish(track, trackType);
+
+    const trackTypes = [trackType];
+    if (trackType === TrackType.SCREEN_SHARE) {
+      const [audioTrack] = mediaStream.getAudioTracks();
+      if (audioTrack) {
+        pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
+        await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
+        trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
+      }
+    }
+
+    await this.updateLocalStreamState(mediaStream, ...trackTypes);
   };
 
   /**
    * Stops publishing the given track type to the call, if it is currently being published.
-   * Underlying track will be stopped and removed from the publisher.
    *
-   * @param trackType the track type to stop publishing.
-   * @param stopTrack if `true` the track will be stopped, else it will be just disabled
+   * @param trackTypes the track types to stop publishing.
    */
-  stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
-    this.logger(
-      'info',
-      `stopPublish ${TrackType[trackType]}, stop tracks: ${stopTrack}`,
-    );
-    await this.publisher?.unpublishStream(trackType, stopTrack);
+  stopPublish = async (...trackTypes: TrackType[]) => {
+    if (!this.sfuClient || !this.publisher) return;
+    this.publisher.stopTracks(...trackTypes);
+    await this.updateLocalStreamState(undefined, ...trackTypes);
+  };
+
+  /**
+   * Updates the call state with the new stream.
+   *
+   * @param mediaStream the new stream to update the call state with.
+   * If undefined, the stream will be removed from the call state.
+   * @param trackTypes the track types to update the call state with.
+   */
+  private updateLocalStreamState = async (
+    mediaStream: MediaStream | undefined,
+    ...trackTypes: TrackType[]
+  ) => {
+    if (!this.sfuClient || !this.sfuClient.sessionId) return;
+    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+
+    const { sessionId } = this.sfuClient;
+    for (const trackType of trackTypes) {
+      const streamStateProp = trackTypeToParticipantStreamKey(trackType);
+      if (!streamStateProp) continue;
+
+      this.state.updateParticipant(sessionId, (p) => ({
+        publishedTracks: mediaStream
+          ? pushToIfMissing([...p.publishedTracks], trackType)
+          : p.publishedTracks.filter((t) => t !== trackType),
+        [streamStateProp]: mediaStream,
+      }));
+    }
   };
 
   /**
@@ -1554,9 +1601,20 @@ export class Call {
    * @internal
    * @param options the options to use.
    */
-  updatePublishOptions(options: PublishOptions) {
-    this.publishOptions = { ...this.publishOptions, ...options };
-  }
+  updatePublishOptions = (options: ClientPublishOptions) => {
+    this.logger(
+      'warn',
+      '[call.updatePublishOptions]: You are manually overriding the publish options for this call. ' +
+        'This is not recommended, and it can cause call stability/compatibility issues. Use with caution.',
+    );
+    if (this.state.callingState === CallingState.JOINED) {
+      this.logger(
+        'warn',
+        'Updating publish options after joining the call does not have an effect',
+      );
+    }
+    this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
+  };
 
   /**
    * Notifies the SFU that a noise cancellation process has started.
@@ -1578,6 +1636,17 @@ export class Call {
     return this.sfuClient?.stopNoiseCancellation().catch((err) => {
       this.logger('warn', 'Failed to notify stop of noise cancellation', err);
     });
+  };
+
+  /**
+   * Notifies the SFU about the mute state of the given track types.
+   * @internal
+   */
+  notifyTrackMuteState = async (muted: boolean, ...trackTypes: TrackType[]) => {
+    if (!this.sfuClient) return;
+    await this.sfuClient.updateMuteStates(
+      trackTypes.map((trackType) => ({ trackType, muted })),
+    );
   };
 
   /**
@@ -1769,7 +1838,54 @@ export class Call {
   };
 
   /**
-   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   * Starts the closed captions of the call.
+   */
+  startClosedCaptions = async (
+    options?: StartClosedCaptionsRequest,
+  ): Promise<StartClosedCaptionsResponse> => {
+    const trx = this.state.setCaptioning(true); // optimistic update
+    try {
+      return await this.streamClient.post<
+        StartClosedCaptionsResponse,
+        StartClosedCaptionsRequest
+      >(`${this.streamClientBasePath}/start_closed_captions`, options);
+    } catch (err) {
+      trx.rollback(); // revert the optimistic update
+      throw err;
+    }
+  };
+
+  /**
+   * Stops the closed captions of the call.
+   */
+  stopClosedCaptions = async (
+    options?: StopClosedCaptionsRequest,
+  ): Promise<StopClosedCaptionsResponse> => {
+    const trx = this.state.setCaptioning(false); // optimistic update
+    try {
+      return await this.streamClient.post<
+        StopClosedCaptionsResponse,
+        StopClosedCaptionsRequest
+      >(`${this.streamClientBasePath}/stop_closed_captions`, options);
+    } catch (err) {
+      trx.rollback(); // revert the optimistic update
+      throw err;
+    }
+  };
+
+  /**
+   * Updates the closed caption settings.
+   *
+   * @param config the closed caption settings to apply
+   */
+  updateClosedCaptionSettings = (config: Partial<ClosedCaptionsSettings>) => {
+    this.state.updateClosedCaptionSettings(config);
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call.
+   * The call settings object contains information about which permissions can be requested during a call
+   * (for example, a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
     data: RequestPermissionRequest,
@@ -2004,28 +2120,36 @@ export class Call {
    * Applicable only for ringing calls.
    */
   private scheduleAutoDrop = () => {
+    this.cancelAutoDrop();
+
+    const settings = this.state.settings;
+    if (!settings) return;
+    // ignore if the call is not ringing
+    if (this.state.callingState !== CallingState.RINGING) return;
+
+    const timeoutInMs = this.isCreatedByMe
+      ? settings.ring.auto_cancel_timeout_ms
+      : settings.ring.incoming_call_timeout_ms;
+
+    // 0 means no auto-drop
+    if (timeoutInMs <= 0) return;
+
+    this.dropTimeout = setTimeout(() => {
+      // the call might have stopped ringing by this point,
+      // e.g. it was already accepted and joined
+      if (this.state.callingState !== CallingState.RINGING) return;
+      this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
+        this.logger('error', 'Failed to drop call', err);
+      });
+    }, timeoutInMs);
+  };
+
+  /**
+   * Cancels a scheduled auto-drop timeout.
+   */
+  private cancelAutoDrop = () => {
     clearTimeout(this.dropTimeout);
-    this.leaveCallHooks.add(
-      createSubscription(this.state.settings$, (settings) => {
-        if (!settings) return;
-        // ignore if the call is not ringing
-        if (this.state.callingState !== CallingState.RINGING) return;
-
-        const timeoutInMs = this.isCreatedByMe
-          ? settings.ring.auto_cancel_timeout_ms
-          : settings.ring.incoming_call_timeout_ms;
-
-        // 0 means no auto-drop
-        if (timeoutInMs <= 0) return;
-
-        clearTimeout(this.dropTimeout);
-        this.dropTimeout = setTimeout(() => {
-          this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
-            this.logger('error', 'Failed to drop call', err);
-          });
-        }, timeoutInMs);
-      }),
-    );
+    this.dropTimeout = undefined;
   };
 
   /**
@@ -2139,91 +2263,16 @@ export class Call {
    *
    * @internal
    */
-  applyDeviceConfig = async (status: boolean) => {
-    await this.initCamera({ setStatus: status }).catch((err) => {
+  applyDeviceConfig = async (
+    settings: CallSettingsResponse,
+    publish: boolean,
+  ) => {
+    await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger('warn', 'Camera init failed', err);
     });
-    await this.initMic({ setStatus: status }).catch((err) => {
+    await this.microphone.apply(settings.audio, publish).catch((err) => {
       this.logger('warn', 'Mic init failed', err);
     });
-  };
-
-  private initCamera = async (options: { setStatus: boolean }) => {
-    // Wait for any in progress camera operation
-    await this.camera.statusChangeSettled();
-
-    if (
-      this.state.localParticipant?.videoStream ||
-      !this.permissionsContext.hasPermission('send-video')
-    ) {
-      return;
-    }
-
-    // Set camera direction if it's not yet set
-    if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
-      let defaultDirection: CameraDirection = 'front';
-      const backendSetting = this.state.settings?.video.camera_facing;
-      if (backendSetting) {
-        defaultDirection = backendSetting === 'front' ? 'front' : 'back';
-      }
-      this.camera.state.setDirection(defaultDirection);
-    }
-
-    // Set target resolution
-    const targetResolution = this.state.settings?.video.target_resolution;
-    if (targetResolution) {
-      await this.camera.selectTargetResolution(targetResolution);
-    }
-
-    if (options.setStatus) {
-      // Publish already that was set before we joined
-      if (
-        this.camera.enabled &&
-        this.camera.state.mediaStream &&
-        !this.publisher?.isPublishing(TrackType.VIDEO)
-      ) {
-        await this.publishVideoStream(this.camera.state.mediaStream);
-      }
-
-      // Start camera if backend config specifies, and there is no local setting
-      if (
-        this.camera.state.status === undefined &&
-        this.state.settings?.video.camera_default_on
-      ) {
-        await this.camera.enable();
-      }
-    }
-  };
-
-  private initMic = async (options: { setStatus: boolean }) => {
-    // Wait for any in progress mic operation
-    await this.microphone.statusChangeSettled();
-
-    if (
-      this.state.localParticipant?.audioStream ||
-      !this.permissionsContext.hasPermission('send-audio')
-    ) {
-      return;
-    }
-
-    if (options.setStatus) {
-      // Publish media stream that was set before we joined
-      if (
-        this.microphone.enabled &&
-        this.microphone.state.mediaStream &&
-        !this.publisher?.isPublishing(TrackType.AUDIO)
-      ) {
-        await this.publishAudioStream(this.microphone.state.mediaStream);
-      }
-
-      // Start mic if backend config specifies, and there is no local setting
-      if (
-        this.microphone.state.status === undefined &&
-        this.state.settings?.audio.mic_default_on
-      ) {
-        await this.microphone.enable();
-      }
-    }
   };
 
   /**
@@ -2367,7 +2416,7 @@ export class Call {
    * preference has effect on. Affects all participants by default.
    */
   setPreferredIncomingVideoResolution = (
-    resolution: VideoResolution | undefined,
+    resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
     this.dynascaleManager.setVideoTrackSubscriptionOverrides(

@@ -8,10 +8,10 @@ import { GoAwayReason } from '../models/models';
 import { CallGrants } from '../models/models';
 import { Codec } from '../models/models';
 import { ConnectionQuality } from '../models/models';
-import { PublishOptions } from '../models/models';
 import { CallState } from '../models/models';
 import { TrackSubscriptionDetails } from '../signal_rpc/signal';
 import { TrackInfo } from '../models/models';
+import { SubscribeOption } from '../models/models';
 import { ClientDetails } from '../models/models';
 import { TrackUnpublishReason } from '../models/models';
 import { Participant } from '../models/models';
@@ -245,16 +245,6 @@ export interface SfuEvent {
         participantMigrationComplete: ParticipantMigrationComplete;
       }
     | {
-        oneofKind: 'codecNegotiationComplete';
-        /**
-         * CodecNegotiationComplete is sent to signal the completion of a codec negotiation.
-         * SDKs can safely stop previous transceivers
-         *
-         * @generated from protobuf field: stream.video.sfu.event.CodecNegotiationComplete codec_negotiation_complete = 26;
-         */
-        codecNegotiationComplete: CodecNegotiationComplete;
-      }
-    | {
         oneofKind: 'changePublishOptions';
         /**
          * ChangePublishOptions is sent to signal the change in publish options such as a new codec or simulcast layers
@@ -272,14 +262,18 @@ export interface SfuEvent {
  */
 export interface ChangePublishOptions {
   /**
-   * @generated from protobuf field: stream.video.sfu.models.PublishOption publish_option = 1;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption publish_options = 1;
    */
-  publishOption?: PublishOption;
+  publishOptions: PublishOption[];
+  /**
+   * @generated from protobuf field: string reason = 2;
+   */
+  reason: string;
 }
 /**
- * @generated from protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ * @generated from protobuf message stream.video.sfu.event.ChangePublishOptionsComplete
  */
-export interface CodecNegotiationComplete {}
+export interface ChangePublishOptionsComplete {}
 /**
  * @generated from protobuf message stream.video.sfu.event.ParticipantMigrationComplete
  */
@@ -504,6 +498,14 @@ export interface JoinRequest {
    * @generated from protobuf field: stream.video.sfu.event.ReconnectDetails reconnect_details = 7;
    */
   reconnectDetails?: ReconnectDetails;
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption preferred_publish_options = 9;
+   */
+  preferredPublishOptions: PublishOption[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.SubscribeOption preferred_subscribe_options = 10;
+   */
+  preferredSubscribeOptions: SubscribeOption[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ReconnectDetails
@@ -570,9 +572,9 @@ export interface JoinResponse {
    */
   fastReconnectDeadlineSeconds: number;
   /**
-   * @generated from protobuf field: stream.video.sfu.models.PublishOptions publish_options = 4;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PublishOption publish_options = 4;
    */
-  publishOptions?: PublishOptions;
+  publishOptions: PublishOption[];
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -729,6 +731,14 @@ export interface AudioSender {
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
   codec?: Codec;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 3;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: int32 publish_option_id = 4;
+   */
+  publishOptionId: number;
 }
 /**
  * VideoLayerSetting is used to specify various parameters of a particular encoding in simulcast.
@@ -779,6 +789,14 @@ export interface VideoSender {
    * @generated from protobuf field: repeated stream.video.sfu.event.VideoLayerSetting layers = 3;
    */
   layers: VideoLayerSetting[];
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 4;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: int32 publish_option_id = 5;
+   */
+  publishOptionId: number;
 }
 /**
  * sent to users when they need to change the quality of their video
@@ -1001,13 +1019,6 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         T: () => ParticipantMigrationComplete,
       },
       {
-        no: 26,
-        name: 'codec_negotiation_complete',
-        kind: 'message',
-        oneof: 'eventPayload',
-        T: () => CodecNegotiationComplete,
-      },
-      {
         no: 27,
         name: 'change_publish_options',
         kind: 'message',
@@ -1027,10 +1038,12 @@ class ChangePublishOptions$Type extends MessageType<ChangePublishOptions> {
     super('stream.video.sfu.event.ChangePublishOptions', [
       {
         no: 1,
-        name: 'publish_option',
+        name: 'publish_options',
         kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
         T: () => PublishOption,
       },
+      { no: 2, name: 'reason', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }
@@ -1039,15 +1052,16 @@ class ChangePublishOptions$Type extends MessageType<ChangePublishOptions> {
  */
 export const ChangePublishOptions = new ChangePublishOptions$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CodecNegotiationComplete$Type extends MessageType<CodecNegotiationComplete> {
+class ChangePublishOptionsComplete$Type extends MessageType<ChangePublishOptionsComplete> {
   constructor() {
-    super('stream.video.sfu.event.CodecNegotiationComplete', []);
+    super('stream.video.sfu.event.ChangePublishOptionsComplete', []);
   }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.event.CodecNegotiationComplete
+ * @generated MessageType for protobuf message stream.video.sfu.event.ChangePublishOptionsComplete
  */
-export const CodecNegotiationComplete = new CodecNegotiationComplete$Type();
+export const ChangePublishOptionsComplete =
+  new ChangePublishOptionsComplete$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ParticipantMigrationComplete$Type extends MessageType<ParticipantMigrationComplete> {
   constructor() {
@@ -1306,6 +1320,20 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         kind: 'message',
         T: () => ReconnectDetails,
       },
+      {
+        no: 9,
+        name: 'preferred_publish_options',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => PublishOption,
+      },
+      {
+        no: 10,
+        name: 'preferred_subscribe_options',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => SubscribeOption,
+      },
     ]);
   }
 }
@@ -1413,7 +1441,8 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         no: 4,
         name: 'publish_options',
         kind: 'message',
-        T: () => PublishOptions,
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => PublishOption,
       },
     ]);
   }
@@ -1578,6 +1607,22 @@ class AudioSender$Type extends MessageType<AudioSender> {
   constructor() {
     super('stream.video.sfu.event.AudioSender', [
       { no: 2, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 3,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      {
+        no: 4,
+        name: 'publish_option_id',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
+      },
     ]);
   }
 }
@@ -1629,6 +1674,22 @@ class VideoSender$Type extends MessageType<VideoSender> {
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
         T: () => VideoLayerSetting,
+      },
+      {
+        no: 4,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      {
+        no: 5,
+        name: 'publish_option_id',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
       },
     ]);
   }

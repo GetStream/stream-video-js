@@ -2,6 +2,58 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.10.1...@stream-io/video-react-sdk-1.10.2) (2025-01-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.2`
+* `@stream-io/video-react-bindings` updated to version `1.4.2`
+## [1.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.10.0...@stream-io/video-react-sdk-1.10.1) (2025-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.1`
+* `@stream-io/video-react-bindings` updated to version `1.4.1`
+## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.9.0...@stream-io/video-react-sdk-1.10.0) (2025-01-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.0`
+* `@stream-io/video-react-bindings` updated to version `1.4.0`
+
+### Features
+
+* Codec Negotiation ([#1527](https://github.com/GetStream/stream-video-js/issues/1527)) ([2e9e344](https://github.com/GetStream/stream-video-js/commit/2e9e344d5259e3069dddb17846013becef24829e))
+
+## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.8.7...@stream-io/video-react-sdk-1.9.0) (2025-01-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.14.0`
+* `@stream-io/video-react-bindings` updated to version `1.3.0`
+
+### Features
+
+* **closed captions:** Integration in the SDKs ([#1508](https://github.com/GetStream/stream-video-js/issues/1508)) ([bcb8589](https://github.com/GetStream/stream-video-js/commit/bcb85892c0dafcb03f9debf8d2fd361622224166))
+
+## [1.8.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.8.6...@stream-io/video-react-sdk-1.8.7) (2024-12-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.13.1`
+* `@stream-io/video-react-bindings` updated to version `1.2.16`
+## [1.8.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.8.5...@stream-io/video-react-sdk-1.8.6) (2024-12-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.13.0`
+* `@stream-io/video-react-bindings` updated to version `1.2.15`
+## [1.8.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.8.4...@stream-io/video-react-sdk-1.8.5) (2024-12-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.12.4`
+* `@stream-io/video-react-bindings` updated to version `1.2.14`
 ## [1.8.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.8.3...@stream-io/video-react-sdk-1.8.4) (2024-12-13)
 
 ### Dependency Updates

@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import {
   AggregatedStatsReport,
   CallStatsReport,
+  SfuModels,
 } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { useFloating, useHover, useInteractions } from '@floating-ui/react';
@@ -270,9 +271,11 @@ const toFrameSize = (stats: AggregatedStatsReport) => {
 };
 
 const formatCodec = (callStatsReport: CallStatsReport): string => {
-  const { codec } = callStatsReport.publisherStats;
-  if (!codec) return '';
-  const [, name] = codec.split('/');
+  const { codecPerTrackType } = callStatsReport.publisherStats;
+  if (!codecPerTrackType || !codecPerTrackType[SfuModels.TrackType.VIDEO]) {
+    return '';
+  }
+  const [, name] = codecPerTrackType[SfuModels.TrackType.VIDEO].split('/');
   return name ? ` (${name})` : '';
 };
 

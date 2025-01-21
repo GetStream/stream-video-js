@@ -14,6 +14,7 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
+import { PermissionsContext } from '../../permissions';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -36,7 +37,7 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-vi.mock('../../compatibility.ts', () => {
+vi.mock('../../helpers/compatibility.ts', () => {
   console.log('MOCKING mobile device');
   return {
     isMobile: () => true,
@@ -52,16 +53,16 @@ vi.mock('../../helpers/platforms', () => {
 
 describe('CameraManager', () => {
   let manager: CameraManager;
+  let call: Call;
 
   beforeEach(() => {
-    manager = new CameraManager(
-      new Call({
-        id: '',
-        type: '',
-        streamClient: new StreamClient('abc123'),
-        clientStore: new StreamVideoWriteableStateStore(),
-      }),
-    );
+    call = new Call({
+      id: '',
+      type: '',
+      streamClient: new StreamClient('abc123'),
+      clientStore: new StreamVideoWriteableStateStore(),
+    });
+    manager = new CameraManager(call);
   });
 
   it('list devices', () => {
@@ -94,8 +95,9 @@ describe('CameraManager', () => {
 
     await manager.enable();
 
-    expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
+    expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      TrackType.VIDEO,
     );
   });
 
@@ -105,10 +107,7 @@ describe('CameraManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.VIDEO,
-      true,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
   });
 
   it('flip', async () => {
@@ -203,6 +202,104 @@ describe('CameraManager', () => {
     await manager.selectTargetResolution({ width: 1280, height: 720 });
 
     expect(getVideoStream).toHaveBeenCalledOnce();
+  });
+
+  describe('Video Settings', () => {
+    beforeEach(() => {
+      // @ts-expect-error - read only property
+      call.permissionsContext = new PermissionsContext();
+      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(true);
+    });
+
+    it('should enable the camera when set on the dashboard', async () => {
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        // @ts-expect-error - partial settings
+        {
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        },
+        true,
+      );
+
+      expect(manager.state.direction).toBe('front');
+      expect(manager.state.status).toBe('enabled');
+      expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
+      expect(manager.enable).toHaveBeenCalled();
+    });
+
+    it('should not enable the camera when set on the dashboard', async () => {
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        // @ts-expect-error - partial settings
+        {
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: false,
+        },
+        true,
+      );
+
+      expect(manager.state.direction).toBe('front');
+      expect(manager.state.status).toBe(undefined);
+      expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
+      expect(manager.enable).not.toHaveBeenCalled();
+    });
+
+    it('should not turn on the camera when publish is false', async () => {
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        // @ts-expect-error - partial settings
+        {
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        },
+        false,
+      );
+
+      expect(manager.state.direction).toBe('front');
+      expect(manager.state.status).toBe(undefined);
+      expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
+      expect(manager.enable).not.toHaveBeenCalled();
+    });
+
+    it('should not enable the camera when the user does not have permission', async () => {
+      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(false);
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        // @ts-expect-error - partial settings
+        {
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        },
+        true,
+      );
+
+      expect(manager.state.direction).toBe(undefined);
+      expect(manager.state.status).toBe(undefined);
+      expect(manager['targetResolution']).toEqual({ width: 1280, height: 720 });
+      expect(manager.enable).not.toHaveBeenCalled();
+    });
+
+    it('should publish the stream when the camera is already enabled', async () => {
+      await manager.enable();
+      // @ts-expect-error - private api
+      vi.spyOn(manager, 'publishStream');
+      await manager.apply(
+        // @ts-expect-error - partial settings
+        {
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        },
+        true,
+      );
+
+      expect(manager['publishStream']).toHaveBeenCalled();
+    });
   });
 
   afterEach(() => {

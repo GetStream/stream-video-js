@@ -2,6 +2,116 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.3...@stream-io/video-react-native-sdk-1.9.4) (2025-01-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.2`
+* `@stream-io/video-react-bindings` updated to version `1.4.2`
+## [1.9.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.2...@stream-io/video-react-native-sdk-1.9.3) (2025-01-20)
+
+
+### Bug Fixes
+
+* ios 18 pip support ([#1646](https://github.com/GetStream/stream-video-js/issues/1646)) ([242bd1f](https://github.com/GetStream/stream-video-js/commit/242bd1fe08381805a24cc8d17671dd009b79cb09)), closes [#1647](https://github.com/GetStream/stream-video-js/issues/1647)
+
+## [1.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.1...@stream-io/video-react-native-sdk-1.9.2) (2025-01-17)
+
+
+### Bug Fixes
+
+* **rn-sdk:** fixes the camera status on app restore from background ([#1641](https://github.com/GetStream/stream-video-js/issues/1641)) ([0ff2506](https://github.com/GetStream/stream-video-js/commit/0ff2506de4d3db30a86ab27ee8dcfaa2fe8f0ddc))
+
+## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.0...@stream-io/video-react-native-sdk-1.9.1) (2025-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.1`
+* `@stream-io/video-react-bindings` updated to version `1.4.1`
+## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.8.0...@stream-io/video-react-native-sdk-1.9.0) (2025-01-16)
+
+
+### Features
+
+* android 12+ pip uses setAutoEnterEnabled api ([#1643](https://github.com/GetStream/stream-video-js/issues/1643)) ([b07a9a6](https://github.com/GetStream/stream-video-js/commit/b07a9a6a2d97fded37161cfbabc4d9a73baae26a))
+
+## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.7.0...@stream-io/video-react-native-sdk-1.8.0) (2025-01-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.0`
+* `@stream-io/video-react-bindings` updated to version `1.4.0`
+* `@stream-io/video-filters-react-native` updated to version `0.2.6`
+
+### Features
+
+* Codec Negotiation ([#1527](https://github.com/GetStream/stream-video-js/issues/1527)) ([2e9e344](https://github.com/GetStream/stream-video-js/commit/2e9e344d5259e3069dddb17846013becef24829e))
+
+## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.6.1...@stream-io/video-react-native-sdk-1.7.0) (2025-01-08)
+
+
+### Features
+
+* update peer deps and sample app to webrtc v125 ([#1638](https://github.com/GetStream/stream-video-js/issues/1638)) ([2b9074f](https://github.com/GetStream/stream-video-js/commit/2b9074f8fdb857699fa5fa429be424dc0496363e))
+
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.6.0...@stream-io/video-react-native-sdk-1.6.1) (2025-01-06)
+
+
+* **rn-video:** upgrade to expo ver 52 ([#1630](https://github.com/GetStream/stream-video-js/issues/1630)) ([7eec9b0](https://github.com/GetStream/stream-video-js/commit/7eec9b0616a6c8f397a00d0c48da8932fd2b7dfc))
+
+
+### Bug Fixes
+
+*  foreground service cannot be started in background exception ([#1635](https://github.com/GetStream/stream-video-js/issues/1635)) ([bb82021](https://github.com/GetStream/stream-video-js/commit/bb820214b85e08c7be726e0da27b6739681e07e2))
+
+## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.5.2...@stream-io/video-react-native-sdk-1.6.0) (2025-01-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.14.0`
+* `@stream-io/video-react-bindings` updated to version `1.3.0`
+
+### Features
+
+* **closed captions:** Integration in the SDKs ([#1508](https://github.com/GetStream/stream-video-js/issues/1508)) ([bcb8589](https://github.com/GetStream/stream-video-js/commit/bcb85892c0dafcb03f9debf8d2fd361622224166))
+
+## [1.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.5.1...@stream-io/video-react-native-sdk-1.5.2) (2024-12-31)
+
+
+### Bug Fixes
+
+* iOS thermal state issue ([#1633](https://github.com/GetStream/stream-video-js/issues/1633)) ([3d2a4c4](https://github.com/GetStream/stream-video-js/commit/3d2a4c42a4de2eb0e8f43586c6d4b0aaed1d34e4))
+
+## [1.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.5.0...@stream-io/video-react-native-sdk-1.5.1) (2024-12-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.13.1`
+* `@stream-io/video-react-bindings` updated to version `1.2.16`
+## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.22...@stream-io/video-react-native-sdk-1.5.0) (2024-12-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.13.0`
+* `@stream-io/video-react-bindings` updated to version `1.2.15`
+
+### Features
+
+* report low power mode and thermal info to stats ([#1583](https://github.com/GetStream/stream-video-js/issues/1583)) ([ef49cee](https://github.com/GetStream/stream-video-js/commit/ef49ceef032fc3e4bb055fbc32c2b5b18c3a24d2))
+
+## [1.4.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.21...@stream-io/video-react-native-sdk-1.4.22) (2024-12-19)
+
+
+### Bug Fixes
+
+* **rn-video:** highlightedContainer prop typo ([#1627](https://github.com/GetStream/stream-video-js/issues/1627)) ([56d9137](https://github.com/GetStream/stream-video-js/commit/56d9137514701b9313a6ea9ee8ba2f6ff2f61209))
+
+## [1.4.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.20...@stream-io/video-react-native-sdk-1.4.21) (2024-12-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.12.4`
+* `@stream-io/video-react-bindings` updated to version `1.2.14`
 ## [1.4.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.4.19...@stream-io/video-react-native-sdk-1.4.20) (2024-12-16)
 
 

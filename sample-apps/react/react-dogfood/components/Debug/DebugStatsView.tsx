@@ -4,11 +4,10 @@ import { useFloatingUIPreset } from '../../hooks/useFloatingUIPreset';
 
 export const DebugStatsView = (props: {
   call: Call;
-  mediaStream?: MediaStream;
   sessionId: string;
   userId: string;
 }) => {
-  const { call, mediaStream, sessionId, userId } = props;
+  const { call, sessionId, userId } = props;
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
@@ -26,7 +25,7 @@ export const DebugStatsView = (props: {
   const previousHeight = useRef<Record<string, number>>({ f: 0, h: 0, q: 0 });
   trackStats?.forEach((track) => {
     if (track.kind !== 'video') return;
-    const { frameWidth = 0, frameHeight = 0, rid = '' } = track;
+    const { frameWidth = 0, frameHeight = 0, rid = 'q' } = track;
     if (
       frameWidth !== previousWidth.current[rid] ||
       frameHeight !== previousHeight.current[rid]
@@ -44,21 +43,12 @@ export const DebugStatsView = (props: {
   });
 
   const [isPopperOpen, setIsPopperOpen] = useState(false);
-
-  const [videoTrack] = mediaStream?.getVideoTracks() ?? [];
-  const settings = videoTrack?.getSettings();
   return (
     <>
       <span
         className="rd__debug__track-stats-icon"
         tabIndex={0}
         ref={refs.setReference}
-        title={
-          settings &&
-          `${settings.width}x${settings.height}@${Math.round(
-            settings.frameRate || 0,
-          )}`
-        }
         onClick={() => {
           setIsPopperOpen((v) => !v);
         }}
@@ -88,7 +78,7 @@ export const DebugStatsView = (props: {
                       }
                       value={`${track.frameWidth || 0}x${
                         track.frameHeight || 0
-                      }@${track.framesPerSecond || 0}fps`}
+                      }@${Math.round(track.framesPerSecond || 0)}fps`}
                     />
                   );
                 } else if (track.kind === 'audio') {

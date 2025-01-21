@@ -1,13 +1,16 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
   TranscriptionSettingsRequestModeEnum,
   useCall,
+  useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
 
 const languages = [
-  { code: null, label: 'None' },
+  { code: undefined, label: 'None' },
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'French' },
   { code: 'es', label: 'Spanish' },
@@ -44,8 +47,10 @@ const languages = [
 
 export const TranscriptionSettings = () => {
   const call = useCall();
-  const [firstLanguage, setFirstLanguage] = useState<string | null>('en');
-  const [secondLanguage, setSecondLanguage] = useState<string | null>(null);
+  const [transcriptionLanguage, setTranscriptionLanguage] = useState<
+    string | undefined
+  >('en');
+
   useEffect(() => {
     if (!call) return;
     call
@@ -54,25 +59,32 @@ export const TranscriptionSettings = () => {
           transcription: {
             ...call.state.settings?.transcription,
             mode: TranscriptionSettingsRequestModeEnum.AUTO_ON,
-            languages: [firstLanguage, secondLanguage].filter(
-              Boolean,
-            ) as string[],
+            language: transcriptionLanguage,
           },
         },
       })
       .catch((err) => {
         console.error('Error updating call settings:', err);
       });
-  }, [call, firstLanguage, secondLanguage]);
+  }, [call, transcriptionLanguage]);
 
   return (
     <div className="rd__transcriptions">
-      <h4>Primary language</h4>
+      <div className="str-video__call-stats">
+        <div className="str-video__call-stats__card-container">
+          <ClosedCaptionStatus />
+          <TranscriptionStatus />
+        </div>
+      </div>
+
+      <h4>Language</h4>
       <DropDownSelect
         icon="language-sign"
         defaultSelectedLabel="English"
         defaultSelectedIndex={1}
-        handleSelect={(index) => setFirstLanguage(languages[index + 1].code)}
+        handleSelect={(index) =>
+          setTranscriptionLanguage(languages[index + 1].code)
+        }
       >
         {languages.map((language) =>
           language.code ? (
@@ -86,22 +98,74 @@ export const TranscriptionSettings = () => {
           ),
         )}
       </DropDownSelect>
+    </div>
+  );
+};
 
-      <h4>Secondary language</h4>
-      <DropDownSelect
-        icon="language-sign"
-        defaultSelectedLabel="None"
-        defaultSelectedIndex={0}
-        handleSelect={(index) => setSecondLanguage(languages[index].code)}
-      >
-        {languages.map((language) => (
-          <DropDownSelectOption
-            key={language.code || 'none'}
-            label={language.label}
-            icon="language-sign"
-          />
-        ))}
-      </DropDownSelect>
+const ClosedCaptionStatus = () => {
+  const { t } = useI18n();
+  const { useCallSettings, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
+  const settings = useCallSettings();
+  const inProgress = useIsCallCaptioningInProgress();
+
+  return (
+    <StatusCard
+      label={t('Closed Captions')}
+      value={settings?.transcription.closed_caption_mode}
+      status={inProgress ? 'on' : 'off'}
+    />
+  );
+};
+
+const TranscriptionStatus = () => {
+  const { t } = useI18n();
+  const { useCallSettings, useIsCallTranscribingInProgress } =
+    useCallStateHooks();
+  const settings = useCallSettings();
+  const inProgress = useIsCallTranscribingInProgress();
+
+  return (
+    <StatusCard
+      label={t('Transcription')}
+      value={settings?.transcription.closed_caption_mode}
+      status={inProgress ? 'on' : 'off'}
+    />
+  );
+};
+
+const StatusCard = (props: {
+  label: string;
+  value: string | ReactNode;
+  status?: 'on' | 'off';
+}) => {
+  const { t } = useI18n();
+  const { label, value, status } = props;
+
+  return (
+    <div className="str-video__call-stats__card">
+      <div className="str-video__call-stats__card-content">
+        <div className="str-video__call-stats__card-label">{label}</div>
+        <div className="str-video__call-stats__card-value">{value}</div>
+      </div>
+      {status && <StatusIndicator status={status}>{t(status)}</StatusIndicator>}
+    </div>
+  );
+};
+
+const StatusIndicator = (props: {
+  children: ReactNode;
+  status: 'on' | 'off';
+}) => {
+  const { children, status } = props;
+  return (
+    <div
+      className={clsx('str-video__call-stats__tag', {
+        'str-video__call-stats__tag--good': status === 'on',
+        'str-video__call-stats__tag--bad': status === 'off',
+      })}
+    >
+      <div className="str-video__call-stats__tag__text">{children}</div>
     </div>
   );
 };

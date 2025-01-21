@@ -49,8 +49,8 @@ describe('ScreenShareManager', () => {
     expect(RxUtils.getCurrentValue(devices)).toEqual([]);
   });
 
-  it('select device', () => {
-    expect(manager.select('any-device-id')).rejects.toThrowError();
+  it('select device', async () => {
+    await expect(manager.select('any-device-id')).rejects.toThrowError();
   });
 
   it('get stream', async () => {
@@ -113,8 +113,9 @@ describe('ScreenShareManager', () => {
     const call = manager['call'];
     call.state.setCallingState(CallingState.JOINED);
     await manager.enable();
-    expect(call.publishScreenShareStream).toHaveBeenCalledWith(
+    expect(call.publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      TrackType.SCREEN_SHARE,
     );
   });
 
@@ -125,10 +126,9 @@ describe('ScreenShareManager', () => {
 
     await manager.disable();
     expect(manager.state.status).toEqual('disabled');
-    expect(call.stopPublish).toHaveBeenCalledWith(TrackType.SCREEN_SHARE, true);
     expect(call.stopPublish).toHaveBeenCalledWith(
+      TrackType.SCREEN_SHARE,
       TrackType.SCREEN_SHARE_AUDIO,
-      true,
     );
   });
 });
