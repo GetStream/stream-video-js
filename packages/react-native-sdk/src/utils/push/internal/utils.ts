@@ -1,5 +1,6 @@
 import {
   Call,
+  CallingState,
   RxUtils,
   StreamVideoClient,
   getLogger,
@@ -112,7 +113,9 @@ export const processCallFromPush = async (
       }
       await callFromPush.join();
     } else if (action === 'decline') {
-      await callFromPush.leave({ reject: true, reason: 'decline' });
+      const canReject =
+        callFromPush.state.callingState === CallingState.RINGING;
+      await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
     const logger = getLogger(['processCallFromPush']);
