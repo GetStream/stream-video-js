@@ -3,12 +3,12 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useMemo, useState } from 'react';
 import { ConnectivityDash } from './ConnectivityDash';
 import { CapabilitiesDash } from './CapabiltiesDash';
 import { DevicesDash } from './DevicesDash';
+import { CodecDash } from './CodecDash';
 
 interface Credentials {
   callType: string;
@@ -27,32 +27,34 @@ export default function InspectorPage() {
   );
   const { client, call } = useCall(credentials);
 
-  if (!client) {
-    return <>Connecting user...</>;
-  }
-
-  if (!call) {
-    return <>Joining call...</>;
-  }
-
   return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <DevicesDash />
-        <CapabilitiesDash />
-        <ConnectivityDash />
-        <CallStatsInspector />
-      </StreamCall>
-    </StreamVideo>
+    <div className="rd__inspector">
+      <CapabilitiesDash />
+      {client ? (
+        <StreamVideo client={client}>
+          <DevicesDash />
+          {call ? (
+            <StreamCall call={call}>
+              <ConnectivityDash />
+              <CodecDash />
+            </StreamCall>
+          ) : (
+            <div className="rd__inspector-placeholder">Joining call....</div>
+          )}
+        </StreamVideo>
+      ) : (
+        <div className="rd__inspector-placeholder">Connecting user...</div>
+      )}
+    </div>
   );
 }
 
-function CallStatsInspector() {
-  const { useCallStatsReport } = useCallStateHooks();
-  const stats = useCallStatsReport();
+// function CallStatsInspector() {
+//   const { useCallStatsReport } = useCallStateHooks();
+//   const stats = useCallStatsReport();
 
-  return <pre>{JSON.stringify(stats, undefined, 2)}</pre>;
-}
+//   return <pre>{JSON.stringify(stats, undefined, 2)}</pre>;
+// }
 
 function parseConnectionString(connectionString: string): Credentials {
   // Example connection lines:

@@ -3,10 +3,14 @@ import { useMemo } from 'react';
 export function CapabilitiesDash() {
   return (
     <>
-      Video encoding support:
-      <CodecCapabilitiesDash direction="send" kind="video" />
-      Video decoding support:
-      <CodecCapabilitiesDash direction="recv" kind="video" />
+      <div className="rd__inspector-dash">
+        Video encoding support:
+        <CodecCapabilitiesDash direction="send" kind="video" />
+      </div>
+      <div className="rd__inspector-dash">
+        Video decoding support:
+        <CodecCapabilitiesDash direction="recv" kind="video" />
+      </div>
     </>
   );
 }

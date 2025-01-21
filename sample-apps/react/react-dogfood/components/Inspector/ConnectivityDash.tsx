@@ -6,7 +6,7 @@ export function ConnectivityDash() {
   const call = useCall();
 
   return (
-    <>
+    <div className="rd__inspector-dash">
       Connectivity:
       <ul>
         <li>
@@ -45,6 +45,6 @@ export function ConnectivityDash() {
           />
         </li>
       </ul>
-    </>
+    </div>
   );
 }
