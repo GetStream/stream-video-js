@@ -849,25 +849,32 @@ export class Call {
       const preferredSubscribeOptions = !isReconnecting
         ? this.getPreferredSubscribeOptions()
         : [];
-      const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-        await sfuClient.join({
-          subscriberSdp,
-          publisherSdp,
-          clientDetails,
-          fastReconnect: performingFastReconnect,
-          reconnectDetails,
-          preferredPublishOptions,
-          preferredSubscribeOptions,
-        });
 
-      this.currentPublishOptions = publishOptions;
-      this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
-      if (callState) {
-        this.state.updateFromSfuCallState(
-          callState,
-          sfuClient.sessionId,
-          reconnectDetails,
-        );
+      try {
+        const { callState, fastReconnectDeadlineSeconds, publishOptions } =
+          await sfuClient.join({
+            subscriberSdp,
+            publisherSdp,
+            clientDetails,
+            fastReconnect: performingFastReconnect,
+            reconnectDetails,
+            preferredPublishOptions,
+            preferredSubscribeOptions,
+          });
+
+        this.currentPublishOptions = publishOptions;
+        this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
+        if (callState) {
+          this.state.updateFromSfuCallState(
+            callState,
+            sfuClient.sessionId,
+            reconnectDetails,
+          );
+        }
+      } catch (error) {
+        // restore the previous call state if the join-flow fails
+        this.state.setCallingState(callingState);
+        throw error;
       }
     }
 
