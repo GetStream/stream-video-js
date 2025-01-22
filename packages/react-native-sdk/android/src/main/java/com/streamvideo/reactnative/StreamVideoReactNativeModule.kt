@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.os.Process
+import android.util.Log
 import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.facebook.react.ReactActivity
@@ -43,24 +44,28 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
             // inform the activity
             if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasPiPSupport()) {
                 (reactApplicationContext.currentActivity as? ReactActivity)?.let { activity ->
-                    val params = getPiPParams()
-                    val aspect =
-                        if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                            Rational(9, 16)
+                    try {
+                        val params = getPiPParams()
+                        val aspect =
+                            if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                                Rational(9, 16)
+                            } else {
+                                Rational(16, 9)
+                            }
+                        params.setAspectRatio(aspect)
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                            // this platform doesn't support autoEnterEnabled
+                            // so we manually enter here
+                            activity.enterPictureInPictureMode(params.build())
                         } else {
-                            Rational(16, 9)
+                            activity.setPictureInPictureParams(params.build())
                         }
-                    params.setAspectRatio(aspect)
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        // this platform doesn't support autoEnterEnabled
-                        // so we manually enter here
-                        activity.enterPictureInPictureMode(params.build())
-                    } else {
-                        activity.setPictureInPictureParams(params.build())
+                        // NOTE: workaround - on PiP mode, android goes to "paused but can render" state
+                        // RN pauses rendering in paused mode, so we instruct it to resume here
+                        reactApplicationContext?.onHostResume(activity)
+                    } catch (e: IllegalStateException) {
+                        Log.d(NAME, "Skipping Picture-in-Picture mode. Its not enabled for activity")
                     }
-                    // NOTE: workaround - on PiP mode, android goes to "paused but can render" state
-                    // RN pauses rendering in paused mode, so we instruct it to resume here
-                    reactApplicationContext?.onHostResume(activity)
                 }
             }
         }
@@ -109,15 +114,19 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         StreamVideoReactNative.canAutoEnterPictureInPictureMode = value
         if (!hasPiPSupport() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val activity = reactApplicationContext!!.currentActivity!!
-        if (value) {
-            activity.setPictureInPictureParams(getPiPParams().build())
-        // NOTE: for SDK_INT < Build.VERSION_CODES.S
-        // onUserLeaveHint from Activity is used, SDK cant directly use it
-        // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
-        } else {
-            val params = PictureInPictureParams.Builder()
-            params.setAutoEnterEnabled(false)
-            activity.setPictureInPictureParams(params.build())
+        try {
+            if (value) {
+                activity.setPictureInPictureParams(getPiPParams().build())
+            // NOTE: for SDK_INT < Build.VERSION_CODES.S
+            // onUserLeaveHint from Activity is used, SDK cant directly use it
+            // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
+            } else {
+                val params = PictureInPictureParams.Builder()
+                params.setAutoEnterEnabled(false)
+                activity.setPictureInPictureParams(params.build())
+            }
+        } catch (e: IllegalStateException) {
+            Log.d(NAME, "Skipping Picture-in-Picture mode. Its not enabled for activity")
         }
     }
 
@@ -222,23 +231,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
 
     private fun hasPiPSupport(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-            val activity = reactApplicationContext.currentActivity!!
-            val packageManager: PackageManager = activity.packageManager
-            val componentName: ComponentName = activity.componentName
-            try {
-                val activityInfo = packageManager.getActivityInfo(
-                    componentName,
-                    PackageManager.GET_META_DATA
-                )
-
-                val supportsPip = activityInfo.metaData?.getBoolean(
-                    "android.supportsPictureInPicture",
-                    false
-                ) ?: false
-                if (!supportsPip) return false
-            } catch (e: NameNotFoundException) {
-                return false
-            }
             val appOps =
                 reactApplicationContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val packageName = reactApplicationContext.packageName
