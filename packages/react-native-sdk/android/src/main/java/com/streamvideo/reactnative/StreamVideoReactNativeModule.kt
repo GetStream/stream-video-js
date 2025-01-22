@@ -3,13 +3,11 @@ package com.streamvideo.reactnative
 import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.NameNotFoundException
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
