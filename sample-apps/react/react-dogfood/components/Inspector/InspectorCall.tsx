@@ -136,8 +136,19 @@ function useInspectorCall() {
     ]);
   };
 
-  const joinDemoCall = async () =>
-    await join(await getDemoCredentials(environment));
+  const joinDemoCall = async () => {
+    let credentails: Credentials;
+
+    try {
+      appendLog('Fetching credentials');
+      credentails = await getDemoCredentials(environment);
+    } catch (err) {
+      appendLog(`Could not fetch credentials`, err);
+      throw err;
+    }
+
+    await join(credentails);
+  };
 
   const joinWithConnectionString = (connectionString: string) =>
     join(parseConnectionString(connectionString));
@@ -222,6 +233,7 @@ async function getDemoCredentials(environment: string): Promise<Credentials> {
     environment,
     exp: String(4 * 60 * 60), // 4 hours
   } satisfies CreateJwtTokenRequest);
+
   const res = await fetch(`${basePath}/api/auth/create-token?${params}`);
   const credentials = (await res.json()) as CreateJwtTokenResponse;
   return {
