@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import names from 'starwars-names';
-import { meetingId } from '../../../lib/meetingId';
+import { meetingId } from '../../../lib/idGenerators';
 import { createToken } from '../../../helpers/jwt';
 
 export type AppConfig = {

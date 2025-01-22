@@ -8,3 +8,7 @@ const nanoid = customAlphabet(
 export function meetingId(length = 12) {
   return nanoid(length);
 }
+
+export function inspectorUserId(length = 8) {
+  return `inspector-${nanoid(length)}`;
+}

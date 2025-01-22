@@ -1,0 +1,217 @@
+import { FormEvent, PropsWithChildren, useState } from 'react';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  type Call,
+} from '@stream-io/video-react-sdk';
+import { inspectorUserId, meetingId } from '../../lib/idGenerators';
+import type {
+  CreateJwtTokenRequest,
+  CreateJwtTokenResponse,
+} from '../../pages/api/auth/create-token';
+import clsx from 'clsx';
+
+interface Credentials {
+  callType: string;
+  callId: string;
+  apiKey: string;
+  userId: string;
+  userToken: string;
+}
+
+export function InspectorCall(props: PropsWithChildren) {
+  const params = new URLSearchParams(window.location.search);
+  const connectionStringQueryParam = params.get('conn') ?? '';
+  const { client, call, log, joinDemoCall, joinWithConnectionString } =
+    useInspectorCall();
+  const [isJoining, setIsJoining] = useState(false);
+
+  const handleJoinWithConnectionStringSubmit = (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const connectionString = data.get('connectionString');
+
+    if (typeof connectionString === 'string') {
+      setIsJoining(true);
+      joinWithConnectionString(connectionString).finally(() =>
+        setIsJoining(false),
+      );
+    }
+  };
+
+  const handleJoinDemoCall = () => {
+    setIsJoining(true);
+    joinDemoCall().finally(() => setIsJoining(false));
+  };
+
+  return (
+    <>
+      <div className="rd__join-call-form">
+        <form onSubmit={handleJoinWithConnectionStringSubmit}>
+          <input
+            name="connectionString"
+            defaultValue={connectionStringQueryParam}
+            disabled={isJoining}
+          />
+          <button type="submit" disabled={isJoining}>
+            Join
+          </button>
+        </form>
+
+        <button type="button" disabled={isJoining} onClick={handleJoinDemoCall}>
+          Join demo call
+        </button>
+        {log.length > 0 && (
+          <details>
+            <summary>{log.at(-1)?.message}</summary>
+            {log.map((record, index) => (
+              <div
+                key={index}
+                className={clsx({
+                  'rd__log-record': true,
+                  'rd__log-record_error': record.error,
+                })}
+              >
+                {record.message}
+              </div>
+            ))}
+          </details>
+        )}
+      </div>
+      {client && call && (
+        <StreamVideo client={client}>
+          <StreamCall call={call}>{props.children}</StreamCall>
+        </StreamVideo>
+      )}
+    </>
+  );
+}
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
+function useInspectorCall() {
+  const environment = useAppEnvironment();
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+  const [log, setLog] = useState<
+    Array<{
+      message: string;
+      error: boolean;
+    }>
+  >([]);
+
+  const appendLog = (message: string, maybeError?: unknown) => {
+    if (maybeError instanceof Error) {
+      message += `. ${maybeError.message}`;
+    }
+
+    setLog((l) => [
+      ...l,
+      {
+        message,
+        error: Boolean(maybeError),
+      },
+    ]);
+  };
+
+  const joinDemoCall = async () =>
+    await join(await getDemoCredentials(environment));
+
+  const joinWithConnectionString = (connectionString: string) =>
+    join(parseConnectionString(connectionString));
+
+  const join = async (credentials: Credentials) => {
+    window._inspector ??= {};
+    const _client = await initializeClient(credentials);
+    await initializeCall(_client, credentials);
+  };
+
+  const initializeClient = async (credentials: Credentials) => {
+    try {
+      appendLog(`Connecting to ${credentials.apiKey} as ${credentials.userId}`);
+      const _client = new StreamVideoClient(credentials.apiKey);
+      await _client.connectUser(
+        { id: credentials.userId },
+        credentials.userToken,
+      );
+      appendLog('User connected');
+      setClient(_client);
+      window._inspector.client = _client;
+      return _client;
+    } catch (err) {
+      appendLog('Could not connect user', err);
+      throw err;
+    }
+  };
+
+  const initializeCall = async (
+    _client: StreamVideoClient,
+    credentials: Credentials,
+  ) => {
+    try {
+      appendLog(`Joining call ${credentials.callType}:${credentials.callId}`);
+      const _call = _client.call(credentials.callType, credentials.callId);
+      await _call.join({ create: true });
+      appendLog('Call joined');
+      setCall(_call);
+      window._inspector.call = _call;
+      return _client;
+    } catch (err) {
+      appendLog('Could not join call', err);
+      throw err;
+    }
+  };
+
+  return { client, call, log, joinDemoCall, joinWithConnectionString };
+}
+
+async function getDemoCredentials(environment: string): Promise<Credentials> {
+  const params = new URLSearchParams({
+    user_id: inspectorUserId(),
+    environment,
+    exp: String(4 * 60 * 60), // 4 hours
+  } satisfies CreateJwtTokenRequest);
+  const res = await fetch(`${basePath}/api/auth/create-token?${params}`);
+  const credentials = (await res.json()) as CreateJwtTokenResponse;
+  return {
+    apiKey: credentials.apiKey,
+    userId: credentials.userId,
+    userToken: credentials.token,
+    callType: 'default',
+    callId: meetingId(),
+  };
+}
+
+function parseConnectionString(connectionString: string): Credentials {
+  // Example connection lines:
+  // callType:callId@apiKey:userToken
+  // callId@apiKey:userToken (default call type)
+  const connectionStringRegex =
+    /((?<callType>[\w-]+):)?(?<callId>[\w-]+)@(?<apiKey>[a-z0-9]+):(?<userToken>[\w-.]+)/i;
+  const matches = connectionString.match(connectionStringRegex);
+
+  if (!matches || !matches.groups) {
+    throw new Error('Cannot parse connection string');
+  }
+
+  return {
+    callType: matches.groups['callType'] ?? 'default',
+    callId: matches.groups['callId'],
+    apiKey: matches.groups['apiKey'],
+    userId: parseUserIdFromToken(matches.groups['userToken']),
+    userToken: matches.groups['userToken'],
+  };
+}
+
+function parseUserIdFromToken(userToken: string) {
+  const throwMalformed = () => {
+    throw new Error('User token is malformed');
+  };
+
+  const payload = userToken.split('.')[1] ?? throwMalformed();
+  return JSON.parse(atob(payload)).user_id ?? throwMalformed();
+}

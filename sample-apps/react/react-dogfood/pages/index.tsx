@@ -14,7 +14,7 @@ import clsx from 'clsx';
 
 import { Icon, StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
 
-import { meetingId } from '../lib/meetingId';
+import { meetingId } from '../lib/idGenerators';
 import translations from '../translations';
 import { useSettings } from '../context/SettingsContext';
 import { DefaultAppHeader } from '../components/DefaultAppHeader';
