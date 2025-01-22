@@ -24,9 +24,10 @@ interface Credentials {
 export function InspectorCall(props: PropsWithChildren) {
   const params = new URLSearchParams(window.location.search);
   const connectionStringQueryParam = params.get('conn') ?? '';
-  const { client, call, log, joinDemoCall, joinWithConnectionString } =
+  const { client, call, log, joinDemoCall, joinWithConnectionString, leave } =
     useInspectorCall();
   const [isJoining, setIsJoining] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const handleJoinWithConnectionStringSubmit = (
     event: FormEvent<HTMLFormElement>,
@@ -48,23 +49,40 @@ export function InspectorCall(props: PropsWithChildren) {
     joinDemoCall().finally(() => setIsJoining(false));
   };
 
+  const handleLeave = () => {
+    setIsLeaving(true);
+    leave().finally(() => setIsLeaving(false));
+  };
+
   return (
     <>
       <div className="rd__join-call-form">
-        <form onSubmit={handleJoinWithConnectionStringSubmit}>
-          <input
-            name="connectionString"
-            defaultValue={connectionStringQueryParam}
-            disabled={isJoining}
-          />
-          <button type="submit" disabled={isJoining}>
-            Join
+        {!call && (
+          <>
+            <form onSubmit={handleJoinWithConnectionStringSubmit}>
+              <input
+                name="connectionString"
+                defaultValue={connectionStringQueryParam}
+                disabled={isJoining}
+              />
+              <button type="submit" disabled={isJoining}>
+                Join
+              </button>
+            </form>
+            <button
+              type="button"
+              disabled={isJoining}
+              onClick={handleJoinDemoCall}
+            >
+              Join demo call
+            </button>
+          </>
+        )}
+        {call && (
+          <button type="button" disabled={isLeaving} onClick={handleLeave}>
+            Leave call
           </button>
-        </form>
-
-        <button type="button" disabled={isJoining} onClick={handleJoinDemoCall}>
-          Join demo call
-        </button>
+        )}
         {log.length > 0 && (
           <details>
             <summary>{log.at(-1)?.message}</summary>
@@ -143,7 +161,7 @@ function useInspectorCall() {
       window._inspector.client = _client;
       return _client;
     } catch (err) {
-      appendLog('Could not connect user', err);
+      appendLog(`Could not connect as ${credentials.userId}`, err);
       throw err;
     }
   };
@@ -161,12 +179,41 @@ function useInspectorCall() {
       window._inspector.call = _call;
       return _client;
     } catch (err) {
-      appendLog('Could not join call', err);
+      appendLog(
+        `Could not join call ${credentials.callType}:${credentials.callId}`,
+        err,
+      );
       throw err;
     }
   };
 
-  return { client, call, log, joinDemoCall, joinWithConnectionString };
+  const leave = async () => {
+    if (call) {
+      try {
+        appendLog(`Leaving call ${call.cid}`);
+        await call.leave();
+        setCall(undefined);
+        delete window._inspector.call;
+      } catch (err) {
+        appendLog(`Could not leave call ${call.cid}`);
+        throw err;
+      }
+    }
+
+    if (client) {
+      try {
+        appendLog(`Disconnecting ${client.state.connectedUser?.id}`);
+        await client.disconnectUser();
+        setClient(undefined);
+        delete window._inspector.client;
+      } catch (err) {
+        appendLog('User disconnected');
+        throw err;
+      }
+    }
+  };
+
+  return { client, call, log, joinDemoCall, joinWithConnectionString, leave };
 }
 
 async function getDemoCredentials(environment: string): Promise<Credentials> {
