@@ -360,7 +360,7 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
-      // cancel auto-drop when call is
+      // cancel auto-drop when call is accepted or rejected
       createSubscription(this.state.session$, (session) => {
         if (!this.ringing) return;
 
@@ -372,6 +372,14 @@ export class Call {
 
         if (isAcceptedByMe || isRejectedByMe) {
           this.cancelAutoDrop();
+        }
+
+        if (
+          isAcceptedByMe &&
+          this.state.callingState === CallingState.RINGING
+        ) {
+          // call accepted by user in another session
+          this.leave();
         }
       }),
     );
