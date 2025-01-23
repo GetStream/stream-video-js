@@ -2,28 +2,21 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCall,
-  useCallStateHooks,
   WithTooltip,
   type Call,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
-import { FormEvent, ReactNode, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { inspectorUserId, meetingId } from '../../lib/idGenerators';
 import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../../pages/api/auth/create-token';
+import { CallingState } from './CallingState';
 import { copyReport } from './copyReport';
-
-interface Credentials {
-  callType: string;
-  callId: string;
-  apiKey: string;
-  userId: string;
-  userToken: string;
-}
+import { CredentialsForm, parseConnectionString } from './CredentialsForm';
+import { Credentials } from './types';
 
 export function InspectorCall(props: {
   children: (
@@ -36,7 +29,7 @@ export function InspectorCall(props: {
   const [connectionString, setConnectionString] = useState(
     connectionStringQueryParam ?? '',
   );
-  const { client, call, log, joinDemoCall, joinWithConnectionString, leave } =
+  const { client, call, log, joinDemoCall, joinWithCredentials, leave } =
     useInspectorCall();
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -48,17 +41,9 @@ export function InspectorCall(props: {
     }
   }
 
-  const handleJoinWithConnectionStringSubmit = (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const conn = data.get('connectionString');
-
-    if (typeof conn === 'string') {
-      setIsJoining(true);
-      joinWithConnectionString(conn).finally(() => setIsJoining(false));
-    }
+  const handleJoinWithCredentialsSubmit = (credentails: Credentials) => {
+    setIsJoining(true);
+    joinWithCredentials(credentails).finally(() => setIsJoining(false));
   };
 
   const handleJoinDemoCall = () => {
@@ -79,6 +64,19 @@ export function InspectorCall(props: {
     children = <StreamVideo client={client}>{children}</StreamVideo>;
   }
 
+  let defaultCredentials: Credentials;
+  try {
+    defaultCredentials = parseConnectionString(connectionString);
+  } catch {
+    defaultCredentials = {
+      callType: '',
+      callId: '',
+      apiKey: '',
+      userToken: '',
+      userId: '',
+    };
+  }
+
   return (
     <>
       <div className="rd__join-call-form">
@@ -86,20 +84,13 @@ export function InspectorCall(props: {
           {!call && (
             <>
               <div className="rd__join-call-form-connection-string">
-                <form onSubmit={handleJoinWithConnectionStringSubmit}>
-                  <div className="rd__connection-string-input">
-                    <input
-                      name="connectionString"
-                      defaultValue={connectionString}
-                      disabled={isJoining}
-                      placeholder="Enter connection string"
-                      autoFocus
-                      onChange={(e) =>
-                        setConnectionString(e.currentTarget.value)
-                      }
-                    />
-                  </div>
-                </form>
+                <CredentialsForm
+                  defaultValue={defaultCredentials}
+                  autoFocus
+                  onSubmit={(credentials) => {
+                    handleJoinWithCredentialsSubmit(credentials);
+                  }}
+                />
               </div>
               <div className="rd__join-call-form-or">or</div>
               <div className="rd__join-call-form-demo-call">
@@ -116,9 +107,7 @@ export function InspectorCall(props: {
           )}
           {call && (
             <>
-              <StreamCall call={call}>
-                <CallingState />
-              </StreamCall>
+              <CallingState call={call} />
               <button
                 className="rd__join-call-form-leave"
                 type="button"
@@ -166,18 +155,6 @@ export function InspectorCall(props: {
   );
 }
 
-function CallingState() {
-  const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
-  const state = useCallCallingState();
-  return (
-    <div className="rd__calling-state" data-copy="In call" data-h>
-      <span data-copy={call?.getConnectionString()} hidden />
-      {call?.cid ?? <>In call</>} - <span data-copyable>{state}</span>
-    </div>
-  );
-}
-
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 function useInspectorCall() {
@@ -216,13 +193,10 @@ function useInspectorCall() {
       throw err;
     }
 
-    await join(credentails);
+    await joinWithCredentials(credentails);
   };
 
-  const joinWithConnectionString = async (connectionString: string) =>
-    await join(parseConnectionString(connectionString));
-
-  const join = async (credentials: Credentials) => {
+  const joinWithCredentials = async (credentials: Credentials) => {
     window._inspector ??= {};
     const _client = await initializeClient(credentials);
     await initializeCall(_client, credentials);
@@ -294,7 +268,7 @@ function useInspectorCall() {
     }
   };
 
-  return { client, call, log, joinDemoCall, joinWithConnectionString, leave };
+  return { client, call, log, joinDemoCall, joinWithCredentials, leave };
 }
 
 async function getDemoCredentials(environment: string): Promise<Credentials> {
@@ -313,34 +287,4 @@ async function getDemoCredentials(environment: string): Promise<Credentials> {
     callType: 'default',
     callId: meetingId(),
   };
-}
-
-function parseConnectionString(connectionString: string): Credentials {
-  // Example connection lines:
-  // callType:callId@apiKey:userToken
-  // callId@apiKey:userToken (default call type)
-  const connectionStringRegex =
-    /((?<callType>[\w-]+):)?(?<callId>[\w-]+)@(?<apiKey>[a-z0-9]+):(?<userToken>[\w-.]+)/i;
-  const matches = connectionString.match(connectionStringRegex);
-
-  if (!matches || !matches.groups) {
-    throw new Error('Cannot parse connection string');
-  }
-
-  return {
-    callType: matches.groups['callType'] ?? 'default',
-    callId: matches.groups['callId'],
-    apiKey: matches.groups['apiKey'],
-    userId: parseUserIdFromToken(matches.groups['userToken']),
-    userToken: matches.groups['userToken'],
-  };
-}
-
-function parseUserIdFromToken(userToken: string) {
-  const throwMalformed = () => {
-    throw new Error('User token is malformed');
-  };
-
-  const payload = userToken.split('.')[1] ?? throwMalformed();
-  return JSON.parse(atob(payload)).user_id ?? throwMalformed();
 }
