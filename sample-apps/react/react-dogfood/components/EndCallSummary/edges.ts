@@ -1,0 +1,27 @@
+export const edges = {
+  'aws-cap1.sfu-93774aa259f5': 'Cape Town',
+  'aws-jak1.sfu-165e19e75f19': 'Jakarta',
+  'aws-sin1.sfu-1f22fbe52d75': 'Singapore',
+  'aws-hyd1.sfu-47983ecf3d2a': 'Hyderabad',
+  'aws-mum1.sfu-615b2388f3ce': 'Mumbai',
+  'aws-mum1.sfu-63b101084fd8': 'Mumbai',
+  'aws-mum1.sfu-81f0b5a91d07': 'Mumbai',
+  'aws-tel1.sfu-8a5b3af98a3a': 'Tel Aviv',
+  'aws-tok1.sfu-cdd6cec09da4': 'Tokyo',
+  'aws-uae1.sfu-ec81f73f238c': 'Dubai',
+  'aws-ire1.sfu-34b3d1decec4': 'Dublin',
+  'aws-fra1.sfu-4fb57bd52b53': 'Frankfurt',
+  'aws-mil1.sfu-8d6cac798fcf': 'Milan',
+  'aws-par1.sfu-93ba78cd9a6e': 'Paris',
+  'aws-lon1.sfu-a7f8e5b12ebc': 'London',
+  'aws-spa1.sfu-aa9fcf2b7b47': 'Madrid',
+  'aws-stk1.sfu-bf56b6f0a809': 'Stockholm',
+  'aws-ohi1.sfu-0be3135dedde': 'Columbus',
+  'aws-cal1.sfu-39f6c064a25b': 'Fresno',
+  'aws-ore1.sfu-5ed2e3c83420': 'Bend',
+  'aws-vir1.sfu-8d90b67cbccc': 'Richmond',
+  'aws-can1.sfu-fe14e570ea0d': 'Quebec City',
+  'aws-syd1.sfu-b79b7b557f02': 'Sydney',
+  'aws-sao1.sfu-6c2a276ec712': 'São Paulo'
+};
+

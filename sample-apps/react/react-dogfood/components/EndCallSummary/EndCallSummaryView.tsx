@@ -17,6 +17,8 @@ import {
   useCall,
 } from '@stream-io/video-react-sdk';
 
+import { edges as edgeMap } from './edges';
+
 import { Notification } from './Notification';
 
 export interface EndCallSummaryViewProps {
@@ -37,9 +39,30 @@ const toStatus = (config: {
   return Status.GOOD;
 };
 
-const toCountryName = (isoCountryCode: string) => {
-  const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
-  return regionNames.of(isoCountryCode);
+const toCityName = (edgeId: string) => {
+  if (!edgeId) return 'Unknown';
+
+  let cityName = edgeId;
+  Object.keys(edgeMap).map((key) => {
+    if (key.includes(edgeId)) {
+      cityName = edgeMap[key as keyof typeof edgeMap];
+    }
+  });
+  return cityName;
+};
+
+const toDataCenterName = (datacenter: string) => {
+  const datacenterName = datacenter
+    .replace('.stream-io-video.com', '')
+    .split('.')[1];
+
+  let cityName = datacenterName;
+  Object.keys(edgeMap).map((key) => {
+    if (key.includes(datacenterName)) {
+      cityName = edgeMap[key as keyof typeof edgeMap];
+    }
+  });
+  return cityName;
 };
 
 const toEdgeStatus = (edge: EdgeResponse) => {
@@ -247,16 +270,7 @@ export function EndCallSummaryView({
             >
               <Badge variant="small">
                 <Icon icon="language" />
-                Amsterdam
-              </Badge>
-            </NetworkStatus>
-            <NetworkStatus
-              className="rd__leave--row-edge-networks-used"
-              status={'neutral'}
-            >
-              <Badge variant="small">
-                <Icon icon="language" />
-                Boston
+                {toDataCenterName(callStatsReport?.datacenter || '')}
               </Badge>
             </NetworkStatus>
           </Card>
@@ -271,7 +285,7 @@ export function EndCallSummaryView({
                   <Badge variant="small">
                     <Icon icon="language" />
                     <span className="rd__edge-server--country">
-                      {toCountryName(edge.country_iso_code)}
+                      {toCityName(edge.id)}
                     </span>
                   </Badge>
                 </NetworkStatus>
