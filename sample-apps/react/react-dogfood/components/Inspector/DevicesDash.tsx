@@ -1,62 +1,77 @@
 import {
-  Call,
-  InputMediaDeviceManager,
-  InputMediaDeviceManagerState,
+  getAudioBrowserPermission,
+  getAudioDevices,
+  getVideoBrowserPermission,
+  getVideoDevices,
   useObservableValue,
-  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
 
 export function DevicesDash() {
-  const call = useFakeCall();
+  const videoProps = useVideoDevices();
+  const audioProps = useAudioDevices();
 
   return (
     <>
       <div className="rd__inspector-dash">
-        Camera: <SingleKindDevicesDash manager={call.camera} />
+        <h3>Video input devices</h3>
+        <SingleKindDevicesDash {...videoProps} />
       </div>
       <div className="rd__inspector-dash">
-        Microphone: <SingleKindDevicesDash manager={call.microphone} />
+        <h3>Audio input devices</h3>
+        <SingleKindDevicesDash {...audioProps} />
       </div>
     </>
   );
 }
 
-function useFakeCall(): Call {
-  const client = useStreamVideoClient();
-
-  if (!client) {
-    throw new Error('Cannot use fake call without video client');
-  }
-
-  // This fake call is only used as a way to access camera and microphone manager.
-  // It's should never be fetched, created or joined.
-  const call = useMemo(
-    () => client.call('fake-call-type', 'fake-call-id'),
-    [client],
+function useVideoDevices() {
+  const devices$ = useMemo(() => getVideoDevices(), []);
+  const permission$ = useMemo(
+    () => getVideoBrowserPermission().asObservable(),
+    [],
   );
 
-  return call;
+  return {
+    devices: useObservableValue(devices$, []),
+    hasBrowserPermission: useObservableValue(permission$),
+  };
+}
+
+function useAudioDevices() {
+  const devices$ = useMemo(() => getAudioDevices(), []);
+  const permission$ = useMemo(
+    () => getAudioBrowserPermission().asObservable(),
+    [],
+  );
+
+  return {
+    devices: useObservableValue(devices$, []),
+    hasBrowserPermission: useObservableValue(permission$),
+  };
 }
 
 function SingleKindDevicesDash(props: {
-  manager: InputMediaDeviceManager<InputMediaDeviceManagerState>;
+  devices: MediaDeviceInfo[] | undefined;
+  hasBrowserPermission: boolean;
 }) {
-  const devices$ = useMemo(() => props.manager.listDevices(), [props.manager]);
-  const devices = useObservableValue(devices$, []);
-  const hasBrowserPermission = useObservableValue(
-    props.manager.state.hasBrowserPermission$,
-  );
-
-  if (!devices) {
-    return <>Awaiting permission</>;
+  if (!props.devices) {
+    return (
+      <div className="rd__inspector-permission">Awaiting permission 🟡</div>
+    );
   }
 
   return (
     <>
-      {hasBrowserPermission ? <>Permission granted</> : <>Permission denied</>}
+      <div className="rd__inspector-permission">
+        {props.hasBrowserPermission ? (
+          <>Permission granted 🟢</>
+        ) : (
+          <>Permission denied 🔴</>
+        )}
+      </div>
       <ul>
-        {devices.map((device) => (
+        {props.devices.map((device) => (
           <li key={device.deviceId}>{device.label}</li>
         ))}
       </ul>

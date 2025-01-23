@@ -4,11 +4,11 @@ export function CapabilitiesDash() {
   return (
     <>
       <div className="rd__inspector-dash">
-        Video encoding support:
+        <h3>Video encoding support</h3>
         <CodecCapabilitiesDash direction="send" kind="video" />
       </div>
       <div className="rd__inspector-dash">
-        Video decoding support:
+        <h3>Video decoding support</h3>
         <CodecCapabilitiesDash direction="recv" kind="video" />
       </div>
     </>

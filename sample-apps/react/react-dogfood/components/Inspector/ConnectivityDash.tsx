@@ -1,50 +1,102 @@
 import { useCall, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { ValuePoller } from './ValuePoller';
+import { ReactNode } from 'react';
 
 export function ConnectivityDash() {
   const client = useStreamVideoClient();
   const call = useCall();
 
+  const getCoordinatorWs = (): WebSocket | undefined =>
+    (client?.streamClient.wsConnection as any)?.ws;
+  const getSfuWs = (): WebSocket | undefined =>
+    (call as any)?.sfuClient?.signalWs;
+
+  const handleDropCoordinatorClick = () => {
+    getCoordinatorWs()?.close();
+  };
+
+  const handleDropSfuClick = () => {
+    getSfuWs()?.close();
+  };
+
   return (
     <div className="rd__inspector-dash">
-      Connectivity:
-      <ul>
-        <li>
-          Location hint:
+      <h3>Connectivity</h3>
+      <dl>
+        <dt>Location hint</dt>
+        <dd>
           <ValuePoller
             id="location-hint"
             fetcher={() => client?.streamClient.getLocationHint()}
-            pollIntervalMs={1000}
           />
-        </li>
-        <li>
-          Coordinator WebSocket:
+        </dd>
+        <dt>Edge</dt>
+        <dd>
+          <ValuePoller
+            id="edge-name"
+            fetcher={() =>
+              (call as any)?.sfuClient?.credentials?.server?.edge_name
+            }
+          />
+        </dd>
+        <dt>
+          Coordinator connection
+          <button
+            className="rd__dash-action-button"
+            type="button"
+            onClick={handleDropCoordinatorClick}
+          >
+            Sim. drop
+          </button>
+        </dt>
+        <dd>
           <ValuePoller
             id="coordinator-ws-healthy"
-            fetcher={() =>
-              client?.streamClient.wsConnection?.isHealthy
-                ? 'healthy'
-                : 'unhealthy'
-            }
-            pollIntervalMs={1000}
+            {...getWsConnectionValuePollerProps(getCoordinatorWs)}
           />
-        </li>
-        <li>
-          SFU WebSocket:
+        </dd>
+        <dt>
+          SFU WebSocket
+          <button
+            className="rd__dash-action-button"
+            type="button"
+            onClick={handleDropSfuClick}
+          >
+            Sim. drop
+          </button>
+        </dt>
+        <dd>
           <ValuePoller
             id="sfu-ws-healthy"
-            fetcher={() => {
-              const readyState = (call as any)?.sfuClient?.signalWs?.readyState;
-              return typeof readyState !== 'undefined'
-                ? readyState === WebSocket.OPEN
-                  ? 'healthy'
-                  : 'unhealthy'
-                : undefined;
-            }}
-            pollIntervalMs={1000}
+            {...getWsConnectionValuePollerProps(getSfuWs)}
           />
-        </li>
-      </ul>
+        </dd>
+      </dl>
     </div>
   );
+}
+
+function getWsConnectionValuePollerProps(
+  wsGetter: () => WebSocket | undefined,
+) {
+  const fetcher = () => {
+    const readyState = wsGetter()?.readyState;
+
+    if (readyState === undefined) {
+      return 'unknown';
+    }
+
+    if (readyState === WebSocket.CONNECTING) {
+      return 'connecting';
+    }
+
+    if (readyState === WebSocket.OPEN) {
+      return 'healthy';
+    }
+
+    return 'unhealthy';
+  };
+
+  const indicator = (value: ReactNode) => (value === 'healthy' ? '💚' : '💔');
+  return { fetcher, indicator };
 }

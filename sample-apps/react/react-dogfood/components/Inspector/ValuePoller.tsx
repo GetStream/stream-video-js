@@ -4,7 +4,7 @@ import useSWR from 'swr';
 export function useValuePoller<T>(
   key: string,
   fetcher: () => T | Promise<T>,
-  pollIntervalMs = 1000,
+  pollIntervalMs = 500,
 ) {
   const { data } = useSWR(
     key,
@@ -32,6 +32,7 @@ export function ValuePoller(props: {
   id: string;
   fetcher: () => ReactNode | Promise<ReactNode>;
   pollIntervalMs?: number;
+  indicator?: ReactNode | ((value: ReactNode) => ReactNode);
 }) {
   const { value, lastPollTimestamp, nextPollTimestamp } = useValuePoller(
     props.id,
@@ -40,7 +41,7 @@ export function ValuePoller(props: {
   );
 
   if (typeof value === 'undefined') {
-    return <div>-</div>;
+    return <div className="rd__value-poller">-</div>;
   }
 
   const animationDuration =
@@ -60,6 +61,13 @@ export function ValuePoller(props: {
       }}
     >
       {value}
+      {props.indicator && (
+        <span className="rd__value-poller-indicator">
+          {typeof props.indicator === 'function'
+            ? props.indicator(value)
+            : props.indicator}
+        </span>
+      )}
     </div>
   );
 }

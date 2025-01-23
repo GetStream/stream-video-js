@@ -1,9 +1,11 @@
-import { FormEvent, PropsWithChildren, useState } from 'react';
+import { FormEvent, PropsWithChildren, ReactNode, useState } from 'react';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useCall,
+  useCallStateHooks,
   type Call,
 } from '@stream-io/video-react-sdk';
 import { inspectorUserId, meetingId } from '../../lib/idGenerators';
@@ -21,9 +23,17 @@ interface Credentials {
   userToken: string;
 }
 
-export function InspectorCall(props: PropsWithChildren) {
+export function InspectorCall(props: {
+  children: (
+    client: StreamVideoClient | undefined,
+    call: Call | undefined,
+  ) => ReactNode;
+}) {
   const params = new URLSearchParams(window.location.search);
   const connectionStringQueryParam = params.get('conn') ?? '';
+  const [connectionString, setConnectionString] = useState(
+    connectionStringQueryParam ?? '',
+  );
   const { client, call, log, joinDemoCall, joinWithConnectionString, leave } =
     useInspectorCall();
   const [isJoining, setIsJoining] = useState(false);
@@ -34,13 +44,11 @@ export function InspectorCall(props: PropsWithChildren) {
   ) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const connectionString = data.get('connectionString');
+    const conn = data.get('connectionString');
 
-    if (typeof connectionString === 'string') {
+    if (typeof conn === 'string') {
       setIsJoining(true);
-      joinWithConnectionString(connectionString).finally(() =>
-        setIsJoining(false),
-      );
+      joinWithConnectionString(conn).finally(() => setIsJoining(false));
     }
   };
 
@@ -54,37 +62,66 @@ export function InspectorCall(props: PropsWithChildren) {
     leave().finally(() => setIsLeaving(false));
   };
 
+  let children = (
+    <StreamCall call={call}>{props.children(client, call)}</StreamCall>
+  );
+
+  if (client) {
+    children = <StreamVideo client={client}>{children}</StreamVideo>;
+  }
+
   return (
     <>
       <div className="rd__join-call-form">
-        {!call && (
-          <>
-            <form onSubmit={handleJoinWithConnectionStringSubmit}>
-              <input
-                name="connectionString"
-                defaultValue={connectionStringQueryParam}
-                disabled={isJoining}
-              />
-              <button type="submit" disabled={isJoining}>
-                Join
+        <div className="rd__join-call-form-controls">
+          {!call && (
+            <>
+              <div className="rd__join-call-form-connection-string">
+                <form onSubmit={handleJoinWithConnectionStringSubmit}>
+                  <div className="rd__connection-string-input">
+                    <input
+                      name="connectionString"
+                      defaultValue={connectionString}
+                      disabled={isJoining}
+                      placeholder="Enter connection string"
+                      onChange={(e) =>
+                        setConnectionString(e.currentTarget.value)
+                      }
+                    />
+                  </div>
+                </form>
+              </div>
+              <div className="rd__join-call-form-or">or</div>
+              <div className="rd__join-call-form-demo-call">
+                <button
+                  className="rd__join-call-form-join"
+                  type="button"
+                  disabled={isJoining}
+                  onClick={handleJoinDemoCall}
+                >
+                  Join demo call
+                </button>
+              </div>
+            </>
+          )}
+          {call && (
+            <>
+              <StreamCall call={call}>
+                <CallingState />
+              </StreamCall>
+              <button
+                className="rd__join-call-form-leave"
+                type="button"
+                disabled={isLeaving}
+                onClick={handleLeave}
+              >
+                Leave call
               </button>
-            </form>
-            <button
-              type="button"
-              disabled={isJoining}
-              onClick={handleJoinDemoCall}
-            >
-              Join demo call
-            </button>
-          </>
-        )}
-        {call && (
-          <button type="button" disabled={isLeaving} onClick={handleLeave}>
-            Leave call
-          </button>
-        )}
+            </>
+          )}
+        </div>
         {log.length > 0 && (
-          <details>
+          <details className="rd__join-call-form-log">
             <summary>{log.at(-1)?.message}</summary>
             {log.map((record, index) => (
               <div
@@ -100,12 +137,19 @@ export function InspectorCall(props: PropsWithChildren) {
           </details>
         )}
       </div>
-      {client && call && (
-        <StreamVideo client={client}>
-          <StreamCall call={call}>{props.children}</StreamCall>
-        </StreamVideo>
-      )}
+      {children}
     </>
+  );
+}
+
+function CallingState() {
+  const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
+  const state = useCallCallingState();
+  return (
+    <div className="rd__calling-state">
+      {call?.cid ?? <>In call</>} - {state}
+    </div>
   );
 }
 
@@ -150,8 +194,8 @@ function useInspectorCall() {
     await join(credentails);
   };
 
-  const joinWithConnectionString = (connectionString: string) =>
-    join(parseConnectionString(connectionString));
+  const joinWithConnectionString = async (connectionString: string) =>
+    await join(parseConnectionString(connectionString));
 
   const join = async (credentials: Credentials) => {
     window._inspector ??= {};
@@ -215,6 +259,7 @@ function useInspectorCall() {
       try {
         appendLog(`Disconnecting ${client.state.connectedUser?.id}`);
         await client.disconnectUser();
+        appendLog('Disconnected from call');
         setClient(undefined);
         delete window._inspector.client;
       } catch (err) {
