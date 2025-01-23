@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.10.3...@stream-io/video-react-sdk-1.10.4) (2025-01-22)
+
+
+### Bug Fixes
+
+* **LivestreamPlayer:** don't render any component until `call` is ready ([#1653](https://github.com/GetStream/stream-video-js/issues/1653)) ([63afc30](https://github.com/GetStream/stream-video-js/commit/63afc3090a5ceb3d656f0111bc348d79b895ab5f))
+
 ## [1.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.10.2...@stream-io/video-react-sdk-1.10.3) (2025-01-21)
 
 ### Dependency Updates

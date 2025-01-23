@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.os.Process
+import android.util.Log
 import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.facebook.react.ReactActivity
@@ -23,10 +24,11 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import com.streamvideo.reactnative.util.RingtoneUtil
 
 
-class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
+    ReactContextBaseJavaModule(reactContext) {
 
     override fun getName(): String {
-        return NAME;
+        return NAME
     }
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
@@ -39,30 +41,37 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
                 RCTDeviceEventEmitter::class.java
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
             // inform the activity
-            if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasPiPSupport()) {
                 (reactApplicationContext.currentActivity as? ReactActivity)?.let { activity ->
-                    val params = getPiPParams()
-                    val aspect =
-                        if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                            Rational(9, 16)
+                    try {
+                        val params = getPiPParams()
+                        val aspect =
+                            if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                                Rational(9, 16)
+                            } else {
+                                Rational(16, 9)
+                            }
+                        params.setAspectRatio(aspect)
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                            // this platform doesn't support autoEnterEnabled
+                            // so we manually enter here
+                            activity.enterPictureInPictureMode(params.build())
                         } else {
-                            Rational(16, 9)
+                            activity.setPictureInPictureParams(params.build())
                         }
-                    params.setAspectRatio(aspect)
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        // this platform doesn't support autoEnterEnabled
-                        // so we manually enter here
-                        activity.enterPictureInPictureMode(params.build())
-                    } else {
-                        activity.setPictureInPictureParams(params.build())
+                        // NOTE: workaround - on PiP mode, android goes to "paused but can render" state
+                        // RN pauses rendering in paused mode, so we instruct it to resume here
+                        reactApplicationContext?.onHostResume(activity)
+                    } catch (e: IllegalStateException) {
+                        Log.d(
+                            NAME,
+                            "Skipping Picture-in-Picture mode. Its not enabled for activity"
+                        )
                     }
-                    // NOTE: workaround - on PiP mode, android goes to "paused but can render" state
-                    // RN pauses rendering in paused mode, so we instruct it to resume here
-                    reactApplicationContext?.onHostResume(activity)
                 }
             }
         }
-        
+
         val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         reactApplicationContext.registerReceiver(powerReceiver, filter)
     }
@@ -70,11 +79,14 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     @ReactMethod
     fun getDefaultRingtoneUrl(promise: Promise) {
         val defaultRingtoneUri: Uri? =
-            RingtoneUtil.getActualDefaultRingtoneUri(reactApplicationContext);
+            RingtoneUtil.getActualDefaultRingtoneUri(reactApplicationContext)
         if (defaultRingtoneUri != null) {
-            promise.resolve(defaultRingtoneUri.toString());
+            promise.resolve(defaultRingtoneUri.toString())
         } else {
-            promise.reject(NAME, "Cannot get default ringtone in Android - check native logs for more info");
+            promise.reject(
+                NAME,
+                "Cannot get default ringtone in Android - check native logs for more info"
+            )
         }
     }
 
@@ -105,17 +117,21 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     @ReactMethod
     fun canAutoEnterPipMode(value: Boolean) {
         StreamVideoReactNative.canAutoEnterPictureInPictureMode = value
-        if (!hasPermission() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        if (!hasPiPSupport() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val activity = reactApplicationContext!!.currentActivity!!
-        if (value) {
-            activity.setPictureInPictureParams(getPiPParams().build())
-        // NOTE: for SDK_INT < Build.VERSION_CODES.S
-        // onUserLeaveHint from Activity is used, SDK cant directly use it
-        // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
-        } else {
-            val params = PictureInPictureParams.Builder()
-            params.setAutoEnterEnabled(false)
-            activity.setPictureInPictureParams(params.build())
+        try {
+            if (value) {
+                activity.setPictureInPictureParams(getPiPParams().build())
+                // NOTE: for SDK_INT < Build.VERSION_CODES.S
+                // onUserLeaveHint from Activity is used, SDK cant directly use it
+                // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
+            } else {
+                val params = PictureInPictureParams.Builder()
+                params.setAutoEnterEnabled(false)
+                activity.setPictureInPictureParams(params.build())
+            }
+        } catch (e: IllegalStateException) {
+            Log.d(NAME, "Skipping Picture-in-Picture mode. Its not enabled for activity")
         }
     }
 
@@ -123,8 +139,9 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     fun startThermalStatusUpdates(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val powerManager = reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
-                
+                val powerManager =
+                    reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
+
                 val listener = PowerManager.OnThermalStatusChangedListener { status ->
                     val thermalStatus = when (status) {
                         PowerManager.THERMAL_STATUS_NONE -> "NONE"
@@ -136,12 +153,12 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
                         PowerManager.THERMAL_STATUS_SHUTDOWN -> "SHUTDOWN"
                         else -> "UNKNOWN"
                     }
-                    
+
                     reactApplicationContext
                         .getJSModule(RCTDeviceEventEmitter::class.java)
                         .emit("thermalStateDidChange", thermalStatus)
                 }
-                
+
                 thermalStatusListener = listener
                 powerManager.addThermalStatusListener(listener)
                 // Get initial status
@@ -157,7 +174,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     @ReactMethod
     fun stopThermalStatusUpdates() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val powerManager = reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
+            val powerManager =
+                reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
             // Store the current listener in a local val for safe null checking
             val currentListener = thermalStatusListener
             if (currentListener != null) {
@@ -171,7 +189,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     fun currentThermalState(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val powerManager = reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
+                val powerManager =
+                    reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
                 val status = powerManager.currentThermalStatus
                 val thermalStatus = when (status) {
                     PowerManager.THERMAL_STATUS_NONE -> "NONE"
@@ -201,7 +220,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     }
 
     private fun sendPowerModeEvent() {
-        val powerManager = reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val powerManager =
+            reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
         val isLowPowerMode = powerManager.isPowerSaveMode
         reactApplicationContext
             .getJSModule(RCTDeviceEventEmitter::class.java)
@@ -211,22 +231,34 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     @ReactMethod
     fun isLowPowerModeEnabled(promise: Promise) {
         try {
-            val powerManager = reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val powerManager =
+                reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
             promise.resolve(powerManager.isPowerSaveMode)
         } catch (e: Exception) {
             promise.reject("ERROR", e.message)
         }
     }
 
-    private fun hasPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+    private fun hasPiPSupport(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(
+                PackageManager.FEATURE_PICTURE_IN_PICTURE
+            )
+        ) {
             val appOps =
                 reactApplicationContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val packageName = reactApplicationContext.packageName
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+                appOps.unsafeCheckOpNoThrow(
+                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+                    Process.myUid(),
+                    packageName
+                ) == AppOpsManager.MODE_ALLOWED
             } else {
-                appOps.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+                appOps.checkOpNoThrow(
+                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+                    Process.myUid(),
+                    packageName
+                ) == AppOpsManager.MODE_ALLOWED
             }
         } else {
             false

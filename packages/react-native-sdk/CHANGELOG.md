@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.6...@stream-io/video-react-native-sdk-1.9.7) (2025-01-22)
+
+
+### Bug Fixes
+
+* do not reject from callkit if call is accepted already ([#1651](https://github.com/GetStream/stream-video-js/issues/1651)) ([87b76ba](https://github.com/GetStream/stream-video-js/commit/87b76ba54defc287a259c6d83bfde252b503f199))
+
+## [1.9.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.5...@stream-io/video-react-native-sdk-1.9.6) (2025-01-22)
+
+
+### Bug Fixes
+
+* pip android crash on activity not enabled ([#1650](https://github.com/GetStream/stream-video-js/issues/1650)) ([013853b](https://github.com/GetStream/stream-video-js/commit/013853b11d83c9959dfc6805e1be492d0b1d36f5))
+
 ## [1.9.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.4...@stream-io/video-react-native-sdk-1.9.5) (2025-01-21)
 
 ### Dependency Updates

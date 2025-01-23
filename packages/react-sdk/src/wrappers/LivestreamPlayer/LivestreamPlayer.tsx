@@ -41,6 +41,8 @@ export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
     };
   }, [callId, callType, client]);
 
+  if (!call) return null;
+
   return (
     <StreamCall call={call}>
       <LivestreamLayout {...layoutProps} />
