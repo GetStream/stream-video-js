@@ -2457,4 +2457,12 @@ export class Call {
   setDisconnectionTimeout = (timeoutSeconds: number) => {
     this.disconnectionTimeoutSeconds = timeoutSeconds;
   };
+
+  getConnectionString = (): string => {
+    const cid = this.cid;
+    const apiKey = this.streamClient.key;
+    const token = this.streamClient.tokenManager.getToken();
+
+    return `${cid}@${apiKey}:${token}`;
+  };
 }

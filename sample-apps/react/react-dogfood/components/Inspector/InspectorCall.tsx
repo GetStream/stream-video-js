@@ -1,4 +1,10 @@
-import { FormEvent, PropsWithChildren, ReactNode, useState } from 'react';
+import {
+  FormEvent,
+  PropsWithChildren,
+  ReactNode,
+  useEffect,
+  useState,
+} from 'react';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import {
   StreamCall,
@@ -38,6 +44,13 @@ export function InspectorCall(props: {
     useInspectorCall();
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+
+  if (call) {
+    const actualConnectionString = call.getConnectionString();
+    if (actualConnectionString !== connectionString) {
+      setConnectionString(actualConnectionString);
+    }
+  }
 
   const handleJoinWithConnectionStringSubmit = (
     event: FormEvent<HTMLFormElement>,
@@ -84,6 +97,7 @@ export function InspectorCall(props: {
                       defaultValue={connectionString}
                       disabled={isJoining}
                       placeholder="Enter connection string"
+                      autoFocus
                       onChange={(e) =>
                         setConnectionString(e.currentTarget.value)
                       }

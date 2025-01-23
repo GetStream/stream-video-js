@@ -108,6 +108,12 @@
 
   & summary {
     cursor: pointer;
+    border-radius: 4px;
+
+    &:focus-visible {
+      outline: 1px solid #fff;
+      outline-offset: 2px;
+    }
 
     &::marker {
       display: inline-block;
@@ -211,4 +217,5 @@ button.rd__join-call-form-leave {
 
 .rd__inspector-pre {
   font-size: 13px;
+  color: var(--str-video__text-color2);
 }
