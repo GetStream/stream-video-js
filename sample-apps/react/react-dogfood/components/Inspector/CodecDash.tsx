@@ -12,8 +12,14 @@ export function CodecDash() {
     useCallStateHooks();
   const { camera, isEnabled: isCameraEnabled } = useCameraState();
   const stats = useCallStatsReport();
-  const publisherCodec = stats?.publisherStats.codec;
-  const subscriberCodecs = stats?.subscriberStats.codec;
+  const publisherCodecs = new Set(
+    Object.values(stats?.publisherStats.codecPerTrackType ?? {}),
+  );
+  const subscriberCodecs = new Set(
+    stats?.subscriberStats.rawReport.streams.flatMap((stream) =>
+      stream.codec ? [stream.codec] : [],
+    ),
+  );
   const participantCount = useParticipantCount();
   const [subscriptionCount, setSubscriptionCount] = useState(0);
 
@@ -52,7 +58,9 @@ export function CodecDash() {
             {isCameraEnabled ? 'Disable' : 'Enable'} camera
           </button>
         </dt>
-        <dd>{publisherCodec || '-'}</dd>
+        <dd>
+          {publisherCodecs.size > 0 ? [...publisherCodecs].join(', ') : '-'}
+        </dd>
 
         <dt>
           Subscriptions ({subscriptionCount}/{participantCount - 1})
@@ -64,7 +72,9 @@ export function CodecDash() {
             Sub. to all
           </button>
         </dt>
-        <dd>{subscriberCodecs || '-'}</dd>
+        <dd>
+          {subscriberCodecs.size > 0 ? [...subscriberCodecs].join(', ') : '-'}
+        </dd>
       </dl>
     </div>
   );
