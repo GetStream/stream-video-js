@@ -11,6 +11,14 @@ export function CapabilitiesDash() {
         <h3>Video decoding support</h3>
         <CodecCapabilitiesDash direction="recv" kind="video" />
       </div>
+      <div className="rd__inspector-dash">
+        <h3>Audio encoding support</h3>
+        <CodecCapabilitiesDash direction="send" kind="audio" />
+      </div>
+      <div className="rd__inspector-dash">
+        <h3>Audio decoding support</h3>
+        <CodecCapabilitiesDash direction="recv" kind="audio" />
+      </div>
     </>
   );
 }
@@ -37,6 +45,11 @@ const skippedCodecMimeTypes = new Set([
   'video/rtx',
   'video/ulpfec',
   'video/flexfec-03',
+  'audio/CN',
+  'audio/G722',
+  'audio/PCMU',
+  'audio/PCMA',
+  'audio/telephone-event',
 ]);
 
 function getCodecCapabilties(
@@ -63,6 +76,11 @@ function getCodecCapabilties(
       ? codec.mimeType.substring(prefix.length)
       : codec.mimeType;
 
+    if (mimeType === 'red') {
+      capabilities.add(`redundant ${kind} data`);
+      continue;
+    }
+
     if (codec.sdpFmtpLine) {
       const sdpFmtp = parseSdpFmtpLine(codec.sdpFmtpLine);
       if (codec.mimeType === 'video/H264' && sdpFmtp['profile-level-id']) {
@@ -76,6 +94,10 @@ function getCodecCapabilties(
       } else if (codec.mimeType === 'video/VP9' && sdpFmtp['profile-id']) {
         capabilities.add(
           `${mimeType} ${parseVP9ProfileId(sdpFmtp['profile-id'])}`,
+        );
+      } else if (codec.mimeType === 'audio/opus') {
+        capabilities.add(
+          `${mimeType}${sdpFmtp.useinbandfec === '1' ? ' with error correction' : ''}`,
         );
       } else {
         capabilities.add(`${mimeType} ${formatSdpFmtpLine(sdpFmtp)}`);
@@ -147,5 +169,5 @@ function formatSdpFmtpLine(
 ): string {
   return Object.entries(sdpFmtp)
     .map(([key, value]) => `${key}: ${value}`)
-    .join();
+    .join(', ');
 }
