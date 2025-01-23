@@ -23,10 +23,12 @@ export function CodecDash() {
 
   return (
     <div className="rd__inspector-dash">
-      <h3>Codecs in use</h3>
+      <h3 data-copyable data-h>
+        Codecs in use
+      </h3>
       <dl>
-        <dt>Publishing</dt>
-        <dd>
+        <dt data-copyable>Publishing</dt>
+        <dd data-copyable>
           <ValuePoller
             id="publisher-codecs"
             fetcher={() => {
@@ -34,10 +36,14 @@ export function CodecDash() {
               return pc ? fetchCodecsInUse(pc, 'sender') : '-';
             }}
           />
+          <span data-copy="" hidden />
         </dd>
 
         <dt>
-          Subscriptions ({subscribedParticipantCount}/{remoteParticipantCount})
+          <span data-copyable>
+            Subscriptions ({subscribedParticipantCount}/{remoteParticipantCount}
+            )
+          </span>
           <button
             className="rd__dash-action-button"
             type="button"
@@ -46,7 +52,7 @@ export function CodecDash() {
             Sub. to all
           </button>
         </dt>
-        <dd>
+        <dd data-copyable>
           <ValuePoller
             id="subscriber-codecs"
             fetcher={() => {

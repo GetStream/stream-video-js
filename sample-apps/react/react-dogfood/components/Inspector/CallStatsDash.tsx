@@ -6,10 +6,14 @@ export function CallStatsDash() {
 
   return (
     <div className="rd__inspector-dash rd__inspector-dash_wide">
-      <h3>Raw call stats (JSON)</h3>
+      <h3 data-copyable data-h>
+        Raw call stats (JSON)
+      </h3>
       Tip: use _inspector global variable to access client and call instances.
       <pre className="rd__inspector-pre">
-        {JSON.stringify(stats, undefined, 2)}
+        <span data-copy="```json" hidden />
+        <span data-copyable>{JSON.stringify(stats, undefined, 2)}</span>
+        <span data-copy="```" hidden />
       </pre>
     </div>
   );

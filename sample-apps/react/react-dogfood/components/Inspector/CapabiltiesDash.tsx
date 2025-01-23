@@ -4,19 +4,27 @@ export function CapabilitiesDash() {
   return (
     <>
       <div className="rd__inspector-dash">
-        <h3>Video encoding support</h3>
+        <h3 data-copyable data-h>
+          Video encoding support
+        </h3>
         <CodecCapabilitiesDash direction="send" kind="video" />
       </div>
       <div className="rd__inspector-dash">
-        <h3>Video decoding support</h3>
+        <h3 data-copyable data-h>
+          Video decoding support
+        </h3>
         <CodecCapabilitiesDash direction="recv" kind="video" />
       </div>
       <div className="rd__inspector-dash">
-        <h3>Audio encoding support</h3>
+        <h3 data-copyable data-h>
+          Audio encoding support
+        </h3>
         <CodecCapabilitiesDash direction="send" kind="audio" />
       </div>
       <div className="rd__inspector-dash">
-        <h3>Audio decoding support</h3>
+        <h3 data-copyable data-h>
+          Audio decoding support
+        </h3>
         <CodecCapabilitiesDash direction="recv" kind="audio" />
       </div>
     </>
@@ -35,7 +43,9 @@ export function CodecCapabilitiesDash(props: {
   return (
     <ul>
       {videoEncodingCapabilities.map((capability) => (
-        <li key={capability}>{capability}</li>
+        <li key={capability} data-copyable>
+          {capability}
+        </li>
       ))}
     </ul>
   );

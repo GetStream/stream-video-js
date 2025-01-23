@@ -30,13 +30,17 @@ export function DevicesDash() {
   return (
     <>
       <div className="rd__inspector-dash">
-        <h3>Video input devices</h3>
+        <h3 data-copyable data-h>
+          Video input devices
+        </h3>
         {optionallyWrap(WithCameraState, (props) => (
           <SingleKindDevicesDash {...videoProps} {...props} />
         ))}
       </div>
       <div className="rd__inspector-dash">
-        <h3>Audio input devices</h3>
+        <h3 data-copyable data-h>
+          Audio input devices
+        </h3>
         {optionallyWrap(WithMicrophoneState, (props) => (
           <SingleKindDevicesDash {...audioProps} {...props} />
         ))}
@@ -118,12 +122,15 @@ function SingleKindDevicesDash(props: {
 
   return (
     <>
-      <p>
+      <p data-copyable>
         {props.hasBrowserPermission ? (
           <>Permission granted 🟢</>
         ) : (
           <>Permission denied 🔴</>
         )}
+      </p>
+      <p data-copyable hidden>
+        {props.isEnabled ? 'Enabled' : 'Disabled'}
       </p>
       <ul>
         {props.devices.map((device) => (
@@ -134,6 +141,7 @@ function SingleKindDevicesDash(props: {
               'rd__inspector-device_active': props.manager,
             })}
             onClick={() => props.manager?.select(device.deviceId)}
+            data-copy={`${device.deviceId} ${device.label}${device.deviceId === props.selectedDevice ? ' (selected)' : ''}`}
           >
             {device.label}
             {props.manager && (

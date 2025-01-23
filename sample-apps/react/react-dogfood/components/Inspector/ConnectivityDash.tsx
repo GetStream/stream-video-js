@@ -21,17 +21,23 @@ export function ConnectivityDash() {
 
   return (
     <div className="rd__inspector-dash">
-      <h3>Connectivity</h3>
+      <h3 data-copyable data-h>
+        Connectivity
+      </h3>
       <dl>
-        <dt>Location hint</dt>
-        <dd>
+        <dt data-copyable data-label>
+          Location hint
+        </dt>
+        <dd data-copyable>
           <ValuePoller
             id="location-hint"
             fetcher={() => client?.streamClient.getLocationHint()}
           />
         </dd>
-        <dt>Edge</dt>
-        <dd>
+        <dt data-copyable data-label>
+          Edge
+        </dt>
+        <dd data-copyable>
           <ValuePoller
             id="edge-name"
             fetcher={() =>
@@ -40,7 +46,9 @@ export function ConnectivityDash() {
           />
         </dd>
         <dt>
-          Coordinator connection
+          <span data-copyable data-label>
+            Coordinator connection
+          </span>
           <button
             className="rd__dash-action-button"
             type="button"
@@ -49,14 +57,16 @@ export function ConnectivityDash() {
             Sim. drop
           </button>
         </dt>
-        <dd>
+        <dd data-copyable>
           <ValuePoller
             id="coordinator-ws-healthy"
             {...getWsConnectionValuePollerProps(getCoordinatorWs)}
           />
         </dd>
         <dt>
-          SFU WebSocket
+          <span data-copyable data-label>
+            SFU WebSocket
+          </span>
           <button
             className="rd__dash-action-button"
             type="button"
@@ -65,7 +75,7 @@ export function ConnectivityDash() {
             Sim. drop
           </button>
         </dt>
-        <dd>
+        <dd data-copyable>
           <ValuePoller
             id="sfu-ws-healthy"
             {...getWsConnectionValuePollerProps(getSfuWs)}
@@ -103,6 +113,6 @@ function getWsConnectionValuePollerProps(
     return 'unhealthy';
   };
 
-  const indicator = (value: ReactNode) => (value === 'healthy' ? '💚' : '💔');
+  const indicator = (value: ReactNode) => (value === 'healthy' ? ' 💚' : ' 💔');
   return { fetcher, indicator };
 }

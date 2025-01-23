@@ -4,6 +4,7 @@ import {
   StreamVideoClient,
   useCall,
   useCallStateHooks,
+  WithTooltip,
   type Call,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -14,6 +15,7 @@ import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../../pages/api/auth/create-token';
+import { copyReport } from './copyReport';
 
 interface Credentials {
   callType: string;
@@ -127,9 +129,22 @@ export function InspectorCall(props: {
               </button>
             </>
           )}
+          <WithTooltip title="Copy report" tooltipPlacement="bottom-end">
+            <button
+              className="rd__copy-button"
+              type="button"
+              onClick={() => copyReport()}
+            >
+              📋
+            </button>
+          </WithTooltip>
         </div>
         {log.length > 0 && (
-          <details className="rd__join-call-form-log">
+          <details
+            className="rd__join-call-form-log"
+            data-copy="Call join log"
+            data-h
+          >
             <summary>{log.at(-1)?.message}</summary>
             {log.map((record, index) => (
               <div
@@ -138,6 +153,7 @@ export function InspectorCall(props: {
                   'rd__log-record': true,
                   'rd__log-record_error': record.error,
                 })}
+                data-copyable
               >
                 {record.message}
               </div>
@@ -155,8 +171,9 @@ function CallingState() {
   const { useCallCallingState } = useCallStateHooks();
   const state = useCallCallingState();
   return (
-    <div className="rd__calling-state">
-      {call?.cid ?? <>In call</>} - {state}
+    <div className="rd__calling-state" data-copy="In call" data-h>
+      <span data-copy={call?.getConnectionString()} hidden />
+      {call?.cid ?? <>In call</>} - <span data-copyable>{state}</span>
     </div>
   );
 }
