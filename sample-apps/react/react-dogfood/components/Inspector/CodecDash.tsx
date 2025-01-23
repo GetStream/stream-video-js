@@ -9,13 +9,11 @@ import { ValuePoller } from './ValuePoller';
 
 export function CodecDash() {
   const call = useCall();
-  const { useCameraState } = useCallStateHooks();
   const {
     forceSubscriptions,
     subscribedParticipantCount,
     remoteParticipantCount,
   } = useForceSubscriptions();
-  const { camera, isEnabled: isCameraEnabled } = useCameraState();
 
   useEffect(() => {
     if (call) {
@@ -27,16 +25,7 @@ export function CodecDash() {
     <div className="rd__inspector-dash">
       <h3>Codecs in use</h3>
       <dl>
-        <dt>
-          Publishing
-          <button
-            className="rd__dash-action-button"
-            type="button"
-            onClick={() => camera.toggle()}
-          >
-            {isCameraEnabled ? 'Disable' : 'Enable'} camera
-          </button>
-        </dt>
+        <dt>Publishing</dt>
         <dd>
           <ValuePoller
             id="publisher-codecs"
@@ -67,6 +56,12 @@ export function CodecDash() {
           />
         </dd>
       </dl>
+      <p>
+        <small>
+          Press "Sub. to all" to start receiving video from all participants
+          currently in the call.
+        </small>
+      </p>
     </div>
   );
 }

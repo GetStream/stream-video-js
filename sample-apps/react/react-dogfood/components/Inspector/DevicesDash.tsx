@@ -1,25 +1,45 @@
 import {
+  Call,
+  CameraManager,
   getAudioBrowserPermission,
   getAudioDevices,
   getVideoBrowserPermission,
   getVideoDevices,
+  MicrophoneManager,
+  useCall,
+  useCallStateHooks,
   useObservableValue,
 } from '@stream-io/video-react-sdk';
-import { useMemo } from 'react';
+import clsx from 'clsx';
+import { ReactNode, useMemo } from 'react';
 
 export function DevicesDash() {
+  const call = useCall();
   const videoProps = useVideoDevices();
   const audioProps = useAudioDevices();
+
+  const optionallyWrap = (
+    Wrapper: typeof WithCameraState | typeof WithMicrophoneState,
+    children: (props?: {
+      manager: CameraManager | MicrophoneManager;
+      selectedDevice: string | undefined;
+      isEnabled: boolean;
+    }) => ReactNode,
+  ) => (call ? <Wrapper call={call}>{children}</Wrapper> : children());
 
   return (
     <>
       <div className="rd__inspector-dash">
         <h3>Video input devices</h3>
-        <SingleKindDevicesDash {...videoProps} />
+        {optionallyWrap(WithCameraState, (props) => (
+          <SingleKindDevicesDash {...videoProps} {...props} />
+        ))}
       </div>
       <div className="rd__inspector-dash">
         <h3>Audio input devices</h3>
-        <SingleKindDevicesDash {...audioProps} />
+        {optionallyWrap(WithMicrophoneState, (props) => (
+          <SingleKindDevicesDash {...audioProps} {...props} />
+        ))}
       </div>
     </>
   );
@@ -51,30 +71,92 @@ function useAudioDevices() {
   };
 }
 
+function WithCameraState(props: {
+  call: Call;
+  children: (props: {
+    manager: CameraManager;
+    selectedDevice: string | undefined;
+    isEnabled: boolean;
+  }) => ReactNode;
+}) {
+  const { useCameraState } = useCallStateHooks();
+  const { camera, selectedDevice, optimisticIsMute } = useCameraState();
+  return props.children({
+    manager: camera,
+    selectedDevice,
+    isEnabled: !optimisticIsMute,
+  });
+}
+
+function WithMicrophoneState(props: {
+  call: Call;
+  children: (props: {
+    manager: MicrophoneManager;
+    selectedDevice: string | undefined;
+    isEnabled: boolean;
+  }) => ReactNode;
+}) {
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, selectedDevice, optimisticIsMute } = useMicrophoneState();
+  return props.children({
+    manager: microphone,
+    selectedDevice,
+    isEnabled: !optimisticIsMute,
+  });
+}
+
 function SingleKindDevicesDash(props: {
   devices: MediaDeviceInfo[] | undefined;
   hasBrowserPermission: boolean;
+  manager?: CameraManager | MicrophoneManager;
+  selectedDevice?: string | undefined;
+  isEnabled?: boolean;
 }) {
   if (!props.devices) {
-    return (
-      <div className="rd__inspector-permission">Awaiting permission 🟡</div>
-    );
+    return <p>Awaiting permission 🟡</p>;
   }
 
   return (
     <>
-      <div className="rd__inspector-permission">
+      <p>
         {props.hasBrowserPermission ? (
           <>Permission granted 🟢</>
         ) : (
           <>Permission denied 🔴</>
         )}
-      </div>
+      </p>
       <ul>
         {props.devices.map((device) => (
-          <li key={device.deviceId}>{device.label}</li>
+          <li
+            key={device.deviceId}
+            className={clsx({
+              'rd__inspector-device': true,
+              'rd__inspector-device_active': props.manager,
+            })}
+            onClick={() => props.manager?.select(device.deviceId)}
+          >
+            {device.label}
+            {props.manager && (
+              <div className="rd__dash-action-button">
+                {device.deviceId === props.selectedDevice ? (
+                  <span className="rd__inspector-device-checkmark">
+                    selected
+                  </span>
+                ) : (
+                  <span className="rd__inspector-device-select">select</span>
+                )}
+              </div>
+            )}
+          </li>
         ))}
       </ul>
+      {props.manager && (
+        <p>
+          <button type="button" onClick={() => props.manager?.toggle()}>
+            {props.isEnabled ? 'Disable' : 'Enable'}
+          </button>
+        </p>
+      )}
     </>
   );
 }
