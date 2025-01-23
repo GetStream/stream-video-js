@@ -128,7 +128,7 @@ import {
   SpeakerManager,
 } from './devices';
 import { getSdkSignature } from './stats/utils';
-import { withoutConcurrency } from './helpers/concurrency';
+import { hasPending, withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
@@ -360,7 +360,7 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
-      // cancel auto-drop when call is
+      // cancel auto-drop when call is accepted or rejected
       createSubscription(this.state.session$, (session) => {
         if (!this.ringing) return;
 
@@ -372,6 +372,21 @@ export class Call {
 
         if (isAcceptedByMe || isRejectedByMe) {
           this.cancelAutoDrop();
+        }
+
+        const isAcceptedElsewhere =
+          isAcceptedByMe && this.state.callingState === CallingState.RINGING;
+
+        if (
+          (isAcceptedElsewhere || isRejectedByMe) &&
+          !hasPending(this.joinLeaveConcurrencyTag)
+        ) {
+          this.leave().catch(() => {
+            this.logger(
+              'error',
+              'Could not leave a call that was accepted or rejected elsewhere',
+            );
+          });
         }
       }),
     );

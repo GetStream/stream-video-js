@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.3...@stream-io/video-client-1.15.4) (2025-01-23)
+
+
+### Bug Fixes
+
+* leave ringing call if accepted or rejected elsewhere ([#1654](https://github.com/GetStream/stream-video-js/issues/1654)) ([9f25adf](https://github.com/GetStream/stream-video-js/commit/9f25adf8796db369f7e3e236e6a178f525ae8f55))
+
 ## [1.15.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.2...@stream-io/video-client-1.15.3) (2025-01-21)
 
 
