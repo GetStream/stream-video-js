@@ -4,45 +4,24 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ValuePoller } from './ValuePoller';
 
 export function CodecDash() {
   const call = useCall();
-  const { useCallStatsReport, useParticipantCount, useCameraState } =
-    useCallStateHooks();
+  const { useCameraState } = useCallStateHooks();
+  const {
+    forceSubscriptions,
+    subscribedParticipantCount,
+    remoteParticipantCount,
+  } = useForceSubscriptions();
   const { camera, isEnabled: isCameraEnabled } = useCameraState();
-  const stats = useCallStatsReport();
-  const publisherCodecs = new Set(
-    Object.values(stats?.publisherStats.codecPerTrackType ?? {}),
-  );
-  const subscriberCodecs = new Set(
-    stats?.subscriberStats.rawReport.streams.flatMap((stream) =>
-      stream.codec ? [stream.codec] : [],
-    ),
-  );
-  const participantCount = useParticipantCount();
-  const [subscriptionCount, setSubscriptionCount] = useState(0);
-
-  const forceSubscriptions = (_call: Call) => {
-    const participants = _call.state.remoteParticipants;
-    // Force subscribe to video from all known participants.
-    // Without that reporting received codecs is not very useful.
-    const changes: SubscriptionChanges = {};
-    for (const participant of participants) {
-      changes[participant.sessionId] = {
-        dimension: { width: 800, height: 600 },
-      };
-    }
-    _call.state.updateParticipantTracks('videoTrack', changes);
-    _call.dynascaleManager.applyTrackSubscriptions();
-    setSubscriptionCount(participants.length);
-  };
 
   useEffect(() => {
     if (call) {
       forceSubscriptions(call);
     }
-  }, [call]);
+  }, [call, forceSubscriptions]);
 
   return (
     <div className="rd__inspector-dash">
@@ -59,11 +38,17 @@ export function CodecDash() {
           </button>
         </dt>
         <dd>
-          {publisherCodecs.size > 0 ? [...publisherCodecs].join(', ') : '-'}
+          <ValuePoller
+            id="publisher-codecs"
+            fetcher={() => {
+              const pc = (call?.publisher as any)?.pc;
+              return pc ? fetchCodecsInUse(pc, 'sender') : '-';
+            }}
+          />
         </dd>
 
         <dt>
-          Subscriptions ({subscriptionCount}/{participantCount - 1})
+          Subscriptions ({subscribedParticipantCount}/{remoteParticipantCount})
           <button
             className="rd__dash-action-button"
             type="button"
@@ -73,9 +58,82 @@ export function CodecDash() {
           </button>
         </dt>
         <dd>
-          {subscriberCodecs.size > 0 ? [...subscriberCodecs].join(', ') : '-'}
+          <ValuePoller
+            id="subscriber-codecs"
+            fetcher={() => {
+              const pc = (call?.subscriber as any)?.pc;
+              return pc ? fetchCodecsInUse(pc, 'receiver') : '-';
+            }}
+          />
         </dd>
       </dl>
     </div>
   );
+}
+
+function useForceSubscriptions() {
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants();
+  const remoteParticipants = useMemo(
+    () =>
+      participants.filter((p) => !p.isLocalParticipant).map((p) => p.sessionId),
+    [participants],
+  );
+  const [subscribedParticipants, setSubscribedParticipants] = useState(
+    new Set<string>(),
+  );
+  const subscribedParticipantCount = useMemo(
+    () =>
+      remoteParticipants.reduce(
+        (count, p) => (subscribedParticipants.has(p) ? count + 1 : count),
+        0,
+      ),
+    [remoteParticipants, subscribedParticipants],
+  );
+
+  const forceSubscriptions = useCallback((call: Call) => {
+    const _participants = call.state.remoteParticipants;
+    // Force subscribe to video from all known participants.
+    // Without that reporting received codecs is not very useful.
+    const changes: SubscriptionChanges = {};
+    for (const participant of _participants) {
+      changes[participant.sessionId] = {
+        dimension: { width: 800, height: 600 },
+      };
+    }
+    call.state.updateParticipantTracks('videoTrack', changes);
+    call.dynascaleManager.applyTrackSubscriptions();
+    setSubscribedParticipants(new Set(Object.keys(changes)));
+  }, []);
+
+  return {
+    forceSubscriptions,
+    subscribedParticipantCount,
+    remoteParticipantCount: remoteParticipants.length,
+  };
+}
+
+async function fetchCodecsInUse(
+  pc: RTCPeerConnection,
+  direction: 'sender' | 'receiver',
+) {
+  const activeTransceivers = pc
+    .getTransceivers()
+    .filter((t) => t[direction].track?.readyState === 'live');
+
+  const stats = await Promise.all(
+    activeTransceivers.map((t) => t[direction].getStats()),
+  );
+
+  const codecs: string[] = [];
+
+  for (const report of stats) {
+    report.forEach((entry) => {
+      if (entry.type === 'codec') {
+        codecs.push(entry.mimeType);
+      }
+    });
+  }
+
+  return codecs.join(', ') || '-';
 }
