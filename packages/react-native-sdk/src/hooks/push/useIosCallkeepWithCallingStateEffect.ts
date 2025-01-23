@@ -7,6 +7,7 @@ import { getCallKeepLib } from '../../utils/push/libs';
 import {
   voipCallkeepAcceptedCallOnNativeDialerMap$,
   voipCallkeepCallOnForegroundMap$,
+  voipPushNotificationCallCId$,
 } from '../../utils/push/internal/rxSubjects';
 
 const isNonActiveCallingState = (callingState: CallingState) => {
@@ -22,6 +23,16 @@ const isAcceptedCallingState = (callingState: CallingState) => {
     callingState === CallingState.JOINING ||
     callingState === CallingState.JOINED
   );
+};
+
+const unsubscribeCallkeepEvents = (activeCallCid: string | undefined) => {
+  const voipPushNotificationCallCId = RxUtils.getCurrentValue(
+    voipPushNotificationCallCId$
+  );
+  if (activeCallCid && activeCallCid === voipPushNotificationCallCId) {
+    // callkeep events should not be listened anymore so clear the call cid
+    voipPushNotificationCallCId$.next(undefined);
+  }
 };
 
 /**
@@ -46,6 +57,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       const callkeep = getCallKeepLib();
       // if the component is unmounted and the callID was not reported to callkeep, then report it now
       if (acceptedForegroundCallkeepMap) {
+        unsubscribeCallkeepEvents(acceptedForegroundCallkeepMap.cid);
         // this call should be ended in callkeep
         callkeep.endCall(acceptedForegroundCallkeepMap.uuid);
       }
@@ -68,10 +80,12 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       );
       const callkeep = getCallKeepLib();
       if (activeCallCid === nativeDialerAcceptedCallMap?.cid) {
+        unsubscribeCallkeepEvents(activeCallCid);
         callkeep.endCall(nativeDialerAcceptedCallMap.uuid);
         // no need to keep this reference anymore
         voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
       } else if (activeCallCid === foregroundIncomingCallkeepMap?.cid) {
+        unsubscribeCallkeepEvents(activeCallCid);
         callkeep.endCall(foregroundIncomingCallkeepMap.uuid);
         // no need to keep this reference anymore
         voipCallkeepCallOnForegroundMap$.next(undefined);
@@ -111,6 +125,8 @@ export const useIosCallkeepWithCallingStateEffect = () => {
    */
   if (isNonActiveCallingState(callingState)) {
     const callkeep = getCallKeepLib();
+    unsubscribeCallkeepEvents(activeCallCid);
+
     // this was a previously joined call which had push notification displayed
     // the call was accepted through the app and not through native dialer
     // the call was left using the leave button in the app and not through native dialer
