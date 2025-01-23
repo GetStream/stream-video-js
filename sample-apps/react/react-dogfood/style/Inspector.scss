@@ -40,6 +40,7 @@
   background: var(--str-video__background-color5);
   color: #fff;
   cursor: pointer;
+  white-space: nowrap;
 
   &:focus-visible {
     outline: 1px solid #fff;
@@ -64,14 +65,54 @@
 
 .rd__join-call-form-connection-string {
   flex-grow: 1;
+  min-width: 480px;
 }
 
 .rd__connection-string-input {
+  display: flex;
   position: relative;
+  border-color: var(--str-video__base-color3);
+
+  &_invalid {
+    animation: flash-invalid 0.5s;
+  }
 
   & input {
-    width: 100%;
-    padding-right: 20px;
+    border-color: inherit;
+    flex-basis: 0;
+    min-width: 0;
+  }
+
+  & input:nth-child(1) {
+    flex-grow: 1;
+  }
+
+  & input:nth-child(2) {
+    flex-grow: 1;
+  }
+
+  & input:nth-child(3) {
+    flex-grow: 1;
+  }
+
+  & input:nth-child(4) {
+    flex-grow: 2;
+  }
+
+  & input:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 0;
+  }
+
+  & input:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-right: 2px;
+  }
+
+  & input:last-child {
+    padding-right: 19px;
   }
 
   &::after {
@@ -84,6 +125,23 @@
     top: 0;
     right: 1px;
     color: var(--str-video__base-color3);
+  }
+}
+
+@keyframes flash-invalid {
+  from {
+    border-color: var(--str-video__danger-color--accent);
+    transform: scale(1);
+  }
+
+  20% {
+    border-color: var(--str-video__danger-color--accent);
+    transform: scale(0.98);
+  }
+
+  to {
+    border-color: var(--str-video__base-color3);
+    transform: scale(1);
   }
 }
 
@@ -128,6 +186,11 @@ button.rd__join-call-form-join {
 
 button.rd__join-call-form-leave {
   background: var(--str-video__button-tertiary-base);
+}
+
+button.rd__copy-button {
+  background: rgba(255, 255, 255, 0.08);
+  margin-left: 10px;
 }
 
 .rd__calling-state {
@@ -183,6 +246,24 @@ button.rd__join-call-form-leave {
       margin: 0;
     }
   }
+
+  p {
+    font: inherit;
+    margin: 10px 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  small {
+    color: var(--str-video__text-color2);
+    font-size: 1em;
+  }
 }
 
 .rd__inspector-permission {
@@ -213,6 +294,29 @@ button.rd__join-call-form-leave {
 
 .rd__dash-action-button {
   float: right;
+}
+
+.rd__inspector-device {
+  &_active {
+    cursor: pointer;
+  }
+
+  .rd__inspector-device-select {
+    float: right;
+    display: none;
+    padding: 0;
+    margin: 0;
+    background: none;
+    color: var(--str-video__secondary-color);
+  }
+
+  &:hover .rd__inspector-device-select {
+    display: inline-block;
+  }
+
+  .rd__inspector-device-checkmark {
+    color: var(--str-video__text-color2);
+  }
 }
 
 .rd__inspector-pre {
