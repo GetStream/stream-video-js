@@ -1,12 +1,4 @@
 import {
-  FormEvent,
-  PropsWithChildren,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
-import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -14,12 +6,14 @@ import {
   useCallStateHooks,
   type Call,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
+import { FormEvent, ReactNode, useState } from 'react';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { inspectorUserId, meetingId } from '../../lib/idGenerators';
 import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../../pages/api/auth/create-token';
-import clsx from 'clsx';
 
 interface Credentials {
   callType: string;
