@@ -72,6 +72,12 @@ export function ConnectivityDash() {
           />
         </dd>
       </dl>
+      <p>
+        <small>
+          Hint: press "Sim. drop" to force close connection, simulating a
+          network drop or a server error.
+        </small>
+      </p>
     </div>
   );
 }
