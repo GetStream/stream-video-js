@@ -62,12 +62,12 @@ export function CodecDash() {
           />
         </dd>
       </dl>
-      <p>
+      <section>
         <small>
           Press "Sub. to all" to start receiving video from all participants
           currently in the call.
         </small>
-      </p>
+      </section>
     </div>
   );
 }

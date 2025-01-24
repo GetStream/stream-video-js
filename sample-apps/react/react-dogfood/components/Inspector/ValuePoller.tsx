@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { CSSProperties, ElementType, ReactNode } from 'react';
 import useSWR from 'swr';
 
 export function useValuePoller<T>(
@@ -18,6 +18,7 @@ export function useValuePoller<T>(
     {
       refreshInterval: pollIntervalMs,
       revalidateOnFocus: false,
+      refreshWhenOffline: true,
     },
   );
 
@@ -30,6 +31,7 @@ export function useValuePoller<T>(
 
 export function ValuePoller(props: {
   id: string;
+  as?: ElementType;
   fetcher: () => ReactNode | Promise<ReactNode>;
   pollIntervalMs?: number;
   indicator?: ReactNode | ((value: ReactNode) => ReactNode);
@@ -52,13 +54,17 @@ export function ValuePoller(props: {
     ? `${(lastPollTimestamp - Date.now()) / 1000}s`
     : undefined;
 
+  const Container = props.as ?? 'div';
+
   return (
-    <div
+    <Container
       className="rd__value-poller"
-      style={{
-        animationDuration,
-        animationDelay,
-      }}
+      style={
+        {
+          '--rd-value-poller-animation-duration': animationDuration,
+          '--rd-value-poller-animation-delay': animationDelay,
+        } as CSSProperties
+      }
     >
       {value}
       {props.indicator && (
@@ -68,6 +74,6 @@ export function ValuePoller(props: {
             : props.indicator}
         </span>
       )}
-    </div>
+    </Container>
   );
 }

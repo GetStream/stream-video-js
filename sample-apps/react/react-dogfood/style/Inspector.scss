@@ -247,7 +247,7 @@ button.rd__copy-button {
     }
   }
 
-  p {
+  section {
     font: inherit;
     margin: 10px 0;
 
@@ -274,8 +274,8 @@ button.rd__copy-button {
   display: inline-block;
   margin-left: 10px;
   animation: rd__heartbeat linear infinite;
-  animation-duration: inherit;
-  animation-delay: inherit;
+  animation-duration: var(--rd-value-poller-animation-duration);
+  animation-delay: var(--rd-value-poller-animation-delay);
 }
 
 @keyframes rd__heartbeat {
@@ -316,6 +316,48 @@ button.rd__copy-button {
 
   .rd__inspector-device-checkmark {
     color: var(--str-video__text-color2);
+  }
+}
+
+.rd__transport-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &_placeholder {
+    justify-content: center;
+    height: 60px;
+    background: var(--str-video__background-color5);
+  }
+
+  .rd__transport-diagram-remote {
+    text-align: right;
+  }
+
+  .rd__transport-diagram-label {
+    padding: 5px 10px;
+    flex-basis: 0;
+    flex-grow: 1;
+
+    &:last-child {
+      text-align: right;
+    }
+  }
+
+  .rd__ice-candidate {
+    background: var(--str-video__background-color5);
+    padding: 10px;
+  }
+
+  .rd__protocol {
+    white-space: nowrap;
+    margin: 0 5px;
+  }
+
+  i {
+    flex-grow: 1;
+    border-bottom: 1px solid var(--str-video__background-color5);
+    min-width: 5px;
   }
 }
 

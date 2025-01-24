@@ -117,21 +117,21 @@ function SingleKindDevicesDash(props: {
   isEnabled?: boolean;
 }) {
   if (!props.devices) {
-    return <p>Awaiting permission 🟡</p>;
+    return <section>Awaiting permission 🟡</section>;
   }
 
   return (
     <>
-      <p data-copyable>
+      <section data-copyable>
         {props.hasBrowserPermission ? (
           <>Permission granted 🟢</>
         ) : (
           <>Permission denied 🔴</>
         )}
-      </p>
-      <p data-copyable hidden>
+      </section>
+      <section data-copyable hidden>
         {props.isEnabled ? 'Enabled' : 'Disabled'}
-      </p>
+      </section>
       <ul>
         {props.devices.map((device) => (
           <li
@@ -159,11 +159,11 @@ function SingleKindDevicesDash(props: {
         ))}
       </ul>
       {props.manager && (
-        <p>
+        <section>
           <button type="button" onClick={() => props.manager?.toggle()}>
             {props.isEnabled ? 'Disable' : 'Enable'}
           </button>
-        </p>
+        </section>
       )}
     </>
   );

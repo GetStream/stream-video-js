@@ -1,6 +1,7 @@
 import { useCall, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { ValuePoller } from './ValuePoller';
 import { ReactNode } from 'react';
+import { TransportDiagram } from './TransportDiagram';
 
 export function ConnectivityDash() {
   const client = useStreamVideoClient();
@@ -25,17 +26,16 @@ export function ConnectivityDash() {
         Connectivity
       </h3>
       <dl>
-        <dt data-copyable data-label>
-          Location hint
-        </dt>
-        <dd data-copyable>
+        <dt data-copyable>
+          Edge
           <ValuePoller
             id="location-hint"
-            fetcher={() => client?.streamClient.getLocationHint()}
+            as="span"
+            fetcher={async () => {
+              const locationHint = await client?.streamClient.getLocationHint();
+              return <> (location hint: {locationHint})</>;
+            }}
           />
-        </dd>
-        <dt data-copyable data-label>
-          Edge
         </dt>
         <dd data-copyable>
           <ValuePoller
@@ -45,6 +45,13 @@ export function ConnectivityDash() {
             }
           />
         </dd>
+      </dl>
+      <section>
+        <span data-copy="" hidden />
+        <TransportDiagram direction="publisher" />
+        <span data-copy="" hidden />
+      </section>
+      <dl>
         <dt>
           <span data-copyable data-label>
             Coordinator connection
@@ -65,7 +72,7 @@ export function ConnectivityDash() {
         </dd>
         <dt>
           <span data-copyable data-label>
-            SFU WebSocket
+            SFU connection
           </span>
           <button
             className="rd__dash-action-button"
@@ -82,12 +89,12 @@ export function ConnectivityDash() {
           />
         </dd>
       </dl>
-      <p>
+      <section>
         <small>
           Hint: press "Sim. drop" to force close connection, simulating a
           network drop or a server error.
         </small>
-      </p>
+      </section>
     </div>
   );
 }
