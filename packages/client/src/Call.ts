@@ -584,6 +584,7 @@ export class Call {
       this.dynascaleManager.setSfuClient(undefined);
 
       this.state.setCallingState(CallingState.LEFT);
+      this.state.setParticipants([]);
       this.state.dispose();
 
       // Call all leave call hooks, e.g. to clean up global event handlers

@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.4...@stream-io/video-client-1.15.5) (2025-01-24)
+
+
+### Bug Fixes
+
+* remove the participants from state when leaving call ([003ac26](https://github.com/GetStream/stream-video-js/commit/003ac26eff3c14779d5f25e6e64973c88a5b811d))
+
 ## [1.15.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.3...@stream-io/video-client-1.15.4) (2025-01-23)
 
 
