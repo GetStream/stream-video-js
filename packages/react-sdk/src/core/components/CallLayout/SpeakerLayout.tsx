@@ -48,6 +48,21 @@ export type SpeakerLayoutProps = {
   excludeLocalParticipant?: boolean;
   /**
    * Predicate to filter call participants or a filter object.
+   * @example
+   * // With a predicate:
+   * <SpeakerLayout
+   *   filterParticipants={p => p.roles.includes('student')}
+   * />
+   * @example
+   * // With a filter object:
+   * <SpeakerLayout
+   *   filterParticipants={{
+   *     $or: [
+   *       { roles: { $contains: 'student' } },
+   *       { isPinned: true },
+   *     ],
+   *   }}
+   * />
    */
   filterParticipants?: ParticipantPredicate | ParticipantFilter;
   /**

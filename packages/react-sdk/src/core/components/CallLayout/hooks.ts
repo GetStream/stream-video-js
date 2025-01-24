@@ -39,33 +39,38 @@ export const useFilteredParticipants = ({
       ? remoteParticipants
       : allParticipants;
 
-    if (!filterParticipants) {
-      return unfilteredParticipants;
-    }
-
-    const filterCallback =
-      typeof filterParticipants === 'function'
-        ? filterParticipants
-        : (participant: StreamVideoParticipant) =>
-            applyFilter(
-              {
-                userId: participant.userId,
-                isSpeaking: participant.isSpeaking,
-                isDominantSpeaker: participant.isDominantSpeaker,
-                name: participant.name,
-                roles: participant.roles,
-                isPinned: isPinned(participant),
-              },
-              filterParticipants,
-            );
-
-    return unfilteredParticipants.filter(filterCallback);
+    return filterParticipants
+      ? applyParticipantsFilter(unfilteredParticipants, filterParticipants)
+      : unfilteredParticipants;
   }, [
     allParticipants,
     remoteParticipants,
     excludeLocalParticipant,
     filterParticipants,
   ]);
+};
+
+export const applyParticipantsFilter = (
+  participants: StreamVideoParticipant[],
+  filter: ParticipantPredicate | ParticipantFilter,
+) => {
+  const filterCallback =
+    typeof filter === 'function'
+      ? filter
+      : (participant: StreamVideoParticipant) =>
+          applyFilter(
+            {
+              userId: participant.userId,
+              isSpeaking: participant.isSpeaking,
+              isDominantSpeaker: participant.isDominantSpeaker,
+              name: participant.name,
+              roles: participant.roles,
+              isPinned: isPinned(participant),
+            },
+            filter,
+          );
+
+  return participants.filter(filterCallback);
 };
 
 export const usePaginatedLayoutSortPreset = (call: Call | undefined) => {
