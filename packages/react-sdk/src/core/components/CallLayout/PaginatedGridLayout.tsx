@@ -76,7 +76,7 @@ export type PaginatedGridLayoutProps = {
   excludeLocalParticipant?: boolean;
 
   /**
-   * Predicate to filter call participants.
+   * Predicate to filter call participants or a filter object.
    */
   filterParticipants?: ParticipantPredicate | ParticipantFilter;
 
