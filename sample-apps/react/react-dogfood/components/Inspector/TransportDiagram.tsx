@@ -30,8 +30,8 @@ export function TransportDiagram(props: {
               >
                 <dt data-copyable>{pair.local.address}</dt>
                 <dd data-copyable>{pair.local.candidateType}</dd>
-                <span data-copy={`Network type: ${pair.network}`} hidden />
               </dl>
+              <span data-copy={`Network type: ${pair.network}`} hidden />
               <i />
               <div
                 className="rd__protocol"
