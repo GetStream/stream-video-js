@@ -11,7 +11,12 @@ import {
 import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
-import { useFilteredParticipants, usePaginatedLayoutSortPreset } from './hooks';
+import {
+  ParticipantFilter,
+  ParticipantPredicate,
+  useFilteredParticipants,
+  usePaginatedLayoutSortPreset,
+} from './hooks';
 
 const GROUP_SIZE = 16;
 
@@ -73,7 +78,7 @@ export type PaginatedGridLayoutProps = {
   /**
    * Predicate to filter call participants.
    */
-  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+  filterParticipants?: ParticipantPredicate | ParticipantFilter;
 
   /**
    * When set to `false` disables mirroring of the local partipant's video.

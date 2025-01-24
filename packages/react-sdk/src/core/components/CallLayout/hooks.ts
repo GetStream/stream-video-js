@@ -5,19 +5,31 @@ import {
   combineComparators,
   Comparator,
   defaultSortPreset,
+  isPinned,
   paginatedLayoutSortPreset,
   screenSharing,
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { applyFilter, Filter } from '../../../utilities/filter';
+
+export type FilterableParticipant = Pick<
+  StreamVideoParticipant,
+  'userId' | 'isSpeaking' | 'isDominantSpeaker' | 'name' | 'roles'
+> & { isPinned: boolean };
+
+export type ParticipantFilter = Filter<FilterableParticipant>;
+export type ParticipantPredicate = (
+  paritcipant: StreamVideoParticipant,
+) => boolean;
 
 export const useFilteredParticipants = ({
   excludeLocalParticipant = false,
   filterParticipants,
 }: {
   excludeLocalParticipant?: boolean;
-  filterParticipants?: (paritcipant: StreamVideoParticipant) => boolean;
+  filterParticipants?: ParticipantFilter | ParticipantPredicate;
 }) => {
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
@@ -26,11 +38,28 @@ export const useFilteredParticipants = ({
     const unfilteredParticipants = excludeLocalParticipant
       ? remoteParticipants
       : allParticipants;
-    return filterParticipants
-      ? unfilteredParticipants.filter((participant) =>
-          filterParticipants(participant),
-        )
-      : unfilteredParticipants;
+
+    if (!filterParticipants) {
+      return unfilteredParticipants;
+    }
+
+    const filterCallback =
+      typeof filterParticipants === 'function'
+        ? filterParticipants
+        : (participant: StreamVideoParticipant) =>
+            applyFilter(
+              {
+                userId: participant.userId,
+                isSpeaking: participant.isSpeaking,
+                isDominantSpeaker: participant.isDominantSpeaker,
+                name: participant.name,
+                roles: participant.roles,
+                isPinned: isPinned(participant),
+              },
+              filterParticipants,
+            );
+
+    return unfilteredParticipants.filter(filterCallback);
   }, [
     allParticipants,
     remoteParticipants,

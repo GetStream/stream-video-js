@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import {
-  hasScreenShare,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
@@ -16,7 +13,12 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import { useFilteredParticipants, useSpeakerLayoutSortPreset } from './hooks';
+import {
+  ParticipantFilter,
+  ParticipantPredicate,
+  useFilteredParticipants,
+  useSpeakerLayoutSortPreset,
+} from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
@@ -47,7 +49,7 @@ export type SpeakerLayoutProps = {
   /**
    * Predicate to filter call participants.
    */
-  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+  filterParticipants?: ParticipantPredicate | ParticipantFilter;
   /**
    * When set to `false` disables mirroring of the local participant's video.
    * @default true
