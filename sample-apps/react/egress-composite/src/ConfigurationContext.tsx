@@ -1,6 +1,10 @@
 import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
-import { LogLevel, StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import {
+  LogLevel,
+  ParticipantFilter,
+  StreamVideoParticipant,
+} from '@stream-io/video-react-sdk';
 
 import { Layout, ScreenshareLayout } from './components/layouts';
 
@@ -81,6 +85,7 @@ export type ConfigurationValue = {
     'participant.outline_width'?: string;
     'participant.border_radius'?: string | number;
     'participant.placeholder_background_color'?: string;
+    'participant.filter'?: ParticipantFilter;
 
     // ✅
     'participant_label.display'?: boolean;

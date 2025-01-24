@@ -11,6 +11,7 @@ export const Spotlight = () => {
     options: {
       'layout.spotlight.participants_bar_position': position = 'bottom',
       'layout.spotlight.participants_bar_limit': limit = 'dynamic',
+      'participant.filter': filterParticipants,
     },
   } = useConfigurationContext();
 
@@ -20,6 +21,7 @@ export const Spotlight = () => {
         participantsBarPosition={position}
         participantsBarLimit={limit}
         excludeLocalParticipant
+        filterParticipants={filterParticipants}
         pageArrowsVisible={false}
         ParticipantViewUIBar={
           <DefaultParticipantViewUI
