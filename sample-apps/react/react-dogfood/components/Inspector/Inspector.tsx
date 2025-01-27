@@ -5,10 +5,14 @@ import { ConnectivityDash } from './ConnectivityDash';
 import { DevicesDash } from './DevicesDash';
 import { InspectorCall } from './InspectorCall';
 
-export default function InspectorPage() {
+export interface InspectorProps {
+  autoJoinDemoCall?: boolean;
+}
+
+export default function Inspector(props: InspectorProps) {
   return (
     <div className="rd__inspector">
-      <InspectorCall>
+      <InspectorCall {...props}>
         {(client, call) => (
           <div className="rd__inspector-dashes">
             <CapabilitiesDash />

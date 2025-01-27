@@ -6,7 +6,7 @@ import {
   type Call,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { inspectorUserId, meetingId } from '../../lib/idGenerators';
 import type {
@@ -19,6 +19,7 @@ import { CredentialsForm, parseConnectionString } from './CredentialsForm';
 import { Credentials } from './types';
 
 export function InspectorCall(props: {
+  autoJoinDemoCall?: boolean;
   children: (
     client: StreamVideoClient | undefined,
     call: Call | undefined,
@@ -56,6 +57,8 @@ export function InspectorCall(props: {
     leave().finally(() => setIsLeaving(false));
   };
 
+  useAutoJoinDemoCall(props.autoJoinDemoCall ?? false, handleJoinDemoCall);
+
   let children = (
     <StreamCall call={call}>{props.children(client, call)}</StreamCall>
   );
@@ -75,6 +78,17 @@ export function InspectorCall(props: {
       userToken: '',
       userId: '',
     };
+  }
+
+  if (props.autoJoinDemoCall) {
+    return (
+      <>
+        <div className="rd__auto-join-call-form">
+          <CallJoinLog log={log} />
+        </div>
+        {children}
+      </>
+    );
   }
 
   return (
@@ -128,31 +142,35 @@ export function InspectorCall(props: {
             </button>
           </WithTooltip>
         </div>
-        {log.length > 0 && (
-          <details
-            className="rd__join-call-form-log"
-            data-copy="Call join log"
-            data-h
-          >
-            <summary>{log.at(-1)?.message}</summary>
-            {log.map((record, index) => (
-              <div
-                key={index}
-                className={clsx({
-                  'rd__log-record': true,
-                  'rd__log-record_error': record.error,
-                })}
-                data-copyable
-              >
-                {record.message}
-              </div>
-            ))}
-          </details>
-        )}
+        <CallJoinLog log={log} />
       </div>
       {children}
     </>
   );
+}
+
+function CallJoinLog(props: { log: { message: string; error: boolean }[] }) {
+  return props.log.length > 0 ? (
+    <details
+      className="rd__join-call-form-log"
+      data-copy="Call join log"
+      data-h
+    >
+      <summary>{props.log.at(-1)?.message}</summary>
+      {props.log.map((record, index) => (
+        <div
+          key={index}
+          className={clsx({
+            'rd__log-record': true,
+            'rd__log-record_error': record.error,
+          })}
+          data-copyable
+        >
+          {record.message}
+        </div>
+      ))}
+    </details>
+  ) : null;
 }
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
@@ -269,6 +287,19 @@ function useInspectorCall() {
   };
 
   return { client, call, log, joinDemoCall, joinWithCredentials, leave };
+}
+
+function useAutoJoinDemoCall(flag: boolean, join: () => void) {
+  const autoJoined = useRef(false);
+  const joinRef = useRef(join);
+  joinRef.current = join;
+
+  useEffect(() => {
+    if (flag && !autoJoined.current) {
+      joinRef.current();
+      autoJoined.current = true;
+    }
+  }, [flag]);
 }
 
 async function getDemoCredentials(environment: string): Promise<Credentials> {
