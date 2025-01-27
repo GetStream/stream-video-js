@@ -180,6 +180,14 @@
   }
 }
 
+.rd__auto-join-call-form {
+  padding: 0 20px;
+
+  & .rd__join-call-form-log {
+    background: var(--str-video__background-color5);
+  }
+}
+
 button.rd__join-call-form-join {
   background: var(--str-video__secondary-color);
 }
