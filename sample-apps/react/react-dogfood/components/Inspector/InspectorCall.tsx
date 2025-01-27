@@ -17,6 +17,7 @@ import { CallingState } from './CallingState';
 import { copyReport } from './copyReport';
 import { CredentialsForm, parseConnectionString } from './CredentialsForm';
 import { Credentials } from './types';
+import { getConnectionString } from '../../lib/connectionString';
 
 export function InspectorCall(props: {
   autoJoinDemoCall?: boolean;
@@ -36,7 +37,7 @@ export function InspectorCall(props: {
   const [isLeaving, setIsLeaving] = useState(false);
 
   if (call) {
-    const actualConnectionString = call.getConnectionString();
+    const actualConnectionString = getConnectionString(call);
     if (actualConnectionString !== connectionString) {
       setConnectionString(actualConnectionString);
     }
