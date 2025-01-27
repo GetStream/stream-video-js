@@ -86,6 +86,7 @@ export function InspectorCall(props: {
       <>
         <div className="rd__auto-join-call-form">
           <CallJoinLog log={log} />
+          <CopyReportButton />
         </div>
         {children}
       </>
@@ -133,15 +134,7 @@ export function InspectorCall(props: {
               </button>
             </>
           )}
-          <WithTooltip title="Copy report" tooltipPlacement="bottom-end">
-            <button
-              className="rd__copy-button"
-              type="button"
-              onClick={() => copyReport()}
-            >
-              📋
-            </button>
-          </WithTooltip>
+          <CopyReportButton />
         </div>
         <CallJoinLog log={log} />
       </div>
@@ -172,6 +165,20 @@ function CallJoinLog(props: { log: { message: string; error: boolean }[] }) {
       ))}
     </details>
   ) : null;
+}
+
+function CopyReportButton() {
+  return (
+    <WithTooltip title="Copy report" tooltipPlacement="bottom-end">
+      <button
+        className="rd__copy-button"
+        type="button"
+        onClick={() => copyReport()}
+      >
+        📋
+      </button>
+    </WithTooltip>
+  );
 }
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
