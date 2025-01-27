@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import {
-  hasScreenShare,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
@@ -16,7 +13,12 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import { useFilteredParticipants, useSpeakerLayoutSortPreset } from './hooks';
+import {
+  ParticipantFilter,
+  ParticipantPredicate,
+  useFilteredParticipants,
+  useSpeakerLayoutSortPreset,
+} from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
@@ -45,9 +47,24 @@ export type SpeakerLayoutProps = {
    */
   excludeLocalParticipant?: boolean;
   /**
-   * Predicate to filter call participants.
+   * Predicate to filter call participants or a filter object.
+   * @example
+   * // With a predicate:
+   * <SpeakerLayout
+   *   filterParticipants={p => p.roles.includes('student')}
+   * />
+   * @example
+   * // With a filter object:
+   * <SpeakerLayout
+   *   filterParticipants={{
+   *     $or: [
+   *       { roles: { $contains: 'student' } },
+   *       { isPinned: true },
+   *     ],
+   *   }}
+   * />
    */
-  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+  filterParticipants?: ParticipantPredicate | ParticipantFilter;
   /**
    * When set to `false` disables mirroring of the local participant's video.
    * @default true

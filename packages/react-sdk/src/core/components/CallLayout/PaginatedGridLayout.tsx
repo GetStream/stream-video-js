@@ -11,7 +11,12 @@ import {
 import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
-import { useFilteredParticipants, usePaginatedLayoutSortPreset } from './hooks';
+import {
+  ParticipantFilter,
+  ParticipantPredicate,
+  useFilteredParticipants,
+  usePaginatedLayoutSortPreset,
+} from './hooks';
 
 const GROUP_SIZE = 16;
 
@@ -71,9 +76,24 @@ export type PaginatedGridLayoutProps = {
   excludeLocalParticipant?: boolean;
 
   /**
-   * Predicate to filter call participants.
+   * Predicate to filter call participants or a filter object.
+   * @example
+   * // With a predicate:
+   * <PaginatedGridLayout
+   *   filterParticipants={p => p.roles.includes('student')}
+   * />
+   * @example
+   * // With a filter object:
+   * <PaginatedGridLayout
+   *   filterParticipants={{
+   *     $or: [
+   *       { roles: { $contains: 'student' } },
+   *       { isPinned: true },
+   *     ],
+   *   }}
+   * />
    */
-  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+  filterParticipants?: ParticipantPredicate | ParticipantFilter;
 
   /**
    * When set to `false` disables mirroring of the local partipant's video.
