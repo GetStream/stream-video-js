@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import yargs from 'yargs';
-import { meetingId } from '../../../lib/meetingId';
+import { meetingId } from '../../../lib/idGenerators';
 
 const createCallSlackHookAPI = async (
   req: NextApiRequest,

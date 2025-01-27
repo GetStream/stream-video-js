@@ -1,7 +1,7 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { meetingId } from '../../lib/meetingId';
+import { meetingId } from '../../lib/idGenerators';
 import { DefaultAppHeader } from '../../components/DefaultAppHeader';
 
 export default function Guest() {

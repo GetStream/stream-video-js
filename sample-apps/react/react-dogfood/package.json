@@ -37,6 +37,7 @@
     "starwars-names": "^1.6.0",
     "stream-chat": "^8.45.1",
     "stream-chat-react": "12.6.0",
+    "swr": "^2.3.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
