@@ -1,5 +1,6 @@
 import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { decodeBase64 } from 'stream-chat';
+import { getConnectionString } from '../lib/connectionString';
 
 export const DevMenu = () => {
   const call = useCall();
@@ -83,14 +84,16 @@ export const DevMenu = () => {
       >
         Switch to Pronto
       </a>
-      <a
-        className="rd__link rd__link--faux-button rd__link--align-left"
-        href={`/inspect?conn=${call?.getConnectionString()}`}
-        rel="noreferrer"
-        target="_blank"
-      >
-        Go to Inspector
-      </a>
+      {call && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={`/inspect?conn=${getConnectionString(call)}`}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to Inspector
+        </a>
+      )}
     </ul>
   );
 };
