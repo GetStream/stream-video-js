@@ -181,9 +181,16 @@
 }
 
 .rd__auto-join-call-form {
+  display: flex;
   padding: 0 20px;
+  align-items: baseline;
+  justify-content: space-between;
 
   & .rd__join-call-form-log {
+    background: var(--str-video__background-color5);
+  }
+
+  & button.rd__copy-button {
     background: var(--str-video__background-color5);
   }
 }
