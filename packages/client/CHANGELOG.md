@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.5...@stream-io/video-client-1.15.6) (2025-01-29)
+
+
+### Bug Fixes
+
+* ensures that maxBitrate is an integer ([#1657](https://github.com/GetStream/stream-video-js/issues/1657)) ([69eee96](https://github.com/GetStream/stream-video-js/commit/69eee969ac4d52e3410d8e5e12e012b02a5eb1b7)), closes [#1527](https://github.com/GetStream/stream-video-js/issues/1527)
+
 ## [1.15.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.4...@stream-io/video-client-1.15.5) (2025-01-24)
 
 
