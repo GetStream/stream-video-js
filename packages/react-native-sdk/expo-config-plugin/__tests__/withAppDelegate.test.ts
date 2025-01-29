@@ -95,6 +95,17 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
     expect(updatedConfig.modResults.contents).toMatch(/reportNewIncomingCall/);
 
+    expect(updatedConfig.modResults.contents).toMatch(
+      /#import <WebRTC\/RTCAudioSession.h>/
+    );
+
+    expect(updatedConfig.modResults.contents).toMatch(
+      /audioSessionDidActivate/
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /audioSessionDidDeactivate/
+    );
+
     modifiedConfig = updatedConfig;
   });
 

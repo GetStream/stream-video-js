@@ -181,7 +181,7 @@ function addAudioSessionMethods(contents: string) {
     );
     if (!codeblock) {
       contents = addNewLinesToAppDelegate(contents, [
-        '- (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession',
+        '- (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {',
         '  ' /* indentation */ + audioSessionDidActivateMethod,
         '}',
       ]);
@@ -197,14 +197,14 @@ function addAudioSessionMethods(contents: string) {
   const audioSessionDidDeactivateMethod =
     '[[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];';
 
-  if (!audioSessionDidDeactivateMethod) {
+  if (!contents.includes(audioSessionDidDeactivateMethod)) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
       DID_DEACTIVATE_AUDIO_SESSION
     );
     if (!codeblock) {
       contents = addNewLinesToAppDelegate(contents, [
-        '- (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession',
+        '- (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {',
         '  ' /* indentation */ + audioSessionDidDeactivateMethod,
         '}',
       ]);
