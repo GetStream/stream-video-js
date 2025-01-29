@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.12...@stream-io/video-react-native-sdk-1.9.13) (2025-01-29)
+
+
+### Bug Fixes
+
+* rare crash - startForegroundService() did not then call Service.startForeground ([71d11de](https://github.com/GetStream/stream-video-js/commit/71d11de31612f04d4852fccd655e0e39ad2defdf))
+
 ## [1.9.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.11...@stream-io/video-react-native-sdk-1.9.12) (2025-01-29)
 
 ### Dependency Updates
