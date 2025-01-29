@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.6...@stream-io/video-client-1.15.7) (2025-01-29)
+
+
+### Bug Fixes
+
+* speech detection and align mic disable with web ([#1658](https://github.com/GetStream/stream-video-js/issues/1658)) ([fd908fb](https://github.com/GetStream/stream-video-js/commit/fd908fb2b70e6bade595f44107ca2f85aa4d5631))
+
 ## [1.15.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.5...@stream-io/video-client-1.15.6) (2025-01-29)
 
 
