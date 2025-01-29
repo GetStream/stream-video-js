@@ -109,7 +109,8 @@ export const computeVideoLayers = (
       rid,
       width: Math.round(width / downscaleFactor),
       height: Math.round(height / downscaleFactor),
-      maxBitrate: maxBitrate / bitrateFactor || defaultBitratePerRid[rid],
+      maxBitrate:
+        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
       maxFramerate: fps,
     };
     if (svcCodec) {

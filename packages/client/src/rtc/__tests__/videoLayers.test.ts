@@ -257,6 +257,23 @@ describe('videoLayers', () => {
     });
   });
 
+  it('should use integer for maxBitrate', () => {
+    const track = new MediaStreamTrack();
+    const layers = computeVideoLayers(track, {
+      bitrate: 2999777,
+      // @ts-expect-error - incomplete data
+      codec: { name: 'vp8' },
+      videoDimension: { width: 1920, height: 1080 },
+      fps: 30,
+    });
+    expect(layers).toBeDefined();
+    for (const layer of layers!) {
+      expect(Number.isInteger(layer.width)).toBe(true);
+      expect(Number.isInteger(layer.height)).toBe(true);
+      expect(Number.isInteger(layer.maxBitrate)).toBe(true);
+    }
+  });
+
   describe('getComputedMaxBitrate', () => {
     it('should scale target bitrate down if resolution is smaller than target resolution', () => {
       const targetResolution = { width: 1920, height: 1080, bitrate: 3000000 };
