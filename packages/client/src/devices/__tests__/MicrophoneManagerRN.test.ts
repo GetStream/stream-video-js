@@ -13,8 +13,9 @@ import {
 import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
+import { SoundStateChangeHandler } from '../../helpers/sound-detector';
 
-let handler;
+let handler: SoundStateChangeHandler = () => {};
 
 vi.mock('../../helpers/platforms.ts', () => {
   return {
@@ -47,12 +48,12 @@ vi.mock('../../helpers/RNSpeechDetector.ts', () => {
   console.log('MOCKING RNSpeechDetector');
   return {
     RNSpeechDetector: vi.fn().mockImplementation(() => ({
-      start: vi.fn(),
-      stop: vi.fn(),
-      onSpeakingDetectedStateChange: vi.fn((callback) => {
+      start: vi.fn((callback) => {
         handler = callback;
         return vi.fn();
       }),
+      stop: vi.fn(),
+      onSpeakingDetectedStateChange: vi.fn(),
     })),
   };
 });
@@ -91,6 +92,7 @@ describe('MicrophoneManager React Native', () => {
 
   it('should update speaking while muted state', async () => {
     await manager['startSpeakingWhileMutedDetection']();
+    expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
 
     expect(manager.state.speakingWhileMuted).toBe(false);
 
