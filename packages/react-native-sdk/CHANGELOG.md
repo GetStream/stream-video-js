@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.13...@stream-io/video-react-native-sdk-1.9.14) (2025-01-29)
+
+
+### Bug Fixes
+
+* add callkit audio methods for expo ([#1659](https://github.com/GetStream/stream-video-js/issues/1659)) ([89a53ec](https://github.com/GetStream/stream-video-js/commit/89a53ece63f7f6f4f4275d4697052a86fdad8a79))
+
 ## [1.9.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.12...@stream-io/video-react-native-sdk-1.9.13) (2025-01-29)
 
 
