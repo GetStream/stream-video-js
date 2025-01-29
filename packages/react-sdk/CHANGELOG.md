@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.10.6...@stream-io/video-react-sdk-1.11.0) (2025-01-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.15.6`
+* `@stream-io/video-react-bindings` updated to version `1.4.6`
+
+### Features
+
+* [VID-315] allow filtering participants using filter object ([#1655](https://github.com/GetStream/stream-video-js/issues/1655)) ([8674390](https://github.com/GetStream/stream-video-js/commit/86743902725a8c23165068c3f5abf2370bc42a8d))
+
 ## [1.10.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.10.5...@stream-io/video-react-sdk-1.10.6) (2025-01-24)
 
 ### Dependency Updates
