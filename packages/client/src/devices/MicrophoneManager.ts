@@ -28,12 +28,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
 
-  constructor(
-    call: Call,
-    disableMode: TrackDisableMode = isReactNative()
-      ? 'disable-tracks'
-      : 'stop-tracks',
-  ) {
+  constructor(call: Call, disableMode: TrackDisableMode = 'disable-tracks') {
     super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
 
     this.subscriptions.push(
@@ -245,14 +240,11 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       await this.stopSpeakingWhileMutedDetection();
       if (isReactNative()) {
         this.rnSpeechDetector = new RNSpeechDetector();
-        await this.rnSpeechDetector.start();
-        const unsubscribe =
-          this.rnSpeechDetector?.onSpeakingDetectedStateChange((event) => {
-            this.state.setSpeakingWhileMuted(event.isSoundDetected);
-          });
+        const unsubscribe = await this.rnSpeechDetector.start((event) => {
+          this.state.setSpeakingWhileMuted(event.isSoundDetected);
+        });
         this.soundDetectorCleanup = () => {
           unsubscribe();
-          this.rnSpeechDetector?.stop();
           this.rnSpeechDetector = undefined;
         };
       } else {

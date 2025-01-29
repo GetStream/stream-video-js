@@ -1,19 +1,19 @@
 import { BaseStats } from '../stats';
 import { SoundStateChangeHandler } from './sound-detector';
 import { flatten } from '../stats/utils';
+import { getLogger } from '../logger';
 
 const AUDIO_LEVEL_THRESHOLD = 0.2;
 
 export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});
   private pc2 = new RTCPeerConnection({});
-  private intervalId: NodeJS.Timeout | undefined;
   private audioStream: MediaStream | undefined;
 
   /**
    * Starts the speech detection.
    */
-  public async start() {
+  public async start(onSoundDetectedStateChanged: SoundStateChangeHandler) {
     try {
       this.cleanupAudioStream();
       const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -31,6 +31,14 @@ export class RNSpeechDetector {
           e.candidate as RTCIceCandidateInit | undefined,
         );
       });
+      this.pc2.addEventListener('track', (e) => {
+        e.streams[0].getTracks().forEach((track) => {
+          // In RN, the remote track is automatically added to the audio output device
+          // so we need to mute it to avoid hearing the audio back
+          // @ts-ignore _setVolume is a private method in react-native-webrtc
+          track._setVolume(0);
+        });
+      });
 
       audioStream
         .getTracks()
@@ -41,64 +49,122 @@ export class RNSpeechDetector {
       const answer = await this.pc2.createAnswer();
       await this.pc1.setRemoteDescription(answer);
       await this.pc2.setLocalDescription(answer);
-      const audioTracks = audioStream.getAudioTracks();
-      // We need to mute the audio track for this temporary stream, or else you will hear yourself twice while in the call.
-      audioTracks.forEach((track) => (track.enabled = false));
-    } catch (error) {
-      console.error(
-        'Error connecting and negotiating between PeerConnections:',
-        error,
+      const unsub = this.onSpeakingDetectedStateChange(
+        onSoundDetectedStateChanged,
       );
+      return () => {
+        unsub();
+        this.stop();
+      };
+    } catch (error) {
+      const logger = getLogger(['RNSpeechDetector']);
+      logger('error', 'error handling permissions: ', error);
+      return () => {};
     }
   }
 
   /**
    * Stops the speech detection and releases all allocated resources.
    */
-  public stop() {
+  private stop() {
     this.pc1.close();
     this.pc2.close();
     this.cleanupAudioStream();
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
   }
 
   /**
    * Public method that detects the audio levels and returns the status.
    */
-  public onSpeakingDetectedStateChange(
+  private onSpeakingDetectedStateChange(
     onSoundDetectedStateChanged: SoundStateChangeHandler,
   ) {
-    this.intervalId = setInterval(async () => {
-      const stats = (await this.pc1.getStats()) as RTCStatsReport;
-      const report = flatten(stats);
-      // Audio levels are present inside stats of type `media-source` and of kind `audio`
-      const audioMediaSourceStats = report.find(
-        (stat) =>
-          stat.type === 'media-source' &&
-          (stat as RTCRtpStreamStats).kind === 'audio',
-      ) as BaseStats;
-      if (audioMediaSourceStats) {
-        const { audioLevel } = audioMediaSourceStats;
-        if (audioLevel) {
-          if (audioLevel >= AUDIO_LEVEL_THRESHOLD) {
-            onSoundDetectedStateChanged({
-              isSoundDetected: true,
-              audioLevel,
-            });
-          } else {
-            onSoundDetectedStateChanged({
-              isSoundDetected: false,
-              audioLevel: 0,
-            });
+    const initialBaselineNoiseLevel = 0.13;
+    let baselineNoiseLevel = initialBaselineNoiseLevel;
+    let speechDetected = false;
+    let intervalId: NodeJS.Timeout | undefined;
+    let speechTimer: NodeJS.Timeout | undefined;
+    let silenceTimer: NodeJS.Timeout | undefined;
+    let audioLevelHistory = []; // Store recent audio levels for smoother detection
+    const historyLength = 10;
+    const silenceThreshold = 1.1;
+    const resetThreshold = 0.9;
+    const speechTimeout = 500; // Speech is set to true after 500ms of audio detection
+    const silenceTimeout = 5000; // Reset baseline after 5 seconds of silence
+
+    const checkAudioLevel = async () => {
+      try {
+        const stats = (await this.pc1.getStats()) as RTCStatsReport;
+        const report = flatten(stats);
+        // Audio levels are present inside stats of type `media-source` and of kind `audio`
+        const audioMediaSourceStats = report.find(
+          (stat) =>
+            stat.type === 'media-source' &&
+            (stat as RTCRtpStreamStats).kind === 'audio',
+        ) as BaseStats;
+        if (audioMediaSourceStats) {
+          const { audioLevel } = audioMediaSourceStats;
+          if (audioLevel) {
+            // Update audio level history (with max historyLength sized array)
+            audioLevelHistory.push(audioLevel);
+            if (audioLevelHistory.length > historyLength) {
+              audioLevelHistory.shift();
+            }
+
+            // Calculate average audio level
+            const avgAudioLevel =
+              audioLevelHistory.reduce((a, b) => a + b, 0) /
+              audioLevelHistory.length;
+
+            // Update baseline (if necessary) based on silence detection
+            if (avgAudioLevel < baselineNoiseLevel * silenceThreshold) {
+              if (!silenceTimer) {
+                silenceTimer = setTimeout(() => {
+                  baselineNoiseLevel = Math.min(
+                    avgAudioLevel * resetThreshold,
+                    initialBaselineNoiseLevel,
+                  );
+                }, silenceTimeout);
+              }
+            } else {
+              clearTimeout(silenceTimer);
+              silenceTimer = undefined;
+            }
+
+            // Speech detection with hysteresis
+            if (avgAudioLevel > baselineNoiseLevel * 1.5) {
+              if (!speechDetected) {
+                speechDetected = true;
+                onSoundDetectedStateChanged({
+                  isSoundDetected: true,
+                  audioLevel,
+                });
+              }
+
+              clearTimeout(speechTimer);
+
+              speechTimer = setTimeout(() => {
+                speechDetected = false;
+                onSoundDetectedStateChanged({
+                  isSoundDetected: false,
+                  audioLevel: 0,
+                });
+              }, speechTimeout);
+            }
           }
         }
+      } catch (error) {
+        const logger = getLogger(['RNSpeechDetector']);
+        logger('error', 'error checking audio level from stats', error);
       }
-    }, 1000);
+    };
+
+    // Call checkAudioLevel periodically (every 100ms)
+    intervalId = setInterval(checkAudioLevel, 100);
 
     return () => {
-      clearInterval(this.intervalId);
+      clearInterval(intervalId);
+      clearTimeout(speechTimer);
+      clearTimeout(silenceTimer);
     };
   }
 
