@@ -17,12 +17,8 @@ const DID_UPDATE_PUSH_CREDENTIALS =
   'pushRegistry:didUpdatePushCredentials:forType:';
 const DID_RECEIVE_INCOMING_PUSH =
   'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
-
-// - (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {
 const DID_ACTIVATE_AUDIO_SESSION =
   'provider:didActivateAudioSession:audioSession';
-
-// - (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {
 const DID_DEACTIVATE_AUDIO_SESSION =
   'provider:didDeactivateAudioSession:audioSession';
 
