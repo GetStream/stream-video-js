@@ -3,8 +3,6 @@ import { SoundStateChangeHandler } from './sound-detector';
 import { flatten } from '../stats/utils';
 import { getLogger } from '../logger';
 
-const AUDIO_LEVEL_THRESHOLD = 0.2;
-
 export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});
   private pc2 = new RTCPeerConnection({});
