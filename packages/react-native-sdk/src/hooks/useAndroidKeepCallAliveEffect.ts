@@ -42,21 +42,26 @@ async function startForegroundService(call_cid: string) {
     foregroundServiceConfig.android.channel
   );
   const foregroundServiceTypes = await getKeepCallAliveForegroundServiceTypes();
-  await notifeeLib.default.displayNotification({
-    id: call_cid,
-    title,
-    body,
-    android: {
-      channelId,
-      foregroundServiceTypes,
-      asForegroundService: true,
-      ongoing: true, // user cannot dismiss the notification
-      colorized: true,
-      pressAction: {
-        id: 'default',
-        launchActivity: 'default', // open the app when the notification is pressed
+  // NOTE: we use requestAnimationFrame to ensure that the foreground service is started after all the current UI operations are done
+  // this is a workaround for the crash - android.app.RemoteServiceException$ForegroundServiceDidNotStartInTimeException: Context.startForegroundService() did not then call Service.startForeground()
+  // this crash was reproducible only in some android devices
+  requestAnimationFrame(() => {
+    notifeeLib.default.displayNotification({
+      id: call_cid,
+      title,
+      body,
+      android: {
+        channelId,
+        foregroundServiceTypes,
+        asForegroundService: true,
+        ongoing: true, // user cannot dismiss the notification
+        colorized: true,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default', // open the app when the notification is pressed
+        },
       },
-    },
+    });
   });
 }
 
