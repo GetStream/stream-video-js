@@ -18,6 +18,14 @@ const DID_UPDATE_PUSH_CREDENTIALS =
 const DID_RECEIVE_INCOMING_PUSH =
   'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
 
+// - (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {
+const DID_ACTIVATE_AUDIO_SESSION =
+  'provider:didActivateAudioSession:audioSession';
+
+// - (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {
+const DID_DEACTIVATE_AUDIO_SESSION =
+  'provider:didDeactivateAudioSession:audioSession';
+
 const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
   return withAppDelegateUtil(configuration, (config) => {
     if (
@@ -38,6 +46,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
               '<PushKit/PushKit.h>',
               '"RNVoipPushNotificationManager.h"',
               '"StreamVideoReactNative.h"',
+              '<WebRTC/RTCAudioSession.h>',
             ]
           );
 
@@ -51,6 +60,10 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           );
 
           config.modResults.contents = addDidReceiveIncomingPushCallback(
+            config.modResults.contents
+          );
+
+          config.modResults.contents = addAudioSessionMethods(
             config.modResults.contents
           );
         }
@@ -151,6 +164,55 @@ function addDidUpdatePushCredentials(contents: string) {
         contents,
         DID_UPDATE_PUSH_CREDENTIALS,
         updatedPushCredentialsMethod,
+        { position: 'tail' }
+      );
+    }
+  }
+  return contents;
+}
+
+function addAudioSessionMethods(contents: string) {
+  const audioSessionDidActivateMethod =
+    '[[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];';
+  if (!contents.includes(audioSessionDidActivateMethod)) {
+    const codeblock = findObjcFunctionCodeBlock(
+      contents,
+      DID_ACTIVATE_AUDIO_SESSION
+    );
+    if (!codeblock) {
+      contents = addNewLinesToAppDelegate(contents, [
+        '- (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession',
+        '  ' /* indentation */ + audioSessionDidActivateMethod,
+        '}',
+      ]);
+    } else {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        DID_ACTIVATE_AUDIO_SESSION,
+        audioSessionDidActivateMethod,
+        { position: 'tail' }
+      );
+    }
+  }
+  const audioSessionDidDeactivateMethod =
+    '[[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];';
+
+  if (!audioSessionDidDeactivateMethod) {
+    const codeblock = findObjcFunctionCodeBlock(
+      contents,
+      DID_DEACTIVATE_AUDIO_SESSION
+    );
+    if (!codeblock) {
+      contents = addNewLinesToAppDelegate(contents, [
+        '- (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession',
+        '  ' /* indentation */ + audioSessionDidDeactivateMethod,
+        '}',
+      ]);
+    } else {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        DID_DEACTIVATE_AUDIO_SESSION,
+        audioSessionDidDeactivateMethod,
         { position: 'tail' }
       );
     }
