@@ -28,7 +28,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
 
-  constructor(call: Call, disableMode: TrackDisableMode = 'disable-tracks') {
+  constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
     super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
 
     this.subscriptions.push(
