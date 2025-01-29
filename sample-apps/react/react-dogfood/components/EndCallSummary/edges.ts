@@ -22,6 +22,5 @@ export const edges = {
   'aws-vir1.sfu-8d90b67cbccc': 'Richmond',
   'aws-can1.sfu-fe14e570ea0d': 'Quebec City',
   'aws-syd1.sfu-b79b7b557f02': 'Sydney',
-  'aws-sao1.sfu-6c2a276ec712': 'São Paulo'
+  'aws-sao1.sfu-6c2a276ec712': 'São Paulo',
 };
-

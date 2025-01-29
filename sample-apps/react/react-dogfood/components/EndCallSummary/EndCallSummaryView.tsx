@@ -65,13 +65,6 @@ const toDataCenterName = (datacenter: string) => {
   return cityName;
 };
 
-const toEdgeStatus = (edge: EdgeResponse) => {
-  if (edge.green === 1) return 'green';
-  if (edge.yellow === 1) return 'yellow';
-
-  return 'red';
-};
-
 const toNetworkStatus = (quality: number) => {
   if (quality >= 80) return 'green';
   if (quality >= 40) return 'yellow';
