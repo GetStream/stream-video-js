@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Aura } from './ components/Aura';
-import { AiCaptions } from './ components/AiCaptions';
+import { Aura } from './components/Aura';
+import { AiCaptions } from './components/AiCaptions';
 import { CallClosedCaption } from '@stream-io/video-react-sdk';
 
 export function App() {
@@ -15,7 +15,7 @@ export function App() {
 
   return (
     <>
-      {/* <Aura activity="listening" height={800} mediaStream={mediaStream} /> */}
+      <Aura activity="listening" height={800} mediaStream={mediaStream} />
       <AiCaptions captions={captions} />
       <button
         type="button"
