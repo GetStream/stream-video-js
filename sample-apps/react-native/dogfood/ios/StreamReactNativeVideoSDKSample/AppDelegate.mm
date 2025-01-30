@@ -16,6 +16,8 @@
 #import <WebRTCModuleOptions.h>
 
 #import "StreamVideoReactNative.h"
+#import <WebRTC/RTCAudioSession.h>
+
 
 @implementation AppDelegate
 
@@ -102,6 +104,14 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 -(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
 {
   completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
+}
+
+- (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {
+    [[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];
+}
+
+- (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {
+    [[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
