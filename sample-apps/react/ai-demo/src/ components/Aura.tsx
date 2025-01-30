@@ -1,38 +1,42 @@
-import { CSSProperties, RefObject, useEffect, useMemo, useRef } from "react";
+import { CSSProperties, RefObject, useEffect, useMemo, useRef } from 'react';
 import {
   BinarySystem,
   BinarySystemHandle,
   BinarySystemTransitionableProps,
-} from "../BinarySystem";
-import { AuraVolumeter } from "./AuraVolumeter";
+} from './BinarySystem';
+import { AuraVolumeter } from './AuraVolumeter';
+import './Aura.css';
 
-export function Aura(props: {
-  height: number;
-  persona: "ai" | "user";
-  mediaStream: MediaStream;
-}) {
+interface AuraCommonProps {
+  activity: 'speaking' | 'listening';
+}
+
+export function Aura(
+  props: AuraCommonProps & {
+    height: number;
+    mediaStream: MediaStream | null;
+  },
+) {
   return (
     <div
       style={
         {
           height: `${props.height}px`,
-          "--aura-container-factor": props.height / 100,
+          '--aura-container-factor': props.height / 100,
         } as CSSProperties
       }
       className="aura-container"
     >
       <AuraVolumeter mediaStream={props.mediaStream}>
         <div className="aura-container__scaler">
-          <AuraOctoSystem persona={props.persona} />
+          <AuraOctoSystem activity={props.activity} />
         </div>
       </AuraVolumeter>
     </div>
   );
 }
 
-const AuraBinarySystem = function AuraBinarySystem(props: {
-  persona: "ai" | "user";
-}) {
+const AuraBinarySystem = function AuraBinarySystem(props: AuraCommonProps) {
   const ref = useRef<BinarySystemHandle | null>(null);
   const binarySystemProps = useBinarySystemAnimation(
     {
@@ -40,20 +44,20 @@ const AuraBinarySystem = function AuraBinarySystem(props: {
       attack: -12,
       rotation: -20,
     },
-    ref
+    ref,
   );
 
   return (
     <BinarySystem
       ref={ref}
-      alpha={<i className={`aura aura_${props.persona} aura_alpha`} />}
-      beta={<i className={`aura aura_${props.persona} aura_beta`} />}
+      alpha={<i className={`aura aura_${props.activity} aura_alpha`} />}
+      beta={<i className={`aura aura_${props.activity} aura_beta`} />}
       {...binarySystemProps}
     />
   );
 };
 
-function AuraQuadSystem(props: { persona: "ai" | "user" }) {
+function AuraQuadSystem(props: AuraCommonProps) {
   const ref = useRef<BinarySystemHandle | null>(null);
   const binarySystemProps = useBinarySystemAnimation(
     {
@@ -61,7 +65,7 @@ function AuraQuadSystem(props: { persona: "ai" | "user" }) {
       attack: 0,
       rotation: 0,
     },
-    ref
+    ref,
   );
 
   return (
@@ -74,7 +78,7 @@ function AuraQuadSystem(props: { persona: "ai" | "user" }) {
   );
 }
 
-function AuraOctoSystem(props: { persona: "ai" | "user" }) {
+function AuraOctoSystem(props: AuraCommonProps) {
   const ref = useRef<BinarySystemHandle | null>(null);
   const binarySystemProps = useBinarySystemAnimation(
     {
@@ -82,7 +86,7 @@ function AuraOctoSystem(props: { persona: "ai" | "user" }) {
       attack: -30,
       rotation: 0,
     },
-    ref
+    ref,
   );
 
   return (
@@ -111,8 +115,8 @@ function useBinarySystemAnimation(
           attack: state.attack + attackSpeed * (durationMs / 1000),
           rotation: state.rotation + rotationSpeed * (durationMs / 1000),
         }),
-        durationMs
-      )
+        durationMs,
+      ),
     );
 
   useEffect(() => {

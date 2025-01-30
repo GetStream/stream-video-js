@@ -4,7 +4,8 @@ import {
   ReactNode,
   useImperativeHandle,
   useState,
-} from "react";
+} from 'react';
+import './BinarySystem.css';
 
 export type BinarySystemProps = {
   /* rotation: number -> defaultRotation?: number */
@@ -19,9 +20,9 @@ export interface BinarySystemHandle {
     update:
       | Partial<BinarySystemTransitionableProps>
       | ((
-          state: BinarySystemState
+          state: BinarySystemState,
         ) => Partial<BinarySystemTransitionableProps>),
-    durationMs: number
+    durationMs: number,
   ) => void;
 }
 
@@ -50,12 +51,12 @@ export const BinarySystem = forwardRef<BinarySystemHandle, BinarySystemProps>(
         transition: (update, durationMs) => {
           setState((state) => ({
             ...state,
-            ...(typeof update === "function" ? update(state) : update),
+            ...(typeof update === 'function' ? update(state) : update),
             transitionDurationMs: durationMs,
           }));
         },
       }),
-      []
+      [],
     );
 
     return (
@@ -63,10 +64,10 @@ export const BinarySystem = forwardRef<BinarySystemHandle, BinarySystemProps>(
         className="binary-system"
         style={
           {
-            "--binary-system-attack": `${state.attack}deg`,
-            "--binary-system-offset": `${state.offset}px`,
-            "--binary-system-rotation": `${state.rotation}deg`,
-            "--binary-system-transition-duration": `${
+            '--binary-system-attack': `${state.attack}deg`,
+            '--binary-system-offset': `${state.offset}px`,
+            '--binary-system-rotation': `${state.rotation}deg`,
+            '--binary-system-transition-duration': `${
               state.transitionDurationMs / 1000
             }s`,
           } as CSSProperties
@@ -76,5 +77,5 @@ export const BinarySystem = forwardRef<BinarySystemHandle, BinarySystemProps>(
         <div className="binary-system__beta">{props.beta}</div>
       </div>
     );
-  }
+  },
 );

@@ -1,0 +1,87 @@
+.aura {
+  border-radius: 50%;
+}
+
+[debug] .aura {
+  filter: none !important;
+}
+
+.aura_alpha {
+  width: 100px;
+  height: 42.5px;
+}
+
+.aura_beta {
+  width: 55px;
+  height: 22px;
+}
+
+.aura_speaking.aura_alpha {
+  filter: blur(24px);
+  background: #0055ff;
+}
+
+.aura_speaking.aura_beta {
+  filter: blur(12px);
+  background: #1af0ff60;
+}
+
+.aura_listening {
+  filter: blur(30px);
+}
+
+.aura_listening.aura_alpha {
+  background: #f74069;
+}
+
+.aura_listening.aura_beta {
+  background: #f759db60;
+}
+
+.aura-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.aura-container::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse 60% 50%,
+    #000 58%,
+    #f1f1f180 74%,
+    #fff 80%,
+    #fff 90%,
+    transparent 100%
+  );
+  transform: rotate(-30deg);
+  opacity: 7%;
+}
+
+.aura-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse farthest-side at top,
+    transparent 50%,
+    #ffffffb4 100%
+  );
+  opacity: 5%;
+}
+
+.aura-container__scaler {
+  transform: scale(var(--aura-container-factor));
+  transform-origin: center center;
+}
+
+.aura-volumeter {
+  transform: scale(var(--aura-volumeter-scale));
+  filter: brightness(var(--aura-volumeter-brightness));
+}

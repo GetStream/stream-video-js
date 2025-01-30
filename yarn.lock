@@ -10941,6 +10941,7 @@ __metadata:
   resolution: "ai-demo@workspace:sample-apps/react/ai-demo"
   dependencies:
     "@eslint/js": ^9.17.0
+    "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": ^18.3.18
     "@types/react-dom": ^18.3.5
     "@vitejs/plugin-react": ^4.3.4

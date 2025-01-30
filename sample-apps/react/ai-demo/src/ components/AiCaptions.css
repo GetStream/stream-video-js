@@ -1,0 +1,59 @@
+.ai-captions {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  font: 14px/16px monospace;
+}
+
+.ai-captions__caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  transition: 0.3s ease-in-out;
+  transition-property: transform, filter, opacity;
+}
+
+.ai-captions__caption:nth-child(1) {
+  animation: ai-caption-fly-in 0.3s ease-out;
+}
+
+@keyframes ai-caption-fly-in {
+  from {
+    transform: translateY(20px) scale(1.2);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.ai-captions__caption:nth-child(2) {
+  transform: translateY(-20px);
+  filter: blur(3px);
+}
+
+.ai-captions__caption:nth-child(3) {
+  transform: translateY(-40px);
+  filter: blur(5px);
+}
+
+.ai-captions__caption:nth-child(4) {
+  transform: translateY(-60px);
+  filter: blur(8px);
+}
+
+.ai-captions__caption:nth-child(5) {
+  transform: translateY(-80px);
+  filter: blur(13px);
+}
+
+.ai-captions__caption:nth-child(6) {
+  transform: translateY(-100px);
+  filter: blur(21px);
+  opacity: 0;
+}

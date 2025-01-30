@@ -1,0 +1,32 @@
+.binary-system {
+  width: 100px;
+  height: 100px;
+  position: relative;
+}
+
+.binary-system__alpha,
+.binary-system__beta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  mix-blend-mode: plus-lighter;
+  transition-property: transform;
+  transition-duration: var(--binary-system-transition-duration);
+  transition-timing-function: linear;
+}
+
+.binary-system__alpha {
+  transform: rotate(
+      calc(var(--binary-system-rotation) + var(--binary-system-attack) / 2)
+    )
+    translateX(calc(-1 * var(--binary-system-offset) / 2)) scale(0.75);
+}
+
+.binary-system__beta {
+  transform: rotate(
+      calc(var(--binary-system-rotation) + -1 * var(--binary-system-attack) / 2)
+    )
+    translateX(calc(var(--binary-system-offset) / 2)) scale(0.75);
+}

@@ -1,7 +1,7 @@
-import { CSSProperties, PropsWithChildren, useEffect, useState } from "react";
+import { CSSProperties, PropsWithChildren, useEffect, useState } from 'react';
 
 export function AuraVolumeter(
-  props: PropsWithChildren<{ mediaStream: MediaStream }>
+  props: PropsWithChildren<{ mediaStream: MediaStream | null }>,
 ) {
   const volume = useMediaStreamVolume(props.mediaStream);
 
@@ -10,8 +10,8 @@ export function AuraVolumeter(
       className="aura-volumeter"
       style={
         {
-          "--aura-volumeter-scale": Math.min(1 + volume / 2, 1.05),
-          "--aura-volumeter-brightness": Math.max(Math.min(1 + volume, 1.1), 1),
+          '--aura-volumeter-scale': Math.min(1 + volume / 2, 1.05),
+          '--aura-volumeter-brightness': Math.max(Math.min(1 + volume, 1.1), 1),
         } as CSSProperties
       }
     >
@@ -20,13 +20,18 @@ export function AuraVolumeter(
   );
 }
 
-function useMediaStreamVolume(mediaStream: MediaStream) {
+function useMediaStreamVolume(mediaStream: MediaStream | null) {
   const [volume, setVolume] = useState(0);
 
   useEffect(() => {
+    if (!mediaStream) {
+      setVolume(0);
+      return;
+    }
+
     let audioContext: AudioContext;
 
-    async function setupInterval() {
+    const promise = (async () => {
       audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(mediaStream);
       const analyser = audioContext.createAnalyser();
@@ -36,16 +41,14 @@ function useMediaStreamVolume(mediaStream: MediaStream) {
       const updateVolume = () => {
         analyser.getFloatTimeDomainData(data);
         const volume = Math.sqrt(
-          data.reduce((acc, amp) => acc + (amp * amp) / data.length, 0)
+          data.reduce((acc, amp) => acc + (amp * amp) / data.length, 0),
         );
         setVolume(volume);
         return requestAnimationFrame(updateVolume);
       };
 
       return updateVolume();
-    }
-
-    const promise = setupInterval();
+    })();
 
     return () => {
       promise.then((handle) => {
