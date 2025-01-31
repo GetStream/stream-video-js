@@ -1,4 +1,4 @@
-import { CallingState, RxUtils } from '@stream-io/video-client';
+import { CallingState, getLogger, RxUtils } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Platform } from 'react-native';
 import { useEffect, useState } from 'react';
@@ -35,6 +35,8 @@ const unsubscribeCallkeepEvents = (activeCallCid: string | undefined) => {
   }
 };
 
+const logger = getLogger(['useIosCallkeepWithCallingStateEffect']);
+
 /**
  * This hook is used to inform the callkeep library that the call has been joined or ended.
  */
@@ -57,6 +59,10 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       const callkeep = getCallKeepLib();
       // if the component is unmounted and the callID was not reported to callkeep, then report it now
       if (acceptedForegroundCallkeepMap) {
+        logger(
+          'debug',
+          `Ending call in callkeep: ${acceptedForegroundCallkeepMap.cid}, reason: component unmounted and call was present in acceptedForegroundCallkeepMap`
+        );
         unsubscribeCallkeepEvents(acceptedForegroundCallkeepMap.cid);
         // this call should be ended in callkeep
         callkeep.endCall(acceptedForegroundCallkeepMap.uuid);
@@ -80,11 +86,19 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       );
       const callkeep = getCallKeepLib();
       if (activeCallCid === nativeDialerAcceptedCallMap?.cid) {
+        logger(
+          'debug',
+          `Ending call in callkeep: ${activeCallCid}, reason: activeCallCid changed or was removed and call was present in nativeDialerAcceptedCallMap`
+        );
         unsubscribeCallkeepEvents(activeCallCid);
         callkeep.endCall(nativeDialerAcceptedCallMap.uuid);
         // no need to keep this reference anymore
         voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
       } else if (activeCallCid === foregroundIncomingCallkeepMap?.cid) {
+        logger(
+          'debug',
+          `Ending call in callkeep: ${activeCallCid}, reason: activeCallCid changed or was removed and call was present in foregroundIncomingCallkeepMap`
+        );
         unsubscribeCallkeepEvents(activeCallCid);
         callkeep.endCall(foregroundIncomingCallkeepMap.uuid);
         // no need to keep this reference anymore
@@ -112,6 +126,11 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       voipCallkeepCallOnForegroundMap$
     );
     if (foregroundCallkeepMap && foregroundCallkeepMap.cid === activeCallCid) {
+      logger(
+        'debug',
+        // @ts-ignore
+        `Accepting call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in foregroundCallkeepMap`
+      );
       // this call should be accepted in callkeep
       callkeep.answerIncomingCall(foregroundCallkeepMap.uuid);
       // no need to keep this reference anymore
@@ -131,6 +150,11 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     // the call was accepted through the app and not through native dialer
     // the call was left using the leave button in the app and not through native dialer
     if (activeCallCid === acceptedForegroundCallkeepMap?.cid) {
+      logger(
+        'debug',
+        // @ts-ignore
+        `Ending call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in acceptedForegroundCallkeepMap`
+      );
       callkeep.endCall(acceptedForegroundCallkeepMap.uuid);
       setAcceptedForegroundCallkeepMap(undefined);
       return;
@@ -141,6 +165,11 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       voipCallkeepCallOnForegroundMap$
     );
     if (activeCallCid === foregroundIncomingCallkeepMap?.cid) {
+      logger(
+        'debug',
+        // @ts-ignore
+        `Ending call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in foregroundIncomingCallkeepMap`
+      );
       callkeep.endCall(foregroundIncomingCallkeepMap.uuid);
       // no need to keep this reference anymore
       voipCallkeepCallOnForegroundMap$.next(undefined);
@@ -153,6 +182,11 @@ export const useIosCallkeepWithCallingStateEffect = () => {
       voipCallkeepAcceptedCallOnNativeDialerMap$
     );
     if (activeCallCid === nativeDialerAcceptedCallMap?.cid) {
+      logger(
+        'debug',
+        // @ts-ignore
+        `Ending call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in nativeDialerAcceptedCallMap`
+      );
       callkeep.endCall(nativeDialerAcceptedCallMap.uuid);
       // no need to keep this reference anymore
       voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
