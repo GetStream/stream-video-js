@@ -7,7 +7,6 @@ import {
   getNotifeeLibNoThrowForKeepCallAlive,
   getKeepCallAliveForegroundServiceTypes,
 } from '../utils/push/libs/notifee';
-import { usePrevious } from '../utils/hooks';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
@@ -86,23 +85,12 @@ export const useAndroidKeepCallAliveEffect = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  const prevCallingState = usePrevious(callingState);
-
-  const isStartingToJoin =
-    prevCallingState === CallingState.IDLE &&
-    callingState === CallingState.JOINING;
-  const isStartingToJoinFromRinging =
-    prevCallingState === CallingState.RINGING &&
-    callingState === CallingState.JOINING;
   const isOutgoingCall =
     callingState === CallingState.RINGING && call?.isCreatedByMe;
   const isCallJoined = callingState === CallingState.JOINED;
 
   const shouldStartForegroundService =
-    isStartingToJoin ||
-    isStartingToJoinFromRinging ||
-    isOutgoingCall ||
-    isCallJoined;
+    !foregroundServiceStartedRef.current && (isOutgoingCall || isCallJoined);
 
   useEffect((): (() => void) | undefined => {
     if (Platform.OS === 'ios' || !activeCallCid) {
