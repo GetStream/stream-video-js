@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.7...@stream-io/video-client-1.16.0) (2025-01-31)
+
+
+### Features
+
+* OpenAPI upgrades and HLS status reporting ([#1668](https://github.com/GetStream/stream-video-js/issues/1668)) ([2f377b8](https://github.com/GetStream/stream-video-js/commit/2f377b8772f7b9fc8fcb8b8e9b3eecb1920bc7d0))
+
 ## [1.15.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.15.6...@stream-io/video-client-1.15.7) (2025-01-29)
 
 
