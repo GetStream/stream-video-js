@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.14...@stream-io/video-react-native-sdk-1.9.15) (2025-01-31)
+
+
+### Bug Fixes
+
+* added missed call events to push config types ([#1667](https://github.com/GetStream/stream-video-js/issues/1667)) ([36a9683](https://github.com/GetStream/stream-video-js/commit/36a96839b095a9d3cd736a1bd60b9a01f6160421))
+* open fg service only on a successful join ([#1666](https://github.com/GetStream/stream-video-js/issues/1666)) ([dd5d8f8](https://github.com/GetStream/stream-video-js/commit/dd5d8f8d5c390a16ad35d7b5b4f0e8b254f0f5f6))
+
 ## [1.9.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.13...@stream-io/video-react-native-sdk-1.9.14) (2025-01-29)
 
 
