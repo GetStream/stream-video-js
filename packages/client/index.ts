@@ -1,7 +1,6 @@
 import 'webrtc-adapter';
 
 export * from './src/gen/coordinator';
-export * from './src/gen/shims';
 // FIXME OL: check whether we need to expose these types
 export * from './src/coordinator/connection/types';
 

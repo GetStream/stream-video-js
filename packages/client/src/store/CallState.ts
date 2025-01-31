@@ -21,7 +21,6 @@ import { CallStatsReport } from '../stats';
 import {
   BlockedUserEvent,
   CallClosedCaption,
-  CallHLSBroadcastingStartedEvent,
   CallIngressResponse,
   CallMemberAddedEvent,
   CallMemberRemovedEvent,
@@ -42,7 +41,7 @@ import {
   UnblockedUserEvent,
   UpdatedCallPermissionsEvent,
   UserResponse,
-  WSEvent,
+  VideoEvent,
 } from '../gen/coordinator';
 import { Timestamp } from '../gen/google/protobuf/timestamp';
 import { ReconnectDetails } from '../gen/video/sfu/event/events';
@@ -60,7 +59,7 @@ import { hasScreenShare } from '../helpers/participantUtils';
  */
 const defaultEgress: EgressResponse = {
   broadcasting: false,
-  hls: { playlist_url: '' },
+  hls: { playlist_url: '', status: '' },
   rtmps: [],
 };
 
@@ -314,8 +313,8 @@ export class CallState {
   private closedCaptionsTasks = new Map<string, NodeJS.Timeout>();
 
   private readonly eventHandlers: {
-    [EventType in WSEvent['type']]:
-      | ((event: Extract<WSEvent, { type: EventType }>) => void)
+    [EventType in VideoEvent['type']]:
+      | ((event: Extract<VideoEvent, { type: EventType }>) => void)
       | undefined;
   };
 
@@ -414,21 +413,16 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
-      'call.deleted': undefined,
       'call.permission_request': undefined,
       'call.recording_ready': undefined,
+      'call.rtmp_broadcast_failed': undefined,
+      'call.rtmp_broadcast_started': undefined,
+      'call.rtmp_broadcast_stopped': undefined,
       'call.transcription_ready': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
       'health.check': undefined,
-      'user.banned': undefined,
-      'user.deactivated': undefined,
-      'user.deleted': undefined,
-      'user.muted': undefined,
-      'user.presence.changed': undefined,
-      'user.reactivated': undefined,
-      'user.unbanned': undefined,
       'user.updated': undefined,
       custom: undefined,
 
@@ -446,12 +440,15 @@ export class CallState {
         this.setCurrentValue(this.captioningSubject, false);
       },
       'call.created': (e) => this.updateFromCallResponse(e.call),
+      'call.deleted': (e) => this.updateFromCallResponse(e.call),
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
         this.setCurrentValue(this.endedBySubject, e.user);
       },
       'call.hls_broadcasting_failed': this.updateFromHLSBroadcastingFailed,
-      'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
+      'call.hls_broadcasting_started': (e) => {
+        this.updateFromCallResponse(e.call);
+      },
       'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
       'call.live_started': (e) => this.updateFromCallResponse(e.call),
       'call.member_added': this.updateFromMemberAdded,
@@ -1012,7 +1009,7 @@ export class CallState {
    *
    * @param event the video event that our backend sent us.
    */
-  updateFromEvent = (event: WSEvent) => {
+  updateFromEvent = (event: VideoEvent) => {
     const update = this.eventHandlers[event.type];
     if (update) {
       update(event as any);
@@ -1205,6 +1202,10 @@ export class CallState {
     this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
       ...egress,
       broadcasting: false,
+      hls: {
+        ...egress.hls!,
+        status: '',
+      },
     }));
   };
 
@@ -1212,18 +1213,9 @@ export class CallState {
     this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
       ...egress,
       broadcasting: false,
-    }));
-  };
-
-  private updateFromHLSBroadcastStarted = (
-    event: CallHLSBroadcastingStartedEvent,
-  ) => {
-    this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
-      ...egress,
-      broadcasting: true,
       hls: {
-        ...egress.hls,
-        playlist_url: event.hls_playlist_url,
+        ...egress.hls!,
+        status: '',
       },
     }));
   };

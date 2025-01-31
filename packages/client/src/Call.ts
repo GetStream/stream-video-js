@@ -33,6 +33,8 @@ import type {
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
+  DeleteCallRequest,
+  DeleteCallResponse,
   EndCallResponse,
   GetCallResponse,
   GetCallStatsResponse,
@@ -63,14 +65,19 @@ import type {
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StartRTMPBroadcastsRequest,
+  StartRTMPBroadcastsResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
+  StopAllRTMPBroadcastsResponse,
   StopClosedCaptionsRequest,
   StopClosedCaptionsResponse,
   StopHLSBroadcastingResponse,
+  StopLiveRequest,
   StopLiveResponse,
   StopRecordingResponse,
+  StopRTMPBroadcastsResponse,
   StopTranscriptionResponse,
   UnblockUserRequest,
   UnblockUserResponse,
@@ -735,6 +742,18 @@ export class Call {
    */
   create = async (data?: GetOrCreateCallRequest) => {
     return this.getOrCreate(data);
+  };
+
+  /**
+   * Deletes the call.
+   */
+  delete = async (
+    data: DeleteCallRequest = {},
+  ): Promise<DeleteCallResponse> => {
+    return this.streamClient.post<DeleteCallResponse, DeleteCallRequest>(
+      `${this.streamClientBasePath}/delete`,
+      data,
+    );
   };
 
   /**
@@ -2000,10 +2019,10 @@ export class Call {
   /**
    * Stops the livestreaming of the call.
    */
-  stopLive = async () => {
+  stopLive = async (data: StopLiveRequest = {}) => {
     return this.streamClient.post<StopLiveResponse>(
       `${this.streamClientBasePath}/stop_live`,
-      {},
+      data,
     );
   };
 
@@ -2024,6 +2043,38 @@ export class Call {
     return this.streamClient.post<StopHLSBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
+    );
+  };
+
+  /**
+   * Starts the RTMP-out broadcasting of the call.
+   */
+  startRTMPBroadcasts = async (
+    data: StartRTMPBroadcastsRequest,
+  ): Promise<StartRTMPBroadcastsResponse> => {
+    return this.streamClient.post<
+      StartRTMPBroadcastsResponse,
+      StartRTMPBroadcastsRequest
+    >(`${this.streamClientBasePath}/rtmp_broadcasts`, data);
+  };
+
+  /**
+   * Stops all RTMP-out broadcasting of the call.
+   */
+  stopAllRTMPBroadcasts = async (): Promise<StopAllRTMPBroadcastsResponse> => {
+    return this.streamClient.post<StopAllRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/rtmp_broadcasts/stop`,
+    );
+  };
+
+  /**
+   * Stops the RTMP-out broadcasting of the call specified by it's name.
+   */
+  stopRTMPBroadcast = async (
+    name: string,
+  ): Promise<StopRTMPBroadcastsResponse> => {
+    return this.streamClient.post<StopRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/rtmp_broadcasts/${name}/stop`,
     );
   };
 
