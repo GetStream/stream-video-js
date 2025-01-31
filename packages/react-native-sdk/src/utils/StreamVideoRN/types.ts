@@ -4,7 +4,10 @@ import {
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
 
-export type NonRingingPushEvent = 'call.live_started' | 'call.notification';
+export type NonRingingPushEvent =
+  | 'call.live_started'
+  | 'call.notification'
+  | 'call.missed';
 
 export type StreamVideoConfig = {
   /**
@@ -75,12 +78,18 @@ export type StreamVideoConfig = {
        *  getTitle(type, createdUserName) {
             if (type === 'call.live_started') {
               return `Call went live, it was started by ${createdUserName}`;
+            } else if (type === 'call.missed') {
+              return `Missed call from ${createdUserName}`;
             } else {
               return `${createdUserName} is notifying you about a call`;
             }
           },
-          getBody(_type, createdUserName) {
-            return 'Tap to open the call';
+          getBody(type, _createdUserName) {
+            if (type === 'call.missed') {
+              return 'Missed call!';
+            } else {
+              return 'Tap to open the call';
+            }
           },
        */
       callNotificationTextGetters?: {

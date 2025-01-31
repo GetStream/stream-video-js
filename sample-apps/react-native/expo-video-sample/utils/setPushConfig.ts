@@ -41,12 +41,18 @@ export function setPushConfig() {
         getTitle(type, createdUserName) {
           if (type === 'call.live_started') {
             return `Call went live, it was started by ${createdUserName}`;
+          } else if (type === 'call.missed') {
+            return `Missed call from ${createdUserName}`;
           } else {
             return `${createdUserName} is notifying you about a call`;
           }
         },
-        getBody(_type, _createdUserName) {
-          return 'Tap to open the call';
+        getBody(type, _createdUserName) {
+          if (type === 'call.missed') {
+            return 'Missed call!';
+          } else {
+            return 'Tap to open the call';
+          }
         },
       },
     },
