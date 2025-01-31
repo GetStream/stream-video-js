@@ -669,18 +669,30 @@ describe('CallState', () => {
             broadcasting: false,
             hls: {
               playlist_url: '',
+              status: 'starting',
             },
           },
         });
         // @ts-ignore
         state.updateFromEvent({
           type: 'call.hls_broadcasting_started',
-          hls_playlist_url: 'https://example.com/playlist.m3u8',
+          // @ts-expect-error incomplete data
+          call: {
+            egress: {
+              broadcasting: true,
+              hls: {
+                playlist_url: 'https://example.com/playlist.m3u8',
+                status: 'running',
+              },
+              rtmps: [],
+            },
+          },
         });
         expect(state.egress?.broadcasting).toBe(true);
         expect(state.egress?.hls?.playlist_url).toBe(
           'https://example.com/playlist.m3u8',
         );
+        expect(state.egress?.hls?.status).toBe('running');
       });
 
       it('handles call.hls_broadcasting_stopped events', () => {
