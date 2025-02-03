@@ -87,6 +87,8 @@ export class StreamVideoWriteableStateStore {
    * @param call the call to remove
    */
   unregisterCall = (call: Call) => {
+    const logger = getLogger(['client-state']);
+    logger('trace', `Unregistering call: ${call.cid}`);
     return this.setCalls((calls) => calls.filter((c) => c !== call));
   };
 
