@@ -52,9 +52,17 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
   });
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
 
-  const [participantInSpotlight] = allParticipants.filter((participant) =>
-    includeLocalParticipantVideo ? true : !participant.isLocalParticipant
+  const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
+    (participant) =>
+      includeLocalParticipantVideo ? true : !participant.isLocalParticipant
   );
+
+  // show the dominant remote speaker in PiP mode
+  // local speaker is shown only if remote doesn't exist
+  let participantInSpotlight = dominantSpeaker;
+  if (dominantSpeaker?.isLocalParticipant && dominantSpeaker2) {
+    participantInSpotlight = dominantSpeaker2;
+  }
 
   useEffect(() => {
     shouldDisableIOSLocalVideoOnBackgroundRef.current =

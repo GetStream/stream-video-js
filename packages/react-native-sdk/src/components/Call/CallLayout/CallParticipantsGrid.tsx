@@ -11,7 +11,6 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
-import { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -79,12 +78,15 @@ export const CallParticipantsGrid = ({
     : allParticipants;
 
   if (isInPiPMode) {
-    participants =
-      remoteParticipants.length > 0
-        ? [dominantSpeaker || (remoteParticipants[0] as StreamVideoParticipant)]
-        : localParticipant
-          ? [localParticipant]
-          : [];
+    if (dominantSpeaker && !dominantSpeaker.isLocalParticipant) {
+      participants = [dominantSpeaker];
+    } else if (remoteParticipants[0]) {
+      participants = [remoteParticipants[0]];
+    } else if (localParticipant) {
+      participants = [localParticipant];
+    } else {
+      participants = [];
+    }
   }
 
   const participantViewProps: CallParticipantsListComponentProps = {
