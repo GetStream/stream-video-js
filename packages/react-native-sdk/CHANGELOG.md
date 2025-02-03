@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.16...@stream-io/video-react-native-sdk-1.9.17) (2025-02-03)
+
+
+### Bug Fixes
+
+* handle null activities for pip on android ([dd9b59d](https://github.com/GetStream/stream-video-js/commit/dd9b59d526fd3fdc780b8a45792563bf12837618))
+* prefer remote participants for PiP ([1c0f9a1](https://github.com/GetStream/stream-video-js/commit/1c0f9a1c278cf87b5584e13011d311af814a537b))
+
 ## [1.9.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.15...@stream-io/video-react-native-sdk-1.9.16) (2025-01-31)
 
 ### Dependency Updates
