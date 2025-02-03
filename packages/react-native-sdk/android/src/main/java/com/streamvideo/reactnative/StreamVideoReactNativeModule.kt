@@ -1,5 +1,6 @@
 package com.streamvideo.reactnative
 
+import android.app.Activity
 import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.BroadcastReceiver
@@ -44,7 +45,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasPiPSupport()) {
                 (reactApplicationContext.currentActivity as? ReactActivity)?.let { activity ->
                     try {
-                        val params = getPiPParams()
+                        val params = getPiPParams(activity)
                         val aspect =
                             if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
                                 Rational(9, 16)
@@ -118,20 +119,21 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     fun canAutoEnterPipMode(value: Boolean) {
         StreamVideoReactNative.canAutoEnterPictureInPictureMode = value
         if (!hasPiPSupport() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val activity = reactApplicationContext!!.currentActivity!!
-        try {
-            if (value) {
-                activity.setPictureInPictureParams(getPiPParams().build())
-                // NOTE: for SDK_INT < Build.VERSION_CODES.S
-                // onUserLeaveHint from Activity is used, SDK cant directly use it
-                // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
-            } else {
-                val params = PictureInPictureParams.Builder()
-                params.setAutoEnterEnabled(false)
-                activity.setPictureInPictureParams(params.build())
+        reactApplicationContext.currentActivity?.let { activity ->
+            try {
+                if (value) {
+                    activity.setPictureInPictureParams(getPiPParams(activity).build())
+                    // NOTE: for SDK_INT < Build.VERSION_CODES.S
+                    // onUserLeaveHint from Activity is used, SDK cant directly use it
+                    // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
+                } else {
+                    val params = PictureInPictureParams.Builder()
+                    params.setAutoEnterEnabled(false)
+                    activity.setPictureInPictureParams(params.build())
+                }
+            } catch (e: IllegalStateException) {
+                Log.d(NAME, "Skipping Picture-in-Picture mode. Its not enabled for activity")
             }
-        } catch (e: IllegalStateException) {
-            Log.d(NAME, "Skipping Picture-in-Picture mode. Its not enabled for activity")
         }
     }
 
@@ -266,8 +268,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun getPiPParams(): PictureInPictureParams.Builder {
-        val activity = reactApplicationContext!!.currentActivity!!
+    private fun getPiPParams(activity: Activity): PictureInPictureParams.Builder {
         val currentOrientation = activity.resources.configuration.orientation
 
         val aspect =
