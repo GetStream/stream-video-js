@@ -174,6 +174,8 @@ const useStyles = () => {
           overflow: 'hidden',
           justifyContent: 'flex-end',
           borderRadius: theme.variants.borderRadiusSizes.md,
+          borderWidth: 2,
+          borderColor: 'transparent',
         },
         footerContainer: {
           flexDirection: 'row',
