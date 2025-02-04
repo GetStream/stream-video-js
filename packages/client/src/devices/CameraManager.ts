@@ -45,7 +45,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
           const constraints = {
             facingMode: direction === 'front' ? 'user' : 'environment',
           };
-          videoTrack.applyConstraints(constraints);
+          await videoTrack.applyConstraints(constraints);
         }
         this.state.setDirection(direction);
       } else {
