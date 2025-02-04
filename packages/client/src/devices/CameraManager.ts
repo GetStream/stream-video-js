@@ -34,7 +34,6 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
     if (this.isDirectionSupportedByDevice()) {
-      if (this.state.direction === direction) return;
       if (isReactNative()) {
         const videoTrack = this.getTracks()[0];
         if (!videoTrack) return;

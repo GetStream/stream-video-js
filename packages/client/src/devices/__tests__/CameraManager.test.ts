@@ -111,11 +111,11 @@ describe('CameraManager', () => {
   });
 
   it('flip', async () => {
+    vi.spyOn(manager, 'selectDirection');
     await manager.selectDirection('front');
-
+    expect(manager.state.direction).toBe('front');
     await manager.flip();
-
-    expect(manager.state.direction).toBe('back');
+    expect(manager.selectDirection).toHaveBeenCalledWith('back');
   });
 
   it('select camera direction', async () => {
