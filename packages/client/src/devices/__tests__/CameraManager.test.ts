@@ -10,11 +10,14 @@ import {
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
-import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
 import { PermissionsContext } from '../../permissions';
+
+const getVideoStream = vi.hoisted(() =>
+  vi.fn(() => Promise.resolve(mockVideoStream())),
+);
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -23,7 +26,7 @@ vi.mock('../devices.ts', () => {
     getVideoDevices: vi.fn(() => {
       return of(mockVideoDevices);
     }),
-    getVideoStream: vi.fn(() => Promise.resolve(mockVideoStream())),
+    getVideoStream,
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
@@ -111,11 +114,18 @@ describe('CameraManager', () => {
   });
 
   it('flip', async () => {
-    vi.spyOn(manager, 'selectDirection');
+    getVideoStream.mockReturnValue(Promise.resolve(mockVideoStream()));
     await manager.selectDirection('front');
     expect(manager.state.direction).toBe('front');
+    vi.spyOn(manager, 'selectDirection');
+    getVideoStream.mockReturnValue(
+      Promise.resolve(mockVideoStream('environment')),
+    );
     await manager.flip();
     expect(manager.selectDirection).toHaveBeenCalledWith('back');
+    expect(manager.state.direction).toBe('back');
+    // reset the mock
+    getVideoStream.mockReturnValue(Promise.resolve(mockVideoStream()));
   });
 
   it('select camera direction', async () => {
