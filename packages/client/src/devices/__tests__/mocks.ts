@@ -132,13 +132,16 @@ export const mockAudioStream = () => {
   } as any as MediaStream;
 };
 
-export const mockVideoStream = () => {
+export const mockVideoStream = (
+  facingMode: 'user' | 'environment' = 'user',
+) => {
   const track: MockTrack = {
     eventHandlers: {},
     getSettings: () => ({
       deviceId: mockVideoDevices[0].deviceId,
       width: 1280,
       height: 720,
+      facingMode,
     }),
     enabled: true,
     readyState: 'live',
