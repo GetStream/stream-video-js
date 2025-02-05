@@ -1,7 +1,7 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import { StreamVideoRN } from '../utils';
-import { Platform } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import { CallingState, getLogger } from '@stream-io/video-client';
 import {
   getNotifeeLibNoThrowForKeepCallAlive,
@@ -116,11 +116,28 @@ export const useAndroidKeepCallAliveEffect = () => {
           notifee.cancelDisplayedNotification(activeCallCid);
         }
         // check for notification permission and then start the foreground service
-        startForegroundService(activeCallCid).then(() => {
-          foregroundServiceStartedRef.current = true;
-        });
+
+        await startForegroundService(activeCallCid);
+        foregroundServiceStartedRef.current = true;
       };
-      run();
+
+      // ensure that app is active before running the function
+      if (AppState.currentState === 'active') {
+        run();
+        return;
+      }
+      const sub = AppState.addEventListener(
+        'change',
+        (nextAppState: AppStateStatus) => {
+          if (nextAppState === 'active') {
+            run();
+            sub.remove();
+          }
+        }
+      );
+      return () => {
+        sub.remove();
+      };
     } else if (callingState === CallingState.RINGING) {
       return () => {
         // cancel any notifee displayed notification when the call has transitioned out of ringing
