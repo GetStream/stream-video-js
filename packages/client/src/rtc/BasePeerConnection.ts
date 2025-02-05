@@ -119,6 +119,7 @@ export abstract class BasePeerConnection {
     this.subscriptions.push(
       this.dispatcher.on(event, (e) => {
         withoutConcurrency(`pc.${event}`, async () => fn(e)).catch((err) => {
+          if (this.isDisposed) return;
           this.logger('warn', `Error handling ${event}`, err);
         });
       }),
@@ -140,6 +141,7 @@ export abstract class BasePeerConnection {
       observable,
       async (candidate) => {
         return this.pc.addIceCandidate(candidate).catch((e) => {
+          if (this.isDisposed) return;
           this.logger('warn', `ICE candidate error`, e, candidate);
         });
       },
@@ -177,7 +179,10 @@ export abstract class BasePeerConnection {
     const iceCandidate = this.toJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
-      .catch((err) => this.logger('warn', `ICETrickle failed`, err));
+      .catch((err) => {
+        if (this.isDisposed) return;
+        this.logger('warn', `ICETrickle failed`, err);
+      });
   };
 
   /**
