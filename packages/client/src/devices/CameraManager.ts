@@ -34,10 +34,31 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
     if (this.isDirectionSupportedByDevice()) {
-      this.state.setDirection(direction);
-      // Providing both device id and direction doesn't work, so we deselect the device
-      this.state.setDevice(undefined);
-      await this.applySettingsToStream();
+      if (isReactNative()) {
+        const videoTrack = this.getTracks()[0];
+        if (!videoTrack) return;
+        // @ts-expect-error _switchCamera() is only present in react-native-webrtc 124 and below
+        if (typeof videoTrack._switchCamera === 'function') {
+          // @ts-expect-error for older versions of react-native-webrtc support
+          videoTrack._switchCamera();
+        } else {
+          const constraints = {
+            facingMode: direction === 'front' ? 'user' : 'environment',
+          };
+          await videoTrack.applyConstraints(constraints);
+        }
+        this.state.setDirection(direction);
+        this.state.setDevice(undefined);
+      } else {
+        // web mobile
+        this.state.setDirection(direction);
+        // Providing both device id and direction doesn't work, so we deselect the device
+        this.state.setDevice(undefined);
+        this.getTracks().forEach((track) => {
+          track.stop();
+        });
+        await this.unmuteStream();
+      }
     } else {
       this.logger('warn', 'Camera direction ignored for desktop devices');
     }
