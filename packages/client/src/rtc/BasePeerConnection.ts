@@ -8,7 +8,7 @@ import { createSafeAsyncSubscription } from '../store/rxUtils';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
-import { withoutConcurrency } from '../helpers/concurrency';
+import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -31,8 +31,9 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected readonly onUnrecoverableError?: () => void;
+  protected onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
+  private isDisposed = false;
 
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
@@ -60,7 +61,6 @@ export abstract class BasePeerConnection {
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       logTag,
     ]);
-
     this.pc = new RTCPeerConnection(connectionConfig);
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
@@ -76,6 +76,8 @@ export abstract class BasePeerConnection {
    * Disposes the `RTCPeerConnection` instance.
    */
   dispose = () => {
+    this.onUnrecoverableError = undefined;
+    this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
   };
@@ -91,6 +93,8 @@ export abstract class BasePeerConnection {
       'iceconnectionstatechange',
       this.onIceConnectionStateChange,
     );
+    // cancel any ongoing ICE restart process
+    withCancellation('onIceConnectionStateChange', () => Promise.resolve());
     this.pc.removeEventListener(
       'icegatheringstatechange',
       this.onIceGatherChange,
@@ -115,6 +119,7 @@ export abstract class BasePeerConnection {
     this.subscriptions.push(
       this.dispatcher.on(event, (e) => {
         withoutConcurrency(`pc.${event}`, async () => fn(e)).catch((err) => {
+          if (this.isDisposed) return;
           this.logger('warn', `Error handling ${event}`, err);
         });
       }),
@@ -136,6 +141,7 @@ export abstract class BasePeerConnection {
       observable,
       async (candidate) => {
         return this.pc.addIceCandidate(candidate).catch((e) => {
+          if (this.isDisposed) return;
           this.logger('warn', `ICE candidate error`, e, candidate);
         });
       },
@@ -173,7 +179,10 @@ export abstract class BasePeerConnection {
     const iceCandidate = this.toJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
-      .catch((err) => this.logger('warn', `ICETrickle failed`, err));
+      .catch((err) => {
+        if (this.isDisposed) return;
+        this.logger('warn', `ICETrickle failed`, err);
+      });
   };
 
   /**
@@ -205,6 +214,7 @@ export abstract class BasePeerConnection {
     if (state === 'failed' || state === 'disconnected') {
       this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
+        if (this.isDisposed) return;
         this.logger('error', `ICE restart failed`, e);
         this.onUnrecoverableError?.();
       });
