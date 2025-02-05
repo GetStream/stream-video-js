@@ -31,6 +31,8 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
+  private isDisposed = false;
+
   protected readonly onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
 
@@ -55,7 +57,11 @@ export abstract class BasePeerConnection {
     this.sfuClient = sfuClient;
     this.state = state;
     this.dispatcher = dispatcher;
-    this.onUnrecoverableError = onUnrecoverableError;
+    this.onUnrecoverableError = () => {
+      if (!this.isDisposed) {
+        onUnrecoverableError?.();
+      }
+    };
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       logTag,
@@ -76,6 +82,7 @@ export abstract class BasePeerConnection {
    * Disposes the `RTCPeerConnection` instance.
    */
   dispose = () => {
+    this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
   };
