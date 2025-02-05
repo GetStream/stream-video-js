@@ -18,7 +18,7 @@ import {
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
-import { withoutConcurrency } from '../helpers/concurrency';
+import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
@@ -69,6 +69,8 @@ export class Publisher extends BasePeerConnection {
   detachEventHandlers() {
     super.detachEventHandlers();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+    // abort any ongoing negotiation
+    withCancellation('publisher.negotiate', () => Promise.resolve());
   }
 
   /**
@@ -295,11 +297,12 @@ export class Publisher extends BasePeerConnection {
   };
 
   private onNegotiationNeeded = () => {
-    withoutConcurrency('publisher.negotiate', () => this.negotiate()).catch(
-      (err) => {
+    withCancellation('publisher.negotiate', (signal) =>
+      this.negotiate().catch((err) => {
+        if (signal.aborted) return;
         this.logger('error', `Negotiation failed.`, err);
         this.onUnrecoverableError?.();
-      },
+      }),
     );
   };
 

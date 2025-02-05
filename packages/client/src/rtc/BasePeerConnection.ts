@@ -8,7 +8,7 @@ import { createSafeAsyncSubscription } from '../store/rxUtils';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
-import { withoutConcurrency } from '../helpers/concurrency';
+import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -30,8 +30,6 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
-
-  private isDisposed = false;
 
   protected readonly onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
@@ -57,19 +55,11 @@ export abstract class BasePeerConnection {
     this.sfuClient = sfuClient;
     this.state = state;
     this.dispatcher = dispatcher;
-    this.onUnrecoverableError = () => {
-      if (!this.isDisposed) {
-        onUnrecoverableError?.();
-      }
-    };
+    this.onUnrecoverableError = onUnrecoverableError;
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       logTag,
     ]);
-    this.logger = (...args) => {
-      if (this.isDisposed) return;
-      this.logger(...args);
-    };
     this.pc = new RTCPeerConnection(connectionConfig);
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
@@ -85,7 +75,6 @@ export abstract class BasePeerConnection {
    * Disposes the `RTCPeerConnection` instance.
    */
   dispose = () => {
-    this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
   };
@@ -101,6 +90,8 @@ export abstract class BasePeerConnection {
       'iceconnectionstatechange',
       this.onIceConnectionStateChange,
     );
+    // cancel any ongoing ICE restart process
+    withCancellation('onIceConnectionStateChange', () => Promise.resolve());
     this.pc.removeEventListener(
       'icegatheringstatechange',
       this.onIceGatherChange,
@@ -204,21 +195,24 @@ export abstract class BasePeerConnection {
    * Handles the ICE connection state change event.
    */
   private onIceConnectionStateChange = () => {
-    const state = this.pc.iceConnectionState;
-    this.logger('debug', `ICE connection state changed`, state);
+    withCancellation('onIceConnectionStateChange', async (signal) => {
+      const state = this.pc.iceConnectionState;
+      this.logger('debug', `ICE connection state changed`, state);
 
-    if (this.state.callingState === CallingState.RECONNECTING) return;
+      if (this.state.callingState === CallingState.RECONNECTING) return;
 
-    // do nothing when ICE is restarting
-    if (this.isIceRestarting) return;
+      // do nothing when ICE is restarting
+      if (this.isIceRestarting) return;
 
-    if (state === 'failed' || state === 'disconnected') {
-      this.logger('debug', `Attempting to restart ICE`);
-      this.restartIce().catch((e) => {
-        this.logger('error', `ICE restart failed`, e);
-        this.onUnrecoverableError?.();
-      });
-    }
+      if (state === 'failed' || state === 'disconnected') {
+        this.logger('debug', `Attempting to restart ICE`);
+        this.restartIce().catch((e) => {
+          if (signal.aborted) return;
+          this.logger('error', `ICE restart failed`, e);
+          this.onUnrecoverableError?.();
+        });
+      }
+    });
   };
 
   /**
