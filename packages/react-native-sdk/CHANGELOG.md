@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.18...@stream-io/video-react-native-sdk-1.9.19) (2025-02-05)
+
+
+### Bug Fixes
+
+* start foreground service only when app is in active state ([f8bfef8](https://github.com/GetStream/stream-video-js/commit/f8bfef89f8151695bbc405244a9f77097fe6892e))
+
 ## [1.9.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.17...@stream-io/video-react-native-sdk-1.9.18) (2025-02-05)
 
 ### Dependency Updates
