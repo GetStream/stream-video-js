@@ -31,7 +31,7 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected isDisposed = false;
+  private isDisposed = false;
 
   protected readonly onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
@@ -66,7 +66,10 @@ export abstract class BasePeerConnection {
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       logTag,
     ]);
-
+    this.logger = (...args) => {
+      if (this.isDisposed) return;
+      this.logger(...args);
+    };
     this.pc = new RTCPeerConnection(connectionConfig);
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
@@ -143,9 +146,7 @@ export abstract class BasePeerConnection {
       observable,
       async (candidate) => {
         return this.pc.addIceCandidate(candidate).catch((e) => {
-          if (!this.isDisposed) {
-            this.logger('warn', `ICE candidate error`, e, candidate);
-          }
+          this.logger('warn', `ICE candidate error`, e, candidate);
         });
       },
     );
