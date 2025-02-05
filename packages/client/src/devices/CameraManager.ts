@@ -48,6 +48,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
           await videoTrack.applyConstraints(constraints);
         }
         this.state.setDirection(direction);
+        this.state.setDevice(undefined);
       } else {
         // web mobile
         this.state.setDirection(direction);
