@@ -31,8 +31,9 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected readonly onUnrecoverableError?: () => void;
+  protected onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
+  private isDisposed = false;
 
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
@@ -75,6 +76,8 @@ export abstract class BasePeerConnection {
    * Disposes the `RTCPeerConnection` instance.
    */
   dispose = () => {
+    this.onUnrecoverableError = undefined;
+    this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
   };
@@ -195,24 +198,22 @@ export abstract class BasePeerConnection {
    * Handles the ICE connection state change event.
    */
   private onIceConnectionStateChange = () => {
-    withCancellation('onIceConnectionStateChange', async (signal) => {
-      const state = this.pc.iceConnectionState;
-      this.logger('debug', `ICE connection state changed`, state);
+    const state = this.pc.iceConnectionState;
+    this.logger('debug', `ICE connection state changed`, state);
 
-      if (this.state.callingState === CallingState.RECONNECTING) return;
+    if (this.state.callingState === CallingState.RECONNECTING) return;
 
-      // do nothing when ICE is restarting
-      if (this.isIceRestarting) return;
+    // do nothing when ICE is restarting
+    if (this.isIceRestarting) return;
 
-      if (state === 'failed' || state === 'disconnected') {
-        this.logger('debug', `Attempting to restart ICE`);
-        this.restartIce().catch((e) => {
-          if (signal.aborted) return;
-          this.logger('error', `ICE restart failed`, e);
-          this.onUnrecoverableError?.();
-        });
-      }
-    });
+    if (state === 'failed' || state === 'disconnected') {
+      this.logger('debug', `Attempting to restart ICE`);
+      this.restartIce().catch((e) => {
+        if (this.isDisposed) return;
+        this.logger('error', `ICE restart failed`, e);
+        this.onUnrecoverableError?.();
+      });
+    }
   };
 
   /**
