@@ -31,7 +31,7 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  private isDisposed = false;
+  protected isDisposed = false;
 
   protected readonly onUnrecoverableError?: () => void;
   protected isIceRestarting = false;
@@ -143,7 +143,9 @@ export abstract class BasePeerConnection {
       observable,
       async (candidate) => {
         return this.pc.addIceCandidate(candidate).catch((e) => {
-          this.logger('warn', `ICE candidate error`, e, candidate);
+          if (!this.isDisposed) {
+            this.logger('warn', `ICE candidate error`, e, candidate);
+          }
         });
       },
     );

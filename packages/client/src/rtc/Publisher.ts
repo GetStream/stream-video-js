@@ -301,6 +301,9 @@ export class Publisher extends BasePeerConnection {
         this.onUnrecoverableError?.();
       },
     );
+        if (!this.isDisposed) {
+          this.logger('error', `Negotiation failed.`, err);
+        }
   };
 
   /**
