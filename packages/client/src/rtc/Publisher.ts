@@ -297,13 +297,12 @@ export class Publisher extends BasePeerConnection {
   private onNegotiationNeeded = () => {
     withoutConcurrency('publisher.negotiate', () => this.negotiate()).catch(
       (err) => {
-        this.logger('error', `Negotiation failed.`, err);
-        this.onUnrecoverableError?.();
-      },
-    );
         if (!this.isDisposed) {
           this.logger('error', `Negotiation failed.`, err);
         }
+        this.onUnrecoverableError?.();
+      },
+    );
   };
 
   /**
