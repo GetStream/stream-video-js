@@ -18,7 +18,7 @@ import {
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
-import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
+import { withCancellation } from '../helpers/concurrency';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
