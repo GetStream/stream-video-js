@@ -6,7 +6,10 @@ import {
 
 import { AppState, Platform } from 'react-native';
 import { StreamVideoRN } from '../../utils';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import {
+  useConnectedUser,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
 import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
 import { NativeModules } from 'react-native';
 import {
@@ -17,9 +20,28 @@ import {
   pushUnsubscriptionCallbacks$,
   voipPushNotificationCallCId$,
 } from '../../utils/push/internal/rxSubjects';
-import { RxUtils, getLogger } from '@stream-io/video-client';
+import { RxUtils, StreamVideoClient, getLogger } from '@stream-io/video-client';
 
 let lastVoipToken = { token: '', userId: '' };
+
+let unsent = { token: '' };
+
+const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
+
+function setLogoutCallback(client: StreamVideoClient, token: string) {
+  setPushLogoutCallback(async () => {
+    lastVoipToken = { token: '', userId: '' };
+    try {
+      await client.removeDevice(token);
+    } catch (err) {
+      logger(
+        'warn',
+        'PushLogoutCallback - Failed to remove voip token from stream',
+        err
+      );
+    }
+  });
+}
 
 /**
  * This hook is used to do the initial setup of listeners
@@ -27,6 +49,40 @@ let lastVoipToken = { token: '', userId: '' };
  */
 export const useIosVoipPushEventsSetupEffect = () => {
   const client = useStreamVideoClient();
+  const connectedUserId = useConnectedUser()?.id;
+
+  useEffect(() => {
+    const pushConfig = StreamVideoRN.getConfig().push;
+    //  we need to wait for user to be connected before we can send the push token
+    if (
+      !pushConfig?.ios.pushProviderName ||
+      !client ||
+      !connectedUserId ||
+      !unsent.token
+    ) {
+      return;
+    }
+    logger(
+      'debug',
+      'Sending unsent voip token to stream as user logged in after token was received, token: ' +
+        unsent.token
+    );
+    client
+      .addVoipDevice(unsent.token, 'apn', pushConfig.ios.pushProviderName)
+      .then(() => {
+        setLogoutCallback(client, unsent.token);
+        logger(
+          'debug',
+          'Sent unsent voip token to stream - token: ' + unsent.token
+        );
+        lastVoipToken = { token: unsent.token, userId: connectedUserId };
+        unsent = { token: '' };
+      })
+      .catch((error) => {
+        logger('warn', 'Error in sending unsent voip token to stream', error);
+      });
+  }, [client, connectedUserId]);
+
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     if (Platform.OS !== 'ios' || !pushConfig || !client) {
@@ -35,28 +91,33 @@ export const useIosVoipPushEventsSetupEffect = () => {
     const voipPushNotification = getVoipPushNotificationLib();
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
-      if (lastVoipToken.token === token && lastVoipToken.userId === userId) {
+      if (!userId) {
+        unsent = { token };
         return;
       }
-      lastVoipToken = { token, userId };
+      if (lastVoipToken.token === token && lastVoipToken.userId === userId) {
+        logger(
+          'debug',
+          `Skipped sending voip token to stream as it is same as last token - token: ${token}, userId: ${userId}`
+        );
+        return;
+      }
       const push_provider_name = pushConfig.ios.pushProviderName;
       if (!push_provider_name) {
         return;
       }
-      client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
-        const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
-        logger('warn', 'Failed to send voip token to stream', err);
-      });
-      // set the logout callback
-      setPushLogoutCallback(async () => {
-        lastVoipToken = { token: '', userId: '' };
-        try {
-          await client.removeDevice(token);
-        } catch (err) {
-          const logger = getLogger(['PushLogoutCallback']);
-          logger('warn', 'Failed to remove voip token from stream', err);
-        }
-      });
+      logger('debug', 'Sending voip token to stream, token: ' + token);
+      client
+        .addVoipDevice(token, 'apn', push_provider_name)
+        .then(() => {
+          logger('debug', 'Sent voip token to stream, token: ' + token);
+          setLogoutCallback(client, token);
+          lastVoipToken = { token, userId };
+        })
+        .catch((err) => {
+          unsent = { token };
+          logger('warn', 'Failed to send voip token to stream', err);
+        });
     };
     // fired when PushKit give us the latest token
     voipPushNotification.addEventListener('register', (token) => {
@@ -145,7 +206,6 @@ const onNotificationReceived = async (notification: any) => {
         call_cid
       );
   } catch (error) {
-    const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
     logger('error', 'Error in getting call uuid from native module', error);
   }
   if (!uuid) {
@@ -161,6 +221,10 @@ const onNotificationReceived = async (notification: any) => {
     );
     if (mustEndCall) {
       const callkeep = getCallKeepLib();
+      logger(
+        'debug',
+        `callkeep.reportEndCallWithUUID for uuid: ${uuid}, call_cid: ${call_cid}, reason: ${callkeepReason}`
+      );
       callkeep.reportEndCallWithUUID(uuid, callkeepReason);
       return true;
     }

@@ -136,9 +136,13 @@ export async function initIosNonVoipToken(
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
     if (lastApnToken.token === token && lastApnToken.userId === userId) {
+      logger(
+        'debug',
+        'Skipped sending device token to stream as it was already sent',
+        token
+      );
       return;
     }
-    lastApnToken = { token, userId };
     setPushLogoutCallback(async () => {
       lastApnToken = { token: '', userId: '' };
       try {
@@ -153,7 +157,15 @@ export async function initIosNonVoipToken(
       }
     });
     const push_provider_name = pushConfig.ios.pushProviderName;
-    await client.addDevice(token, 'apn', push_provider_name);
+    logger('debug', 'Add device token to stream', token);
+    await client
+      .addDevice(token, 'apn', push_provider_name)
+      .then(() => {
+        lastApnToken = { token, userId };
+      })
+      .catch((err) => {
+        logger('warn', 'Failed to add apn token to stream', err);
+      });
   };
   if (pushConfig.isExpo) {
     const expoNotificationsLib = getExpoNotificationsLib();

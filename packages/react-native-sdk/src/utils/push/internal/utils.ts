@@ -57,6 +57,10 @@ export const shouldCallBeEnded = (
       callkeepReason = 4;
     }
   }
+  getLogger(['shouldCallBeEnded'])(
+    'debug',
+    `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} callkeepReason: ${callkeepReason}`
+  );
   return { mustEndCall, callkeepReason };
 };
 
@@ -111,16 +115,24 @@ export const processCallFromPush = async (
       if (pushConfig.publishOptions) {
         callFromPush.updatePublishOptions(pushConfig.publishOptions);
       }
+      getLogger(['processCallFromPush'])(
+        'debug',
+        `joining call from push notification with callCid: ${callFromPush.cid}`
+      );
       await callFromPush.join();
     } else if (action === 'decline') {
       const canReject =
         callFromPush.state.callingState === CallingState.RINGING;
+      getLogger(['processCallFromPush'])(
+        'debug',
+        `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`
+      );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
     const logger = getLogger(['processCallFromPush']);
     logger(
-      'error',
+      'warn',
       `failed to process ${action} call from push notification`,
       e
     );

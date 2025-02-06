@@ -3,7 +3,7 @@ import {
   voipCallkeepCallOnForegroundMap$,
   voipPushNotificationCallCId$,
 } from '../../utils/push/internal/rxSubjects';
-import { RxUtils } from '@stream-io/video-client';
+import { getLogger, RxUtils } from '@stream-io/video-client';
 import { getCallKeepLib } from '../../utils/push/libs';
 import { StreamVideoRN } from '../../utils/StreamVideoRN';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
@@ -18,6 +18,8 @@ import {
 import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
+
+const logger = getLogger(['useIosCallKeepEventsSetupEffect']);
 
 /**
  * This hook is used to listen to callkeep events and do the necessary actions
@@ -34,6 +36,7 @@ export const useIosCallKeepEventsSetupEffect = () => {
       'answerCall',
       ({ callUUID }) => {
         const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
+        logger('debug', `answerCall event with call_cid: ${call_cid}`);
         iosCallkeepAcceptCall(call_cid, callUUID);
       }
     );
@@ -41,6 +44,7 @@ export const useIosCallKeepEventsSetupEffect = () => {
       'endCall',
       ({ callUUID }) => {
         const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
+        logger('debug', `endCall event with call_cid: ${call_cid}`);
         iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
       }
     );
@@ -55,6 +59,10 @@ export const useIosCallKeepEventsSetupEffect = () => {
         if (!call_cid) {
           return;
         }
+        logger(
+          'debug',
+          `didDisplayIncomingCall event with call_cid: ${call_cid}`
+        );
         voipCallkeepCallOnForegroundMap$.next({
           uuid: callUUID,
           cid: call_cid,

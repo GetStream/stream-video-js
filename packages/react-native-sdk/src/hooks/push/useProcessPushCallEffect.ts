@@ -13,7 +13,7 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { processCallFromPush } from '../../utils/push/internal/utils';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { getLogger, StreamVideoClient } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 
 /**
@@ -31,6 +31,11 @@ export const useProcessPushCallEffect = () => {
     if (!pushConfig || !client || !connectedUserId) {
       return;
     }
+
+    getLogger(['useProcessPushCallEffect'])(
+      'debug',
+      `Adding subscriptions to process incoming call from push notification`
+    );
 
     // if the user accepts the call from push notification we join the call
     const acceptedCallSubscription = createCallSubscription(
@@ -91,6 +96,10 @@ const createCallSubscription = (
   return behaviourSubjectWithCallCid
     .pipe(filter(cidIsNotUndefined), distinctUntilChanged())
     .subscribe(async (callCId) => {
+      getLogger(['useProcessPushCallEffect'])(
+        'debug',
+        `Processing call from push notification with action: ${action} and callCId: ${callCId}`
+      );
       await processCallFromPush(client, callCId, action, pushConfig);
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
     });
