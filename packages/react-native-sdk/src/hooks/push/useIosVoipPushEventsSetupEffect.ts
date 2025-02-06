@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   getCallKeepLib,
   getVoipPushNotificationLib,
@@ -24,8 +24,6 @@ import { RxUtils, StreamVideoClient, getLogger } from '@stream-io/video-client';
 
 let lastVoipToken = { token: '', userId: '' };
 
-let unsent = { token: '' };
-
 const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
 
 function setLogoutCallback(client: StreamVideoClient, token: string) {
@@ -50,6 +48,7 @@ function setLogoutCallback(client: StreamVideoClient, token: string) {
 export const useIosVoipPushEventsSetupEffect = () => {
   const client = useStreamVideoClient();
   const connectedUserId = useConnectedUser()?.id;
+  const [unsentToken, setUnsentToken] = useState<string>();
 
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
@@ -58,30 +57,30 @@ export const useIosVoipPushEventsSetupEffect = () => {
       !pushConfig?.ios.pushProviderName ||
       !client ||
       !connectedUserId ||
-      !unsent.token
+      !unsentToken
     ) {
       return;
     }
     logger(
       'debug',
       'Sending unsent voip token to stream as user logged in after token was received, token: ' +
-        unsent.token
+        unsentToken
     );
     client
-      .addVoipDevice(unsent.token, 'apn', pushConfig.ios.pushProviderName)
+      .addVoipDevice(unsentToken, 'apn', pushConfig.ios.pushProviderName)
       .then(() => {
-        setLogoutCallback(client, unsent.token);
+        setLogoutCallback(client, unsentToken);
         logger(
           'debug',
-          'Sent unsent voip token to stream - token: ' + unsent.token
+          'Sent unsent voip token to stream - token: ' + unsentToken
         );
-        lastVoipToken = { token: unsent.token, userId: connectedUserId };
-        unsent = { token: '' };
+        lastVoipToken = { token: unsentToken, userId: connectedUserId };
+        setUnsentToken(undefined);
       })
       .catch((error) => {
         logger('warn', 'Error in sending unsent voip token to stream', error);
       });
-  }, [client, connectedUserId]);
+  }, [client, connectedUserId, unsentToken]);
 
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
@@ -92,7 +91,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
       if (!userId) {
-        unsent = { token };
+        setUnsentToken(token);
         return;
       }
       if (lastVoipToken.token === token && lastVoipToken.userId === userId) {
@@ -115,7 +114,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
           lastVoipToken = { token, userId };
         })
         .catch((err) => {
-          unsent = { token };
+          setUnsentToken(token);
           logger('warn', 'Failed to send voip token to stream', err);
         });
     };
