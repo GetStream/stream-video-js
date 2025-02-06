@@ -59,11 +59,9 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   ).current;
 
   const SNAP_TOP = offset;
-  const SNAP_BOTTOM = drawerHeight + offset;
-  const SNAP_MIDDLE = drawerHeight * 0.5;
-
+  const SNAP_BOTTOM = (drawerHeight + offset) / 2;
   const getClosestSnapPoint = (y: number) => {
-    const points = [SNAP_TOP, SNAP_MIDDLE, SNAP_BOTTOM];
+    const points = [SNAP_TOP, SNAP_BOTTOM];
     return points.reduce((prev, curr) =>
       Math.abs(curr - y) < Math.abs(prev - y) ? curr : prev,
     );
