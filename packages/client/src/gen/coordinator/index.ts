@@ -2039,6 +2039,12 @@ export interface CallSettingsRequest {
   broadcasting?: BroadcastSettingsRequest;
   /**
    *
+   * @type {FrameRecordingSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  frame_recording?: FrameRecordingSettingsRequest;
+  /**
+   *
    * @type {GeofenceSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -2116,6 +2122,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   broadcasting: BroadcastSettingsResponse;
+  /**
+   *
+   * @type {FrameRecordingSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  frame_recording: FrameRecordingSettingsResponse;
   /**
    *
    * @type {GeofenceSettingsResponse}
@@ -2604,7 +2616,7 @@ export interface CollectUserFeedbackRequest {
    * @type {string}
    * @memberof CollectUserFeedbackRequest
    */
-  user_session_id: string;
+  user_session_id?: string;
 }
 /**
  * Basic response information
@@ -3300,6 +3312,80 @@ export interface EndCallResponse {
    */
   duration: string;
 }
+/**
+ *
+ * @export
+ * @interface FrameRecordingSettingsRequest
+ */
+export interface FrameRecordingSettingsRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof FrameRecordingSettingsRequest
+   */
+  capture_interval_in_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof FrameRecordingSettingsRequest
+   */
+  mode: FrameRecordingSettingsRequestModeEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof FrameRecordingSettingsRequest
+   */
+  quality?: string;
+}
+
+/**
+ * @export
+ */
+export const FrameRecordingSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type FrameRecordingSettingsRequestModeEnum =
+  (typeof FrameRecordingSettingsRequestModeEnum)[keyof typeof FrameRecordingSettingsRequestModeEnum];
+
+/**
+ *
+ * @export
+ * @interface FrameRecordingSettingsResponse
+ */
+export interface FrameRecordingSettingsResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof FrameRecordingSettingsResponse
+   */
+  capture_interval_in_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof FrameRecordingSettingsResponse
+   */
+  mode: FrameRecordingSettingsResponseModeEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof FrameRecordingSettingsResponse
+   */
+  quality?: string;
+}
+
+/**
+ * @export
+ */
+export const FrameRecordingSettingsResponseModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type FrameRecordingSettingsResponseModeEnum =
+  (typeof FrameRecordingSettingsResponseModeEnum)[keyof typeof FrameRecordingSettingsResponseModeEnum];
+
 /**
  *
  * @export
@@ -4339,10 +4425,12 @@ export const OwnCapability = {
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
+  START_FRAME_RECORD_CALL: 'start-frame-record-call',
   START_RECORD_CALL: 'start-record-call',
   START_TRANSCRIPTION_CALL: 'start-transcription-call',
   STOP_BROADCAST_CALL: 'stop-broadcast-call',
   STOP_CLOSED_CAPTIONS_CALL: 'stop-closed-captions-call',
+  STOP_FRAME_RECORD_CALL: 'stop-frame-record-call',
   STOP_RECORD_CALL: 'stop-record-call',
   STOP_TRANSCRIPTION_CALL: 'stop-transcription-call',
   UPDATE_CALL: 'update-call',
@@ -5239,12 +5327,6 @@ export interface ReportByHistogramBucket {
    * @type {number}
    * @memberof ReportByHistogramBucket
    */
-  mean: number;
-  /**
-   *
-   * @type {number}
-   * @memberof ReportByHistogramBucket
-   */
   sum: number;
   /**
    *
@@ -5628,6 +5710,32 @@ export interface StartClosedCaptionsResponse {
   duration: string;
 }
 /**
+ *
+ * @export
+ * @interface StartFrameRecordingRequest
+ */
+export interface StartFrameRecordingRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StartFrameRecordingRequest
+   */
+  recording_external_storage?: string;
+}
+/**
+ * StartFrameRecordingResponse is the response payload for the start frame recording endpoint.
+ * @export
+ * @interface StartFrameRecordingResponse
+ */
+export interface StartFrameRecordingResponse {
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof StartFrameRecordingResponse
+   */
+  duration: string;
+}
+/**
  * StartHLSBroadcastingResponse is the payload for starting an HLS broadcasting.
  * @export
  * @interface StartHLSBroadcastingResponse
@@ -5785,6 +5893,19 @@ export interface StopClosedCaptionsResponse {
    * Duration of the request in milliseconds
    * @type {string}
    * @memberof StopClosedCaptionsResponse
+   */
+  duration: string;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface StopFrameRecordingResponse
+ */
+export interface StopFrameRecordingResponse {
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof StopFrameRecordingResponse
    */
   duration: string;
 }

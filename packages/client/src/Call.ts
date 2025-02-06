@@ -62,6 +62,8 @@ import type {
   SendReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
+  StartFrameRecordingRequest,
+  StartFrameRecordingResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
@@ -73,6 +75,7 @@ import type {
   StopAllRTMPBroadcastsResponse,
   StopClosedCaptionsRequest,
   StopClosedCaptionsResponse,
+  StopFrameRecordingResponse,
   StopHLSBroadcastingResponse,
   StopLiveRequest,
   StopLiveResponse,
@@ -2079,6 +2082,28 @@ export class Call {
   };
 
   /**
+   * Starts frame by frame recording.
+   * Sends call.frame_recording_started events
+   */
+  startFrameRecording = async (
+    data: StartFrameRecordingRequest,
+  ): Promise<StartFrameRecordingResponse> => {
+    return this.streamClient.post<
+      StartFrameRecordingResponse,
+      StartFrameRecordingRequest
+    >(`${this.streamClientBasePath}/start_frame_recording`, data);
+  };
+
+  /**
+   * Stops frame recording.
+   */
+  stopFrameRecording = async (): Promise<StopFrameRecordingResponse> => {
+    return this.streamClient.post<StopFrameRecordingResponse>(
+      `${this.streamClientBasePath}/stop_frame_recording`,
+    );
+  };
+
+  /**
    * Updates the call settings or custom data.
    *
    * @param updates the updates to apply to the call.
@@ -2275,42 +2300,23 @@ export class Call {
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
    * @param reason The reason/description for the rating
    * @param custom Custom data
-   * @returns
    */
   submitFeedback = async (
     rating: number,
     {
       reason,
       custom,
-    }: {
-      reason?: string;
-      custom?: Record<string, any>;
-    } = {},
-  ) => {
-    if (rating < 1 || rating > 5) {
-      throw new Error('Rating must be between 1 and 5');
-    }
-    const callSessionId = this.state.session?.id;
-    if (!callSessionId) {
-      throw new Error(
-        'Feedback can be submitted only in the context of a call session',
-      );
-    }
-
+    }: Pick<CollectUserFeedbackRequest, 'reason' | 'custom'> = {},
+  ): Promise<CollectUserFeedbackResponse> => {
     const { sdkName, sdkVersion, ...platform } =
       getSdkSignature(getClientDetails());
-
-    // user sessionId is not available once the call has been left
-    // until we relax the backend validation, we'll send N/A
-    const userSessionId = this.sfuClient?.sessionId ?? 'N/A';
-    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
     return this.streamClient.post<
       CollectUserFeedbackResponse,
       CollectUserFeedbackRequest
-    >(endpoint, {
+    >(`${this.streamClientBasePath}/feedback`, {
       rating,
       reason,
-      user_session_id: userSessionId,
+      user_session_id: this.sfuClient?.sessionId,
       sdk: sdkName,
       sdk_version: sdkVersion,
       custom: {
