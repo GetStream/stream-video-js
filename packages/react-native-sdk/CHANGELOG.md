@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.21...@stream-io/video-react-native-sdk-1.9.22) (2025-02-06)
+
+
+### Bug Fixes
+
+* closed captions and speaker border bugfixes ([#1670](https://github.com/GetStream/stream-video-js/issues/1670)) ([275ddb5](https://github.com/GetStream/stream-video-js/commit/275ddb5193110dc88b45a4155858e91b194db0b3))
+
 ## [1.9.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.20...@stream-io/video-react-native-sdk-1.9.21) (2025-02-06)
 
 
