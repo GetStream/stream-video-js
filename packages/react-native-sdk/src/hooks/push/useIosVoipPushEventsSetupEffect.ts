@@ -234,13 +234,24 @@ const onNotificationReceived = async (notification: any) => {
   const canListenToWS = () =>
     canAddPushWSSubscriptionsRef.current && AppState.currentState !== 'active';
   if (!closed && canListenToWS()) {
-    const unsubscribe = callFromPush.on('all', () => {
-      if (!canListenToWS()) {
+    const unsubscribe = callFromPush.on('all', (event) => {
+      const _canListenToWS = canListenToWS();
+      if (!_canListenToWS) {
+        logger(
+          'debug',
+          `unsubscribe due to event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
+          event
+        );
         unsubscribe();
         return;
       }
       const _closed = closeCallIfNecessary();
       if (_closed) {
+        logger(
+          'debug',
+          `unsubscribe due to event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed: ${_closed}`,
+          event
+        );
         unsubscribe();
       }
     });

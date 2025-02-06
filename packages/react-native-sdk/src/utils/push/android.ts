@@ -188,11 +188,21 @@ export const firebaseDataHandler = async (
           // check if service needs to be closed if accept/decline event was done on another device
           const unsubscribe = callFromPush.on('all', (event) => {
             const _canListenToWS = canListenToWS();
-            _shouldCallBeClosed = shouldCallBeClosed(callFromPush);
-            if (!_canListenToWS || _shouldCallBeClosed) {
+            if (!_canListenToWS) {
               getLogger(['firebaseMessagingOnMessageHandler'])(
                 'debug',
-                `Closing fg service callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed: ${_shouldCallBeClosed}`,
+                `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
+                { event }
+              );
+              unsubscribeFunctions.forEach((fn) => fn());
+              notifee.stopForegroundService();
+              return;
+            }
+            _shouldCallBeClosed = shouldCallBeClosed(callFromPush);
+            if (_shouldCallBeClosed) {
+              getLogger(['firebaseMessagingOnMessageHandler'])(
+                'debug',
+                `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed: ${_shouldCallBeClosed}`,
                 { event }
               );
               unsubscribeFunctions.forEach((fn) => fn());
