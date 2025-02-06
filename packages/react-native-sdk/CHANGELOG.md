@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.20...@stream-io/video-react-native-sdk-1.9.21) (2025-02-06)
+
+
+### Bug Fixes
+
+* NoClassDefFoundError on PiP on android 7 and below ([70ac465](https://github.com/GetStream/stream-video-js/commit/70ac4656b5f0b42c649f38ff288adb47eff02907))
+
 ## [1.9.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.19...@stream-io/video-react-native-sdk-1.9.20) (2025-02-05)
 
 ### Dependency Updates
