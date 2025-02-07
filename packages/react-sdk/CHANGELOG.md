@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.11.5...@stream-io/video-react-sdk-1.11.6) (2025-02-07)
+
+
+### Bug Fixes
+
+* handle LivestreamLayout muted prop ([#1674](https://github.com/GetStream/stream-video-js/issues/1674)) ([f739b56](https://github.com/GetStream/stream-video-js/commit/f739b56980a18f1fb8b9c36fbcf284996a535706))
+
 ## [1.11.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.11.4...@stream-io/video-react-sdk-1.11.5) (2025-02-06)
 
 ### Dependency Updates
