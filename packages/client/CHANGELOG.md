@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.3...@stream-io/video-client-1.16.4) (2025-02-07)
+
+
+### Bug Fixes
+
+* ensure tracks are stopped when disposing a Publisher ([#1676](https://github.com/GetStream/stream-video-js/issues/1676)) ([948f672](https://github.com/GetStream/stream-video-js/commit/948f672243e1f2a0e9499184ee31db4bc88f9952))
+
 ## [1.16.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.2...@stream-io/video-client-1.16.3) (2025-02-06)
 
 
