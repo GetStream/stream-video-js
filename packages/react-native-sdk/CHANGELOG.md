@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.23...@stream-io/video-react-native-sdk-1.9.24) (2025-02-07)
+
+
+* bump to webrtc-125.0.4 ([#1675](https://github.com/GetStream/stream-video-js/issues/1675)) ([c4b9ad8](https://github.com/GetStream/stream-video-js/commit/c4b9ad8a30403c9f2ebd8ba681fcc97c048d00e8))
+
+
+### Bug Fixes
+
+* send voip token also when connectUser is called later ([#1665](https://github.com/GetStream/stream-video-js/issues/1665)) ([aab92c0](https://github.com/GetStream/stream-video-js/commit/aab92c0b1029aec7fedb2afac43585752bcd0b07))
+
 ## [1.9.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.22...@stream-io/video-react-native-sdk-1.9.23) (2025-02-06)
 
 ### Dependency Updates
