@@ -1,6 +1,5 @@
 import './style.css';
-import { StreamVideoClient, User } from '@stream-io/video-client';
-import { decode } from 'js-base64';
+import { CallingState, StreamVideoClient } from '@stream-io/video-client';
 import { cleanupParticipant, renderParticipant } from './participant';
 import { renderControls } from './controls';
 import {
@@ -12,33 +11,29 @@ import {
 import { isMobile } from './mobile';
 import { ClosedCaptionManager } from './closed-captions';
 
+const ENVIRONMENT = 'demo';
+const userId = 'luke';
+const credentials = (await fetch(
+  `https://pronto.getstream.io/api/auth/create-token?environment=${ENVIRONMENT}&user_id=${userId}`,
+).then((res) => res.json())) as { apiKey: string; token: string };
+
 const searchParams = new URLSearchParams(window.location.search);
-const extractPayloadFromToken = (token: string) => {
-  const [, payload] = token.split('.');
-
-  if (!payload) throw new Error('Malformed token, missing payload');
-
-  return (JSON.parse(decode(payload)) ?? {}) as Record<string, unknown>;
-};
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY;
-const token = searchParams.get('ut') ?? import.meta.env.VITE_STREAM_USER_TOKEN;
-const user: User = {
-  id: extractPayloadFromToken(token)['user_id'] as string,
-};
-
 const callId =
   searchParams.get('call_id') ||
   import.meta.env.VITE_STREAM_CALL_ID ||
   (new Date().getTime() + Math.round(Math.random() * 100)).toString();
 
 const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-  options: { logLevel: import.meta.env.VITE_STREAM_LOG_LEVEL },
+  apiKey: credentials.apiKey,
+  token: credentials.token,
+  user: { id: userId, name: 'Luke' },
+  options: { logLevel: 'debug' },
 });
+
 const call = client.call('default', callId);
+await call.camera.enable();
+await call.microphone.disableSpeakingWhileMutedNotification();
+await call.microphone.enable();
 
 // @ts-ignore
 window.call = call;
@@ -55,6 +50,7 @@ const container = document.getElementById('call-controls')!;
 
 // render mic and camera controls
 const controls = renderControls(call);
+container.appendChild(controls.leaveJoinCallButton);
 container.appendChild(controls.audioButton);
 container.appendChild(controls.videoButton);
 container.appendChild(controls.screenShareButton);
@@ -95,6 +91,8 @@ const parentContainer = document.getElementById('participants')!;
 call.setViewport(parentContainer);
 
 call.state.participants$.subscribe((participants) => {
+  if (call.state.callingState === CallingState.LEFT) return;
+
   // render / update existing participants
   participants.forEach((participant) => {
     renderParticipant(call, participant, parentContainer, screenShareContainer);

@@ -6,7 +6,7 @@ const RTCPeerConnectionMock = vi.fn((): Partial<RTCPeerConnection> => {
     addIceCandidate: vi.fn(),
     removeEventListener: vi.fn(),
     getTransceivers: vi.fn(),
-    addTransceiver: vi.fn(),
+    addTransceiver: vi.fn().mockReturnValue(new RTCRtpTransceiverMock()),
     getConfiguration: vi.fn(),
     setConfiguration: vi.fn(),
     createOffer: vi.fn().mockResolvedValue({}),

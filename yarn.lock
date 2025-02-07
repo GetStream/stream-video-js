@@ -8212,7 +8212,6 @@ __metadata:
   dependencies:
     "@stream-io/video-client": "workspace:^"
     "@vitejs/plugin-basic-ssl": ^1.0.1
-    js-base64: ^3.7.5
     typescript: ^5.5.2
     vite: ^5.4.6
   languageName: unknown
