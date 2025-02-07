@@ -74,6 +74,14 @@ export class Publisher extends BasePeerConnection {
   }
 
   /**
+   * Disposes this Publisher instance.
+   */
+  dispose() {
+    super.dispose();
+    this.stopAllTracks();
+  }
+
+  /**
    * Starts publishing the given track of the given media stream.
    *
    * Consecutive calls to this method will replace the stream.
@@ -98,7 +106,9 @@ export class Publisher extends BasePeerConnection {
       if (!transceiver) {
         this.addTransceiver(trackToPublish, publishOption);
       } else {
+        const previousTrack = transceiver.sender.track;
         await transceiver.sender.replaceTrack(trackToPublish);
+        previousTrack?.stop();
       }
     }
   };
@@ -199,6 +209,15 @@ export class Publisher extends BasePeerConnection {
     for (const item of this.transceiverCache.items()) {
       const { publishOption, transceiver } = item;
       if (!trackTypes.includes(publishOption.trackType)) continue;
+      transceiver.sender.track?.stop();
+    }
+  };
+
+  /**
+   * Stops all the cloned tracks that are being published to the SFU.
+   */
+  stopAllTracks = () => {
+    for (const { transceiver } of this.transceiverCache.items()) {
       transceiver.sender.track?.stop();
     }
   };

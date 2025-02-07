@@ -75,12 +75,12 @@ export abstract class BasePeerConnection {
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
-  dispose = () => {
+  dispose() {
     this.onUnrecoverableError = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
-  };
+  }
 
   /**
    * Detaches the event handlers from the `RTCPeerConnection`.

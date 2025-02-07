@@ -124,6 +124,8 @@ describe('Publisher', () => {
       vi.spyOn(track, 'clone').mockReturnValue(clone);
 
       const transceiver = new RTCRtpTransceiver();
+      // @ts-ignore test setup
+      transceiver.sender.track = track;
       publisher['transceiverCache'].add(
         publisher['publishOptions'][0],
         transceiver,
@@ -134,6 +136,7 @@ describe('Publisher', () => {
       expect(track.clone).toHaveBeenCalled();
       expect(publisher['pc'].addTransceiver).not.toHaveBeenCalled();
       expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+      expect(track.stop).toHaveBeenCalled();
     });
   });
 
@@ -699,6 +702,13 @@ describe('Publisher', () => {
       const track = cache['cache'][0].transceiver.sender.track;
       vi.spyOn(track, 'stop');
       publisher.stopTracks(TrackType.VIDEO);
+      expect(track!.stop).toHaveBeenCalled();
+    });
+
+    it('stopAllTracks should stop all tracks', () => {
+      const track = cache['cache'][0].transceiver.sender.track;
+      vi.spyOn(track, 'stop');
+      publisher.stopAllTracks();
       expect(track!.stop).toHaveBeenCalled();
     });
   });
