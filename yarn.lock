@@ -8082,7 +8082,7 @@ __metadata:
     "@react-native-firebase/messaging": 21.6.0
     "@rnx-kit/metro-config": ^1.3.14
     "@rnx-kit/metro-resolver-symlinks": ^0.1.34
-    "@stream-io/react-native-webrtc": 125.0.3
+    "@stream-io/react-native-webrtc": ^125.0.4
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": ~18.3.12
     "@types/react-native-incall-manager": ^4
@@ -8168,16 +8168,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:125.0.3, @stream-io/react-native-webrtc@npm:^125.0.3":
-  version: 125.0.3
-  resolution: "@stream-io/react-native-webrtc@npm:125.0.3"
+"@stream-io/react-native-webrtc@npm:^125.0.4":
+  version: 125.0.4
+  resolution: "@stream-io/react-native-webrtc@npm:125.0.4"
   dependencies:
     base64-js: 1.5.1
     debug: 4.3.4
     event-target-shim: 6.0.2
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 23191eb5d9f2d7daa71052d5321cbcd8aa93c92193f3541c3c710086283962604b5c160c0fa8fc84b518e088b836210766594fa16ee9df06c3f3d463290f6f89
+  checksum: 3f26100800a4859d41621a37f7cd68d68e90dd536ca70fb70725846aae6cc4d556e21c3fc16c110a02ed95c46d3c3c0be1cdd5a2b7a5d01f7068682a43c6071e
   languageName: node
   linkType: hard
 
@@ -8254,7 +8254,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
-    "@stream-io/react-native-webrtc": ^125.0.3
+    "@stream-io/react-native-webrtc": ^125.0.4
     react-native: 0.74.1
     react-native-builder-bob: ^0.23.2
     rimraf: ^5.0.7
@@ -8395,7 +8395,7 @@ __metadata:
     "@rnx-kit/babel-preset-metro-react-native": ^1.1.3
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
-    "@stream-io/react-native-webrtc": 125.0.3
+    "@stream-io/react-native-webrtc": ^125.0.4
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/eslint": ^8.56.10
@@ -8447,7 +8447,7 @@ __metadata:
     "@react-native-firebase/app": 19.2.2
     "@react-native-firebase/messaging": 19.2.2
     "@react-native/eslint-config": ^0.74.84
-    "@stream-io/react-native-webrtc": 125.0.3
+    "@stream-io/react-native-webrtc": ^125.0.4
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"
@@ -8489,7 +8489,7 @@ __metadata:
     "@react-native-community/push-notification-ios": ">=1.11.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
-    "@stream-io/react-native-webrtc": ">=125.0.3"
+    "@stream-io/react-native-webrtc": ">=125.0.4"
     "@stream-io/video-filters-react-native": ">=0.1.0"
     expo: ">=47.0.0"
     expo-build-properties: "*"
