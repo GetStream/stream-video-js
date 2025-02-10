@@ -1,7 +1,12 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import { StreamVideoRN } from '../utils';
-import { AppState, AppStateStatus, Platform } from 'react-native';
+import {
+  NativeModules,
+  AppState,
+  AppStateStatus,
+  Platform,
+} from 'react-native';
 import { CallingState, getLogger } from '@stream-io/video-client';
 import {
   getNotifeeLibNoThrowForKeepCallAlive,
@@ -11,12 +16,25 @@ import {
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
 function setForegroundService() {
-  notifeeLib?.default.registerForegroundService(() => {
-    return new Promise(() => {
-      const logger = getLogger(['setForegroundService method']);
-      logger('info', 'Foreground service running for call in progress');
-    });
-  });
+  if (!notifeeLib) return;
+  NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
+    (isConfigured: boolean) => {
+      if (!isConfigured) {
+        const logger = getLogger(['setForegroundService method']);
+        logger(
+          'info',
+          'Skipping KeepCallAlive foreground service setup as it is not configured properly'
+        );
+        return;
+      }
+      notifeeLib.default.registerForegroundService(() => {
+        return new Promise(() => {
+          const logger = getLogger(['setForegroundService method']);
+          logger('info', 'Foreground service running for call in progress');
+        });
+      });
+    }
+  );
 }
 
 async function startForegroundService(call_cid: string) {
@@ -25,6 +43,16 @@ async function startForegroundService(call_cid: string) {
 
   // check for notification permission and then start the foreground service
   if (!notifeeLib) return;
+  const isCallAliveConfigured =
+    await NativeModules.StreamVideoReactNative.isCallAliveConfigured();
+  if (!isCallAliveConfigured) {
+    const logger = getLogger(['startForegroundService']);
+    logger(
+      'info',
+      'Skipping KeepCallAlive foreground service setup as it is not configured properly'
+    );
+    return;
+  }
   const settings = await notifeeLib.default.getNotificationSettings();
   if (
     settings.authorizationStatus !== notifeeLib.AuthorizationStatus.AUTHORIZED

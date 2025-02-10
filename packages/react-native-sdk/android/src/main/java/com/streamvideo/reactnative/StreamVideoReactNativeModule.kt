@@ -12,6 +12,8 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
+import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.RingtoneUtil
 
@@ -56,6 +58,22 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(PiPHelper.isInPiPMode(reactApplicationContext))
         } else {
             promise.resolve(false)
+        }
+    }
+
+    @ReactMethod
+    fun isCallAliveConfigured(promise: Promise) {
+        val permissionsDeclared =
+            CallAlivePermissionsHelper.hasForegroundServicePermissionsDeclared(reactApplicationContext)
+        if (!permissionsDeclared) {
+            promise.resolve(false)
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val isForegroundServiceDeclared = CallAliveServiceChecker.isForegroundServiceDeclared(reactApplicationContext)
+            promise.resolve(isForegroundServiceDeclared)
+        } else {
+            promise.resolve(true)
         }
     }
 
