@@ -137,6 +137,17 @@ export const firebaseDataHandler = async (
   if (!pushConfig || !data || data.sender !== 'stream.video') {
     return;
   }
+  const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
+  const notifee = notifeeLib.default;
+  const settings = await notifee.getNotificationSettings();
+  if (settings.authorizationStatus !== 1) {
+    const logger = getLogger(['firebaseDataHandler']);
+    logger(
+      'debug',
+      `Notification permission not granted, unable to post ${data.type} notifications`
+    );
+    return;
+  }
 
   if (data.type === 'call.ring') {
     const call_cid = data.call_cid as string;
@@ -156,9 +167,6 @@ export const firebaseDataHandler = async (
       canAddPushWSSubscriptionsRef.current &&
       AppState.currentState !== 'active';
     const asForegroundService = canListenToWS();
-
-    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-    const notifee = notifeeLib.default;
 
     if (asForegroundService) {
       // Listen to call events from WS through fg service
@@ -325,8 +333,6 @@ export const firebaseDataHandler = async (
       notifee.cancelDisplayedNotification(call_cid);
     }
   } else {
-    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-    const notifee = notifeeLib.default;
     // the other types are call.live_started and call.notification
     const callChannel = pushConfig.android.callChannel;
     const callNotificationTextGetters =
