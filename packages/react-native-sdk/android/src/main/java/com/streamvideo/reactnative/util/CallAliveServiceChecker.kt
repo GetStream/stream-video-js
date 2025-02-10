@@ -36,7 +36,7 @@ object CallAliveServiceChecker {
             if (actualForegroundServiceType == expectedForegroundServiceTypes) {
                 return true
             } else {
-                Log.d(
+                Log.w(
                     NAME,
                     "android:foregroundServiceType does not match: expected=${
                         foregroundServiceTypeToString(
