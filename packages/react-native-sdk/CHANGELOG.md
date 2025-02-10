@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.25...@stream-io/video-react-native-sdk-1.9.26) (2025-02-10)
+
+
+### Bug Fixes
+
+* attempt workaround for bad notification for start foreground ([402ff06](https://github.com/GetStream/stream-video-js/commit/402ff067f05364724f30dbd21af996336d1dfa2f))
+
 ## [1.9.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.24...@stream-io/video-react-native-sdk-1.9.25) (2025-02-07)
 
 ### Dependency Updates
