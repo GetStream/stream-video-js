@@ -31,6 +31,7 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
  */
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
+  private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
 
   /**
@@ -79,6 +80,7 @@ export class Publisher extends BasePeerConnection {
   dispose() {
     super.dispose();
     this.stopAllTracks();
+    this.clonedTracks.clear();
   }
 
   /**
@@ -100,7 +102,7 @@ export class Publisher extends BasePeerConnection {
 
       // create a clone of the track as otherwise the same trackId will
       // appear in the SDP in multiple transceivers
-      const trackToPublish = track.clone();
+      const trackToPublish = this.cloneTrack(track);
 
       const transceiver = this.transceiverCache.get(publishOption);
       if (!transceiver) {
@@ -108,7 +110,7 @@ export class Publisher extends BasePeerConnection {
       } else {
         const previousTrack = transceiver.sender.track;
         await transceiver.sender.replaceTrack(trackToPublish);
-        previousTrack?.stop();
+        this.stopTrack(previousTrack);
       }
     }
   };
@@ -153,7 +155,7 @@ export class Publisher extends BasePeerConnection {
 
       // take the track from the existing transceiver for the same track type,
       // clone it and publish it with the new publish options
-      const track = item.transceiver.sender.track!.clone();
+      const track = this.cloneTrack(item.transceiver.sender.track!);
       this.addTransceiver(track, publishOption);
     }
 
@@ -167,7 +169,7 @@ export class Publisher extends BasePeerConnection {
       );
       if (hasPublishOption) continue;
       // it is safe to stop the track here, it is a clone
-      transceiver.sender.track?.stop();
+      this.stopTrack(transceiver.sender.track);
       await transceiver.sender.replaceTrack(null);
     }
   };
@@ -209,7 +211,7 @@ export class Publisher extends BasePeerConnection {
     for (const item of this.transceiverCache.items()) {
       const { publishOption, transceiver } = item;
       if (!trackTypes.includes(publishOption.trackType)) continue;
-      transceiver.sender.track?.stop();
+      this.stopTrack(transceiver.sender.track);
     }
   };
 
@@ -218,7 +220,10 @@ export class Publisher extends BasePeerConnection {
    */
   stopAllTracks = () => {
     for (const { transceiver } of this.transceiverCache.items()) {
-      transceiver.sender.track?.stop();
+      this.stopTrack(transceiver.sender.track);
+    }
+    for (const track of this.clonedTracks) {
+      this.stopTrack(track);
     }
   };
 
@@ -432,5 +437,17 @@ export class Publisher extends BasePeerConnection {
       codec: publishOption.codec,
       publishOptionId: publishOption.id,
     };
+  };
+
+  private cloneTrack = (track: MediaStreamTrack): MediaStreamTrack => {
+    const clone = track.clone();
+    this.clonedTracks.add(clone);
+    return clone;
+  };
+
+  private stopTrack = (track: MediaStreamTrack | null | undefined) => {
+    if (!track) return;
+    track.stop();
+    this.clonedTracks.delete(track);
   };
 }

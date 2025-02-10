@@ -116,6 +116,7 @@ describe('Publisher', () => {
           },
         ],
       });
+      expect(publisher['clonedTracks'].size).toBe(1);
     });
 
     it('should update an existing transceiver for a new track', async () => {
@@ -597,10 +598,22 @@ describe('Publisher', () => {
       );
       vi.spyOn(inactiveTrack, 'readyState', 'get').mockReturnValue('ended');
 
+      const audioTransceiver = new RTCRtpTransceiver();
+      const audioTrack = new MediaStreamTrack();
+      vi.spyOn(audioTrack, 'kind', 'get').mockReturnValue('audio');
+      vi.spyOn(audioTrack, 'enabled', 'get').mockReturnValue(true);
+      vi.spyOn(audioTransceiver.sender, 'track', 'get').mockReturnValue(
+        audioTrack,
+      );
+
       // @ts-expect-error incomplete data
       cache.add({ trackType: TrackType.VIDEO, id: 1 }, transceiver);
       // @ts-expect-error incomplete data
       cache.add({ trackType: TrackType.VIDEO, id: 2 }, inactiveTransceiver);
+      // @ts-expect-error incomplete data
+      cache.add({ trackType: TrackType.AUDIO, id: 3 }, audioTransceiver);
+
+      publisher['clonedTracks'].add(track).add(inactiveTrack).add(audioTrack);
     });
 
     it('negotiate should set up the local and remote descriptions', async () => {
@@ -666,13 +679,13 @@ describe('Publisher', () => {
 
     it('getPublishedTracks returns the published tracks', () => {
       const tracks = publisher.getPublishedTracks();
-      expect(tracks).toHaveLength(1);
+      expect(tracks).toHaveLength(2);
       expect(tracks[0].readyState).toBe('live');
     });
 
     it('getAnnouncedTracks should return all tracks', () => {
       const trackInfos = publisher.getAnnouncedTracks('');
-      expect(trackInfos).toHaveLength(2);
+      expect(trackInfos).toHaveLength(3);
       expect(trackInfos[0].muted).toBe(false);
       expect(trackInfos[0].mid).toBe('0');
       expect(trackInfos[1].muted).toBe(true);
@@ -701,15 +714,19 @@ describe('Publisher', () => {
     it('stopTracks should stop tracks', () => {
       const track = cache['cache'][0].transceiver.sender.track;
       vi.spyOn(track, 'stop');
+      expect(publisher['clonedTracks'].size).toBe(3);
       publisher.stopTracks(TrackType.VIDEO);
       expect(track!.stop).toHaveBeenCalled();
+      expect(publisher['clonedTracks'].size).toBe(1);
     });
 
     it('stopAllTracks should stop all tracks', () => {
       const track = cache['cache'][0].transceiver.sender.track;
       vi.spyOn(track, 'stop');
+      expect(publisher['clonedTracks'].size).toBe(3);
       publisher.stopAllTracks();
       expect(track!.stop).toHaveBeenCalled();
+      expect(publisher['clonedTracks'].size).toBe(0);
     });
   });
 });
