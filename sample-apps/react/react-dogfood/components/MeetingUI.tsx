@@ -125,7 +125,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (call.state.callingState !== CallingState.LEFT) {
         await call.leave();
       }
-      setShow('lobby');
+      setShow('left');
     });
   }, [call, router]);
 
