@@ -16,14 +16,14 @@ import {
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
 function setForegroundService() {
-  if (!notifeeLib) return;
+  if (Platform.OS === 'ios' || !notifeeLib) return;
   NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
     (isConfigured: boolean) => {
       if (!isConfigured) {
         const logger = getLogger(['setForegroundService method']);
         logger(
           'info',
-          'Skipping KeepCallAlive foreground service setup as it is not configured properly'
+          'KeepCallAlive is not configured. Skipping foreground service setup.'
         );
         return;
       }
@@ -49,7 +49,7 @@ async function startForegroundService(call_cid: string) {
     const logger = getLogger(['startForegroundService']);
     logger(
       'info',
-      'Skipping KeepCallAlive foreground service setup as it is not configured properly'
+      'KeepCallAlive is not configured. Skipping foreground service setup.'
     );
     return;
   }
