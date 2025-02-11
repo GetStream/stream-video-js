@@ -37,16 +37,25 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
       if (isReactNative()) {
         const videoTrack = this.getTracks()[0];
         if (!videoTrack) return;
-        // @ts-expect-error _switchCamera() is only present in react-native-webrtc 124 and below
-        if (typeof videoTrack._switchCamera === 'function') {
-          // @ts-expect-error for older versions of react-native-webrtc support
-          videoTrack._switchCamera();
-        } else {
+        try {
           const constraints = {
             facingMode: direction === 'front' ? 'user' : 'environment',
           };
           await videoTrack.applyConstraints(constraints);
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            error.message === 'Not implemented.' &&
+            // @ts-expect-error older webrtc versions did not have applyConstraints so instead we use _switchCamera
+            typeof videoTrack._switchCamera === 'function'
+          ) {
+            // @ts-expect-error for older versions of react-native-webrtc support
+            videoTrack._switchCamera();
+          } else {
+            throw error;
+          }
         }
+
         this.state.setDirection(direction);
         this.state.setDevice(undefined);
       } else {
