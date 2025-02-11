@@ -41,10 +41,14 @@ object CallAlivePermissionsHelper {
                 }
             }
         } catch (e: PackageManager.NameNotFoundException) {
-            // Package not found (shouldn't happen for the current app)
-            e.printStackTrace()
+            // do nothing, this can never happen actually
+            Log.e(
+                NAME,
+                "Package not found: $packageName",
+                e
+            )
         }
-        return false // Default to false if something goes wrong or no permissions found
+        return false
     }
 
 }
