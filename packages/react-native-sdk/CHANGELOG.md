@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.27...@stream-io/video-react-native-sdk-1.9.28) (2025-02-11)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.16.6`
+* `@stream-io/video-react-bindings` updated to version `1.4.14`
+* `@stream-io/video-filters-react-native` updated to version `0.2.7`
+
+### Bug Fixes
+
+* prefer the async apply constraints for flip ([#1679](https://github.com/GetStream/stream-video-js/issues/1679)) ([8c246cc](https://github.com/GetStream/stream-video-js/commit/8c246cc4e9f1ac766366cf24b82dd99aa868017d))
+
 ## [1.9.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.26...@stream-io/video-react-native-sdk-1.9.27) (2025-02-10)
 
 ### Dependency Updates
