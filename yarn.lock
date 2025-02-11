@@ -8082,7 +8082,7 @@ __metadata:
     "@react-native-firebase/messaging": 21.6.0
     "@rnx-kit/metro-config": ^1.3.14
     "@rnx-kit/metro-resolver-symlinks": ^0.1.34
-    "@stream-io/react-native-webrtc": ^125.0.4
+    "@stream-io/react-native-webrtc": ^125.0.5
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": ~18.3.12
     "@types/react-native-incall-manager": ^4
@@ -8165,19 +8165,6 @@ __metadata:
     jsonwebtoken: ^9.0.2
     uuid: ^9.0.1
   checksum: 1e4e6b78f9789c0d2ba6fe91f453d22998bebf9b7df053b5216b1f2c3c88682e6ccaf2f662740d6938595ed44550e9b1ae2595283b89d4780869ceaf4ac5c727
-  languageName: node
-  linkType: hard
-
-"@stream-io/react-native-webrtc@npm:^125.0.4":
-  version: 125.0.4
-  resolution: "@stream-io/react-native-webrtc@npm:125.0.4"
-  dependencies:
-    base64-js: 1.5.1
-    debug: 4.3.4
-    event-target-shim: 6.0.2
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: 3f26100800a4859d41621a37f7cd68d68e90dd536ca70fb70725846aae6cc4d556e21c3fc16c110a02ed95c46d3c3c0be1cdd5a2b7a5d01f7068682a43c6071e
   languageName: node
   linkType: hard
 
@@ -8266,7 +8253,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
-    "@stream-io/react-native-webrtc": ^125.0.4
+    "@stream-io/react-native-webrtc": ^125.0.5
     react-native: 0.74.1
     react-native-builder-bob: ^0.23.2
     rimraf: ^5.0.7
@@ -8407,7 +8394,7 @@ __metadata:
     "@rnx-kit/babel-preset-metro-react-native": ^1.1.3
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
-    "@stream-io/react-native-webrtc": ^125.0.4
+    "@stream-io/react-native-webrtc": ^125.0.5
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/eslint": ^8.56.10
