@@ -169,15 +169,26 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   return stream;
 };
 
-function isOverconstrainedError(error: unknown) {
-  return (
-    error &&
-    typeof error === 'object' &&
-    (('name' in error && error.name === 'OverconstrainedError') ||
-      ('message' in error &&
-        typeof error.message === 'string' &&
-        error.message.startsWith('OverconstrainedError')))
-  );
+function isNotFoundOrOverconstrainedError(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  if ('name' in error && typeof error.name === 'string') {
+    const name = error.name;
+    if (['OverconstrainedError', 'NotFoundError'].includes(name)) {
+      return true;
+    }
+  }
+
+  if ('message' in error && typeof error.message === 'string') {
+    const message = error.message;
+    if (message.startsWith('OverconstrainedError')) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -205,7 +216,7 @@ export const getAudioStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
+    if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -247,7 +258,7 @@ export const getVideoStream = async (
     });
     return await getStream(constraints);
   } catch (error) {
-    if (isOverconstrainedError(error) && trackConstraints?.deviceId) {
+    if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
