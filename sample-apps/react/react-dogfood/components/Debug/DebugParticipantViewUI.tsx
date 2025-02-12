@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import clsx from 'clsx';
 import {
   DefaultParticipantViewUI,
   GenericMenu,
@@ -34,9 +35,16 @@ export const DebugParticipantViewUI = () => {
   const isDebug = useIsDebugMode();
   if (!isDebug) {
     return (
-      <DefaultParticipantViewUI
-        ParticipantActionsContextMenu={participantContextMenuActions}
-      />
+      <div
+        className={clsx(
+          'rd__debug__participant-view',
+          isDemoEnvironment && 'rd__debug__participant-view--hide-elements',
+        )}
+      >
+        <DefaultParticipantViewUI
+          ParticipantActionsContextMenu={participantContextMenuActions}
+        />
+      </div>
     );
   }
   return (
