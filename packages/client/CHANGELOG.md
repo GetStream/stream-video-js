@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.6...@stream-io/video-client-1.16.7) (2025-02-12)
+
+
+### Bug Fixes
+
+* relax device constraints on NotFoundError DOMException ([#1680](https://github.com/GetStream/stream-video-js/issues/1680)) ([c682908](https://github.com/GetStream/stream-video-js/commit/c682908408395f6863fd1549958cf4203bcc7f32))
+
 ## [1.16.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.5...@stream-io/video-client-1.16.6) (2025-02-11)
 
 
