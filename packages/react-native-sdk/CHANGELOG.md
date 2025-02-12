@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.28...@stream-io/video-react-native-sdk-1.9.29) (2025-02-12)
+
+
+### Bug Fixes
+
+* warn natively if notifee is not configured for keep call alive ([#1678](https://github.com/GetStream/stream-video-js/issues/1678)) ([f6f11ad](https://github.com/GetStream/stream-video-js/commit/f6f11ad5f691ce56f65d824e1ab12c6ebc7540c4)), closes [#1587](https://github.com/GetStream/stream-video-js/issues/1587)
+
 ## [1.9.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.27...@stream-io/video-react-native-sdk-1.9.28) (2025-02-11)
 
 ### Dependency Updates
