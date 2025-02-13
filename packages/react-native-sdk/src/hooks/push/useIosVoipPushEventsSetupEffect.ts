@@ -94,9 +94,19 @@ export const useIosVoipPushEventsSetupEffect = () => {
       return;
     }
     const voipPushNotification = getVoipPushNotificationLib();
+
+    // even though we do this natively, we have to still register here again
+    // natively this will make sure "register" event for JS is sent with the last push token
+    // Necessary if client changed before we got the event here or user logged out and logged in again
+    voipPushNotification.registerVoipToken();
+
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
       if (!userId) {
+        logger(
+          'debug',
+          `Skipped sending voip token to stream no user id was present - token: ${token}`
+        );
         setUnsentToken(token);
         return;
       }
@@ -112,11 +122,17 @@ export const useIosVoipPushEventsSetupEffect = () => {
       if (!push_provider_name) {
         return;
       }
-      logger('debug', 'Sending voip token to stream, token: ' + token);
+      logger(
+        'debug',
+        `Sending voip token to stream, token: ${token} userId: ${userId}`
+      );
       client
         .addVoipDevice(token, 'apn', push_provider_name)
         .then(() => {
-          logger('debug', 'Sent voip token to stream, token: ' + token);
+          logger(
+            'debug',
+            `Sent voip token to stream, token: ${token} userId: ${userId}`
+          );
           setLogoutCallback(client, token, lastVoipTokenRef);
           lastVoipTokenRef.current = { token, userId };
         })
@@ -145,6 +161,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
       }
     });
     return () => {
+      logger(
+        'debug',
+        'Voip event listeners are removed for user: ' +
+          client.streamClient._user?.id
+      );
       voipPushNotification.removeEventListener('didLoadWithEvents');
       voipPushNotification.removeEventListener('register');
     };
