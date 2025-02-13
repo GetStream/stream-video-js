@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.30...@stream-io/video-react-native-sdk-1.9.31) (2025-02-13)
+
+
+### Bug Fixes
+
+* voip token not able to be got if user switched ([#1683](https://github.com/GetStream/stream-video-js/issues/1683)) ([8f2a376](https://github.com/GetStream/stream-video-js/commit/8f2a37663fbc88701a1ce526acaf5a4e4c3afbc3))
+
 ## [1.9.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.29...@stream-io/video-react-native-sdk-1.9.30) (2025-02-12)
 
 ### Dependency Updates
