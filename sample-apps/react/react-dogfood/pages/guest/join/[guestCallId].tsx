@@ -55,7 +55,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       token: tokenToUse,
       options: {
         logLevel: 'debug',
-        logger: customSentryLogger,
+        logger: customSentryLogger(),
         transformRequest: defaultRequestTransformers,
         transformResponse: defaultResponseTransformers,
       },
