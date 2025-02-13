@@ -1,0 +1,49 @@
+.rd__leave{
+  .rd__sdks{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--str-video__spacing-xs);
+
+
+
+
+    @include respond-above(sm) {
+      gap: var(--str-video__spacing-sm);
+    }
+
+    @include respond-above(md) {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+
+
+    &--link{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 65px;
+      width: 57px;
+
+      @include respond-above(sm) {
+        width: auto;
+      }
+
+      @include respond-above(md) {
+        justify-content: center;
+        width: 65px;
+      }
+
+      &-icon{
+        padding: var(--str-video__spacing-lg) var(--str-video__spacing-sm);
+
+        .str-video__icon{
+          height: 32px;
+          width: 32px;
+        }
+      }
+    }
+  }
+}
