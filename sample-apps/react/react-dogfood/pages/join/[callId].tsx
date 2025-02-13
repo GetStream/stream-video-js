@@ -136,7 +136,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       // @ts-ignore - for debugging
       window.client = undefined;
     };
-  }, [credentials, tokenProvider, user]);
+  }, [credentials, isProntoStaging, tokenProvider, user]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey: credentials?.apiKey,
