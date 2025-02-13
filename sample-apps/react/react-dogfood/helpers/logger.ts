@@ -8,26 +8,26 @@ logLevelMapping.set('info', 'info');
 logLevelMapping.set('warn', 'warning');
 logLevelMapping.set('error', 'error');
 
-export const customSentryLogger: Logger = (
-  logLevel: LogLevel,
-  message: string,
-  ...args: unknown[]
-) => {
-  if (logLevel === 'error') {
-    Sentry.captureEvent({
-      level: logLevelMapping.get(logLevel),
-      message,
-    });
-  }
+export const customSentryLogger =
+  (opts: { enableVerboseLogging?: boolean } = {}): Logger =>
+  (logLevel: LogLevel, message: string, ...args: unknown[]) => {
+    if (logLevel === 'error') {
+      Sentry.captureEvent({
+        level: logLevelMapping.get(logLevel),
+        message,
+      });
+    }
 
-  if (
-    message.startsWith('[Dispatcher]') &&
-    /audioLevelChanged|dominantSpeakerChanged/.test(message)
-  ) {
-    // reduce noise from audioLevelChanged and dominantSpeakerChanged events
-    return;
-  }
+    const { enableVerboseLogging = false } = opts;
+    if (
+      enableVerboseLogging &&
+      message.startsWith('[Dispatcher]') &&
+      /audioLevelChanged|dominantSpeakerChanged/.test(message)
+    ) {
+      // reduce noise from audioLevelChanged and dominantSpeakerChanged events
+      return;
+    }
 
-  // Call the SDK's default log method
-  logToConsole(logLevel, message, ...args);
-};
+    // Call the SDK's default log method
+    logToConsole(logLevel, message, ...args);
+  };

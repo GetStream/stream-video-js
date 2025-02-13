@@ -50,7 +50,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   // support for connecting to any application using an API key and user token
   const apiKeyOverride = !!router.query['api_key'];
-
+  const isProntoStaging = useAppEnvironment() === 'pronto-staging';
   const isDemoEnvironment = useIsDemoEnvironment();
   useEffect(() => {
     if (!isDemoEnvironment) return;
@@ -118,7 +118,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       options: {
         baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
         logLevel: 'debug',
-        logger: customSentryLogger,
+        logger: customSentryLogger({ enableVerboseLogging: isProntoStaging }),
         transformRequest: defaultRequestTransformers,
         transformResponse: defaultResponseTransformers,
       },
