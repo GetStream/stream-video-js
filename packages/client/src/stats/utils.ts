@@ -1,4 +1,4 @@
-import { LocalClientDetailsType } from '../client-details';
+import { type LocalClientDetailsType } from '../helpers/client-details';
 import { Sdk, SdkType } from '../gen/video/sfu/models/models';
 
 /**

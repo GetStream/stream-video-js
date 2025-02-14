@@ -6,9 +6,9 @@ import {
   OS,
   Sdk,
   SdkType,
-} from './gen/video/sfu/models/models';
-import { SendStatsRequest } from './gen/video/sfu/signal_rpc/signal';
-import { isReactNative } from './helpers/platforms';
+} from '../gen/video/sfu/models/models';
+import { SendStatsRequest } from '../gen/video/sfu/signal_rpc/signal';
+import { isReactNative } from './platforms';
 import { UAParser } from 'ua-parser-js';
 
 type WebRTCInfoType = {

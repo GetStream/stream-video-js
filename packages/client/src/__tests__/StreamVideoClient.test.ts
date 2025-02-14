@@ -112,4 +112,89 @@ describe('StreamVideoClient', () => {
   afterEach(() => {
     client.disconnectUser();
   });
+
+  describe('StreamVideoClient.getOrCreateInstance', () => {
+    afterEach(() => {
+      // @ts-expect-error - private field
+      StreamVideoClient._instances.clear();
+    });
+
+    it('throws an error if userId is not provided except for anon users', () => {
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({ apiKey, user: { id: '' } });
+      }).toThrow();
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { type: 'anonymous' },
+        });
+      }).not.toThrow();
+    });
+
+    it('throws an error if token or token provider is not provided for authenticated users', () => {
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { id: 'jane', type: 'authenticated' },
+        });
+      }).toThrow();
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { id: 'jane', type: 'guest' },
+        });
+      }).not.toThrow();
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { type: 'anonymous' },
+        });
+      }).not.toThrow();
+    });
+
+    it('returns the same instance for the same userId and apiKey', () => {
+      const instance1 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: 'abc',
+      });
+      const instance2 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: 'abc',
+      });
+      expect(instance1).toBe(instance2);
+    });
+
+    it('returns different instances for different userIds', () => {
+      const instance1 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: 'abc',
+      });
+      const instance2 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'john' },
+        token: 'abc',
+      });
+      expect(instance1).not.toBe(instance2);
+    });
+
+    it('returns different instances if existing user is disconnected', async () => {
+      const instance1 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: 'abc',
+      });
+      await instance1.disconnectUser();
+
+      const instance2 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: 'abc',
+      });
+
+      expect(instance1).not.toBe(instance2);
+    });
+  });
 });
