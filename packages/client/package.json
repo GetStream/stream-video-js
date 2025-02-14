@@ -44,7 +44,7 @@
     "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/node-sdk": "^0.4.13",
     "@types/sdp-transform": "^2.4.9",
-    "@types/ua-parser-js": "^0.7.37",
+    "@types/ua-parser-js": "^0.7.39",
     "@vitest/coverage-v8": "^3.0.5",
     "dotenv": "^16.4.7",
     "happy-dom": "^11.0.2",

@@ -8422,7 +8422,7 @@ __metadata:
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/node-sdk": ^0.4.13
     "@types/sdp-transform": ^2.4.9
-    "@types/ua-parser-js": ^0.7.37
+    "@types/ua-parser-js": ^0.7.39
     "@vitest/coverage-v8": ^3.0.5
     axios: ^1.7.9
     dotenv: ^16.4.7
@@ -9468,10 +9468,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ua-parser-js@npm:^0.7.37":
-  version: 0.7.37
-  resolution: "@types/ua-parser-js@npm:0.7.37"
-  checksum: dde3733d30801d96959c73fd164c5431080f00bfa5b6bec79eff4726349c9832b3dbac5ce07dae29033cb8bb878b459d63ba25a31aee4e64b37272b90d1f1ca9
+"@types/ua-parser-js@npm:^0.7.39":
+  version: 0.7.39
+  resolution: "@types/ua-parser-js@npm:0.7.39"
+  checksum: 81046605eb2815b098228743b7dfde887cc8990369f2ad56e71f1400b4cef5078481c7ca91ca3dddf2e8d4e183fe93224bfdeee13bfe034a1e62d55cfbac9e26
   languageName: node
   linkType: hard
 
