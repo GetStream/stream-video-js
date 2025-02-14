@@ -99,21 +99,12 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     [fetchAuthDetails],
   );
 
-  const [credentials, setCredentials] = useState<CreateJwtTokenResponse>();
-  useEffect(() => {
-    const abortController = new AbortController();
-    fetchAuthDetails({ signal: abortController.signal })
-      .then((data) => setCredentials(data))
-      .catch((err) => console.log('Failed to fetch auth details', err));
-    return () => abortController.abort();
-  }, [fetchAuthDetails]);
-
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
-    if (!credentials) return;
     const _client = new StreamVideoClient({
-      apiKey: credentials.apiKey,
+      apiKey,
       user,
+      token: userToken,
       tokenProvider,
       options: {
         baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
@@ -136,10 +127,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       // @ts-ignore - for debugging
       window.client = undefined;
     };
-  }, [credentials, isProntoStaging, tokenProvider, user]);
+  }, [apiKey, isProntoStaging, tokenProvider, user, userToken]);
 
   const chatClient = useCreateStreamChatClient({
-    apiKey: credentials?.apiKey,
+    apiKey,
     tokenOrProvider: tokenProvider,
     userData: {
       id: '!anon',

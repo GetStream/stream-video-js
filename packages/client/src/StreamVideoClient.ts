@@ -22,18 +22,28 @@ import {
   AllClientEvents,
   ClientEventListener,
   Logger,
-  LogLevel,
   StreamClientOptions,
   TokenOrProvider,
   TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import {
+  createCoordinatorClient,
+  createTokenOrProvider,
+  getInstanceKey,
+} from './helpers/clientUtils';
 import { getLogger, logToConsole, setLogger } from './logger';
-import { getSdkInfo } from './client-details';
-import { SdkType } from './gen/video/sfu/models/models';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
+
+export type StreamVideoClientOptions = {
+  apiKey: string;
+  options?: StreamClientOptions;
+  user?: User;
+  token?: string;
+  tokenProvider?: TokenProvider;
+};
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -48,7 +58,6 @@ export class StreamVideoClient {
    * @deprecated use the `client.state` getter.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  readonly logLevel: LogLevel = 'warn';
   readonly logger: Logger;
 
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
@@ -59,131 +68,86 @@ export class StreamVideoClient {
     'connectionConcurrencyTag',
   );
 
-  private static _instanceMap: Map<string, StreamVideoClient> = new Map();
+  private static _instances = new Map<string, StreamVideoClient>();
 
   /**
    * You should create only one instance of `StreamVideoClient`.
    */
   constructor(apiKey: string, opts?: StreamClientOptions);
-  constructor(args: {
-    apiKey: string;
-    options?: StreamClientOptions;
-    user?: User;
-    token?: string;
-    tokenProvider?: TokenProvider;
-  });
+  constructor(args: StreamVideoClientOptions);
   constructor(
-    apiKeyOrArgs:
-      | string
-      | {
-          apiKey: string;
-          options?: StreamClientOptions;
-          user?: User;
-          token?: string;
-          tokenProvider?: TokenProvider;
-        },
+    apiKeyOrArgs: string | StreamVideoClientOptions,
     opts?: StreamClientOptions,
   ) {
-    let logger: Logger = logToConsole;
-    let logLevel: LogLevel = 'warn';
-    if (typeof apiKeyOrArgs === 'string') {
-      logLevel = opts?.logLevel || logLevel;
-      logger = opts?.logger || logger;
-      if (opts?.enableTimerWorker) enableTimerWorker();
-    } else {
-      logLevel = apiKeyOrArgs.options?.logLevel || logLevel;
-      logger = apiKeyOrArgs.options?.logger || logger;
-      if (apiKeyOrArgs.options?.enableTimerWorker) enableTimerWorker();
-    }
+    const apiKey =
+      typeof apiKeyOrArgs === 'string' ? apiKeyOrArgs : apiKeyOrArgs.apiKey;
+    const clientOptions =
+      typeof apiKeyOrArgs === 'string' ? opts : apiKeyOrArgs.options;
 
-    setLogger(logger, logLevel);
+    if (clientOptions?.enableTimerWorker) enableTimerWorker();
+
+    const rootLogger = clientOptions?.logger || logToConsole;
+    setLogger(rootLogger, clientOptions?.logLevel || 'warn');
+
     this.logger = getLogger(['client']);
-    const coordinatorLogger = getLogger(['coordinator']);
 
-    if (typeof apiKeyOrArgs === 'string') {
-      this.streamClient = new StreamClient(apiKeyOrArgs, {
-        persistUserOnConnectionFailure: true,
-        ...opts,
-        logLevel,
-        logger: coordinatorLogger,
-      });
-    } else {
-      this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
-        persistUserOnConnectionFailure: true,
-        ...apiKeyOrArgs.options,
-        logLevel,
-        logger: coordinatorLogger,
-      });
-
-      const sdkInfo = getSdkInfo();
-      if (sdkInfo) {
-        const sdkName = SdkType[sdkInfo.type].toLowerCase();
-        const sdkVersion = `${sdkInfo.major}.${sdkInfo.minor}.${sdkInfo.patch}`;
-        const userAgent = this.streamClient.getUserAgent();
-        this.streamClient.setUserAgent(
-          `${userAgent}-video-${sdkName}-sdk-${sdkVersion}`,
-        );
-      }
-    }
+    this.streamClient = createCoordinatorClient(apiKey, clientOptions);
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
 
-    if (typeof apiKeyOrArgs !== 'string') {
+    if (typeof apiKeyOrArgs !== 'string' && apiKeyOrArgs.user) {
       const user = apiKeyOrArgs.user;
-      const token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
-      if (user) {
-        let id = user.id;
-        if (user.type === 'anonymous') {
-          id = '!anon';
-        }
-        if (id) {
-          if (StreamVideoClient._instanceMap.has(apiKeyOrArgs.apiKey + id)) {
-            this.logger(
-              'warn',
-              `A StreamVideoClient already exists for ${user.type === 'anonymous' ? 'an anonymous user' : id}; Prefer using getOrCreateInstance method`,
-            );
-          }
-          user.id = id;
-          StreamVideoClient._instanceMap.set(apiKeyOrArgs.apiKey + id, this);
-        }
-        this.connectUser(user, token).catch((err) => {
-          this.logger('error', 'Failed to connect', err);
-        });
-      }
+      if (user.type === 'anonymous') user.id = '!anon';
+      if (user.id) this.registerClientInstance(apiKey, user);
+
+      const tokenOrProvider = createTokenOrProvider(apiKeyOrArgs);
+      this.connectUser(user, tokenOrProvider).catch((err) => {
+        this.logger('error', 'Failed to connect', err);
+      });
     }
   }
 
-  public static getOrCreateInstance(args: {
-    apiKey: string;
-    user: User;
-    token?: string;
-    tokenProvider?: TokenProvider;
-    options?: StreamClientOptions;
-  }): StreamVideoClient {
-    const user = args.user;
-    if (!user.id) {
-      if (args.user.type === 'anonymous') {
-        user.id = '!anon';
-      } else {
-        throw new Error('User ID is required for a non-anonymous user');
-      }
+  /**
+   * Gets or creates a StreamVideoClient instance based on the given options.
+   */
+  static getOrCreateInstance(
+    args: StreamVideoClientOptions & { user: User },
+  ): StreamVideoClient {
+    const { apiKey, user, token, tokenProvider } = args;
+    if (!user.id && user.type !== 'anonymous') {
+      throw new Error('user.id is required for a non-anonymous user');
     }
-    if (!args.token && !args.tokenProvider) {
-      if (args.user.type !== 'anonymous' && args.user.type !== 'guest') {
-        throw new Error(
-          'TokenProvider or token is required for a user that is not a guest or anonymous',
-        );
-      }
+
+    if (
+      !token &&
+      !tokenProvider &&
+      user.type !== 'anonymous' &&
+      user.type !== 'guest'
+    ) {
+      throw new Error(
+        'tokenProvider or token is required for a authenticated users',
+      );
     }
-    let instance = StreamVideoClient._instanceMap.get(args.apiKey + user.id);
-    if (!instance) {
-      instance = new StreamVideoClient({ ...args, user });
-    }
-    return instance;
+
+    return (
+      StreamVideoClient._instances.get(getInstanceKey(apiKey, user)) ||
+      new StreamVideoClient(args)
+    );
   }
+
+  private registerClientInstance = (apiKey: string, user: User) => {
+    const instanceKey = getInstanceKey(apiKey, user);
+    if (StreamVideoClient._instances.has(instanceKey)) {
+      this.logger(
+        'warn',
+        `A StreamVideoClient already exists for ${user.id}; Prefer using getOrCreateInstance method`,
+      );
+    }
+    StreamVideoClient._instances.set(instanceKey, this);
+  };
 
   /**
    * Return the reactive state store, use this if you want to be notified about changes to the client state
@@ -208,14 +172,10 @@ export class StreamVideoClient {
       user.id = '!anon';
       return this.connectAnonymousUser(user as UserWithId, token);
     }
-    let connectUser = () => {
-      return this.streamClient.connectUser(user, token);
-    };
-    if (user.type === 'guest') {
-      connectUser = async () => {
-        return this.streamClient.connectGuestUser(user);
-      };
-    }
+    const connectUser =
+      user.type === 'guest'
+        ? () => this.streamClient.connectGuestUser(user)
+        : () => this.streamClient.connectUser(user, token);
 
     const connectUserResponse = await withoutConcurrency(
       this.connectionConcurrencyTag,
@@ -228,29 +188,21 @@ export class StreamVideoClient {
 
     this.eventHandlersToUnregister.push(
       this.on('connection.changed', (event) => {
-        if (event.online) {
-          const callsToReWatch = this.writeableStateStore.calls
-            .filter((call) => call.watching)
-            .map((call) => call.cid);
+        if (!event.online) return;
 
-          this.logger(
-            'info',
-            `Rewatching calls after connection changed ${callsToReWatch.join(
-              ', ',
-            )}`,
-          );
-          if (callsToReWatch.length > 0) {
-            this.queryCalls({
-              watch: true,
-              filter_conditions: {
-                cid: { $in: callsToReWatch },
-              },
-              sort: [{ field: 'cid', direction: 1 }],
-            }).catch((err) => {
-              this.logger('error', 'Failed to re-watch calls', err);
-            });
-          }
-        }
+        const callsToReWatch = this.writeableStateStore.calls
+          .filter((call) => call.watching)
+          .map((call) => call.cid);
+        if (callsToReWatch.length <= 0) return;
+
+        this.logger('info', `Rewatching calls ${callsToReWatch.join(', ')}`);
+        this.queryCalls({
+          watch: true,
+          filter_conditions: { cid: { $in: callsToReWatch } },
+          sort: [{ field: 'cid', direction: 1 }],
+        }).catch((err) => {
+          this.logger('error', 'Failed to re-watch calls', err);
+        });
       }),
     );
 
@@ -320,17 +272,13 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    if (!this.streamClient.user) {
-      return;
-    }
-    const userId = this.streamClient.user?.id;
-    const apiKey = this.streamClient.key;
-    const disconnectUser = () => this.streamClient.disconnectUser(timeout);
+    const { user, key } = this.streamClient;
+    if (!user) return;
     await withoutConcurrency(this.connectionConcurrencyTag, () =>
-      disconnectUser(),
+      this.streamClient.disconnectUser(timeout),
     );
-    if (userId) {
-      StreamVideoClient._instanceMap.delete(apiKey + userId);
+    if (user.id) {
+      StreamVideoClient._instances.delete(getInstanceKey(key, user));
     }
     this.eventHandlersToUnregister.forEach((unregister) => unregister());
     this.eventHandlersToUnregister = [];
@@ -565,14 +513,12 @@ export class StreamVideoClient {
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
    */
-  protected connectAnonymousUser = async (
+  private connectAnonymousUser = async (
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
-    const connectAnonymousUser = () =>
-      this.streamClient.connectAnonymousUser(user, tokenOrProvider);
-    return await withoutConcurrency(this.connectionConcurrencyTag, () =>
-      connectAnonymousUser(),
+    return withoutConcurrency(this.connectionConcurrencyTag, () =>
+      this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );
   };
 }
