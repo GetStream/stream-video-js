@@ -129,7 +129,7 @@ import {
   RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
+import { getClientDetails } from './helpers/client-details';
 import { getLogger } from './logger';
 import {
   CameraManager,

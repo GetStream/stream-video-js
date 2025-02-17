@@ -8,7 +8,7 @@ import {
   getDeviceState,
   getWebRTCInfo,
   LocalClientDetailsType,
-} from '../client-details';
+} from '../helpers/client-details';
 import {
   InputDevices,
   WebsocketReconnectStrategy,
