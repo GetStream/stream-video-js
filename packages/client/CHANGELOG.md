@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.17.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.7...@stream-io/video-client-1.17.0) (2025-02-17)
+
+
+### Features
+
+* support static token and token provider at the same time ([#1685](https://github.com/GetStream/stream-video-js/issues/1685)) ([4365a3d](https://github.com/GetStream/stream-video-js/commit/4365a3dd0a14c98041982bde8be21258b8cfd571))
+
 ## [1.16.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.6...@stream-io/video-client-1.16.7) (2025-02-12)
 
 
