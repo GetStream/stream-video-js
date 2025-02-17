@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.11.10...@stream-io/video-react-sdk-1.12.0) (2025-02-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.17.0`
+* `@stream-io/video-filters-web` updated to version `0.1.7`
+* `@stream-io/video-react-bindings` updated to version `1.5.0`
+* `@stream-io/audio-filters-web` updated to version `0.2.3`
+
+### Features
+
+* support static token and token provider at the same time ([#1685](https://github.com/GetStream/stream-video-js/issues/1685)) ([4365a3d](https://github.com/GetStream/stream-video-js/commit/4365a3dd0a14c98041982bde8be21258b8cfd571))
+
 ## [1.11.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.11.9...@stream-io/video-react-sdk-1.11.10) (2025-02-12)
 
 ### Dependency Updates
