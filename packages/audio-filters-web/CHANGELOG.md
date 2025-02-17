@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.2.2...@stream-io/audio-filters-web-0.2.3) (2025-02-17)
+
+
+### Features
+
+* support static token and token provider at the same time ([#1685](https://github.com/GetStream/stream-video-js/issues/1685)) ([4365a3d](https://github.com/GetStream/stream-video-js/commit/4365a3dd0a14c98041982bde8be21258b8cfd571))
+
 ## [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.2.1...@stream-io/audio-filters-web-0.2.2) (2024-09-19)
 
 
