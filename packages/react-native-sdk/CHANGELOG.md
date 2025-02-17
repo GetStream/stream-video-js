@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.31...@stream-io/video-react-native-sdk-1.10.0) (2025-02-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.17.0`
+* `@stream-io/video-react-bindings` updated to version `1.5.0`
+* `@stream-io/video-filters-react-native` updated to version `0.2.8`
+
+* update webrtc deps ([6ea4861](https://github.com/GetStream/stream-video-js/commit/6ea4861eb1b390c82f6ea6d01d6c5e80bdab8b84))
+
+
+### Features
+
+* support static token and token provider at the same time ([#1685](https://github.com/GetStream/stream-video-js/issues/1685)) ([4365a3d](https://github.com/GetStream/stream-video-js/commit/4365a3dd0a14c98041982bde8be21258b8cfd571))
+
 ## [1.9.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.30...@stream-io/video-react-native-sdk-1.9.31) (2025-02-13)
 
 
