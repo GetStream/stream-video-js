@@ -102,6 +102,10 @@ export class StreamVideoRN {
     return Promise.resolve();
   }
 
+  static clearPushLogoutCallbacks() {
+    pushLogoutCallbacks.current = [];
+  }
+
   /**
    * This function is used to add a callback to be called when a new call notification is received.
    * @param callback
