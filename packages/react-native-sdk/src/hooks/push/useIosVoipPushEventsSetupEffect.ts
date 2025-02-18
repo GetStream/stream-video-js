@@ -24,6 +24,12 @@ import { RxUtils, StreamVideoClient, getLogger } from '@stream-io/video-client';
 
 const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
 
+/* VoipPushNotificationLib has support for only one listener type at a time
+ hence to support login and logout scenario of multiple users we keep of the last count of the listener that was added
+ This helps in not removing the listeners when a new user logs in and overrides the last listener
+*/
+let lastListenerCount = 0;
+
 function setLogoutCallback(
   client: StreamVideoClient,
   token: string,
@@ -160,12 +166,19 @@ export const useIosVoipPushEventsSetupEffect = () => {
         }
       }
     });
+    lastListenerCount += 1;
+    const currentListenerCount = lastListenerCount;
+
     return () => {
-      logger(
-        'debug',
-        'Voip event listeners are removed for user: ' +
-          client.streamClient._user?.id
-      );
+      const userId = client.streamClient._user?.id;
+      if (currentListenerCount !== lastListenerCount) {
+        logger(
+          'debug',
+          'Skipped removing voip event listeners for user: ' + userId
+        );
+        return;
+      }
+      logger('debug', 'Voip event listeners are removed for user: ' + userId);
       voipPushNotification.removeEventListener('didLoadWithEvents');
       voipPushNotification.removeEventListener('register');
     };
