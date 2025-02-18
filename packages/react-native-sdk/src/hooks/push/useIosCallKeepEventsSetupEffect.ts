@@ -4,7 +4,10 @@ import {
   voipPushNotificationCallCId$,
 } from '../../utils/push/internal/rxSubjects';
 import { getLogger, RxUtils } from '@stream-io/video-client';
-import { getCallKeepLib } from '../../utils/push/libs';
+import {
+  getCallKeepLib,
+  getVoipPushNotificationLib,
+} from '../../utils/push/libs';
 import { StreamVideoRN } from '../../utils/StreamVideoRN';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 import {
@@ -52,21 +55,22 @@ export const useIosCallKeepEventsSetupEffect = () => {
     const { remove: removeDisplayIncomingCall } = callkeep.addEventListener(
       'didDisplayIncomingCall',
       ({ callUUID, payload }) => {
+        const voipPushNotification = getVoipPushNotificationLib();
         // you might want to do following things when receiving this event:
         // - Start playing ringback if it is an outgoing call
         // @ts-expect-error
         const call_cid = payload?.call_cid as string | undefined;
-        if (!call_cid) {
-          return;
-        }
         logger(
           'debug',
-          `didDisplayIncomingCall event with call_cid: ${call_cid}`
+          `didDisplayIncomingCall event with callUUID: ${callUUID} call_cid: ${call_cid}`
         );
-        voipCallkeepCallOnForegroundMap$.next({
-          uuid: callUUID,
-          cid: call_cid,
-        });
+        if (call_cid) {
+          voipCallkeepCallOnForegroundMap$.next({
+            uuid: callUUID,
+            cid: call_cid,
+          });
+        }
+        voipPushNotification.onVoipNotificationCompleted(callUUID);
       }
     );
 

@@ -305,6 +305,4 @@ const onNotificationReceived = async (notification: any) => {
   // send the info to this subject, it is listened by callkeep events
   // callkeep events will then accept/reject the call
   voipPushNotificationCallCId$.next(call_cid);
-  const voipPushNotification = getVoipPushNotificationLib();
-  voipPushNotification.onVoipNotificationCompleted(uuid);
 };
