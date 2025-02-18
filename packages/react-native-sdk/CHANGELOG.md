@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.0...@stream-io/video-react-native-sdk-1.10.1) (2025-02-18)
+
+
+### Bug Fixes
+
+* do not remove voip listeners for wrong user ([#1686](https://github.com/GetStream/stream-video-js/issues/1686)) ([c6dd17d](https://github.com/GetStream/stream-video-js/commit/c6dd17d040bb84a388d773020a833cbe4b67b41c))
+
 ## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.9.31...@stream-io/video-react-native-sdk-1.10.0) (2025-02-17)
 
 ### Dependency Updates
