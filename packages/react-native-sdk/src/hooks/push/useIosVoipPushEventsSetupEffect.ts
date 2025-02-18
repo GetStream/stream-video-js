@@ -266,6 +266,8 @@ const onNotificationReceived = async (notification: any) => {
         `callkeep.reportEndCallWithUUID for uuid: ${uuid}, call_cid: ${call_cid}, reason: ${callkeepReason}`
       );
       callkeep.reportEndCallWithUUID(uuid, callkeepReason);
+      const voipPushNotification = getVoipPushNotificationLib();
+      voipPushNotification.onVoipNotificationCompleted(uuid);
       return true;
     }
     return false;
