@@ -38,7 +38,8 @@ function setForegroundService() {
 }
 
 async function startForegroundService(call_cid: string) {
-  const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
+  const videoConfig = StreamVideoRN.getConfig();
+  const foregroundServiceConfig = videoConfig.foregroundService;
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
 
   // check for notification permission and then start the foreground service
@@ -79,6 +80,7 @@ async function startForegroundService(call_cid: string) {
       body,
       android: {
         channelId,
+        smallIcon: videoConfig.push?.android.smallIcon,
         foregroundServiceTypes,
         asForegroundService: true,
         ongoing: true, // user cannot dismiss the notification

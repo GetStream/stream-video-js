@@ -279,6 +279,7 @@ export const firebaseDataHandler = async (
       data,
       android: {
         channelId,
+        smallIcon: pushConfig.android.smallIcon,
         importance: 4, // high importance
         foregroundServiceTypes: getIncomingCallForegroundServiceTypes(),
         asForegroundService,
@@ -365,6 +366,7 @@ export const firebaseDataHandler = async (
       data,
       android: {
         sound: callChannel.sound,
+        smallIcon: pushConfig.android.smallIcon,
         vibrationPattern: callChannel.vibrationPattern,
         channelId,
         importance: 4, // high importance
