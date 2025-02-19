@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.3...@stream-io/video-react-native-sdk-1.10.4) (2025-02-19)
+
+
+### Bug Fixes
+
+* add smallIcon to android push config for expo naming support ([ef94317](https://github.com/GetStream/stream-video-js/commit/ef943174d6e40c94c5c6b02fd0e6be06081ab429))
+
 ## [1.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.2...@stream-io/video-react-native-sdk-1.10.3) (2025-02-19)
 
 ### Dependency Updates
