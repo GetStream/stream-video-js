@@ -28,7 +28,7 @@ const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
  hence to support login and logout scenario of multiple users we keep of the last count of the listener that was added
  This helps in not removing the listeners when a new user logs in and overrides the last listener
 */
-let lastListenerCount = 0;
+let lastListener = { count: 0 };
 
 function setLogoutCallback(
   client: StreamVideoClient,
@@ -166,12 +166,12 @@ export const useIosVoipPushEventsSetupEffect = () => {
         }
       }
     });
-    lastListenerCount += 1;
-    const currentListenerCount = lastListenerCount;
+    lastListener.count += 1;
+    const currentListenerCount = lastListener.count;
 
     return () => {
       const userId = client.streamClient._user?.id;
-      if (currentListenerCount !== lastListenerCount) {
+      if (currentListenerCount !== lastListener.count) {
         logger(
           'debug',
           'Skipped removing voip event listeners for user: ' + userId
@@ -266,6 +266,8 @@ const onNotificationReceived = async (notification: any) => {
         `callkeep.reportEndCallWithUUID for uuid: ${uuid}, call_cid: ${call_cid}, reason: ${callkeepReason}`
       );
       callkeep.reportEndCallWithUUID(uuid, callkeepReason);
+      const voipPushNotification = getVoipPushNotificationLib();
+      voipPushNotification.onVoipNotificationCompleted(uuid);
       return true;
     }
     return false;
@@ -305,6 +307,4 @@ const onNotificationReceived = async (notification: any) => {
   // send the info to this subject, it is listened by callkeep events
   // callkeep events will then accept/reject the call
   voipPushNotificationCallCId$.next(call_cid);
-  const voipPushNotification = getVoipPushNotificationLib();
-  voipPushNotification.onVoipNotificationCompleted(uuid);
 };
