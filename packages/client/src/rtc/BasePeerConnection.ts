@@ -206,6 +206,7 @@ export abstract class BasePeerConnection {
     const state = this.pc.iceConnectionState;
     this.logger('debug', `ICE connection state changed`, state);
 
+    if (this.state.callingState === CallingState.OFFLINE) return;
     if (this.state.callingState === CallingState.RECONNECTING) return;
 
     // do nothing when ICE is restarting
