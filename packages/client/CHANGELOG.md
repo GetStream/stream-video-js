@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.17.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.17.0...@stream-io/video-client-1.17.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* do not reconnect when device is offline ([#1688](https://github.com/GetStream/stream-video-js/issues/1688)) ([c6b6f58](https://github.com/GetStream/stream-video-js/commit/c6b6f58310a3365eb6f40d76a15c26791f413241))
+
 ## [1.17.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.16.7...@stream-io/video-client-1.17.0) (2025-02-17)
 
 
