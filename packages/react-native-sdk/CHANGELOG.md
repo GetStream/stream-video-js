@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.1...@stream-io/video-react-native-sdk-1.10.2) (2025-02-19)
+
+
+### Bug Fixes
+
+* early completion call on iOS remote notifications ([#1687](https://github.com/GetStream/stream-video-js/issues/1687)) ([39c4ba7](https://github.com/GetStream/stream-video-js/commit/39c4ba73199efa8b2e2335473b153dc50ec31653))
+
 ## [1.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.0...@stream-io/video-react-native-sdk-1.10.1) (2025-02-18)
 
 
