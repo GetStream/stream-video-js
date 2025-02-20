@@ -80,9 +80,7 @@ export const HLSLivestreamUI = () => {
       <div className="video-player-container--wrapper">
         <div className="video-player-container">
           {hlsStreamEnded && (
-            <div className="hls-stream-ended">
-              The HLS stream has ended. Please refresh the page to watch again.
-            </div>
+            <div className="hls-stream-ended">The HLS stream has ended.</div>
           )}
           <video
             className="hls-video-player"
