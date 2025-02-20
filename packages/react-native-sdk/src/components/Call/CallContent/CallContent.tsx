@@ -13,7 +13,7 @@ import {
   HangUpCallButtonProps,
 } from '../CallControls';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallingState, StreamReaction } from '@stream-io/video-client';
+import { StreamReaction } from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -117,12 +117,10 @@ export const CallContent = ({
     useHasOngoingScreenShare,
     useRemoteParticipants,
     useLocalParticipant,
-    useCallCallingState,
   } = useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const callingState = useCallCallingState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
 
@@ -150,12 +148,8 @@ export const CallContent = ({
   useEffect(() => {
     InCallManager.start({ media: isVideoEnabledInCall ? 'video' : 'audio' });
 
-    return () => {
-      if (callingState === CallingState.LEFT) {
-        return InCallManager.stop();
-      }
-    };
-  }, [isVideoEnabledInCall, callingState]);
+    return () => InCallManager.stop();
+  }, [isVideoEnabledInCall]);
 
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {
