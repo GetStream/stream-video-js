@@ -109,7 +109,6 @@ const Background: React.FunctionComponent<{
   if (avatarsToShow.length) {
     return (
       <ImageBackground
-        blurRadius={10}
         source={{
           uri: avatarsToShow[0],
         }}
