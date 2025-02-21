@@ -1,20 +1,19 @@
 .hls-video-player {
   width: 100%;
-  height: 100%;
+  height: auto;
 }
 
 .video-player-container--wrapper {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .video-player-container {
   display: flex;
+  flex-direction: column;
   height: 100%;
   align-items: center;
+  justify-content: center;
 }
 
 .loading-indicator {
@@ -29,4 +28,10 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
+}
+
+.hls-stream-ended {
+  flex-direction: row;
+  justify-content: center;
+  padding-bottom: 20px;
 }

@@ -11,24 +11,28 @@ import { ViewerControls } from './ui/ViewerControls';
 import { Lobby } from './ui/Lobby';
 
 export const HLSLivestreamUI = () => {
-  const { useIsCallHLSBroadcastingInProgress, useCallEgress } =
+  const { useIsCallHLSBroadcastingInProgress, useCallEgress, useIsCallLive } =
     useCallStateHooks();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
+  const isLive = useIsCallLive();
   const egress = useCallEgress();
   const hls = useMemo(() => new HLS(), []);
 
   const [autoJoin, setAutoJoin] = useState(false);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hlsStreamEnded, setHlsStreamEnded] = useState(false);
+  const playlist_url = egress?.hls?.playlist_url;
   useEffect(() => {
-    if (!videoRef) return;
+    if (!videoRef || !playlist_url) return;
+
     let timeoutId: NodeJS.Timeout;
-    if (autoJoin && isBroadcasting && egress && egress.hls) {
-      const { playlist_url } = egress.hls;
+    if (autoJoin && isBroadcasting) {
       hls.on(HLS.Events.ERROR, (e, data) => {
         console.error('HLS error, attempting to recover', e, data);
 
         setIsPlaying(false);
+        clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           hls.loadSource(playlist_url);
         }, 1000);
@@ -36,13 +40,17 @@ export const HLSLivestreamUI = () => {
       hls.on(HLS.Events.LEVELS_UPDATED, (e, data) => {
         console.error('HLS levels updated', e, data);
       });
+      hls.on(HLS.Events.BUFFER_EOS, (e, data) => {
+        console.error('HLS buffer eos', e, data);
+        setHlsStreamEnded(true);
+      });
       hls.loadSource(playlist_url);
       hls.attachMedia(videoRef);
     }
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [autoJoin, hls, isBroadcasting, egress, videoRef]);
+  }, [autoJoin, hls, isBroadcasting, videoRef, playlist_url]);
 
   useEffect(() => {
     if (!videoRef) return;
@@ -53,11 +61,11 @@ export const HLSLivestreamUI = () => {
     };
   }, [videoRef]);
 
-  if (!isBroadcasting || !autoJoin) {
+  if (!hlsStreamEnded && (!isLive || !autoJoin)) {
     return (
       <Lobby
         autoJoin={autoJoin}
-        isStreaming={isBroadcasting}
+        isStreaming={isLive}
         setAutoJoin={setAutoJoin}
       />
     );
@@ -71,6 +79,9 @@ export const HLSLivestreamUI = () => {
       )}
       <div className="video-player-container--wrapper">
         <div className="video-player-container">
+          {hlsStreamEnded && (
+            <div className="hls-stream-ended">The HLS stream has ended.</div>
+          )}
           <video
             className="hls-video-player"
             autoPlay
