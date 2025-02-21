@@ -94,7 +94,7 @@ const createCallSubscription = (
   action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered'
 ) => {
   return behaviourSubjectWithCallCid
-    .pipe(filter(cidIsNotUndefined), distinctUntilChanged())
+    .pipe(distinctUntilChanged(), filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
       getLogger(['useProcessPushCallEffect'])(
         'debug',
