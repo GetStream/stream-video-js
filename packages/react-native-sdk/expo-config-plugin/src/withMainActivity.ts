@@ -1,9 +1,9 @@
-import { ConfigPlugin, withMainActivity } from '@expo/config-plugins';
+import { type ConfigPlugin, withMainActivity } from '@expo/config-plugins';
 import {
   addImports,
   appendContentsInsideDeclarationBlock,
 } from '@expo/config-plugins/build/android/codeMod';
-import { ConfigProps } from './common/types';
+import { type ConfigProps } from './common/types';
 import addNewLinesToMainActivity from './common/addNewLinesToMainActivity';
 
 const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (

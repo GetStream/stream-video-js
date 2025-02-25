@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { LobbyProps } from './Lobby';
+import { type LobbyProps } from './Lobby';
 import { View, StyleSheet, Text } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';

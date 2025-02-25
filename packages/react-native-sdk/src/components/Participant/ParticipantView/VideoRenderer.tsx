@@ -2,13 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
-import { ParticipantViewProps } from './ParticipantView';
+import type { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,
   hasScreenShare,
   hasVideo,
   SfuModels,
-  VideoTrackType,
+  type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';

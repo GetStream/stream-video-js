@@ -1,5 +1,5 @@
-import { ConfigPlugin, withPlugins } from '@expo/config-plugins';
-import { ConfigProps } from '../common/types';
+import { type ConfigPlugin, withPlugins } from '@expo/config-plugins';
+import type { ConfigProps } from '../common/types';
 import withPlistUpdates from './withPlistUpdates';
 import withFilesMod from './withFilesMod';
 import withTarget from './withTarget';

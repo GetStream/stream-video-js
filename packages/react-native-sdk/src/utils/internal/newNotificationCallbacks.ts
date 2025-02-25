@@ -1,5 +1,5 @@
 import { Call } from '@stream-io/video-client';
-import { NonRingingPushEvent } from '../StreamVideoRN/types';
+import { type NonRingingPushEvent } from '../StreamVideoRN/types';
 
 export type NewCallNotificationCallback = (
   call: Call,

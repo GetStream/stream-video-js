@@ -1,31 +1,31 @@
-import React, { ComponentType, useMemo } from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { type ComponentType, useMemo } from 'react';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
-  StreamVideoParticipant,
-  VideoTrackType,
+  type StreamVideoParticipant,
+  type VideoTrackType,
 } from '@stream-io/video-client';
 import {
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
-  ParticipantNetworkQualityIndicatorProps,
+  type ParticipantNetworkQualityIndicatorProps,
 } from './ParticipantNetworkQualityIndicator';
 import {
   ParticipantReaction as DefaultParticipantReaction,
-  ParticipantReactionProps,
+  type ParticipantReactionProps,
 } from './ParticipantReaction';
 import {
   ParticipantLabel as DefaultParticipantLabel,
-  ParticipantLabelProps,
+  type ParticipantLabelProps,
 } from './ParticipantLabel';
 import {
   ParticipantVideoFallback as DefaultParticipantVideoFallback,
-  ParticipantVideoFallbackProps,
+  type ParticipantVideoFallbackProps,
 } from './ParticipantVideoFallback';
 import {
   VideoRenderer as DefaultVideoRenderer,
-  VideoRendererProps,
+  type VideoRendererProps,
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../../Call';
+import type { CallContentProps } from '../../Call';
 
 export type ParticipantViewComponentProps = {
   /**

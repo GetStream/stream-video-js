@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 export const IconWrapper = ({ children }: { children: ReactNode }) => {

@@ -10,6 +10,7 @@ const config: Config = {
   testPathIgnorePatterns: [
     '<rootDir>/__tests__/mocks/',
     '<rootDir>/__tests__/utils/',
+    '<rootDir>/expo-config-plugin/__tests__',
   ],
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   transformIgnorePatterns: [
@@ -19,4 +20,4 @@ const config: Config = {
   testTimeout: 10000,
 };
 
-export default config;
+module.exports = config;

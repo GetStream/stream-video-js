@@ -1,7 +1,7 @@
-import { StreamVideoConfig } from './types';
+import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import newNotificationCallbacks, {
-  NewCallNotificationCallback,
+  type NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {

@@ -1,16 +1,16 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
-  LayoutRectangle,
+  type LayoutRectangle,
   Pressable,
   StyleSheet,
   Animated,
   Easing,
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { SendReactionRequest, getLogger } from '@stream-io/video-client';
+import { type SendReactionRequest, getLogger } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { ReactionsButtonProps } from '../ReactionsButton';
+import type { ReactionsButtonProps } from '../ReactionsButton';
 import { defaultEmojiReactions } from '../../../../constants';
 
 type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {

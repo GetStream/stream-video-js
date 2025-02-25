@@ -5,26 +5,26 @@ import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
 import {
   HostLivestreamTopView as DefaultHostLivestreamTopView,
-  HostLivestreamTopViewProps,
+  type HostLivestreamTopViewProps,
 } from '../LivestreamTopView/HostLivestreamTopView';
 import {
   HostLivestreamControls as DefaultHostLivestreamControls,
-  HostLivestreamControlsProps,
+  type HostLivestreamControlsProps,
 } from '../LivestreamControls/HostLivestreamControls';
 import {
   LivestreamLayout as DefaultLivestreamLayout,
-  LivestreamLayoutProps,
+  type LivestreamLayoutProps,
 } from '../LivestreamLayout';
 import { Z_INDEX } from '../../../constants';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
-  FloatingParticipantViewProps,
+  type FloatingParticipantViewProps,
 } from '../../Participant/FloatingParticipantView';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { hasVideo } from '@stream-io/video-client';
 import {
   ScreenShareOverlay as DefaultScreenShaerOverlay,
-  ScreenShareOverlayProps,
+  type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 
 /**

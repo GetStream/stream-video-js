@@ -1,13 +1,13 @@
 import {
-  ConfigPlugin,
-  InfoPlist,
+  type ConfigPlugin,
+  type InfoPlist,
   withDangerousMod,
   withPlugins,
 } from '@expo/config-plugins';
 import plist from '@expo/plist';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ConfigProps } from '../common/types';
+import type { ConfigProps } from '../common/types';
 
 const withFilesMod: ConfigPlugin<ConfigProps> = (config) =>
   withPlugins(config, [

@@ -1,14 +1,14 @@
 import React, { useRef, useReducer, useEffect } from 'react';
 import {
   Animated,
-  LayoutRectangle,
+  type LayoutRectangle,
   PanResponder,
   Easing,
   View,
   StyleSheet,
 } from 'react-native';
 import {
-  FloatingViewProps,
+  type FloatingViewProps,
   getSnapAlignments,
   FloatingViewAlignment,
   getClosestSnapAlignment,

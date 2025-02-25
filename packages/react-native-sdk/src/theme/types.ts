@@ -1,4 +1,4 @@
-import { ColorValue, TextStyle } from 'react-native';
+import { type ColorValue, type TextStyle } from 'react-native';
 
 /**
  * ColorScheme defines the complete color palette for the application's theme.

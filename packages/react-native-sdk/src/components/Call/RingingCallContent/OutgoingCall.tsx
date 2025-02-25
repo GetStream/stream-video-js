@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
@@ -7,7 +7,7 @@ import { MediaStream, RTCView } from '@stream-io/react-native-webrtc';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
   OutgoingCallControls as DefaultOutgoingCallControls,
-  OutgoingCallControlsProps,
+  type OutgoingCallControlsProps,
 } from '../CallControls';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';

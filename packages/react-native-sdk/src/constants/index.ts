@@ -1,4 +1,4 @@
-import { StreamReactionType } from '../components';
+import { type StreamReactionType } from '../components';
 
 export const FLOATING_VIDEO_VIEW_STYLE = {
   height: 140,

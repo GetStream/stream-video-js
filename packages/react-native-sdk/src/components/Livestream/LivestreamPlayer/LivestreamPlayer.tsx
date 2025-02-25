@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ViewerLivestream as DefaultViewerLivestream,
-  ViewerLivestreamProps,
+  type ViewerLivestreamProps,
 } from '../ViewerLivestream';
 import { Call, CallingState, getLogger } from '@stream-io/video-client';
 import { StreamCall } from '../../../providers/StreamCall';

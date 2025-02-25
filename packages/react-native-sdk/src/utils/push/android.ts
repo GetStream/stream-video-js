@@ -14,8 +14,8 @@ import {
   getFirebaseMessagingLib,
   getExpoNotificationsLib,
   getNotifeeLibThrowIfNotInstalledForPush,
-  NotifeeLib,
-  FirebaseMessagingTypes,
+  type NotifeeLib,
+  type FirebaseMessagingTypes,
   getIncomingCallForegroundServiceTypes,
 } from './libs';
 import {

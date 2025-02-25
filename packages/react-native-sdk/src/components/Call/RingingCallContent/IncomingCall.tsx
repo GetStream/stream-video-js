@@ -4,7 +4,7 @@ import {
   StyleSheet,
   Text,
   View,
-  ViewStyle,
+  type ViewStyle,
 } from 'react-native';
 import {
   useCallStateHooks,
@@ -14,7 +14,7 @@ import {
 import { UserInfo } from './UserInfo';
 import {
   IncomingCallControls as DefaultIncomingCallControls,
-  IncomingCallControlsProps,
+  type IncomingCallControlsProps,
 } from '../CallControls';
 import { useTheme } from '../../../contexts';
 

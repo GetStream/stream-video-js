@@ -1,4 +1,4 @@
-import React, { ComponentType, useMemo } from 'react';
+import React, { type ComponentType, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   useCallStateHooks,
@@ -6,19 +6,19 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { Avatar } from '../../utility/Avatar';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import { LobbyControls as DefaultLobbyControls } from '../CallControls/LobbyControls';
 import {
   JoinCallButton as DefaultJoinCallButton,
-  JoinCallButtonProps,
+  type JoinCallButtonProps,
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import {
   LobbyFooter as DefaultLobbyFooter,
-  LobbyFooterProps,
+  type LobbyFooterProps,
 } from './LobbyFooter';
 import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
