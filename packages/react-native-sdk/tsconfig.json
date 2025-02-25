@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "declaration": true,
+    "module": "ES2020",
     "moduleResolution": "node",
     "lib": ["es6", "dom"],
     "allowSyntheticDefaultImports": true,
