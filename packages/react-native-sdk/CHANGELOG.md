@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.4...@stream-io/video-react-native-sdk-1.10.5) (2025-02-25)
+
+
+### Bug Fixes
+
+* callControls styling issue ([#1689](https://github.com/GetStream/stream-video-js/issues/1689)) ([3d68faa](https://github.com/GetStream/stream-video-js/commit/3d68faa3369a05ab59cd6ccd887881a016dfee93))
+* expo build issues ([#1695](https://github.com/GetStream/stream-video-js/issues/1695)) ([7fe7424](https://github.com/GetStream/stream-video-js/commit/7fe742496ba484b9d5149a39f8c05a504f2aff00))
+* ios distinct values ([#1692](https://github.com/GetStream/stream-video-js/issues/1692)) ([d83291d](https://github.com/GetStream/stream-video-js/commit/d83291d439abd41aa0f2654f42c130b4f9375719))
+* ios ipad crash in incoming call component ([#1691](https://github.com/GetStream/stream-video-js/issues/1691)) ([df79fbe](https://github.com/GetStream/stream-video-js/commit/df79fbef24369d9a0d49f31b8b0d6e7bbf986cc7))
+
 ## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.3...@stream-io/video-react-native-sdk-1.10.4) (2025-02-19)
 
 
