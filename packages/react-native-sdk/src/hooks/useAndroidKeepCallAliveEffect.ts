@@ -4,7 +4,7 @@ import { StreamVideoRN } from '../utils';
 import {
   NativeModules,
   AppState,
-  AppStateStatus,
+  type AppStateStatus,
   Platform,
 } from 'react-native';
 import { CallingState, getLogger } from '@stream-io/video-client';
@@ -124,9 +124,9 @@ export const useAndroidKeepCallAliveEffect = () => {
 
   useEffect((): (() => void) | undefined => {
     if (Platform.OS === 'ios' || !activeCallCid) {
-      return;
+      return undefined;
     }
-    if (!notifeeLib) return;
+    if (!notifeeLib) return undefined;
 
     // start foreground service as soon as the call is joined
     if (shouldStartForegroundService) {
@@ -154,7 +154,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       // ensure that app is active before running the function
       if (AppState.currentState === 'active') {
         run();
-        return;
+        return undefined;
       }
       const sub = AppState.addEventListener(
         'change',
@@ -196,6 +196,7 @@ export const useAndroidKeepCallAliveEffect = () => {
           });
       }
     }
+    return undefined;
   }, [activeCallCid, callingState, shouldStartForegroundService]);
 
   useEffect(() => {

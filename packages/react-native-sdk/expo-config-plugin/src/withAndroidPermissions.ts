@@ -1,5 +1,5 @@
-import { AndroidConfig, ConfigPlugin } from '@expo/config-plugins';
-import { ConfigProps } from './common/types';
+import { AndroidConfig, type ConfigPlugin } from '@expo/config-plugins';
+import type { ConfigProps } from './common/types';
 
 const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
   ConfigProps

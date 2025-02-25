@@ -8,7 +8,7 @@ import {
 } from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { ParticipantViewProps } from './ParticipantView';
+import { type ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
 import { hasAudio, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';

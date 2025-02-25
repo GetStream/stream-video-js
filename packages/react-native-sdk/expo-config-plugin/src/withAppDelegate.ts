@@ -1,5 +1,5 @@
 import {
-  ConfigPlugin,
+  type ConfigPlugin,
   withAppDelegate as withAppDelegateUtil,
 } from '@expo/config-plugins';
 import {
@@ -8,7 +8,10 @@ import {
   findObjcFunctionCodeBlock,
 } from '@expo/config-plugins/build/ios/codeMod';
 
-import { ConfigProps, RingingPushNotifications } from './common/types';
+import {
+  type ConfigProps,
+  type RingingPushNotifications,
+} from './common/types';
 import addNewLinesToAppDelegate from './common/addNewLinesToAppDelegate';
 
 const DID_FINISH_LAUNCHING_WITH_OPTIONS =

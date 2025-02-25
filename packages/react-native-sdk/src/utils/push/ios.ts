@@ -2,17 +2,17 @@ import { Platform } from 'react-native';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import { pushNonRingingCallData$ } from './internal/rxSubjects';
 import {
-  ExpoNotification,
+  type ExpoNotification,
   getExpoNotificationsLib,
   getNotifeeLibThrowIfNotInstalledForPush,
   getPushNotificationIosLib,
-  PushNotificationiOSType,
+  type PushNotificationiOSType,
 } from './libs';
 import { StreamVideoClient, getLogger } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import type { Event } from '@notifee/react-native';
 import { StreamVideoRN } from '../StreamVideoRN';
-import { StreamPushPayload } from './utils';
+import type { StreamPushPayload } from './utils';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -32,6 +32,7 @@ function processNonRingingNotificationStreamPayload(
     pushNonRingingCallData$.next({ cid, type });
     return { cid, type };
   }
+  return undefined;
 }
 
 export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {

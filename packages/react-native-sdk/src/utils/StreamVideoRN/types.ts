@@ -1,5 +1,5 @@
 import {
-  ClientPublishOptions,
+  type ClientPublishOptions,
   StreamVideoClient,
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';

@@ -1,8 +1,8 @@
 import type { Event } from '@notifee/react-native';
-import { FirebaseMessagingTypes } from './libs/firebaseMessaging';
-import { ExpoNotification } from './libs/expoNotifications';
-import { NonRingingPushEvent } from '../StreamVideoRN/types';
-import { PushNotificationiOSType } from './libs/iosPushNotification';
+import type { FirebaseMessagingTypes } from './libs/firebaseMessaging';
+import type { ExpoNotification } from './libs/expoNotifications';
+import type { NonRingingPushEvent } from '../StreamVideoRN/types';
+import type { PushNotificationiOSType } from './libs/iosPushNotification';
 
 export type StreamPushPayload =
   | {

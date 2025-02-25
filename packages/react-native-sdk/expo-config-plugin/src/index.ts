@@ -1,5 +1,5 @@
 import {
-  ConfigPlugin,
+  type ConfigPlugin,
   createRunOncePlugin,
   withPlugins,
 } from '@expo/config-plugins';
@@ -11,7 +11,7 @@ import withMainActivity from './withMainActivity';
 import withBuildProperties from './withBuildProperties';
 import withAppBuildGradle from './withAppBuildGradle';
 import withIosScreenCapture from './withIosScreenCapture';
-import { ConfigProps } from './common/types';
+import { type ConfigProps } from './common/types';
 
 // path should be relative to dist
 const pkg = require('../../package.json');

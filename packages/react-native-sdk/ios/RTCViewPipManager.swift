@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc (RTCViewPipManager)
+@objc(RTCViewPipManager)
 class RTCViewPipManager: RCTViewManager {
     
     override func view() -> UIView! {

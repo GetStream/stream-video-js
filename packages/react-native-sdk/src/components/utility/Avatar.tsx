@@ -4,7 +4,7 @@ import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../../utils';
 import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Theme } from '../../theme/theme';
+import { type Theme } from '../../theme/theme';
 
 /**
  * Props to be passed for the Avatar component.

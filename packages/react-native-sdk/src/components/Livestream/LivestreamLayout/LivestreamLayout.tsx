@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { hasScreenShare, SfuModels } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
 import { useTheme } from '../../../contexts';
 import {
   VideoRenderer as DefaultVideoRenderer,
-  VideoRendererProps,
+  type VideoRendererProps,
 } from '../../Participant';
-import { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
+import type { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
 
 /**
  * Props for the LivestreamLayout component.

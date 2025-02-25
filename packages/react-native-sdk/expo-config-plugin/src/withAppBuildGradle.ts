@@ -1,4 +1,4 @@
-import { ConfigPlugin, withAppBuildGradle } from '@expo/config-plugins';
+import { type ConfigPlugin, withAppBuildGradle } from '@expo/config-plugins';
 
 const withStreamVideoReactNativeBuildGradle: ConfigPlugin = (configuration) => {
   return withAppBuildGradle(configuration, (config) => {

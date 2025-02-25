@@ -4,19 +4,19 @@ import {
   speakerLayoutSortPreset,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListComponentProps,
+  type CallParticipantsListComponentProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
-  ParticipantViewComponentProps,
+  type ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../CallContent';
+import { type CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 
 /**

@@ -1,13 +1,13 @@
 import React from 'react';
 import {
-  ColorValue,
+  type ColorValue,
   Pressable,
-  PressableProps,
+  type PressableProps,
   StyleSheet,
   View,
 } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { Theme } from '../../../theme/theme';
+import type { Theme } from '../../../theme/theme';
 
 interface CallControlsButtonProps {
   /**

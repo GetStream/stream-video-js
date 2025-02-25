@@ -1,13 +1,17 @@
-import { ImageStyle, TextStyle, ViewStyle } from 'react-native/types';
+import {
+  type ImageStyle,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native/types';
 import { colors } from './colors';
 import {
-  ColorScheme,
-  DimensionType,
-  FontStyle,
-  FontTypes,
-  Insets,
+  type ColorScheme,
+  type DimensionType,
+  type FontStyle,
+  type FontTypes,
+  type Insets,
 } from './types';
-import { ColorValue } from 'react-native';
+import { type ColorValue } from 'react-native';
 
 export type Theme = {
   variants: {

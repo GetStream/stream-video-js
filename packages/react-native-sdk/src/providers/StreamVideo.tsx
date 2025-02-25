@@ -1,15 +1,15 @@
 import {
-  StreamI18nProviderProps,
-  StreamVideoProps,
+  type StreamI18nProviderProps,
+  type StreamVideoProps,
   StreamVideoProvider,
 } from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren, useEffect } from 'react';
+import React, { type PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
-import { DeepPartial, ThemeProvider } from '../contexts/ThemeContext';
-import { Theme } from '../theme/theme';
+import { type DeepPartial, ThemeProvider } from '../contexts/ThemeContext';
+import { type Theme } from '../theme/theme';
 
 /**
  *

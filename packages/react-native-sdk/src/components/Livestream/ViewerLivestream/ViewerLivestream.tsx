@@ -5,21 +5,21 @@ import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
 import {
   ViewerLivestreamTopView as DefaultViewerLivestreamTopView,
-  ViewerLivestreamTopViewProps,
+  type ViewerLivestreamTopViewProps,
 } from '../LivestreamTopView/ViewerLivestreamTopView';
 import {
   ViewerLivestreamControls as DefaultViewerLivestreamControls,
-  ViewerLivestreamControlsProps,
+  type ViewerLivestreamControlsProps,
 } from '../LivestreamControls/ViewerLivestreamControls';
-import { ViewerLeaveStreamButtonProps } from '../LivestreamControls/ViewerLeaveStreamButton';
+import type { ViewerLeaveStreamButtonProps } from '../LivestreamControls/ViewerLeaveStreamButton';
 import {
   LivestreamLayout as DefaultLivestreamLayout,
-  LivestreamLayoutProps,
+  type LivestreamLayoutProps,
 } from '../LivestreamLayout';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
-  FloatingParticipantViewProps,
+  type FloatingParticipantViewProps,
 } from '../../Participant';
 import { hasVideo } from '@stream-io/video-client';
 

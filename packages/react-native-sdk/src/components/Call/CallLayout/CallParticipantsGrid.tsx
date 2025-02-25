@@ -1,15 +1,15 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListComponentProps,
+  type CallParticipantsListComponentProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../CallContent';
-import { ParticipantViewComponentProps } from '../../Participant';
+import type { CallContentProps } from '../CallContent';
+import type { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 
 /**

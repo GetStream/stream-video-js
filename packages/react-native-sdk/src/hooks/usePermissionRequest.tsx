@@ -1,6 +1,6 @@
 import {
   OwnCapability,
-  PermissionRequestEvent,
+  type PermissionRequestEvent,
   getLogger,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';

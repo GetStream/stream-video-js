@@ -1,5 +1,5 @@
 import { getLogger } from '@stream-io/video-client';
-import { Type, lib } from './lib';
+import { type Type, lib } from './lib';
 
 export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 export type FirebaseMessagingType = Type;

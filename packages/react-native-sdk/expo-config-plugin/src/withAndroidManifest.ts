@@ -1,9 +1,9 @@
 import {
   AndroidConfig,
-  ConfigPlugin,
+  type ConfigPlugin,
   withAndroidManifest,
 } from '@expo/config-plugins';
-import { ConfigProps } from './common/types';
+import { type ConfigProps } from './common/types';
 const {
   prefixAndroidKeys,
   getMainApplicationOrThrow,

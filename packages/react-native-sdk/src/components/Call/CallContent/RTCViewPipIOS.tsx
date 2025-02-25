@@ -8,7 +8,7 @@ import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useMemo } from 'react';
 import {
   findNodeHandle,
-  HostComponent,
+  type HostComponent,
   Platform,
   requireNativeComponent,
   UIManager,

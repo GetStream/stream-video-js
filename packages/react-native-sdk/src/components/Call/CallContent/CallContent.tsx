@@ -1,36 +1,36 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
   CallParticipantsGrid,
-  CallParticipantsGridProps,
+  type CallParticipantsGridProps,
   CallParticipantsSpotlight,
-  CallParticipantsSpotlightProps,
+  type CallParticipantsSpotlightProps,
 } from '../CallLayout';
 import {
-  CallControlProps,
+  type CallControlProps,
   CallControls as DefaultCallControls,
-  HangUpCallButtonProps,
+  type HangUpCallButtonProps,
 } from '../CallControls';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StreamReaction } from '@stream-io/video-client';
+import { type StreamReaction } from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
-  FloatingParticipantViewProps,
-  ParticipantViewComponentProps,
+  type FloatingParticipantViewProps,
+  type ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts';
 import {
-  CallParticipantsListComponentProps,
-  CallParticipantsListProps,
+  type CallParticipantsListComponentProps,
+  type CallParticipantsListProps,
 } from '../CallParticipantsList';
 import { useIsInPiPMode, useAutoEnterPiPEffect } from '../../../hooks';
 import {
   ScreenShareOverlay as DefaultScreenShareOverlay,
-  ScreenShareOverlayProps,
+  type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import RTCViewPipIOS from './RTCViewPipIOS';
 

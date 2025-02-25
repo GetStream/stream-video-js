@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { StyleSheet, View, type ViewProps } from 'react-native';
 
 import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
-  ViewerLeaveStreamButtonProps,
+  type ViewerLeaveStreamButtonProps,
 } from './ViewerLeaveStreamButton';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';

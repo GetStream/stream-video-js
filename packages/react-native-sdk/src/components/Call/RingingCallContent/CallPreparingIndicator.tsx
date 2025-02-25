@@ -2,7 +2,7 @@ import { useI18n } from '@stream-io/video-react-bindings';
 import React from 'react';
 import {
   TextBasedIndicator,
-  TextBasedIndicatorProps,
+  type TextBasedIndicatorProps,
 } from './TextBasedIndicator';
 
 export type CallPreparingIndicatorProps = Pick<

@@ -3,7 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { ShieldBadge } from '../../../icons';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallSessionResponse, StreamCallEvent } from '@stream-io/video-client';
+import {
+  type CallSessionResponse,
+  type StreamCallEvent,
+} from '@stream-io/video-client';
 
 /**
  * Props for the HostDurationBadge component.

@@ -2,9 +2,9 @@ import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import { Z_INDEX, defaultEmojiReactions } from '../../../constants';
-import { ParticipantViewProps } from './ParticipantView';
+import type { ParticipantViewProps } from './ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../../Call';
+import type { CallContentProps } from '../../Call';
 
 /**
  * Props for the ParticipantReaction component.

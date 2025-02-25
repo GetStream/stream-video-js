@@ -5,11 +5,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import {
+  FlatList,
+  type StyleProp,
+  StyleSheet,
+  type ViewStyle,
+} from 'react-native';
 
 import {
-  StreamVideoParticipant,
-  StreamVideoParticipantPatches,
+  type StreamVideoParticipant,
+  type StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
@@ -17,10 +22,10 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   ParticipantView as DefaultParticipantView,
-  ParticipantViewComponentProps,
-  ParticipantViewProps,
+  type ParticipantViewComponentProps,
+  type ParticipantViewProps,
 } from '../../Participant/ParticipantView';
-import { CallContentProps } from '../CallContent';
+import type { CallContentProps } from '../CallContent';
 import { useTheme } from '../../../contexts';
 
 type FlatListProps = React.ComponentProps<

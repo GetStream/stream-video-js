@@ -1,5 +1,5 @@
-import { ConfigPlugin, withInfoPlist } from '@expo/config-plugins';
-import { ConfigProps } from './common/types';
+import { type ConfigPlugin, withInfoPlist } from '@expo/config-plugins';
+import type { ConfigProps } from './common/types';
 
 const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
   configuration,

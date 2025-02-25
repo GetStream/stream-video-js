@@ -1,11 +1,11 @@
 import React, { useMemo, useEffect } from 'react';
-import { LayoutRectangle, View } from 'react-native';
+import { type LayoutRectangle, View } from 'react-native';
 import {
   FloatingViewAlignment,
   getSnapAlignments,
   getClosestSnapAlignment,
   floatingChildViewContainerStyle,
-  FloatingViewProps,
+  type FloatingViewProps,
 } from './common';
 type GestureHandlerExportsType = typeof import('react-native-gesture-handler');
 type ReanimatedNamespaceType = typeof import('react-native-reanimated').default;

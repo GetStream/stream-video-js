@@ -1,13 +1,13 @@
 import React, {
   createContext,
-  PropsWithChildren,
+  type PropsWithChildren,
   useContext,
   useMemo,
 } from 'react';
 
 import merge from 'lodash.merge';
 
-import { defaultTheme, Theme } from '../theme/theme';
+import { defaultTheme, type Theme } from '../theme/theme';
 
 export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;

@@ -1,10 +1,10 @@
 import {
-  ConfigPlugin,
+  type ConfigPlugin,
   withXcodeProject,
-  InfoPlist,
+  type InfoPlist,
   XcodeProject,
 } from '@expo/config-plugins';
-import { ConfigProps } from '../common/types';
+import type { ConfigProps } from '../common/types';
 import plist from '@expo/plist';
 import * as fs from 'fs';
 import * as path from 'path';
