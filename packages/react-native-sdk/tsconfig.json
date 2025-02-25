@@ -1,27 +1,17 @@
 {
   "compilerOptions": {
-    "rootDir": ".",
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
+    "target": "ES6",
+    "declaration": true,
+    "moduleResolution": "node",
+    "lib": ["es6", "dom"],
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "noEmit": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "noStrictGenericChecks": false,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": true,
     "resolveJsonModule": true,
-    "resolvePackageJsonImports": false,
+    "isolatedModules": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ESNext",
-    "verbatimModuleSyntax": true
+    "strictNullChecks": true,
+    "jsx": "react"
   },
   "include": ["src"]
 }
