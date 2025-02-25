@@ -14,8 +14,8 @@
     "clean": "rimraf dist && rimraf expo-config-plugin/dist",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "start": "yarn copy-version && tsc --project tsconfig.json --watch",
-    "build:expo-plugin": "tsc --project expo-config-plugin/tsconfig.json",
-    "build": "yarn copy-version && bob build",
+    "build:expo-plugin": "rimraf expo-config-plugin/dist && tsc --project expo-config-plugin/tsconfig.json",
+    "build": "yarn copy-version && bob build && build:expo-plugin",
     "test:expo-plugin": "jest --config=expo-config-plugin/jest.config.js --coverage",
     "test": "yarn copy-version && jest --coverage && yarn test:expo-plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./src/version.ts"
@@ -158,13 +158,6 @@
     "source": "src",
     "output": "dist",
     "targets": [
-      [
-        "custom",
-        {
-          "script": "build:expo-plugin",
-          "clean": "expo-config-plugin/dist"
-        }
-      ],
       [
         "commonjs",
         {
