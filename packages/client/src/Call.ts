@@ -601,6 +601,7 @@ export class Call {
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
       this.hasJoinedOnce = false;
+      this.ringingSubject.next(false);
       this.clientStore.unregisterCall(this);
 
       this.camera.dispose();
@@ -692,7 +693,7 @@ export class Call {
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
 
-    if (params?.ring || this.ringing) {
+    if (params?.ring) {
       // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
@@ -723,7 +724,7 @@ export class Call {
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
 
-    if (data?.ring || this.ringing) {
+    if (data?.ring) {
       // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
@@ -1192,7 +1193,7 @@ export class Call {
     this.state.setMembers(joinResponse.members);
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
 
-    if (data?.ring && !this.ringing) {
+    if (data?.ring) {
       this.ringingSubject.next(true);
     }
 
