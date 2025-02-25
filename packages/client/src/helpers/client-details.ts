@@ -42,16 +42,8 @@ export const setOSInfo = (info: OS) => {
   osInfo = info;
 };
 
-export const getOSInfo = () => {
-  return osInfo;
-};
-
 export const setDeviceInfo = (info: Device) => {
   deviceInfo = info;
-};
-
-export const getDeviceInfo = () => {
-  return deviceInfo;
 };
 
 export const getWebRTCInfo = () => {
@@ -60,10 +52,6 @@ export const getWebRTCInfo = () => {
 
 export const setWebRTCInfo = (info: WebRTCInfoType) => {
   webRtcInfo = info;
-};
-
-export type LocalClientDetailsType = ClientDetails & {
-  webRTCInfo?: WebRTCInfoType;
 };
 
 export const setThermalState = (state: string) => {
@@ -142,27 +130,43 @@ export const getDeviceState = () => {
   return deviceState;
 };
 
-export const getClientDetails = (): LocalClientDetailsType => {
+export const getClientDetails = async (): Promise<ClientDetails> => {
   if (isReactNative()) {
     // Since RN doesn't support web, sharing browser info is not required
     return {
-      sdk: getSdkInfo(),
-      os: getOSInfo(),
-      device: getDeviceInfo(),
+      sdk: sdkInfo,
+      os: osInfo,
+      device: deviceInfo,
     };
+  }
+
+  // @ts-expect-error - userAgentData is not yet in the TS types
+  const userAgentDataApi = navigator.userAgentData;
+  let userAgentData:
+    | { platform?: string; platformVersion?: string }
+    | undefined;
+  if (userAgentDataApi && userAgentDataApi.getHighEntropyValues) {
+    try {
+      userAgentData = await userAgentDataApi.getHighEntropyValues([
+        'platform',
+        'platformVersion',
+      ]);
+    } catch (e) {
+      // Ignore the error
+    }
   }
 
   const userAgent = new UAParser(navigator.userAgent);
   const { browser, os, device, cpu } = userAgent.getResult();
   return {
-    sdk: getSdkInfo(),
+    sdk: sdkInfo,
     browser: {
       name: browser.name || navigator.userAgent,
       version: browser.version || '',
     },
     os: {
-      name: os.name || '',
-      version: os.version || '',
+      name: userAgentData?.platform || os.name || '',
+      version: userAgentData?.platformVersion || os.version || '',
       architecture: cpu.architecture || '',
     },
     device: {

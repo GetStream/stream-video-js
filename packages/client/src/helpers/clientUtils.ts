@@ -1,4 +1,5 @@
-import {
+import type {
+  ClientAppIdentifier,
   StreamClientOptions,
   TokenOrProvider,
   User,
@@ -17,28 +18,37 @@ export const getInstanceKey = (apiKey: string, user: User) => {
 };
 
 /**
+ * Utility function to get the client app identifier.
+ */
+const getClientAppIdentifier = (
+  options?: StreamClientOptions,
+): ClientAppIdentifier => {
+  const appId = options?.clientAppIdentifier || {};
+  const sdkInfo = getSdkInfo();
+  if (sdkInfo) {
+    // ensure the sdk name and version are set correctly,
+    // overriding any user-provided values
+    appId.sdkName = SdkType[sdkInfo.type].toLowerCase();
+    appId.uiSdkVersion = `${sdkInfo.major}.${sdkInfo.minor}.${sdkInfo.patch}`;
+  }
+  return appId;
+};
+
+/**
  * Creates a coordinator client.
  */
 export const createCoordinatorClient = (
   apiKey: string,
   options: StreamClientOptions | undefined,
 ) => {
+  const clientAppIdentifier = getClientAppIdentifier(options);
   const coordinatorLogger = getLogger(['coordinator']);
-  const streamClient = new StreamClient(apiKey, {
+  return new StreamClient(apiKey, {
     persistUserOnConnectionFailure: true,
     ...options,
+    clientAppIdentifier,
     logger: coordinatorLogger,
   });
-  const sdkInfo = getSdkInfo();
-  if (sdkInfo) {
-    const sdkName = SdkType[sdkInfo.type].toLowerCase();
-    const sdkVersion = `${sdkInfo.major}.${sdkInfo.minor}.${sdkInfo.patch}`;
-    const userAgent = streamClient.getUserAgent();
-    streamClient.setUserAgent(
-      `${userAgent}-video-${sdkName}-sdk-${sdkVersion}`,
-    );
-  }
-  return streamClient;
 };
 
 /**

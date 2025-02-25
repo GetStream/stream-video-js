@@ -866,7 +866,7 @@ export class Call {
     this.sfuClient = sfuClient;
     this.dynascaleManager.setSfuClient(sfuClient);
 
-    const clientDetails = getClientDetails();
+    const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
       // prepare a generic SDP and send it to the SFU.
@@ -2308,8 +2308,9 @@ export class Call {
       custom,
     }: Pick<CollectUserFeedbackRequest, 'reason' | 'custom'> = {},
   ): Promise<CollectUserFeedbackResponse> => {
-    const { sdkName, sdkVersion, ...platform } =
-      getSdkSignature(getClientDetails());
+    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
+      await getClientDetails(),
+    );
     return this.streamClient.post<
       CollectUserFeedbackResponse,
       CollectUserFeedbackRequest

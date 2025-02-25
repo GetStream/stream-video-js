@@ -152,6 +152,21 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * timer throttling issues in inactive browser tabs.
    */
   enableTimerWorker?: boolean;
+
+  /**
+   * The client app identifier.
+   */
+  clientAppIdentifier?: ClientAppIdentifier;
+};
+
+export type ClientAppIdentifier = {
+  sdkName?: 'react' | 'react-native' | 'plain-js' | (string & {});
+  uiSdkVersion?: string;
+  app?: string;
+  app_version?: string;
+  os?: string;
+  os_version?: string;
+  device_model?: string;
 };
 
 export type TokenProvider = () => Promise<string>;

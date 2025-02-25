@@ -329,7 +329,7 @@ export class StableWSConnection {
         return response;
       }
     } catch (err) {
-      await this.client._setupConnectionIdPromise();
+      this.client._setupConnectionIdPromise();
       this.isConnecting = false;
       // @ts-ignore
       this._log(`_connect() - Error - `, err);

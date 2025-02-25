@@ -1,5 +1,4 @@
-import { type LocalClientDetailsType } from '../helpers/client-details';
-import { Sdk, SdkType } from '../gen/video/sfu/models/models';
+import { ClientDetails, Sdk, SdkType } from '../gen/video/sfu/models/models';
 
 /**
  * Flatten the stats report into an array of stats objects.
@@ -14,7 +13,7 @@ export const flatten = (report: RTCStatsReport) => {
   return stats;
 };
 
-export const getSdkSignature = (clientDetails: LocalClientDetailsType) => {
+export const getSdkSignature = (clientDetails: ClientDetails) => {
   const { sdk, ...platform } = clientDetails;
   const sdkName = getSdkName(sdk);
   const sdkVersion = getSdkVersion(sdk);
