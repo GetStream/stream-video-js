@@ -1561,7 +1561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-env@npm:^7.16.4, @babel/preset-env@npm:^7.18.2, @babel/preset-env@npm:^7.23.8, @babel/preset-env@npm:^7.25.2, @babel/preset-env@npm:^7.26.9":
+"@babel/preset-env@npm:7.26.9, @babel/preset-env@npm:^7.16.4, @babel/preset-env@npm:^7.18.2, @babel/preset-env@npm:^7.23.8, @babel/preset-env@npm:^7.25.2, @babel/preset-env@npm:^7.26.9":
   version: 7.26.9
   resolution: "@babel/preset-env@npm:7.26.9"
   dependencies:
@@ -1682,7 +1682,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-typescript@npm:^7.13.0, @babel/preset-typescript@npm:^7.16.0, @babel/preset-typescript@npm:^7.16.7, @babel/preset-typescript@npm:^7.17.12, @babel/preset-typescript@npm:^7.23.0, @babel/preset-typescript@npm:^7.23.3, @babel/preset-typescript@npm:^7.24.7":
+"@babel/preset-typescript@npm:7.26.0, @babel/preset-typescript@npm:^7.13.0, @babel/preset-typescript@npm:^7.16.0, @babel/preset-typescript@npm:^7.16.7, @babel/preset-typescript@npm:^7.17.12, @babel/preset-typescript@npm:^7.23.0, @babel/preset-typescript@npm:^7.23.3, @babel/preset-typescript@npm:^7.24.7":
   version: 7.26.0
   resolution: "@babel/preset-typescript@npm:7.26.0"
   dependencies:
@@ -8350,6 +8350,8 @@ __metadata:
   dependencies:
     "@babel/cli": ^7.20.0
     "@babel/core": ^7.20.0
+    "@babel/preset-env": 7.26.9
+    "@babel/preset-typescript": 7.26.0
     "@babel/runtime": ^7.20.0
     "@expo/config-plugins": ~9.0.15
     "@notifee/react-native": 9.1.2
