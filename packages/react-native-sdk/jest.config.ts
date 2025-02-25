@@ -15,7 +15,7 @@ const config: Config = {
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   transformIgnorePatterns: [
     // added as per the README in https://github.com/invertase/notifee/tree/main/packages/react-native
-    'node_modules/(?!(jest-)?react-native|@react-native|@notifee)',
+    'node_modules/(?!(jest-)?react-native|@react-native|@stream-io|@notifee)',
   ],
   testTimeout: 10000,
 };
