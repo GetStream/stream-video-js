@@ -1,11 +1,15 @@
 module.exports = function (api) {
-  api && api.cache(false);
+  const isTest = api.env('test');
+
+  if (isTest) {
+    return {
+      presets: [
+        'module:@react-native/babel-preset',
+        '@babel/preset-typescript',
+      ],
+    };
+  }
   return {
-    env: {
-      test: {
-        presets: ['module:@react-native/babel-preset'],
-      },
-    },
     presets: ['module:@react-native/babel-preset'],
   };
 };
