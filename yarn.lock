@@ -1682,7 +1682,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-typescript@npm:^7.13.0, @babel/preset-typescript@npm:^7.16.0, @babel/preset-typescript@npm:^7.16.7, @babel/preset-typescript@npm:^7.17.12, @babel/preset-typescript@npm:^7.23.0, @babel/preset-typescript@npm:^7.23.3, @babel/preset-typescript@npm:^7.24.7":
+"@babel/preset-typescript@npm:^7.13.0, @babel/preset-typescript@npm:^7.16.0, @babel/preset-typescript@npm:^7.16.7, @babel/preset-typescript@npm:^7.17.12, @babel/preset-typescript@npm:^7.23.0, @babel/preset-typescript@npm:^7.23.3, @babel/preset-typescript@npm:^7.24, @babel/preset-typescript@npm:^7.24.7":
   version: 7.26.0
   resolution: "@babel/preset-typescript@npm:7.26.0"
   dependencies:
@@ -8466,6 +8466,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
+    "@babel/preset-typescript": ^7.24
     "@expo/config-plugins": ~9.0.15
     "@notifee/react-native": 9.1.2
     "@react-native-community/netinfo": 9.3.9
