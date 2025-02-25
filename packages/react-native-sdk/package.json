@@ -113,6 +113,9 @@
     }
   },
   "devDependencies": {
+    "@babel/cli": "^7.20.0",
+    "@babel/core": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
     "@expo/config-plugins": "~9.0.15",
     "@notifee/react-native": "9.1.2",
     "@react-native-community/netinfo": "9.3.9",

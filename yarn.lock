@@ -34,7 +34,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/cli@npm:^7.23.4":
+"@babel/cli@npm:^7.20.0, @babel/cli@npm:^7.23.4":
   version: 7.26.4
   resolution: "@babel/cli@npm:7.26.4"
   dependencies:
@@ -8348,6 +8348,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
+    "@babel/cli": ^7.20.0
+    "@babel/core": ^7.20.0
+    "@babel/runtime": ^7.20.0
     "@expo/config-plugins": ~9.0.15
     "@notifee/react-native": 9.1.2
     "@react-native-community/netinfo": 9.3.9
