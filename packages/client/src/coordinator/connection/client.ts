@@ -667,27 +667,20 @@ export class StreamClient {
   };
 
   getUserAgent = (): string => {
-    if (this.cachedUserAgent) return this.cachedUserAgent;
+    if (!this.cachedUserAgent) {
+      const { clientAppIdentifier = {} } = this.options;
+      const {
+        sdkName = 'js',
+        sdkVersion = process.env.PKG_VERSION || '0.0.0',
+        ...extras
+      } = clientAppIdentifier;
 
-    const bundleType =
-      process.env.CLIENT_BUNDLE || (this.node ? 'node' : 'browser');
-
-    const { clientAppIdentifier } = this.options;
-    if (!clientAppIdentifier) {
-      const version = process.env.PKG_VERSION || '0.0.0-development';
-      return `stream-video-plain_javascript-v${version}|client_bundle=${bundleType}`;
+      this.cachedUserAgent = [
+        `stream-video-${sdkName}-v${sdkVersion}`,
+        ...Object.entries(extras).map(([key, value]) => `${key}=${value}`),
+        `client_bundle=${process.env.CLIENT_BUNDLE || (this.node ? 'node' : 'browser')}`,
+      ].join('|');
     }
-
-    const { sdkName, uiSdkVersion, ...rest } = clientAppIdentifier;
-    const baseIdentifier = `stream-video-${sdkName}-v${uiSdkVersion}`;
-    const extras = Object.entries(rest)
-      .concat([['client_bundle', bundleType]])
-      .map(([key, value]) => `${key}=${value}`)
-      .join('|');
-
-    this.cachedUserAgent = extras
-      ? `${baseIdentifier}|${extras}`
-      : baseIdentifier;
 
     return this.cachedUserAgent;
   };

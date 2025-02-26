@@ -160,12 +160,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
 };
 
 export type ClientAppIdentifier = {
-  sdkName?: 'react' | 'react-native' | 'plain-js' | (string & {});
-  uiSdkVersion?: string;
+  sdkName?: 'react' | 'react-native' | 'plain-javascript' | (string & {});
+  sdkVersion?: string;
   app?: string;
   app_version?: string;
   os?: string;
-  os_version?: string;
   device_model?: string;
 };
 

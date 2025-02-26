@@ -29,7 +29,7 @@ const getClientAppIdentifier = (
     // ensure the sdk name and version are set correctly,
     // overriding any user-provided values
     appId.sdkName = SdkType[sdkInfo.type].toLowerCase();
-    appId.uiSdkVersion = `${sdkInfo.major}.${sdkInfo.minor}.${sdkInfo.patch}`;
+    appId.sdkVersion = `${sdkInfo.major}.${sdkInfo.minor}.${sdkInfo.patch}`;
   }
   return appId;
 };

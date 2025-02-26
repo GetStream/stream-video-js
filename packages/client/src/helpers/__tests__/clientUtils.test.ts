@@ -5,6 +5,7 @@ import {
   getInstanceKey,
 } from '../clientUtils';
 import { TokenProvider } from '../../coordinator/connection/types';
+import { getSdkInfo, setSdkInfo } from '../client-details';
 
 describe('clientUtils', () => {
   describe('getInstanceKey', () => {
@@ -52,8 +53,7 @@ describe('clientUtils', () => {
           app: 'vitest',
           app_version: '1.0.0',
           device_model: 'iPhone',
-          os: 'iOS',
-          os_version: '18.4',
+          os: 'iOS 18.4',
         },
       });
       expect(client).toBeDefined();
@@ -62,13 +62,24 @@ describe('clientUtils', () => {
           '|app=vitest' +
           '|app_version=1.0.0' +
           '|device_model=iPhone' +
-          '|os=iOS' +
-          '|os_version=18.4' +
+          '|os=iOS 18.4' +
           '|client_bundle=node',
       );
       expect(client.logger).toBeDefined();
       expect(client.options.persistUserOnConnectionFailure).toBe(true);
       expect(client.options.timeout).toBe(1000);
+    });
+
+    it('should use default x-stream-client header', () => {
+      const sdk = getSdkInfo();
+      // @ts-expect-error
+      setSdkInfo(undefined);
+      const client = createCoordinatorClient('apiKey', {});
+      expect(client).toBeDefined();
+      expect(client.getUserAgent()).toBe(
+        `stream-video-js-v0.0.0|client_bundle=node`,
+      );
+      setSdkInfo(sdk!);
     });
   });
 });
