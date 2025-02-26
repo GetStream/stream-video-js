@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.6...@stream-io/video-react-native-sdk-1.10.7) (2025-02-26)
+
+
+* pinning rn dev dep for sdk ([0e78ddc](https://github.com/GetStream/stream-video-js/commit/0e78ddcfabdd7f42849cad47efa0da623c2021cb))
+
+
+### Bug Fixes
+
+* pip race condition ([#1700](https://github.com/GetStream/stream-video-js/issues/1700)) ([60c8aa6](https://github.com/GetStream/stream-video-js/commit/60c8aa6c5651072f15da1770e9840d3f2b8c11c0))
+
 ## [1.10.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.5...@stream-io/video-react-native-sdk-1.10.6) (2025-02-26)
 
 ### Dependency Updates
