@@ -1,3 +1,6 @@
-module.exports = {
-  presets: ['module:react-native-builder-bob/babel-preset'],
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['module:@react-native/babel-preset'],
+  };
 };

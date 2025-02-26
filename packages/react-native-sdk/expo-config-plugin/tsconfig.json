@@ -1,8 +1,10 @@
 {
-  "extends": "expo-module-scripts/tsconfig.plugin",
+  "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "sourceMap": false,
+    "declaration": false
   },
   "include": ["./src"],
   "exclude": ["**/__mocks__/*", "**/__tests__/*"]

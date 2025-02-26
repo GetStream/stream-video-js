@@ -138,6 +138,7 @@ try {
       start,
     ]);
 
+    // @ts-ignore
     const animatedStyle = useAnimatedStyle(() => {
       return {
         height: rectangle?.height,
@@ -159,6 +160,7 @@ try {
       // gesture handler root view must absolutely fill the bounds
       // to intercept gestures within those bounds
       <GestureDetector gesture={dragGesture}>
+        {/* @ts-ignore */}
         <Reanimated.View style={animatedStyle}>
           <View
             onLayout={(event) => {
