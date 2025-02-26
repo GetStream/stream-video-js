@@ -100,7 +100,7 @@ const DeviceSelectorDropdown = (props: {
   icon: string;
 }) => {
   const { devices = [], selectedDeviceId, title, onChange, icon } = props;
-  const { deviceList, selectedDevice, selectedIndex } = useDeviceList(
+  const { deviceList, selectedDeviceInfo, selectedIndex } = useDeviceList(
     devices,
     selectedDeviceId,
   );
@@ -123,7 +123,7 @@ const DeviceSelectorDropdown = (props: {
       <DropDownSelect
         icon={icon}
         defaultSelectedIndex={selectedIndex}
-        defaultSelectedLabel={selectedDevice.label}
+        defaultSelectedLabel={selectedDeviceInfo.label}
         handleSelect={handleSelect}
       >
         {deviceList.map((device) => (

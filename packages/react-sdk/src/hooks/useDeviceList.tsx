@@ -19,13 +19,13 @@ export function useDeviceList(
   selectedDeviceId: string | undefined,
 ): {
   deviceList: DeviceListItem[];
-  selectedDevice: DeviceListItem;
+  selectedDeviceInfo: DeviceListItem;
   selectedIndex: number;
 } {
   const { t } = useI18n();
 
   return useMemo(() => {
-    let selectedDevice: DeviceListItem | null = null;
+    let selectedDeviceInfo: DeviceListItem | null = null;
     let selectedIndex: number | null = null;
 
     const deviceList: DeviceListItem[] = devices.map((d, i) => {
@@ -33,25 +33,25 @@ export function useDeviceList(
       const device = { deviceId: d.deviceId, label: d.label, isSelected };
 
       if (isSelected) {
-        selectedDevice = device;
+        selectedDeviceInfo = device;
         selectedIndex = i;
       }
 
       return device;
     });
 
-    if (selectedDevice === null || selectedIndex === null) {
+    if (selectedDeviceInfo === null || selectedIndex === null) {
       const defaultDevice = {
         deviceId: 'default',
         label: t('Default'),
         isSelected: true,
       };
 
-      selectedDevice = defaultDevice;
+      selectedDeviceInfo = defaultDevice;
       selectedIndex = 0;
       deviceList.unshift(defaultDevice);
     }
 
-    return { deviceList, selectedDevice, selectedIndex };
+    return { deviceList, selectedDeviceInfo, selectedIndex };
   }, [devices, selectedDeviceId, t]);
 }
