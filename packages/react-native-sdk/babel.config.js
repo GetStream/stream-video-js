@@ -1,5 +1,4 @@
 module.exports = function (api) {
-  api && api.cache && api.cache(false);
   const isTest = api.env('test');
   if (isTest) {
     // https://jestjs.io/docs/getting-started#using-typescript
