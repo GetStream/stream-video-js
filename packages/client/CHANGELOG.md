@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.17.1...@stream-io/video-client-1.18.0) (2025-02-26)
+
+
+### Features
+
+* align SDK version reporting, use higher-entropy user agent data for stats ([#1696](https://github.com/GetStream/stream-video-js/issues/1696)) ([e02e8d9](https://github.com/GetStream/stream-video-js/commit/e02e8d9b3843086a3fa859a8bd31ba65ace5a7fd))
+
+
+### Bug Fixes
+
+* don't implicitly mark calls as `ringing` ([#1697](https://github.com/GetStream/stream-video-js/issues/1697)) ([3429a7b](https://github.com/GetStream/stream-video-js/commit/3429a7ba52e13a43b96d2c3c28f270da111f84b2)), closes [/github.com/GetStream/stream-video-js/issues/1561#issuecomment-2662584543](https://github.com/GetStream//github.com/GetStream/stream-video-js/issues/1561/issues/issuecomment-2662584543)
+* use axios version that doesnt import node specific module ([#1699](https://github.com/GetStream/stream-video-js/issues/1699)) ([414e01b](https://github.com/GetStream/stream-video-js/commit/414e01b9c7e4c4862b429e48c506673bcc228fa4))
+
 ## [1.17.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.17.0...@stream-io/video-client-1.17.1) (2025-02-19)
 
 
