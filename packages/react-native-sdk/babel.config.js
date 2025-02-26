@@ -1,14 +1,5 @@
-module.exports = function (api) {
-  const isTest = api.env('test');
-  if (isTest) {
-    // https://jestjs.io/docs/getting-started#using-typescript
-    return {
-      presets: [
-        'module:@react-native/babel-preset',
-        '@babel/preset-typescript',
-      ],
-    };
-  }
+module.exports = function () {
+  api.cache(true);
   return {
     presets: ['module:@react-native/babel-preset'],
   };
