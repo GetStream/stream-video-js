@@ -1,9 +1,9 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
+import { useDeviceList } from '../../hooks/useDeviceList';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
-import { useDeviceListWithDefault } from './useDeviceListWithDefault';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -60,7 +60,7 @@ const DeviceSelectorList = (props: {
 }) => {
   const { devices = [], selectedDeviceId, title, type, onChange } = props;
   const { close } = useMenuContext();
-  const { deviceList } = useDeviceListWithDefault(devices, selectedDeviceId);
+  const { deviceList } = useDeviceList(devices, selectedDeviceId);
 
   return (
     <div className="str-video__device-settings__device-kind">
@@ -100,8 +100,10 @@ const DeviceSelectorDropdown = (props: {
   icon: string;
 }) => {
   const { devices = [], selectedDeviceId, title, onChange, icon } = props;
-  const { deviceList, selectedDevice, selectedIndex } =
-    useDeviceListWithDefault(devices, selectedDeviceId);
+  const { deviceList, selectedDevice, selectedIndex } = useDeviceList(
+    devices,
+    selectedDeviceId,
+  );
 
   const handleSelect = useCallback(
     (index: number) => {
