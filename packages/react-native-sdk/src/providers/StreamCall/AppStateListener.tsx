@@ -89,10 +89,7 @@ export const AppStateListener = () => {
           if (cameraDisabledByAppState.current) {
             call?.camera?.resume();
             cameraDisabledByAppState.current = false;
-            logger(
-              'debug',
-              'Disable and reenable camera as app came to foreground'
-            );
+            logger('debug', 'Resume camera as app came to foreground');
           }
         }
         appState.current = nextAppState;
