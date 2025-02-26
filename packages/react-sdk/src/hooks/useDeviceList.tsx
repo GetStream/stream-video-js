@@ -9,7 +9,7 @@ export interface DeviceListItem {
 
 /**
  * Utility hook that helps render a list of devices or implement a device selector.
- * Compared someting like `useCameraState().devices`, it has some handy features:
+ * Compared to someting like `useCameraState().devices`, it has some handy features:
  * 1. Adds the "Default" device to the list if applicable (either the user did not
  * select a device, or a previously selected device is no longer available).
  * 2. Maps the device list to a format more suitable for rendering.
