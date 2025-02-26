@@ -85,9 +85,10 @@ export type CallContentProps = Pick<
      */
     disablePictureInPicture?: boolean;
     /**
-     * Props to set the audio mode for the InCallManager
-     * If media type is video, audio is routed by default to speaker otherwise it is routed to earpiece
-     * Changing the mode on the fly is not supported. Manually invoke `InCallManager.start({ media })` to achieve this.
+     * Props to set the audio mode for the InCallManager.
+     * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
+     * Changing the mode on the fly is not supported.
+     * Manually invoke `InCallManager.start({ media })` to achieve this.
      * @default 'video'
      */
     inCallManagerAudioMode?: 'video' | 'audio';
