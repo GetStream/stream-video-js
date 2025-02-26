@@ -11,7 +11,7 @@ import {
   disablePiPMode$,
   isInPiPModeAndroid$,
 } from '../../utils/internal/rxSubjects';
-import { RxUtils } from '@stream-io/video-client';
+import { getLogger, RxUtils } from '@stream-io/video-client';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -32,8 +32,21 @@ export const AppStateListener = () => {
     }
 
     const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
-    isInPiPModeAndroid$.next(
-      !disablePiP && AppState.currentState === 'background'
+    const logger = getLogger(['AppStateListener']);
+    const initialPipMode =
+      !disablePiP && AppState.currentState === 'background';
+    isInPiPModeAndroid$.next(initialPipMode);
+    logger('debug', 'Initial PiP mode on mount set to ', initialPipMode);
+
+    NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
+      (isInPiP: boolean | null | undefined) => {
+        isInPiPModeAndroid$.next(!!isInPiP);
+        logger(
+          'debug',
+          'Initial PiP mode on mount (after asking native module) set to ',
+          !!isInPiP
+        );
+      }
     );
 
     const eventEmitter = new NativeEventEmitter(
@@ -57,6 +70,7 @@ export const AppStateListener = () => {
     // we dont check for inactive states
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
+      const logger = getLogger(['AppStateListener']);
       if (appState.current.match(/background/) && nextAppState === 'active') {
         if (
           call?.camera?.state.status === 'enabled' &&
@@ -67,10 +81,18 @@ export const AppStateListener = () => {
           call?.camera?.disable(true).then(() => {
             call?.camera?.enable();
           });
+          logger(
+            'debug',
+            'Disable and reenable camera as app came to foreground'
+          );
         } else {
           if (cameraDisabledByAppState.current) {
             call?.camera?.resume();
             cameraDisabledByAppState.current = false;
+            logger(
+              'debug',
+              'Disable and reenable camera as app came to foreground'
+            );
           }
         }
         appState.current = nextAppState;
@@ -78,15 +100,16 @@ export const AppStateListener = () => {
         appState.current === 'active' &&
         nextAppState.match(/background/)
       ) {
+        const disableCameraIfNeeded = () => {
+          if (call?.camera?.state.status === 'enabled') {
+            cameraDisabledByAppState.current = true;
+            call?.camera?.disable();
+            logger('debug', 'Camera disabled by app going to background');
+          }
+        };
         if (Platform.OS === 'android') {
           // in Android, we need to check if we are in PiP mode
           // in PiP mode, we don't want to disable the camera
-          const disableCameraIfNeeded = () => {
-            if (call?.camera?.state.status === 'enabled') {
-              cameraDisabledByAppState.current = true;
-              call?.camera?.disable();
-            }
-          };
           if (isAndroid8OrAbove) {
             // set with an assumption that its enabled so that UI disabling happens faster
             const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
@@ -112,10 +135,7 @@ export const AppStateListener = () => {
         } else {
           // shouldDisableIOSLocalVideoOnBackgroundRef is false, if local video is enabled on PiP
           if (shouldDisableIOSLocalVideoOnBackgroundRef.current) {
-            if (call?.camera?.state.status === 'enabled') {
-              cameraDisabledByAppState.current = true;
-              call?.camera?.disable();
-            }
+            disableCameraIfNeeded();
           }
         }
         appState.current = nextAppState;
