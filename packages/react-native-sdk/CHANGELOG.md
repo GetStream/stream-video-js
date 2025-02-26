@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.5...@stream-io/video-react-native-sdk-1.10.6) (2025-02-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.0`
+* `@stream-io/video-react-bindings` updated to version `1.5.2`
+
+### Bug Fixes
+
+* config plugin not being resolved in expo 50 ([#1698](https://github.com/GetStream/stream-video-js/issues/1698)) ([5060ba3](https://github.com/GetStream/stream-video-js/commit/5060ba32421b31108df0c4a0b4e52997df833b3c)), closes [#1694](https://github.com/GetStream/stream-video-js/issues/1694)
+
 ## [1.10.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.4...@stream-io/video-react-native-sdk-1.10.5) (2025-02-25)
 
 
