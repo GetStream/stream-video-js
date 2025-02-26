@@ -112,8 +112,6 @@ export class DynascaleManager {
 
   /**
    * Creates a new DynascaleManager instance.
-   *
-   * @param call the call to manage.
    */
   constructor(callState: CallState, speaker: SpeakerManager) {
     this.callState = callState;
