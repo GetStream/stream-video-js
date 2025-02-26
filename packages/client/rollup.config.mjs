@@ -31,7 +31,7 @@ const browserConfig = {
   input: 'index.ts',
   output: {
     file: 'dist/index.browser.es.js',
-    format: 'es',
+    format: 'esm',
     sourcemap: true,
   },
   external: external.filter((dep) => !browserIgnoredModules.includes(dep)),
@@ -39,34 +39,38 @@ const browserConfig = {
     replace({
       preventAssignment: true,
       'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+      'process.env.CLIENT_BUNDLE': JSON.stringify('browser-esm'),
     }),
     browserIgnorePlugin,
     typescript(),
   ],
 };
 
-const nodeConfig = {
+/**
+ * @return {import('rollup').RollupOptions}
+ */
+const createNodeConfig = (outputFile, format) => ({
   input: 'index.ts',
-  output: [
-    {
-      file: 'dist/index.cjs.js',
-      format: 'cjs',
-      sourcemap: true,
-    },
-    {
-      file: 'dist/index.es.js',
-      format: 'es',
-      sourcemap: true,
-    },
-  ],
+  output: {
+    file: outputFile,
+    format: format,
+    sourcemap: true,
+  },
   external,
   plugins: [
     replace({
       preventAssignment: true,
       'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+      'process.env.CLIENT_BUNDLE': JSON.stringify(`node-${format}`),
     }),
     typescript(),
   ],
-};
+});
 
-export default [browserConfig, nodeConfig];
+const rollupConfig = [
+  browserConfig,
+  createNodeConfig('dist/index.cjs.js', 'cjs'),
+  createNodeConfig('dist/index.es.js', 'esm'),
+];
+
+export default rollupConfig;

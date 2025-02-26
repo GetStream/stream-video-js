@@ -4,12 +4,9 @@ import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
+import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
-  getDeviceState,
-  getWebRTCInfo,
-  LocalClientDetailsType,
-} from '../helpers/client-details';
-import {
+  ClientDetails,
   InputDevices,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
@@ -20,7 +17,7 @@ import { Telemetry } from '../gen/video/sfu/signal_rpc/signal';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
-  clientDetails: LocalClientDetailsType;
+  clientDetails: ClientDetails;
   subscriber: Subscriber;
   publisher?: Publisher;
   microphone: MicrophoneManager;

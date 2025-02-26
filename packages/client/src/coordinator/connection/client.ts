@@ -38,6 +38,7 @@ import {
   CreateGuestResponse,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
+import { getLogLevel } from '../../logger';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -61,7 +62,7 @@ export class StreamClient {
   setUserPromise: ConnectAPIResponse | null;
   tokenManager: TokenManager;
   user?: UserWithId;
-  userAgent?: string;
+  private cachedUserAgent?: string;
   userID?: string;
   wsBaseURL?: string;
   wsConnection: StableWSConnection | null;
@@ -218,10 +219,7 @@ export class StreamClient {
       );
     }
 
-    if (
-      (this._isUsingServerAuth() || this.node) &&
-      !this.options.allowServerSideConnect
-    ) {
+    if ((this.secret || this.node) && !this.options.allowServerSideConnect) {
       this.logger(
         'warn',
         'Please do not use connectUser server side. Use our @stream-io/node-sdk instead: https://getstream.io/video/docs/api/',
@@ -326,7 +324,7 @@ export class StreamClient {
       return;
     }
 
-    await this._setupConnectionIdPromise();
+    this._setupConnectionIdPromise();
 
     this.clientID = `${this.userID}--${randomId()}`;
     const newWsPromise = this.connect();
@@ -382,7 +380,7 @@ export class StreamClient {
     tokenOrProvider: TokenOrProvider,
   ) => {
     addConnectionEventListeners(this.updateNetworkConnectionStatus);
-    await this._setupConnectionIdPromise();
+    this._setupConnectionIdPromise();
 
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
@@ -469,6 +467,7 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     },
   ) => {
+    if (getLogLevel() !== 'trace') return;
     this.logger('trace', `client: ${type} - Request - ${url}`, {
       payload: data,
       config,
@@ -480,6 +479,7 @@ export class StreamClient {
     url: string,
     response: AxiosResponse<T>,
   ) => {
+    if (getLogLevel() !== 'trace') return;
     this.logger(
       'trace',
       `client:${type} - Response - url: ${url} > status ${response.status}`,
@@ -666,24 +666,24 @@ export class StreamClient {
     return await this.wsConnection.connect(this.defaultWSTimeout);
   };
 
-  getUserAgent = () => {
-    const version = process.env.PKG_VERSION || '0.0.0-development';
-    return (
-      this.userAgent ||
-      `stream-video-javascript-client-${
-        this.node ? 'node' : 'browser'
-      }-${version}`
-    );
-  };
+  getUserAgent = (): string => {
+    if (!this.cachedUserAgent) {
+      const { clientAppIdentifier = {} } = this.options;
+      const {
+        sdkName = 'js',
+        sdkVersion = process.env.PKG_VERSION || '0.0.0',
+        ...extras
+      } = clientAppIdentifier;
 
-  setUserAgent = (userAgent: string) => {
-    this.userAgent = userAgent;
-  };
+      this.cachedUserAgent = [
+        `stream-video-${sdkName}-v${sdkVersion}`,
+        ...Object.entries(extras).map(([key, value]) => `${key}=${value}`),
+        `client_bundle=${process.env.CLIENT_BUNDLE || (this.node ? 'node' : 'browser')}`,
+      ].join('|');
+    }
 
-  /**
-   * _isUsingServerAuth - Returns true if we're using server side auth
-   */
-  _isUsingServerAuth = () => !!this.secret;
+    return this.cachedUserAgent;
+  };
 
   _enrichAxiosOptions = (
     options: AxiosRequestConfig & { config?: AxiosRequestConfig } & {
