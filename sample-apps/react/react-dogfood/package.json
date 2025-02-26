@@ -18,7 +18,7 @@
     "@stream-io/video-filters-web": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
-    "axios": "^1.7.9",
+    "axios": "^1.8.1",
     "clsx": "^2.0.0",
     "dotenv": "^16.4.7",
     "framer-motion": "^10.16.16",

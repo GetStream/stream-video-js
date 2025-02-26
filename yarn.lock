@@ -8250,7 +8250,7 @@ __metadata:
     "@types/react-form": ^4.0.5
     "@types/starwars-names": ^1.6.2
     "@types/yargs": ^17.0.32
-    axios: ^1.7.9
+    axios: ^1.8.1
     clsx: ^2.0.0
     dotenv: ^16.4.7
     framer-motion: ^10.16.16
@@ -10969,7 +10969,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.0.0, axios@npm:^1.6.0, axios@npm:^1.7.9":
+"axios@npm:^1.0.0, axios@npm:^1.6.0":
   version: 1.7.9
   resolution: "axios@npm:1.7.9"
   dependencies:
