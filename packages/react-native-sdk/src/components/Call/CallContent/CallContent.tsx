@@ -91,7 +91,7 @@ export type CallContentProps = Pick<
      * Manually invoke `InCallManager.start({ media })` to achieve this.
      * @default 'video'
      */
-    inCallManagerAudioMode?: 'video' | 'audio';
+    initialInCallManagerAudioMode?: 'video' | 'audio';
   };
 
 export const CallContent = ({
@@ -111,7 +111,7 @@ export const CallContent = ({
   supportedReactions,
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
-  inCallManagerAudioMode = 'video',
+  initialInCallManagerAudioMode = 'video',
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -129,7 +129,7 @@ export const CallContent = ({
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const incallManagerModeRef = useRef(inCallManagerAudioMode);
+  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
 
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
