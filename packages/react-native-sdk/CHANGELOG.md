@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.7...@stream-io/video-react-native-sdk-1.10.8) (2025-02-27)
+
+
+### Bug Fixes
+
+* do not stop incall manager on change of audio settings ([#1702](https://github.com/GetStream/stream-video-js/issues/1702)) ([e35194d](https://github.com/GetStream/stream-video-js/commit/e35194dc4a789cc281b9f2d4488ffe11840986f7))
+
 ## [1.10.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.6...@stream-io/video-react-native-sdk-1.10.7) (2025-02-26)
 
 
