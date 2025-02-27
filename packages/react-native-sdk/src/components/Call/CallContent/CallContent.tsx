@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
@@ -84,6 +84,14 @@ export type CallContentProps = Pick<
      * If true, disables the Picture-in-Picture mode for iOS and Android
      */
     disablePictureInPicture?: boolean;
+    /**
+     * Props to set the audio mode for the InCallManager.
+     * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
+     * Changing the mode on the fly is not supported.
+     * Manually invoke `InCallManager.start({ media })` to achieve this.
+     * @default 'video'
+     */
+    initialInCallManagerAudioMode?: 'video' | 'audio';
   };
 
 export const CallContent = ({
@@ -103,6 +111,7 @@ export const CallContent = ({
   supportedReactions,
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
+  initialInCallManagerAudioMode = 'video',
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -113,7 +122,6 @@ export const CallContent = ({
     theme: { callContent },
   } = useTheme();
   const {
-    useCallSettings,
     useHasOngoingScreenShare,
     useRemoteParticipants,
     useLocalParticipant,
@@ -121,8 +129,7 @@ export const CallContent = ({
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const callSettings = useCallSettings();
-  const isVideoEnabledInCall = callSettings?.video.enabled;
+  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
 
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
@@ -146,10 +153,10 @@ export const CallContent = ({
    * This hook is used to handle IncallManager specs of the application.
    */
   useEffect(() => {
-    InCallManager.start({ media: isVideoEnabledInCall ? 'video' : 'audio' });
+    InCallManager.start({ media: incallManagerModeRef.current });
 
     return () => InCallManager.stop();
-  }, [isVideoEnabledInCall]);
+  }, []);
 
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {
