@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.2...@stream-io/video-react-sdk-1.12.3) (2025-02-27)
+
+
+### Bug Fixes
+
+* add explicit default device option to device selectors ([#1701](https://github.com/GetStream/stream-video-js/issues/1701)) ([1b8e11b](https://github.com/GetStream/stream-video-js/commit/1b8e11b65b5323d440fcb9b03a464a580bca767e))
+
 ## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.1...@stream-io/video-react-sdk-1.12.2) (2025-02-26)
 
 ### Dependency Updates
