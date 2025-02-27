@@ -1,9 +1,9 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
+import { useDeviceList } from '../../hooks/useDeviceList';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
-import { useI18n } from '@stream-io/video-react-bindings';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -60,7 +60,7 @@ const DeviceSelectorList = (props: {
 }) => {
   const { devices = [], selectedDeviceId, title, type, onChange } = props;
   const { close } = useMenuContext();
-  const { t } = useI18n();
+  const { deviceList } = useDeviceList(devices, selectedDeviceId);
 
   return (
     <div className="str-video__device-settings__device-kind">
@@ -69,34 +69,25 @@ const DeviceSelectorList = (props: {
           {title}
         </div>
       )}
-      {devices.length === 0 ? (
-        <DeviceSelectorOption
-          id={`${type}--default`}
-          label={t('Default')}
-          name={type}
-          defaultChecked
-          value="default"
-        />
-      ) : (
-        devices.map((device) => {
-          return (
-            <DeviceSelectorOption
-              id={`${type}--${device.deviceId}`}
-              value={device.deviceId}
-              label={device.label}
-              key={device.deviceId}
-              onChange={(e) => {
-                onChange?.(e.target.value);
-                close?.();
-              }}
-              name={type}
-              selected={
-                device.deviceId === selectedDeviceId || devices.length === 1
+      {deviceList.map((device) => {
+        return (
+          <DeviceSelectorOption
+            id={`${type}--${device.deviceId}`}
+            value={device.deviceId}
+            label={device.label}
+            key={device.deviceId}
+            onChange={(e) => {
+              const deviceId = e.target.value;
+              if (deviceId !== 'default') {
+                onChange?.(deviceId);
               }
-            />
-          );
-        })
-      )}
+              close?.();
+            }}
+            name={type}
+            selected={device.isSelected}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -109,17 +100,19 @@ const DeviceSelectorDropdown = (props: {
   icon: string;
 }) => {
   const { devices = [], selectedDeviceId, title, onChange, icon } = props;
-  const { t } = useI18n();
-
-  const selectedIndex = devices.findIndex(
-    (d) => d.deviceId === selectedDeviceId,
+  const { deviceList, selectedDeviceInfo, selectedIndex } = useDeviceList(
+    devices,
+    selectedDeviceId,
   );
 
   const handleSelect = useCallback(
     (index: number) => {
-      onChange?.(devices[index].deviceId);
+      const deviceId = deviceList[index].deviceId;
+      if (deviceId !== 'default') {
+        onChange?.(deviceId);
+      }
     },
-    [devices, onChange],
+    [deviceList, onChange],
   );
 
   return (
@@ -130,23 +123,17 @@ const DeviceSelectorDropdown = (props: {
       <DropDownSelect
         icon={icon}
         defaultSelectedIndex={selectedIndex}
-        defaultSelectedLabel={devices[selectedIndex]?.label ?? t('Default')}
+        defaultSelectedLabel={selectedDeviceInfo.label}
         handleSelect={handleSelect}
       >
-        {devices.length === 0 ? (
-          <DropDownSelectOption icon={icon} label={t('Default')} selected />
-        ) : (
-          devices.map((device) => (
-            <DropDownSelectOption
-              key={device.deviceId}
-              icon={icon}
-              label={device.label}
-              selected={
-                device.deviceId === selectedDeviceId || devices.length === 1
-              }
-            />
-          ))
-        )}
+        {deviceList.map((device) => (
+          <DropDownSelectOption
+            key={device.deviceId}
+            icon={icon}
+            label={device.label}
+            selected={device.isSelected}
+          />
+        ))}
       </DropDownSelect>
     </div>
   );
