@@ -842,8 +842,15 @@ export class Call {
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
       } catch (error) {
-        // restore the previous call state if the join-flow fails
-        this.state.setCallingState(callingState);
+        // prevent triggering reconnect flow if the state is OFFLINE
+        const avoidRestoreState =
+          this.state.callingState === CallingState.OFFLINE &&
+          callingState === CallingState.RECONNECTING;
+
+        if (!avoidRestoreState) {
+          // restore the previous call state if the join-flow fails
+          this.state.setCallingState(callingState);
+        }
         throw error;
       }
     }
