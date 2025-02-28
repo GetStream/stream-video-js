@@ -849,10 +849,8 @@ export class Call {
         if (!avoidRestoreState) {
           // restore the previous call state if the join-flow fails
           this.state.setCallingState(callingState);
-          throw error;
         }
-        // NOTE: we don't throw the error for offline state
-        // as the reconnection flow for offline->online state is handled on "network.changed" event
+        throw error;
       }
     }
 
@@ -1324,6 +1322,7 @@ export class Call {
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
         }
       } while (
+        this.state.callingState !== CallingState.OFFLINE &&
         this.state.callingState !== CallingState.JOINED &&
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
