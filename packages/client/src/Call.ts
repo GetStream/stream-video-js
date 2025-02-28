@@ -844,14 +844,15 @@ export class Call {
       } catch (error) {
         // prevent triggering reconnect flow if the state is OFFLINE
         const avoidRestoreState =
-          this.state.callingState === CallingState.OFFLINE &&
-          callingState === CallingState.RECONNECTING;
+          this.state.callingState === CallingState.OFFLINE;
 
         if (!avoidRestoreState) {
           // restore the previous call state if the join-flow fails
           this.state.setCallingState(callingState);
+          throw error;
         }
-        throw error;
+        // NOTE: we don't throw the error for offline state
+        // as the reconnection flow for offline->online state is handled on "network.changed" event
       }
     }
 
