@@ -1304,6 +1304,13 @@ export class Call {
           }
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (this.state.callingState === CallingState.OFFLINE) {
+            this.logger(
+              'trace',
+              `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
+            );
+            break;
+          }
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
               'warn',
@@ -1322,7 +1329,6 @@ export class Call {
           this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
         }
       } while (
-        this.state.callingState !== CallingState.OFFLINE &&
         this.state.callingState !== CallingState.JOINED &&
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
