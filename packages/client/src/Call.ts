@@ -1204,7 +1204,10 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (this.ringing && !this.isCreatedByMe) {
+    const isReconnecting =
+      this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
+
+    if (!isReconnecting && this.ringing && !this.isCreatedByMe) {
       // signals other users that I have accepted the incoming call.
       await this.accept();
     }
