@@ -844,8 +844,7 @@ export class Call {
       } catch (error) {
         // prevent triggering reconnect flow if the state is OFFLINE
         const avoidRestoreState =
-          this.state.callingState === CallingState.OFFLINE &&
-          callingState === CallingState.RECONNECTING;
+          this.state.callingState === CallingState.OFFLINE;
 
         if (!avoidRestoreState) {
           // restore the previous call state if the join-flow fails
@@ -1308,6 +1307,15 @@ export class Call {
           }
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (this.state.callingState === CallingState.OFFLINE) {
+            this.logger(
+              'trace',
+              `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
+            );
+            break;
+            // we don't need to handle the error if the call is offline
+            // network change event will trigger the reconnection
+          }
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
               'warn',
