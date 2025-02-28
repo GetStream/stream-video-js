@@ -1310,6 +1310,8 @@ export class Call {
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
             );
             break;
+            // we don't need to handle the error if the call is offline
+            // network change event will trigger the reconnection
           }
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
