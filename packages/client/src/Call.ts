@@ -838,7 +838,10 @@ export class Call {
       performingMigration
     ) {
       try {
-        const joinResponse = await this.doJoinRequest(data);
+        const joinResponse = await this.doJoinRequest(
+          data,
+          performingRejoin || performingMigration,
+        );
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
       } catch (error) {
@@ -1182,7 +1185,10 @@ export class Call {
    *
    * @param data the join call data.
    */
-  doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
+  doJoinRequest = async (
+    data?: JoinCallData,
+    disableAccept?: boolean,
+  ): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
     const request: JoinCallRequest = { ...data, location };
     const joinResponse = await this.streamClient.post<
@@ -1197,7 +1203,7 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (this.ringing && !this.isCreatedByMe) {
+    if (!disableAccept && this.ringing && !this.isCreatedByMe) {
       // signals other users that I have accepted the incoming call.
       await this.accept();
     }
