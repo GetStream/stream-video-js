@@ -19,6 +19,7 @@ import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withCancellation } from '../helpers/concurrency';
+import { isReactNative } from '../helpers/platforms';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
@@ -110,7 +111,9 @@ export class Publisher extends BasePeerConnection {
       } else {
         const previousTrack = transceiver.sender.track;
         await transceiver.sender.replaceTrack(trackToPublish);
-        this.stopTrack(previousTrack);
+        if (!isReactNative()) {
+          this.stopTrack(previousTrack);
+        }
       }
     }
   };
@@ -224,6 +227,12 @@ export class Publisher extends BasePeerConnection {
     }
     for (const track of this.clonedTracks) {
       this.stopTrack(track);
+      // @ts-expect-error release() is present in react-native-webrtc
+      // and must be called to dispose the cloned tracks
+      if (typeof track.release === 'function') {
+        // @ts-expect-error
+        track.release();
+      }
     }
   };
 
