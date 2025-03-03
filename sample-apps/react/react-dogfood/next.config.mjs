@@ -80,7 +80,7 @@ const sentryWebpackPluginOptions = {
   dryRun: typeof process.env.CI === 'undefined',
   authToken: process.env.PRONTO_SENTRY_AUTH_TOKEN,
   org: 'stream',
-  project: 'video-dogfooding',
+  project: 'video-pronto',
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
