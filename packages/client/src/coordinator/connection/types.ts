@@ -166,7 +166,7 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   /**
    * The maximum number of retries to connect a user.
    */
-  maxUserConnectRetries?: number;
+  maxConnectUserRetries?: number;
 
   /**
    * A callback to be called one the maxUserConnectRetries is exhausted.

@@ -205,7 +205,7 @@ describe('StreamVideoClient.connectUser retries', () => {
     const client = new StreamVideoClient(apiKey, {
       // tests run in node, so we have to fake being in browser env
       browser: true,
-      maxUserConnectRetries: 2,
+      maxConnectUserRetries: 2,
     });
     client.streamClient.connectUser = vi
       .fn()
@@ -224,7 +224,7 @@ describe('StreamVideoClient.connectUser retries', () => {
     const client = new StreamVideoClient(apiKey, {
       // tests run in node, so we have to fake being in browser env
       browser: true,
-      maxUserConnectRetries: 3,
+      maxConnectUserRetries: 3,
       onConnectUserError,
     });
 

@@ -255,10 +255,10 @@ export class StreamVideoClient {
     let connectUserResponse: ConnectedEvent | void | undefined = undefined;
 
     const client = this.streamClient;
-    const { maxUserConnectRetries = 5, onConnectUserError } = client.options;
+    const { maxConnectUserRetries = 5, onConnectUserError } = client.options;
     for (
       let attempt = 0, errorQueue: Error[] = [];
-      !connectUserResponse && attempt < maxUserConnectRetries;
+      !connectUserResponse && attempt < maxConnectUserRetries;
       attempt++
     ) {
       try {
@@ -278,7 +278,7 @@ export class StreamVideoClient {
       } catch (err) {
         this.logger('warn', `Failed to connect a user (${attempt})`, err);
         errorQueue.push(err as Error);
-        if (attempt === maxUserConnectRetries - 1) {
+        if (attempt === maxConnectUserRetries - 1) {
           onConnectUserError?.(err as Error, errorQueue);
           throw err;
         }
