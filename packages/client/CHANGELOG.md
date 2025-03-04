@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.1...@stream-io/video-client-1.18.2) (2025-03-04)
+
+
+### Bug Fixes
+
+* do not accept again on reconnections ([#1705](https://github.com/GetStream/stream-video-js/issues/1705)) ([bedd2d8](https://github.com/GetStream/stream-video-js/commit/bedd2d8aafd7ff8260f63b500e25807518ccd365))
+* do not stop original track in RN ([#1708](https://github.com/GetStream/stream-video-js/issues/1708)) ([ab0ada2](https://github.com/GetStream/stream-video-js/commit/ab0ada283c753d4cdfd59b6eaf75af26cf54fd7e))
+* prevent extra unnecessary reconnect after offline to online ([#1706](https://github.com/GetStream/stream-video-js/issues/1706)) ([bc3920a](https://github.com/GetStream/stream-video-js/commit/bc3920a81f398fd9e166ee4517b32d58f50d56fe))
+
 ## [1.18.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.0...@stream-io/video-client-1.18.1) (2025-02-28)
 
 
