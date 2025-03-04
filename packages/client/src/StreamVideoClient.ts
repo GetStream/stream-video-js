@@ -277,13 +277,13 @@ export class StreamVideoClient {
               throw err;
             }
 
-            await sleep(retryInterval(attempt));
-
             // we need to force to disconnect the user if the client is
             // configured to persist the user on connection failure
             if (persistUserOnConnectionFailure) {
               await client.disconnectUser();
             }
+
+            await sleep(retryInterval(attempt));
           }
         }
       },
