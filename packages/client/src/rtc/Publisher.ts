@@ -228,7 +228,6 @@ export class Publisher extends BasePeerConnection {
     for (const track of this.clonedTracks) {
       this.stopTrack(track);
       // @ts-expect-error release() is present in react-native-webrtc
-      // and must be called to dispose the cloned tracks
       if (typeof track.release === 'function') {
         // @ts-expect-error
         track.release();
