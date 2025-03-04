@@ -214,7 +214,7 @@ jobs:
           INSTALL_ANDROID_EMULATOR: true
 
       - name: Download .apk
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: apk
 

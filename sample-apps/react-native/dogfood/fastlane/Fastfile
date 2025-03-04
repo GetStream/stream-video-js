@@ -144,7 +144,7 @@ end
 lane :test_ios do |options|
   start_video_buddy
 
-  udid = prepare_simulator(device: 'iPhone 14 Pro')
+  udid = prepare_simulator(device: 'iPhone SE')
 
   unless options[:skip_install]
     app = build_app_for_ios_simulator(
