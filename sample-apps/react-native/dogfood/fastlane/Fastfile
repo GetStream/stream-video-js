@@ -141,10 +141,69 @@ lane :build_ios do
   end
 end
 
+def extract_iphone_name_and_udid(simulator_line)
+  iphone_name = nil
+  iphone_udid = nil
+
+  line_without_shutdown = simulator_line.gsub(' (Shutdown)', '').strip
+
+  last_paren_index = line_without_shutdown.rindex('(') # Find the index of the *last* '('
+
+  if last_paren_index
+    iphone_name = line_without_shutdown[0...last_paren_index].strip # Full name is before the last '('
+
+    udid_part = line_without_shutdown[last_paren_index..-1]
+    # Simpler regex for UDID: just hex chars and hyphens inside parentheses
+    udid_match = udid_part.match(/\(([0-9A-F-]+)\)/i)
+    if udid_match
+      iphone_udid = udid_match[1].strip
+    end
+  end
+
+  return { name: iphone_name, udid: iphone_udid }
+end
+
+def get_first_iphone_udid
+  devices_output = sh(command: 'xcrun simctl list devices', log: false)
+  iphone_udid = nil
+
+  devices_output.lines.each do |line|
+    if line.include?('iPhone') && !line.include?('--') # Check for "iPhone" and not a header line
+      iphone_info = extract_iphone_name_and_udid(line)
+      # udid_match = line.match(/\(([0-9A-F-]+)\)/) # Regex to extract UDID within parentheses
+      if iphone_info[:udid]
+        iphone_udid = iphone_info[:udid]
+        puts "Found iPhone: #{iphone_info}}"
+        prepare_simulator(device: iphone_info[:name])
+        break # Stop after finding the first iPhone
+      end
+    end
+  end
+
+  if iphone_udid.nil?
+    puts "No iPhone simulator found."
+  else
+    puts "First iPhone UDID: #{iphone_udid}"
+  end
+
+  return iphone_udid # Return the UDID, or nil if not found
+end
+
+lane :get_iphone_udid_example do
+  first_iphone_udid = get_first_iphone_udid()
+  if first_iphone_udid
+    puts "Prepared: #{first_iphone_udid}"
+    # You can now use this UDID in other Fastlane actions, like prepare_simulator
+    # udid = prepare_simulator(udid: first_iphone_udid)
+  else
+    puts "Could not retrieve iPhone UDID. Please check your simulators."
+  end
+end
+
 lane :test_ios do |options|
   start_video_buddy
 
-  udid = prepare_simulator(device: 'iPhone SE')
+  udid = prepare_simulator(udid: get_first_iphone_udid())
 
   unless options[:skip_install]
     app = build_app_for_ios_simulator(
