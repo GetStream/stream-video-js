@@ -275,7 +275,7 @@ jobs:
         timeout-minutes: 15
 
       - name: Download .aab
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: aab
 
