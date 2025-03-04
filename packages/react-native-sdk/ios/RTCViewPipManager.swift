@@ -23,9 +23,7 @@ class RTCViewPipManager: RCTViewManager {
     @objc func onCallClosed(_ reactTag: NSNumber) {
         self.bridge!.uiManager.addUIBlock { (_: RCTUIManager?, viewRegistry: [NSNumber: UIView]?) in
             guard let view = viewRegistry?[reactTag] as? RTCViewPip else {
-                if RCT_DEBUG == 1 {
-                    print("Invalid view returned from registry, expecting RTCViewPip")
-                }
+                NSLog("onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip")
                 return
             }
             view.onCallClosed()

@@ -36,16 +36,15 @@ class RTCViewPip: UIView {
     
     @objc func setStreamURL(_ streamReactTag: NSString) {
         let tag = String(streamReactTag)
-        webRtcModule?.workerQueue.async {
-            let stream = self.webRtcModule?.stream(forReactTag: tag)
-            let videoTracks = stream?.videoTracks ?? []
-            let videoTrack = videoTracks.first
-            if videoTrack == nil {
-                NSLog("PiP - No video stream for react tag: -\(tag)")
-            } else {
-                DispatchQueue.main.async {
-                    self.pictureInPictureController?.track = videoTrack
-                }
+        let stream = self.webRtcModule?.stream(forReactTag: tag)
+        let videoTracks = stream?.videoTracks ?? []
+        let videoTrack = videoTracks.first
+        if videoTrack == nil {
+            NSLog("PiP - No video stream for react tag: -\(tag)")
+        } else {
+            NSLog("PiP - Setting video stream for react tag: -\(tag)")
+            DispatchQueue.main.async {
+                self.pictureInPictureController?.track = videoTrack
             }
         }
     }
@@ -62,6 +61,7 @@ class RTCViewPip: UIView {
         super.didMoveToWindow()
         let isVisible = self.superview != nil && self.window != nil;
         if (!isVisible) {
+            NSLog("PiP - onCallClosed called due to view detaching")
             // view is detached so we cleanup the pip controller
             // taken from:  https://github.com/software-mansion/react-native-screens/blob/main/Example/ios/ScreensExample/RNSSampleLifecycleAwareView.m
             onCallClosed()
