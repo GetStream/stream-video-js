@@ -157,12 +157,12 @@ describe('StreamVideoClient', () => {
       const instance1 = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: { id: 'jane' },
-        token: 'abc',
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
       });
       const instance2 = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: { id: 'jane' },
-        token: 'abc',
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
       });
       expect(instance1).toBe(instance2);
     });
@@ -171,12 +171,12 @@ describe('StreamVideoClient', () => {
       const instance1 = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: { id: 'jane' },
-        token: 'abc',
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
       });
       const instance2 = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: { id: 'john' },
-        token: 'abc',
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
       });
       expect(instance1).not.toBe(instance2);
     });
@@ -185,14 +185,14 @@ describe('StreamVideoClient', () => {
       const instance1 = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: { id: 'jane' },
-        token: 'abc',
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
       });
       await instance1.disconnectUser();
 
       const instance2 = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: { id: 'jane' },
-        token: 'abc',
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
       });
 
       expect(instance1).not.toBe(instance2);

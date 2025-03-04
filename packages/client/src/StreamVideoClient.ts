@@ -252,45 +252,46 @@ export class StreamVideoClient {
       return this.connectAnonymousUser(user as UserWithId, tokenOrProvider);
     }
 
-    let connectUserResponse: ConnectedEvent | void | undefined = undefined;
+    const connectUserResponse = await withoutConcurrency(
+      this.connectionConcurrencyTag,
+      async () => {
+        const client = this.streamClient;
+        const {
+          maxConnectUserRetries = 5,
+          onConnectUserError,
+          persistUserOnConnectionFailure,
+        } = client.options;
 
-    const client = this.streamClient;
-    const { maxConnectUserRetries = 5, onConnectUserError } = client.options;
-    for (
-      let attempt = 0, errorQueue: Error[] = [];
-      !connectUserResponse && attempt < maxConnectUserRetries;
-      attempt++
-    ) {
-      try {
-        this.logger('trace', `Connecting user (${attempt})`, user);
-        connectUserResponse = await withoutConcurrency(
-          this.connectionConcurrencyTag,
-          async () => {
+        const errorQueue: Error[] = [];
+        for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {
+          try {
+            this.logger('trace', `Connecting user (${attempt})`, user);
             return user.type === 'guest'
-              ? client.connectGuestUser(user)
-              : client.connectUser(user, tokenOrProvider);
-          },
-        );
-        // connectUserResponse will be void if connectUser called twice for the same user
-        if (connectUserResponse?.me) {
-          this.writeableStateStore.setConnectedUser(connectUserResponse.me);
-        }
-      } catch (err) {
-        this.logger('warn', `Failed to connect a user (${attempt})`, err);
-        errorQueue.push(err as Error);
-        if (attempt === maxConnectUserRetries - 1) {
-          onConnectUserError?.(err as Error, errorQueue);
-          throw err;
-        }
+              ? await client.connectGuestUser(user)
+              : await client.connectUser(user, tokenOrProvider);
+          } catch (err) {
+            this.logger('warn', `Failed to connect a user (${attempt})`, err);
+            errorQueue.push(err as Error);
+            if (attempt === maxConnectUserRetries - 1) {
+              onConnectUserError?.(err as Error, errorQueue);
+              throw err;
+            }
 
-        await sleep(retryInterval(attempt));
+            await sleep(retryInterval(attempt));
 
-        // we need to force to disconnect the user if the client is
-        // configured to persist the user on connection failure
-        if (client.persistUserOnConnectionFailure) {
-          await this.disconnectUser();
+            // we need to force to disconnect the user if the client is
+            // configured to persist the user on connection failure
+            if (persistUserOnConnectionFailure) {
+              await client.disconnectUser();
+            }
+          }
         }
-      }
+      },
+    );
+
+    // connectUserResponse will be void if connectUser called twice for the same user
+    if (connectUserResponse?.me) {
+      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
     }
 
     return connectUserResponse;
@@ -305,17 +306,19 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    const { user, key } = this.streamClient;
-    if (!user) return;
-    await withoutConcurrency(this.connectionConcurrencyTag, () =>
-      this.streamClient.disconnectUser(timeout),
-    );
-    if (user.id) {
-      StreamVideoClient._instances.delete(getInstanceKey(key, user));
-    }
-    this.eventHandlersToUnregister.forEach((unregister) => unregister());
-    this.eventHandlersToUnregister = [];
-    this.writeableStateStore.setConnectedUser(undefined);
+    await withoutConcurrency(this.connectionConcurrencyTag, async () => {
+      const { user, key } = this.streamClient;
+      if (!user) return;
+
+      await this.streamClient.disconnectUser(timeout);
+
+      if (user.id) {
+        StreamVideoClient._instances.delete(getInstanceKey(key, user));
+      }
+      this.eventHandlersToUnregister.forEach((unregister) => unregister());
+      this.eventHandlersToUnregister = [];
+      this.writeableStateStore.setConnectedUser(undefined);
+    });
   };
 
   /**
