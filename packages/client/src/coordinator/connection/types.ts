@@ -170,10 +170,10 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
 
   /**
    * A callback to be called one the maxUserConnectRetries is exhausted.
-   * @param error the last error
-   * @param errors all errors
+   * @param lastError the last error.
+   * @param allErrors all errors.
    */
-  onUserConnectError?: (error: Error, errors: Error[]) => void;
+  onConnectUserError?: (lastError: Error, allErrors: Error[]) => void;
 };
 
 export type ClientAppIdentifier = {

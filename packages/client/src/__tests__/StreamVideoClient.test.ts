@@ -220,12 +220,12 @@ describe('StreamVideoClient.connectUser retries', () => {
   });
 
   it('should propagate error if max retries reached', async () => {
-    const onUserConnectError = vi.fn();
+    const onConnectUserError = vi.fn();
     const client = new StreamVideoClient(apiKey, {
       // tests run in node, so we have to fake being in browser env
       browser: true,
       maxUserConnectRetries: 3,
-      onUserConnectError: onUserConnectError,
+      onConnectUserError,
     });
 
     client.streamClient.connectUser = vi
@@ -238,9 +238,9 @@ describe('StreamVideoClient.connectUser retries', () => {
       await client.connectUser(user, token);
     }).rejects.toThrowError('something happened');
 
-    expect(onUserConnectError).toBeCalledTimes(1);
+    expect(onConnectUserError).toBeCalledTimes(1);
 
-    const invocation = onUserConnectError.mock.calls[0];
+    const invocation = onConnectUserError.mock.calls[0];
     const [lastError, allErrors] = invocation;
     expect(lastError.message).toBe('something happened');
     expect(allErrors.length).toBe(3);
@@ -252,11 +252,11 @@ describe('StreamVideoClient.connectUser retries', () => {
   });
 
   it('should connect the user if all is good', async () => {
-    const onUserConnectError = vi.fn();
+    const onConnectUserError = vi.fn();
     const client = new StreamVideoClient(apiKey, {
       // tests run in node, so we have to fake being in browser env
       browser: true,
-      onUserConnectError: onUserConnectError,
+      onConnectUserError,
     });
 
     const user = { id: 'jane' };
@@ -268,7 +268,7 @@ describe('StreamVideoClient.connectUser retries', () => {
     const token = serverClient.generateUserToken({ user_id: user.id });
     await client.connectUser(user, token);
 
-    expect(onUserConnectError).not.toBeCalled();
+    expect(onConnectUserError).not.toBeCalled();
     expect(client.state.connectedUser?.id).toBe(user.id);
 
     await client.disconnectUser();
