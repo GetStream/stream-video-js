@@ -9,10 +9,10 @@ import { StableWSConnection } from './connection';
 import { TokenManager } from './token_manager';
 import {
   addConnectionEventListeners,
+  generateUUIDv4,
   isErrorResponse,
   isFunction,
   KnownCodes,
-  randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
@@ -59,7 +59,7 @@ export class StreamClient {
   node: boolean;
   options: StreamClientOptions;
   secret?: string;
-  setUserPromise: ConnectAPIResponse | null;
+  connectUserTask: ConnectAPIResponse | null;
   tokenManager: TokenManager;
   user?: UserWithId;
   private cachedUserAgent?: string;
@@ -136,7 +136,7 @@ export class StreamClient {
     // WS connection is initialized when setUser is called
     this.wsConnection = null;
     this.wsPromiseSafe = null;
-    this.setUserPromise = null;
+    this.connectUserTask = null;
 
     // mapping between channel groups and configs
     this.anonymous = false;
@@ -148,7 +148,7 @@ export class StreamClient {
     this.tokenManager = new TokenManager(this.secret);
     this.consecutiveFailures = 0;
 
-    this.defaultWSTimeout = 15000;
+    this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
 
     this.logger = isFunction(inputOptions.logger)
       ? inputOptions.logger
@@ -189,14 +189,14 @@ export class StreamClient {
    * connectUser - Set the current user and open a WebSocket connection
    *
    * @param user Data about this user. IE {name: "john"}
-   * @param {TokenOrProvider} userTokenOrProvider Token or provider
+   * @param {TokenOrProvider} tokenOrProvider Token or provider
    *
    * @return {ConnectAPIResponse} Returns a promise that resolves when the connection is setup
    */
   connectUser = async (
     user: UserWithId,
-    userTokenOrProvider: TokenOrProvider,
-  ) => {
+    tokenOrProvider: TokenOrProvider,
+  ): ConnectAPIResponse => {
     if (!user.id) {
       throw new Error('The "id" field on the user is missing');
     }
@@ -205,12 +205,12 @@ export class StreamClient {
      * Calling connectUser multiple times is potentially the result of a  bad integration, however,
      * If the user id remains the same we don't throw error
      */
-    if (this.userID === user.id && this.setUserPromise) {
+    if (this.userID === user.id && this.connectUserTask) {
       this.logger(
         'warn',
         'Consecutive calls to connectUser is detected, ideally you should only call this function once in your app.',
       );
-      return this.setUserPromise;
+      return this.connectUserTask;
     }
 
     if (this.userID) {
@@ -229,44 +229,24 @@ export class StreamClient {
     // we generate the client id client side
     this.userID = user.id;
     this.anonymous = false;
-
-    const setTokenPromise = this._setToken(
-      user,
-      userTokenOrProvider,
-      this.anonymous,
-    );
+    await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, false);
     this._setUser(user);
 
-    const wsPromise = this.openConnection();
-
-    this.setUserPromise = Promise.all([setTokenPromise, wsPromise]).then(
-      (result) => result[1], // We only return connection promise;
-    );
+    this.connectUserTask = this.openConnection();
 
     try {
       addConnectionEventListeners(this.updateNetworkConnectionStatus);
-      return await this.setUserPromise;
+      return await this.connectUserTask;
     } catch (err) {
       if (this.persistUserOnConnectionFailure) {
         // cleanup client to allow the user to retry connectUser again
-        this.closeConnection();
+        await this.closeConnection();
       } else {
-        this.disconnectUser();
+        await this.disconnectUser();
       }
       throw err;
     }
   };
-
-  _setToken = (
-    user: UserWithId,
-    userTokenOrProvider: TokenOrProvider,
-    isAnonymous: boolean,
-  ) =>
-    this.tokenManager.setTokenOrProvider(
-      userTokenOrProvider,
-      user,
-      isAnonymous,
-    );
 
   _setUser = (user: UserWithId) => {
     /**
@@ -326,7 +306,7 @@ export class StreamClient {
 
     this._setupConnectionIdPromise();
 
-    this.clientID = `${this.userID}--${randomId()}`;
+    this.clientID = `${this.userID}--${generateUUIDv4()}`;
     const newWsPromise = this.connect();
     this.wsPromiseSafe = makeSafePromise(newWsPromise);
     return await newWsPromise;
@@ -383,7 +363,7 @@ export class StreamClient {
     this._setupConnectionIdPromise();
 
     this.anonymous = true;
-    await this._setToken(user, tokenOrProvider, this.anonymous);
+    await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, true);
 
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.
@@ -701,7 +681,7 @@ export class StreamClient {
     if (!options.headers?.['x-client-request-id']) {
       options.headers = {
         ...options.headers,
-        'x-client-request-id': randomId(),
+        'x-client-request-id': generateUUIDv4(),
       };
     }
 

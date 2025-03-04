@@ -19,8 +19,6 @@ export function isFunction<T>(value: Function | T): value is Function {
 export const KnownCodes = {
   TOKEN_EXPIRED: 40,
   WS_CLOSED_SUCCESS: 1000,
-  WS_CLOSED_ABRUPTLY: 1006,
-  WS_POLICY_VIOLATION: 1008,
 };
 
 /**
@@ -28,15 +26,11 @@ export const KnownCodes = {
  *
  * @return {number} Duration to wait in milliseconds
  */
-export function retryInterval(numberOfFailures: number) {
+export function retryInterval(numberOfFailures: number): number {
   // try to reconnect in 0.25-5 seconds (random to spread out the load from failures)
   const max = Math.min(500 + numberOfFailures * 2000, 5000);
   const min = Math.min(Math.max(250, (numberOfFailures - 1) * 2000), 5000);
   return Math.floor(Math.random() * (max - min) + min);
-}
-
-export function randomId() {
-  return generateUUIDv4();
 }
 
 function hex(bytes: Uint8Array): string {
@@ -53,55 +47,31 @@ export function generateUUIDv4() {
   bytes[6] = (bytes[6] & 0x0f) | 0x40; // version
   bytes[8] = (bytes[8] & 0xbf) | 0x80; // variant
 
-  return (
-    hex(bytes.subarray(0, 4)) +
-    '-' +
-    hex(bytes.subarray(4, 6)) +
-    '-' +
-    hex(bytes.subarray(6, 8)) +
-    '-' +
-    hex(bytes.subarray(8, 10)) +
-    '-' +
-    hex(bytes.subarray(10, 16))
-  );
+  return [
+    hex(bytes.subarray(0, 4)),
+    hex(bytes.subarray(4, 6)),
+    hex(bytes.subarray(6, 8)),
+    hex(bytes.subarray(8, 10)),
+    hex(bytes.subarray(10, 16)),
+  ].join('-');
 }
-
-function getRandomValuesWithMathRandom(bytes: Uint8Array): void {
-  const max = Math.pow(2, (8 * bytes.byteLength) / bytes.length);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = Math.random() * max;
-  }
-}
-declare const msCrypto: Crypto;
 
 const getRandomValues = (() => {
-  if (
-    typeof crypto !== 'undefined' &&
-    typeof crypto?.getRandomValues !== 'undefined'
-  ) {
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     return crypto.getRandomValues.bind(crypto);
-  } else if (typeof msCrypto !== 'undefined') {
-    return msCrypto.getRandomValues.bind(msCrypto);
-  } else {
-    return getRandomValuesWithMathRandom;
   }
+  return function getRandomValuesWithMathRandom(bytes: Uint8Array): void {
+    const max = Math.pow(2, (8 * bytes.byteLength) / bytes.length);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.random() * max;
+    }
+  };
 })();
 
 function getRandomBytes(length: number): Uint8Array {
   const bytes = new Uint8Array(length);
   getRandomValues(bytes);
   return bytes;
-}
-
-/**
- * Informs if a promise is yet to be resolved or rejected
- */
-export async function isPromisePending<T>(promise: Promise<T>) {
-  const emptyObj = {};
-  return Promise.race([promise, emptyObj]).then(
-    (value) => value === emptyObj,
-    () => false,
-  );
 }
 
 /**

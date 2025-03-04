@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { User } from '../coordinator/connection/types';
 import { StreamClient } from '@stream-io/node-sdk';
+import { ConnectedEvent } from '../gen/coordinator';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -196,5 +197,80 @@ describe('StreamVideoClient', () => {
 
       expect(instance1).not.toBe(instance2);
     });
+  });
+});
+
+describe('StreamVideoClient.connectUser retries', () => {
+  it('should retry connecting user', async () => {
+    const client = new StreamVideoClient(apiKey, {
+      // tests run in node, so we have to fake being in browser env
+      browser: true,
+      maxUserConnectRetries: 2,
+    });
+    client.streamClient.connectUser = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('something happened'));
+
+    const user = { id: 'jane' };
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+    expect(client.streamClient.connectUser).toBeCalledTimes(2);
+
+    await client.disconnectUser();
+  });
+
+  it('should propagate error if max retries reached', async () => {
+    const onUserConnectError = vi.fn();
+    const client = new StreamVideoClient(apiKey, {
+      // tests run in node, so we have to fake being in browser env
+      browser: true,
+      maxUserConnectRetries: 3,
+      onUserConnectError: onUserConnectError,
+    });
+
+    client.streamClient.connectUser = vi
+      .fn()
+      .mockRejectedValue(new Error('something happened'));
+
+    const user = { id: 'jane' };
+    await expect(async () => {
+      const token = serverClient.generateUserToken({ user_id: user.id });
+      await client.connectUser(user, token);
+    }).rejects.toThrowError('something happened');
+
+    expect(onUserConnectError).toBeCalledTimes(1);
+
+    const invocation = onUserConnectError.mock.calls[0];
+    const [lastError, allErrors] = invocation;
+    expect(lastError.message).toBe('something happened');
+    expect(allErrors.length).toBe(3);
+    expect(
+      allErrors.every((error: Error) => error.message === 'something happened'),
+    ).toBe(true);
+
+    await client.disconnectUser();
+  });
+
+  it('should connect the user if all is good', async () => {
+    const onUserConnectError = vi.fn();
+    const client = new StreamVideoClient(apiKey, {
+      // tests run in node, so we have to fake being in browser env
+      browser: true,
+      onUserConnectError: onUserConnectError,
+    });
+
+    const user = { id: 'jane' };
+
+    client.streamClient.connectUser = vi.fn().mockResolvedValue({
+      me: { id: user.id },
+    } as ConnectedEvent);
+
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+
+    expect(onUserConnectError).not.toBeCalled();
+    expect(client.state.connectedUser?.id).toBe(user.id);
+
+    await client.disconnectUser();
   });
 });

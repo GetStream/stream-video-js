@@ -28,6 +28,7 @@ import {
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
   createTokenOrProvider,
@@ -108,6 +109,8 @@ export class StreamVideoClient {
         this.logger('error', 'Failed to connect', err);
       });
     }
+
+    this.registerEffects();
   }
 
   /**
@@ -156,36 +159,7 @@ export class StreamVideoClient {
     return this.readOnlyStateStore;
   }
 
-  /**
-   * Connects the given user to the client.
-   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
-   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
-   *
-   * @param user the user to connect.
-   * @param token a token or a function that returns a token.
-   */
-  connectUser = async (
-    user: User,
-    token?: TokenOrProvider,
-  ): Promise<void | ConnectedEvent> => {
-    if (user.type === 'anonymous') {
-      user.id = '!anon';
-      return this.connectAnonymousUser(user as UserWithId, token);
-    }
-    const connectUser =
-      user.type === 'guest'
-        ? () => this.streamClient.connectGuestUser(user)
-        : () => this.streamClient.connectUser(user, token);
-
-    const connectUserResponse = await withoutConcurrency(
-      this.connectionConcurrencyTag,
-      () => connectUser(),
-    );
-    // connectUserResponse will be void if connectUser called twice for the same user
-    if (connectUserResponse?.me) {
-      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
-    }
-
+  private registerEffects = () => {
     this.eventHandlersToUnregister.push(
       this.on('connection.changed', (event) => {
         if (!event.online) return;
@@ -209,7 +183,7 @@ export class StreamVideoClient {
     this.eventHandlersToUnregister.push(
       this.on('call.created', (event) => {
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
+        if (this.state.connectedUser?.id === call.created_by.id) {
           this.logger(
             'warn',
             'Received `call.created` sent by the current user',
@@ -232,7 +206,7 @@ export class StreamVideoClient {
     this.eventHandlersToUnregister.push(
       this.on('call.ring', async (event) => {
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
+        if (this.state.connectedUser?.id === call.created_by.id) {
           this.logger(
             'debug',
             'Received `call.ring` sent by the current user so ignoring the event',
@@ -259,6 +233,65 @@ export class StreamVideoClient {
         }
       }),
     );
+  };
+
+  /**
+   * Connects the given user to the client.
+   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
+   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  connectUser = async (
+    user: User,
+    tokenOrProvider?: TokenOrProvider,
+  ): Promise<void | ConnectedEvent> => {
+    if (user.type === 'anonymous') {
+      user.id = '!anon';
+      return this.connectAnonymousUser(user as UserWithId, tokenOrProvider);
+    }
+
+    let connectUserResponse: ConnectedEvent | void | undefined = undefined;
+
+    const client = this.streamClient;
+    const { maxUserConnectRetries = 5, onUserConnectError } = client.options;
+    for (
+      let attempt = 0, errorQueue: Error[] = [];
+      !connectUserResponse && attempt < maxUserConnectRetries;
+      attempt++
+    ) {
+      try {
+        this.logger('trace', `Connecting user (${attempt})`, user);
+        connectUserResponse = await withoutConcurrency(
+          this.connectionConcurrencyTag,
+          async () => {
+            return user.type === 'guest'
+              ? client.connectGuestUser(user)
+              : client.connectUser(user, tokenOrProvider);
+          },
+        );
+        // connectUserResponse will be void if connectUser called twice for the same user
+        if (connectUserResponse?.me) {
+          this.writeableStateStore.setConnectedUser(connectUserResponse.me);
+        }
+      } catch (err) {
+        this.logger('warn', `Failed to connect a user (${attempt})`, err);
+        errorQueue.push(err as Error);
+        if (attempt === maxUserConnectRetries - 1) {
+          onUserConnectError?.(err as Error, errorQueue);
+          throw err;
+        }
+
+        await sleep(retryInterval(attempt));
+
+        // we need to force to disconnect the user if the client is
+        // configured to persist the user on connection failure
+        if (client.persistUserOnConnectionFailure) {
+          await this.disconnectUser();
+        }
+      }
+    }
 
     return connectUserResponse;
   };

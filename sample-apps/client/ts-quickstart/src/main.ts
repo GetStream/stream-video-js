@@ -13,9 +13,21 @@ import { ClosedCaptionManager } from './closed-captions';
 
 const ENVIRONMENT = 'demo';
 const userId = 'luke';
-const credentials = (await fetch(
-  `https://pronto.getstream.io/api/auth/create-token?environment=${ENVIRONMENT}&user_id=${userId}`,
-).then((res) => res.json())) as { apiKey: string; token: string };
+
+const fetchCredentials = async (): Promise<{
+  apiKey: string;
+  token: string;
+}> => {
+  const params = new URLSearchParams({
+    environment: ENVIRONMENT,
+    user_id: userId,
+  });
+  return fetch(
+    `https://pronto.getstream.io/api/auth/create-token?${params.toString()}`,
+  ).then((res) => res.json());
+};
+
+const credentials = await fetchCredentials();
 
 const searchParams = new URLSearchParams(window.location.search);
 const callId =
@@ -26,6 +38,10 @@ const callId =
 const client = new StreamVideoClient({
   apiKey: credentials.apiKey,
   token: credentials.token,
+  tokenProvider: async () => {
+    const { token } = await fetchCredentials();
+    return token;
+  },
   user: { id: userId, name: 'Luke' },
   options: { logLevel: 'debug' },
 });

@@ -40,10 +40,9 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
           this.logger('warn', 'No video track found to do direction selection');
           return;
         }
-        const constraints = {
+        await videoTrack.applyConstraints({
           facingMode: direction === 'front' ? 'user' : 'environment',
-        };
-        await videoTrack.applyConstraints(constraints);
+        });
         this.state.setDirection(direction);
         this.state.setDevice(undefined);
       } else {

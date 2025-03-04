@@ -157,6 +157,23 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * The client app identifier.
    */
   clientAppIdentifier?: ClientAppIdentifier;
+
+  /**
+   * The default timeout for WebSocket connections.
+   */
+  defaultWsTimeout?: number;
+
+  /**
+   * The maximum number of retries to connect a user.
+   */
+  maxUserConnectRetries?: number;
+
+  /**
+   * A callback to be called one the maxUserConnectRetries is exhausted.
+   * @param error the last error
+   * @param errors all errors
+   */
+  onUserConnectError?: (error: Error, errors: Error[]) => void;
 };
 
 export type ClientAppIdentifier = {
