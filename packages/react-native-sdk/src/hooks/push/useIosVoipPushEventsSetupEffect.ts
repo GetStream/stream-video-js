@@ -152,6 +152,10 @@ export const useIosVoipPushEventsSetupEffect = () => {
       onTokenReceived(token);
     });
 
+    voipPushNotification.addEventListener('notification', (notification) => {
+      onNotificationReceived(notification);
+    });
+
     // this will fire when there are events occured before js bridge initialized
     voipPushNotification.addEventListener('didLoadWithEvents', (events) => {
       if (!events || !Array.isArray(events) || events.length < 1) {
@@ -181,23 +185,9 @@ export const useIosVoipPushEventsSetupEffect = () => {
       logger('debug', 'Voip event listeners are removed for user: ' + userId);
       voipPushNotification.removeEventListener('didLoadWithEvents');
       voipPushNotification.removeEventListener('register');
-    };
-  }, [client]);
-
-  useEffect(() => {
-    const pushConfig = StreamVideoRN.getConfig().push;
-    if (Platform.OS !== 'ios' || !pushConfig) {
-      return;
-    }
-    const voipPushNotification = getVoipPushNotificationLib();
-    // fired when we received a voip push notification
-    voipPushNotification.addEventListener('notification', (notification) => {
-      onNotificationReceived(notification);
-    });
-    return () => {
       voipPushNotification.removeEventListener('notification');
     };
-  }, []);
+  }, [client]);
 };
 
 const onNotificationReceived = async (notification: any) => {
