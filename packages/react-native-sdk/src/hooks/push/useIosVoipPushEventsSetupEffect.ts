@@ -312,7 +312,7 @@ const onNotificationReceived = async (notification: any) => {
   // callkeep events will then accept/reject the call
   logger(
     'debug',
-    `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification: ${call_cid}`
+    `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification`
   );
   voipPushNotificationCallCId$.next(call_cid);
 };
