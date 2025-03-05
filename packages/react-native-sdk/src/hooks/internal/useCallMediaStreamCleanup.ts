@@ -10,6 +10,8 @@ import { useEffect, useRef } from 'react';
 /**
  * This hook is meant to be used in Lobby view or equivalent.
  * It will cleanup the media stream on unmount if call is not meant to be joined.
+ *
+ * @deprecated use `call.camera.enable()` or `call.camera.disable()` instead based on your navigation flow.
  */
 export const useCallMediaStreamCleanup = () => {
   const call = useCall();

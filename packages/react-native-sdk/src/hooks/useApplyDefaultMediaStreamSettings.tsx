@@ -3,6 +3,8 @@ import { useEffect, useMemo } from 'react';
 
 /**
  * Hook when used applies the default call media stream audio/video settings.
+ *
+ * @deprecated use `call.get()` instead. It will apply the default settings.
  */
 export const useApplyDefaultMediaStreamSettings = () => {
   const { useCallSettings } = useCallStateHooks();
