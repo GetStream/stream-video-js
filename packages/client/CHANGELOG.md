@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.2...@stream-io/video-client-1.18.3) (2025-03-05)
+
+
+### Bug Fixes
+
+* revert the release of cloned track on publisher dispose ([556fb61](https://github.com/GetStream/stream-video-js/commit/556fb610ae1c9a1965f38fc07e995683b5052544))
+
 ## [1.18.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.1...@stream-io/video-client-1.18.2) (2025-03-04)
 
 

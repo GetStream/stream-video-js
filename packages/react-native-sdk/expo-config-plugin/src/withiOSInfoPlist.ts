@@ -6,18 +6,21 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
   props
 ) => {
   return withInfoPlist(configuration, (config) => {
-    if (!Array.isArray(config.modResults.UIBackgroundModes)) {
-      config.modResults.UIBackgroundModes = [];
+    function addBackgroundMode(mode: string) {
+      if (!Array.isArray(config.modResults.UIBackgroundModes)) {
+        config.modResults.UIBackgroundModes = [];
+      }
+      if (!config.modResults.UIBackgroundModes.includes(mode)) {
+        config.modResults.UIBackgroundModes.push(mode);
+      }
     }
-    if (!config.modResults.UIBackgroundModes.includes('audio')) {
-      config.modResults.UIBackgroundModes.push('audio');
+    addBackgroundMode('audio');
+    if (props?.ringingPushNotifications) {
+      addBackgroundMode('voip');
+      addBackgroundMode('fetch');
     }
     if (props?.enableNonRingingPushNotifications) {
-      if (
-        !config.modResults.UIBackgroundModes.includes('remote-notification')
-      ) {
-        config.modResults.UIBackgroundModes.push('remote-notification');
-      }
+      addBackgroundMode('remote-notification');
     }
     return config;
   });
