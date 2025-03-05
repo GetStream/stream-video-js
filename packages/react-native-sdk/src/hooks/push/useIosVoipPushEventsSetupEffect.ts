@@ -152,6 +152,10 @@ export const useIosVoipPushEventsSetupEffect = () => {
       onTokenReceived(token);
     });
 
+    voipPushNotification.addEventListener('notification', (notification) => {
+      onNotificationReceived(notification);
+    });
+
     // this will fire when there are events occured before js bridge initialized
     voipPushNotification.addEventListener('didLoadWithEvents', (events) => {
       if (!events || !Array.isArray(events) || events.length < 1) {
@@ -181,23 +185,9 @@ export const useIosVoipPushEventsSetupEffect = () => {
       logger('debug', 'Voip event listeners are removed for user: ' + userId);
       voipPushNotification.removeEventListener('didLoadWithEvents');
       voipPushNotification.removeEventListener('register');
-    };
-  }, [client]);
-
-  useEffect(() => {
-    const pushConfig = StreamVideoRN.getConfig().push;
-    if (Platform.OS !== 'ios' || !pushConfig) {
-      return;
-    }
-    const voipPushNotification = getVoipPushNotificationLib();
-    // fired when we received a voip push notification
-    voipPushNotification.addEventListener('notification', (notification) => {
-      onNotificationReceived(notification);
-    });
-    return () => {
       voipPushNotification.removeEventListener('notification');
     };
-  }, []);
+  }, [client]);
 };
 
 const onNotificationReceived = async (notification: any) => {
@@ -249,6 +239,10 @@ const onNotificationReceived = async (notification: any) => {
     logger('error', 'Error in getting call uuid from native module', error);
   }
   if (!uuid) {
+    logger(
+      'error',
+      `Not processing call.ring push notification, as no uuid found for call_cid: ${call_cid}`
+    );
     return;
   }
   const created_by_id = notification?.stream?.created_by_id;
@@ -306,5 +300,9 @@ const onNotificationReceived = async (notification: any) => {
   }
   // send the info to this subject, it is listened by callkeep events
   // callkeep events will then accept/reject the call
+  logger(
+    'debug',
+    `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification`
+  );
   voipPushNotificationCallCId$.next(call_cid);
 };
