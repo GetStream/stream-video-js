@@ -164,7 +164,7 @@ def extract_iphone_name_and_udid(simulator_line)
 end
 
 def first_iphone_udid
-  devices_output = sh(command: 'xcrun simctl list devices', log: false)
+  devices_output = sh(command: 'xcrun simctl list devices | tac', log: false)
   iphone_udid = nil
 
   devices_output.lines.each do |line|
