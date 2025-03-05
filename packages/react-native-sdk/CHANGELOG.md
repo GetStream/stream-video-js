@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.11...@stream-io/video-react-native-sdk-1.10.12) (2025-03-05)
+
+
+* add background modes in our plugin as fallback if other plugins are not installed ([dd23ab8](https://github.com/GetStream/stream-video-js/commit/dd23ab87706d86b8181830ff1f44c421aabfb432))
+
+
+### Bug Fixes
+
+* do not remove notification type voip listener on unmount ([#1712](https://github.com/GetStream/stream-video-js/issues/1712)) ([51b7059](https://github.com/GetStream/stream-video-js/commit/51b7059ed8345c474edc4e30fed91b0339d3d36d))
+
 ## [1.10.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.10...@stream-io/video-react-native-sdk-1.10.11) (2025-03-05)
 
 ### Dependency Updates
