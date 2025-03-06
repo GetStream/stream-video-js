@@ -10,7 +10,7 @@ import Foundation
 @objc(RTCViewPip)
 class RTCViewPip: UIView {
     
-    private lazy var pictureInPictureController = StreamPictureInPictureController()
+    private var pictureInPictureController = StreamPictureInPictureController()
     private var webRtcModule: WebRTCModule?
     
     override init(frame: CGRect) {
