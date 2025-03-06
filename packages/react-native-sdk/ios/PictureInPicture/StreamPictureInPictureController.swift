@@ -104,6 +104,7 @@ import Foundation
         _ pictureInPictureController: AVPictureInPictureController,
         failedToStartPictureInPictureWithError error: Error
     ) {
+        NSLog("PiP - failedToStartPictureInPictureWithError:\(error)")
     }
     
     public func pictureInPictureControllerWillStopPictureInPicture(

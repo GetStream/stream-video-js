@@ -16,21 +16,19 @@ class RTCViewPipManager: RCTViewManager {
         return view
     }
     
-    override var methodQueue: DispatchQueue {
-        return DispatchQueue.main
-    }
-    
     override static func requiresMainQueueSetup() -> Bool {
-        return false
+        return true
     }
     
     @objc func onCallClosed(_ reactTag: NSNumber) {
         self.bridge!.uiManager.addUIBlock { (_: RCTUIManager?, viewRegistry: [NSNumber: UIView]?) in
-            guard let view = viewRegistry?[reactTag] as? RTCViewPip else {
-                NSLog("onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip")
+            guard let pipView = viewRegistry?[reactTag] as? RTCViewPip else {
+                NSLog("PiP - onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip")
                 return
             }
-            view.onCallClosed()
+            DispatchQueue.main.async {
+                pipView.onCallClosed()
+            }
         }
     }
 }

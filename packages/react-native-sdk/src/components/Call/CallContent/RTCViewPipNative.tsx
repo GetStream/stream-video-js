@@ -5,6 +5,7 @@ import {
   Platform,
   requireNativeComponent,
   UIManager,
+  StyleSheet,
 } from 'react-native';
 
 const COMPONENT_NAME = 'RTCViewPip';
@@ -36,7 +37,15 @@ export const RTCViewPipNative = React.memo(
     }
   >((props, ref) => {
     if (Platform.OS !== 'ios') return null;
-    // @ts-ignore
-    return <NativeComponent streamURL={props.streamURL} ref={ref} />;
+
+    return (
+      <NativeComponent
+        style={StyleSheet.absoluteFill}
+        pointerEvents={'none'}
+        streamURL={props.streamURL}
+        // @ts-ignore
+        ref={ref}
+      />
+    );
   })
 );

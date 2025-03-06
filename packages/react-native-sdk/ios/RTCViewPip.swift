@@ -15,19 +15,13 @@ class RTCViewPip: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupView()
+        self.pictureInPictureController?.sourceView = self
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupView() {
-        let videoView = UIView()
-        self.addSubview(videoView)
-        pictureInPictureController?.sourceView = videoView
-        videoView.backgroundColor = UIColor.clear // make it transparent
-    }
     
     func setWebRtcModule(_ module: WebRTCModule) {
         webRtcModule = module
@@ -50,28 +44,36 @@ class RTCViewPip: UIView {
                 NSLog("PiP - No video track for streamURL: -\(streamURLString)")
                 return
             }
-            
-            NSLog("PiP - Setting video track for streamURL: -\(streamURLString)")
-            self.pictureInPictureController?.track = videoTrack
+            if (self.pictureInPictureController?.track == videoTrack) {
+                NSLog("PiP - Skipping video track for streamURL: -\(streamURLString)")
+                return
+            }
+
+            DispatchQueue.main.async {
+                NSLog("PiP - Setting video track for streamURL: -\(streamURLString)")
+                self.pictureInPictureController?.track = videoTrack
+            }
         }
     }
     
     
     @objc
     func onCallClosed() {
+        NSLog("PiP - pictureInPictureController cleanup called")
         self.pictureInPictureController?.cleanup()
         self.pictureInPictureController = nil
-        
     }
     
     override func didMoveToWindow() {
         super.didMoveToWindow()
         let isVisible = self.superview != nil && self.window != nil;
         if (!isVisible) {
-            NSLog("PiP - onCallClosed called due to view detaching")
             // view is detached so we cleanup the pip controller
             // taken from:  https://github.com/software-mansion/react-native-screens/blob/main/Example/ios/ScreensExample/RNSSampleLifecycleAwareView.m
-            onCallClosed()
+            DispatchQueue.main.async {
+                NSLog("PiP - onCallClosed called due to view detaching")
+                self.onCallClosed()
+            }
         }
     }
 }
