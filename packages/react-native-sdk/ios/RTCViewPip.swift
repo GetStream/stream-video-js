@@ -19,8 +19,7 @@ class RTCViewPip: UIView {
     }
     
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setupView()
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func setupView() {
@@ -34,27 +33,35 @@ class RTCViewPip: UIView {
         webRtcModule = module
     }
     
-    @objc func setStreamURL(_ streamReactTag: NSString) {
-        let tag = String(streamReactTag)
-        let stream = self.webRtcModule?.stream(forReactTag: tag)
-        let videoTracks = stream?.videoTracks ?? []
-        let videoTrack = videoTracks.first
-        if videoTrack == nil {
-            NSLog("PiP - No video stream for react tag: -\(tag)")
-        } else {
-            NSLog("PiP - Setting video stream for react tag: -\(tag)")
-            DispatchQueue.main.async {
-                self.pictureInPictureController?.track = videoTrack
+    @objc public var streamURL: NSString? = nil {
+        didSet {
+            // https://github.com/react-native-webrtc/react-native-webrtc/blob/8dfc9c394b4bf627c0214255466ebd3b160ca563/ios/RCTWebRTC/RTCVideoViewManager.m#L405-L418
+            guard let streamURLString = streamURL as String? else {
+                NSLog("PiP - No streamURL set")
+                return
             }
+            
+            guard let stream = self.webRtcModule?.stream(forReactTag: streamURLString) else {
+                NSLog("PiP - No stream for streamURL: -\(streamURLString)")
+                return
+            }
+            
+            guard let videoTrack = stream.videoTracks.first else {
+                NSLog("PiP - No video track for streamURL: -\(streamURLString)")
+                return
+            }
+            
+            NSLog("PiP - Setting video track for streamURL: -\(streamURLString)")
+            self.pictureInPictureController?.track = videoTrack
         }
     }
     
+    
     @objc
     func onCallClosed() {
-        DispatchQueue.main.async {
-            self.pictureInPictureController?.cleanup()
-            self.pictureInPictureController = nil
-        }
+        self.pictureInPictureController?.cleanup()
+        self.pictureInPictureController = nil
+        
     }
     
     override func didMoveToWindow() {

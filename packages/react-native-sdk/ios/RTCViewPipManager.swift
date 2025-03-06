@@ -16,8 +16,12 @@ class RTCViewPipManager: RCTViewManager {
         return view
     }
     
+    override var methodQueue: DispatchQueue {
+        return DispatchQueue.main
+    }
+    
     override static func requiresMainQueueSetup() -> Bool {
-        return true
+        return false
     }
     
     @objc func onCallClosed(_ reactTag: NSNumber) {
