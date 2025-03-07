@@ -15,13 +15,27 @@ class RTCViewPip: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setupNotificationObserver()
         self.pictureInPictureController?.sourceView = self
     }
     
     required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
+        setupNotificationObserver()
     }
     
+    private func setupNotificationObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appBecameActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
     func setWebRtcModule(_ module: WebRTCModule) {
         webRtcModule = module
@@ -48,12 +62,16 @@ class RTCViewPip: UIView {
                 NSLog("PiP - Skipping video track for streamURL: -\(streamURLString)")
                 return
             }
-
+            
             DispatchQueue.main.async {
                 NSLog("PiP - Setting video track for streamURL: -\(streamURLString)")
                 self.pictureInPictureController?.track = videoTrack
             }
         }
+    }
+    
+    @objc func appBecameActive() {
+        self.pictureInPictureController?.stopPictureInPicture()
     }
     
     

@@ -185,4 +185,10 @@ import Foundation
     private func didUpdatePictureInPictureActiveState(_ isActive: Bool) {
         trackStateAdapter.isEnabled = isActive
     }
+    
+    func stopPictureInPicture() {
+        if (pictureInPictureController?.isPictureInPictureActive ?? false) {
+            pictureInPictureController?.stopPictureInPicture()
+        }
+    }
 }
