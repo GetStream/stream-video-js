@@ -64,7 +64,8 @@ export class StreamVideoClient {
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
-  protected eventHandlersToUnregister: Array<() => void> = [];
+  private effectsRegistered = false;
+  private eventHandlersToUnregister: Array<() => void> = [];
   private readonly connectionConcurrencyTag = Symbol(
     'connectionConcurrencyTag',
   );
@@ -109,8 +110,6 @@ export class StreamVideoClient {
         this.logger('error', 'Failed to connect', err);
       });
     }
-
-    this.registerEffects();
   }
 
   /**
@@ -160,6 +159,8 @@ export class StreamVideoClient {
   }
 
   private registerEffects = () => {
+    if (this.effectsRegistered) return;
+
     this.eventHandlersToUnregister.push(
       this.on('connection.changed', (event) => {
         if (!event.online) return;
@@ -233,6 +234,8 @@ export class StreamVideoClient {
         }
       }),
     );
+
+    this.effectsRegistered = true;
   };
 
   /**
@@ -294,6 +297,8 @@ export class StreamVideoClient {
       this.writeableStateStore.setConnectedUser(connectUserResponse.me);
     }
 
+    this.registerEffects();
+
     return connectUserResponse;
   };
 
@@ -317,6 +322,7 @@ export class StreamVideoClient {
       }
       this.eventHandlersToUnregister.forEach((unregister) => unregister());
       this.eventHandlersToUnregister = [];
+      this.effectsRegistered = false;
       this.writeableStateStore.setConnectedUser(undefined);
     });
   };
