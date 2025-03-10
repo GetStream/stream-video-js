@@ -226,13 +226,14 @@ const CustomParticipantActionsContextMenu = () => {
           </GenericMenuButtonItem>
         )}
       </Restricted>
-      {participantViewElement && (
-        <GenericMenuButtonItem onClick={toggleFullscreenMode}>
-          {t('{{ direction }} fullscreen', {
-            direction: fullscreenModeOn ? t('Leave') : t('Enter'),
-          })}
-        </GenericMenuButtonItem>
-      )}
+      {participantViewElement &&
+        typeof participantViewElement.requestFullscreen !== 'undefined' && (
+          <GenericMenuButtonItem onClick={toggleFullscreenMode}>
+            {t('{{ direction }} fullscreen', {
+              direction: fullscreenModeOn ? t('Leave') : t('Enter'),
+            })}
+          </GenericMenuButtonItem>
+        )}
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
           {t('{{ direction }} picture-in-picture', {
