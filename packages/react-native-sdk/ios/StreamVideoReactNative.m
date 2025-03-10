@@ -7,7 +7,8 @@
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
-NSMutableDictionary *dictionary;
+
+static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
@@ -17,7 +18,7 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     StreamVideoReactNative *this = (__bridge StreamVideoReactNative*)observer;
     NSString *eventName = (__bridge NSString*)name;
     [this screenShareEventReceived: eventName];
-
+    
 }
 
 @implementation StreamVideoReactNative
@@ -42,12 +43,13 @@ RCT_EXPORT_MODULE();
     self = [super init];
     if (self) {
         _notificationCenter = CFNotificationCenterGetDarwinNotifyCenter();
+        _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
         [self setupObserver];
     }
     if (self) {
         [UIDevice currentDevice].batteryMonitoringEnabled = YES;
     }
-
+    
     return self;
 }
 
@@ -153,26 +155,45 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 }
 
 +(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
-    if (dictionary == nil) {
-       dictionary = [NSMutableDictionary dictionary];
-    }
-    dictionary[cid] = uuid;
+    NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
+    _incomingCallUUIDsByCallID[cid] = uuid;
 }
 
 RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (dictionary == nil) {
-        reject(@"access_failure", @"no incoming call dictionary found", nil);
-    }
-    NSString *uuid = dictionary[cid];
+    NSString *uuid = _incomingCallUUIDsByCallID[cid];
     if (uuid) {
-       resolve(uuid);
-     } else {
-        reject(@"access_failure", @"requested incoming call found", nil);
-     }
+        resolve(uuid);
+    } else {
+        NSString *errorString = [NSString stringWithFormat:@"requested incoming call found for cid: %@", cid];
+        reject(@"access_failure", errorString, nil);
+    }
+    
+}
 
+RCT_EXPORT_METHOD(getIncomingCallCid:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *foundCid = nil;
+    
+    for (NSString *key in _incomingCallUUIDsByCallID) {
+        NSString *dictUUID = _incomingCallUUIDsByCallID[key];
+        
+        if ([dictUUID caseInsensitiveCompare:uuid] == NSOrderedSame) {
+            foundCid = key;
+            break;
+        }
+    }
+    
+    if (foundCid) {
+        resolve(foundCid);
+    } else {
+        NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for uuid: %@", uuid]; // Improved error message
+        reject(@"access_failure", errorString, nil);
+    }
 }
 
 -(NSArray<NSString *> *)supportedEvents {

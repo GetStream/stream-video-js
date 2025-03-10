@@ -3,6 +3,8 @@ import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import newNotificationCallbacks, {
   type NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
+import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
+import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
@@ -83,6 +85,9 @@ export class StreamVideoRN {
     }
 
     this.config.push = pushConfig;
+
+    setupIosCallKeepEvents(pushConfig);
+    setupIosVoipPushEvents(pushConfig);
   }
 
   static getConfig() {
