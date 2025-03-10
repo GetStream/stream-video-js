@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.12...@stream-io/video-react-native-sdk-1.10.13) (2025-03-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.4`
+* `@stream-io/video-react-bindings` updated to version `1.5.6`
+
+### Bug Fixes
+
+* ios PiP track not fetched sometimes ([#1709](https://github.com/GetStream/stream-video-js/issues/1709)) ([ec20f97](https://github.com/GetStream/stream-video-js/commit/ec20f97dbb305c50f315bcd1293b9f160cfa1408))
+
 ## [1.10.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.11...@stream-io/video-react-native-sdk-1.10.12) (2025-03-06)
 
 
