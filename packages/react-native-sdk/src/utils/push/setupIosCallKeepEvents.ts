@@ -41,7 +41,11 @@ export function setupIosCallKeepEvents(
           );
         voipPushNotificationCallCId$.next(call_cid);
       } catch (error) {
-        logger('error', 'Error in getting call cid from native module', error);
+        logger(
+          'debug',
+          'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event',
+          error
+        );
       }
     }
     return call_cid;
