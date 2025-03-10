@@ -10,6 +10,7 @@ NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped"
 
 static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 static NSMutableDictionary *_incomingCallCidsByUUID = nil;
+static dispatch_queue_t _dictionaryQueue = nil;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
@@ -19,7 +20,6 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     StreamVideoReactNative *this = (__bridge StreamVideoReactNative*)observer;
     NSString *eventName = (__bridge NSString*)name;
     [this screenShareEventReceived: eventName];
-    
 }
 
 @implementation StreamVideoReactNative
@@ -44,12 +44,20 @@ RCT_EXPORT_MODULE();
     self = [super init];
     if (self) {
         _notificationCenter = CFNotificationCenterGetDarwinNotifyCenter();
-        _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
-        _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
-        [self setupObserver];
-    }
-    if (self) {
         [UIDevice currentDevice].batteryMonitoringEnabled = YES;
+        [self setupObserver];
+        
+        if (_dictionaryQueue == nil) {
+            _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
+        }
+        dispatch_sync(_dictionaryQueue, ^{
+            if (_incomingCallUUIDsByCallID == nil) {
+                _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
+            }
+            if (_incomingCallCidsByUUID == nil) {
+                _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
+            }
+        });
     }
     return self;
 }
@@ -156,39 +164,73 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 }
 
 +(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
-    NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
-    NSString *lowercaseUUID = [uuid lowercaseString];
-    _incomingCallUUIDsByCallID[cid] = lowercaseUUID;
-    _incomingCallCidsByUUID[lowercaseUUID] = cid;
+    if (_dictionaryQueue == nil) {
+        _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
+    }
+    dispatch_sync(_dictionaryQueue, ^{
+        if (_incomingCallUUIDsByCallID == nil) {
+            _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
+        }
+        if (_incomingCallCidsByUUID == nil) {
+            _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
+        }
+        NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
+        NSString *lowercaseUUID = [uuid lowercaseString];
+        _incomingCallUUIDsByCallID[cid] = lowercaseUUID;
+        _incomingCallCidsByUUID[lowercaseUUID] = cid;
+    });
 }
 
 RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSString *uuid = _incomingCallUUIDsByCallID[cid];
-    if (uuid) {
-        resolve(uuid);
-    } else {
-        NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for cid: %@", cid];
-        reject(@"access_failure", errorString, nil);
-    }
+    dispatch_sync(_dictionaryQueue, ^{
+        NSString *uuid = _incomingCallUUIDsByCallID[cid];
+        if (uuid) {
+            resolve(uuid);
+        } else {
+            NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for cid: %@", cid];
+            reject(@"access_failure", errorString, nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(getIncomingCallCid:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // Convert UUID to lowercase for case-insensitive lookup
-    NSString *lowercaseUUID = [uuid lowercaseString];
-    NSString *foundCid = _incomingCallCidsByUUID[lowercaseUUID];
-    
-    if (foundCid) {
-        resolve(foundCid);
-    } else {
-        NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for uuid: %@", uuid];
-        reject(@"access_failure", errorString, nil);
-    }
+    dispatch_sync(_dictionaryQueue, ^{
+        NSString *lowercaseUUID = [uuid lowercaseString];
+        NSLog(@"Looking up CID for UUID: %@", lowercaseUUID);
+        NSLog(@"Current _incomingCallCidsByUUID contents: %@", _incomingCallCidsByUUID);
+        NSLog(@"Current _incomingCallUUIDsByCallID contents: %@", _incomingCallUUIDsByCallID);
+        NSString *foundCid = _incomingCallCidsByUUID[lowercaseUUID];
+        
+        if (foundCid) {
+            resolve(foundCid);
+        } else {
+            NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for uuid: %@", uuid];
+            reject(@"access_failure", errorString, nil);
+        }
+    });
+}
+
+RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_sync(_dictionaryQueue, ^{
+        NSString *uuid = _incomingCallUUIDsByCallID[cid];
+        if (uuid) {
+            NSLog(@"removeIncomingCall cid:%@ -> uuid:%@",cid,uuid);
+            [_incomingCallUUIDsByCallID removeObjectForKey:cid];
+            [_incomingCallCidsByUUID removeObjectForKey:uuid];
+            resolve(@YES);
+        } else {
+            resolve(@NO);
+        }
+    });
 }
 
 -(NSArray<NSString *> *)supportedEvents {
