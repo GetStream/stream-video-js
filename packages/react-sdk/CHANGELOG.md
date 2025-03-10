@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.6...@stream-io/video-react-sdk-1.12.7) (2025-03-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.4`
+* `@stream-io/video-react-bindings` updated to version `1.5.6`
+
+### Bug Fixes
+
+* disable the "Enter full screen" option on unsupported platforms ([#1715](https://github.com/GetStream/stream-video-js/issues/1715)) ([97da8d8](https://github.com/GetStream/stream-video-js/commit/97da8d8decf9d3a04d31d07a9f4259e4b712736d))
+
 ## [1.12.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.5...@stream-io/video-react-sdk-1.12.6) (2025-03-05)
 
 ### Dependency Updates
