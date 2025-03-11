@@ -11,10 +11,10 @@
   "dependencies": {
     "@floating-ui/dom": "^1.6.11",
     "@floating-ui/react": "^0.26.24",
-    "@next/third-parties": "^14.2.12",
-    "@sentry/nextjs": "^8.30.0",
+    "@next/third-parties": "^15.2.2",
+    "@sentry/nextjs": "^8.55.0",
     "@stream-io/audio-filters-web": "workspace:^",
-    "@stream-io/node-sdk": "^0.4.13",
+    "@stream-io/node-sdk": "^0.4.18",
     "@stream-io/video-filters-web": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
@@ -28,8 +28,8 @@
     "mapbox-gl": "^2.15.0",
     "mobile-device-detect": "^0.4.3",
     "nanoid": "^5.0.4",
-    "next": "^14.2.12",
-    "next-auth": "^4.24.7",
+    "next": "^15.2.2",
+    "next-auth": "^4.24.11",
     "qrcode.react": "^3.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -37,7 +37,7 @@
     "starwars-names": "^1.6.0",
     "stream-chat": "^8.45.1",
     "stream-chat-react": "12.6.0",
-    "swr": "^2.3.0",
+    "swr": "^2.3.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
