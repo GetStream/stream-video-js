@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.13...@stream-io/video-react-native-sdk-1.10.14) (2025-03-11)
+
+
+### Bug Fixes
+
+* setup ios accept/decline events before user is connected RN-153 ([#1716](https://github.com/GetStream/stream-video-js/issues/1716)) ([b5fb06a](https://github.com/GetStream/stream-video-js/commit/b5fb06af636c9e38b0ef7b90d51548bdf89961f8))
+
 ## [1.10.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.12...@stream-io/video-react-native-sdk-1.10.13) (2025-03-10)
 
 ### Dependency Updates
