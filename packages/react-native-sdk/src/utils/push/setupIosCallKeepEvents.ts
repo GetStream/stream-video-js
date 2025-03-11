@@ -43,8 +43,7 @@ export function setupIosCallKeepEvents(
       } catch (error) {
         logger(
           'debug',
-          'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event',
-          error
+          'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event'
         );
       }
     }
@@ -53,10 +52,6 @@ export function setupIosCallKeepEvents(
 
   function answerCall(callUUID: string) {
     getCallCid(callUUID).then((call_cid) => {
-      if (!call_cid) {
-        logger('debug', `Cant do answerCall event with call_cid: ${call_cid}`);
-        return;
-      }
       logger('debug', `answerCall event with call_cid: ${call_cid}`);
       iosCallkeepAcceptCall(call_cid, callUUID);
     });
@@ -64,10 +59,6 @@ export function setupIosCallKeepEvents(
 
   function endCall(callUUID: string) {
     getCallCid(callUUID).then((call_cid) => {
-      if (!call_cid) {
-        logger('debug', `Cant do endCall event with call_cid: ${call_cid}`);
-        return;
-      }
       logger('debug', `endCall event with call_cid: ${call_cid}`);
       iosCallkeepRejectCall(call_cid, callUUID, pushConfig!);
     });
@@ -178,6 +169,7 @@ const iosCallkeepRejectCall = async (
   voipCallkeepCallOnForegroundMap$.next(undefined);
   voipPushNotificationCallCId$.next(undefined);
   await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+  await NativeModules.StreamVideoReactNative?.removeIncomingCall(call_cid);
 };
 
 /**
