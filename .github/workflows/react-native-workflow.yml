@@ -70,7 +70,7 @@ jobs:
     name: Build iOS
     timeout-minutes: 60
     needs: code_review
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
