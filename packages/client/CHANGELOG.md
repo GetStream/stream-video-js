@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.4...@stream-io/video-client-1.18.5) (2025-03-12)
+
+
+* Upgrade to Next 15.2 ([#1717](https://github.com/GetStream/stream-video-js/issues/1717)) ([9b1aec3](https://github.com/GetStream/stream-video-js/commit/9b1aec3447dee611c0d900db44add6b6c89e2b8d))
+
+
+### Bug Fixes
+
+* add pending browser permission state ([#1718](https://github.com/GetStream/stream-video-js/issues/1718)) ([7f24be6](https://github.com/GetStream/stream-video-js/commit/7f24be63d33105d0688be7b5b625bc9b6aa0d3a9))
+
 ## [1.18.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.3...@stream-io/video-client-1.18.4) (2025-03-10)
 
 
