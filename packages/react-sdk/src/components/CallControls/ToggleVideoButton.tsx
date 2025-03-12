@@ -13,8 +13,8 @@ import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 import {
-  PropsWithErrorHandler,
   createCallControlHandler,
+  PropsWithErrorHandler,
 } from '../../utilities/callControlHandler';
 
 export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
@@ -45,7 +45,7 @@ export const ToggleVideoPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser video permissions')
-          : caption ?? t('Video')
+          : (caption ?? t('Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >

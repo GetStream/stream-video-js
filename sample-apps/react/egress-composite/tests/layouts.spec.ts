@@ -60,7 +60,9 @@ test.describe('Layouts', () => {
 
         await expect(
           page.getByTestId(
-            tc.name === 'unknown' ? DEFAULT_LAYOUT : tc.name ?? DEFAULT_LAYOUT,
+            tc.name === 'unknown'
+              ? DEFAULT_LAYOUT
+              : (tc.name ?? DEFAULT_LAYOUT),
           ),
         ).toBeVisible();
 
@@ -113,7 +115,7 @@ test.describe('Layouts', () => {
           page.getByTestId(
             tc.name === 'unknown'
               ? DEFAULT_SCREENSHARE_LAYOUT
-              : tc.name ?? DEFAULT_SCREENSHARE_LAYOUT,
+              : (tc.name ?? DEFAULT_SCREENSHARE_LAYOUT),
           ),
         ).toBeVisible();
 
