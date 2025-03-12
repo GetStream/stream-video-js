@@ -9,7 +9,7 @@
     "build": "sass --embed-sources index.scss ./dist/css/styles.css"
   },
   "devDependencies": {
-    "rimraf": "^5.0.7",
+    "rimraf": "^6.0.1",
     "sass": "^1.69.5"
   }
 }
