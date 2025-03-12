@@ -68,6 +68,12 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   hasBrowserPermission$: Observable<boolean>;
 
   /**
+   * An observable that emits `true` when SDK is prompting for browser permission
+   * (i.e. browser's UI for allowing or disallowing device access is visible)
+   */
+  isPromptingPermission$: Observable<boolean>;
+
+  /**
    * Constructs new InputMediaDeviceManagerState instance.
    *
    * @param disableMode the disable mode to use.
@@ -81,6 +87,10 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     this.hasBrowserPermission$ = permission
       ? permission.asObservable().pipe(shareReplay(1))
       : of(true);
+
+    this.isPromptingPermission$ = permission
+      ? permission.getIsPromptingObservable().pipe(shareReplay(1))
+      : of(false);
   }
 
   /**
