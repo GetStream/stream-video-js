@@ -9,6 +9,7 @@ import {
   CallStatsReport,
   Comparator,
   EgressResponse,
+  InputDeviceStatus,
   MemberResponse,
   OwnCapability,
   StreamVideoParticipant,
@@ -357,28 +358,27 @@ export const useCameraState = () => {
   const devices$ = useMemo(() => camera.listDevices(), [camera]);
 
   const { state } = camera;
-  const status = useObservableValue(state.status$);
-  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
-  const isMute = status !== 'enabled';
-  const optimisticIsMute = optimisticStatus !== 'enabled';
+  const isPromptingPermission = useObservableValue(
+    state.isPromptingPermission$,
+  );
 
   return {
     camera,
-    status,
-    optimisticStatus,
-    isEnabled: status === 'enabled',
     direction,
     mediaStream,
     devices,
     hasBrowserPermission,
+    isPromptingPermission,
     selectedDevice,
-    isMute,
-    optimisticIsMute,
+    ...getComputedStatus(
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
+    ),
   };
 };
 
@@ -394,28 +394,27 @@ export const useMicrophoneState = () => {
   const devices$ = useMemo(() => microphone.listDevices(), [microphone]);
 
   const { state } = microphone;
-  const status = useObservableValue(state.status$);
-  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
+  const isPromptingPermission = useObservableValue(
+    state.isPromptingPermission$,
+  );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
-  const isMute = status !== 'enabled';
-  const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
     microphone,
-    status,
-    optimisticStatus,
-    isEnabled: status === 'enabled',
     mediaStream,
     devices,
     selectedDevice,
     hasBrowserPermission,
+    isPromptingPermission,
     isSpeakingWhileMuted,
-    isMute,
-    optimisticIsMute,
+    ...getComputedStatus(
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
+    ),
   };
 };
 
@@ -452,20 +451,13 @@ export const useScreenShareState = () => {
   const call = useCall();
   const { screenShare } = call as Call;
 
-  const status = useObservableValue(screenShare.state.status$);
-  const pendingStatus = useObservableValue(screenShare.state.optimisticStatus$);
-  const mediaStream = useObservableValue(screenShare.state.mediaStream$);
-  const isMute = status !== 'enabled';
-  const optimisticStatus = pendingStatus ?? status;
-  const optimisticIsMute = optimisticStatus !== 'enabled';
-
   return {
     screenShare,
-    mediaStream,
-    status,
-    optimisticStatus,
-    isMute,
-    optimisticIsMute,
+    mediaStream: useObservableValue(screenShare.state.mediaStream$),
+    ...getComputedStatus(
+      useObservableValue(screenShare.state.status$),
+      useObservableValue(screenShare.state.optimisticStatus$),
+    ),
   };
 };
 
@@ -496,3 +488,19 @@ export const useIsCallCaptioningInProgress = (): boolean => {
   const { captioning$ } = useCallState();
   return useObservableValue(captioning$);
 };
+
+function getComputedStatus(
+  status: InputDeviceStatus,
+  pendingStatus: InputDeviceStatus,
+) {
+  const optimisticStatus = pendingStatus ?? status;
+
+  return {
+    status,
+    optimisticStatus,
+    isEnabled: status === 'enabled',
+    isMute: status !== 'enabled',
+    optimisticIsMute: optimisticStatus !== 'enabled',
+    isTogglePending: optimisticStatus !== status,
+  };
+}
