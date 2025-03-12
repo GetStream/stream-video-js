@@ -9,12 +9,14 @@ interface BrowserPermissionConfig {
   queryName: PermissionName;
 }
 
+export type BrowserPermissionState = PermissionState | 'prompting';
+
 export class BrowserPermission {
   private ready: Promise<void>;
   private disposeController = new AbortController();
-  private state: PermissionState | undefined;
+  private state: BrowserPermissionState | undefined;
   private wasPrompted: boolean = false;
-  private listeners = new Set<(state: PermissionState) => void>();
+  private listeners = new Set<(state: BrowserPermissionState) => void>();
   private logger = getLogger(['permissions']);
 
   constructor(private readonly permission: BrowserPermissionConfig) {
@@ -83,6 +85,7 @@ export class BrowserPermission {
 
         try {
           this.wasPrompted = true;
+          this.setState('prompting');
           const stream = await navigator.mediaDevices.getUserMedia(
             this.permission.constraints,
           );
@@ -112,23 +115,21 @@ export class BrowserPermission {
             error: e,
             permission: this.permission,
           });
+          this.setState('prompt');
           throw e;
         }
       },
     );
   }
 
-  listen(cb: (state: PermissionState) => void) {
+  listen(cb: (state: BrowserPermissionState) => void) {
     this.listeners.add(cb);
     if (this.state) cb(this.state);
     return () => this.listeners.delete(cb);
   }
 
   asObservable() {
-    return fromEventPattern<PermissionState>(
-      (handler) => this.listen(handler),
-      (handler, unlisten) => unlisten(),
-    ).pipe(
+    return this.getStateObservable().pipe(
       // In some browsers, the 'change' event doesn't reliably emit and hence,
       // permissionState stays in 'prompt' state forever.
       // Typically, this happens when a user grants one-time permission.
@@ -137,7 +138,20 @@ export class BrowserPermission {
     );
   }
 
-  private setState(state: PermissionState) {
+  getIsPromptingObservable() {
+    return this.getStateObservable().pipe(
+      map((state) => state === 'prompting'),
+    );
+  }
+
+  private getStateObservable() {
+    return fromEventPattern<BrowserPermissionState>(
+      (handler) => this.listen(handler),
+      (handler, unlisten) => unlisten(),
+    );
+  }
+
+  private setState(state: BrowserPermissionState) {
     if (this.state !== state) {
       this.state = state;
       this.listeners.forEach((listener) => listener(state));
