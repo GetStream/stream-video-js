@@ -8,7 +8,7 @@ import addNewLinesToMainActivity from './common/addNewLinesToMainActivity';
 
 const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
   configuration,
-  props
+  props,
 ) => {
   return withMainActivity(configuration, (config) => {
     const isMainActivityJava = config.modResults.language === 'java';
@@ -22,22 +22,22 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
         'androidx.lifecycle.Lifecycle',
         'com.oney.WebRTCModule.WebRTCModuleOptions',
       ],
-      isMainActivityJava
+      isMainActivityJava,
     );
     config.modResults.contents = addOnPictureInPictureModeChanged(
       config.modResults.contents,
-      isMainActivityJava
+      isMainActivityJava,
     );
     if (props?.androidPictureInPicture) {
       config.modResults.contents = addOnUserLeaveHint(
         config.modResults.contents,
-        isMainActivityJava
+        isMainActivityJava,
       );
     }
     if (props?.enableScreenshare) {
       config.modResults.contents = addInsideOnCreate(
         config.modResults.contents,
-        isMainActivityJava
+        isMainActivityJava,
       );
     }
 
@@ -48,7 +48,7 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
 function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
   if (
     !contents.includes(
-      'StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)'
+      'StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)',
     )
   ) {
     let statementToInsert = '';
@@ -82,7 +82,7 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
 
     contents = addNewLinesToMainActivity(
       contents,
-      statementToInsert.trim().split('\n')
+      statementToInsert.trim().split('\n'),
     );
   }
   return contents;
@@ -94,7 +94,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
   if (isJava) {
     if (
       !contents.includes(
-        'StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode'
+        'StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode',
       )
     ) {
       statementToInsert = `
@@ -111,7 +111,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
   } else {
     if (
       !contents.includes(
-        'StreamVideoReactNative.canAutoEnterPictureInPictureMode'
+        'StreamVideoReactNative.canAutoEnterPictureInPictureMode',
       )
     ) {
       statementToInsert = `           
@@ -129,7 +129,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
   if (statementToInsert) {
     contents = addNewLinesToMainActivity(
       contents,
-      statementToInsert.trim().split('\n')
+      statementToInsert.trim().split('\n'),
     );
   }
 
@@ -148,7 +148,7 @@ function addInsideOnCreate(contents: string, isJava: boolean) {
     contents = appendContentsInsideDeclarationBlock(
       contents,
       'onCreate',
-      addScreenShareServiceEnablerBlock
+      addScreenShareServiceEnablerBlock,
     );
   }
   return contents;

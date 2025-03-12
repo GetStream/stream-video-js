@@ -11,7 +11,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { BehaviorSubject } from 'rxjs';
-import { filter, distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { processCallFromPush } from '../../utils/push/internal/utils';
 import { getLogger, StreamVideoClient } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
@@ -34,7 +34,7 @@ export const useProcessPushCallEffect = () => {
 
     getLogger(['useProcessPushCallEffect'])(
       'debug',
-      `Adding subscriptions to process incoming call from push notification`
+      `Adding subscriptions to process incoming call from push notification`,
     );
 
     // if the user accepts the call from push notification we join the call
@@ -42,7 +42,7 @@ export const useProcessPushCallEffect = () => {
       pushAcceptedIncomingCallCId$,
       client,
       pushConfig,
-      'accept'
+      'accept',
     );
 
     // if the user rejects the call from push notification we leave the call
@@ -50,7 +50,7 @@ export const useProcessPushCallEffect = () => {
       pushRejectedIncomingCallCId$,
       client,
       pushConfig,
-      'decline'
+      'decline',
     );
 
     // if the user taps the call from push notification we do nothing as the only thing is to get the call which adds it to the client
@@ -58,14 +58,14 @@ export const useProcessPushCallEffect = () => {
       pushTappedIncomingCallCId$,
       client,
       pushConfig,
-      'pressed'
+      'pressed',
     );
 
     const backgroundIncomingDeliveredCallSubscription = createCallSubscription(
       pushAndroidBackgroundDeliveredIncomingCallCId$,
       client,
       pushConfig,
-      'backgroundDelivered'
+      'backgroundDelivered',
     );
 
     return () => {
@@ -91,14 +91,14 @@ const createCallSubscription = (
   behaviourSubjectWithCallCid: BehaviorSubject<string | undefined>,
   client: StreamVideoClient,
   pushConfig: NonNullable<StreamVideoConfig['push']>,
-  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered'
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
 ) => {
   return behaviourSubjectWithCallCid
     .pipe(distinctUntilChanged(), filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
       getLogger(['useProcessPushCallEffect'])(
         'debug',
-        `Processing call from push notification with action: ${action} and callCId: ${callCId}`
+        `Processing call from push notification with action: ${action} and callCId: ${callCId}`,
       );
       await processCallFromPush(client, callCId, action, pushConfig);
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again

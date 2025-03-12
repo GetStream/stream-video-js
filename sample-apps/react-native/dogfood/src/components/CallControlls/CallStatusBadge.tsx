@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { useTheme } from '@stream-io/video-react-native-sdk';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
 
 const formatTime = (seconds: number) => {
   const date = new Date(0);

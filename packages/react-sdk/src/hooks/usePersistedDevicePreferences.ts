@@ -7,9 +7,10 @@ export type LocalDevicePreference = {
   muted: boolean;
 };
 
-export type LocalDevicePreferences = {
-  [type in 'mic' | 'camera' | 'speaker']: LocalDevicePreference;
-};
+export type LocalDevicePreferences = Record<
+  'mic' | 'camera' | 'speaker',
+  LocalDevicePreference
+>;
 
 const defaultDevice = 'default';
 
@@ -17,6 +18,7 @@ const defaultDevice = 'default';
  * This hook will persist the device settings to local storage.
  *
  * @param key the key to use for local storage.
+ * @param shouldPersistRef a ref to indicate if the settings should be persisted.
  */
 const usePersistDevicePreferences = (
   key: string,
@@ -67,6 +69,7 @@ const usePersistDevicePreferences = (
  * This hook will apply the device settings from local storage.
  *
  * @param key the key to use for local storage.
+ * @param onApplied a callback to call when the settings are applied.
  */
 const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
   const call = useCall();

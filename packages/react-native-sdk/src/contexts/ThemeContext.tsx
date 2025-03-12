@@ -45,7 +45,7 @@ export const mergeThemes = (params: MergedThemesParams) => {
 const DEFAULT_BASE_CONTEXT_VALUE = {};
 
 export const ThemeContext = createContext<Theme>(
-  DEFAULT_BASE_CONTEXT_VALUE as Theme
+  DEFAULT_BASE_CONTEXT_VALUE as Theme,
 );
 
 export const ThemeProvider: React.FC<
@@ -73,7 +73,7 @@ export const useTheme = () => {
 
   if (theme === DEFAULT_BASE_CONTEXT_VALUE) {
     throw new Error(
-      'The useThemeContext hook was called outside the ThemeContext Provider. Make sure you have configured OverlayProvider component correctly - https://getstream.io/chat/docs/sdk/reactnative/basics/hello_stream_chat/#overlay-provider'
+      'The useThemeContext hook was called outside the ThemeContext Provider. Make sure you have configured OverlayProvider component correctly - https://getstream.io/chat/docs/sdk/reactnative/basics/hello_stream_chat/#overlay-provider',
     );
   }
   return { theme };

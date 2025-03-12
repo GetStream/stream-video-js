@@ -4,8 +4,8 @@ import {
   type HostComponent,
   Platform,
   requireNativeComponent,
-  UIManager,
   StyleSheet,
+  UIManager,
 } from 'react-native';
 
 const COMPONENT_NAME = 'RTCViewPip';
@@ -23,7 +23,7 @@ export function onNativeCallClosed(reactTag: number) {
     reactTag,
     // @ts-ignore
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
-    []
+    [],
   );
 }
 
@@ -47,5 +47,5 @@ export const RTCViewPipNative = React.memo(
         ref={ref}
       />
     );
-  })
+  }),
 );

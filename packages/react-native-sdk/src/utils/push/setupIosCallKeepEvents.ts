@@ -1,4 +1,6 @@
 import {
+  pushAcceptedIncomingCallCId$,
+  voipCallkeepAcceptedCallOnNativeDialerMap$,
   voipCallkeepCallOnForegroundMap$,
   voipPushNotificationCallCId$,
 } from './internal/rxSubjects';
@@ -9,10 +11,6 @@ import {
   clearPushWSEventSubscriptions,
   processCallFromPushInBackground,
 } from './internal/utils';
-import {
-  pushAcceptedIncomingCallCId$,
-  voipCallkeepAcceptedCallOnNativeDialerMap$,
-} from './internal/rxSubjects';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 
@@ -22,7 +20,7 @@ type PushConfig = NonNullable<StreamVideoConfig['push']>;
  * This hook is used to listen to callkeep events and do the necessary actions
  */
 export function setupIosCallKeepEvents(
-  pushConfig: NonNullable<StreamVideoConfig['push']>
+  pushConfig: NonNullable<StreamVideoConfig['push']>,
 ) {
   if (Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
     return;
@@ -37,13 +35,13 @@ export function setupIosCallKeepEvents(
       try {
         call_cid =
           await NativeModules?.StreamVideoReactNative?.getIncomingCallCid(
-            callUUID
+            callUUID,
           );
         voipPushNotificationCallCId$.next(call_cid);
       } catch (error) {
         logger(
           'debug',
-          'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event'
+          'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event',
         );
       }
     }
@@ -70,14 +68,14 @@ export function setupIosCallKeepEvents(
     const call_cid = payload?.call_cid as string | undefined;
     logger(
       'debug',
-      `didDisplayIncomingCall event with callUUID: ${callUUID} call_cid: ${call_cid}`
+      `didDisplayIncomingCall event with callUUID: ${callUUID} call_cid: ${call_cid}`,
     );
     if (call_cid) {
       if (AppState.currentState === 'background') {
         processCallFromPushInBackground(
           pushConfig!,
           call_cid,
-          'backgroundDelivered'
+          'backgroundDelivered',
         );
       }
       voipCallkeepCallOnForegroundMap$.next({
@@ -92,20 +90,20 @@ export function setupIosCallKeepEvents(
     'answerCall',
     ({ callUUID }) => {
       answerCall(callUUID);
-    }
+    },
   );
   const { remove: removeEndCall } = callkeep.addEventListener(
     'endCall',
     ({ callUUID }) => {
       endCall(callUUID);
-    }
+    },
   );
 
   const { remove: removeDisplayIncomingCall } = callkeep.addEventListener(
     'didDisplayIncomingCall',
     ({ callUUID, payload }) => {
       didDisplayIncomingCall(callUUID, payload);
-    }
+    },
   );
 
   const { remove: removeDidLoadWithEvents } = callkeep.addEventListener(
@@ -125,7 +123,7 @@ export function setupIosCallKeepEvents(
           endCall(data.callUUID);
         }
       });
-    }
+    },
   );
 
   setPushLogoutCallback(async () => {
@@ -138,7 +136,7 @@ export function setupIosCallKeepEvents(
 
 const iosCallkeepAcceptCall = (
   call_cid: string | undefined,
-  callUUIDFromCallkeep: string
+  callUUIDFromCallkeep: string,
 ) => {
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
@@ -158,7 +156,7 @@ const iosCallkeepAcceptCall = (
 const iosCallkeepRejectCall = async (
   call_cid: string | undefined,
   callUUIDFromCallkeep: string,
-  pushConfig: PushConfig
+  pushConfig: PushConfig,
 ) => {
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
@@ -178,7 +176,7 @@ const iosCallkeepRejectCall = async (
  */
 const shouldProcessCallFromCallkeep = (
   call_cid: string | undefined,
-  callUUIDFromCallkeep: string
+  callUUIDFromCallkeep: string,
 ): call_cid is string => {
   if (!call_cid || !callUUIDFromCallkeep) {
     return false;

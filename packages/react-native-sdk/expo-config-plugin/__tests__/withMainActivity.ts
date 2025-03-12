@@ -19,7 +19,7 @@ jest.mock('@expo/config-plugins', () => {
     ...originalModule,
     withMainActivity: jest.fn((config, callback) => {
       const updatedConfig: CustomExpoConfig = callback(
-        config as CustomExpoConfig
+        config as CustomExpoConfig,
       );
       return updatedConfig;
     }),
@@ -48,15 +48,15 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withMainActivity(config, props) as CustomExpoConfig;
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.onPictureInPictureModeChanged/
+      /StreamVideoReactNative.onPictureInPictureModeChanged/,
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/,
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /options.enableMediaProjectionService = true/
+      /options.enableMediaProjectionService = true/,
     );
 
     const props2: ConfigProps = {
@@ -75,15 +75,15 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     const updatedConfig2 = withMainActivity(
       config2,
-      props2
+      props2,
     ) as CustomExpoConfig;
 
     expect(updatedConfig2.modResults.contents).not.toMatch(
-      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/,
     );
 
     expect(updatedConfig2.modResults.contents).not.toMatch(
-      /options.enableMediaProjectionService = true/
+      /options.enableMediaProjectionService = true/,
     );
   });
 

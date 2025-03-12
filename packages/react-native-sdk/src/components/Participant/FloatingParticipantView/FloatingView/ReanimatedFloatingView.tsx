@@ -1,19 +1,20 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { type LayoutRectangle, View } from 'react-native';
 import {
-  FloatingViewAlignment,
-  getSnapAlignments,
-  getClosestSnapAlignment,
   floatingChildViewContainerStyle,
+  FloatingViewAlignment,
   type FloatingViewProps,
+  getClosestSnapAlignment,
+  getSnapAlignments,
 } from './common';
+
 type GestureHandlerExportsType = typeof import('react-native-gesture-handler');
 type ReanimatedNamespaceType = typeof import('react-native-reanimated').default;
 type ReanimatedExportsType = typeof import('react-native-reanimated');
 
 let ReanimatedFloatingView: React.FC<FloatingViewProps> = () => {
   throw new Error(
-    'ReanimatedFloatingView component must not be used without the react-native-reanimated library and react-native-gesture-handler library installed'
+    'ReanimatedFloatingView component must not be used without the react-native-reanimated library and react-native-gesture-handler library installed',
   );
 };
 
@@ -89,15 +90,15 @@ try {
           0,
           Math.min(
             e.translationX + (start.value.x ?? 0),
-            snapAlignments[FloatingViewAlignment.bottomRight].x
-          )
+            snapAlignments[FloatingViewAlignment.bottomRight].x,
+          ),
         );
         translationY.value = Math.max(
           0,
           Math.min(
             e.translationY + (start.value.y ?? 0),
-            snapAlignments[FloatingViewAlignment.bottomRight].y
-          )
+            snapAlignments[FloatingViewAlignment.bottomRight].y,
+          ),
         );
       })
       .onEnd(() => {

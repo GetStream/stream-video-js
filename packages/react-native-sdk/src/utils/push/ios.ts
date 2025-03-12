@@ -14,14 +14,14 @@ import {
   getVoipPushNotificationLib,
   type PushNotificationiOSType,
 } from './libs';
-import { RxUtils, StreamVideoClient, getLogger } from '@stream-io/video-client';
+import { getLogger, RxUtils, StreamVideoClient } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import type { Event } from '@notifee/react-native';
 import { StreamVideoRN } from '../StreamVideoRN';
 import type { StreamPushPayload } from './utils';
 import {
-  shouldCallBeEnded,
   canAddPushWSSubscriptionsRef,
+  shouldCallBeEnded,
 } from './internal/utils';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -29,7 +29,7 @@ type PushConfig = NonNullable<StreamVideoConfig['push']>;
 let lastApnToken = { token: '', userId: '' };
 
 function processNonRingingNotificationStreamPayload(
-  streamPayload: StreamPushPayload
+  streamPayload: StreamPushPayload,
 ) {
   if (
     streamPayload?.sender === 'stream.video' &&
@@ -60,7 +60,7 @@ export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {
       const logger = getLogger(['processNonRingingNotificationStreamPayload']);
       logger(
         'trace',
-        `processNonRingingNotificationStreamPayload - ${JSON.stringify(streamPayload)}`
+        `processNonRingingNotificationStreamPayload - ${JSON.stringify(streamPayload)}`,
       );
       processNonRingingNotificationStreamPayload(streamPayload);
     }
@@ -86,7 +86,7 @@ export const oniOSNotifeeEvent = ({
       const logger = getLogger(['oniOSNotifeeEvent']);
       logger(
         'debug',
-        `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`
+        `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`,
       );
       pushConfig.onTapNonRingingCallNotification?.(result.cid, result.type);
     }
@@ -94,7 +94,7 @@ export const oniOSNotifeeEvent = ({
 };
 
 export function onPushNotificationiOSStreamVideoEvent(
-  notification: PushNotificationiOSType
+  notification: PushNotificationiOSType,
 ) {
   const pushNotificationIosLib = getPushNotificationIosLib();
   const data = notification.getData();
@@ -103,7 +103,7 @@ export function onPushNotificationiOSStreamVideoEvent(
   if (!streamPayload) {
     logger(
       'trace',
-      `skipping process: no stream payload found in notification data - ${JSON.stringify(data)}`
+      `skipping process: no stream payload found in notification data - ${JSON.stringify(data)}`,
     );
     return;
   }
@@ -112,7 +112,7 @@ export function onPushNotificationiOSStreamVideoEvent(
   if (!isClicked || !pushConfig) {
     logger(
       'debug',
-      `notification.finish called and returning - isClicked: ${isClicked}, pushConfig: ${!!pushConfig}`
+      `notification.finish called and returning - isClicked: ${isClicked}, pushConfig: ${!!pushConfig}`,
     );
     notification.finish(pushNotificationIosLib.FetchResult.NoData);
     return;
@@ -122,7 +122,7 @@ export function onPushNotificationiOSStreamVideoEvent(
   if (result) {
     logger(
       'debug',
-      `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`
+      `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`,
     );
     pushConfig.onTapNonRingingCallNotification?.(result.cid, result.type);
   }
@@ -133,7 +133,7 @@ export function onPushNotificationiOSStreamVideoEvent(
 export async function initIosNonVoipToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
-  setUnsubscribeListener: (unsubscribe: () => void) => void
+  setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
   if (
     Platform.OS !== 'ios' ||
@@ -150,7 +150,7 @@ export async function initIosNonVoipToken(
       logger(
         'debug',
         'Skipped sending device token to stream as it was already sent',
-        token
+        token,
       );
       return;
     }
@@ -163,7 +163,7 @@ export async function initIosNonVoipToken(
         logger(
           'warn',
           'setPushLogoutCallback - Failed to remove apn token from stream',
-          err
+          err,
         );
       }
     });
@@ -184,7 +184,7 @@ export async function initIosNonVoipToken(
       logger(
         'debug',
         'Got device token - expoNotificationsLib.getDevicePushTokenAsync',
-        devicePushToken.data
+        devicePushToken.data,
       );
       setDeviceToken(devicePushToken.data);
     });
@@ -193,10 +193,10 @@ export async function initIosNonVoipToken(
         logger(
           'debug',
           'Got device token - expoNotificationsLib.addPushTokenListener',
-          devicePushToken.data
+          devicePushToken.data,
         );
         setDeviceToken(devicePushToken.data);
-      }
+      },
     );
     setUnsubscribeListener(() => {
       logger('debug', `removed expo addPushTokenListener`);
@@ -208,7 +208,7 @@ export async function initIosNonVoipToken(
       logger(
         'debug',
         `Got device token - pushNotificationIosLib.addEventListener('register')`,
-        token
+        token,
       );
       setDeviceToken(token);
     });
@@ -258,7 +258,7 @@ export const onVoipNotificationReceived = async (notification: any) => {
   if (!client) {
     logger(
       'debug',
-      'client not found, not processing call.ring voip push notification'
+      'client not found, not processing call.ring voip push notification',
     );
     return;
   }
@@ -267,7 +267,7 @@ export const onVoipNotificationReceived = async (notification: any) => {
   try {
     uuid =
       await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
-        call_cid
+        call_cid,
       );
   } catch (error) {
     logger('error', 'Error in getting call uuid from native module', error);
@@ -275,7 +275,7 @@ export const onVoipNotificationReceived = async (notification: any) => {
   if (!uuid) {
     logger(
       'error',
-      `Not processing call.ring push notification, as no uuid found for call_cid: ${call_cid}`
+      `Not processing call.ring push notification, as no uuid found for call_cid: ${call_cid}`,
     );
     return;
   }
@@ -285,13 +285,13 @@ export const onVoipNotificationReceived = async (notification: any) => {
     const { mustEndCall, callkeepReason } = shouldCallBeEnded(
       callFromPush,
       created_by_id,
-      receiver_id
+      receiver_id,
     );
     if (mustEndCall) {
       const callkeep = getCallKeepLib();
       logger(
         'debug',
-        `callkeep.reportEndCallWithUUID for uuid: ${uuid}, call_cid: ${call_cid}, reason: ${callkeepReason}`
+        `callkeep.reportEndCallWithUUID for uuid: ${uuid}, call_cid: ${call_cid}, reason: ${callkeepReason}`,
       );
       callkeep.reportEndCallWithUUID(uuid, callkeepReason);
       const voipPushNotification = getVoipPushNotificationLib();
@@ -310,7 +310,7 @@ export const onVoipNotificationReceived = async (notification: any) => {
         logger(
           'debug',
           `unsubscribe due to event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
-          event
+          event,
         );
         unsubscribe();
         return;
@@ -320,7 +320,7 @@ export const onVoipNotificationReceived = async (notification: any) => {
         logger(
           'debug',
           `unsubscribe due to event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed: ${_closed}`,
-          event
+          event,
         );
         unsubscribe();
       }
@@ -336,7 +336,7 @@ export const onVoipNotificationReceived = async (notification: any) => {
   // callkeep events will then accept/reject the call
   logger(
     'debug',
-    `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification`
+    `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification`,
   );
   voipPushNotificationCallCId$.next(call_cid);
 };

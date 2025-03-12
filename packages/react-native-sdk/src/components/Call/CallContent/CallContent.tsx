@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
@@ -27,7 +27,7 @@ import {
   type CallParticipantsListComponentProps,
   type CallParticipantsListProps,
 } from '../CallParticipantsList';
-import { useIsInPiPMode, useAutoEnterPiPEffect } from '../../../hooks';
+import { useAutoEnterPiPEffect, useIsInPiPMode } from '../../../hooks';
 import {
   ScreenShareOverlay as DefaultScreenShareOverlay,
   type ScreenShareOverlayProps,
@@ -262,6 +262,6 @@ const useStyles = () => {
           zIndex: Z_INDEX.IN_FRONT,
         },
       }),
-    [theme]
+    [theme],
   );
 };

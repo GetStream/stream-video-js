@@ -3,7 +3,7 @@ import type { ConfigProps } from './common/types';
 
 const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
   configuration,
-  props
+  props,
 ) => {
   return withInfoPlist(configuration, (config) => {
     function addBackgroundMode(mode: string) {

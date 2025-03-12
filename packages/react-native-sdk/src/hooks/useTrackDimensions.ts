@@ -3,7 +3,7 @@ import {
   type VideoTrackType,
 } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * This is a utility hook to get the dimensions of the video track of the participant.
@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
  */
 export function useTrackDimensions(
   participant: StreamVideoParticipant,
-  trackType: VideoTrackType
+  trackType: VideoTrackType,
 ) {
   const [trackDimensions, setTrackDimensions] = useState({
     width: 0,

@@ -12,11 +12,11 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
   if (props?.ringingPushNotifications || props?.enableScreenshare) {
     permissions.push(
       'android.permission.POST_NOTIFICATIONS',
-      'android.permission.FOREGROUND_SERVICE'
+      'android.permission.FOREGROUND_SERVICE',
     );
     if (props?.enableScreenshare) {
       permissions.push(
-        'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION'
+        'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION',
       );
     }
   }
@@ -25,7 +25,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
       'android.permission.FOREGROUND_SERVICE_CAMERA',
       'android.permission.FOREGROUND_SERVICE_MICROPHONE',
       'android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE',
-      'android.permission.FOREGROUND_SERVICE_DATA_SYNC'
+      'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
     );
   }
   if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
@@ -33,7 +33,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
   }
   const config = AndroidConfig.Permissions.withPermissions(
     configuration,
-    permissions
+    permissions,
   );
   return config;
 };

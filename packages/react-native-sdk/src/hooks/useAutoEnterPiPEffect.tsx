@@ -5,7 +5,7 @@ import { NativeModules, Platform } from 'react-native';
 import { disablePiPMode$ } from '../utils/internal/rxSubjects';
 
 export function useAutoEnterPiPEffect(
-  disablePictureInPicture: boolean | undefined
+  disablePictureInPicture: boolean | undefined,
 ) {
   const { useCallCallingState } = useCallStateHooks();
 
@@ -19,7 +19,7 @@ export function useAutoEnterPiPEffect(
 
     if (!disablePictureInPicture && callingState === CallingState.JOINED) {
       NativeModules.StreamVideoReactNative.canAutoEnterPipMode(
-        !disablePictureInPicture
+        !disablePictureInPicture,
       );
     }
   }, [callingState, disablePictureInPicture]);

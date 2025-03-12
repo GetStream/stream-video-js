@@ -183,6 +183,6 @@ const useStyles = () => {
         },
         networkIndicatorOnly: { justifyContent: 'flex-end' },
       }),
-    [theme]
+    [theme],
   );
 };

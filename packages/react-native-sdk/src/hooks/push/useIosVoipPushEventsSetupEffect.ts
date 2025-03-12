@@ -8,7 +8,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
-import { StreamVideoClient, getLogger } from '@stream-io/video-client';
+import { getLogger, StreamVideoClient } from '@stream-io/video-client';
 
 const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
 
@@ -21,7 +21,7 @@ let lastListener = { count: 0 };
 function setLogoutCallback(
   client: StreamVideoClient,
   token: string,
-  lastVoipTokenRef: MutableRefObject<{ token: string; userId: string }>
+  lastVoipTokenRef: MutableRefObject<{ token: string; userId: string }>,
 ) {
   setPushLogoutCallback(async () => {
     lastVoipTokenRef.current = { token: '', userId: '' };
@@ -31,7 +31,7 @@ function setLogoutCallback(
       logger(
         'warn',
         'PushLogoutCallback - Failed to remove voip token from stream',
-        err
+        err,
       );
     }
   });
@@ -62,7 +62,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
     logger(
       'debug',
       'Sending unsent voip token to stream as user logged in after token was received, token: ' +
-        unsentToken
+        unsentToken,
     );
     client
       .addVoipDevice(unsentToken, 'apn', pushConfig.ios.pushProviderName)
@@ -70,7 +70,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
         setLogoutCallback(client, unsentToken, lastVoipTokenRef);
         logger(
           'debug',
-          'Sent unsent voip token to stream - token: ' + unsentToken
+          'Sent unsent voip token to stream - token: ' + unsentToken,
         );
         lastVoipTokenRef.current = {
           token: unsentToken,
@@ -102,7 +102,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
       if (!userId) {
         logger(
           'debug',
-          `Skipped sending voip token to stream no user id was present - token: ${token}`
+          `Skipped sending voip token to stream no user id was present - token: ${token}`,
         );
         setUnsentToken(token);
         return;
@@ -111,20 +111,20 @@ export const useIosVoipPushEventsSetupEffect = () => {
       if (lastVoipToken.token === token && lastVoipToken.userId === userId) {
         logger(
           'debug',
-          `Skipped sending voip token to stream as it is same as last token - token: ${token}, userId: ${userId}`
+          `Skipped sending voip token to stream as it is same as last token - token: ${token}, userId: ${userId}`,
         );
         return;
       }
       logger(
         'debug',
-        `Sending voip token to stream, token: ${token} userId: ${userId}`
+        `Sending voip token to stream, token: ${token} userId: ${userId}`,
       );
       client
         .addVoipDevice(token, 'apn', pushProviderName)
         .then(() => {
           logger(
             'debug',
-            `Sent voip token to stream, token: ${token} userId: ${userId}`
+            `Sent voip token to stream, token: ${token} userId: ${userId}`,
           );
           setLogoutCallback(client, token, lastVoipTokenRef);
           lastVoipTokenRef.current = { token, userId };
@@ -161,7 +161,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
       if (currentListenerCount !== lastListener.count) {
         logger(
           'debug',
-          'Skipped removing voip event listeners for user: ' + userId
+          'Skipped removing voip event listeners for user: ' + userId,
         );
         return;
       }

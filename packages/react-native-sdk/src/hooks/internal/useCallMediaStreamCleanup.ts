@@ -31,7 +31,7 @@ export const useCallMediaStreamCleanup = () => {
       ) {
         getLogger(['useCallMediaStreamCleanup'])(
           'debug',
-          'Cleaning up camera media stream'
+          'Cleaning up camera media stream',
         );
         // we cleanup media stream only if call is not joined or joining
         // @ts-ignore Due to DOM typing incompatible with RN

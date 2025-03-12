@@ -37,11 +37,11 @@ describe('ParticipantView', () => {
         ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
         ParticipantVideoFallback={ParticipantVideoFallback}
         VideoRenderer={VideoRenderer}
-      />
+      />,
     );
 
     expect(
-      await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR)
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR),
     ).toBeOnTheScreen();
     expect(screen.getByText(testParticipant.name)).toBeOnTheScreen();
     // reaction is visible and then disappears after 5500 ms
@@ -66,17 +66,17 @@ describe('ParticipantView', () => {
         ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
         ParticipantVideoFallback={ParticipantVideoFallback}
         VideoRenderer={VideoRenderer}
-      />
+      />,
     );
 
     expect(
-      await screen.findByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM)
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(/Testy van der Test is sharing their screen/i)
+      screen.getByText(/Testy van der Test is sharing their screen/i),
     ).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(IconTestIds.SCREEN_SHARE_INDICATOR)
+      await screen.findByTestId(IconTestIds.SCREEN_SHARE_INDICATOR),
     ).toBeOnTheScreen();
   });
 
@@ -95,11 +95,11 @@ describe('ParticipantView', () => {
         ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
         ParticipantVideoFallback={ParticipantVideoFallback}
         VideoRenderer={VideoRenderer}
-      />
+      />,
     );
 
     const [VideoRTCView] = await screen.findAllByTestId(
-      ComponentTestIds.PARTICIPANT_MEDIA_STREAM
+      ComponentTestIds.PARTICIPANT_MEDIA_STREAM,
     );
     // Video and Audio streams are rendered
     // This is our best way to test if video and audio is on
@@ -108,7 +108,7 @@ describe('ParticipantView', () => {
 
     // Participant is speaking style is applied
     expect(
-      screen.getByTestId(`participant-${testParticipant.userId}-is-speaking`)
+      screen.getByTestId(`participant-${testParticipant.userId}-is-speaking`),
     ).toBeOnTheScreen();
   });
 });

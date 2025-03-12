@@ -187,6 +187,6 @@ const useStyles = () => {
           justifyContent: 'center',
         },
       }),
-    [theme]
+    [theme],
   );
 };

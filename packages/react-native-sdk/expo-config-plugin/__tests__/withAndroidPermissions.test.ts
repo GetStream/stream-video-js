@@ -20,7 +20,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
 
     const updatedConfig = withStreamVideoReactNativeSDKAndroidPermissions(
       inputConfig,
-      props
+      props,
     );
 
     // Assert that the necessary permissions are added to the Android config
@@ -36,7 +36,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
         'android.permission.FOREGROUND_SERVICE_MICROPHONE',
         'android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE',
         'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
-      ])
+      ]),
     );
   });
 });

@@ -44,20 +44,20 @@ export const AppStateListener = () => {
         logger(
           'debug',
           'Initial PiP mode on mount (after asking native module) set to ',
-          !!isInPiP
+          !!isInPiP,
         );
-      }
+      },
     );
 
     const eventEmitter = new NativeEventEmitter(
-      NativeModules.StreamVideoReactNative
+      NativeModules.StreamVideoReactNative,
     );
 
     const subscriptionPiPChange = eventEmitter.addListener(
       PIP_CHANGE_EVENT,
       (isInPiPMode: boolean) => {
         isInPiPModeAndroid$.next(isInPiPMode);
-      }
+      },
     );
 
     return () => {
@@ -83,7 +83,7 @@ export const AppStateListener = () => {
           });
           logger(
             'debug',
-            'Disable and reenable camera as app came to foreground'
+            'Disable and reenable camera as app came to foreground',
           );
         } else {
           if (cameraDisabledByAppState.current) {
@@ -124,7 +124,7 @@ export const AppStateListener = () => {
                   }
                   disableCameraIfNeeded();
                 }
-              }
+              },
             );
           } else {
             disableCameraIfNeeded();

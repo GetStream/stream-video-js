@@ -42,7 +42,7 @@ export class StreamVideoRN {
   static updateAndroidIncomingCallChannel(
     updateChannel: Partial<
       NonNullable<StreamVideoConfig['push']>['android']['incomingCallChannel']
-    >
+    >,
   ) {
     const prevChannel = this.config.push?.android?.incomingCallChannel;
     if (prevChannel) {
@@ -80,7 +80,7 @@ export class StreamVideoRN {
       throw new Error(
         `Support for navigateAcceptCall or navigateToIncomingCall in pushConfig has been removed.
         Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`,
       );
     }
 
@@ -101,7 +101,7 @@ export class StreamVideoRN {
   static onPushLogout() {
     if (pushLogoutCallbacks.current) {
       return Promise.all(
-        pushLogoutCallbacks.current.map((callback) => callback())
+        pushLogoutCallbacks.current.map((callback) => callback()),
       ).then(() => {});
     }
     return Promise.resolve();
@@ -117,7 +117,7 @@ export class StreamVideoRN {
    * @returns Unsubscribe function
    */
   static addOnNewCallNotificationListener(
-    callback: NewCallNotificationCallback
+    callback: NewCallNotificationCallback,
   ) {
     if (!newNotificationCallbacks.current) {
       newNotificationCallbacks.current = [callback];

@@ -63,7 +63,7 @@ export const UserInfo = ({
   }
 
   const memberUserIds = membersToShow.map(
-    (memberToShow) => memberToShow.name ?? memberToShow.id
+    (memberToShow) => memberToShow.name ?? memberToShow.id,
   );
 
   const callTitle = generateCallTitle(memberUserIds, totalMembersToShow);
