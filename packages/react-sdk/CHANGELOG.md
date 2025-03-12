@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.7...@stream-io/video-react-sdk-1.12.8) (2025-03-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.5`
+* `@stream-io/video-react-bindings` updated to version `1.5.7`
+
+### Bug Fixes
+
+* add pending browser permission state ([#1718](https://github.com/GetStream/stream-video-js/issues/1718)) ([7f24be6](https://github.com/GetStream/stream-video-js/commit/7f24be63d33105d0688be7b5b625bc9b6aa0d3a9))
+
 ## [1.12.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.6...@stream-io/video-react-sdk-1.12.7) (2025-03-10)
 
 ### Dependency Updates
