@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.10.14",
+  "version": "1.10.15",
   "packageManager": "yarn@3.2.4",
   "description": "Stream Video SDK for React Native",
   "author": "https://getstream.io",

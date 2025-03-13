@@ -30,8 +30,12 @@ export const ToggleAudioPreviewButton = (
   const { caption, onMenuToggle, ...restCompositeButtonProps } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, optimisticIsMute, hasBrowserPermission } =
-    useMicrophoneState();
+  const {
+    microphone,
+    optimisticIsMute,
+    hasBrowserPermission,
+    isPromptingPermission,
+  } = useMicrophoneState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () =>
     microphone.toggle(),
@@ -74,6 +78,13 @@ export const ToggleAudioPreviewButton = (
             children="!"
           />
         )}
+        {isPromptingPermission && (
+          <span
+            className="str-video__pending-permission"
+            title={t('Waiting for permission')}
+            children="?"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -102,8 +113,12 @@ export const ToggleAudioPublishingButton = (
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, optimisticIsMute, hasBrowserPermission } =
-    useMicrophoneState();
+  const {
+    microphone,
+    optimisticIsMute,
+    hasBrowserPermission,
+    isPromptingPermission,
+  } = useMicrophoneState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, async () => {
     if (!hasPermission) {
@@ -153,6 +168,14 @@ export const ToggleAudioPublishingButton = (
             <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
             {(!hasBrowserPermission || !hasPermission) && (
               <span className="str-video__no-media-permission">!</span>
+            )}
+            {isPromptingPermission && (
+              <span
+                className="str-video__pending-permission"
+                title={t('Waiting for permission')}
+              >
+                ?
+              </span>
             )}
           </CompositeButton>
         </WithTooltip>
