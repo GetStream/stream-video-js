@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.5...@stream-io/video-client-1.18.6) (2025-03-13)
+
+
+### Bug Fixes
+
+* ensure negotiation runs sequentially ([#1722](https://github.com/GetStream/stream-video-js/issues/1722)) ([7e166aa](https://github.com/GetStream/stream-video-js/commit/7e166aaf606c3f751068cf60bd554e6374f701d7))
+
 ## [1.18.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.4...@stream-io/video-client-1.18.5) (2025-03-12)
 
 
