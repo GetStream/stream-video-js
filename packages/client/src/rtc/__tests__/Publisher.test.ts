@@ -98,6 +98,8 @@ describe('Publisher', () => {
       const track = new MediaStreamTrack();
       const clone = new MediaStreamTrack();
       vi.spyOn(track, 'clone').mockReturnValue(clone);
+      // @ts-expect-error - private method
+      const negotiateSpy = vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       await publisher.publish(track, TrackType.VIDEO);
 
@@ -117,6 +119,7 @@ describe('Publisher', () => {
         ],
       });
       expect(publisher['clonedTracks'].size).toBe(1);
+      expect(negotiateSpy).toHaveBeenCalled();
     });
 
     it('should update an existing transceiver for a new track', async () => {
@@ -506,6 +509,8 @@ describe('Publisher', () => {
       vi.spyOn(track, 'clone').mockReturnValue(track);
       // @ts-expect-error private method
       vi.spyOn(publisher, 'addTransceiver');
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       publisher['publishOptions'] = [
         // @ts-expect-error incomplete data
@@ -544,6 +549,7 @@ describe('Publisher', () => {
           codec: { name: 'vp9' },
         }),
       );
+      expect(publisher['negotiate']).toHaveBeenCalledTimes(2);
     });
 
     it('disables extra transceivers', async () => {
@@ -671,12 +677,6 @@ describe('Publisher', () => {
       });
     });
 
-    it('onNegotiationNeeded delegates to negotiate', () => {
-      publisher['negotiate'] = vi.fn().mockResolvedValue(void 0);
-      publisher['onNegotiationNeeded']();
-      expect(publisher['negotiate']).toHaveBeenCalled();
-    });
-
     it('getPublishedTracks returns the published tracks', () => {
       const tracks = publisher.getPublishedTracks();
       expect(tracks).toHaveLength(2);
@@ -712,7 +712,7 @@ describe('Publisher', () => {
     });
 
     it('stopTracks should stop tracks', () => {
-      const track = cache['cache'][0].transceiver.sender.track;
+      const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
       publisher.stopTracks(TrackType.VIDEO);
@@ -721,7 +721,7 @@ describe('Publisher', () => {
     });
 
     it('stopAllTracks should stop all tracks', () => {
-      const track = cache['cache'][0].transceiver.sender.track;
+      const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
       publisher.stopAllTracks();
