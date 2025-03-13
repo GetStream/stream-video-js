@@ -52,7 +52,7 @@
     "react-native-voip-push-notification": "~3.3.1",
     "rxjs": "~7.8.1",
     "stream-chat": "^8.57.6",
-    "stream-chat-react-native": "^6.6.7"
+    "stream-chat-react-native": "^6.6.8"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
