@@ -73,9 +73,6 @@ export const VideoFilters = ({ onSelectFilter }: VideoFiltersProps) => {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: theme.colors.textPrimary }]}>
-        Filters
-      </Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
