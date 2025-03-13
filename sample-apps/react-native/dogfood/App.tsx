@@ -73,6 +73,13 @@ const StackNavigator = () => {
   useSyncPermissions();
 
   useEffect(() => {
+    // for production build, default the app environment to demo
+    if (!__DEV__) {
+      setState({ appEnvironment: 'demo' });
+    }
+  }, [setState]);
+
+  useEffect(() => {
     PushNotificationIOS.addEventListener('notification', (notification) => {
       if (isPushNotificationiOSStreamVideoEvent(notification)) {
         onPushNotificationiOSStreamVideoEvent(notification);
