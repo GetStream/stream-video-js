@@ -8,7 +8,7 @@ import { createSafeAsyncSubscription } from '../store/rxUtils';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
-import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
+import { withoutConcurrency } from '../helpers/concurrency';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -85,7 +85,7 @@ export abstract class BasePeerConnection {
   /**
    * Detaches the event handlers from the `RTCPeerConnection`.
    */
-  protected detachEventHandlers() {
+  detachEventHandlers() {
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.removeEventListener('signalingstatechange', this.onSignalingChange);
@@ -93,8 +93,6 @@ export abstract class BasePeerConnection {
       'iceconnectionstatechange',
       this.onIceConnectionStateChange,
     );
-    // cancel any ongoing ICE restart process
-    withCancellation('onIceConnectionStateChange', () => Promise.resolve());
     this.pc.removeEventListener(
       'icegatheringstatechange',
       this.onIceGatherChange,
