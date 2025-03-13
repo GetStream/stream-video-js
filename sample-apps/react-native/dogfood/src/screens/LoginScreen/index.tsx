@@ -43,7 +43,7 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-const ENABLE_PRONTO_SWITCH = true;
+const ENABLE_PRONTO_SWITCH = __DEV__;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
@@ -134,9 +134,7 @@ const LoginScreen = () => {
             style={styles.logo}
           />
           <View>
-            <Text style={styles.title}>
-              {isProntoEnv ? t('Pronto') : t('Stream Video Calling')}
-            </Text>
+            <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             <Text style={styles.subTitle}>
               {isProntoEnv
                 ? t(
@@ -160,7 +158,12 @@ const LoginScreen = () => {
               title={t('Login')}
               disabled={!localUserId}
               onPress={loginHandler}
-              buttonStyle={styles.textBoxButton}
+              buttonStyle={{
+                ...styles.textBoxButton,
+                backgroundColor: localUserId
+                  ? appTheme.colors.primary
+                  : appTheme.colors.disabled,
+              }}
             />
           </View>
           {useLocalSfu && (
@@ -250,7 +253,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginHorizontal: appTheme.spacing.xl,
+    margin: appTheme.spacing.xl,
   },
   bottomContainer: {
     flex: 1,

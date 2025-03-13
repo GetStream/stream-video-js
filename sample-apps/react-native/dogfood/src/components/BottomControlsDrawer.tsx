@@ -3,6 +3,7 @@ import {
   useCall,
   useTheme,
   getLogger,
+  BackgroundFiltersProvider,
 } from '@stream-io/video-react-native-sdk';
 import { defaultEmojiReactions } from '@stream-io/video-react-native-sdk/src/constants';
 
@@ -24,7 +25,7 @@ import {
 import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
 import RaiseHand from '../assets/RaiseHand';
 import { CallStats } from './CallStats';
-
+import { VideoFilters } from './VideoEffects';
 export type DrawerOption = {
   id: string;
   label: string;
@@ -176,6 +177,12 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     </TouchableOpacity>
   );
 
+  const filtersRow = (
+    <BackgroundFiltersProvider>
+      <VideoFilters onSelectFilter={onClose} />
+    </BackgroundFiltersProvider>
+  );
+
   const otherButtons = (
     <FlatList
       data={options}
@@ -192,6 +199,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     <>
       {emojiReactions}
       {raiseHand}
+      {filtersRow}
       {otherButtons}
     </>
   );

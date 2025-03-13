@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { CallDuration } from '../../assets/CallDuration';
 import { RecordCall } from '../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { useTheme } from '@stream-io/video-react-native-sdk';
@@ -61,31 +60,29 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
     return () => clearInterval(interval);
   }, [startedAtDate]);
 
-  const styles = useStyles(isAwaitingResponse);
   const recordingMessage = isCallRecordingInProgress
     ? 'Stopping recording...'
     : 'Recording in progress...';
 
   let text = isAwaitingResponse ? recordingMessage : elapsed;
   const showRecordingIcon = isCallRecordingInProgress || isAwaitingResponse;
+  const styles = useStyles(isAwaitingResponse, showRecordingIcon);
 
-  const icon = showRecordingIcon ? (
-    <RecordCall color={colors.iconWarning} size={iconSizes.md} />
-  ) : (
-    <CallDuration color={colors.iconSuccess} size={iconSizes.sm} />
-  );
+  const icon = <RecordCall color={colors.iconWarning} size={iconSizes.md} />;
 
   return (
     <View style={styles.container}>
-      <IconWrapper>
-        <View style={styles.icon}>{icon}</View>
-      </IconWrapper>
+      {showRecordingIcon && (
+        <IconWrapper>
+          <View style={styles.icon}>{icon}</View>
+        </IconWrapper>
+      )}
       <Text style={styles.text}>{text}</Text>
     </View>
   );
 };
 
-const useStyles = (isLoading: boolean) => {
+const useStyles = (isLoading: boolean, showRecordingIcon: boolean) => {
   const { theme } = useTheme();
   return useMemo(
     () =>
@@ -95,7 +92,7 @@ const useStyles = (isLoading: boolean) => {
           borderRadius: 8,
           flexDirection: 'row',
           height: 36,
-          paddingLeft: 17,
+          paddingLeft: showRecordingIcon ? 17 : 0,
           paddingRight: 5,
           justifyContent: 'center',
           alignItems: 'center',
@@ -114,6 +111,6 @@ const useStyles = (isLoading: boolean) => {
           marginRight: 5,
         },
       }),
-    [theme, isLoading],
+    [theme, isLoading, showRecordingIcon],
   );
 };
