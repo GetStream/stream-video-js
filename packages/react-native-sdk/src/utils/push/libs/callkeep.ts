@@ -4,7 +4,7 @@ let callkeep: RNCallKeepType | undefined;
 
 try {
   callkeep = require('react-native-callkeep').default;
-} catch (_e) {}
+} catch {}
 
 export function getCallKeepLib() {
   if (!callkeep) {

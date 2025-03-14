@@ -40,6 +40,7 @@ try {
     withDelay: ReanimatedExportsType['withDelay'];
   } = require('react-native-reanimated');
 
+  // eslint-disable-next-line react/display-name
   ReanimatedFloatingView = ({
     initialAlignment,
     containerHeight,
@@ -78,7 +79,7 @@ try {
     }, [rectangle, containerWidth, containerHeight]);
 
     const dragGesture = Gesture.Pan()
-      .onStart((_e) => {
+      .onStart(() => {
         start.value = {
           x: translationX.value,
           y: translationY.value,
@@ -139,7 +140,7 @@ try {
       start,
     ]);
 
-    // @ts-ignore
+    // @ts-expect-error - types conflict
     const animatedStyle = useAnimatedStyle(() => {
       return {
         height: rectangle?.height,
@@ -161,7 +162,7 @@ try {
       // gesture handler root view must absolutely fill the bounds
       // to intercept gestures within those bounds
       <GestureDetector gesture={dragGesture}>
-        {/* @ts-ignore */}
+        {/* @ts-expect-error types conflict */}
         <Reanimated.View style={animatedStyle}>
           <View
             onLayout={(event) => {
@@ -187,6 +188,6 @@ try {
       </GestureDetector>
     );
   };
-} catch (e) {}
+} catch {}
 
 export default ReanimatedFloatingView;

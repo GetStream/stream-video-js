@@ -27,7 +27,7 @@ let videoFiltersModule: VideoFiltersModuleType | undefined;
 
 try {
   videoFiltersModule = require('@stream-io/video-filters-react-native');
-} catch (_e) {}
+} catch {}
 
 const resolveAssetSourceFunc = Image.resolveAssetSource;
 

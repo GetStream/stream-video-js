@@ -21,7 +21,6 @@ export function onNativeCallClosed(reactTag: number) {
   getLogger(['RTCViewPipNative'])('debug', 'onNativeCallClosed');
   UIManager.dispatchViewManagerCommand(
     reactTag,
-    // @ts-ignore
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
     [],
   );
@@ -42,8 +41,9 @@ export const RTCViewPipNative = React.memo(
       <NativeComponent
         style={StyleSheet.absoluteFill}
         pointerEvents={'none'}
+        // eslint-disable-next-line react/prop-types
         streamURL={props.streamURL}
-        // @ts-ignore
+        // @ts-expect-error - types issue
         ref={ref}
       />
     );

@@ -4,7 +4,7 @@ let lib: Type | undefined;
 
 try {
   lib = require('@notifee/react-native');
-} catch (_e) {}
+} catch {}
 
 export { lib };
 

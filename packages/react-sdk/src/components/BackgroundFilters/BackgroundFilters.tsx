@@ -321,8 +321,8 @@ const useRenderer = (tfLite: TFLite) => {
         output,
         stop: () => {
           renderer?.dispose();
-          videoRef.current && (videoRef.current.srcObject = null);
-          outputStream && disposeOfMediaStream(outputStream);
+          if (videoRef.current) videoRef.current.srcObject = null;
+          if (outputStream) disposeOfMediaStream(outputStream);
         },
       };
     },

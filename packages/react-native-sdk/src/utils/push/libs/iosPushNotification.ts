@@ -10,7 +10,7 @@ export type PushNotificationiOSType = PushNotification;
 try {
   pushNotificationIosLib =
     require('@react-native-community/push-notification-ios').default;
-} catch (_e) {}
+} catch {}
 
 export function getPushNotificationIosLib() {
   if (!pushNotificationIosLib) {

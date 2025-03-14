@@ -21,10 +21,11 @@ export const Stage = ({
   }
 
   return (
-    // @ts-expect-error
+    // @ts-expect-error - TS doesn't know about the groupSize prop
     <SelectedComponent
       {...props}
-      // @ts-expect-error
+      // @ts-expect-error - TS doesn't know about the groupSize prop
+      // eslint-disable-next-line react/prop-types
       groupSize={!groupSize || groupSize > 16 ? props?.groupSize : groupSize}
     />
   );

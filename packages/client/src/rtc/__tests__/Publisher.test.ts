@@ -51,7 +51,7 @@ describe('Publisher', () => {
     // @ts-expect-error readonly field
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
-    // @ts-ignore
+    // @ts-expect-error private field
     sfuClient['sessionId'] = sessionId;
 
     state = new CallState();
@@ -84,7 +84,7 @@ describe('Publisher', () => {
   describe('Publishing', () => {
     it('should throw when publishing ended tracks', async () => {
       const track = new MediaStreamTrack();
-      // @ts-ignore readonly field
+      // @ts-expect-error readonly field
       track.readyState = 'ended';
       await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toThrow();
     });
@@ -128,7 +128,7 @@ describe('Publisher', () => {
       vi.spyOn(track, 'clone').mockReturnValue(clone);
 
       const transceiver = new RTCRtpTransceiver();
-      // @ts-ignore test setup
+      // @ts-expect-error test setup
       transceiver.sender.track = track;
       publisher['transceiverCache'].add(
         publisher['publishOptions'][0],
@@ -218,9 +218,9 @@ describe('Publisher', () => {
     });
 
     it(`should drop consequent ICE restart requests`, async () => {
-      // @ts-ignore
+      // @ts-expect-error private method
       publisher['pc'].signalingState = 'have-local-offer';
-      // @ts-ignore
+      // @ts-expect-error private method
       vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       await publisher.restartIce();
@@ -229,7 +229,7 @@ describe('Publisher', () => {
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      // @ts-ignore
+      // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'failed';
       publisher['onIceConnectionStateChange']();
       expect(publisher.restartIce).toHaveBeenCalled();
@@ -237,7 +237,7 @@ describe('Publisher', () => {
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      // @ts-ignore
+      // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'disconnected';
       publisher['onIceConnectionStateChange']();
       expect(publisher.restartIce).toHaveBeenCalled();
@@ -564,7 +564,7 @@ describe('Publisher', () => {
 
       const track = new MediaStreamTrack();
       const transceiver = new RTCRtpTransceiver();
-      // @ts-ignore test setup
+      // @ts-expect-error test setup
       transceiver.sender.track = track;
 
       publisher['transceiverCache'].add(publishOptions[0], transceiver);

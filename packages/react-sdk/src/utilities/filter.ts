@@ -45,7 +45,7 @@ function checkConditions<T>(obj: T, conditions: Conditions<T>): boolean {
   for (const key of Object.keys(conditions) as Array<keyof T>) {
     const operator = conditions[key];
     const maybeOperator = operator && typeof operator === 'object';
-    let value = obj[key];
+    const value = obj[key];
 
     if (maybeOperator && '$eq' in operator) {
       const eqOperator = operator as EqOperator<typeof value>;

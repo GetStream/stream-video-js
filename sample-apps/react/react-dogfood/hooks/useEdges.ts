@@ -19,7 +19,7 @@ const cacheEdges = (edges: FeatureCollection) => {
   try {
     localStorage.setItem(EDGES_KEY, JSON.stringify(payload));
   } catch (e) {
-    console.warn(`Failed to store edges in the cache`);
+    console.warn(`Failed to store edges in the cache`, e);
   }
 
   return payload;

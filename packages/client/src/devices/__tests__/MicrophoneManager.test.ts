@@ -152,7 +152,7 @@ describe('MicrophoneManager', () => {
   describe('Speaking While Muted', () => {
     it(`should start sound detection if mic is disabled`, async () => {
       await manager.enable();
-      // @ts-expect-error
+      // @ts-expect-error private api
       vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       await manager.disable();
 
@@ -171,7 +171,7 @@ describe('MicrophoneManager', () => {
     it('should update speaking while muted state', async () => {
       const mock = createSoundDetector as Mock;
       let handler: SoundStateChangeHandler;
-      let prevMockImplementation = mock.getMockImplementation();
+      const prevMockImplementation = mock.getMockImplementation();
       mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
         handler = h;
       });
@@ -197,7 +197,7 @@ describe('MicrophoneManager', () => {
       await manager.enable();
       await manager.disable();
 
-      // @ts-expect-error
+      // @ts-expect-error private api
       vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([]);
 
@@ -211,7 +211,7 @@ describe('MicrophoneManager', () => {
 
       manager['call'].state.setOwnCapabilities([]);
 
-      // @ts-expect-error
+      // @ts-expect-error private api
       vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 

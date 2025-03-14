@@ -131,7 +131,7 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
 
   const breakpoint = useBreakpoint();
   useEffect(() => {
-    breakpoint === 'xs' || (breakpoint === 'sm' && setActive(false));
+    if (breakpoint === 'xs' || breakpoint === 'sm') setActive(false);
   }, [breakpoint]);
 
   const closeTour = useCallback(() => {
@@ -150,7 +150,7 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   }, [closeTour, steps.length]);
 
   useEffect(() => {
-    localStorage.getItem(ENABLE_TOUR_KEY) === 'false' && setActive(false);
+    if (localStorage.getItem(ENABLE_TOUR_KEY) === 'false') setActive(false);
   }, []);
 
   return (

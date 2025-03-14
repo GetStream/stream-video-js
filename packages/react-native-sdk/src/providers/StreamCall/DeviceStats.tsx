@@ -27,7 +27,7 @@ export const DeviceStats = () => {
       (initialPowerMode: boolean) => setPowerState(initialPowerMode),
     );
 
-    let powerModeSubscription = eventEmitter?.addListener(
+    const powerModeSubscription = eventEmitter?.addListener(
       'isLowPowerModeEnabled',
       (isLowPowerMode: boolean) => setPowerState(isLowPowerMode),
     );
@@ -36,7 +36,7 @@ export const DeviceStats = () => {
       (initialState: string) => setThermalState(initialState),
     );
 
-    let thermalStateSubscription = eventEmitter?.addListener(
+    const thermalStateSubscription = eventEmitter?.addListener(
       'thermalStateDidChange',
       (thermalState: string) => setThermalState(thermalState),
     );

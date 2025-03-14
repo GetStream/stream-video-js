@@ -28,7 +28,7 @@ export function useTrackDimensions(
       const stream =
         trackType === 'screenShareTrack' ? screenShareStream : videoStream;
       if (!stream) return;
-      const [track] = stream?.getVideoTracks();
+      const [track] = stream.getVideoTracks();
       if (!track) return;
       const { width = 0, height = 0 } = track.getSettings();
       setTrackDimensions((prev) => {

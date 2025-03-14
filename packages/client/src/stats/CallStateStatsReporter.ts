@@ -98,9 +98,9 @@ export const createStatsReporter = ({
     for (const track of tracks) {
       const report = await pc.getStats(track);
       const stats = transform(report, {
-        // @ts-ignore
-        trackKind: track.kind,
+        trackKind: track.kind as 'audio' | 'video',
         kind,
+        publisher: undefined,
       });
       statsForStream.push(stats);
     }
@@ -298,7 +298,6 @@ const transform = (
         jitter: rtcStreamStats.jitter,
         kind: rtcStreamStats.kind,
         mediaSourceId: rtcStreamStats.mediaSourceId,
-        // @ts-ignore: available in Chrome only, TS doesn't recognize this
         qualityLimitationReason: rtcStreamStats.qualityLimitationReason,
         rid: rtcStreamStats.rid,
         ssrc: rtcStreamStats.ssrc,

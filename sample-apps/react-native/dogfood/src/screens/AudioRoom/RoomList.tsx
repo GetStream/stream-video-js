@@ -143,7 +143,6 @@ const RoomList = (props: Props) => {
     ) : (
       <Button onPress={queryLiveCalls} title={t('Load more')} />
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingCalls, queryLiveCalls]);
 
   const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(() => {

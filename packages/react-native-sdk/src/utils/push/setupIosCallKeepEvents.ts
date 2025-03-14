@@ -42,6 +42,7 @@ export function setupIosCallKeepEvents(
         logger(
           'debug',
           'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event',
+          error,
         );
       }
     }
@@ -64,7 +65,7 @@ export function setupIosCallKeepEvents(
 
   function didDisplayIncomingCall(callUUID: string, payload: object) {
     const voipPushNotification = getVoipPushNotificationLib();
-    // @ts-expect-error
+    // @ts-expect-error - call_cid is not part of RNCallKeepEventPayload
     const call_cid = payload?.call_cid as string | undefined;
     logger(
       'debug',

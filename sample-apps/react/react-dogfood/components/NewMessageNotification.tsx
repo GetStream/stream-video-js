@@ -1,5 +1,5 @@
-import { useEffect, PropsWithChildren, useState, useCallback } from 'react';
-import type { StreamChat, MessageResponse, Event } from 'stream-chat';
+import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import type { Event, MessageResponse, StreamChat } from 'stream-chat';
 import { Notification } from '@stream-io/video-react-sdk';
 
 export const NewMessageNotification = ({
@@ -16,7 +16,6 @@ export const NewMessageNotification = ({
 
   const resetIsVisible = useCallback(() => {
     setMessage(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message]);
 
   useEffect(() => {

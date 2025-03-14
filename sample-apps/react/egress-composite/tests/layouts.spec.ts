@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import concatStrings from 'clsx';
+import { clsx as concatStrings } from 'clsx';
 
 import { testWithCallId as test } from './baseTests';
 import {
@@ -46,7 +46,7 @@ test.describe('Layouts', () => {
         await page.addScriptTag({
           content: generateScriptTagContent({
             call_id: callId,
-            // @ts-expect-error - tests all possible scenarios undefined & unknown are possible but not expected type-wise
+            // tests all possible scenarios undefined & unknown are possible but not expected type-wise
             layout: tc.name,
             test_environment: {
               participants,
@@ -99,7 +99,6 @@ test.describe('Layouts', () => {
         await page.addScriptTag({
           content: generateScriptTagContent({
             call_id: callId,
-            // @ts-expect-error
             screenshare_layout: tc.name,
             test_environment: {
               participants: participantsWithScreenShare,

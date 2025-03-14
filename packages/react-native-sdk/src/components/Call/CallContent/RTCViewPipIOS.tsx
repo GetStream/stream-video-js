@@ -100,4 +100,6 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
   return <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />;
 });
 
+RTCViewPipIOS.displayName = 'RTCViewPipIOS';
+
 export default RTCViewPipIOS;

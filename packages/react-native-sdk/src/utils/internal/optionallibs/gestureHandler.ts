@@ -4,7 +4,7 @@ let gestureHandler: GestureHandlerType | undefined;
 
 try {
   gestureHandler = require('react-native-gesture-handler');
-} catch (e) {}
+} catch {}
 
 export const getGestureHandlerLib = (onPackageNotFound = () => {}) => {
   if (!gestureHandler) {

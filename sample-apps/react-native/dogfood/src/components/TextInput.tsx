@@ -1,15 +1,11 @@
 import React, { useMemo } from 'react';
 import {
-  TextInput as NativeTextInput,
   StyleSheet,
+  TextInput as NativeTextInput,
   TextInputProps,
 } from 'react-native';
 import { INPUT_HEIGHT } from '../constants';
-import {
-  Theme,
-  defaultTheme,
-  useTheme,
-} from '@stream-io/video-react-native-sdk';
+import { defaultTheme, useTheme } from '@stream-io/video-react-native-sdk';
 
 export const TextInput = React.forwardRef<
   NativeTextInput,
@@ -26,14 +22,10 @@ export const TextInput = React.forwardRef<
   );
 });
 
+TextInput.displayName = 'TextInput';
+
 const useStyles = () => {
-  let appTheme: Theme;
-  try {
-    /* eslint-disable react-hooks/rules-of-hooks */
-    appTheme = useTheme()?.theme;
-  } catch (e) {
-    appTheme = defaultTheme;
-  }
+  const appTheme = useTheme().theme || defaultTheme;
   return useMemo(
     () =>
       StyleSheet.create({

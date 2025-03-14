@@ -40,13 +40,14 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
       const leaveCall = async () => {
         try {
           await call?.leave();
-        } catch (_e) {}
+        } catch (_e) {
+          console.log('Error leaving call:', _e);
+        }
       };
       if (call?.state.callingState !== CallingState.LEFT) {
         leaveCall();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const returnToHomeHandler = () => {

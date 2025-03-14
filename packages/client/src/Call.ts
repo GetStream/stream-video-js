@@ -1259,7 +1259,7 @@ export class Call {
         `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
       );
 
-      let reconnectStartTime = Date.now();
+      const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
 
       do {

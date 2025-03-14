@@ -16,7 +16,7 @@ const logger = getLogger(['useIosVoipPushEventsSetupEffect']);
  hence to support login and logout scenario of multiple users we keep of the last count of the listener that was added
  This helps in not removing the listeners when a new user logs in and overrides the last listener
 */
-let lastListener = { count: 0 };
+const lastListener = { count: 0 };
 
 function setLogoutCallback(
   client: StreamVideoClient,
@@ -144,8 +144,8 @@ export const useIosVoipPushEventsSetupEffect = () => {
       if (!events || !Array.isArray(events) || events.length < 1) {
         return;
       }
-      for (let voipPushEvent of events) {
-        let { name, data } = voipPushEvent;
+      for (const voipPushEvent of events) {
+        const { name, data } = voipPushEvent;
         if (name === 'RNVoipPushRemoteNotificationsRegisteredEvent') {
           onTokenReceived(data);
         } else if (name === 'RNVoipPushRemoteNotificationReceivedEvent') {

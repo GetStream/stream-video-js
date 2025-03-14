@@ -8,7 +8,7 @@ let expoNotificationsLib: ExpoNotificationsLib | undefined;
 
 try {
   expoNotificationsLib = require('expo-notifications');
-} catch (_e) {}
+} catch {}
 
 export function getExpoNotificationsLib() {
   if (!expoNotificationsLib) {

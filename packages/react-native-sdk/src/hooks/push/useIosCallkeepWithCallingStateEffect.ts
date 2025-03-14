@@ -130,7 +130,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     );
     if (foregroundCallkeepMap && foregroundCallkeepMap.cid === activeCallCid) {
       log(
-        // @ts-ignore
+        // @ts-expect-error - types issue
         `Accepting call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in foregroundCallkeepMap`,
       );
       // no need to keep this reference anymore
@@ -154,7 +154,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     // the call was left using the leave button in the app and not through native dialer
     if (activeCallCid === acceptedForegroundCallkeepMap?.cid) {
       log(
-        // @ts-ignore
+        // @ts-expect-error - types issue
         `Ending call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in acceptedForegroundCallkeepMap`,
       );
       unsubscribeCallkeepEvents(activeCallCid).then(() =>
@@ -170,7 +170,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     );
     if (activeCallCid === foregroundIncomingCallkeepMap?.cid) {
       log(
-        // @ts-ignore
+        // @ts-expect-error - types issue
         `Ending call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in foregroundIncomingCallkeepMap`,
       );
       unsubscribeCallkeepEvents(activeCallCid).then(() =>
@@ -188,7 +188,7 @@ export const useIosCallkeepWithCallingStateEffect = () => {
     );
     if (activeCallCid === nativeDialerAcceptedCallMap?.cid) {
       log(
-        // @ts-ignore
+        // @ts-expect-error - types issue
         `Ending call in callkeep: ${activeCallCid}, reason: callingstate went to ${CallingState[callingState]} and call was present in nativeDialerAcceptedCallMap`,
       );
       unsubscribeCallkeepEvents(activeCallCid).then(() =>

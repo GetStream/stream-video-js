@@ -33,7 +33,7 @@ describe('CallState', () => {
         Object.getOwnPropertyDescriptors(state),
       ).filter((key) => key.endsWith('$'));
 
-      // @ts-ignore - __proto__
+      // @ts-expect-error - __proto__
       const getters = Object.getOwnPropertyDescriptors(state.__proto__);
 
       for (const observable of observables) {
@@ -318,7 +318,7 @@ describe('CallState', () => {
     it('should update the pinned state of participants in the call', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
-      // @ts-ignore
+      // @ts-expect-error - incomplete data
       state.setParticipants([{ sessionId: '123' }, { sessionId: '456' }]);
 
       state.setServerSidePins([{ sessionId: '123', userId: 'user-id' }]);
@@ -333,9 +333,9 @@ describe('CallState', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
-        // @ts-ignore
+        // @ts-expect-error - incomplete data
         { sessionId: '123', pin: { isLocalPin: false, pinnedAt: 1000 } },
-        // @ts-ignore
+        // @ts-expect-error - incomplete data
         { sessionId: '456' },
       ]);
 
@@ -351,9 +351,9 @@ describe('CallState', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
-        // @ts-ignore
+        // @ts-expect-error - incomplete data
         { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
-        // @ts-ignore
+        // @ts-expect-error - incomplete data
         { sessionId: '456' },
       ]);
 
@@ -370,10 +370,9 @@ describe('CallState', () => {
     describe('call.live and backstage events', () => {
       it('handles call.live_started events', () => {
         const state = new CallState();
-        // @ts-ignore
         state.updateFromEvent({
           type: 'call.live_started',
-          // @ts-ignore
+          // @ts-expect-error - incomplete data
           call: {
             backstage: false,
           },
@@ -389,7 +388,7 @@ describe('CallState', () => {
           const event: CallUpdatedEvent = {
             type: 'call.updated',
             call_cid: 'development:12345',
-            // @ts-expect-error
+            // @ts-expect-error incomplete data
             call: {
               cid: 'development:12345',
               custom: {
@@ -398,7 +397,7 @@ describe('CallState', () => {
             },
           };
 
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           state.updateFromEvent(event);
           expect(state.custom).toEqual(event.call.custom);
         });
@@ -409,14 +408,14 @@ describe('CallState', () => {
           const state = new CallState();
           const event: CallAcceptedEvent = {
             type: 'call.accepted',
-            // @ts-expect-error
+            // @ts-expect-error incomplete data
             call: {
               custom: {
                 test: 'value',
               },
             },
           };
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           state.updateFromEvent(event);
 
           expect(state.custom).toEqual(event.call.custom);
@@ -428,14 +427,14 @@ describe('CallState', () => {
           const state = new CallState();
           const event: CallEndedEvent = {
             type: 'call.rejected',
-            // @ts-expect-error
+            // @ts-expect-error incomplete data
             call: {
               custom: {
                 test: 'value',
               },
             },
           };
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           state.updateFromEvent(event);
 
           expect(state.custom).toEqual(event.call.custom);
@@ -447,14 +446,14 @@ describe('CallState', () => {
           const state = new CallState();
           const event: CallEndedEvent = {
             type: 'call.ended',
-            // @ts-expect-error
+            // @ts-expect-error incomplete data
             call: {
               custom: {
                 test: 'value',
               },
             },
           };
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           state.updateFromEvent(event);
 
           expect(state.custom).toEqual(event.call.custom);
@@ -521,16 +520,16 @@ describe('CallState', () => {
       it('handles call.member_removed events', () => {
         const state = new CallState();
         const initialMembers: MemberResponse[] = [
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           { user_id: 'user0' },
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           { user_id: 'user1' },
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           { user_id: 'user2' },
         ];
         state.setMembers(initialMembers);
         const removedMembers = ['user1'];
-        // @ts-ignore
+
         state.updateFromEvent({
           type: 'call.member_removed',
           members: removedMembers,
@@ -548,39 +547,33 @@ describe('CallState', () => {
 
       it('handles call.member_updated_permission events', () => {
         const state = new CallState();
-        const user0 = {
+        const user0: MemberResponse = {
           user_id: 'user0',
-          user: {
-            role: 'viewer',
-          },
+          user: { role: 'viewer' },
         } as MemberResponse;
         const user1 = {
           user_id: 'user1',
-          user: {
-            role: 'host',
-          },
+          user: { role: 'host' },
         } as MemberResponse;
         const user2 = {
           user_id: 'user2',
-          user: {
-            role: 'viewer',
-          },
+          user: { role: 'viewer' },
         } as MemberResponse;
         const initialMembers: MemberResponse[] = [user0, user1, user2];
         state.setMembers(initialMembers);
-        // @ts-ignore
+
         state.updateFromEvent({
           type: 'call.member_updated_permission',
           members: [
             {
               user_id: user1.user_id,
-              // @ts-ignore
+              // @ts-expect-error incomplete data
               user: { ...user1, role: 'viewer' },
               role: 'viewer',
             },
             {
               user_id: user0.user_id,
-              // @ts-ignore
+              // @ts-expect-error incomplete data
               user: { ...user0, role: 'host' },
               role: 'host',
             },
@@ -599,27 +592,21 @@ describe('CallState', () => {
         const state = new CallState();
         const user0 = {
           user_id: 'user0',
-          user: {
-            name: 'Jane',
-          },
+          user: { name: 'Jane' },
         } as MemberResponse;
         const user1 = {
           user_id: 'user1',
-          user: {
-            name: 'Jack',
-          },
+          user: { name: 'Jack' },
         } as MemberResponse;
         const user2 = {
           user_id: 'user2',
-          user: {
-            name: 'Adam',
-          },
+          user: { name: 'Adam' },
         } as MemberResponse;
         const initialMembers: MemberResponse[] = [user0, user1, user2];
         state.setMembers(initialMembers);
         state.updateFromEvent({
           type: 'call.member_updated',
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           members: [{ ...user1, user: { name: 'John' } }],
           // @ts-expect-error incomplete data
           call: {},
@@ -635,19 +622,15 @@ describe('CallState', () => {
     describe('recording and broadcasting events', () => {
       it('handles call.recording_started events', () => {
         const state = new CallState();
-        // @ts-ignore
-        state.updateFromEvent({
-          type: 'call.recording_started',
-        });
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.recording_started' });
         expect(state.recording).toBe(true);
       });
 
       it('handles call.recording_stopped events', () => {
         const state = new CallState();
-        // @ts-ignore
-        state.updateFromEvent({
-          type: 'call.recording_stopped',
-        });
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.recording_stopped' });
         expect(state.recording).toBe(false);
       });
 
@@ -664,16 +647,13 @@ describe('CallState', () => {
       it('handles call.hls_broadcasting_started events', () => {
         const state = new CallState();
         state.updateFromCallResponse({
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           egress: {
             broadcasting: false,
-            hls: {
-              playlist_url: '',
-              status: 'starting',
-            },
+            hls: { playlist_url: '', status: 'starting' },
           },
         });
-        // @ts-ignore
+
         state.updateFromEvent({
           type: 'call.hls_broadcasting_started',
           // @ts-expect-error incomplete data
@@ -697,9 +677,9 @@ describe('CallState', () => {
 
       it('handles call.hls_broadcasting_stopped events', () => {
         const state = new CallState();
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         state.updateFromCallResponse({});
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         state.updateFromEvent({
           type: 'call.hls_broadcasting_stopped',
         });
@@ -722,7 +702,7 @@ describe('CallState', () => {
         state.updateFromEvent({
           type: 'call.session_started',
           call: {
-            // @ts-ignore
+            // @ts-expect-error incomplete data
             session: {
               id: 'session-id',
               participants: [],
@@ -743,7 +723,7 @@ describe('CallState', () => {
         state.updateFromEvent({
           type: 'call.session_ended',
           call: {
-            // @ts-ignore
+            // @ts-expect-error incomplete data
             session: {
               id: 'session-id',
               participants: [],
@@ -761,7 +741,7 @@ describe('CallState', () => {
       it('should update the call metadata when a participant joins', () => {
         const state = new CallState();
         state.updateFromCallResponse({
-          // @ts-ignore
+          // @ts-expect-error incomplete data
           session: {
             participants: [],
             participants_count_by_role: {},
@@ -770,117 +750,81 @@ describe('CallState', () => {
         state.updateFromEvent({
           type: 'call.session_participant_joined',
           participant: {
-            // @ts-ignore
-            user: {
-              id: 'user-id',
-              role: 'user',
-            },
+            // @ts-expect-error incomplete data
+            user: { id: 'user-id', role: 'user' },
             user_session_id: '123',
           },
         });
         expect(state.session).toEqual({
           participants: [
             {
-              user: {
-                id: 'user-id',
-                role: 'user',
-              },
+              user: { id: 'user-id', role: 'user' },
               user_session_id: '123',
             },
           ],
-          participants_count_by_role: {
-            user: 1,
-          },
+          participants_count_by_role: { user: 1 },
         });
       });
 
       it('should update the call metadata when a participant leaves', () => {
         const state = new CallState();
         state.updateFromCallResponse({
-          // @ts-ignore
           session: {
             participants: [
               {
                 joined_at: '2021-01-01T00:00:00.000Z',
-                // @ts-ignore
-                user: {
-                  id: 'user-id',
-                  role: 'user',
-                },
+                // @ts-expect-error incomplete data
+                user: { id: 'user-id', role: 'user' },
                 user_session_id: '123',
               },
             ],
-            participants_count_by_role: {
-              user: 1,
-            },
+            participants_count_by_role: { user: 1 },
           },
         });
         state.updateFromEvent({
           type: 'call.session_participant_left',
           participant: {
-            // @ts-ignore
-            user: {
-              id: 'user-id',
-              role: 'user',
-            },
+            // @ts-expect-error incomplete data
+            user: { id: 'user-id', role: 'user' },
             user_session_id: '123',
           },
         });
         expect(state.session).toEqual({
           participants: [],
-          participants_count_by_role: {
-            user: 0,
-          },
+          participants_count_by_role: { user: 0 },
         });
       });
 
       it('should update existing participant', () => {
         const state = new CallState();
         state.updateFromCallResponse({
-          // @ts-ignore
           session: {
             participants: [
               {
-                // @ts-ignore
-                user: {
-                  id: 'user-id',
-                  role: 'user',
-                },
+                // @ts-expect-error incomplete data
+                user: { id: 'user-id', role: 'user' },
                 user_session_id: '123',
               },
             ],
-            participants_count_by_role: {
-              user: 1,
-            },
+            participants_count_by_role: { user: 1 },
           },
         });
         state.updateFromEvent({
           type: 'call.session_participant_joined',
           participant: {
-            // @ts-ignore
-            user: {
-              id: 'user-id',
-              role: 'user',
-              name: 'Updated user',
-            },
+            // @ts-expect-error incomplete data
+            user: { id: 'user-id', role: 'user', name: 'Updated user' },
             user_session_id: '123',
           },
         });
         expect(state.session).toEqual({
           participants: [
             {
-              // @ts-ignore
-              user: {
-                id: 'user-id',
-                role: 'user',
-                name: 'Updated user',
-              },
+              user: { id: 'user-id', role: 'user', name: 'Updated user' },
               user_session_id: '123',
             },
           ],
-          participants_count_by_role: {
-            user: 1,
-          },
+          participants_count_by_role: { user: 1 },
         });
       });
 

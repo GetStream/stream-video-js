@@ -424,7 +424,7 @@ export class StreamSfuClient {
     // be replaced with a new one in case a second join request is made
     const current = this.joinResponseTask;
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | undefined = undefined;
     const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
       this.logger('debug', 'Received joinResponse', joinResponse);
       clearTimeout(timeoutId);

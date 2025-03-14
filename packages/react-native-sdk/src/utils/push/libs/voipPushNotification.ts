@@ -5,7 +5,7 @@ let voipPushNotification: VoipPushNotificationType | undefined;
 
 try {
   voipPushNotification = require('react-native-voip-push-notification').default;
-} catch (_e) {}
+} catch {}
 
 export function getVoipPushNotificationLib() {
   if (!voipPushNotification) {

@@ -65,7 +65,7 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
     ? 'Stopping recording...'
     : 'Recording in progress...';
 
-  let text = isAwaitingResponse ? recordingMessage : elapsed;
+  const text = isAwaitingResponse ? recordingMessage : elapsed;
   const showRecordingIcon = isCallRecordingInProgress || isAwaitingResponse;
 
   const icon = showRecordingIcon ? (

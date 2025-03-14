@@ -12,9 +12,8 @@ import { useIsIosScreenshareBroadcastStarted } from './useIsIosScreenshareBroadc
 // ios >= 14.0 or android - platform restrictions
 const CanDeviceScreenShare =
   (Platform.OS === 'ios' &&
-    // @ts-ignore
-    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14,
-  10) || Platform.OS === 'android';
+    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14) ||
+  Platform.OS === 'android';
 
 export const useScreenShareButton = (
   /**

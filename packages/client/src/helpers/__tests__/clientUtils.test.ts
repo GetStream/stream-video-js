@@ -72,7 +72,6 @@ describe('clientUtils', () => {
 
     it('should use default x-stream-client header', () => {
       const sdk = getSdkInfo();
-      // @ts-expect-error
       setSdkInfo(undefined);
       const client = createCoordinatorClient('apiKey', {});
       expect(client).toBeDefined();

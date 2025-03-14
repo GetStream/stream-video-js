@@ -1,6 +1,4 @@
-/// <reference path="./krispai/krispsdk.d.ts" />
 // RollupError: @rollup/plugin-typescript TS7016: Could not find a declaration file for module './krispai/krispsdk.mjs'
-// @ts-ignore
 import KrispSDK from './krispai/krispsdk.mjs';
 import type {
   IAudioFilterNode,

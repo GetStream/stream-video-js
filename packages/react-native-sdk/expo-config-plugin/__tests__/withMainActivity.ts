@@ -89,7 +89,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
   it('should throw error for malformed manifest and unsupported language', () => {
     // Prepare a mock config
-    let config: CustomExpoConfig = {
+    const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
