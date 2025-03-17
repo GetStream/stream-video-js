@@ -1,6 +1,5 @@
 {
   "name": "@stream-io/video-react-dogfood",
-  "packageManager": "yarn@3.2.4",
   "private": true,
   "scripts": {
     "clean": "rimraf .next",

@@ -2,7 +2,6 @@
   "name": "@stream-io/video-filters-react-native",
   "version": "0.2.8",
   "description": "Video Filters for the Stream React Native Video SDK",
-  "packageManager": "yarn@3.5.0",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
   "types": "dist/typescript/index.d.ts",
