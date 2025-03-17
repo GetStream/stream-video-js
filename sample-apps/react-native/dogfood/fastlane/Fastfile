@@ -1,5 +1,4 @@
 skip_docs
-video_buddy_port = 7654
 metro_port = 8081
 build_dir = 'dist'
 bundle_id = 'io.getstream.rnvideosample'
@@ -59,7 +58,6 @@ end
 lane :rubocop do
   sh('bundle exec rubocop')
 end
-
 
 lane :stop_metro do
   sh("lsof -t -i:#{metro_port} | xargs kill -s INT || true")
