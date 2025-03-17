@@ -149,8 +149,6 @@
     "react-native-voip-push-notification": "3.3.1",
     "react-test-renderer": "^18.2.0",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.2.6",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
   "resolutions": {
