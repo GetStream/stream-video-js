@@ -20,7 +20,7 @@
   "dependencies": {
     "@gorhom/bottom-sheet": "4.6.4",
     "@notifee/react-native": "9.1.2",
-    "@react-native-clipboard/clipboard": "^1.11.1",
+    "@react-native-clipboard/clipboard": "^1.16.2",
     "@react-native-community/netinfo": "11.3.0",
     "@react-native-community/push-notification-ios": "^1.11.0",
     "@react-native-firebase/app": "21.6.0",
@@ -39,7 +39,7 @@
     "react-native-device-info": "^14.0.1",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "^2.21",
-    "react-native-haptic-feedback": "^2.0.3",
+    "react-native-haptic-feedback": "^2.3.3",
     "react-native-image-picker": "^7.1.2",
     "react-native-incall-manager": "4.2.0",
     "react-native-mmkv": "3.1.0",

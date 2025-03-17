@@ -5330,7 +5330,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-clipboard/clipboard@npm:^1.11.1":
+"@react-native-clipboard/clipboard@npm:^1.16.2":
   version: 1.16.2
   resolution: "@react-native-clipboard/clipboard@npm:1.16.2"
   peerDependencies:
@@ -8086,7 +8086,7 @@ __metadata:
     "@babel/runtime": "npm:^7.26.10"
     "@gorhom/bottom-sheet": "npm:4.6.4"
     "@notifee/react-native": "npm:9.1.2"
-    "@react-native-clipboard/clipboard": "npm:^1.11.1"
+    "@react-native-clipboard/clipboard": "npm:^1.16.2"
     "@react-native-community/cli": "npm:15.1.2"
     "@react-native-community/cli-platform-android": "npm:15.1.2"
     "@react-native-community/cli-platform-ios": "npm:15.1.2"
@@ -8116,7 +8116,7 @@ __metadata:
     react-native-device-info: "npm:^14.0.1"
     react-native-dotenv: "npm:^3.4.11"
     react-native-gesture-handler: "npm:^2.21"
-    react-native-haptic-feedback: "npm:^2.0.3"
+    react-native-haptic-feedback: "npm:^2.3.3"
     react-native-image-picker: "npm:^7.1.2"
     react-native-incall-manager: "npm:4.2.0"
     react-native-mmkv: "npm:3.1.0"
@@ -10182,18 +10182,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.0, axios@npm:^1.8.1":
-  version: 1.8.1
-  resolution: "axios@npm:1.8.1"
-  dependencies:
-    follow-redirects: "npm:^1.15.6"
-    form-data: "npm:^4.0.0"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: 10/5a09a2b39e724e018bc94d0424bb1a6042e71864039fbcc8c8d9dd50f3acd9d01f81b895994c9b46bc82c026afa3dfd1ec343a27bfe4723b70841f3b3dd6edfa
-  languageName: node
-  linkType: hard
-
-"axios@npm:^1.8.3":
+"axios@npm:^1.6.0, axios@npm:^1.8.1, axios@npm:^1.8.3":
   version: 1.8.3
   resolution: "axios@npm:1.8.3"
   dependencies:
@@ -21864,12 +21853,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-haptic-feedback@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "react-native-haptic-feedback@npm:2.0.3"
+"react-native-haptic-feedback@npm:^2.3.3":
+  version: 2.3.3
+  resolution: "react-native-haptic-feedback@npm:2.3.3"
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 10/610f9cc66c437ab1da5261d208b9b2ea6bd528938296782e3695f80a6c9aa09123141af7f66ece029c99b148addf712341500460760bbad1edc7cbd21d41880d
+  checksum: 10/9c49a4f22a950a0483337698ac5212931fe7e6bce0cf1873a5e5422f7aae1c3250c61a9d598005ae0fc7b83d2d415a0e19d6b19d99185c137d28e5062cdb221e
   languageName: node
   linkType: hard
 
@@ -26790,14 +26779,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.2.1":
-  version: 2.3.2
-  resolution: "yaml@npm:2.3.2"
-  checksum: 10/dba78b314c4b713a7dfa4412c88c1168ffe41fe26cdd4363cb3389194765895415b800f5a2d1a5bdfb0b2e31f1ad689f8e8f9cf78153f24142b68172e72afc95
-  languageName: node
-  linkType: hard
-
-"yaml@npm:^2.6.0":
+"yaml@npm:^2.2.1, yaml@npm:^2.6.0":
   version: 2.7.0
   resolution: "yaml@npm:2.7.0"
   bin:
