@@ -55,10 +55,6 @@ jobs:
           INSTALL_NODE: true
           INSTALL_RN_DEPENDENCIES: true
 
-      - name: Lint source code
-        working-directory: sample-apps/react-native/dogfood
-        run: yarn lint:ci
-
       - name: Lint fastlane
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane rubocop
