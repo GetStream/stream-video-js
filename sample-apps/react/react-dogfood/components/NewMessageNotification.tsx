@@ -16,7 +16,7 @@ export const NewMessageNotification = ({
 
   const resetIsVisible = useCallback(() => {
     setMessage(null);
-  }, [message]);
+  }, []);
 
   useEffect(() => {
     if (!client || !channelWatched || disableOnChatOpen) return;
