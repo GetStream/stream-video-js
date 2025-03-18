@@ -31,8 +31,7 @@ export const {
     userName: '',
     appMode: 'None',
     callId: Math.random().toString(36).substring(6),
-    appEnvironment:
-      (REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT as AppEnvironment) || 'demo',
+    appEnvironment: 'demo',
     chatLabelNoted: false,
     themeMode: 'dark',
     useLocalSfu: false,
