@@ -1,4 +1,4 @@
-import { PublishOption, TrackType } from '../gen/video/sfu/models/models';
+import { PublishOption } from '../gen/video/sfu/models/models';
 import { OptimalVideoLayer } from './videoLayers';
 
 type TransceiverId = {
@@ -34,13 +34,6 @@ export class TransceiverCache {
    */
   get = (publishOption: PublishOption): RTCRtpTransceiver | undefined => {
     return this.findTransceiver(publishOption)?.transceiver;
-  };
-
-  /**
-   * Gets the last transceiver for the given track type and publish option id.
-   */
-  getWith = (trackType: TrackType, id: number) => {
-    return this.findTransceiver({ trackType, id })?.transceiver;
   };
 
   /**

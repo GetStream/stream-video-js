@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.8...@stream-io/video-react-sdk-1.12.9) (2025-03-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.6`
+* `@stream-io/video-react-bindings` updated to version `1.5.8`
+
+### Bug Fixes
+
+* expose useDeviceList ([#1723](https://github.com/GetStream/stream-video-js/issues/1723)) ([547703b](https://github.com/GetStream/stream-video-js/commit/547703b75daefbd0e34db6bd17cfc2f45d861005)), closes [#1701](https://github.com/GetStream/stream-video-js/issues/1701)
+
 ## [1.12.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.7...@stream-io/video-react-sdk-1.12.8) (2025-03-12)
 
 ### Dependency Updates
