@@ -29,7 +29,7 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-const ENABLE_PRONTO_SWITCH = !__DEV__;
+const ENABLE_PRONTO_SWITCH = __DEV__;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
