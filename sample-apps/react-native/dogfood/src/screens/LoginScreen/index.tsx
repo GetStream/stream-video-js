@@ -8,6 +8,7 @@ import {
   View,
   ViewStyle,
   TextInput as NativeTextInput,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   useAppGlobalStoreSetState,
@@ -27,12 +28,15 @@ const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-const ENABLE_PRONTO_SWITCH = __DEV__;
+const ENABLE_PRONTO_SWITCH = !__DEV__;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const { t } = useI18n();
   const orientation = useOrientation();
+  const [devMode, setDevMode] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const setState = useAppGlobalStoreSetState();
   const appEnvironment = useAppGlobalStoreValue(
@@ -69,13 +73,28 @@ const LoginScreen = () => {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
 
+  const handleImagePress = () => {
+    setTapCount((prev) => prev + 1);
+
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+    }
+
+    tapTimerRef.current = setTimeout(() => {
+      if (tapCount + 1 >= 3) {
+        setDevMode(true);
+      }
+      setTapCount(0);
+    }, 500);
+  };
+
   return (
     <SafeAreaView style={[styles.container, landscapeStyles]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.keyboardContainer, landscapeStyles]}
       >
-        {ENABLE_PRONTO_SWITCH && (
+        {(ENABLE_PRONTO_SWITCH || devMode) && (
           <View style={styles.header}>
             <Text
               style={styles.envText}
@@ -84,10 +103,12 @@ const LoginScreen = () => {
           </View>
         )}
         <View style={styles.topContainer}>
-          <Image
-            source={require('../../assets/Logo.png')}
-            style={styles.logo}
-          />
+          <TouchableWithoutFeedback onPress={handleImagePress}>
+            <Image
+              source={require('../../assets/Logo.png')}
+              style={styles.logo}
+            />
+          </TouchableWithoutFeedback>
           <View>
             <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             <Text style={styles.subTitle}>
