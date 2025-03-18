@@ -5,12 +5,27 @@ import { Users } from '../../constants/Users';
 import { UserButton } from '../../components/user-button';
 import { ActionButton } from '../../components/action-button';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+
 export default function Index() {
-  const { signOut, userId } = useAuthentication();
-  const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
+  const { signOut, userWithToken } = useAuthentication();
+  const client = useStreamVideoClient();
+  const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
 
   const onRing = () => {
-    console.log('RING');
+    const callId = 'tutorial-' + Math.random().toString(16).substring(2);
+    const myCall = client!.call('default', callId);
+    myCall.getOrCreate({
+      ring: true,
+      data: {
+        members: [
+          // include self
+          { user_id: userWithToken!.id },
+          // include the userId of the callees
+          ...selectedUsers.map((userId) => ({ user_id: userId })),
+        ],
+      },
+    });
   };
 
   return (
@@ -25,26 +40,34 @@ export default function Index() {
 
       {/* Main Content */}
       <View style={styles.content}>
-        <Text style={styles.greeting}>Hello {userId}!</Text>
+        <Text style={styles.greeting}>Hello {userWithToken?.name}!</Text>
 
         <View style={styles.selectionContainer}>
           <Text style={styles.selectionText}>
             Select who would you like to ring?
           </Text>
           <View style={styles.userButtons}>
-            {Users.filter((user) => user.id !== userId).map((user) => (
-              <UserButton
-                key={user.id}
-                userId={user.id}
-                selected={selectedUser === user.id}
-                onPress={() => setSelectedUser(user.id)}
-              />
-            ))}
+            {Users.filter((user) => user.id !== userWithToken?.id).map(
+              (user) => (
+                <UserButton
+                  key={user.id}
+                  userName={user.name}
+                  selected={selectedUsers.includes(user.id)}
+                  onPress={() =>
+                    setSelectedUsers((prev) =>
+                      prev.includes(user.id)
+                        ? prev.filter((id) => id !== user.id)
+                        : [...prev, user.id],
+                    )
+                  }
+                />
+              ),
+            )}
           </View>
         </View>
 
         <ActionButton
-          selectedUser={selectedUser}
+          disabled={selectedUsers.length === 0}
           onPress={onRing}
           action="RING"
         />

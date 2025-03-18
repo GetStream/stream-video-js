@@ -1,25 +1,20 @@
 import { type PressableProps, Pressable, StyleSheet, Text } from 'react-native';
 
 type ActionButtonProps = PressableProps & {
-  selectedUser: string | null;
-  onPress: () => void;
   action: string;
 };
 export const ActionButton: React.FC<ActionButtonProps> = ({
-  selectedUser,
-  onPress,
   action,
   ...rest
 }) => {
   return (
     <Pressable
+      {...rest}
       style={({ pressed }) => [
         styles.loginButton,
-        !selectedUser && styles.loginButtonDisabled,
         { opacity: pressed ? 0.8 : 1 },
+        rest.disabled && styles.loginButtonDisabled,
       ]}
-      onPress={onPress}
-      disabled={selectedUser === null}
     >
       <Text style={styles.loginButtonText}>{action}</Text>
     </Pressable>

@@ -3,13 +3,13 @@ import { Redirect, Stack } from 'expo-router';
 import { useAuthentication } from '../../contexts/authentication-provider';
 
 export default function AppLayout() {
-  const { userId, isLoading } = useAuthentication();
+  const { userWithToken, isLoading } = useAuthentication();
 
   if (isLoading) {
     return <Text>Loading...</Text>;
   }
 
-  if (!userId) {
+  if (!userWithToken) {
     return <Redirect href="/login" />;
   }
 

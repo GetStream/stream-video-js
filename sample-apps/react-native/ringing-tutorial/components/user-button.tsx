@@ -1,14 +1,13 @@
 import { type PressableProps, Pressable, StyleSheet, Text } from 'react-native';
 
 type UserButtonProps = PressableProps & {
-  userId: string;
+  userName: string;
   selected: boolean;
 };
 
 export const UserButton: React.FC<UserButtonProps> = ({
-  userId,
+  userName,
   selected,
-  onPress,
   ...rest
 }) => {
   // Determine which color to use based on selection state
@@ -21,11 +20,10 @@ export const UserButton: React.FC<UserButtonProps> = ({
         { borderColor: currentBorderColor },
         { opacity: pressed ? 0.8 : 1 },
       ]}
-      onPress={onPress}
       {...rest}
     >
       <Text style={[styles.userButtonText, { color: currentBorderColor }]}>
-        {userId}
+        {userName}
       </Text>
     </Pressable>
   );

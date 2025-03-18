@@ -27,7 +27,7 @@ export default function LoginScreen() {
         {Users.map((user) => (
           <UserButton
             key={user.id}
-            userId={user.id}
+            userName={user.name}
             selected={selectedUser === user.id}
             onPress={() => setSelectedUser(user.id)}
           />
@@ -35,7 +35,7 @@ export default function LoginScreen() {
       </View>
 
       <ActionButton
-        selectedUser={selectedUser}
+        disabled={selectedUser === null}
         onPress={handleLogin}
         action="Login"
       />
