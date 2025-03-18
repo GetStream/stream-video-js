@@ -1,4 +1,3 @@
-import { REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT } from '@env';
 import createStoreContext from './createStoreContext';
 
 export type AppMode = 'Meeting' | 'Call' | 'Audio-Room' | 'LiveStream' | 'None';
