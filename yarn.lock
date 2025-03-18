@@ -5666,6 +5666,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-async-storage/async-storage@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@react-native-async-storage/async-storage@npm:2.1.2"
+  dependencies:
+    merge-options: ^3.0.4
+  peerDependencies:
+    react-native: ^0.0.0-0 || >=0.65 <1.0
+  checksum: a5c4d486e7e64067ab523b980b76cc2de5bf4b86ed410de09f2a95c3410e0c5b5be46c638a74cf5b7ed6dce10031ebac54350b498a2cb17f1a1c59347e671a73
+  languageName: node
+  linkType: hard
+
 "@react-native-clipboard/clipboard@npm:^1.11.1":
   version: 1.11.2
   resolution: "@react-native-clipboard/clipboard@npm:1.11.2"
@@ -8489,6 +8500,7 @@ __metadata:
     "@babel/runtime": ^7.26.9
     "@gorhom/bottom-sheet": 4.6.4
     "@notifee/react-native": 9.1.2
+    "@react-native-async-storage/async-storage": ^2.1.2
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/cli": 15.1.2
     "@react-native-community/cli-platform-android": 15.1.2
