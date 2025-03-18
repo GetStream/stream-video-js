@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -23,7 +23,6 @@ import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import EnvSwitcherButton from './EnvSwitcherButton';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
@@ -35,7 +34,6 @@ const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const { t } = useI18n();
   const orientation = useOrientation();
-  const [devMode, setDevMode] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -43,27 +41,13 @@ const LoginScreen = () => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const devMode = useAppGlobalStoreValue((store) => store.devMode);
   const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
   const localIpAddress = useAppGlobalStoreValue(
     (store) => store.localIpAddress,
   );
 
   const sfuIpInputRef = useRef<NativeTextInput>(null);
-
-  useEffect(() => {
-    const loadStoredValues = async () => {
-      try {
-        const storedDevMode = await AsyncStorage.getItem('devMode');
-        if (storedDevMode === 'true') {
-          setDevMode(true);
-        }
-      } catch (error) {
-        console.log('Error loading stored preferences:', error);
-      }
-    };
-
-    loadStoredValues();
-  }, [setDevMode]);
 
   const loginHandler = async () => {
     try {
@@ -98,8 +82,7 @@ const LoginScreen = () => {
 
     tapTimerRef.current = setTimeout(async () => {
       if (tapCount + 1 >= 3) {
-        setDevMode(true);
-        await AsyncStorage.setItem('devMode', 'true');
+        setState({ devMode: true });
       }
       setTapCount(0);
     }, 500);

@@ -16,6 +16,7 @@ type AppGlobalStore = {
   themeMode: ThemeMode;
   localIpAddress: string;
   useLocalSfu?: boolean;
+  devMode?: boolean;
 };
 
 export const {
@@ -36,6 +37,7 @@ export const {
     themeMode: 'dark',
     useLocalSfu: false,
     localIpAddress: '127.0.0.1',
+    devMode: false,
   },
   [
     'apiKey',
@@ -46,5 +48,6 @@ export const {
     'userImageUrl',
     'appMode',
     'themeMode',
+    'devMode',
   ],
 );
