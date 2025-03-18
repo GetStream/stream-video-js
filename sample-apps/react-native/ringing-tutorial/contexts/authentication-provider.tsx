@@ -36,6 +36,8 @@ export function useAuthentication() {
 
 export function AuthenticationProvider({ children }: PropsWithChildren) {
   const [userId, setUserId] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
+
   const userWithToken = Users.find((user) => user.id === userId);
   const client =
     userWithToken &&
@@ -49,6 +51,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
     AsyncStorage.getItem('@userid-key').then((id) => {
       if (id) {
         setUserId(id);
+        setIsLoading(false);
       }
     });
   }, []);
@@ -66,7 +69,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
           setUserId(undefined);
         },
         userWithToken,
-        isLoading: false,
+        isLoading,
       }}
     >
       {client ? (
