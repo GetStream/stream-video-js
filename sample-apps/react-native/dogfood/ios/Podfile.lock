@@ -1724,8 +1724,27 @@ PODS:
     - React-Core
   - RNCallKeep (4.3.11):
     - React
-  - RNCClipboard (1.11.2):
+  - RNCClipboard (1.16.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
   - RNDeviceInfo (14.0.1):
@@ -1780,13 +1799,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.0.3):
-    - RCT-Folly
+  - RNReactNativeHapticFeedback (2.3.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
-    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - RNReanimated (3.16.6):
     - DoubleConversion
     - glog
@@ -1965,7 +1998,7 @@ PODS:
   - RNVoipPushNotification (3.3.2):
     - React-Core
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (6.0.0-rc.21):
+  - stream-chat-react-native (6.7.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2009,10 +2042,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (125.0.7):
+  - stream-react-native-webrtc (125.0.8):
     - React-Core
     - WebRTC-SDK (~> 125.6422.07)
-  - stream-video-react-native (1.10.15):
+  - stream-video-react-native (1.10.16):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2391,23 +2424,23 @@ SPEC CHECKSUMS:
   ReactCommon: a1c914f7575011239a63603a95fb341d0331953c
   ReactNativeIncallManager: ef7b845e166f04cf8ddf433d8a23227b01cef87a
   RNCallKeep: 516281f03461e6be68f21a4634dbeee85d3fb730
-  RNCClipboard: efe1b27ad1ea378c60c8c8aabfd130961bbeb474
+  RNCClipboard: 3ef2c56a4968719eed9f7e8e58ee2282922c60ea
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
   RNDeviceInfo: afc27b3f24bd0e97181bf3e9f23cfa4c9040dd32
   RNGestureHandler: 932e0f07ccf470940afa9d0a8b6d8221e7e19cff
   RNGoogleSignin: 9b083b6a575e7c2401aac339c93f8292d0542d29
   RNNotifee: 52b319634ba89a2eacdfbadc01e059fd18505f04
   RNPermissions: a9ea34e4f88ced1f9664d6589f57b4931b23e3aa
-  RNReactNativeHapticFeedback: d557285118551f215efe4b8fbbd24d2c4ae6c1b9
+  RNReactNativeHapticFeedback: dddb16e62d4d9c4a5e0ac1d32ede09f6a9083e4c
   RNReanimated: fb3896d9010787799eb5748e50fd59746a503001
   RNScreens: d6b3735a362dab6a8cef14d032bdbdaf6e1b8dfa
   RNSVG: b24f7dfe496d5463a79b330713226587e4b13956
   RNVoipPushNotification: e5edde96849c0133ebc7e900dc30c8c221cfb690
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
+  stream-chat-react-native: 85c77b5ff0f6d9c479ea92e91acf08b481645acd
   stream-io-video-filters-react-native: 880541fb895034330bd4920f0862f8cddb471a2b
-  stream-react-native-webrtc: 04cedb818a14c87765798f71460e27de1d86b5ab
-  stream-video-react-native: 664146a9c8613a8b1fbd2b9b7494f70227494dd8
+  stream-react-native-webrtc: 6bae0dbc939c1cbd98cc4bd94a049ca655bcac03
+  stream-video-react-native: 8c143c2aabf1b744fc2004d120aead96332d44bd
   WebRTC-SDK: dff00a3892bc570b6014e046297782084071657e
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 

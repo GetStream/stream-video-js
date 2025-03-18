@@ -27,6 +27,6 @@
     "@vitejs/plugin-react": "^4.3.4",
     "nanoid": "^5.0.4",
     "typescript": "^5.8.2",
-    "vite": "^6.2.1"
+    "vite": "^6.2.2"
   }
 }
