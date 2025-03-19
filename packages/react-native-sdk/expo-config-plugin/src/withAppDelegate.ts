@@ -73,7 +73,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         return config;
       } catch (error: any) {
         throw new Error(
-          'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed', { cause: error }
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed ${error}`,
         );
       }
     } else {
