@@ -113,7 +113,7 @@ const LoginScreen = () => {
             <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             <Text style={styles.subTitle}>
               {t(
-                'Build reliable video calling, audio rooms, and live streaming with our easy-to-use SKDs and global edge network',
+                'Build reliable video calling, audio rooms, and live streaming with our easy-to-use SDKs and global edge network',
               )}
             </Text>
           </View>
