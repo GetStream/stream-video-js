@@ -5,7 +5,7 @@ import {
   TextInputProps,
 } from 'react-native';
 import { INPUT_HEIGHT } from '../constants';
-import { defaultTheme, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 export const TextInput = React.forwardRef<
   NativeTextInput,
@@ -25,7 +25,7 @@ export const TextInput = React.forwardRef<
 TextInput.displayName = 'TextInput';
 
 const useStyles = () => {
-  const appTheme = useTheme().theme || defaultTheme;
+  const appTheme = useTheme().theme;
   return useMemo(
     () =>
       StyleSheet.create({
