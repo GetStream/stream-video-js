@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.1...@stream-io/video-styling-1.1.2) (2025-03-19)
+
+
+### Bug Fixes
+
+* add missing styles for pending permission badge ([#1728](https://github.com/GetStream/stream-video-js/issues/1728)) ([040aca1](https://github.com/GetStream/stream-video-js/commit/040aca1b15e846e3815422a7be1b2559e4b8a541)), closes [#1718](https://github.com/GetStream/stream-video-js/issues/1718)
+
 ## [1.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.0...@stream-io/video-styling-1.1.1) (2024-10-16)
 
 
