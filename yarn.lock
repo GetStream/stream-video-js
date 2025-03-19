@@ -6321,20 +6321,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-google-signin/google-signin@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@react-native-google-signin/google-signin@npm:11.0.0"
-  peerDependencies:
-    expo: ">=47.0.0"
-    react: "*"
-    react-native: "*"
-  peerDependenciesMeta:
-    expo:
-      optional: true
-  checksum: 58651579f2b23bc73b17510fc3d621a72d9a079778deec08aa74d421b5cfa9766ae8395b9c59dfececf61149461f369d1fedebee3635bd0e4c2a1fda7b89d3ef
-  languageName: node
-  linkType: hard
-
 "@react-native/assets-registry@npm:0.73.1":
   version: 0.73.1
   resolution: "@react-native/assets-registry@npm:0.73.1"
@@ -8511,7 +8497,6 @@ __metadata:
     "@react-native-community/push-notification-ios": ^1.11.0
     "@react-native-firebase/app": 21.6.0
     "@react-native-firebase/messaging": 21.6.0
-    "@react-native-google-signin/google-signin": ^11.0.0
     "@react-native/babel-preset": 0.76.2
     "@react-native/eslint-config": 0.76.2
     "@react-native/metro-config": 0.76.2
