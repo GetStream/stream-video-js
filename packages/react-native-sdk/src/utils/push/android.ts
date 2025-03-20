@@ -12,7 +12,9 @@ import type {
 } from '../StreamVideoRN/types';
 import {
   getFirebaseMessagingLib,
+  getFirebaseMessagingLibNoThrow,
   getExpoNotificationsLib,
+  getExpoNotificationsLibNoThrow,
   getNotifeeLibThrowIfNotInstalledForPush,
   type NotifeeLib,
   type FirebaseMessagingTypes,
@@ -49,7 +51,7 @@ type Event = Parameters<onBackgroundEventFunctionParams>[0];
 
 let lastFirebaseToken = { token: '', userId: '' };
 
-/** Send token to stream, create notification channel,  */
+/** Send token to stream  */
 export async function initAndroidPushToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
@@ -58,13 +60,14 @@ export async function initAndroidPushToken(
   if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
     return;
   }
+  const logger = getLogger(['initAndroidPushToken']);
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
     if (
       lastFirebaseToken.token === token &&
       lastFirebaseToken.userId === userId
     ) {
-      getLogger(['initAndroidPushToken'])(
+      logger(
         'debug',
         `Skipping setting the same token again for userId: ${userId} and token: ${token}`
       );
@@ -74,33 +77,41 @@ export async function initAndroidPushToken(
     setPushLogoutCallback(async () => {
       lastFirebaseToken = { token: '', userId: '' };
       try {
-        getLogger(['initAndroidPushToken'])(
-          'debug',
-          `Logout removeDeviceToken: ${token}`
-        );
+        logger('debug', `Logout removeDeviceToken: ${token}`);
         await client.removeDevice(token);
       } catch (err) {
-        const logger = getLogger(['initAndroidPushToken']);
         logger('warn', 'Failed to remove firebase token from stream', err);
       }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
+    logger('debug', `sending token from firebase: ${token}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
   if (pushConfig.isExpo) {
-    const expoNotificationsLib = getExpoNotificationsLib();
-    const subscription = expoNotificationsLib.addPushTokenListener(
-      (devicePushToken) => {
-        setDeviceToken(devicePushToken.data);
-      }
-    );
-    setUnsubscribeListener(() => subscription.remove());
-    const devicePushToken =
-      await expoNotificationsLib.getDevicePushTokenAsync();
-    const token = devicePushToken.data;
-    await setDeviceToken(token);
-  } else {
-    const messaging = getFirebaseMessagingLib();
+    const expoNotificationsLib = pushConfig.onTapNonRingingCallNotification
+      ? getExpoNotificationsLib()
+      : getExpoNotificationsLibNoThrow();
+    if (expoNotificationsLib) {
+      logger('debug', `setting expo notification token listeners`);
+      const subscription = expoNotificationsLib.addPushTokenListener(
+        (devicePushToken) => {
+          setDeviceToken(devicePushToken.data);
+        }
+      );
+      setUnsubscribeListener(() => subscription.remove());
+      const devicePushToken =
+        await expoNotificationsLib.getDevicePushTokenAsync();
+      const token = devicePushToken.data;
+      await setDeviceToken(token);
+    }
+  }
+  // TODO: remove the incomingCallChannel check and find a better way once we have telecom integration for android
+  const messaging =
+    pushConfig.isExpo && !pushConfig.android.incomingCallChannel
+      ? getFirebaseMessagingLibNoThrow(true)
+      : getFirebaseMessagingLib();
+  if (messaging) {
+    logger('debug', `setting firebase token listeners`);
     const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
       setDeviceToken(refreshedToken)
     );
@@ -246,7 +257,7 @@ export const firebaseDataHandler = async (
     if (!incomingCallChannel || !incomingCallNotificationTextGetters) {
       const logger = getLogger(['firebaseMessagingOnMessageHandler']);
       logger(
-        'info',
+        'error',
         "Can't show incoming call notification as either or both incomingCallChannel and incomingCallNotificationTextGetters were not provided"
       );
       return;

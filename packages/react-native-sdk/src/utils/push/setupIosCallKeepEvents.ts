@@ -27,6 +27,14 @@ export function setupIosCallKeepEvents(
   if (Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
     return;
   }
+  if (!pushConfig.android.incomingCallChannel) {
+    // TODO: remove this check and find a better way once we have telecom integration for android
+    getLogger(['setupIosCallKeepEvents'])(
+      'debug',
+      'android incomingCallChannel is not defined, so skipping the setupIosCallKeepEvents'
+    );
+    return;
+  }
   const logger = getLogger(['setupIosCallKeepEvents']);
   const callkeep = getCallKeepLib();
 
