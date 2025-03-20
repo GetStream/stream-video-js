@@ -89,6 +89,14 @@ export const useIosVoipPushEventsSetupEffect = () => {
     if (Platform.OS !== 'ios' || !pushConfig || !client || !pushProviderName) {
       return;
     }
+    if (!pushConfig.android.incomingCallChannel) {
+      // TODO: remove this check and find a better way once we have telecom integration for android
+      getLogger(['useIosVoipPushEventsSetupEffect'])(
+        'debug',
+        'android incomingCallChannel is not defined, so skipping the useIosVoipPushEventsSetupEffect'
+      );
+      return;
+    }
 
     const voipPushNotification = getVoipPushNotificationLib();
 
@@ -99,6 +107,14 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
+      if (!token) {
+        logger(
+          'debug',
+          `Skipped sending voip token to stream no token was present - userId: ${userId} (possibly using a simulator)`
+        );
+        setUnsentToken(token);
+        return;
+      }
       if (!userId) {
         logger(
           'debug',
@@ -131,7 +147,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
         })
         .catch((err) => {
           setUnsentToken(token);
-          logger('warn', 'Failed to send voip token to stream', err);
+          logger(
+            'warn',
+            `Failed to send voip token to stream token: ${token} userId: ${userId}`,
+            err
+          );
         });
     };
     // fired when PushKit give us the latest token
