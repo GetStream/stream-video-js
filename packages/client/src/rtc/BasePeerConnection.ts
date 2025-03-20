@@ -174,7 +174,7 @@ export abstract class BasePeerConnection {
       return;
     }
 
-    const iceCandidate = this.toJSON(candidate);
+    const iceCandidate = this.asJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
       .catch((err) => {
@@ -186,7 +186,7 @@ export abstract class BasePeerConnection {
   /**
    * Converts the ICE candidate to a JSON string.
    */
-  private toJSON = (candidate: RTCIceCandidate): string => {
+  private asJSON = (candidate: RTCIceCandidate): string => {
     if (!candidate.usernameFragment) {
       // react-native-webrtc doesn't include usernameFragment in the candidate
       const segments = candidate.candidate.split(' ');
