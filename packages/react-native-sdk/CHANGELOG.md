@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.16...@stream-io/video-react-native-sdk-1.10.17) (2025-03-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.7`
+* `@stream-io/video-react-bindings` updated to version `1.5.9`
+
+### Bug Fixes
+
+* proper non ringing only push support without ringing libs ([#1731](https://github.com/GetStream/stream-video-js/issues/1731)) ([8135708](https://github.com/GetStream/stream-video-js/commit/8135708a5970de90d64aeed936a1225c9545fdf6))
+
 ## [1.10.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.15...@stream-io/video-react-native-sdk-1.10.16) (2025-03-13)
 
 ### Dependency Updates
