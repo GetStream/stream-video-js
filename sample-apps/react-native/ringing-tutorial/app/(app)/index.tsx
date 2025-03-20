@@ -1,20 +1,29 @@
 import React from 'react';
-import { Text, View, StyleSheet, Pressable } from 'react-native';
+import { Text, View, StyleSheet, Pressable, Platform } from 'react-native';
 import { useAuthentication } from '../../contexts/authentication-provider';
 import { Users } from '../../constants/Users';
 import { UserButton } from '../../components/user-button';
 import { ActionButton } from '../../components/action-button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import { PermissionsAndroid } from 'react-native';
 
 export default function Index() {
   const { signOut, userWithToken } = useAuthentication();
   const client = useStreamVideoClient();
   const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
 
+  React.useEffect(() => {
+    if (Platform.OS === 'android') {
+      PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+    }
+  }, []);
+
   const onRing = () => {
     const callId = 'tutorial-' + Math.random().toString(16).substring(2);
-    const myCall = client!.call('default', callId);
+    const myCall = client!.call('oliver', callId);
     myCall.getOrCreate({
       ring: true,
       data: {

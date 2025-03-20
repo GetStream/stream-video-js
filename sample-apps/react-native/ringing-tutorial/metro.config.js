@@ -1,26 +1,53 @@
-// Learn more https://docs.expo.io/guides/customizing-metro
+const { exclusionList, resolveUniqueModule } = require('@rnx-kit/metro-config');
+const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks');
+
 const { getDefaultConfig } = require('expo/metro-config');
+
 const path = require('path');
-
-/** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
-
 const projectRoot = __dirname;
 
-const monorepoRoot = path.resolve(projectRoot, '../../..');
+const config = getDefaultConfig(projectRoot);
 
-// 1. Watch all files within the monorepo
+// find what all modules need to be unique for the app
+const dependencyPackageNames = Object.keys(
+  require('./package.json').dependencies,
+);
+
+const uniqueModules = dependencyPackageNames.map((packageName) => {
+  const [modulePath, blockPattern] = resolveUniqueModule(
+    packageName,
+    projectRoot,
+  );
+  return {
+    packageName, // name of the package
+    modulePath, // actual path to the module in the project's node modules
+    blockPattern, // paths that match this pattern will be blocked from being resolved
+  };
+});
+
+// provide the path for the unique modules
+const extraNodeModules = uniqueModules.reduce((acc, item) => {
+  acc[item.packageName] = item.modulePath;
+  return acc;
+}, {});
+
+// block the other paths for unique modules from being resolved
+const blockList = uniqueModules.map(({ blockPattern }) => blockPattern);
+
+const workspaceRoot = path.resolve(projectRoot, '../../..');
+
 config.watchFolders = [
-  path.join(monorepoRoot, 'node_modules'),
-  path.join(monorepoRoot, 'packages/client'),
-  path.join(monorepoRoot, 'packages/react-bindings'),
-  path.join(monorepoRoot, 'packages/react-native-sdk'),
+  path.join(workspaceRoot, 'node_modules'),
+  path.join(workspaceRoot, 'packages/client'),
+  path.join(workspaceRoot, 'packages/react-bindings'),
+  path.join(workspaceRoot, 'packages/react-native-sdk'),
 ];
 
-// 2. Let Metro know where to resolve packages and in what order
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(monorepoRoot, 'node_modules'),
-];
+// using rnx-kit symlinks resolver to solve https://github.com/react-native-webrtc/react-native-webrtc/issues/1503
+config.resolver.resolveRequest = MetroSymlinksResolver();
+
+config.resolver.extraNodeModules = extraNodeModules;
+
+config.resolver.blockList = exclusionList(blockList);
 
 module.exports = config;

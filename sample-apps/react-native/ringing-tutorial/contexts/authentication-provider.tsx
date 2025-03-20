@@ -8,6 +8,7 @@ import React, {
 import {
   StreamVideo,
   StreamVideoClient,
+  StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
 import { Users, UserWithToken } from '../constants/Users';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -45,15 +46,24 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
       apiKey: API_KEY,
       tokenProvider: () => Promise.resolve(userWithToken.token),
       user: { id: userWithToken.id, name: userWithToken.name },
+      options: {
+        logLevel: 'debug',
+      },
     });
 
   useEffect(() => {
-    AsyncStorage.getItem('@userid-key').then((id) => {
-      if (id) {
-        setUserId(id);
+    AsyncStorage.getItem('@userid-key')
+      .then((id) => {
+        if (id) {
+          setUserId(id);
+        }
+      })
+      .catch((error) => {
+        console.error('Error getting user id from async storage', error);
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    });
+      });
   }, []);
 
   return (
@@ -66,6 +76,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
         signOut: () => {
           AsyncStorage.removeItem('@userid-key');
           client?.disconnectUser();
+          StreamVideoRN.onPushLogout();
           setUserId(undefined);
         },
         userWithToken,

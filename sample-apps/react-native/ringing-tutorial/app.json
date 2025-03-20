@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "entitlements": {
+        "aps-environment": "production"
+      },
       "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "io.getstream.reactnative.ringingtutorial"
     },
     "android": {
@@ -17,9 +21,23 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "package": "io.getstream.reactnative.ringingtutorial"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
+            ]
+          },
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -31,21 +49,26 @@
         }
       ],
       [
-        "expo-build-properties",
+        "@stream-io/video-react-native-sdk",
         {
-          "android": {
-            "minSdkVersion": 24
-          }
+          "ringingPushNotifications": {
+            "disableVideoIos": false,
+            "includesCallsInRecentsIos": false,
+            "showWhenLockedAndroid": true
+          },
+          "androidKeepCallAlive": true
         }
       ],
-      "@stream-io/video-react-native-sdk",
       [
         "@config-plugins/react-native-webrtc",
         {
           "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
-      ]
+      ],
+      "@config-plugins/react-native-callkeep",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging"
     ],
     "experiments": {
       "typedRoutes": true

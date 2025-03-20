@@ -170,28 +170,30 @@ export async function initIosNonVoipToken(
   };
   if (pushConfig.isExpo) {
     const expoNotificationsLib = getExpoNotificationsLib();
-    expoNotificationsLib.getDevicePushTokenAsync().then((devicePushToken) => {
-      logger(
-        'debug',
-        'Got device token - expoNotificationsLib.getDevicePushTokenAsync',
-        devicePushToken.data
-      );
-      setDeviceToken(devicePushToken.data);
-    });
-    const subscription = expoNotificationsLib.addPushTokenListener(
-      (devicePushToken) => {
+    if (expoNotificationsLib) {
+      expoNotificationsLib.getDevicePushTokenAsync().then((devicePushToken) => {
         logger(
           'debug',
-          'Got device token - expoNotificationsLib.addPushTokenListener',
+          'Got device token - expoNotificationsLib.getDevicePushTokenAsync',
           devicePushToken.data
         );
         setDeviceToken(devicePushToken.data);
-      }
-    );
-    setUnsubscribeListener(() => {
-      logger('debug', `removed expo addPushTokenListener`);
-      subscription.remove();
-    });
+      });
+      const subscription = expoNotificationsLib.addPushTokenListener(
+        (devicePushToken) => {
+          logger(
+            'debug',
+            'Got device token - expoNotificationsLib.addPushTokenListener',
+            devicePushToken.data
+          );
+          setDeviceToken(devicePushToken.data);
+        }
+      );
+      setUnsubscribeListener(() => {
+        logger('debug', `removed expo addPushTokenListener`);
+        subscription.remove();
+      });
+    }
   } else {
     const pushNotificationIosLib = getPushNotificationIosLib();
     pushNotificationIosLib.addEventListener('register', (token) => {
