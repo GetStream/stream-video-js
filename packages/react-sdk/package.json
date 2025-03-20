@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "1.12.9",
+  "version": "1.12.10",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
