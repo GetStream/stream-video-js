@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.6...@stream-io/video-client-1.18.7) (2025-03-20)
+
+
+### Bug Fixes
+
+* rename `toJSON` to `asJSON` ([#1729](https://github.com/GetStream/stream-video-js/issues/1729)) ([0d7d074](https://github.com/GetStream/stream-video-js/commit/0d7d074dac1032690b5f4af4d6ba5fcdd56dfaa2))
+* update call reject reasons ([#1730](https://github.com/GetStream/stream-video-js/issues/1730)) ([100ed6b](https://github.com/GetStream/stream-video-js/commit/100ed6b9323b66e86123917abf4fc2973a677fca))
+
+## [1.18.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.5...@stream-io/video-client-1.18.6) (2025-03-13)
+
+
+### Bug Fixes
+
+* ensure negotiation runs sequentially ([#1722](https://github.com/GetStream/stream-video-js/issues/1722)) ([7e166aa](https://github.com/GetStream/stream-video-js/commit/7e166aaf606c3f751068cf60bd554e6374f701d7))
+
+## [1.18.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.4...@stream-io/video-client-1.18.5) (2025-03-12)
+
+
+* Upgrade to Next 15.2 ([#1717](https://github.com/GetStream/stream-video-js/issues/1717)) ([9b1aec3](https://github.com/GetStream/stream-video-js/commit/9b1aec3447dee611c0d900db44add6b6c89e2b8d))
+
+
+### Bug Fixes
+
+* add pending browser permission state ([#1718](https://github.com/GetStream/stream-video-js/issues/1718)) ([7f24be6](https://github.com/GetStream/stream-video-js/commit/7f24be63d33105d0688be7b5b625bc9b6aa0d3a9))
+
 ## [1.18.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.3...@stream-io/video-client-1.18.4) (2025-03-10)
 
 

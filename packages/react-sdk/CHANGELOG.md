@@ -2,6 +2,39 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.10...@stream-io/video-react-sdk-1.12.11) (2025-03-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.7`
+* `@stream-io/video-react-bindings` updated to version `1.5.9`
+## [1.12.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.9...@stream-io/video-react-sdk-1.12.10) (2025-03-19)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `1.1.2`
+## [1.12.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.8...@stream-io/video-react-sdk-1.12.9) (2025-03-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.6`
+* `@stream-io/video-react-bindings` updated to version `1.5.8`
+
+### Bug Fixes
+
+* expose useDeviceList ([#1723](https://github.com/GetStream/stream-video-js/issues/1723)) ([547703b](https://github.com/GetStream/stream-video-js/commit/547703b75daefbd0e34db6bd17cfc2f45d861005)), closes [#1701](https://github.com/GetStream/stream-video-js/issues/1701)
+
+## [1.12.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.7...@stream-io/video-react-sdk-1.12.8) (2025-03-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.5`
+* `@stream-io/video-react-bindings` updated to version `1.5.7`
+
+### Bug Fixes
+
+* add pending browser permission state ([#1718](https://github.com/GetStream/stream-video-js/issues/1718)) ([7f24be6](https://github.com/GetStream/stream-video-js/commit/7f24be63d33105d0688be7b5b625bc9b6aa0d3a9))
+
 ## [1.12.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.6...@stream-io/video-react-sdk-1.12.7) (2025-03-10)
 
 ### Dependency Updates

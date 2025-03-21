@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "4.15.15",
+  "version": "4.15.18",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -25,7 +25,6 @@
     "@react-native-community/push-notification-ios": "^1.11.0",
     "@react-native-firebase/app": "^21.12.0",
     "@react-native-firebase/messaging": "^21.12.0",
-    "@react-native-google-signin/google-signin": "^11.0.0",
     "@react-navigation/native": "^7.0",
     "@react-navigation/native-stack": "^7.1",
     "@stream-io/react-native-webrtc": "^125.0.7",

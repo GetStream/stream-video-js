@@ -566,7 +566,7 @@ export class Call {
 
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
-          await this.reject(reason);
+          await this.reject('decline');
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
@@ -602,6 +602,7 @@ export class Call {
       this.initialized = false;
       this.hasJoinedOnce = false;
       this.ringingSubject.next(false);
+      this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
       this.camera.dispose();
@@ -798,7 +799,9 @@ export class Call {
    *
    * @param reason the reason for rejecting the call.
    */
-  reject = async (reason?: RejectReason): Promise<RejectCallResponse> => {
+  reject = async (
+    reason: RejectReason = 'decline',
+  ): Promise<RejectCallResponse> => {
     return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
       `${this.streamClientBasePath}/reject`,
       { reason: reason },

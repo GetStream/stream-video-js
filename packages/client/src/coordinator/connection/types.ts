@@ -188,5 +188,5 @@ export type ClientAppIdentifier = {
 export type TokenProvider = () => Promise<string>;
 export type TokenOrProvider = null | string | TokenProvider | undefined;
 
-export type BuiltInRejectReason = 'busy' | 'decline' | 'cancel';
-export type RejectReason = BuiltInRejectReason | string;
+export type BuiltInRejectReason = 'busy' | 'decline' | 'cancel' | 'timeout';
+export type RejectReason = BuiltInRejectReason | (string & {});
