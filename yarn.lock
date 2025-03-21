@@ -7704,9 +7704,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.34"
     "@stream-io/react-native-webrtc": "npm:^125.0.8"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/jest": "npm:^29.5.12"
     "@types/react": "npm:~18.3.12"
-    "@types/react-test-renderer": "npm:^18.3.0"
     expo: "npm:~52.0.38"
     expo-blur: "npm:~14.0.3"
     expo-build-properties: "npm:~0.13.2"
@@ -7721,8 +7719,6 @@ __metadata:
     expo-symbols: "npm:~0.2.2"
     expo-system-ui: "npm:~4.0.8"
     expo-web-browser: "npm:~14.0.2"
-    jest: "npm:^29.2.1"
-    jest-expo: "npm:~52.0.6"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     react-native: "npm:0.76.7"
@@ -7736,7 +7732,6 @@ __metadata:
     react-native-voip-push-notification: "npm:^3.3.2"
     react-native-web: "npm:~0.19.13"
     react-native-webview: "npm:13.12.5"
-    react-test-renderer: "npm:18.3.1"
     typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
@@ -8126,7 +8121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^29.2.1, @types/jest@npm:^29.5.12, @types/jest@npm:^29.5.14":
+"@types/jest@npm:^29.2.1, @types/jest@npm:^29.5.14":
   version: 29.5.14
   resolution: "@types/jest@npm:29.5.14"
   dependencies:
@@ -8378,7 +8373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-test-renderer@npm:^18, @types/react-test-renderer@npm:^18.3.0":
+"@types/react-test-renderer@npm:^18":
   version: 18.3.1
   resolution: "@types/react-test-renderer@npm:18.3.1"
   dependencies:
@@ -15981,7 +15976,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-expo@npm:~52.0.4, jest-expo@npm:~52.0.6":
+"jest-expo@npm:~52.0.4":
   version: 52.0.6
   resolution: "jest-expo@npm:52.0.6"
   dependencies:
@@ -16317,7 +16312,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.2.1, jest@npm:^29.7.0":
+"jest@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
