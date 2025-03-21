@@ -59,9 +59,18 @@ export const useIosCallkeepWithCallingStateEffect = () => {
   useEffect(() => {
     return () => {
       const pushConfig = StreamVideoRN.getConfig().push;
-      if (Platform.OS !== 'ios' || !pushConfig) {
+      if (
+        Platform.OS !== 'ios' ||
+        !pushConfig ||
+        !pushConfig.ios?.pushProviderName
+      ) {
         return;
       }
+      if (!pushConfig.android.incomingCallChannel) {
+        // TODO: remove this check and find a better way once we have telecom integration for android
+        return;
+      }
+
       const callkeep = getCallKeepLib();
       // if the component is unmounted and the callID was not reported to callkeep, then report it now
       if (acceptedForegroundCallkeepMap) {
@@ -80,7 +89,16 @@ export const useIosCallkeepWithCallingStateEffect = () => {
   useEffect(() => {
     return () => {
       const pushConfig = StreamVideoRN.getConfig().push;
-      if (Platform.OS !== 'ios' || !pushConfig || !activeCallCid) {
+      if (
+        Platform.OS !== 'ios' ||
+        !pushConfig ||
+        !pushConfig.ios?.pushProviderName ||
+        !activeCallCid
+      ) {
+        return;
+      }
+      if (!pushConfig.android.incomingCallChannel) {
+        // TODO: remove this check and find a better way once we have telecom integration for android
         return;
       }
       const nativeDialerAcceptedCallMap = RxUtils.getCurrentValue(
@@ -111,7 +129,16 @@ export const useIosCallkeepWithCallingStateEffect = () => {
   }, [activeCallCid]);
 
   const pushConfig = StreamVideoRN.getConfig().push;
-  if (Platform.OS !== 'ios' || !pushConfig || !activeCallCid) {
+  if (
+    Platform.OS !== 'ios' ||
+    !pushConfig ||
+    !pushConfig.ios.pushProviderName ||
+    !activeCallCid
+  ) {
+    return;
+  }
+  if (!pushConfig.android.incomingCallChannel) {
+    // TODO: remove this check and find a better way once we have telecom integration for android
     return;
   }
 
