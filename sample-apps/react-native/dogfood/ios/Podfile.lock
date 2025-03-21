@@ -1,23 +1,9 @@
 PODS:
-  - AppAuth (1.7.6):
-    - AppAuth/Core (= 1.7.6)
-    - AppAuth/ExternalUserAgent (= 1.7.6)
-  - AppAuth/Core (1.7.6)
-  - AppAuth/ExternalUserAgent (1.7.6):
-    - AppAuth/Core
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.76.2)
   - fmt (9.1.0)
   - glog (0.3.5)
-  - GoogleSignIn (7.1.0):
-    - AppAuth (< 2.0, >= 1.7.3)
-    - GTMAppAuth (< 5.0, >= 4.1.1)
-    - GTMSessionFetcher/Core (~> 3.3)
-  - GTMAppAuth (4.1.1):
-    - AppAuth/Core (~> 1.7)
-    - GTMSessionFetcher/Core (< 4.0, >= 3.3)
-  - GTMSessionFetcher/Core (3.5.0)
   - hermes-engine (0.76.2):
     - hermes-engine/Pre-built (= 0.76.2)
   - hermes-engine/Pre-built (0.76.2)
@@ -1724,8 +1710,27 @@ PODS:
     - React-Core
   - RNCallKeep (4.3.11):
     - React
-  - RNCClipboard (1.11.2):
+  - RNCClipboard (1.16.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
   - RNDeviceInfo (14.0.1):
@@ -1751,9 +1756,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNGoogleSignin (11.0.0):
-    - GoogleSignIn (~> 7.0)
-    - React-Core
   - RNNotifee (9.1.2):
     - React-Core
     - RNNotifee/NotifeeCore (= 9.1.2)
@@ -1780,13 +1782,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.0.3):
-    - RCT-Folly
+  - RNReactNativeHapticFeedback (2.3.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
-    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - RNReanimated (3.16.6):
     - DoubleConversion
     - glog
@@ -1965,7 +1981,7 @@ PODS:
   - RNVoipPushNotification (3.3.2):
     - React-Core
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (6.0.0-rc.21):
+  - stream-chat-react-native (6.7.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2009,10 +2025,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (125.0.7):
+  - stream-react-native-webrtc (125.0.8):
     - React-Core
     - WebRTC-SDK (~> 125.6422.07)
-  - stream-video-react-native (1.10.12):
+  - stream-video-react-native (1.10.16):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2114,7 +2130,6 @@ DEPENDENCIES:
   - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
-  - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
@@ -2130,10 +2145,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - AppAuth
-    - GoogleSignIn
-    - GTMAppAuth
-    - GTMSessionFetcher
     - React-Codegen
     - SocketRocket
     - WebRTC-SDK
@@ -2288,8 +2299,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-device-info"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
-  RNGoogleSignin:
-    :path: "../node_modules/@react-native-google-signin/google-signin"
   RNNotifee:
     :path: "../node_modules/@notifee/react-native"
   RNPermissions:
@@ -2316,15 +2325,11 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   FBLazyVector: bc70dcb22ad30ce734a7cce7210791dc737e230f
   fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
-  GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
-  GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
-  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: 3852e37f6158a2fcfad23e31215ed495da3a6a40
   RCT-Folly: 84578c8756030547307e4572ab1947de1685c599
   RCTDeprecation: d575d28132f93e5deef4849d5afffb4ac4e63226
@@ -2391,23 +2396,22 @@ SPEC CHECKSUMS:
   ReactCommon: a1c914f7575011239a63603a95fb341d0331953c
   ReactNativeIncallManager: ef7b845e166f04cf8ddf433d8a23227b01cef87a
   RNCallKeep: 516281f03461e6be68f21a4634dbeee85d3fb730
-  RNCClipboard: efe1b27ad1ea378c60c8c8aabfd130961bbeb474
+  RNCClipboard: 3ef2c56a4968719eed9f7e8e58ee2282922c60ea
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
   RNDeviceInfo: afc27b3f24bd0e97181bf3e9f23cfa4c9040dd32
   RNGestureHandler: 932e0f07ccf470940afa9d0a8b6d8221e7e19cff
-  RNGoogleSignin: 9b083b6a575e7c2401aac339c93f8292d0542d29
   RNNotifee: 52b319634ba89a2eacdfbadc01e059fd18505f04
   RNPermissions: a9ea34e4f88ced1f9664d6589f57b4931b23e3aa
-  RNReactNativeHapticFeedback: d557285118551f215efe4b8fbbd24d2c4ae6c1b9
+  RNReactNativeHapticFeedback: dddb16e62d4d9c4a5e0ac1d32ede09f6a9083e4c
   RNReanimated: fb3896d9010787799eb5748e50fd59746a503001
   RNScreens: d6b3735a362dab6a8cef14d032bdbdaf6e1b8dfa
   RNSVG: b24f7dfe496d5463a79b330713226587e4b13956
   RNVoipPushNotification: e5edde96849c0133ebc7e900dc30c8c221cfb690
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 470c37e2bed295da2ed9148f398694995d98f5af
+  stream-chat-react-native: 85c77b5ff0f6d9c479ea92e91acf08b481645acd
   stream-io-video-filters-react-native: 880541fb895034330bd4920f0862f8cddb471a2b
-  stream-react-native-webrtc: 04cedb818a14c87765798f71460e27de1d86b5ab
-  stream-video-react-native: 3a793f0c68a22c17d763846170173d305b787307
+  stream-react-native-webrtc: 6bae0dbc939c1cbd98cc4bd94a049ca655bcac03
+  stream-video-react-native: 8c143c2aabf1b744fc2004d120aead96332d44bd
   WebRTC-SDK: dff00a3892bc570b6014e046297782084071657e
   Yoga: 513b871d622689bd53b51481bbcfb6b8f1a3de5b
 

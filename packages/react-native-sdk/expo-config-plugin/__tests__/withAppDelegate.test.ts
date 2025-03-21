@@ -19,7 +19,7 @@ jest.mock('@expo/config-plugins', () => {
     ...originalModule,
     withAppDelegate: jest.fn((config, callback) => {
       const updatedConfig: CustomExpoConfig = callback(
-        config as CustomExpoConfig
+        config as CustomExpoConfig,
       );
       return updatedConfig;
     }),
@@ -44,7 +44,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
 
     expect(
-      updatedConfig.modResults.contents === config.modResults.contents
+      updatedConfig.modResults.contents === config.modResults.contents,
     ).toBeTruthy();
   });
 
@@ -71,39 +71,39 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /#import <WebRTCModuleOptions.h>/
+      /#import <WebRTCModuleOptions.h>/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /options.enableMultitaskingCameraAccess = YES/
+      /options.enableMultitaskingCameraAccess = YES/,
     );
     expect(updatedConfig.modResults.contents).toMatch(/#import "RNCallKeep.h"/);
     expect(updatedConfig.modResults.contents).toMatch(
-      /#import <PushKit\/PushKit.h>/
+      /#import <PushKit\/PushKit.h>/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /#import "RNVoipPushNotificationManager.h"/
+      /#import "RNVoipPushNotificationManager.h"/,
     );
     expect(updatedConfig.modResults.contents).toMatch(/@"supportsVideo": @NO/);
     expect(updatedConfig.modResults.contents).toMatch(
-      /@"includesCallsInRecents": @YES/
+      /@"includesCallsInRecents": @YES/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /didUpdatePushCredentials:credentials/
+      /didUpdatePushCredentials:credentials/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingPushWithPayload:payload/
+      /didReceiveIncomingPushWithPayload:payload/,
     );
     expect(updatedConfig.modResults.contents).toMatch(/reportNewIncomingCall/);
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /#import <WebRTC\/RTCAudioSession.h>/
+      /#import <WebRTC\/RTCAudioSession.h>/,
     );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidActivate/
+      /audioSessionDidActivate/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidDeactivate/
+      /audioSessionDidDeactivate/,
     );
 
     modifiedConfig = updatedConfig;
@@ -120,11 +120,11 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     const updatedConfig = withAppDelegate(
       modifiedConfig!,
-      props
+      props,
     ) as CustomExpoConfig;
 
     expect(
-      modifiedConfig!.modResults.contents === updatedConfig.modResults.contents
+      modifiedConfig!.modResults.contents === updatedConfig.modResults.contents,
     ).toBeTruthy();
   });
 

@@ -2,15 +2,15 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import { StreamVideoRN } from '../utils';
 import {
-  NativeModules,
   AppState,
   type AppStateStatus,
+  NativeModules,
   Platform,
 } from 'react-native';
 import { CallingState, getLogger } from '@stream-io/video-client';
 import {
-  getNotifeeLibNoThrowForKeepCallAlive,
   getKeepCallAliveForegroundServiceTypes,
+  getNotifeeLibNoThrowForKeepCallAlive,
 } from '../utils/push/libs/notifee';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
@@ -23,7 +23,7 @@ function setForegroundService() {
         const logger = getLogger(['setForegroundService method']);
         logger(
           'info',
-          'KeepCallAlive is not configured. Skipping foreground service setup.'
+          'KeepCallAlive is not configured. Skipping foreground service setup.',
         );
         return;
       }
@@ -33,7 +33,7 @@ function setForegroundService() {
           logger('info', 'Foreground service running for call in progress');
         });
       });
-    }
+    },
   );
 }
 
@@ -50,7 +50,7 @@ async function startForegroundService(call_cid: string) {
     const logger = getLogger(['startForegroundService']);
     logger(
       'info',
-      'KeepCallAlive is not configured. Skipping foreground service setup.'
+      'KeepCallAlive is not configured. Skipping foreground service setup.',
     );
     return;
   }
@@ -61,13 +61,13 @@ async function startForegroundService(call_cid: string) {
     const logger = getLogger(['startForegroundService']);
     logger(
       'info',
-      'Notification permission not granted, can not start foreground service to keep the call alive'
+      'Notification permission not granted, can not start foreground service to keep the call alive',
     );
     return;
   }
   const channelId = foregroundServiceConfig.android.channel.id;
   await notifeeLib.default.createChannel(
-    foregroundServiceConfig.android.channel
+    foregroundServiceConfig.android.channel,
   );
   const foregroundServiceTypes = await getKeepCallAliveForegroundServiceTypes();
   // NOTE: we use requestAnimationFrame to ensure that the foreground service is started after all the current UI operations are done
@@ -138,7 +138,7 @@ export const useAndroidKeepCallAliveEffect = () => {
         const displayedNotifications =
           await notifee.getDisplayedNotifications();
         const activeCallNotification = displayedNotifications.find(
-          (notification) => notification.id === activeCallCid
+          (notification) => notification.id === activeCallCid,
         );
         if (activeCallNotification) {
           // this means that we have a incoming call notification shown as foreground service and we must stop it
@@ -163,7 +163,7 @@ export const useAndroidKeepCallAliveEffect = () => {
             run();
             sub.remove();
           }
-        }
+        },
       );
       return () => {
         sub.remove();
@@ -187,7 +187,7 @@ export const useAndroidKeepCallAliveEffect = () => {
           .getDisplayedNotifications()
           .then((displayedNotifications) => {
             const activeCallNotification = displayedNotifications.find(
-              (notification) => notification.id === activeCallCid
+              (notification) => notification.id === activeCallCid,
             );
             if (activeCallNotification) {
               // this means that we have a incoming call notification shown as foreground service and we must stop it

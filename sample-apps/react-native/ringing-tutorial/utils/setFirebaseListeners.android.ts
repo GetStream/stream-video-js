@@ -1,7 +1,7 @@
 import messaging from '@react-native-firebase/messaging';
 import {
-  isFirebaseStreamVideoMessage,
   firebaseDataHandler,
+  isFirebaseStreamVideoMessage,
   isNotifeeStreamVideoEvent,
   onAndroidNotifeeEvent,
 } from '@stream-io/video-react-native-sdk';

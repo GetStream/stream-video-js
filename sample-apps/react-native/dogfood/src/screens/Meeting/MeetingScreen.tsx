@@ -23,7 +23,7 @@ export const MeetingScreen = (props: Props) => {
     }
     return client.call(callType, callId);
   }, [callId, callType, client]);
-  // @ts-ignore
+  // @ts-expect-error - Expose call to globalThis for debugging purposes
   globalThis.call = call;
 
   useEffect(() => {

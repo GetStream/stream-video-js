@@ -1,12 +1,18 @@
 import React from 'react';
-import { Text, View, StyleSheet, Pressable, Platform } from 'react-native';
+import {
+  PermissionsAndroid,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useAuthentication } from '../../contexts/authentication-provider';
 import { Users } from '../../constants/Users';
 import { UserButton } from '../../components/user-button';
 import { ActionButton } from '../../components/action-button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
-import { PermissionsAndroid } from 'react-native';
 
 export default function Index() {
   const { signOut, userWithToken } = useAuthentication();

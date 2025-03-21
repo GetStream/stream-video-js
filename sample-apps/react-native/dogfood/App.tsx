@@ -39,6 +39,7 @@ import {
   defaultTheme,
   isPushNotificationiOSStreamVideoEvent,
   onPushNotificationiOSStreamVideoEvent,
+  ThemeProvider,
 } from '@stream-io/video-react-native-sdk';
 import { appTheme } from './src/theme';
 
@@ -153,7 +154,11 @@ const StackNavigator = () => {
   }, [userId, userName, userImageUrl]);
 
   if (!(userId && userImageUrl && userName)) {
-    return <LoginScreen />;
+    return (
+      <ThemeProvider>
+        <LoginScreen />
+      </ThemeProvider>
+    );
   }
 
   const containerStyle = {

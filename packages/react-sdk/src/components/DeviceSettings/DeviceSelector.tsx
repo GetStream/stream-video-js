@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
-import { useDeviceList } from '../../hooks/useDeviceList';
+import { useDeviceList } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
 
@@ -147,9 +147,8 @@ export const DeviceSelector = (props: {
   title?: string;
   onChange?: (deviceId: string) => void;
   visualType?: 'list' | 'dropdown';
-  placeholder?: string;
 }) => {
-  const { visualType = 'list', icon, placeholder, ...rest } = props;
+  const { visualType = 'list', icon, ...rest } = props;
 
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;

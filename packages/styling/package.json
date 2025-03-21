@@ -1,7 +1,6 @@
 {
   "name": "@stream-io/video-styling",
   "version": "1.1.2",
-  "packageManager": "yarn@3.2.4",
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
@@ -9,7 +8,7 @@
     "build": "sass --embed-sources index.scss ./dist/css/styles.css"
   },
   "devDependencies": {
-    "rimraf": "^5.0.7",
+    "rimraf": "^6.0.1",
     "sass": "^1.69.5"
   }
 }

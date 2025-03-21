@@ -16,13 +16,11 @@ dist
 .vercel
 .vscode
 .idea
-.angular
 .env
-!packages/angular-sdk/docusaurus/.env
-!packages/react-sdk/docusaurus/.env
-!packages/client/docusaurus/.env
-
+.husky
+.nx
 .eslintcache
+
 coverage
 
 # Test files
@@ -31,7 +29,6 @@ video-buddy-log.txt
 **/fastlane/*.log
 **/fastlane/*.mp4
 **/fastlane/*.json
-
 
 # Xcode
 #

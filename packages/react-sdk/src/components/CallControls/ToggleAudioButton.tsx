@@ -13,8 +13,8 @@ import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 import {
-  PropsWithErrorHandler,
   createCallControlHandler,
+  PropsWithErrorHandler,
 } from '../../utilities/callControlHandler';
 
 export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
@@ -46,7 +46,7 @@ export const ToggleAudioPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser audio permissions')
-          : caption ?? t('Mic')
+          : (caption ?? t('Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -143,7 +143,7 @@ export const ToggleAudioPublishingButton = (
               ? t('You have no permission to share your audio')
               : !hasBrowserPermission
                 ? t('Check your browser mic permissions')
-                : caption ?? t('Mic')
+                : (caption ?? t('Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >

@@ -33,7 +33,7 @@ export class RNSpeechDetector {
         e.streams[0].getTracks().forEach((track) => {
           // In RN, the remote track is automatically added to the audio output device
           // so we need to mute it to avoid hearing the audio back
-          // @ts-ignore _setVolume is a private method in react-native-webrtc
+          // @ts-expect-error _setVolume is a private method in react-native-webrtc
           track._setVolume(0);
         });
       });
@@ -79,10 +79,9 @@ export class RNSpeechDetector {
     const initialBaselineNoiseLevel = 0.13;
     let baselineNoiseLevel = initialBaselineNoiseLevel;
     let speechDetected = false;
-    let intervalId: NodeJS.Timeout | undefined;
     let speechTimer: NodeJS.Timeout | undefined;
     let silenceTimer: NodeJS.Timeout | undefined;
-    let audioLevelHistory = []; // Store recent audio levels for smoother detection
+    const audioLevelHistory: number[] = []; // Store recent audio levels for smoother detection
     const historyLength = 10;
     const silenceThreshold = 1.1;
     const resetThreshold = 0.9;
@@ -157,7 +156,7 @@ export class RNSpeechDetector {
     };
 
     // Call checkAudioLevel periodically (every 100ms)
-    intervalId = setInterval(checkAudioLevel, 100);
+    const intervalId = setInterval(checkAudioLevel, 100);
 
     return () => {
       clearInterval(intervalId);

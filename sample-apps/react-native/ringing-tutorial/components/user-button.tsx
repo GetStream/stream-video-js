@@ -1,15 +1,15 @@
-import { type PressableProps, Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, type PressableProps, StyleSheet, Text } from 'react-native';
 
 type UserButtonProps = PressableProps & {
   userName: string;
   selected: boolean;
 };
 
-export const UserButton: React.FC<UserButtonProps> = ({
+export const UserButton = ({
   userName,
   selected,
   ...rest
-}) => {
+}: UserButtonProps) => {
   // Determine which color to use based on selection state
   const currentBorderColor = selected ? '#4CAF50' : '#757575';
 

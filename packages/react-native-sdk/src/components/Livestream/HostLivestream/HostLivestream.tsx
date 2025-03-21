@@ -188,6 +188,6 @@ const useStyles = () => {
           zIndex: Z_INDEX.IN_FRONT,
         },
       }),
-    [theme]
+    [theme],
   );
 };

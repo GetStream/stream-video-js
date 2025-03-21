@@ -28,7 +28,7 @@ describe('ReactionsButton', () => {
           userId: P_IDS.LOCAL_1,
         }),
       ],
-      [OwnCapability.CREATE_REACTION]
+      [OwnCapability.CREATE_REACTION],
     );
 
     render(<ReactionsButton reactions={defaultEmojiReactions} />, {

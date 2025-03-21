@@ -23,7 +23,7 @@ export const LivestreamScreenShareToggleButton = () => {
   const screenCapturePickerViewiOSRef = React.useRef(null);
 
   const { onPress, hasPublishedScreenShare } = useScreenShareButton(
-    screenCapturePickerViewiOSRef
+    screenCapturePickerViewiOSRef,
   );
 
   return (

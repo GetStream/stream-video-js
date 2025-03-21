@@ -120,7 +120,7 @@ export class StableWSConnection {
       this.consecutiveFailures += 1;
 
       if (
-        // @ts-ignore
+        // @ts-expect-error type issue
         error.code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
@@ -129,18 +129,18 @@ export class StableWSConnection {
         );
         this._reconnect({ refreshToken: true });
       } else {
-        // @ts-ignore
+        // @ts-expect-error type issue
         if (!error.isWSFailure) {
           // API rejected the connection and we should not retry
           throw new Error(
             JSON.stringify({
-              // @ts-ignore
+              // @ts-expect-error type issue
               code: error.code,
-              // @ts-ignore
+              // @ts-expect-error type issue
               StatusCode: error.StatusCode,
-              // @ts-ignore
+              // @ts-expect-error type issue
               message: error.message,
-              // @ts-ignore
+              // @ts-expect-error type issue
               isWSFailure: error.isWSFailure,
             }),
           );
@@ -288,7 +288,7 @@ export class StableWSConnection {
       this._log(`_connect() - waiting for token`);
       await this.client.tokenManager.tokenReady();
       isTokenReady = true;
-    } catch (e) {
+    } catch {
       // token provider has failed before, so try again
     }
 
@@ -323,7 +323,7 @@ export class StableWSConnection {
     } catch (err) {
       this.client._setupConnectionIdPromise();
       this.isConnecting = false;
-      // @ts-ignore
+      // @ts-expect-error type issue
       this._log(`_connect() - Error - `, err);
       this.client.rejectConnectionId?.(err);
       throw err;
@@ -543,13 +543,13 @@ export class StableWSConnection {
         `WS connection reject with error ${event.reason}`,
       );
 
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.reason = event.reason;
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.code = event.code;
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.wasClean = event.wasClean;
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.target = event.target;
 
       this.rejectConnectionOpen?.(error);
@@ -665,7 +665,7 @@ export class StableWSConnection {
 
     try {
       this?.ws?.close();
-    } catch (e) {
+    } catch {
       // we don't care
     }
   }
@@ -704,7 +704,7 @@ export class StableWSConnection {
       // try to send on the connection
       try {
         this.ws?.send(JSON.stringify(data));
-      } catch (e) {
+      } catch {
         // error will already be detected elsewhere
       }
     }, this.pingInterval);

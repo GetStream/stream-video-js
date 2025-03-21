@@ -88,10 +88,8 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 
   /**
    * Overrides the default `select` method to throw an error.
-   *
-   * @param deviceId ignored.
    */
-  async select(deviceId: string | undefined): Promise<void> {
+  async select(): Promise<void> {
     throw new Error('This method is not supported in for Screen Share');
   }
 }

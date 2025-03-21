@@ -23,7 +23,7 @@ export class BrowserPermission {
     const signal = this.disposeController.signal;
 
     this.ready = (async () => {
-      const assumeGranted = (error?: unknown) => {
+      const assumeGranted = () => {
         this.setState('prompt');
       };
 
@@ -43,7 +43,8 @@ export class BrowserPermission {
           });
         }
       } catch (err) {
-        assumeGranted(err);
+        this.logger('debug', 'Failed to query permission status', err);
+        assumeGranted();
       }
     })();
   }

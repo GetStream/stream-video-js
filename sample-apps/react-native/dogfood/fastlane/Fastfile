@@ -1,5 +1,4 @@
 skip_docs
-video_buddy_port = 7654
 metro_port = 8081
 build_dir = 'dist'
 bundle_id = 'io.getstream.rnvideosample'
@@ -58,15 +57,6 @@ end
 
 lane :rubocop do
   sh('bundle exec rubocop')
-end
-
-lane :start_video_buddy do
-  sh('stream-video-buddy auth')
-  sh('node ../e2e/js/server.js > video-buddy-log.txt 2>&1 &')
-end
-
-lane :stop_video_buddy do
-  sh("lsof -t -i:#{video_buddy_port} | xargs kill -s INT || true")
 end
 
 lane :stop_metro do
@@ -187,42 +177,6 @@ def first_iphone_udid
   return iphone_udid # Return the UDID, or nil if not found
 end
 
-lane :test_ios do |options|
-  start_video_buddy
-
-  udid = iphone_udid
-
-  unless options[:skip_install]
-    app = build_app_for_ios_simulator(
-      scheme: 'StreamReactNativeVideoSDKSample',
-      workspace: 'ios/StreamReactNativeVideoSDKSample.xcworkspace',
-      configuration: 'Release',
-      output_directory: build_dir
-    )
-    sh("xcrun simctl install #{udid} #{app}")
-  end
-
-  Dir.chdir('..') do
-    # Record simulator screen using codec h264
-    sh("xcrun simctl io #{udid} recordVideo --codec h264 --force fastlane/video.mp4 > fastlane/recording.log 2>&1 &")
-    # Record simulator log in compact style
-    sh("xcrun simctl spawn #{udid} log stream --style compact > fastlane/device.log 2>&1 &")
-
-    sh('maestro test e2e/test.yaml')
-  ensure
-    `pgrep simctl`.strip.split("\n").each { |pid| sh("kill -s INT #{pid} || true") }
-    sh('maestro hierarchy > fastlane/hierarchy.json || true')
-    [
-      'recording.log',
-      'hierarchy.json',
-      'device.log',
-      'video.mp4'
-    ].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
-    stop_video_buddy
-    stop_metro
-  end
-end
-
 lane :deploy_ios do
   upload_to_testflight(
     api_key: app_store_connect_api_key,
@@ -272,45 +226,6 @@ lane :build_android_play_store do
 
   Dir.chdir('..') do
     sh("mkdir -p #{build_dir} && mv -f #{lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]} #{build_dir}/app.aab && mv -f #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} #{build_dir}/app.apk")
-  end
-end
-
-lane :test_android do |options|
-  build_android_play_store unless is_ci || options[:skip_install]
-
-  start_video_buddy
-
-  wait_android_emu_idle(load_threshold: 1, timeout: 2200) if is_ci
-
-  emulator_status = -> { sh('adb devices').include?('emulator') }
-
-  Dir.chdir('..') do
-    unless options[:skip_install]
-      sh("adb uninstall #{$bundle_id} >/dev/null || true")
-      sh("adb install #{build_dir}/app.apk")
-    end
-
-    sh('adb logcat -c || true') if emulator_status.call
-
-    # Record emulator screen using codec h264
-    # adb limits the recording to 3 minutes, so we bypass this by redirecting the stream to ffmpeg tool
-    video_group_pid = Process.spawn('adb shell "while true; do screenrecord --output-format=h264 -; done" | ' \
-                                    'ffmpeg -y -i - fastlane/video.mp4 > fastlane/recording.log 2>&1 &', pgroup: true)
-    video_pid = `pgrep -g #{Process.getpgid(video_group_pid)}`.split.map(&:to_i).first
-
-    sh('maestro test e2e/test.yaml')
-  ensure
-    sh("kill -s INT #{video_pid} || true")
-    sh('adb logcat -d > fastlane/device.log || true') if emulator_status.call
-    sh('maestro hierarchy > fastlane/hierarchy.json || true')
-    [
-      'recording.log',
-      'hierarchy.json',
-      'device.log',
-      'video.mp4'
-    ].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
-    stop_video_buddy
-    stop_metro
   end
 end
 

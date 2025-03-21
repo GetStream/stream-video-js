@@ -52,11 +52,11 @@ describe('CallParticipantsSpotlight', () => {
       />,
       {
         call,
-      }
+      },
     );
 
     expect(
-      await screen.findByTestId(ComponentTestIds.PARTICIPANT_SCREEN_SHARING)
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_SCREEN_SHARING),
     ).toBeVisible();
   });
 
@@ -89,16 +89,16 @@ describe('CallParticipantsSpotlight', () => {
       />,
       {
         call,
-      }
+      },
     );
 
     expect(
-      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT)
+      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT),
     ).toBeVisible();
 
     // Since it has a screen share and thereby spotlight, we should render the flatlist even with 2 participants
     expect(
-      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_LIST)
+      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_LIST),
     ).toBeVisible();
   });
 });

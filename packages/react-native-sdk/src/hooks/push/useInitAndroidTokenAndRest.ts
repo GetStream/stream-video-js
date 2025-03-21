@@ -26,7 +26,7 @@ export const useInitAndroidTokenAndRest = () => {
       getLogger(['useInitAndroidTokenAndRest'])(
         'warn',
         'Error in initializing android push token',
-        error
+        error,
       );
     });
     return () => {

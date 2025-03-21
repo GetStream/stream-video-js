@@ -217,6 +217,7 @@ export const getAudioStream = async (
     return await getStream(constraints);
   } catch (error) {
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -259,6 +260,7 @@ export const getVideoStream = async (
     return await getStream(constraints);
   } catch (error) {
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -333,7 +335,7 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
   });
   // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
   if (typeof stream.release === 'function') {
-    // @ts-expect-error
+    // @ts-expect-error - release() is present in react-native-webrtc
     stream.release();
   }
 };

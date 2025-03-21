@@ -62,7 +62,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     });
     setClient(_client);
 
-    // @ts-ignore - for debugging
     window.client = _client;
 
     return () => {
@@ -78,7 +77,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     const _call = client?.call(callType, callId);
     setCall(_call);
 
-    // @ts-ignore - for debugging
     window.call = _call;
 
     return () => {

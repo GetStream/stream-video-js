@@ -73,7 +73,7 @@ describe('MicrophoneManager React Native', () => {
 
   it(`should start sound detection if mic is disabled`, async () => {
     await manager.enable();
-    // @ts-expect-error
+    // @ts-expect-error - private method
     vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     await manager.disable();
 
@@ -109,7 +109,7 @@ describe('MicrophoneManager React Native', () => {
     await manager.enable();
     await manager.disable();
 
-    // @ts-expect-error
+    // @ts-expect-error private method
     vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([]);
 
@@ -122,7 +122,7 @@ describe('MicrophoneManager React Native', () => {
 
     manager['call'].state.setOwnCapabilities([]);
 
-    // @ts-expect-error
+    // @ts-expect-error - private method
     vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
@@ -139,7 +139,7 @@ describe('MicrophoneManager React Native', () => {
             enable = () => {};
             disable = () => {};
             dispose = () => Promise.resolve(undefined);
-            toFilter = () => async (ms: MediaStream) => ms;
+            toFilter = () => (ms: MediaStream) => ({ output: ms });
             on = () => () => {};
             off = () => {};
           })(),

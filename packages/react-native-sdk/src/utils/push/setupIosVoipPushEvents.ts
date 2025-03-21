@@ -7,7 +7,7 @@ import { getLogger } from '@stream-io/video-client';
 import { StreamVideoConfig } from '../StreamVideoRN/types';
 
 export function setupIosVoipPushEvents(
-  pushConfig: NonNullable<StreamVideoConfig['push']>
+  pushConfig: NonNullable<StreamVideoConfig['push']>,
 ) {
   if (Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
     return;
@@ -17,7 +17,7 @@ export function setupIosVoipPushEvents(
     // TODO: remove this check and find a better way once we have telecom integration for android
     logger(
       'debug',
-      'android incomingCallChannel is not defined, so skipping the setupIosVoipPushEvents'
+      'android incomingCallChannel is not defined, so skipping the setupIosVoipPushEvents',
     );
     return;
   }
@@ -30,7 +30,7 @@ export function setupIosVoipPushEvents(
   setPushLogoutCallback(async () => {
     getLogger(['setPushLogoutCallback'])(
       'debug',
-      'notification event listener removed'
+      'notification event listener removed',
     );
     voipPushNotification.removeEventListener('notification');
   });

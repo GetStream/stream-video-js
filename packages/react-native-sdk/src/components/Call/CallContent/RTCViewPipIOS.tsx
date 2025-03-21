@@ -8,7 +8,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useMemo } from 'react';
 import { findNodeHandle } from 'react-native';
-import { RTCViewPipNative, onNativeCallClosed } from './RTCViewPipNative';
+import { onNativeCallClosed, RTCViewPipNative } from './RTCViewPipNative';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
@@ -26,7 +26,7 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
 
   const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
     (participant) =>
-      includeLocalParticipantVideo ? true : !participant.isLocalParticipant
+      includeLocalParticipantVideo ? true : !participant.isLocalParticipant,
   );
 
   // show the dominant remote speaker in PiP mode
@@ -59,7 +59,7 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
     const unsubFunc = call?.on('call.ended', () => {
       getLogger(['RTCViewPipIOS'])(
         'debug',
-        `onCallClosed due to call.ended event`
+        `onCallClosed due to call.ended event`,
       );
       unsubFunc?.();
       onCallClosed();
@@ -68,7 +68,7 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
       if (state === CallingState.LEFT || state === CallingState.IDLE) {
         getLogger(['RTCViewPipIOS'])(
           'debug',
-          `onCallClosed due to callingState: ${state}`
+          `onCallClosed due to callingState: ${state}`,
         );
         subscription?.unsubscribe();
         onCallClosed();
@@ -99,5 +99,7 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
 
   return <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />;
 });
+
+RTCViewPipIOS.displayName = 'RTCViewPipIOS';
 
 export default RTCViewPipIOS;

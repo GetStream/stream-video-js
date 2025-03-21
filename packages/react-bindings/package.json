@@ -1,7 +1,6 @@
 {
   "name": "@stream-io/video-react-bindings",
   "version": "1.5.9",
-  "packageManager": "yarn@3.2.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
@@ -34,8 +33,8 @@
     "@stream-io/video-client": "workspace:^",
     "@types/react": "^18.3.2",
     "react": "^18.3.1",
-    "rimraf": "^5.0.7",
-    "rollup": "^4.34.7",
-    "typescript": "^5.5.2"
+    "rimraf": "^6.0.1",
+    "rollup": "^4.36.0",
+    "typescript": "^5.8.2"
   }
 }

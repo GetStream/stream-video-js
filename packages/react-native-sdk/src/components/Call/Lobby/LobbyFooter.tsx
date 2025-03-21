@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { type LobbyProps } from './Lobby';
-import { View, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Lock } from '../../../icons/Lock';
@@ -92,6 +92,6 @@ const useStyles = () => {
           fontWeight: '400',
         },
       }),
-    [theme]
+    [theme],
   );
 };

@@ -51,9 +51,9 @@ await call.camera.enable();
 await call.microphone.disableSpeakingWhileMutedNotification();
 await call.microphone.enable();
 
-// @ts-ignore
+// @ts-expect-error - expose call and client for debugging
 window.call = call;
-// @ts-ignore
+// @ts-expect-error - expose call and client for debugging
 window.client = client;
 
 call.screenShare.enableScreenShareAudio();

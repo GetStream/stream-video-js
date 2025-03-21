@@ -31,6 +31,6 @@ const useStyles = () => {
           justifyContent: 'space-evenly',
         },
       }),
-    [theme]
+    [theme],
   );
 };

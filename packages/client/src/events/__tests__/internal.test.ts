@@ -18,7 +18,7 @@ describe('internal events', () => {
     const state = new CallState();
     const dispatcher = new Dispatcher();
     state.setParticipants([
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       { sessionId: 'session-1', connectionQuality: ConnectionQuality.POOR },
     ]);
 
@@ -27,7 +27,7 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'connectionQualityChanged',
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         connectionQualityChanged: {
           connectionQualityUpdates: [
             {
@@ -57,13 +57,8 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'healthCheckResponse',
-        // @ts-expect-error
-        healthCheckResponse: {
-          participantCount: {
-            total: 5,
-            anonymous: 2,
-          },
-        },
+        // @ts-expect-error incomplete data
+        healthCheckResponse: { participantCount: { total: 5, anonymous: 2 } },
       },
     });
     expect(state.participantCount).toBe(5);
@@ -83,7 +78,7 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'error',
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         error: { code: ErrorCode.LIVE_ENDED },
       },
     });
@@ -103,7 +98,7 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'error',
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         error: { code: ErrorCode.LIVE_ENDED },
       },
     });
@@ -113,9 +108,9 @@ describe('internal events', () => {
   it('handles pinUpdated', () => {
     const state = new CallState();
     state.setParticipants([
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       { userId: 'u1', sessionId: 'session-1', pin: { isLocalPin: false } },
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       { userId: 'u2', sessionId: 'session-2', pin: { isLocalPin: false } },
     ]);
     const update = watchPinsUpdated(state);

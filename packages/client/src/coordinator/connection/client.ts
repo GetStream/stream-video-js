@@ -492,7 +492,7 @@ export class StreamClient {
       // we need to wait for presence of connection id before making requests
       try {
         await this.connectionIdPromise;
-      } catch (e) {
+      } catch {
         // in case connection id was rejected
         // reconnection maybe in progress
         // we can wait for healthy connection to resolve, which rejects when 15s timeout is reached
@@ -529,7 +529,6 @@ export class StreamClient {
       this._logApiResponse<T>(type, url, response);
       this.consecutiveFailures = 0;
       return this.handleResponse(response);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any /**TODO: generalize error types  */) {
       e.client_request_id = requestConfig.headers?.['x-client-request-id'];
       this.consecutiveFailures += 1;
@@ -549,7 +548,7 @@ export class StreamClient {
         return this.handleResponse(e.response);
       } else {
         this._logApiError(type, url, e);
-        // eslint-disable-next-line no-throw-literal
+
         throw e as AxiosError<APIErrorResponse>;
       }
     }

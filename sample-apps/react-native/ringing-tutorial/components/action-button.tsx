@@ -1,12 +1,9 @@
-import { type PressableProps, Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, type PressableProps, StyleSheet, Text } from 'react-native';
 
 type ActionButtonProps = PressableProps & {
   action: string;
 };
-export const ActionButton: React.FC<ActionButtonProps> = ({
-  action,
-  ...rest
-}) => {
+export const ActionButton = ({ action, ...rest }: ActionButtonProps) => {
   return (
     <Pressable
       {...rest}

@@ -84,14 +84,16 @@ export const ViewerHeader = (props: { hls?: HLS }) => {
 };
 
 const SettingsButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  ({ menuShown }, ref) => (
-    <IconButton
-      className={clsx('str-video__device-settings__button', {
-        'str-video__device-settings__button--active': menuShown,
-      })}
-      title="Select quality"
-      icon="device-settings"
-      ref={ref}
-    />
-  ),
+  function SettingsButton({ menuShown }, ref) {
+    return (
+      <IconButton
+        className={clsx('str-video__device-settings__button', {
+          'str-video__device-settings__button--active': menuShown,
+        })}
+        title="Select quality"
+        icon="device-settings"
+        ref={ref}
+      />
+    );
+  },
 );

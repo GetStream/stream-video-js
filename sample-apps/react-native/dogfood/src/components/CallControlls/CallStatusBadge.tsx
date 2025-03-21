@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { RecordCall } from '../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { useTheme } from '@stream-io/video-react-native-sdk';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
 
 const formatTime = (seconds: number) => {
   const date = new Date(0);
@@ -64,7 +63,7 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
     ? 'Stopping recording...'
     : 'Recording in progress...';
 
-  let text = isAwaitingResponse ? recordingMessage : elapsed;
+  const text = isAwaitingResponse ? recordingMessage : elapsed;
   const showRecordingIcon = isCallRecordingInProgress || isAwaitingResponse;
   const styles = useStyles(isAwaitingResponse, showRecordingIcon);
 

@@ -24,9 +24,9 @@
     "@sentry/vite-plugin": "^2.23.0",
     "@types/react": "^18.3.2",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.1.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "nanoid": "^5.0.4",
-    "typescript": "^5.5.2",
-    "vite": "^5.4.6"
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2"
   }
 }

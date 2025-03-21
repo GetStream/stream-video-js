@@ -30,7 +30,7 @@ export function setPushConfig() {
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to open the call',
+        getBody: () => 'Tap to open the call',
       },
     },
     createStreamVideoClient,

@@ -29,7 +29,7 @@ a=rtcp-fb:96 nack pli
 describe('sdp', () => {
   it('should extract mid from transceiver', () => {
     const transceiver = new RTCRtpTransceiver();
-    // @ts-ignore - mid is a readonly property
+    // @ts-expect-error - mid is a readonly property
     transceiver.mid = '10';
     expect(extractMid(transceiver, -1, '')).toBe('10');
   });
@@ -40,7 +40,7 @@ describe('sdp', () => {
 
   it('should extract mid from SDP', () => {
     const track = new MediaStreamTrack();
-    // @ts-ignore - id is a readonly property
+    // @ts-expect-error - id is a readonly property
     track.id = '8d240fd6-26a1-40f6-a769-4d7d24cfd286';
     const transceiver = new RTCRtpTransceiver();
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
@@ -50,7 +50,7 @@ describe('sdp', () => {
 
   it('should fallback to transceiverInitIndex when mid can not be found in SDP', () => {
     const track = new MediaStreamTrack();
-    // @ts-ignore - id is a readonly property
+    // @ts-expect-error - id is a readonly property
     track.id = 'not-known';
     const transceiver = new RTCRtpTransceiver();
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);

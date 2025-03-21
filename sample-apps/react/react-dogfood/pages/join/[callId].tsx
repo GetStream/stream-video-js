@@ -95,7 +95,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     });
     setClient(_client);
 
-    // @ts-ignore - for debugging
     window.client = _client;
 
     return () => {
@@ -103,7 +102,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         .disconnectUser()
         .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
-      // @ts-ignore - for debugging
+
       window.client = undefined;
     };
   }, [apiKey, tokenProvider, user, userToken]);
@@ -124,14 +123,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     const _call = client.call(callType, callId);
     setCall(_call);
 
-    // @ts-ignore - for debugging
     window.call = _call;
 
     return () => {
       if (_call.state.callingState !== CallingState.LEFT) {
         _call.leave().catch((e) => console.error('Failed to leave call', e));
         setCall(undefined);
-        // @ts-ignore - for debugging
+
         window.call = undefined;
       }
     };

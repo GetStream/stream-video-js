@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
+  Animated,
+  Easing,
   type LayoutRectangle,
   Pressable,
   StyleSheet,
-  Animated,
-  Easing,
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { type SendReactionRequest, getLogger } from '@stream-io/video-client';
+import { getLogger, type SendReactionRequest } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import type { ReactionsButtonProps } from '../ReactionsButton';
@@ -187,6 +187,6 @@ const useStyles = () => {
           fontSize: 18.5,
         },
       }),
-    [theme]
+    [theme],
   );
 };

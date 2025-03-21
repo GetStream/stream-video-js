@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -12,11 +12,11 @@ import {
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import {
+  MemberRequest,
   useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { MemberRequest } from '@stream-io/video-client';
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';

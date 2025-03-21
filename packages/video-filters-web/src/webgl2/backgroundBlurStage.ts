@@ -74,8 +74,8 @@ function buildBlurPass(
   const offset = new Array<number>(windowSize).fill(0).map((v, index) => index);
   const variance = sigma ** 2;
   const weights = offset.map((x) => {
-    var m = sigma * Math.sqrt(2 * Math.PI);
-    var e = Math.exp(-(x ** 2) / (2 * variance));
+    const m = sigma * Math.sqrt(2 * Math.PI);
+    const e = Math.exp(-(x ** 2) / (2 * variance));
     return e / m;
   });
 

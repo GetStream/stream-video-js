@@ -1,6 +1,5 @@
-import type { Config } from 'jest';
-
-const config: Config = {
+/** @typedef {import('jest').Config} */
+const config = {
   preset: 'react-native',
   setupFilesAfterEnv: [
     '<rootDir>/jest-setup.ts',
