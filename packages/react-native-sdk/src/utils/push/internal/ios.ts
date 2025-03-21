@@ -56,9 +56,10 @@ export const onVoipNotificationReceived = async (
   const callFromPush = await client.onRingingCall(call_cid);
   let uuid = '';
   try {
-    uuid = await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
-      call_cid,
-    );
+    uuid =
+      await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
+        call_cid,
+      );
   } catch (error) {
     logger('error', 'Error in getting call uuid from native module', error);
   }
