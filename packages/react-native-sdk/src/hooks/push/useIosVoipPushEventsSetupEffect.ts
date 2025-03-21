@@ -2,7 +2,8 @@ import { type MutableRefObject, useEffect, useRef, useState } from 'react';
 import { getVoipPushNotificationLib } from '../../utils/push/libs';
 
 import { Platform } from 'react-native';
-import { onVoipNotificationReceived, StreamVideoRN } from '../../utils';
+import { StreamVideoRN } from '../../utils';
+import { onVoipNotificationReceived } from '../../utils/push/internal/ios';
 import {
   useConnectedUser,
   useStreamVideoClient,
@@ -86,7 +87,15 @@ export const useIosVoipPushEventsSetupEffect = () => {
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     const pushProviderName = pushConfig?.ios.pushProviderName;
-    if (Platform.OS !== 'ios' || !pushConfig || !client || !pushProviderName) {
+    if (Platform.OS !== 'ios' || !client || !pushProviderName) {
+      return;
+    }
+    if (!pushConfig.android.incomingCallChannel) {
+      // TODO: remove this check and find a better way once we have telecom integration for android
+      getLogger(['useIosVoipPushEventsSetupEffect'])(
+        'debug',
+        'android incomingCallChannel is not defined, so skipping the useIosVoipPushEventsSetupEffect',
+      );
       return;
     }
     if (!pushConfig.android.incomingCallChannel) {
@@ -169,7 +178,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
         if (name === 'RNVoipPushRemoteNotificationsRegisteredEvent') {
           onTokenReceived(data);
         } else if (name === 'RNVoipPushRemoteNotificationReceivedEvent') {
-          onVoipNotificationReceived(data);
+          onVoipNotificationReceived(data, pushConfig);
         }
       }
     });
