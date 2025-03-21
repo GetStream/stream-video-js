@@ -111,7 +111,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/eslint-parser@npm:^7.16.3, @babel/eslint-parser@npm:^7.20.0, @babel/eslint-parser@npm:^7.25.1":
+"@babel/eslint-parser@npm:^7.16.3, @babel/eslint-parser@npm:^7.25.1":
   version: 7.25.9
   resolution: "@babel/eslint-parser@npm:7.25.9"
   dependencies:
@@ -6135,15 +6135,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/babel-plugin-codegen@npm:0.73.4":
-  version: 0.73.4
-  resolution: "@react-native/babel-plugin-codegen@npm:0.73.4"
-  dependencies:
-    "@react-native/codegen": 0.73.3
-  checksum: b32651c29d694a530390347c06fa09cfbc0189bddb3ccdbe47caa050e2e909ea0e4e32182b1a2c12fb73e9b8f352da9f3c239fb77e6e892c59c297371758f53a
-  languageName: node
-  linkType: hard
-
 "@react-native/babel-plugin-codegen@npm:0.74.83":
   version: 0.74.83
   resolution: "@react-native/babel-plugin-codegen@npm:0.74.83"
@@ -6279,7 +6270,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/babel-preset@npm:0.76.7":
+"@react-native/babel-preset@npm:0.76.7, @react-native/babel-preset@npm:^0.76":
   version: 0.76.7
   resolution: "@react-native/babel-preset@npm:0.76.7"
   dependencies:
@@ -6331,75 +6322,6 @@ __metadata:
   peerDependencies:
     "@babel/core": "*"
   checksum: 29b48f80d32839d03f17d938e3f2b34f213d6ac3155de9556016132d4e3b9d55ce2b3d18fcd596ba6507f6bbe64174a76c5e94cc3737b39f00467c455de6b2d4
-  languageName: node
-  linkType: hard
-
-"@react-native/babel-preset@npm:^0.73":
-  version: 0.73.21
-  resolution: "@react-native/babel-preset@npm:0.73.21"
-  dependencies:
-    "@babel/core": ^7.20.0
-    "@babel/plugin-proposal-async-generator-functions": ^7.0.0
-    "@babel/plugin-proposal-class-properties": ^7.18.0
-    "@babel/plugin-proposal-export-default-from": ^7.0.0
-    "@babel/plugin-proposal-nullish-coalescing-operator": ^7.18.0
-    "@babel/plugin-proposal-numeric-separator": ^7.0.0
-    "@babel/plugin-proposal-object-rest-spread": ^7.20.0
-    "@babel/plugin-proposal-optional-catch-binding": ^7.0.0
-    "@babel/plugin-proposal-optional-chaining": ^7.20.0
-    "@babel/plugin-syntax-dynamic-import": ^7.8.0
-    "@babel/plugin-syntax-export-default-from": ^7.0.0
-    "@babel/plugin-syntax-flow": ^7.18.0
-    "@babel/plugin-syntax-nullish-coalescing-operator": ^7.0.0
-    "@babel/plugin-syntax-optional-chaining": ^7.0.0
-    "@babel/plugin-transform-arrow-functions": ^7.0.0
-    "@babel/plugin-transform-async-to-generator": ^7.20.0
-    "@babel/plugin-transform-block-scoping": ^7.0.0
-    "@babel/plugin-transform-classes": ^7.0.0
-    "@babel/plugin-transform-computed-properties": ^7.0.0
-    "@babel/plugin-transform-destructuring": ^7.20.0
-    "@babel/plugin-transform-flow-strip-types": ^7.20.0
-    "@babel/plugin-transform-function-name": ^7.0.0
-    "@babel/plugin-transform-literals": ^7.0.0
-    "@babel/plugin-transform-modules-commonjs": ^7.0.0
-    "@babel/plugin-transform-named-capturing-groups-regex": ^7.0.0
-    "@babel/plugin-transform-parameters": ^7.0.0
-    "@babel/plugin-transform-private-methods": ^7.22.5
-    "@babel/plugin-transform-private-property-in-object": ^7.22.11
-    "@babel/plugin-transform-react-display-name": ^7.0.0
-    "@babel/plugin-transform-react-jsx": ^7.0.0
-    "@babel/plugin-transform-react-jsx-self": ^7.0.0
-    "@babel/plugin-transform-react-jsx-source": ^7.0.0
-    "@babel/plugin-transform-runtime": ^7.0.0
-    "@babel/plugin-transform-shorthand-properties": ^7.0.0
-    "@babel/plugin-transform-spread": ^7.0.0
-    "@babel/plugin-transform-sticky-regex": ^7.0.0
-    "@babel/plugin-transform-typescript": ^7.5.0
-    "@babel/plugin-transform-unicode-regex": ^7.0.0
-    "@babel/template": ^7.0.0
-    "@react-native/babel-plugin-codegen": 0.73.4
-    babel-plugin-transform-flow-enums: ^0.0.2
-    react-refresh: ^0.14.0
-  peerDependencies:
-    "@babel/core": "*"
-  checksum: 111b09b211e12723fde6655b8dfe70344ed8105fa24305ddc82531a98b97c294fd572d33445464ac043b72d033d5421975a11692bcbef1bb047215e3fabb258a
-  languageName: node
-  linkType: hard
-
-"@react-native/codegen@npm:0.73.3":
-  version: 0.73.3
-  resolution: "@react-native/codegen@npm:0.73.3"
-  dependencies:
-    "@babel/parser": ^7.20.0
-    flow-parser: ^0.206.0
-    glob: ^7.1.1
-    invariant: ^2.2.4
-    jscodeshift: ^0.14.0
-    mkdirp: ^0.5.1
-    nullthrows: ^1.1.1
-  peerDependencies:
-    "@babel/preset-env": ^7.1.6
-  checksum: 08984813003ce58c2904c837c89605cc3161e93a704f3b8a0ee1593088dbbd7bcda9b867c1b21ec4f217f71df9de21b25ce35a3f2df9587f6c73763504a4d014
   languageName: node
   linkType: hard
 
@@ -6629,34 +6551,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/eslint-config@npm:^0.74.84":
-  version: 0.74.84
-  resolution: "@react-native/eslint-config@npm:0.74.84"
+"@react-native/eslint-config@npm:^0.76":
+  version: 0.76.7
+  resolution: "@react-native/eslint-config@npm:0.76.7"
   dependencies:
-    "@babel/core": ^7.20.0
-    "@babel/eslint-parser": ^7.20.0
-    "@react-native/eslint-plugin": 0.74.84
+    "@babel/core": ^7.25.2
+    "@babel/eslint-parser": ^7.25.1
+    "@react-native/eslint-plugin": 0.76.7
     "@typescript-eslint/eslint-plugin": ^7.1.1
     "@typescript-eslint/parser": ^7.1.1
     eslint-config-prettier: ^8.5.0
     eslint-plugin-eslint-comments: ^3.2.0
     eslint-plugin-ft-flow: ^2.0.1
     eslint-plugin-jest: ^27.9.0
-    eslint-plugin-prettier: ^4.2.1
     eslint-plugin-react: ^7.30.1
     eslint-plugin-react-hooks: ^4.6.0
     eslint-plugin-react-native: ^4.0.0
   peerDependencies:
     eslint: ">=8"
     prettier: ">=2"
-  checksum: 768dce084fffd8858bfba5cb1c34a38316444865ea22cb98c4dbb3dd353f3c2ff63f48b10fe3a2e41d1b62a9c15909a8baecf717fba12a9e718062d231c16ec8
-  languageName: node
-  linkType: hard
-
-"@react-native/eslint-plugin@npm:0.74.84":
-  version: 0.74.84
-  resolution: "@react-native/eslint-plugin@npm:0.74.84"
-  checksum: 0333118169c42b5386373f1ccd2e32deeaf1d6607c0946da430d0ecb9460dd0908100a89a4aa8ec4ad25d324ae72a573a8910e4dd606954365073e85335865a0
+  checksum: be8baaceb489a1f84757a156038d493c7a96ce8d356e70eda24b015cd2786a0a9a6e3db809932cbe64e9d0d063337a299ed8859c473c4c5cc6250755561305c6
   languageName: node
   linkType: hard
 
@@ -6664,6 +6578,13 @@ __metadata:
   version: 0.76.2
   resolution: "@react-native/eslint-plugin@npm:0.76.2"
   checksum: 1345bd30b7183667dccf81d394046559c5591260167092c8f6904c64c36829ec5a0d25d8855a834797ed9a6dda8dc89870dbe01b2077735c02eaa6c6ee6a3839
+  languageName: node
+  linkType: hard
+
+"@react-native/eslint-plugin@npm:0.76.7":
+  version: 0.76.7
+  resolution: "@react-native/eslint-plugin@npm:0.76.7"
+  checksum: 45e3d9714777cc3fd61e4613c72c93bafd1acd713dcd2def4fd769c01324c9ab42bea3a0b63092059d6530f442f0c4e8c717daacb48957b18f3e88ea5d911c67
   languageName: node
   linkType: hard
 
@@ -8157,8 +8078,8 @@ __metadata:
     "@react-native-community/push-notification-ios": 1.11.0
     "@react-native-firebase/app": ^21.12.0
     "@react-native-firebase/messaging": ^21.12.0
-    "@react-native/babel-preset": ^0.73
-    "@react-native/eslint-config": ^0.74.84
+    "@react-native/babel-preset": ^0.76
+    "@react-native/eslint-config": ^0.76
     "@stream-io/react-native-webrtc": ^125.0.7
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
@@ -8169,7 +8090,6 @@ __metadata:
     "@types/jest": ^29.5.1
     "@types/lodash.merge": ^4
     "@types/react": ^18.2.44
-    "@types/react-native": ^0.70.4
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18
     expo: 52.0.38
@@ -8897,15 +8817,6 @@ __metadata:
     "@react-native/virtualized-lists": ^0.72.4
     "@types/react": "*"
   checksum: b2915594381365ea379cb46b9a65219c6b6c7446d97d15f4da9615b8f180972bacba7cae584f4a8f83cce3a180f8a9a08a9c6b57081b37e2543f23f5717693d4
-  languageName: node
-  linkType: hard
-
-"@types/react-native@npm:^0.70.4":
-  version: 0.70.13
-  resolution: "@types/react-native@npm:0.70.13"
-  dependencies:
-    "@types/react": "*"
-  checksum: 2ff157f24b5e7c3c3bf22556b4ea206029e0f4c52607c77f1ff0f91228478e11b6cd4b76322db8ea0be3d118b39b0bde7893e43013fff3e3191866a064857d8c
   languageName: node
   linkType: hard
 
@@ -15467,7 +15378,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"flow-parser@npm:0.*, flow-parser@npm:^0.206.0":
+"flow-parser@npm:0.*":
   version: 0.206.0
   resolution: "flow-parser@npm:0.206.0"
   checksum: 1b87d87b59815b09852a6981543ad222da7f4d0e0c26702f9d5e0065174f5f64d2563db76d07a487c6b55e1979344e3845ac42929db70f77a82e8c9171a62a86
