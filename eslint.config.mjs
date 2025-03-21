@@ -4,7 +4,6 @@ import tsEsLint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
-import prettierPlugin from 'eslint-plugin-prettier';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -18,7 +17,6 @@ export default [
   {
     plugins: {
       import: importPlugin,
-      prettier: prettierPlugin,
       'react-hooks': reactHooksPlugin,
     },
     settings: {
@@ -39,7 +37,6 @@ export default [
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
       'import/no-extraneous-dependencies': 'error',
-      'prettier/prettier': 'error',
       'react/no-children-prop': 'off',
       'react/no-unescaped-entities': 'off',
       'react/react-in-jsx-scope': 'off',

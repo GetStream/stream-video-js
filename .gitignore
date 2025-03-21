@@ -17,6 +17,7 @@ dist
 .vscode
 .idea
 .env
+.husky
 .nx
 .eslintcache
 

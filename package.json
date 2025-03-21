@@ -37,10 +37,10 @@
     "build:libs": "yarn workspaces foreach --all -v --topological-dev --no-private run build",
     "clean:all": "yarn workspaces foreach --all -vt run clean",
     "lint:all": "yarn lint:packages && yarn lint:sample-apps",
-    "lint:packages": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
-    "lint:sample-apps": "eslint --cache --fix 'sample-apps/**/*.{ts,tsx}'",
-    "lint:ci:all": "eslint --max-warnings=0 --cache 'packages/**/*.{ts,tsx}'",
-    "lint:ci:packages": "eslint --max-warnings=0 --cache 'packages/**/*.{ts,tsx}'",
+    "lint:packages": "eslint --cache --fix 'packages/**/*.{ts,tsx}' && prettier --check 'packages/**/*.{ts,tsx}'",
+    "lint:sample-apps": "eslint --cache --fix 'sample-apps/**/*.{ts,tsx}' && prettier --check 'sample-apps/**/*.{ts,tsx}'",
+    "lint:ci:all": "eslint --max-warnings=0 --cache 'packages/**/*.{ts,tsx}' && prettier --check 'packages/**/*.{ts,tsx}'",
+    "lint:ci:packages": "eslint --max-warnings=0 --cache 'packages/**/*.{ts,tsx}' && prettier --check 'packages/**/*.{ts,tsx}'",
     "test:ci:all": "yarn workspaces foreach --all -vt run test-ci",
     "test:ci:libs": "yarn workspaces foreach --all -vt --no-private run test-ci",
     "lint:ci:client": "eslint --cache 'packages/client/**/*.{ts,tsx}'",
@@ -58,7 +58,8 @@
     "release:audio-filters-web": "yarn workspace @stream-io/audio-filters-web npm publish --access=public --tag=latest",
     "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public --tag=latest",
     "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=latest",
-    "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest"
+    "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest",
+    "postinstall": "husky install"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
@@ -70,10 +71,16 @@
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
     "nx": "20.6.1",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.2.2"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": "eslint --cache --fix",
+    "*.{js,ts,jsx,tsx,md,mdx,scss,css,html,mjs,json}": "prettier --write"
   }
 }
