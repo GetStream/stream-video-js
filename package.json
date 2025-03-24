@@ -62,12 +62,11 @@
     "postinstall": "husky install"
   },
   "devDependencies": {
-    "@eslint/js": "^9.22.0",
+    "@eslint/js": "^9.23.0",
     "@jscutlery/semver": "^5.6.0",
     "@nx/devkit": "^20.6.2",
-    "eslint": "^9.22.0",
+    "eslint": "^9.23.0",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^16.0.0",
