@@ -1,140 +1,33 @@
-import { type MutableRefObject, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type LocalDevicePreference = {
   selectedDeviceId: string;
-  muted: boolean;
+  selectedDeviceLabel: string;
+  muted?: boolean;
 };
 
-export type LocalDevicePreferences = Record<
-  'mic' | 'camera' | 'speaker',
-  LocalDevicePreference
->;
+export type LocalDevicePreferences = {
+  [type in DeviceKey]?: LocalDevicePreference;
+};
+
+type DeviceKey = 'microphone' | 'camera' | 'speaker';
+
+type DeviceState<K extends DeviceKey> = {
+  [ManagerKey in K]: DeviceManagerLike;
+} & {
+  isMute?: boolean;
+  devices: MediaDeviceInfo[];
+  selectedDevice: string | undefined;
+};
+
+interface DeviceManagerLike {
+  state: { selectedDevice: string | undefined };
+  select(deviceId: string): Promise<void> | void;
+}
 
 const defaultDevice = 'default';
-
-/**
- * This hook will persist the device settings to local storage.
- *
- * @param key the key to use for local storage.
- * @param shouldPersistRef a ref to indicate if the settings should be persisted.
- */
-const usePersistDevicePreferences = (
-  key: string,
-  shouldPersistRef: MutableRefObject<boolean>,
-) => {
-  const { useMicrophoneState, useCameraState, useSpeakerState } =
-    useCallStateHooks();
-  const call = useCall();
-  const mic = useMicrophoneState();
-  const camera = useCameraState();
-  const speaker = useSpeakerState();
-  useEffect(() => {
-    if (!shouldPersistRef.current) return;
-    if (!call) return;
-    if (call.state.callingState === CallingState.LEFT) return;
-    try {
-      const preferences: LocalDevicePreferences = {
-        mic: {
-          selectedDeviceId: mic.selectedDevice || defaultDevice,
-          muted: mic.isMute,
-        },
-        camera: {
-          selectedDeviceId: camera.selectedDevice || defaultDevice,
-          muted: camera.isMute,
-        },
-        speaker: {
-          selectedDeviceId: speaker.selectedDevice || defaultDevice,
-          muted: false,
-        },
-      };
-      window.localStorage.setItem(key, JSON.stringify(preferences));
-    } catch (err) {
-      console.warn('Failed to save device preferences', err);
-    }
-  }, [
-    call,
-    camera.isMute,
-    camera.selectedDevice,
-    key,
-    mic.isMute,
-    mic.selectedDevice,
-    speaker.selectedDevice,
-    shouldPersistRef,
-  ]);
-};
-
-/**
- * This hook will apply the device settings from local storage.
- *
- * @param key the key to use for local storage.
- * @param onApplied a callback to call when the settings are applied.
- */
-const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
-  const call = useCall();
-  const onAppliedRef = useRef(onApplied);
-  onAppliedRef.current = onApplied;
-  useEffect(() => {
-    if (!call) return;
-    if (call.state.callingState === CallingState.LEFT) return;
-
-    let cancel = false;
-
-    const apply = async () => {
-      const initMic = async (setting: LocalDevicePreference) => {
-        if (cancel) return;
-        await call.microphone.select(parseDeviceId(setting.selectedDeviceId));
-        if (cancel) return;
-        if (setting.muted) {
-          await call.microphone.disable();
-        } else {
-          await call.microphone.enable();
-        }
-      };
-
-      const initCamera = async (setting: LocalDevicePreference) => {
-        if (cancel) return;
-        await call.camera.select(parseDeviceId(setting.selectedDeviceId));
-        if (cancel) return;
-        if (setting.muted) {
-          await call.camera.disable();
-        } else {
-          await call.camera.enable();
-        }
-      };
-
-      const initSpeaker = (setting: LocalDevicePreference) => {
-        if (cancel) return;
-        call.speaker.select(parseDeviceId(setting.selectedDeviceId) ?? '');
-      };
-
-      let preferences: LocalDevicePreferences | null = null;
-      try {
-        preferences = JSON.parse(
-          window.localStorage.getItem(key)!,
-        ) as LocalDevicePreferences;
-      } catch (err) {
-        console.warn('Failed to load device preferences', err);
-      }
-      if (preferences) {
-        await initMic(preferences.mic);
-        await initCamera(preferences.camera);
-        initSpeaker(preferences.speaker);
-      }
-    };
-
-    apply()
-      .then(() => onAppliedRef.current())
-      .catch((err) => {
-        console.warn('Failed to apply device preferences', err);
-      });
-
-    return () => {
-      cancel = true;
-    };
-  }, [call, key]);
-};
 
 /**
  * This hook will apply and persist the device preferences from local storage.
@@ -143,11 +36,141 @@ const useApplyDevicePreferences = (key: string, onApplied: () => void) => {
  */
 export const usePersistedDevicePreferences = (
   key: string = '@stream-io/device-preferences',
-) => {
-  const shouldPersistRef = useRef(false);
-  useApplyDevicePreferences(key, () => (shouldPersistRef.current = true));
-  usePersistDevicePreferences(key, shouldPersistRef);
+): void => {
+  const { useCameraState, useMicrophoneState, useSpeakerState } =
+    useCallStateHooks();
+  usePersistedDevicePreference(key, 'camera', useCameraState());
+  usePersistedDevicePreference(key, 'microphone', useMicrophoneState());
+  usePersistedDevicePreference(key, 'speaker', useSpeakerState());
 };
 
-const parseDeviceId = (deviceId: string) =>
-  deviceId !== defaultDevice ? deviceId : undefined;
+const usePersistedDevicePreference = <K extends DeviceKey>(
+  key: string,
+  deviceKey: K,
+  state: DeviceState<K>,
+): void => {
+  const { useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const [applyingState, setApplyingState] = useState<
+    'idle' | 'applying' | 'applied'
+  >('idle');
+  const manager = state[deviceKey];
+
+  useEffect(
+    function apply() {
+      if (
+        callingState === CallingState.LEFT ||
+        !state.devices?.length ||
+        applyingState !== 'idle'
+      ) {
+        return;
+      }
+
+      const preferences = parseLocalDevicePreferences(key);
+      const preference = preferences[deviceKey];
+
+      setApplyingState('applying');
+
+      if (preference && !manager.state.selectedDevice) {
+        selectDevice(manager, preference, state.devices)
+          .catch((err) => {
+            console.warn(`Failed to save ${deviceKey} device preferences`, err);
+          })
+          .finally(() => setApplyingState('applied'));
+      } else {
+        setApplyingState('applied');
+      }
+    },
+    [applyingState, callingState, deviceKey, key, manager, state.devices],
+  );
+
+  useEffect(
+    function persist() {
+      if (
+        callingState === CallingState.LEFT ||
+        !state.devices?.length ||
+        applyingState !== 'applied'
+      ) {
+        return;
+      }
+
+      try {
+        patchLocalDevicePreference(key, deviceKey, {
+          devices: state.devices,
+          selectedDevice: state.selectedDevice,
+          isMute: state.isMute,
+        });
+      } catch (err) {
+        console.warn(`Failed to save ${deviceKey} device preferences`, err);
+      }
+    },
+    [
+      applyingState,
+      callingState,
+      deviceKey,
+      key,
+      state.devices,
+      state.isMute,
+      state.selectedDevice,
+    ],
+  );
+};
+
+const parseLocalDevicePreferences = (key: string): LocalDevicePreferences => {
+  const preferencesStr = window.localStorage.getItem(key);
+  let preferences: LocalDevicePreferences = {};
+
+  if (preferencesStr) {
+    try {
+      preferences = JSON.parse(preferencesStr);
+    } catch {
+      /* assume preferences are empty */
+    }
+  }
+
+  return preferences;
+};
+
+const patchLocalDevicePreference = (
+  key: string,
+  deviceKey: DeviceKey,
+  state: Pick<DeviceState<never>, 'devices' | 'selectedDevice' | 'isMute'>,
+): void => {
+  window.localStorage.setItem(
+    key,
+    JSON.stringify({
+      ...parseLocalDevicePreferences(key),
+      [deviceKey]: {
+        ...getSelectedDevicePreference(state.devices, state.selectedDevice),
+        muted: state.isMute,
+      } satisfies LocalDevicePreference,
+    }),
+  );
+};
+
+const selectDevice = async (
+  manager: DeviceManagerLike,
+  preference: LocalDevicePreference,
+  devices: MediaDeviceInfo[],
+): Promise<void> => {
+  if (preference.selectedDeviceId === defaultDevice) {
+    return;
+  }
+
+  const device =
+    devices.find((d) => d.deviceId === preference.selectedDeviceId) ??
+    devices.find((d) => d.label === preference.selectedDeviceLabel);
+
+  if (device) {
+    await manager.select(device.deviceId);
+  }
+};
+
+const getSelectedDevicePreference = (
+  devices: MediaDeviceInfo[],
+  selectedDevice: string | undefined,
+): Pick<LocalDevicePreference, 'selectedDeviceId' | 'selectedDeviceLabel'> => ({
+  selectedDeviceId: selectedDevice || defaultDevice,
+  selectedDeviceLabel:
+    devices?.find((d) => d.deviceId === selectedDevice)?.label ?? '',
+});
