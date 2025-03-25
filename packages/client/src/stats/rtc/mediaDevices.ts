@@ -1,14 +1,14 @@
 import { TraceBuffer } from './TraceBuffer';
-import { dumpStream } from './utils';
 
 export const traceBuffer = new TraceBuffer();
-const trace = traceBuffer.trace;
 
 if (
   typeof navigator !== 'undefined' &&
   typeof navigator.mediaDevices !== 'undefined'
 ) {
+  const trace = traceBuffer.trace;
   const tag = 'navigator.mediaDevices';
+
   if (navigator.mediaDevices.getUserMedia) {
     const origGetUserMedia = navigator.mediaDevices.getUserMedia;
     navigator.mediaDevices.getUserMedia = async function patchedGetUserMedia(
@@ -48,3 +48,15 @@ if (
       };
   }
 }
+
+const dumpStream = (stream: MediaStream) => ({
+  id: stream.id,
+  tracks: stream.getTracks().map((track) => ({
+    id: track.id, // unique identifier (GUID) for the track
+    kind: track.kind, // `audio` or `video`
+    label: track.label, // identified the track source
+    enabled: track.enabled, // application can control it
+    muted: track.muted, // application cannot control it (read-only)
+    readyState: track.readyState, // `live` or `ended`
+  })),
+});

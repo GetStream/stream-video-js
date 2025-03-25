@@ -3,7 +3,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
-import { traceBuffer as mediaStatsTraceBuffer } from '../rtc/stats/media';
+import { traceBuffer as mediaStatsTraceBuffer } from './rtc/mediaDevices';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {

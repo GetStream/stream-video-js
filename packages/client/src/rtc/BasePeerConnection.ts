@@ -9,8 +9,7 @@ import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { patchRTCPeerConnection } from './stats/patch';
-import { TraceBuffer } from './stats/TraceBuffer';
+import { patchRTCPeerConnection, TraceBuffer } from '../stats/rtc';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
