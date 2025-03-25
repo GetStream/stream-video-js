@@ -123,6 +123,13 @@ const parseLocalDevicePreferences = (key: string): LocalDevicePreferences => {
   if (preferencesStr) {
     try {
       preferences = JSON.parse(preferencesStr);
+
+      if (Object.hasOwn(preferences, 'mic')) {
+        // for backwards compatibility
+        preferences.microphone = (
+          preferences as { mic: LocalDevicePreference }
+        ).mic;
+      }
     } catch {
       /* assume preferences are empty */
     }
@@ -140,6 +147,7 @@ const patchLocalDevicePreference = (
     key,
     JSON.stringify({
       ...parseLocalDevicePreferences(key),
+      mic: undefined, // for backwards compatibility
       [deviceKey]: {
         ...getSelectedDevicePreference(state.devices, state.selectedDevice),
         muted: state.isMute,
