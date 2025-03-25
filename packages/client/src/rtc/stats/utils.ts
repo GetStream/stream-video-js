@@ -29,7 +29,7 @@ export const deltaCompression = (
     if (!oldStats[id]) {
       return;
     }
-    Object.keys(report).forEach(function (name) {
+    Object.keys(report).forEach((name) => {
       if (report[name] === oldStats[id][name]) {
         delete newStats[id][name];
       }
@@ -42,13 +42,13 @@ export const deltaCompression = (
   });
 
   let timestamp = -Infinity;
-  Object.keys(newStats).forEach(function (id) {
+  Object.keys(newStats).forEach((id) => {
     const report = newStats[id];
     if (report.timestamp > timestamp) {
       timestamp = report.timestamp;
     }
   });
-  Object.keys(newStats).forEach(function (id) {
+  Object.keys(newStats).forEach((id) => {
     const report = newStats[id];
     if (report.timestamp === timestamp) {
       report.timestamp = 0;

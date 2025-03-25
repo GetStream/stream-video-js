@@ -1,7 +1,3 @@
-export type PatchedRTCPeerConnection = typeof RTCPeerConnection & {
-  __rtcStatsId: string;
-};
-
 export type RTCStatsDataType =
   | RTCConfiguration
   | RTCIceCandidate

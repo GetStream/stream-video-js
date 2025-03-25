@@ -190,6 +190,7 @@ describe('Subscriber', () => {
       subscriber['pc'].createAnswer = vi
         .fn()
         .mockResolvedValue({ sdp: 'answer-sdp' });
+      vi.spyOn(subscriber['pc'], 'setRemoteDescription').mockResolvedValue();
 
       const offer = SubscriberOffer.create({ sdp: 'offer-sdp' });
       // @ts-expect-error - private method

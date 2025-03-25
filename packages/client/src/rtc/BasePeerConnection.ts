@@ -9,6 +9,8 @@ import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { patchRTCPeerConnection } from './stats/patch';
+import { TraceBuffer } from './stats/TraceBuffer';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -35,6 +37,7 @@ export abstract class BasePeerConnection {
   protected isIceRestarting = false;
   private isDisposed = false;
 
+  private readonly traceBuffer = new TraceBuffer();
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -62,6 +65,8 @@ export abstract class BasePeerConnection {
       logTag,
     ]);
     this.pc = new RTCPeerConnection(connectionConfig);
+    this.traceBuffer.trace('create', logTag, connectionConfig);
+    patchRTCPeerConnection(this.pc, logTag, this.traceBuffer.trace);
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.addEventListener(
@@ -80,6 +85,7 @@ export abstract class BasePeerConnection {
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
+    this.traceBuffer.dispose();
   }
 
   /**
@@ -161,6 +167,10 @@ export abstract class BasePeerConnection {
    */
   getStats = (selector?: MediaStreamTrack | null) => {
     return this.pc.getStats(selector);
+  };
+
+  getRtcStats = () => {
+    return this.traceBuffer.getAndFlush();
   };
 
   /**

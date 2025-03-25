@@ -3,6 +3,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
+import { traceBuffer as mediaStatsTraceBuffer } from '../rtc/stats/media';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
@@ -147,22 +148,29 @@ export class SfuStatsReporter {
     });
   };
 
-  private run = async (telemetryData?: Telemetry) => {
+  private run = async (telemetry?: Telemetry) => {
     const [subscriberStats, publisherStats] = await Promise.all([
       this.subscriber.getStats().then(flatten).then(JSON.stringify),
       this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
     ]);
+
+    const subscriberRtcStats = this.subscriber.getRtcStats();
+    const publisherRtcStats = this.publisher?.getRtcStats();
+    const mediaStats = mediaStatsTraceBuffer.getAndFlush();
+    const jointStats = [...mediaStats, ...(publisherRtcStats || [])];
 
     await this.sfuClient.sendStats({
       sdk: this.sdkName,
       sdkVersion: this.sdkVersion,
       webrtcVersion: this.webRTCVersion,
       subscriberStats,
+      subscriberRtcStats: JSON.stringify(subscriberRtcStats),
       publisherStats,
+      publisherRtcStats: JSON.stringify(jointStats),
       audioDevices: this.inputDevices.get('mic'),
       videoDevices: this.inputDevices.get('camera'),
       deviceState: getDeviceState(),
-      telemetry: telemetryData,
+      telemetry,
     });
   };
 
