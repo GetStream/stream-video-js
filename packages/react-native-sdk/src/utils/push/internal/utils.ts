@@ -127,7 +127,11 @@ export const processCallFromPush = async (
         'debug',
         `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
       );
-      await callFromPush.leave({ reject: canReject, reason: 'decline' });
+      if (canReject) {
+        await callFromPush.leave({ reject: canReject, reason: 'decline' });
+      } else {
+        await callFromPush.endCall();
+      }
     }
   } catch (e) {
     const logger = getLogger(['processCallFromPush']);

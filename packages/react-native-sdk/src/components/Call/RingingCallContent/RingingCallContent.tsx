@@ -23,6 +23,7 @@ import {
   type CallPreparingIndicatorProps,
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
+import { getLogger } from '@stream-io/video-client';
 
 /**
  * Props for the RingingCallContent component
@@ -75,6 +76,18 @@ const RingingCallPanel = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
+  const onHangupCallHandler = async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.endCall();
+    } catch (error) {
+      const logger = getLogger(['RingingCallContent']);
+      logger('error', 'Error ending Call', error);
+    }
+  };
+
   switch (callingState) {
     case CallingState.RINGING:
       return isCallCreatedByMe
@@ -91,7 +104,14 @@ const RingingCallPanel = ({
         )
       );
     default:
-      return CallContent && <CallContent landscape={landscape} />;
+      return (
+        CallContent && (
+          <CallContent
+            landscape={landscape}
+            onHangupCallHandler={onHangupCallHandler}
+          />
+        )
+      );
   }
 };
 
