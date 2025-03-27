@@ -819,6 +819,15 @@ export class Call {
   }: JoinCallData & {
     maxJoinRetries?: number;
   } = {}): Promise<void> => {
+    await this.setup();
+    const callingState = this.state.callingState;
+
+    if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
+      throw new Error(`Illegal State: call.join() shall be called only once`);
+    }
+
+    this.state.setCallingState(CallingState.JOINING);
+
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
@@ -826,6 +835,8 @@ export class Call {
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
         if (attempt === maxJoinRetries - 1) {
+          // restore the previous call state if the join-flow fails
+          this.state.setCallingState(callingState);
           throw err;
         }
       }
@@ -842,11 +853,7 @@ export class Call {
    */
   doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
-    await this.setup();
     const callingState = this.state.callingState;
-    if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
-      throw new Error(`Illegal State: call.join() shall be called only once`);
-    }
 
     this.joinCallData = data;
 
@@ -947,6 +954,11 @@ export class Call {
           );
         }
       } catch (error) {
+        this.logger('warn', 'Join SFU request failed', error);
+        sfuClient.close(
+          StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+          'Join request failed, connection considered unhealthy',
+        );
         // restore the previous call state if the join-flow fails
         this.state.setCallingState(callingState);
         throw error;
@@ -1260,6 +1272,12 @@ export class Call {
     // SFU WS closed before we finished current join, no need to schedule reconnect
     // because join operation will fail
     if (this.state.callingState === CallingState.JOINING) return;
+    // SFU WS closed as a result of unsuccessful join, and no further retries need to be made
+    if (
+      this.state.callingState === CallingState.IDLE ||
+      this.state.callingState === CallingState.LEFT
+    )
+      return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
     this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
