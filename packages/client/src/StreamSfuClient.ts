@@ -261,7 +261,10 @@ export class StreamSfuClient {
   };
 
   get isHealthy() {
-    return this.signalWs.readyState === WebSocket.OPEN;
+    return (
+      this.signalWs.readyState === WebSocket.OPEN &&
+      this.joinResponseTask.isResolved
+    );
   }
 
   get joinTask() {
