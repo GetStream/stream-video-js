@@ -9,7 +9,9 @@ export type LocalDevicePreference = {
 };
 
 export type LocalDevicePreferences = {
-  [type in DeviceKey]?: LocalDevicePreference;
+  // Array is preference history with latest preferences first.
+  // Single preference still acceptable for backwards compatibility.
+  [type in DeviceKey]?: LocalDevicePreference | LocalDevicePreference[];
 };
 
 type DeviceKey = 'microphone' | 'camera' | 'speaker';
@@ -72,7 +74,7 @@ const usePersistedDevicePreference = <K extends DeviceKey>(
       setApplyingState('applying');
 
       if (preference && !manager.state.selectedDevice) {
-        selectDevice(manager, preference, state.devices)
+        selectDevice(manager, [preference].flat(), state.devices)
           .catch((err) => {
             console.warn(`Failed to save ${deviceKey} device preferences`, err);
           })
@@ -143,34 +145,54 @@ const patchLocalDevicePreference = (
   deviceKey: DeviceKey,
   state: Pick<DeviceState<never>, 'devices' | 'selectedDevice' | 'isMute'>,
 ): void => {
+  const preferences = parseLocalDevicePreferences(key);
+  const nextPreference = getSelectedDevicePreference(
+    state.devices,
+    state.selectedDevice,
+  );
+  const preferenceHistory = [preferences[deviceKey] ?? []]
+    .flat()
+    .filter(
+      (p) =>
+        p.selectedDeviceId !== nextPreference.selectedDeviceId &&
+        (p.selectedDeviceLabel === '' ||
+          p.selectedDeviceLabel !== nextPreference.selectedDeviceLabel),
+    );
+
   window.localStorage.setItem(
     key,
     JSON.stringify({
-      ...parseLocalDevicePreferences(key),
+      ...preferences,
       mic: undefined, // for backwards compatibility
-      [deviceKey]: {
-        ...getSelectedDevicePreference(state.devices, state.selectedDevice),
-        muted: state.isMute,
-      } satisfies LocalDevicePreference,
+      [deviceKey]: [
+        {
+          ...nextPreference,
+          muted: state.isMute,
+        } satisfies LocalDevicePreference,
+        ...preferenceHistory,
+      ].slice(0, 3),
     }),
   );
 };
 
 const selectDevice = async (
   manager: DeviceManagerLike,
-  preference: LocalDevicePreference,
+  preference: LocalDevicePreference[],
   devices: MediaDeviceInfo[],
 ): Promise<void> => {
-  if (preference.selectedDeviceId === defaultDevice) {
-    return;
-  }
+  for (const p of preference) {
+    if (p.selectedDeviceId === defaultDevice) {
+      return;
+    }
 
-  const device =
-    devices.find((d) => d.deviceId === preference.selectedDeviceId) ??
-    devices.find((d) => d.label === preference.selectedDeviceLabel);
+    const device =
+      devices.find((d) => d.deviceId === p.selectedDeviceId) ??
+      devices.find((d) => d.label === p.selectedDeviceLabel);
 
-  if (device) {
-    await manager.select(device.deviceId);
+    if (device) {
+      await manager.select(device.deviceId);
+      return;
+    }
   }
 };
 
