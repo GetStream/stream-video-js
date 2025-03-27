@@ -130,7 +130,7 @@ export const processCallFromPush = async (
       if (canReject) {
         await callFromPush.leave({ reject: canReject, reason: 'decline' });
       } else {
-        await callFromPush.endCall();
+        await callFromPush.leave();
       }
     }
   } catch (e) {
