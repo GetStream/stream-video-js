@@ -8,7 +8,7 @@ import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
-import { type DeepPartial, ThemeProvider } from '../contexts/ThemeContext';
+import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme } from '../theme/theme';
 
 /**
@@ -52,21 +52,25 @@ export const StreamVideo = (
     });
   }, [client]);
 
-  return (
+  const videoProvider = (
     <StreamVideoProvider
       client={client}
       language={language}
       translationsOverrides={translationsOverrides}
       i18nInstance={i18nInstance}
     >
-      <ThemeProvider style={style}>
-        <StreamVideoStoreProvider>
-          <PushRegister />
-          {children}
-        </StreamVideoStoreProvider>
-      </ThemeProvider>
+      <StreamVideoStoreProvider>
+        <PushRegister />
+        {children}
+      </StreamVideoStoreProvider>
     </StreamVideoProvider>
   );
+
+  if (style) {
+    return <StreamTheme style={style}>{videoProvider}</StreamTheme>;
+  }
+
+  return videoProvider;
 };
 
 /**
