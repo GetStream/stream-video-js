@@ -52,25 +52,20 @@ export const StreamVideo = (
     });
   }, [client]);
 
-  const videoProvider = (
+  return (
     <StreamVideoProvider
       client={client}
       language={language}
       translationsOverrides={translationsOverrides}
       i18nInstance={i18nInstance}
     >
-      <StreamVideoStoreProvider>
-        <PushRegister />
-        {children}
-      </StreamVideoStoreProvider>
+      <StreamTheme style={style}>
+        <StreamVideoStoreProvider>
+          <PushRegister />
+          {children}
+        </StreamVideoStoreProvider>
+      </StreamTheme>
     </StreamVideoProvider>
-  );
-
-  if (style) {
-    return <StreamTheme style={style}>{videoProvider}</StreamTheme>;
-  }
-
-  return videoProvider;
 };
 
 /**

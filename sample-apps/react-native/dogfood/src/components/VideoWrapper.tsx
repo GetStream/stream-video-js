@@ -1,7 +1,6 @@
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import {
   JoinCallResponse,
-  StreamTheme,
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -80,11 +79,13 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamTheme style={customTheme}>
-      <StreamVideo client={videoClient} translationsOverrides={translations}>
-        {children}
-      </StreamVideo>
-    </StreamTheme>
+    <StreamVideo
+      client={videoClient}
+      style={customTheme}
+      translationsOverrides={translations}
+    >
+      {children}
+    </StreamVideo>
   );
 };
 
