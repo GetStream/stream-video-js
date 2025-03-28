@@ -1007,6 +1007,7 @@ export class Call {
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
+      reason: '', // TODO OL: provide the reason
     };
   };
 
