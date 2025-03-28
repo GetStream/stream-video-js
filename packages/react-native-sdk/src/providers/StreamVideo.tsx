@@ -66,6 +66,7 @@ export const StreamVideo = (
         </StreamVideoStoreProvider>
       </StreamTheme>
     </StreamVideoProvider>
+  );
 };
 
 /**
