@@ -263,7 +263,7 @@ export class StreamSfuClient {
   get isHealthy() {
     return (
       this.signalWs.readyState === WebSocket.OPEN &&
-      this.joinResponseTask.isResolved
+      this.joinResponseTask.isResolved()
     );
   }
 
@@ -415,7 +415,10 @@ export class StreamSfuClient {
   ): Promise<JoinResponse> => {
     // wait for the signal web socket to be ready before sending "joinRequest"
     await this.signalReady();
-    if (this.joinResponseTask.isResolved || this.joinResponseTask.isRejected) {
+    if (
+      this.joinResponseTask.isResolved() ||
+      this.joinResponseTask.isRejected()
+    ) {
       // we need to lock the RPC requests until we receive a JoinResponse.
       // that's why we have this primitive lock mechanism.
       // the client starts with already initialized joinResponseTask,
