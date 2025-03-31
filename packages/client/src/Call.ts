@@ -828,6 +828,7 @@ export class Call {
 
     this.state.setCallingState(CallingState.JOINING);
 
+    maxJoinRetries = Math.max(maxJoinRetries, 1);
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
