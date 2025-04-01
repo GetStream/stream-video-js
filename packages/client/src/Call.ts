@@ -1270,13 +1270,18 @@ export class Call {
    */
   private handleSfuSignalClose = (sfuClient: StreamSfuClient) => {
     this.logger('debug', '[Reconnect] SFU signal connection closed');
-    // SFU WS closed before we finished current join, no need to schedule reconnect
-    // because join operation will fail
-    if (this.state.callingState === CallingState.JOINING) return;
-    // SFU WS closed as a result of unsuccessful join, and no further retries need to be made
+    const { callingState } = this.state;
     if (
-      this.state.callingState === CallingState.IDLE ||
-      this.state.callingState === CallingState.LEFT
+      // SFU WS closed before we finished current join,
+      // no need to schedule reconnecting
+      callingState === CallingState.JOINING ||
+      // we are already in the process of reconnecting,
+      // no need to schedule another one
+      callingState === CallingState.RECONNECTING ||
+      // SFU WS closed as a result of unsuccessful join,
+      // and no further retries need to be made
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.LEFT
     )
       return;
     // normal close, no need to reconnect
