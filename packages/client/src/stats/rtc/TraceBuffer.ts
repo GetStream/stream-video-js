@@ -1,21 +1,21 @@
-import type { RTCStatsDataType, Trace } from './types';
+import type { Trace, TraceRecord } from './types';
 
 export class TraceBuffer {
-  private buffer: [
-    method: string,
-    id: string | null,
-    payload: RTCStatsDataType,
-    timestamp: number,
-  ][] = [];
+  private buffer: TraceRecord[] = [];
 
   trace: Trace = (method, id, data) => {
     this.buffer.push([method, id, data, Date.now()]);
   };
 
-  getAndFlush = () => {
-    const buffer = this.buffer;
+  take = () => {
+    const snapshot = this.buffer;
     this.buffer = [];
-    return buffer;
+    return {
+      snapshot,
+      rollback: () => {
+        this.buffer.unshift(...snapshot);
+      },
+    };
   };
 
   dispose = () => {

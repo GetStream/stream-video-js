@@ -1,4 +1,4 @@
-export type RTCStatsDataType =
+type RTCStatsDataType =
   | RTCConfiguration
   | RTCIceCandidate
   | RTCSignalingState
@@ -21,3 +21,10 @@ export type Trace = (
   id: string | null,
   data: RTCStatsDataType,
 ) => void;
+
+export type TraceRecord = [
+  method: string,
+  id: string | null,
+  data: RTCStatsDataType,
+  timestamp: number,
+];

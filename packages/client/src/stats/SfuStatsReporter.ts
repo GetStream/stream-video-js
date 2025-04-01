@@ -154,24 +154,34 @@ export class SfuStatsReporter {
       this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
     ]);
 
-    const subscriberRtcStats = this.subscriber.getRtcStats();
-    const publisherRtcStats = this.publisher?.getRtcStats();
-    const mediaStats = mediaStatsTraceBuffer.getAndFlush();
-    const jointStats = [...mediaStats, ...(publisherRtcStats || [])];
+    const subscriberTrace = this.subscriber.getTrace();
+    const publisherTrace = this.publisher?.getTrace();
+    const mediaTrace = mediaStatsTraceBuffer.take();
+    const jointTraces = [
+      ...mediaTrace.snapshot,
+      ...(publisherTrace?.snapshot ?? []),
+    ];
 
-    await this.sfuClient.sendStats({
-      sdk: this.sdkName,
-      sdkVersion: this.sdkVersion,
-      webrtcVersion: this.webRTCVersion,
-      subscriberStats,
-      subscriberRtcStats: JSON.stringify(subscriberRtcStats),
-      publisherStats,
-      publisherRtcStats: JSON.stringify(jointStats),
-      audioDevices: this.inputDevices.get('mic'),
-      videoDevices: this.inputDevices.get('camera'),
-      deviceState: getDeviceState(),
-      telemetry,
-    });
+    try {
+      await this.sfuClient.sendStats({
+        sdk: this.sdkName,
+        sdkVersion: this.sdkVersion,
+        webrtcVersion: this.webRTCVersion,
+        subscriberStats,
+        subscriberRtcStats: JSON.stringify(subscriberTrace.snapshot),
+        publisherStats,
+        publisherRtcStats: JSON.stringify(jointTraces),
+        audioDevices: this.inputDevices.get('mic'),
+        videoDevices: this.inputDevices.get('camera'),
+        deviceState: getDeviceState(),
+        telemetry,
+      });
+    } catch (err) {
+      publisherTrace?.rollback();
+      subscriberTrace.rollback();
+      mediaTrace.rollback();
+      throw err;
+    }
   };
 
   start = () => {

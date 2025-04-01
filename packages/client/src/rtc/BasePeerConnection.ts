@@ -168,8 +168,8 @@ export abstract class BasePeerConnection {
     return this.pc.getStats(selector);
   };
 
-  getRtcStats = () => {
-    return this.traceBuffer.getAndFlush();
+  getTrace = () => {
+    return this.traceBuffer.take();
   };
 
   /**
