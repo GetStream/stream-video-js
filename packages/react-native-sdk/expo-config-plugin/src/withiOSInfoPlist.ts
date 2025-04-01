@@ -18,8 +18,12 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
     if (props?.ringingPushNotifications) {
       addBackgroundMode('voip');
       addBackgroundMode('fetch');
+      addBackgroundMode('processing');
     }
-    if (props?.enableNonRingingPushNotifications) {
+    if (
+      props?.enableNonRingingPushNotifications ||
+      props?.ringingPushNotifications
+    ) {
       addBackgroundMode('remote-notification');
     }
     return config;

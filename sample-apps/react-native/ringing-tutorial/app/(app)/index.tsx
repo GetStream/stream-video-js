@@ -12,12 +12,18 @@ import { Users } from '../../constants/Users';
 import { UserButton } from '../../components/user-button';
 import { ActionButton } from '../../components/action-button';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  useCalls,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+import { Redirect } from 'expo-router';
 
 export default function Index() {
   const { signOut, userWithToken } = useAuthentication();
   const client = useStreamVideoClient();
   const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
+  const calls = useCalls().filter((c) => c.ringing);
+  const ringingCall = calls[0];
 
   React.useEffect(() => {
     if (Platform.OS === 'android') {
@@ -42,6 +48,10 @@ export default function Index() {
       },
     });
   };
+
+  if (ringingCall) {
+    return <Redirect href="/(app)/ringing" />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>

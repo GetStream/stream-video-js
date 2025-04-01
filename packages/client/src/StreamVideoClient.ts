@@ -259,11 +259,10 @@ export class StreamVideoClient {
       this.connectionConcurrencyTag,
       async () => {
         const client = this.streamClient;
-        const {
-          maxConnectUserRetries = 5,
-          onConnectUserError,
-          persistUserOnConnectionFailure,
-        } = client.options;
+        const { onConnectUserError, persistUserOnConnectionFailure } =
+          client.options;
+        let { maxConnectUserRetries = 5 } = client.options;
+        maxConnectUserRetries = Math.max(maxConnectUserRetries, 1);
 
         const errorQueue: Error[] = [];
         for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {

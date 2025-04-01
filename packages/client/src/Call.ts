@@ -120,7 +120,7 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { sleep } from './coordinator/connection/utils';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   AllCallEvents,
   CallEventListener,
@@ -813,13 +813,48 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async (data?: JoinCallData): Promise<void> => {
-    const connectStartTime = Date.now();
+  join = async ({
+    maxJoinRetries = 3,
+    ...data
+  }: JoinCallData & {
+    maxJoinRetries?: number;
+  } = {}): Promise<void> => {
     await this.setup();
     const callingState = this.state.callingState;
+
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
+
+    this.state.setCallingState(CallingState.JOINING);
+
+    maxJoinRetries = Math.max(maxJoinRetries, 1);
+    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+      try {
+        this.logger('trace', `Joining call (${attempt})`, this.cid);
+        return await this.doJoin(data);
+      } catch (err) {
+        this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+        if (attempt === maxJoinRetries - 1) {
+          // restore the previous call state if the join-flow fails
+          this.state.setCallingState(callingState);
+          throw err;
+        }
+      }
+
+      await sleep(retryInterval(attempt));
+    }
+  };
+
+  /**
+   * Will make a single attempt to watch for call related WebSocket events
+   * and initiate a call session with the server.
+   *
+   * @returns a promise which resolves once the call join-flow has finished.
+   */
+  doJoin = async (data?: JoinCallData): Promise<void> => {
+    const connectStartTime = Date.now();
+    const callingState = this.state.callingState;
 
     this.joinCallData = data;
 
@@ -920,6 +955,11 @@ export class Call {
           );
         }
       } catch (error) {
+        this.logger('warn', 'Join SFU request failed', error);
+        sfuClient.close(
+          StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+          'Join request failed, connection considered unhealthy',
+        );
         // restore the previous call state if the join-flow fails
         this.state.setCallingState(callingState);
         throw error;
@@ -1231,9 +1271,20 @@ export class Call {
    */
   private handleSfuSignalClose = (sfuClient: StreamSfuClient) => {
     this.logger('debug', '[Reconnect] SFU signal connection closed');
-    // SFU WS closed before we finished current join, no need to schedule reconnect
-    // because join operation will fail
-    if (this.state.callingState === CallingState.JOINING) return;
+    const { callingState } = this.state;
+    if (
+      // SFU WS closed before we finished current join,
+      // no need to schedule reconnecting
+      callingState === CallingState.JOINING ||
+      // we are already in the process of reconnecting,
+      // no need to schedule another one
+      callingState === CallingState.RECONNECTING ||
+      // SFU WS closed as a result of unsuccessful join,
+      // and no further retries need to be made
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.LEFT
+    )
+      return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
     this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
@@ -1353,7 +1404,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.join(this.joinCallData);
+    await this.doJoin(this.joinCallData);
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
       (Date.now() - reconnectStartTime) / 1000,
@@ -1368,7 +1419,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.join(this.joinCallData);
+    await this.doJoin(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -1400,7 +1451,7 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.join({ ...this.joinCallData, migrating_from: currentSfu });
+      await this.doJoin({ ...this.joinCallData, migrating_from: currentSfu });
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
       // as we don't want to keep dirty data in the join call data

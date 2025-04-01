@@ -45,7 +45,11 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
     StreamVideoClient.getOrCreateInstance({
       apiKey: API_KEY,
       tokenProvider: () => Promise.resolve(userWithToken.token),
-      user: { id: userWithToken.id, name: userWithToken.name },
+      user: {
+        id: userWithToken.id,
+        name: userWithToken.name,
+        image: `https://robohash.org/${userWithToken.id}`,
+      },
       options: {
         logLevel: 'debug',
       },
