@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.7...@stream-io/video-client-1.18.8) (2025-04-01)
+
+
+* dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
+
+
+### Bug Fixes
+
+* implement retry logic for call joining process ([#1738](https://github.com/GetStream/stream-video-js/issues/1738)) ([71599c3](https://github.com/GetStream/stream-video-js/commit/71599c3ddda51a247d7933cd6b12ca8fd03d7033))
+
 ## [1.18.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.6...@stream-io/video-client-1.18.7) (2025-03-20)
 
 ### Bug Fixes
