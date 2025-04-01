@@ -13,10 +13,15 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
-export type ThemeProviderInputValue = {
+export type StreamThemeInputValue = {
   mergedStyle?: Theme;
   style?: DeepPartial<Theme>;
 };
+
+/**
+ * @deprecated Use StreamThemeInputValue instead.
+ */
+export type ThemeProviderInputValue = StreamThemeInputValue;
 
 export type MergedThemesParams = {
   style?: DeepPartial<Theme>;
@@ -48,8 +53,8 @@ export const ThemeContext = createContext<Theme>(
   DEFAULT_BASE_CONTEXT_VALUE as Theme,
 );
 
-export const ThemeProvider: React.FC<
-  PropsWithChildren<ThemeProviderInputValue & Partial<ThemeContextValue>>
+export const StreamTheme: React.FC<
+  PropsWithChildren<StreamThemeInputValue & Partial<ThemeContextValue>>
 > = (props) => {
   const { children, mergedStyle, style, theme } = props;
 
@@ -67,6 +72,11 @@ export const ThemeProvider: React.FC<
     </ThemeContext.Provider>
   );
 };
+
+/**
+ * @deprecated Use StreamTheme instead of ThemeProvider.
+ */
+export const ThemeProvider = StreamTheme;
 
 export const useTheme = () => {
   const theme = useContext(ThemeContext);
