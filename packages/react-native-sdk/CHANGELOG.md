@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.17...@stream-io/video-react-native-sdk-1.10.18) (2025-04-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.8`
+* `@stream-io/video-react-bindings` updated to version `1.5.10`
+
+* align expo plugin background modes with flutter ([f6950cb](https://github.com/GetStream/stream-video-js/commit/f6950cb39d0c83413aca1c59e670efea5c5cdd6a))
+* dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
+* RN Ringing App ([#1719](https://github.com/GetStream/stream-video-js/issues/1719)) ([6fcb33f](https://github.com/GetStream/stream-video-js/commit/6fcb33f3574adbf8f22cf016625fe53a11ed1169))
+
 ## [1.10.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.16...@stream-io/video-react-native-sdk-1.10.17) (2025-03-20)
 
 ### Dependency Updates
