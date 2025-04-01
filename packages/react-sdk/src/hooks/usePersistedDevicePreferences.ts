@@ -26,7 +26,9 @@ type DeviceState<K extends DeviceKey> = {
 
 interface DeviceManagerLike {
   state: { selectedDevice: string | undefined };
-  select(deviceId: string): Promise<void> | void;
+  select: (deviceId: string) => Promise<void> | void;
+  enable?: () => Promise<void>;
+  disable?: () => Promise<void>;
 }
 
 const defaultDevice = 'default';
@@ -191,6 +193,7 @@ const selectDevice = async (
 
     if (device) {
       await manager.select(device.deviceId);
+      await manager[p.muted ? 'disable' : 'enable']?.();
       return;
     }
   }
