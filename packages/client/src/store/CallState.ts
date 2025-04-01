@@ -996,8 +996,8 @@ export class CallState {
             trackType === 'videoTrack'
               ? 'videoDimension'
               : trackType === 'screenShareTrack'
-              ? 'screenShareDimension'
-              : undefined;
+                ? 'screenShareDimension'
+                : undefined;
           if (prop) {
             acc[sessionId] = {
               [prop]: change.dimension,
