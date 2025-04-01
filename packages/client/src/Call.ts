@@ -898,7 +898,7 @@ export class Call {
     const sfuClient =
       performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
-            logTag: String(this.sfuClientTag++),
+            logTag: String(++this.sfuClientTag),
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             streamClient: this.streamClient,

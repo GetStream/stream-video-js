@@ -3,6 +3,7 @@ import {
   createSignalClient,
   withHeaders,
   withRequestLogger,
+  withRequestTracer,
 } from '../createClient';
 import { TwirpFetchTransport } from '@protobuf-ts/twirp-transport';
 
@@ -34,5 +35,42 @@ describe('createClient', () => {
     interceptor.interceptUnary(next, { name: 'test' }, null, null);
     expect(next).toHaveBeenCalled();
     expect(logger).toHaveBeenCalled();
+  });
+
+  it('withRequestTracer should add trace to the request', () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace, '1');
+    const next = vi.fn();
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'test' },
+      { key: 'value' },
+      { meta: {} },
+    );
+    expect(next).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith('test', '1', { key: 'value' });
+  });
+
+  it('withRequestTracer should add an error trace', () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace, '1');
+    const err = new Error('test error');
+    const next = vi.fn(() => {
+      throw err;
+    });
+    expect(() =>
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - invalid name
+        { name: 'test' },
+        { key: 'value' },
+        { meta: {} },
+      ),
+    ).toThrow('test error');
+    expect(trace).toHaveBeenLastCalledWith('testFailure', '1', [
+      { key: 'value' },
+      err,
+    ]);
   });
 });
