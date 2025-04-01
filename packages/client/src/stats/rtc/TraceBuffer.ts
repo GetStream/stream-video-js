@@ -2,10 +2,10 @@ import type { RTCStatsDataType, Trace } from './types';
 
 export class TraceBuffer {
   private buffer: [
-    string, // method name
-    string | null, // id
-    RTCStatsDataType, // payload
-    number, // timestamp
+    method: string,
+    id: string | null,
+    payload: RTCStatsDataType,
+    timestamp: number,
   ][] = [];
 
   trace: Trace = (method, id, data) => {

@@ -1,4 +1,3 @@
-import { deltaCompression, map2obj } from './utils';
 import type { Trace } from './types';
 
 export const patchRTCPeerConnection = (
@@ -10,7 +9,7 @@ export const patchRTCPeerConnection = (
     trace('onicecandidate', id, e.candidate);
   });
   pc.addEventListener('track', (e) => {
-    const streams = e.streams.map((stream) => 'stream:' + stream.id);
+    const streams = e.streams.map((stream) => `stream:${stream.id}`);
     trace('ontrack', id, `${e.track.kind}:${e.track.id} ${streams}`);
   });
   pc.addEventListener('signalingstatechange', () => {
@@ -28,25 +27,20 @@ export const patchRTCPeerConnection = (
   pc.addEventListener('negotiationneeded', () => {
     trace('onnegotiationneeded', id, undefined);
   });
-  pc.addEventListener('datachannel', (event) => {
-    trace('ondatachannel', id, [event.channel.id, event.channel.label]);
+  pc.addEventListener('datachannel', ({ channel }) => {
+    trace('ondatachannel', id, [channel.id, channel.label]);
   });
 
   let prev = {};
   const getStats = () => {
     pc.getStats(null).then((stats) => {
-      const now = map2obj(stats as Map<string, any>);
-      const base = JSON.parse(JSON.stringify(now)); // our new prev
+      const now = Object.fromEntries(stats);
       trace('getstats', id, deltaCompression(prev, now));
-      prev = base;
+      prev = now;
     });
   };
 
   const interval = setInterval(() => {
-    if (pc.signalingState === 'closed') {
-      clearInterval(interval);
-      return;
-    }
     getStats();
   }, 8000);
 
@@ -59,6 +53,7 @@ export const patchRTCPeerConnection = (
 
   const origClose = pc.close;
   pc.close = function patchedClose() {
+    clearInterval(interval);
     trace('close', id, undefined);
     return origClose.call(this);
   };
@@ -151,4 +146,46 @@ export const patchRTCPeerConnection = (
       throw err;
     }
   };
+};
+
+/**
+ * Apply delta compression to the stats report.
+ * Reduces size by ~90%.
+ * To reduce further, report keys could be compressed.
+ */
+const deltaCompression = (
+  oldStats: Record<any, any>,
+  newStats: Record<any, any>,
+): Record<any, any> => {
+  newStats = JSON.parse(JSON.stringify(newStats));
+
+  for (const [id, report] of Object.entries(newStats)) {
+    delete report.id;
+    if (!oldStats[id]) continue;
+
+    for (const [name, value] of Object.entries(report)) {
+      if (value === oldStats[id][name]) {
+        delete report[name];
+      }
+    }
+
+    const delta = Object.keys(report);
+    if (delta.length === 0 || (delta.length === 1 && report.timestamp)) {
+      delete newStats[id];
+    }
+  }
+
+  let timestamp = -Infinity;
+  for (const report of Object.values(newStats)) {
+    if (report.timestamp > timestamp) {
+      timestamp = report.timestamp;
+    }
+  }
+  for (const report of Object.values(newStats)) {
+    if (report.timestamp === timestamp) {
+      report.timestamp = 0;
+    }
+  }
+  newStats.timestamp = timestamp;
+  return newStats;
 };
