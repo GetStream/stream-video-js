@@ -734,6 +734,14 @@ export class CallState {
   }
 
   /**
+   * Sets the backstage state.
+   * @param backstage the backstage state.
+   */
+  setBackstage = (backstage: Patch<boolean>) => {
+    return this.setCurrentValue(this.backstageSubject, backstage);
+  };
+
+  /**
    * Will provide the list of blocked user IDs.
    */
   get blockedUserIds() {
@@ -988,8 +996,8 @@ export class CallState {
             trackType === 'videoTrack'
               ? 'videoDimension'
               : trackType === 'screenShareTrack'
-                ? 'screenShareDimension'
-                : undefined;
+              ? 'screenShareDimension'
+              : undefined;
           if (prop) {
             acc[sessionId] = {
               [prop]: change.dimension,
@@ -1116,7 +1124,7 @@ export class CallState {
    * @param call the call response from the server.
    */
   updateFromCallResponse = (call: CallResponse) => {
-    this.setCurrentValue(this.backstageSubject, call.backstage);
+    this.setBackstage(call.backstage);
     this.setCurrentValue(this.blockedUserIdsSubject, call.blocked_user_ids);
     this.setCurrentValue(this.createdAtSubject, new Date(call.created_at));
     this.setCurrentValue(this.updatedAtSubject, new Date(call.updated_at));
