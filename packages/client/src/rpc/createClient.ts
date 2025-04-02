@@ -89,7 +89,7 @@ export const withRequestTracer = (
         trace(method.name, logTag, input);
         return next(method, input, options);
       } catch (err) {
-        trace(`${method.name}Failure`, logTag, [input, err]);
+        trace(`${method.name}OnFailure`, logTag, [input, err]);
         throw err;
       }
     },

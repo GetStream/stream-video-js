@@ -1,4 +1,4 @@
-type RTCStatsDataType =
+export type RTCStatsDataType =
   | RTCConfiguration
   | RTCIceCandidate
   | RTCSignalingState

@@ -1,4 +1,8 @@
-import type { Trace } from './types';
+import type { RTCStatsDataType, Trace } from './types';
+
+type AsyncMethodOf<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => Promise<any> ? K : never;
+}[keyof T];
 
 export const patchRTCPeerConnection = (
   pc: RTCPeerConnection,
@@ -33,11 +37,15 @@ export const patchRTCPeerConnection = (
 
   let prev: Record<string, RTCStats> = {};
   const getStats = () => {
-    pc.getStats(null).then((stats) => {
-      const now = toObject(stats);
-      trace('getstats', id, deltaCompression(prev, now));
-      prev = now;
-    });
+    pc.getStats(null)
+      .then((stats) => {
+        const now = toObject(stats);
+        trace('getstats', id, deltaCompression(prev, now));
+        prev = now;
+      })
+      .catch((err) => {
+        trace('getstatsOnFailure', id, (err as Error).toString());
+      });
   };
 
   const interval = setInterval(() => {
@@ -58,94 +66,34 @@ export const patchRTCPeerConnection = (
     return origClose.call(this);
   };
 
-  const origCreateOffer: (
-    options?: RTCOfferOptions,
-  ) => Promise<RTCSessionDescriptionInit> = pc.createOffer;
+  const patch = (methods: AsyncMethodOf<RTCPeerConnection>[]) => {
+    for (const method of methods) {
+      const original = pc[method];
+      if (!original) continue;
 
-  // @ts-expect-error we don't use deprecated APIs
-  pc.createOffer = async function patchedCreateOffer(
-    options?: RTCOfferOptions,
-  ) {
-    trace('createOffer', id, options);
-    try {
-      const description = await origCreateOffer.call(this, options);
-      trace('createOfferOnSuccess', id, description);
-      return description;
-    } catch (err) {
-      trace('createOfferOnFailure', id, (err as Error).toString());
-      throw err;
+      // @ts-expect-error we don't use deprecated APIs
+      pc[method] = async function patchedMethod(...args: any[]) {
+        try {
+          trace(method, id, args);
+          // @ts-expect-error improper types
+          const result = await original.apply(this, args);
+          trace(`${method}OnSuccess`, id, result as RTCStatsDataType);
+          return result;
+        } catch (err) {
+          trace(`${method}OnFailure`, id, (err as Error).toString());
+          throw err;
+        }
+      };
     }
   };
 
-  const origCreateAnswer: (
-    opts?: RTCAnswerOptions,
-  ) => Promise<RTCSessionDescriptionInit> = pc.createAnswer;
-
-  // @ts-expect-error we don't use deprecated APIs
-  pc.createAnswer = async function patchedCreateAnswer(
-    options?: RTCAnswerOptions,
-  ) {
-    trace('createAnswer', id, options);
-    try {
-      const description = await origCreateAnswer.call(this, options);
-      trace('createAnswerOnSuccess', id, description);
-      return description;
-    } catch (err) {
-      trace('createAnswerOnFailure', id, (err as Error).toString());
-      throw err;
-    }
-  };
-
-  const origSetLocalDescription: (
-    description: RTCSessionDescriptionInit,
-  ) => Promise<void> = pc.setLocalDescription;
-
-  pc.setLocalDescription = async function patchedSetLocalDescription(
-    description: RTCSessionDescriptionInit,
-  ) {
-    trace('setLocalDescription', id, description);
-    try {
-      await origSetLocalDescription.call(this, description);
-      trace('setLocalDescriptionOnSuccess', id, undefined);
-    } catch (err) {
-      trace('setLocalDescriptionOnFailure', id, (err as Error).toString());
-      throw err;
-    }
-  };
-
-  const origSetRemoteDescription: (
-    description: RTCSessionDescriptionInit,
-  ) => Promise<void> = pc.setRemoteDescription;
-
-  pc.setRemoteDescription = async function patchedSetRemoteDescription(
-    description: RTCSessionDescriptionInit,
-  ) {
-    trace('setRemoteDescription', id, description);
-    try {
-      await origSetRemoteDescription.call(this, description);
-      trace('setRemoteDescriptionOnSuccess', id, undefined);
-    } catch (err) {
-      trace('setRemoteDescriptionOnFailure', id, (err as Error).toString());
-      throw err;
-    }
-  };
-
-  const origAddIceCandidate: (
-    candidate: RTCIceCandidateInit | null,
-  ) => Promise<void> = pc.addIceCandidate;
-
-  pc.addIceCandidate = async function patchedAddIceCandidate(
-    candidate: RTCIceCandidateInit | null,
-  ) {
-    trace('addIceCandidate', id, candidate);
-    try {
-      await origAddIceCandidate.call(this, candidate);
-      trace('addIceCandidateOnSuccess', id, undefined);
-    } catch (err) {
-      trace('addIceCandidateOnFailure', id, (err as Error).toString());
-      throw err;
-    }
-  };
+  patch([
+    'createOffer',
+    'createAnswer',
+    'setLocalDescription',
+    'setRemoteDescription',
+    'addIceCandidate',
+  ]);
 };
 
 const toObject = (s: RTCStatsReport): Record<string, RTCStats> => {
