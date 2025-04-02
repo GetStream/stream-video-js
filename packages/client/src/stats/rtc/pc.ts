@@ -31,10 +31,10 @@ export const patchRTCPeerConnection = (
     trace('ondatachannel', id, [channel.id, channel.label]);
   });
 
-  let prev = {};
+  let prev: Record<string, RTCStats> = {};
   const getStats = () => {
     pc.getStats(null).then((stats) => {
-      const now = Object.fromEntries(stats);
+      const now = toObject(stats);
       trace('getstats', id, deltaCompression(prev, now));
       prev = now;
     });
@@ -148,6 +148,14 @@ export const patchRTCPeerConnection = (
   };
 };
 
+const toObject = (s: RTCStatsReport): Record<string, RTCStats> => {
+  const obj: Record<string, RTCStats> = {};
+  s.forEach((v, k) => {
+    obj[k] = v;
+  });
+  return obj;
+};
+
 /**
  * Apply delta compression to the stats report.
  * Reduces size by ~90%.
@@ -167,11 +175,6 @@ const deltaCompression = (
       if (value === oldStats[id][name]) {
         delete report[name];
       }
-    }
-
-    const delta = Object.keys(report);
-    if (delta.length === 0 || (delta.length === 1 && report.timestamp)) {
-      delete newStats[id];
     }
   }
 
