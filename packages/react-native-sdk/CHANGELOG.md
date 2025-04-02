@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.18...@stream-io/video-react-native-sdk-1.10.19) (2025-04-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.9`
+* `@stream-io/video-react-bindings` updated to version `1.5.11`
+
+* remove react-native/eslint-config from the RN SDK ([#1743](https://github.com/GetStream/stream-video-js/issues/1743)) ([312d734](https://github.com/GetStream/stream-video-js/commit/312d73411642bdcc811885fb16d7d26a916c2d05))
+* rn-178 refactor theme provider ([#1739](https://github.com/GetStream/stream-video-js/issues/1739)) ([3252a90](https://github.com/GetStream/stream-video-js/commit/3252a90d51db1e47abbd7a37a9fdf8e14504f24d))
+
 ## [1.10.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.17...@stream-io/video-react-native-sdk-1.10.18) (2025-04-01)
 
 ### Dependency Updates
