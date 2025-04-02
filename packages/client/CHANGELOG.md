@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.8...@stream-io/video-client-1.18.9) (2025-04-02)
+
+
+### Bug Fixes
+
+* pick correct device for speaking while muted detection ([#1744](https://github.com/GetStream/stream-video-js/issues/1744)) ([33044f5](https://github.com/GetStream/stream-video-js/commit/33044f56ec7debba2e14d5a87dde9eaa87a02089)), closes [#1538](https://github.com/GetStream/stream-video-js/issues/1538)
+* reset the call state value when "live" ends ([#1740](https://github.com/GetStream/stream-video-js/issues/1740)) ([2123a10](https://github.com/GetStream/stream-video-js/commit/2123a104bb790a7384506fd475b779c02b116edd))
+
 ## [1.18.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.7...@stream-io/video-client-1.18.8) (2025-04-01)
 
 
