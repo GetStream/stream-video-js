@@ -76,9 +76,12 @@ const usePersistedDevicePreference = <K extends DeviceKey>(
       setApplyingState('applying');
 
       if (preference && !manager.state.selectedDevice) {
-        selectDevice(manager, [preference].flat(), state.devices)
+        applyLocalDevicePreference(manager, [preference].flat(), state.devices)
           .catch((err) => {
-            console.warn(`Failed to save ${deviceKey} device preferences`, err);
+            console.warn(
+              `Failed to apply ${deviceKey} device preferences`,
+              err,
+            );
           })
           .finally(() => setApplyingState('applied'));
       } else {
@@ -177,14 +180,18 @@ const patchLocalDevicePreference = (
   );
 };
 
-const selectDevice = async (
+const applyLocalDevicePreference = async (
   manager: DeviceManagerLike,
   preference: LocalDevicePreference[],
   devices: MediaDeviceInfo[],
 ): Promise<void> => {
+  let muted: boolean | undefined;
+
   for (const p of preference) {
+    muted ??= p.muted;
+
     if (p.selectedDeviceId === defaultDevice) {
-      return;
+      break;
     }
 
     const device =
@@ -193,9 +200,13 @@ const selectDevice = async (
 
     if (device) {
       await manager.select(device.deviceId);
-      await manager[p.muted ? 'disable' : 'enable']?.();
-      return;
+      muted = p.muted;
+      break;
     }
+  }
+
+  if (typeof muted === 'boolean') {
+    await manager[muted ? 'disable' : 'enable']?.();
   }
 };
 
