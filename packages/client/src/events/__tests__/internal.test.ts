@@ -67,10 +67,15 @@ describe('internal events', () => {
 
   it('handles liveEnded', () => {
     const dispatcher = new Dispatcher();
+
+    const state = new CallState();
+    state.setBackstage(false);
+
     const call = {
       permissionsContext: { hasPermission: () => false },
       leave: vi.fn().mockResolvedValue(undefined),
       logger: vi.fn(),
+      state,
     } as unknown as Call;
 
     watchLiveEnded(dispatcher, call);
@@ -83,6 +88,7 @@ describe('internal events', () => {
       },
     });
     expect(call.leave).toHaveBeenCalled();
+    expect(call.state.backstage).toBe(true);
   });
 
   it('handles liveEnded when user has permission to stay in backstage', () => {
