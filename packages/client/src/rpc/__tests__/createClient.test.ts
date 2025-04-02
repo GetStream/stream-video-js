@@ -68,7 +68,7 @@ describe('createClient', () => {
         { meta: {} },
       ),
     ).toThrow('test error');
-    expect(trace).toHaveBeenLastCalledWith('testFailure', '1', [
+    expect(trace).toHaveBeenLastCalledWith('testOnFailure', '1', [
       { key: 'value' },
       err,
     ]);
