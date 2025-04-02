@@ -250,7 +250,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       } else {
         // Need to start a new stream that's not connected to publisher
         const stream = await this.getStream({
-          deviceId,
+          deviceId: { exact: deviceId },
         });
         this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
