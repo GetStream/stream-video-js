@@ -6087,6 +6087,12 @@ export interface StartTranscriptionResponse {
 export interface StatsOptions {
   /**
    *
+   * @type {boolean}
+   * @memberof StatsOptions
+   */
+  enable_rtc_stats: boolean;
+  /**
+   *
    * @type {number}
    * @memberof StatsOptions
    */

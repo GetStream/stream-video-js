@@ -9,7 +9,7 @@ import { PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { Tracer, traceRTCPeerConnection } from '../stats/rtc';
+import { Tracer, traceRTCPeerConnection, TraceSlice } from '../stats';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -18,6 +18,7 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onUnrecoverableError?: () => void;
   logTag: string;
+  enableTracing: boolean;
 };
 
 /**
@@ -36,7 +37,7 @@ export abstract class BasePeerConnection {
   protected isIceRestarting = false;
   private isDisposed = false;
 
-  private readonly tracer = new Tracer();
+  private readonly tracer?: Tracer;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -52,6 +53,7 @@ export abstract class BasePeerConnection {
       dispatcher,
       onUnrecoverableError,
       logTag,
+      enableTracing,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -64,8 +66,11 @@ export abstract class BasePeerConnection {
       logTag,
     ]);
     this.pc = new RTCPeerConnection(connectionConfig);
-    this.tracer.trace('create', logTag, connectionConfig);
-    traceRTCPeerConnection(this.pc, logTag, this.tracer.trace);
+    if (enableTracing) {
+      this.tracer = new Tracer();
+      this.tracer.trace('create', logTag, connectionConfig);
+      traceRTCPeerConnection(this.pc, logTag, this.tracer.trace);
+    }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.addEventListener(
@@ -84,7 +89,7 @@ export abstract class BasePeerConnection {
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
-    this.tracer.dispose();
+    this.tracer?.dispose();
   }
 
   /**
@@ -171,8 +176,8 @@ export abstract class BasePeerConnection {
   /**
    * Returns the current tracing buffer.
    */
-  getTrace = () => {
-    return this.tracer.take();
+  getTrace = (): TraceSlice | undefined => {
+    return this.tracer?.take();
   };
 
   /**

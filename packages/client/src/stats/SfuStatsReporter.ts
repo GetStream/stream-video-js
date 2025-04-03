@@ -160,7 +160,7 @@ export class SfuStatsReporter {
     const sfuTrace = this.sfuClient.getTrace();
     const publisherTraces = [
       ...mediaTrace.snapshot,
-      ...sfuTrace.snapshot,
+      ...(sfuTrace?.snapshot ?? []),
       ...(publisherTrace?.snapshot ?? []),
     ];
 
@@ -170,9 +170,12 @@ export class SfuStatsReporter {
         sdkVersion: this.sdkVersion,
         webrtcVersion: this.webRTCVersion,
         subscriberStats,
-        subscriberRtcStats: JSON.stringify(subscriberTrace.snapshot),
+        subscriberRtcStats: subscriberTrace
+          ? JSON.stringify(subscriberTrace.snapshot)
+          : '',
         publisherStats,
-        publisherRtcStats: JSON.stringify(publisherTraces),
+        publisherRtcStats:
+          publisherTraces.length > 0 ? JSON.stringify(publisherTraces) : '',
         audioDevices: this.inputDevices.get('mic'),
         videoDevices: this.inputDevices.get('camera'),
         deviceState: getDeviceState(),
@@ -180,9 +183,9 @@ export class SfuStatsReporter {
       });
     } catch (err) {
       publisherTrace?.rollback();
-      subscriberTrace.rollback();
+      subscriberTrace?.rollback();
       mediaTrace.rollback();
-      sfuTrace.rollback();
+      sfuTrace?.rollback();
       throw err;
     }
   };

@@ -37,7 +37,7 @@ import {
   SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
-import { Tracer } from './stats/rtc';
+import { Tracer, TraceSlice } from './stats';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -75,6 +75,11 @@ export type StreamSfuClientConstructor = {
    * The StreamClient instance to use for the connection.
    */
   streamClient: StreamClient;
+
+  /**
+   * Flag to enable tracing.
+   */
+  enableTracing: boolean;
 };
 
 /**
@@ -120,7 +125,7 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
-  private readonly tracer = new Tracer();
+  private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: (() => void) | undefined;
@@ -176,6 +181,7 @@ export class StreamSfuClient {
     joinResponseTimeout = 5000,
     onSignalClose,
     streamClient,
+    enableTracing,
   }: StreamSfuClientConstructor) {
     this.dispatcher = dispatcher;
     this.sessionId = sessionId || generateUUIDv4();
@@ -186,11 +192,12 @@ export class StreamSfuClient {
     this.joinResponseTimeout = joinResponseTimeout;
     this.logTag = logTag;
     this.logger = getLogger(['SfuClient', logTag]);
+    this.tracer = enableTracing ? new Tracer() : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
         withHeaders({ Authorization: `Bearer ${token}` }),
-        withRequestTracer(this.tracer.trace, logTag),
+        this.tracer && withRequestTracer(this.tracer.trace, logTag),
         getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
       ].filter((v) => !!v),
     });
@@ -301,8 +308,8 @@ export class StreamSfuClient {
     this.iceTrickleBuffer.dispose();
   };
 
-  getTrace = () => {
-    return this.tracer.take();
+  getTrace = (): TraceSlice | undefined => {
+    return this.tracer?.take();
   };
 
   leaveAndClose = async (reason: string) => {

@@ -115,7 +115,13 @@ import {
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
-import { createStatsReporter, SfuStatsReporter, StatsReporter } from './stats';
+import {
+  createStatsReporter,
+  getSdkSignature,
+  SfuStatsReporter,
+  StatsReporter,
+} from './stats';
+import { tracer as mediaStatsTracer } from './stats/rtc/mediaDevices';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -137,7 +143,6 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
-import { getSdkSignature } from './stats/utils';
 import { hasPending, withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
@@ -902,6 +907,7 @@ export class Call {
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             streamClient: this.streamClient,
+            enableTracing: statsOptions.enable_rtc_stats,
             // a new session_id is necessary for the REJOIN strategy.
             // we use the previous session_id if available
             sessionId: performingRejoin ? undefined : previousSessionId,
@@ -1156,6 +1162,7 @@ export class Call {
       publishOptions,
       closePreviousInstances,
     } = opts;
+    const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
       this.subscriber.dispose();
     }
@@ -1165,6 +1172,7 @@ export class Call {
       state: this.state,
       connectionConfig,
       logTag: String(this.sfuClientTag),
+      enableTracing,
       onUnrecoverableError: () => {
         this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
           this.logger(
@@ -1190,6 +1198,7 @@ export class Call {
         connectionConfig,
         publishOptions,
         logTag: String(this.sfuClientTag),
+        enableTracing,
         onUnrecoverableError: () => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
             this.logger(
@@ -1202,6 +1211,7 @@ export class Call {
       });
     }
 
+    mediaStatsTracer.setEnabled(enableTracing);
     this.statsReporter?.stop();
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
