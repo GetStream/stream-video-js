@@ -49,32 +49,22 @@ export function usePipWindow(key: string) {
     const pw = await window.documentPictureInPicture.requestWindow(
       sizeRef.current,
     );
-    const ac = new AbortController();
     copyStylesheetLinks(window.document, pw.document);
 
-    pw.addEventListener(
-      'resize',
-      () => {
-        sizeRef.current = {
-          width: pw.innerWidth,
-          height: pw.innerHeight,
-        };
-      },
-      { signal: ac.signal },
-    );
+    pw.addEventListener('resize', () => {
+      sizeRef.current = {
+        width: pw.innerWidth,
+        height: pw.innerHeight,
+      };
+    });
 
-    pw.addEventListener(
-      'pagehide',
-      () => {
-        ac.abort();
-        window.localStorage.setItem(
-          keyRef.current,
-          JSON.stringify(sizeRef.current),
-        );
-        setPipWindow(null);
-      },
-      { signal: ac.signal },
-    );
+    pw.addEventListener('pagehide', () => {
+      window.localStorage.setItem(
+        keyRef.current,
+        JSON.stringify(sizeRef.current),
+      );
+      setPipWindow(null);
+    });
 
     setPipWindow(pw);
   }, []);
@@ -98,6 +88,14 @@ export function usePipWindow(key: string) {
     },
     [pipWindow],
   );
+
+  useEffect(() => {
+    if (window.localStorage.getItem(`${key}/mode`) !== 'manual') {
+      const action = 'enterpictureinpicture' as MediaSessionAction;
+      navigator.mediaSession.setActionHandler(action, open);
+      return () => navigator.mediaSession.setActionHandler(action, null);
+    }
+  }, [key, open]);
 
   useEffect(() => {
     return () => pipWindowRef.current?.close();
