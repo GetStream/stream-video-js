@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.1...@stream-io/video-react-sdk-1.13.2) (2025-04-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.18.9`
+* `@stream-io/video-react-bindings` updated to version `1.5.11`
+
+### Bug Fixes
+
+* correctly apply muted state from persisted settings ([#1745](https://github.com/GetStream/stream-video-js/issues/1745)) ([a718de6](https://github.com/GetStream/stream-video-js/commit/a718de618acbc505c975da9c8d4ecaac722245af)), closes [#1736](https://github.com/GetStream/stream-video-js/issues/1736) [#1741](https://github.com/GetStream/stream-video-js/issues/1741)
+
 ## [1.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.0...@stream-io/video-react-sdk-1.13.1) (2025-04-01)
 
 
