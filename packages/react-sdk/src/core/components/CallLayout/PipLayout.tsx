@@ -1,5 +1,4 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 
 import { ParticipantsAudio } from '../Audio';
