@@ -59,7 +59,7 @@
     "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public --tag=latest",
     "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=latest",
     "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest",
-    "postinstall": "husky install"
+    "postinstall": "husky"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
