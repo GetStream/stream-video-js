@@ -37,7 +37,7 @@ import {
   SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
-import { TraceBuffer } from './stats/rtc';
+import { Tracer } from './stats/rtc';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -120,7 +120,7 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
-  private readonly traceBuffer = new TraceBuffer();
+  private readonly tracer = new Tracer();
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: (() => void) | undefined;
@@ -190,7 +190,7 @@ export class StreamSfuClient {
       baseUrl: server.url,
       interceptors: [
         withHeaders({ Authorization: `Bearer ${token}` }),
-        withRequestTracer(this.traceBuffer.trace, logTag),
+        withRequestTracer(this.tracer.trace, logTag),
         getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
       ].filter((v) => !!v),
     });
@@ -302,7 +302,7 @@ export class StreamSfuClient {
   };
 
   getTrace = () => {
-    return this.traceBuffer.take();
+    return this.tracer.take();
   };
 
   leaveAndClose = async (reason: string) => {

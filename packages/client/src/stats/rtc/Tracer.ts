@@ -1,6 +1,6 @@
 import type { Trace, TraceRecord } from './types';
 
-export class TraceBuffer {
+export class Tracer {
   private buffer: TraceRecord[] = [];
 
   trace: Trace = (method, id, data) => {

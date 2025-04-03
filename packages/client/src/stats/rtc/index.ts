@@ -2,4 +2,4 @@
 // https://github.com/fippo/rtcstats
 
 export * from './pc';
-export * from './TraceBuffer';
+export * from './Tracer';

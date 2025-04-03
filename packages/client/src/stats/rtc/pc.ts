@@ -4,7 +4,7 @@ type AsyncMethodOf<T> = {
   [K in keyof T]: T[K] extends (...args: any[]) => Promise<any> ? K : never;
 }[keyof T];
 
-export const patchRTCPeerConnection = (
+export const traceRTCPeerConnection = (
   pc: RTCPeerConnection,
   id: string,
   trace: Trace,
@@ -60,19 +60,19 @@ export const patchRTCPeerConnection = (
   });
 
   const origClose = pc.close;
-  pc.close = function patchedClose() {
+  pc.close = function tracedClose() {
     clearInterval(interval);
     trace('close', id, undefined);
     return origClose.call(this);
   };
 
-  const patch = (methods: AsyncMethodOf<RTCPeerConnection>[]) => {
+  const enableTracingFor = (methods: AsyncMethodOf<RTCPeerConnection>[]) => {
     for (const method of methods) {
       const original = pc[method];
       if (!original) continue;
 
       // @ts-expect-error we don't use deprecated APIs
-      pc[method] = async function patchedMethod(...args: any[]) {
+      pc[method] = async function tracedMethod(...args: any[]) {
         try {
           trace(method, id, args);
           // @ts-expect-error improper types
@@ -87,7 +87,7 @@ export const patchRTCPeerConnection = (
     }
   };
 
-  patch([
+  enableTracingFor([
     'createOffer',
     'createAnswer',
     'setLocalDescription',

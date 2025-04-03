@@ -1,17 +1,17 @@
-import { TraceBuffer } from './TraceBuffer';
+import { Tracer } from './Tracer';
 
-export const traceBuffer = new TraceBuffer();
+export const tracer = new Tracer();
 
 if (
   typeof navigator !== 'undefined' &&
   typeof navigator.mediaDevices !== 'undefined'
 ) {
-  const trace = traceBuffer.trace;
+  const trace = tracer.trace;
   const tag = 'navigator.mediaDevices';
 
   if (navigator.mediaDevices.getUserMedia) {
     const origGetUserMedia = navigator.mediaDevices.getUserMedia;
-    navigator.mediaDevices.getUserMedia = async function patchedGetUserMedia(
+    navigator.mediaDevices.getUserMedia = async function tracedGetUserMedia(
       constraints,
     ) {
       trace(`${tag}.getUserMedia`, null, constraints);
@@ -32,7 +32,7 @@ if (
   if (navigator.mediaDevices.getDisplayMedia) {
     const origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
     navigator.mediaDevices.getDisplayMedia =
-      async function patchedGetDisplayMedia(constraints) {
+      async function tracedGetDisplayMedia(constraints) {
         trace(`${tag}.getDisplayMedia`, null, constraints);
         try {
           const stream = await origGetDisplayMedia.call(
@@ -52,11 +52,11 @@ if (
 const dumpStream = (stream: MediaStream) => ({
   id: stream.id,
   tracks: stream.getTracks().map((track) => ({
-    id: track.id, // unique identifier (GUID) for the track
-    kind: track.kind, // `audio` or `video`
-    label: track.label, // identified the track source
-    enabled: track.enabled, // application can control it
-    muted: track.muted, // application cannot control it (read-only)
-    readyState: track.readyState, // `live` or `ended`
+    id: track.id,
+    kind: track.kind,
+    label: track.label,
+    enabled: track.enabled,
+    muted: track.muted,
+    readyState: track.readyState,
   })),
 });
