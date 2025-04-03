@@ -90,11 +90,9 @@ export function usePipWindow(key: string) {
   );
 
   useEffect(() => {
-    if (window.localStorage.getItem(`${key}/mode`) !== 'manual') {
-      const action = 'enterpictureinpicture' as MediaSessionAction;
-      navigator.mediaSession.setActionHandler(action, open);
-      return () => navigator.mediaSession.setActionHandler(action, null);
-    }
+    const action = 'enterpictureinpicture' as MediaSessionAction;
+    navigator.mediaSession.setActionHandler(action, open);
+    return () => navigator.mediaSession.setActionHandler(action, null);
   }, [key, open]);
 
   useEffect(() => {
