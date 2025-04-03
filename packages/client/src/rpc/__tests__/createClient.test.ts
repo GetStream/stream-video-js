@@ -39,22 +39,22 @@ describe('createClient', () => {
 
   it('withRequestTracer should add trace to the request', () => {
     const trace = vi.fn();
-    const interceptor = withRequestTracer(trace, '1');
+    const interceptor = withRequestTracer(trace);
     const next = vi.fn();
     interceptor.interceptUnary(
       next,
       // @ts-expect-error - invalid name
-      { name: 'test' },
-      { key: 'value' },
+      { name: 'TestMethod' },
+      { param: 'value' },
       { meta: {} },
     );
     expect(next).toHaveBeenCalled();
-    expect(trace).toHaveBeenCalledWith('test', '1', { key: 'value' });
+    expect(trace).toHaveBeenCalledWith('TestMethod', { param: 'value' });
   });
 
   it('withRequestTracer should add an error trace', () => {
     const trace = vi.fn();
-    const interceptor = withRequestTracer(trace, '1');
+    const interceptor = withRequestTracer(trace);
     const err = new Error('test error');
     const next = vi.fn(() => {
       throw err;
@@ -63,13 +63,13 @@ describe('createClient', () => {
       interceptor.interceptUnary(
         next,
         // @ts-expect-error - invalid name
-        { name: 'test' },
-        { key: 'value' },
+        { name: 'TestMethod' },
+        { param: 'value' },
         { meta: {} },
       ),
     ).toThrow('test error');
-    expect(trace).toHaveBeenLastCalledWith('testOnFailure', '1', [
-      { key: 'value' },
+    expect(trace).toHaveBeenLastCalledWith('TestMethodOnFailure', [
+      { param: 'value' },
       err,
     ]);
   });
