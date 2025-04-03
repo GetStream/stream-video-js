@@ -4,35 +4,31 @@ type AsyncMethodOf<T> = {
   [K in keyof T]: T[K] extends (...args: any[]) => Promise<any> ? K : never;
 }[keyof T];
 
-export const traceRTCPeerConnection = (
-  pc: RTCPeerConnection,
-  id: string,
-  trace: Trace,
-) => {
+export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
   pc.addEventListener('icecandidate', (e) => {
-    trace('onicecandidate', id, e.candidate);
+    trace('onicecandidate', e.candidate);
   });
   pc.addEventListener('track', (e) => {
     const streams = e.streams.map((stream) => `stream:${stream.id}`);
-    trace('ontrack', id, `${e.track.kind}:${e.track.id} ${streams}`);
+    trace('ontrack', `${e.track.kind}:${e.track.id} ${streams}`);
   });
   pc.addEventListener('signalingstatechange', () => {
-    trace('onsignalingstatechange', id, pc.signalingState);
+    trace('onsignalingstatechange', pc.signalingState);
   });
   pc.addEventListener('iceconnectionstatechange', () => {
-    trace('oniceconnectionstatechange', id, pc.iceConnectionState);
+    trace('oniceconnectionstatechange', pc.iceConnectionState);
   });
   pc.addEventListener('icegatheringstatechange', () => {
-    trace('onicegatheringstatechange', id, pc.iceGatheringState);
+    trace('onicegatheringstatechange', pc.iceGatheringState);
   });
   pc.addEventListener('connectionstatechange', () => {
-    trace('onconnectionstatechange', id, pc.connectionState);
+    trace('onconnectionstatechange', pc.connectionState);
   });
   pc.addEventListener('negotiationneeded', () => {
-    trace('onnegotiationneeded', id, undefined);
+    trace('onnegotiationneeded', undefined);
   });
   pc.addEventListener('datachannel', ({ channel }) => {
-    trace('ondatachannel', id, [channel.id, channel.label]);
+    trace('ondatachannel', [channel.id, channel.label]);
   });
 
   let prev: Record<string, RTCStats> = {};
@@ -40,11 +36,11 @@ export const traceRTCPeerConnection = (
     pc.getStats(null)
       .then((stats) => {
         const now = toObject(stats);
-        trace('getstats', id, deltaCompression(prev, now));
+        trace('getstats', deltaCompression(prev, now));
         prev = now;
       })
       .catch((err) => {
-        trace('getstatsOnFailure', id, (err as Error).toString());
+        trace('getstatsOnFailure', (err as Error).toString());
       });
   };
 
@@ -62,7 +58,7 @@ export const traceRTCPeerConnection = (
   const origClose = pc.close;
   pc.close = function tracedClose() {
     clearInterval(interval);
-    trace('close', id, undefined);
+    trace('close', undefined);
     return origClose.call(this);
   };
 
@@ -74,13 +70,13 @@ export const traceRTCPeerConnection = (
       // @ts-expect-error we don't use deprecated APIs
       pc[method] = async function tracedMethod(...args: any[]) {
         try {
-          trace(method, id, args);
+          trace(method, args);
           // @ts-expect-error improper types
           const result = await original.apply(this, args);
-          trace(`${method}OnSuccess`, id, result as RTCStatsDataType);
+          trace(`${method}OnSuccess`, result as RTCStatsDataType);
           return result;
         } catch (err) {
-          trace(`${method}OnFailure`, id, (err as Error).toString());
+          trace(`${method}OnFailure`, (err as Error).toString());
           throw err;
         }
       };

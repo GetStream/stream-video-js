@@ -67,9 +67,9 @@ export abstract class BasePeerConnection {
     ]);
     this.pc = new RTCPeerConnection(connectionConfig);
     if (enableTracing) {
-      this.tracer = new Tracer();
-      this.tracer.trace('create', logTag, connectionConfig);
-      traceRTCPeerConnection(this.pc, logTag, this.tracer.trace);
+      this.tracer = new Tracer(logTag);
+      this.tracer.trace('create', connectionConfig);
+      traceRTCPeerConnection(this.pc, this.tracer.trace);
     }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);

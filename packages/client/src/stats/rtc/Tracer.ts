@@ -8,6 +8,11 @@ export type TraceSlice = {
 export class Tracer {
   private buffer: TraceRecord[] = [];
   private enabled = true;
+  private readonly id: string | null;
+
+  constructor(id: string | null) {
+    this.id = id;
+  }
 
   setEnabled = (enabled: boolean) => {
     if (this.enabled === enabled) return;
@@ -15,9 +20,9 @@ export class Tracer {
     this.buffer = [];
   };
 
-  trace: Trace = (method, id, data) => {
+  trace: Trace = (tag, data) => {
     if (!this.enabled) return;
-    this.buffer.push([method, id, data, Date.now()]);
+    this.buffer.push([tag, this.id, data, Date.now()]);
   };
 
   take = (): TraceSlice => {

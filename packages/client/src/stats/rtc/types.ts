@@ -16,14 +16,10 @@ export type RTCStatsDataType =
   | null
   | undefined;
 
-export type Trace = (
-  method: string,
-  id: string | null,
-  data: RTCStatsDataType,
-) => void;
+export type Trace = (tag: string, data: RTCStatsDataType) => void;
 
 export type TraceRecord = [
-  method: string,
+  tag: string,
   id: string | null,
   data: RTCStatsDataType,
   timestamp: number,

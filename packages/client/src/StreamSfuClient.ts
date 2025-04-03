@@ -192,12 +192,12 @@ export class StreamSfuClient {
     this.joinResponseTimeout = joinResponseTimeout;
     this.logTag = logTag;
     this.logger = getLogger(['SfuClient', logTag]);
-    this.tracer = enableTracing ? new Tracer() : undefined;
+    this.tracer = enableTracing ? new Tracer(logTag) : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
         withHeaders({ Authorization: `Bearer ${token}` }),
-        this.tracer && withRequestTracer(this.tracer.trace, logTag),
+        this.tracer && withRequestTracer(this.tracer.trace),
         getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
       ].filter((v) => !!v),
     });

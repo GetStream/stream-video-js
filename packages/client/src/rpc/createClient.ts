@@ -64,10 +64,7 @@ export const withRequestLogger = (
   };
 };
 
-export const withRequestTracer = (
-  trace: Trace,
-  logTag: string,
-): RpcInterceptor => {
+export const withRequestTracer = (trace: Trace): RpcInterceptor => {
   type RpcMethodNames = {
     [K in keyof SignalServerClient as Capitalize<K>]: boolean;
   };
@@ -86,10 +83,10 @@ export const withRequestTracer = (
         return next(method, input, options);
       }
       try {
-        trace(method.name, logTag, input);
+        trace(method.name, input);
         return next(method, input, options);
       } catch (err) {
-        trace(`${method.name}OnFailure`, logTag, [input, err]);
+        trace(`${method.name}OnFailure`, [input, err]);
         throw err;
       }
     },

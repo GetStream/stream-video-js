@@ -1,6 +1,6 @@
 import { Tracer } from './Tracer';
 
-export const tracer = new Tracer();
+export const tracer = new Tracer(null);
 
 if (
   typeof navigator !== 'undefined' &&
@@ -14,16 +14,16 @@ if (
     navigator.mediaDevices.getUserMedia = async function tracedGetUserMedia(
       constraints,
     ) {
-      trace(`${tag}.getUserMedia`, null, constraints);
+      trace(`${tag}.getUserMedia`, constraints);
       try {
         const stream = await origGetUserMedia.call(
           navigator.mediaDevices,
           constraints,
         );
-        trace(`${tag}.getUserMediaOnSuccess`, null, dumpStream(stream));
+        trace(`${tag}.getUserMediaOnSuccess`, dumpStream(stream));
         return stream;
       } catch (err) {
-        trace(`${tag}.getUserMediaOnFailure`, null, (err as Error).name);
+        trace(`${tag}.getUserMediaOnFailure`, (err as Error).name);
         throw err;
       }
     };
@@ -33,16 +33,16 @@ if (
     const origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
     navigator.mediaDevices.getDisplayMedia =
       async function tracedGetDisplayMedia(constraints) {
-        trace(`${tag}.getDisplayMedia`, null, constraints);
+        trace(`${tag}.getDisplayMedia`, constraints);
         try {
           const stream = await origGetDisplayMedia.call(
             navigator.mediaDevices,
             constraints,
           );
-          trace(`${tag}.getDisplayMediaOnSuccess`, null, dumpStream(stream));
+          trace(`${tag}.getDisplayMediaOnSuccess`, dumpStream(stream));
           return stream;
         } catch (err) {
-          trace(`${tag}.getDisplayMediaOnFailure`, null, (err as Error).name);
+          trace(`${tag}.getDisplayMediaOnFailure`, (err as Error).name);
           throw err;
         }
       };
