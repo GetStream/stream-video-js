@@ -727,6 +727,178 @@ export interface CallEvent {
   type: string;
 }
 /**
+ * This event is sent when frame recording has failed
+ * @export
+ * @interface CallFrameRecordingFailedEvent
+ */
+export interface CallFrameRecordingFailedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallFrameRecordingFailedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingFailedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingFailedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingFailedEvent
+   */
+  egress_id: string;
+  /**
+   * The type of event: "call.frame_recording_failed" in this case
+   * @type {string}
+   * @memberof CallFrameRecordingFailedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when a frame is captured from a call
+ * @export
+ * @interface CallFrameRecordingFrameReadyEvent
+ */
+export interface CallFrameRecordingFrameReadyEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  call_cid: string;
+  /**
+   * The time the frame was captured
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  captured_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  egress_id: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  session_id: string;
+  /**
+   * The type of the track frame was captured from (TRACK_TYPE_VIDEO|TRACK_TYPE_SCREEN_SHARE)
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  track_type: string;
+  /**
+   * The type of event: "call.frame_recording_ready" in this case
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  type: string;
+  /**
+   * The URL of the frame
+   * @type {string}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  url: string;
+  /**
+   * The users in the frame
+   * @type {{ [key: string]: UserResponse; }}
+   * @memberof CallFrameRecordingFrameReadyEvent
+   */
+  users: { [key: string]: UserResponse };
+}
+/**
+ * This event is sent when frame recording has started
+ * @export
+ * @interface CallFrameRecordingStartedEvent
+ */
+export interface CallFrameRecordingStartedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallFrameRecordingStartedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingStartedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingStartedEvent
+   */
+  egress_id: string;
+  /**
+   * The type of event: "call.frame_recording_started" in this case
+   * @type {string}
+   * @memberof CallFrameRecordingStartedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when frame recording has stopped
+ * @export
+ * @interface CallFrameRecordingStoppedEvent
+ */
+export interface CallFrameRecordingStoppedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallFrameRecordingStoppedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingStoppedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallFrameRecordingStoppedEvent
+   */
+  egress_id: string;
+  /**
+   * The type of event: "call.frame_recording_stopped" in this case
+   * @type {string}
+   * @memberof CallFrameRecordingStoppedEvent
+   */
+  type: string;
+}
+/**
  * This event is sent when HLS broadcasting has failed
  * @export
  * @interface CallHLSBroadcastingFailedEvent
@@ -1226,6 +1398,12 @@ export interface CallRecording {
    * @type {string}
    * @memberof CallRecording
    */
+  session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
   start_time: string;
   /**
    *
@@ -1389,7 +1567,7 @@ export interface CallRejectedEvent {
    */
   created_at: string;
   /**
-   *
+   * Provides information about why the call was rejected. You can provide any value, but the Stream API and SDKs use these default values: rejected, cancel, timeout and busy
    * @type {string}
    * @memberof CallRejectedEvent
    */
@@ -3288,6 +3466,12 @@ export interface EgressResponse {
   broadcasting: boolean;
   /**
    *
+   * @type {FrameRecordingResponse}
+   * @memberof EgressResponse
+   */
+  frame_recording?: FrameRecordingResponse;
+  /**
+   *
    * @type {EgressHLSResponse}
    * @memberof EgressResponse
    */
@@ -3315,6 +3499,38 @@ export interface EndCallResponse {
 /**
  *
  * @export
+ * @interface FPSStats
+ */
+export interface FPSStats {
+  /**
+   *
+   * @type {number}
+   * @memberof FPSStats
+   */
+  average_fps: number;
+  /**
+   *
+   * @type {number}
+   * @memberof FPSStats
+   */
+  tracked: number;
+}
+/**
+ *
+ * @export
+ * @interface FrameRecordingResponse
+ */
+export interface FrameRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof FrameRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
  * @interface FrameRecordingSettingsRequest
  */
 export interface FrameRecordingSettingsRequest {
@@ -3335,7 +3551,7 @@ export interface FrameRecordingSettingsRequest {
    * @type {string}
    * @memberof FrameRecordingSettingsRequest
    */
-  quality?: string;
+  quality?: FrameRecordingSettingsRequestQualityEnum;
 }
 
 /**
@@ -3348,6 +3564,19 @@ export const FrameRecordingSettingsRequestModeEnum = {
 } as const;
 export type FrameRecordingSettingsRequestModeEnum =
   (typeof FrameRecordingSettingsRequestModeEnum)[keyof typeof FrameRecordingSettingsRequestModeEnum];
+
+/**
+ * @export
+ */
+export const FrameRecordingSettingsRequestQualityEnum = {
+  _360P: '360p',
+  _480P: '480p',
+  _720P: '720p',
+  _1080P: '1080p',
+  _1440P: '1440p',
+} as const;
+export type FrameRecordingSettingsRequestQualityEnum =
+  (typeof FrameRecordingSettingsRequestQualityEnum)[keyof typeof FrameRecordingSettingsRequestQualityEnum];
 
 /**
  *
@@ -3558,6 +3787,12 @@ export interface GetCallStatsResponse {
    * @memberof GetCallStatsResponse
    */
   duration: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GetCallStatsResponse
+   */
+  is_truncated_report: boolean;
   /**
    *
    * @type {TimeStats}
@@ -5381,19 +5616,19 @@ export interface Response {
  */
 export interface RingSettingsRequest {
   /**
-   *
+   * When none of the callees accept a ring call in this time a rejection will be sent by the caller with reason 'timeout' by the SDKs
    * @type {number}
    * @memberof RingSettingsRequest
    */
   auto_cancel_timeout_ms: number;
   /**
-   *
+   * When a callee is online but doesn't answer a ring call in this time a rejection will be sent with reason 'timeout' by the SDKs
    * @type {number}
    * @memberof RingSettingsRequest
    */
   incoming_call_timeout_ms: number;
   /**
-   *
+   * When a callee doesn't accept or reject a ring call in this time a missed call event will be sent
    * @type {number}
    * @memberof RingSettingsRequest
    */
@@ -6974,6 +7209,12 @@ export interface UserSessionStats {
   distance_to_sfu_kilometers?: number;
   /**
    *
+   * @type {FPSStats}
+   * @memberof UserSessionStats
+   */
+  fps?: FPSStats;
+  /**
+   *
    * @type {number}
    * @memberof UserSessionStats
    */
@@ -7247,6 +7488,12 @@ export interface UserSessionStats {
 export interface UserStats {
   /**
    *
+   * @type {string}
+   * @memberof UserStats
+   */
+  feedback?: string;
+  /**
+   *
    * @type {UserInfoResponse}
    * @memberof UserStats
    */
@@ -7341,6 +7588,10 @@ export type VideoEvent =
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.deleted' } & CallDeletedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.frame_recording_failed' } & CallFrameRecordingFailedEvent)
+  | ({ type: 'call.frame_recording_ready' } & CallFrameRecordingFrameReadyEvent)
+  | ({ type: 'call.frame_recording_started' } & CallFrameRecordingStartedEvent)
+  | ({ type: 'call.frame_recording_stopped' } & CallFrameRecordingStoppedEvent)
   | ({ type: 'call.hls_broadcasting_failed' } & CallHLSBroadcastingFailedEvent)
   | ({
       type: 'call.hls_broadcasting_started';

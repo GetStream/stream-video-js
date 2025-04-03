@@ -413,6 +413,7 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'call.frame_recording_ready': undefined,
       'call.permission_request': undefined,
       'call.recording_ready': undefined,
       'call.rtmp_broadcast_failed': undefined,
@@ -444,6 +445,15 @@ export class CallState {
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
         this.setCurrentValue(this.endedBySubject, e.user);
+      },
+      'call.frame_recording_failed': (e) => {
+        this.updateFromCallResponse(e.call);
+      },
+      'call.frame_recording_started': (e) => {
+        this.updateFromCallResponse(e.call);
+      },
+      'call.frame_recording_stopped': (e) => {
+        this.updateFromCallResponse(e.call);
       },
       'call.hls_broadcasting_failed': this.updateFromHLSBroadcastingFailed,
       'call.hls_broadcasting_started': (e) => {
@@ -996,8 +1006,8 @@ export class CallState {
             trackType === 'videoTrack'
               ? 'videoDimension'
               : trackType === 'screenShareTrack'
-                ? 'screenShareDimension'
-                : undefined;
+              ? 'screenShareDimension'
+              : undefined;
           if (prop) {
             acc[sessionId] = {
               [prop]: change.dimension,
