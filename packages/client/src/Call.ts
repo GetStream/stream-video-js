@@ -241,6 +241,7 @@ export class Call {
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+  private reconnectReason = '';
   private fastReconnectDeadlineSeconds: number = 0;
   private disconnectionTimeoutSeconds: number = 0;
   private lastOfflineTimestamp: number = 0;
@@ -911,7 +912,8 @@ export class Call {
             // a new session_id is necessary for the REJOIN strategy.
             // we use the previous session_id if available
             sessionId: performingRejoin ? undefined : previousSessionId,
-            onSignalClose: () => this.handleSfuSignalClose(sfuClient),
+            onSignalClose: (reason) =>
+              this.handleSfuSignalClose(sfuClient, reason),
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
@@ -1030,6 +1032,7 @@ export class Call {
     delete this.joinCallData?.notify;
     // reset the reconnect strategy to unspecified after a successful reconnection
     this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+    this.reconnectReason = '';
 
     this.logger('info', `Joined call ${this.cid}`);
   };
@@ -1053,7 +1056,7 @@ export class Call {
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
-      reason: '', // TODO OL: provide the reason
+      reason: this.reconnectReason,
     };
   };
 
@@ -1173,14 +1176,16 @@ export class Call {
       connectionConfig,
       logTag: String(this.sfuClientTag),
       enableTracing,
-      onUnrecoverableError: () => {
-        this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
-          this.logger(
-            'warn',
-            '[Reconnect] Error reconnecting after a subscriber error',
-            err,
-          );
-        });
+      onUnrecoverableError: (reason) => {
+        this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
+          (err) => {
+            this.logger(
+              'warn',
+              `[Reconnect] Error reconnecting after a subscriber error: ${reason}`,
+              err,
+            );
+          },
+        );
       },
     });
 
@@ -1199,14 +1204,16 @@ export class Call {
         publishOptions,
         logTag: String(this.sfuClientTag),
         enableTracing,
-        onUnrecoverableError: () => {
-          this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
-            this.logger(
-              'warn',
-              '[Reconnect] Error reconnecting after a publisher error',
-              err,
-            );
-          });
+        onUnrecoverableError: (reason) => {
+          this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
+            (err) => {
+              this.logger(
+                'warn',
+                `[Reconnect] Error reconnecting after a publisher error: ${reason}`,
+                err,
+              );
+            },
+          );
         },
       });
     }
@@ -1278,8 +1285,12 @@ export class Call {
    *
    * @internal
    * @param sfuClient the SFU client instance that was closed.
+   * @param reason the reason for the closure.
    */
-  private handleSfuSignalClose = (sfuClient: StreamSfuClient) => {
+  private handleSfuSignalClose = (
+    sfuClient: StreamSfuClient,
+    reason: string,
+  ) => {
     this.logger('debug', '[Reconnect] SFU signal connection closed');
     const { callingState } = this.state;
     if (
@@ -1297,7 +1308,7 @@ export class Call {
       return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving) return;
-    this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
+    this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
   };
@@ -1308,9 +1319,11 @@ export class Call {
    * @internal
    *
    * @param strategy the reconnection strategy to use.
+   * @param reason the reason for the reconnection.
    */
   private reconnect = async (
     strategy: WebsocketReconnectStrategy,
+    reason: string,
   ): Promise<void> => {
     if (
       this.state.callingState === CallingState.RECONNECTING ||
@@ -1326,6 +1339,7 @@ export class Call {
 
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
+      this.reconnectReason = reason;
 
       do {
         if (
@@ -1502,21 +1516,21 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.reconnect(WebsocketReconnectStrategy.MIGRATE).catch((err) => {
-        this.logger('warn', '[Reconnect] Error reconnecting', err);
-      });
+      this.reconnect(WebsocketReconnectStrategy.MIGRATE, 'goAway').catch(
+        (err) => this.logger('warn', '[Reconnect] Error reconnecting', err),
+      );
     });
 
     // handles the "error" event, through which the SFU can request a reconnect
     const unregisterOnError = this.on('error', (e) => {
-      const { reconnectStrategy: strategy } = e;
+      const { reconnectStrategy: strategy, error } = e;
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
         this.leave({ reason: 'SFU instructed to disconnect' }).catch((err) => {
           this.logger('warn', `Can't leave call after disconnect request`, err);
         });
       } else {
-        this.reconnect(strategy).catch((err) => {
+        this.reconnect(strategy, error?.message || 'SFU Error').catch((err) => {
           this.logger('warn', '[Reconnect] Error reconnecting', err);
         });
       }
@@ -1542,7 +1556,7 @@ export class Call {
               }
             }
 
-            this.reconnect(strategy).catch((err) => {
+            this.reconnect(strategy, 'Going online').catch((err) => {
               this.logger(
                 'warn',
                 '[Reconnect] Error reconnecting after going online',

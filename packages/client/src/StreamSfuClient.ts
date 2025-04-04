@@ -69,7 +69,7 @@ export type StreamSfuClientConstructor = {
   /**
    * Callback for when the WebSocket connection is closed.
    */
-  onSignalClose?: () => void;
+  onSignalClose?: (reason: string) => void;
 
   /**
    * The StreamClient instance to use for the connection.
@@ -128,7 +128,7 @@ export class StreamSfuClient {
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
-  private readonly onSignalClose: (() => void) | undefined;
+  private readonly onSignalClose: ((reason: string) => void) | undefined;
   private readonly logger: Logger;
   private readonly logTag: string;
   private readonly credentials: Credentials;
@@ -246,8 +246,8 @@ export class StreamSfuClient {
 
           this.signalWs.addEventListener('open', onOpen);
 
-          this.signalWs.addEventListener('close', () => {
-            this.handleWebSocketClose();
+          this.signalWs.addEventListener('close', (e) => {
+            this.handleWebSocketClose(e);
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
             // before emitting 'open'. However, strager things have happened, and we don't
             // want to leave signalReady in pending state.
@@ -280,11 +280,11 @@ export class StreamSfuClient {
     return this.joinResponseTask.promise;
   }
 
-  private handleWebSocketClose = () => {
+  private handleWebSocketClose = (e: CloseEvent) => {
     this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     getTimers().clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
-    this.onSignalClose?.();
+    this.onSignalClose?.(`${e.code} ${e.reason}`);
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {

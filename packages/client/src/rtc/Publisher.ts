@@ -45,8 +45,9 @@ export class Publisher extends BasePeerConnection {
     this.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
       this.restartIce().catch((err) => {
-        this.logger('warn', `ICERestart failed`, err);
-        this.onUnrecoverableError?.();
+        const reason = `ICE restart failed`;
+        this.logger('warn', reason, err);
+        this.onUnrecoverableError?.(`${reason}: ${err}`);
       });
     });
 

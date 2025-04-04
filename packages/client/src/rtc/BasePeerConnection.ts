@@ -16,7 +16,7 @@ export type BasePeerConnectionOpts = {
   state: CallState;
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
-  onUnrecoverableError?: () => void;
+  onUnrecoverableError?: (reason: string) => void;
   logTag: string;
   enableTracing: boolean;
 };
@@ -33,7 +33,7 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected onUnrecoverableError?: () => void;
+  protected onUnrecoverableError?: (reason: string) => void;
   protected isIceRestarting = false;
   private isDisposed = false;
 
@@ -231,8 +231,9 @@ export abstract class BasePeerConnection {
       this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         if (this.isDisposed) return;
-        this.logger('error', `ICE restart failed`, e);
-        this.onUnrecoverableError?.();
+        const reason = `ICE restart failed`;
+        this.logger('error', reason, e);
+        this.onUnrecoverableError?.(`${reason}: ${e}`);
       });
     }
   };
