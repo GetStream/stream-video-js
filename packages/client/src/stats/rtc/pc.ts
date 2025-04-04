@@ -1,9 +1,5 @@
 import type { RTCStatsDataType, Trace } from './types';
 
-type AsyncMethodOf<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => Promise<any> ? K : never;
-}[keyof T];
-
 export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
   pc.addEventListener('icecandidate', (e) => {
     trace('onicecandidate', e.candidate);
@@ -62,34 +58,30 @@ export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
     return origClose.call(this);
   };
 
-  const enableTracingFor = (methods: AsyncMethodOf<RTCPeerConnection>[]) => {
-    for (const method of methods) {
-      const original = pc[method];
-      if (!original) continue;
-
-      // @ts-expect-error we don't use deprecated APIs
-      pc[method] = async function tracedMethod(...args: any[]) {
-        try {
-          trace(method, args);
-          // @ts-expect-error improper types
-          const result = await original.apply(this, args);
-          trace(`${method}OnSuccess`, result as RTCStatsDataType);
-          return result;
-        } catch (err) {
-          trace(`${method}OnFailure`, (err as Error).toString());
-          throw err;
-        }
-      };
-    }
-  };
-
-  enableTracingFor([
+  for (const method of [
     'createOffer',
     'createAnswer',
     'setLocalDescription',
     'setRemoteDescription',
     'addIceCandidate',
-  ]);
+  ] as const) {
+    const original = pc[method];
+    if (!original) continue;
+
+    // @ts-expect-error we don't use deprecated APIs
+    pc[method] = async function tracedMethod(...args: any[]) {
+      try {
+        trace(method, args);
+        // @ts-expect-error improper types
+        const result = await original.apply(this, args);
+        trace(`${method}OnSuccess`, result as RTCStatsDataType);
+        return result;
+      } catch (err) {
+        trace(`${method}OnFailure`, (err as Error).toString());
+        throw err;
+      }
+    };
+  }
 };
 
 const toObject = (s: RTCStatsReport): Record<string, RTCStats> => {

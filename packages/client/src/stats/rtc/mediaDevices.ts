@@ -6,57 +6,37 @@ if (
   typeof navigator !== 'undefined' &&
   typeof navigator.mediaDevices !== 'undefined'
 ) {
-  const trace = tracer.trace;
-  const tag = 'navigator.mediaDevices';
+  const dumpStream = (stream: MediaStream) => ({
+    id: stream.id,
+    tracks: stream.getTracks().map((track) => ({
+      id: track.id,
+      kind: track.kind,
+      label: track.label,
+      enabled: track.enabled,
+      muted: track.muted,
+      readyState: track.readyState,
+    })),
+  });
 
-  if (navigator.mediaDevices.getUserMedia) {
-    const origGetUserMedia = navigator.mediaDevices.getUserMedia;
-    navigator.mediaDevices.getUserMedia = async function tracedGetUserMedia(
-      constraints,
+  const trace = tracer.trace;
+  const target = navigator.mediaDevices;
+  for (const method of ['getUserMedia', 'getDisplayMedia'] as const) {
+    const original = target[method];
+    if (!original) continue;
+
+    target[method] = async function tracedMethod(
+      constraints: MediaStreamConstraints,
     ) {
-      trace(`${tag}.getUserMedia`, constraints);
+      const tag = `navigator.mediaDevices.${method}`;
+      trace(tag, constraints);
       try {
-        const stream = await origGetUserMedia.call(
-          navigator.mediaDevices,
-          constraints,
-        );
-        trace(`${tag}.getUserMediaOnSuccess`, dumpStream(stream));
+        const stream = await original.call(target, constraints);
+        trace(`${tag}OnSuccess`, dumpStream(stream));
         return stream;
       } catch (err) {
-        trace(`${tag}.getUserMediaOnFailure`, (err as Error).name);
+        trace(`${tag}OnFailure`, (err as Error).name);
         throw err;
       }
     };
   }
-
-  if (navigator.mediaDevices.getDisplayMedia) {
-    const origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-    navigator.mediaDevices.getDisplayMedia =
-      async function tracedGetDisplayMedia(constraints) {
-        trace(`${tag}.getDisplayMedia`, constraints);
-        try {
-          const stream = await origGetDisplayMedia.call(
-            navigator.mediaDevices,
-            constraints,
-          );
-          trace(`${tag}.getDisplayMediaOnSuccess`, dumpStream(stream));
-          return stream;
-        } catch (err) {
-          trace(`${tag}.getDisplayMediaOnFailure`, (err as Error).name);
-          throw err;
-        }
-      };
-  }
 }
-
-const dumpStream = (stream: MediaStream) => ({
-  id: stream.id,
-  tracks: stream.getTracks().map((track) => ({
-    id: track.id,
-    kind: track.kind,
-    label: track.label,
-    enabled: track.enabled,
-    muted: track.muted,
-    readyState: track.readyState,
-  })),
-});
