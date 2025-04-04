@@ -25,12 +25,12 @@ export type PipLayoutProps = {
    * Predicate to filter call participants or a filter object.
    * @example
    * // With a predicate:
-   * <PaginatedGridLayout
+   * <PipLayout
    *   filterParticipants={p => p.roles.includes('student')}
    * />
    * @example
    * // With a filter object:
-   * <PaginatedGridLayout
+   * <PipLayout
    *   filterParticipants={{
    *     $or: [
    *       { roles: { $contains: 'student' } },
