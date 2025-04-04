@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.2...@stream-io/video-react-sdk-1.14.0) (2025-04-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `1.19.0`
+* `@stream-io/video-react-bindings` updated to version `1.5.12`
+
+### Features
+
+* collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
+
 ## [1.13.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.1...@stream-io/video-react-sdk-1.13.2) (2025-04-02)
 
 ### Dependency Updates
