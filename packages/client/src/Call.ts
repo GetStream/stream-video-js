@@ -1500,7 +1500,7 @@ export class Call {
       currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
-      currentSfuClient.close();
+      currentSfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'Migrating away');
     }
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.MIGRATE,
