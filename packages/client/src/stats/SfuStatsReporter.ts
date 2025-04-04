@@ -3,6 +3,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
+import { tracer as mediaStatsTracer } from './rtc/mediaDevices';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
@@ -147,23 +148,46 @@ export class SfuStatsReporter {
     });
   };
 
-  private run = async (telemetryData?: Telemetry) => {
+  private run = async (telemetry?: Telemetry) => {
     const [subscriberStats, publisherStats] = await Promise.all([
       this.subscriber.getStats().then(flatten).then(JSON.stringify),
       this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
     ]);
 
-    await this.sfuClient.sendStats({
-      sdk: this.sdkName,
-      sdkVersion: this.sdkVersion,
-      webrtcVersion: this.webRTCVersion,
-      subscriberStats,
-      publisherStats,
-      audioDevices: this.inputDevices.get('mic'),
-      videoDevices: this.inputDevices.get('camera'),
-      deviceState: getDeviceState(),
-      telemetry: telemetryData,
-    });
+    const subscriberTrace = this.subscriber.getTrace();
+    const publisherTrace = this.publisher?.getTrace();
+    const mediaTrace = mediaStatsTracer.take();
+    const sfuTrace = this.sfuClient.getTrace();
+    const publisherTraces = [
+      ...mediaTrace.snapshot,
+      ...(sfuTrace?.snapshot ?? []),
+      ...(publisherTrace?.snapshot ?? []),
+    ];
+
+    try {
+      await this.sfuClient.sendStats({
+        sdk: this.sdkName,
+        sdkVersion: this.sdkVersion,
+        webrtcVersion: this.webRTCVersion,
+        subscriberStats,
+        subscriberRtcStats: subscriberTrace
+          ? JSON.stringify(subscriberTrace.snapshot)
+          : '',
+        publisherStats,
+        publisherRtcStats:
+          publisherTraces.length > 0 ? JSON.stringify(publisherTraces) : '',
+        audioDevices: this.inputDevices.get('mic'),
+        videoDevices: this.inputDevices.get('camera'),
+        deviceState: getDeviceState(),
+        telemetry,
+      });
+    } catch (err) {
+      publisherTrace?.rollback();
+      subscriberTrace?.rollback();
+      mediaTrace.rollback();
+      sfuTrace?.rollback();
+      throw err;
+    }
   };
 
   start = () => {
