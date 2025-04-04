@@ -69,9 +69,9 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
     [K in keyof SignalServerClient as Capitalize<K>]: boolean;
   };
 
-  const exclusions: Partial<RpcMethodNames> = {
+  const exclusions: Record<string, boolean | undefined> = {
     SendStats: true,
-  };
+  } satisfies Partial<RpcMethodNames>;
   return {
     interceptUnary(
       next: NextUnaryFn,
