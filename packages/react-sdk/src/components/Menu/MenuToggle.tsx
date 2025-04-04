@@ -98,6 +98,8 @@ export const MenuToggle = <E extends HTMLElement>({
   });
 
   useEffect(() => {
+    const parentDocument = domReference?.ownerDocument;
+
     const handleClick = (event: MouseEvent) => {
       if (!floating && domReference?.contains(event.target as Node)) {
         setMenuShown(true);
@@ -119,11 +121,13 @@ export const MenuToggle = <E extends HTMLElement>({
         toggleHandler.current?.(false);
       }
     };
-    document?.addEventListener('click', handleClick, { capture: true });
-    document?.addEventListener('keydown', handleKeyDown);
+    parentDocument?.addEventListener('click', handleClick, { capture: true });
+    parentDocument?.addEventListener('keydown', handleKeyDown);
     return () => {
-      document?.removeEventListener('click', handleClick, { capture: true });
-      document?.removeEventListener('keydown', handleKeyDown);
+      parentDocument?.removeEventListener('click', handleClick, {
+        capture: true,
+      });
+      parentDocument?.removeEventListener('keydown', handleKeyDown);
     };
   }, [floating, domReference]);
 

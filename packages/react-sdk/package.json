@@ -29,7 +29,7 @@
     "*.css"
   ],
   "dependencies": {
-    "@floating-ui/react": "^0.26.24",
+    "@floating-ui/react": "^0.27.6",
     "@stream-io/video-client": "workspace:*",
     "@stream-io/video-filters-web": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",

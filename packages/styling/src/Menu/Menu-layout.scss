@@ -1,5 +1,7 @@
 .str-video__menu-container {
   z-index: 2;
+  width: max-content;
+
   &::-webkit-scrollbar {
     display: none;
   }

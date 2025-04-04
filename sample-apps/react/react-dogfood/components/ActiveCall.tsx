@@ -1,5 +1,3 @@
-import clsx from 'clsx';
-import { useEffect, useState } from 'react';
 import {
   Call,
   CallingState,
@@ -19,42 +17,46 @@ import {
   useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
+import { useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
 import { ActiveCallHeader } from './ActiveCallHeader';
-import { Stage } from './Stage';
-import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
-import { ChatWrapper } from './ChatWrapper';
-import { ChatUI } from './ChatUI';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
+import { ChatUI } from './ChatUI';
+import { ChatWrapper } from './ChatWrapper';
 import {
   ClosedCaptions,
   ClosedCaptionsSidebar,
   ToggleClosedCaptionsButton,
 } from './ClosedCaptions';
-import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { IncomingVideoSettingsButton } from './IncomingVideoSettings';
-import { ToggleEffectsButton } from './ToggleEffectsButton';
-import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
-import { ToggleFeedbackButton } from './ToggleFeedbackButton';
+import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
+import { NewMessageNotification } from './NewMessageNotification';
+import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { Stage } from './Stage';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
-import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
-import { ToggleLayoutButton } from './ToggleLayoutButton';
-import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
-import { NewMessageNotification } from './NewMessageNotification';
-import { UnreadCountBadge } from './UnreadCountBadge';
+import { ToggleEffectsButton } from './ToggleEffectsButton';
+import { ToggleFeedbackButton } from './ToggleFeedbackButton';
+import { ToggleLayoutButton } from './ToggleLayoutButton';
+import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
+import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
+import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { TourPanel } from './TourPanel';
+import { UnreadCountBadge } from './UnreadCountBadge';
 
-import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
 import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
 
 import { StepNames, useTourContext } from '../context/TourContext';
 import { useNotificationSounds } from '../hooks/useNotificationSounds';
+import { usePipWindow } from '../hooks/usePipWindow';
+import { StagePip } from './StagePip';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -134,6 +136,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
     }
   }, [isDemoEnvironment, isTourActive]);
 
+  const {
+    isSupported: isPipSupported,
+    pipWindow,
+    createPipPortal,
+    open: openPipWindow,
+    close: closePipWindow,
+  } = usePipWindow('@pronto/pip');
   useNotificationSounds();
 
   return (
@@ -149,7 +158,20 @@ export const ActiveCall = (props: ActiveCallProps) => {
         <PermissionRequests />
         <div className="rd__layout">
           <div className="rd__layout__stage-container">
-            <Stage selectedLayout={layout} />
+            {pipWindow ? (
+              createPipPortal(
+                <StagePip />,
+                <button
+                  className="rd__button rd__button--secondary rd__button--large rd__stop-pip"
+                  onClick={closePipWindow}
+                >
+                  <Icon className="rd__button__icon" icon="close" />
+                  Stop Picture-in-Picture
+                </button>,
+              )
+            ) : (
+              <Stage selectedLayout={layout} />
+            )}
             {showInvitePopup && participantCount === 1 && (
               <InvitePopup
                 callId={activeCall.id}
@@ -263,6 +285,17 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <div className="str-video__call-controls__desktop">
                 <IncomingVideoSettingsButton />
               </div>
+            )}
+            {isPipSupported && (
+              <WithTooltip title={t('Pop out Picture-in-Picture')}>
+                <CompositeButton
+                  active={!!pipWindow}
+                  variant="primary"
+                  onClick={pipWindow ? closePipWindow : openPipWindow}
+                >
+                  <Icon icon="pip" />
+                </CompositeButton>
+              </WithTooltip>
             )}
             <RecordCallConfirmationButton />
             <div className="str-video__call-controls__desktop">

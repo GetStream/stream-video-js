@@ -106,7 +106,10 @@ export type PaginatedGridLayoutProps = {
    * @default true
    */
   pageArrowsVisible?: boolean;
-} & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
+} & Pick<
+  ParticipantViewProps,
+  'ParticipantViewUI' | 'VideoPlaceholder' | 'PictureInPicturePlaceholder'
+>;
 
 export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   const {
@@ -119,6 +122,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
     pageArrowsVisible = true,
     VideoPlaceholder,
     ParticipantViewUI = DefaultParticipantViewUI,
+    PictureInPicturePlaceholder,
   } = props;
   const [page, setPage] = useState(0);
   const [
@@ -186,6 +190,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
             mirror={mirror}
             VideoPlaceholder={VideoPlaceholder}
             ParticipantViewUI={ParticipantViewUI}
+            PictureInPicturePlaceholder={PictureInPicturePlaceholder}
           />
         )}
         {pageArrowsVisible && pageCount > 1 && (
