@@ -11,7 +11,7 @@ export function StagePip() {
   return (
     <StreamTheme>
       <div className="rd__stage-pip">
-        <PipLayout ParticipantViewUI={PipParticipantViewUI} />
+        <PipLayout.Pip ParticipantViewUI={PipParticipantViewUI} />
       </div>
       <div className="str-video__call-controls">
         <div className="str-video__call-controls--group str-video__call-controls--media">

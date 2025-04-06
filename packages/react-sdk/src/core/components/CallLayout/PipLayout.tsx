@@ -51,7 +51,7 @@ export type PipLayoutProps = {
   'ParticipantViewUI' | 'VideoPlaceholder' | 'PictureInPicturePlaceholder'
 >;
 
-export const PipLayout = (props: PipLayoutProps) => {
+const Pip = (props: PipLayoutProps) => {
   const {
     excludeLocalParticipant = false,
     filterParticipants,
@@ -64,8 +64,6 @@ export const PipLayout = (props: PipLayoutProps) => {
     useState<HTMLDivElement | null>(null);
 
   const call = useCall();
-  const { useRemoteParticipants } = useCallStateHooks();
-  const remoteParticipants = useRemoteParticipants();
   const participants = useFilteredParticipants({
     excludeLocalParticipant,
     filterParticipants,
@@ -84,7 +82,6 @@ export const PipLayout = (props: PipLayoutProps) => {
 
   return (
     <div className="str-video__pip-layout" ref={setLayoutWrapperElement}>
-      <ParticipantsAudio participants={remoteParticipants} />
       {participants.map((participant) => (
         <ParticipantView
           key={participant.sessionId}
@@ -100,4 +97,14 @@ export const PipLayout = (props: PipLayoutProps) => {
   );
 };
 
-PipLayout.displayName = 'PaginatedGridLayout';
+Pip.displayName = 'PipLayout.Pip';
+
+const Host = () => {
+  const { useRemoteParticipants } = useCallStateHooks();
+  const remoteParticipants = useRemoteParticipants();
+  return <ParticipantsAudio participants={remoteParticipants} />;
+};
+
+Host.displayName = 'PipLayout.Host';
+
+export const PipLayout = { Pip, Host };

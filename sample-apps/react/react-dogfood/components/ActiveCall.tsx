@@ -7,6 +7,7 @@ import {
   Icon,
   OwnCapability,
   PermissionRequests,
+  PipLayout,
   ReactionsButton,
   RecordCallConfirmationButton,
   RecordingInProgressNotification,
@@ -161,13 +162,16 @@ export const ActiveCall = (props: ActiveCallProps) => {
             {pipWindow ? (
               createPipPortal(
                 <StagePip />,
-                <button
-                  className="rd__button rd__button--secondary rd__button--large rd__stop-pip"
-                  onClick={closePipWindow}
-                >
-                  <Icon className="rd__button__icon" icon="close" />
-                  Stop Picture-in-Picture
-                </button>,
+                <>
+                  <PipLayout.Host />
+                  <button
+                    className="rd__button rd__button--secondary rd__button--large rd__stop-pip"
+                    onClick={closePipWindow}
+                  >
+                    <Icon className="rd__button__icon" icon="close" />
+                    Stop Picture-in-Picture
+                  </button>
+                </>,
               )
             ) : (
               <Stage selectedLayout={layout} />
