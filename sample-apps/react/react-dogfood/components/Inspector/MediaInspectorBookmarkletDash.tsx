@@ -15,7 +15,7 @@ export function MediaInspectorBookmarkletDash() {
       <section>
         <small>
           Running this bookmarklet makes _inspectMedia global function availble.
-          It can give you some hints why camera or microphone devices are is
+          It can give you some hints why camera or microphone devices are in
           use.
         </small>
       </section>
