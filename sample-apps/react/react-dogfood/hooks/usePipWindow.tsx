@@ -90,9 +90,15 @@ export function usePipWindow(key: string) {
   );
 
   useEffect(() => {
-    const action = 'enterpictureinpicture' as MediaSessionAction;
-    navigator.mediaSession.setActionHandler(action, open);
-    return () => navigator.mediaSession.setActionHandler(action, null);
+    try {
+      const action = 'enterpictureinpicture' as MediaSessionAction;
+      navigator.mediaSession.setActionHandler(action, open);
+    } catch {}
+    return () => {
+      try {
+        navigator.mediaSession.setActionHandler(action, null);
+      } catch {}
+    };
   }, [open]);
 
   useEffect(() => {
