@@ -93,12 +93,8 @@ export function usePipWindow(key: string) {
     try {
       const action = 'enterpictureinpicture' as MediaSessionAction;
       navigator.mediaSession.setActionHandler(action, open);
+      return () => navigator.mediaSession.setActionHandler(action, null);
     } catch {}
-    return () => {
-      try {
-        navigator.mediaSession.setActionHandler(action, null);
-      } catch {}
-    };
   }, [open]);
 
   useEffect(() => {
