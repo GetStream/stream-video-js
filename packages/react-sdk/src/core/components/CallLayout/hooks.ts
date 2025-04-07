@@ -5,6 +5,8 @@ import {
   combineComparators,
   Comparator,
   defaultSortPreset,
+  hasAudio,
+  hasVideo,
   isPinned,
   paginatedLayoutSortPreset,
   screenSharing,
@@ -17,7 +19,11 @@ import { applyFilter, Filter } from '../../../utilities/filter';
 export type FilterableParticipant = Pick<
   StreamVideoParticipant,
   'userId' | 'isSpeaking' | 'isDominantSpeaker' | 'name' | 'roles'
-> & { isPinned: boolean };
+> & {
+  isPinned: boolean;
+  hasVideo: boolean;
+  hasAudio: boolean;
+};
 
 export type ParticipantFilter = Filter<FilterableParticipant>;
 export type ParticipantPredicate = (
@@ -66,6 +72,8 @@ export const applyParticipantsFilter = (
               name: participant.name,
               roles: participant.roles,
               isPinned: isPinned(participant),
+              hasVideo: hasVideo(participant),
+              hasAudio: hasAudio(participant),
             },
             filter,
           );

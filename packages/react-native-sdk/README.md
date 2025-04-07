@@ -141,6 +141,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] PiP on iOS
 - [x] Video filters
 - [x] CPU usage improvement
+- [x] Improved stat collection
 - [ ] Audio filters and Noise Cancellation
 - [ ] Analytics Integration
 - [ ] Long press to focus

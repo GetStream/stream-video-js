@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.9...@stream-io/video-client-1.19.0) (2025-04-04)
+
+
+### Features
+
+* collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
+
 ## [1.18.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.8...@stream-io/video-client-1.18.9) (2025-04-02)
 
 
