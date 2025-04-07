@@ -140,7 +140,6 @@ try {
       start,
     ]);
 
-    // @ts-expect-error - types conflict
     const animatedStyle = useAnimatedStyle(() => {
       return {
         height: rectangle?.height,
@@ -162,7 +161,6 @@ try {
       // gesture handler root view must absolutely fill the bounds
       // to intercept gestures within those bounds
       <GestureDetector gesture={dragGesture}>
-        {/* @ts-expect-error types conflict */}
         <Reanimated.View style={animatedStyle}>
           <View
             onLayout={(event) => {
