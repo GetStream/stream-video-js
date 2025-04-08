@@ -29,11 +29,7 @@ function setLogoutCallback(
     try {
       await client.removeDevice(token);
     } catch (err) {
-      logger(
-        'warn',
-        'PushLogoutCallback - Failed to remove voip token from stream',
-        err,
-      );
+      logger('warn', 'PushLogoutCallback - Failed to remove voip token', err);
     }
   });
 }
@@ -48,18 +44,20 @@ export const useIosVoipPushEventsSetupEffect = () => {
   const lastVoipTokenRef = useRef({ token: '', userId: '' });
   const [unsentToken, setUnsentToken] = useState<string>();
 
-  // this effect is used to send the unsent token to stream
+  // this effect is used to send the unsent token to the Stream backend
   useEffect(() => {
     const { pushProviderName } = StreamVideoRN.getConfig().push?.ios || {};
     //  we need to wait for user to be connected before we can send the push token
     if (!pushProviderName || !client || !connectedUserId) return;
 
-    // when switching users, on the same `client` instance (disconnect/connect)
-    // it is highly likely that the token has already been sent to stream
-    // but bound to the previous user.
-    // upon changing the user, we need to send the token again to stream
-    // to bind it with the new user.
-    // here we also handle the case where the device token arrived earlier.
+    // When switching users, on the same `client` instance (disconnect/connect)
+    // it is highly likely that the token has already been sent
+    // to the Stream backend but bound to the previous user.
+    //
+    // Upon changing the user, we need to send the token again
+    // to the Stream backend to bind it with the new user.
+    //
+    // Here we also handle the case where the device token arrived earlier.
     const current = lastVoipTokenRef.current;
     const tokenToSend =
       connectedUserId !== current.userId && current.token
@@ -70,13 +68,13 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
     logger(
       'debug',
-      `Sending voip token to stream as user logged in after token was received, token: ${tokenToSend}`,
+      `Sending voip token as user logged in after token was received, token: ${tokenToSend}`,
     );
 
     client
       .addVoipDevice(tokenToSend, 'apn', pushProviderName)
       .then(() => {
-        logger('debug', `Sent voip token to stream - token: ${tokenToSend}`);
+        logger('debug', `Sent voip token: ${tokenToSend}`);
         setLogoutCallback(client, tokenToSend, lastVoipTokenRef);
         lastVoipTokenRef.current = {
           token: tokenToSend,
@@ -85,7 +83,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
         setUnsentToken(undefined);
       })
       .catch((error) => {
-        logger('warn', 'Error in sending unsent voip token to stream', error);
+        logger('warn', 'Error in sending unsent voip token', error);
       });
   }, [client, connectedUserId, unsentToken]);
 
@@ -113,46 +111,31 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
-      if (client.streamClient.anonymous) {
-        logger('debug', 'Skipped sending voip token for anonymous user');
+      if (client.streamClient.anonymous || !token || !userId) {
+        const reason = client.streamClient.anonymous
+          ? 'anonymous user'
+          : !token
+            ? 'no token was present (possibly using a simulator)'
+            : 'no user id was present';
+        logger('debug', `Skipped sending voip token: ${reason}`);
         setUnsentToken(token);
         return;
       }
-      if (!token) {
-        logger(
-          'debug',
-          `Skipped sending voip token to stream no token was present - userId: ${userId} (possibly using a simulator)`,
-        );
-        setUnsentToken(token);
-        return;
-      }
-      if (!userId) {
-        logger(
-          'debug',
-          `Skipped sending voip token to stream no user id was present - token: ${token}`,
-        );
-        setUnsentToken(token);
-        return;
-      }
+
       const lastVoipToken = lastVoipTokenRef.current;
       if (lastVoipToken.token === token && lastVoipToken.userId === userId) {
         logger(
           'debug',
-          `Skipped sending voip token to stream as it is same as last token - token: ${token}, userId: ${userId}`,
+          `Skipped sending voip token as it is same as last token - token: ${token}, userId: ${userId}`,
         );
         return;
       }
-      logger(
-        'debug',
-        `Sending voip token to stream, token: ${token} userId: ${userId}`,
-      );
+
+      logger('debug', `Sending voip token: ${token} userId: ${userId}`);
       client
         .addVoipDevice(token, 'apn', pushProviderName)
         .then(() => {
-          logger(
-            'debug',
-            `Sent voip token to stream, token: ${token} userId: ${userId}`,
-          );
+          logger('debug', `Sent voip token: ${token} userId: ${userId}`);
           setLogoutCallback(client, token, lastVoipTokenRef);
           lastVoipTokenRef.current = { token, userId };
         })
@@ -160,7 +143,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
           setUnsentToken(token);
           logger(
             'warn',
-            `Failed to send voip token to stream token: ${token} userId: ${userId}`,
+            `Failed to send voip token: ${token} userId: ${userId}`,
             err,
           );
         });
@@ -192,11 +175,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
       if (currentListenerCount !== lastListener.count) {
         logger(
           'debug',
-          'Skipped removing voip event listeners for user: ' + userId,
+          `Skipped removing voip event listeners for user: ${userId}`,
         );
         return;
       }
-      logger('debug', 'Voip event listeners are removed for user: ' + userId);
+      logger('debug', `Voip event listeners are removed for user: ${userId}`);
       voipPushNotification.removeEventListener('didLoadWithEvents');
       voipPushNotification.removeEventListener('register');
     };
