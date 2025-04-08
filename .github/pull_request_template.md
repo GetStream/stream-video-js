@@ -1,3 +1,5 @@
-### Overview
+### 💡 Overview
 
-### Implementation notes
+### 📝 Implementation notes
+
+🎫 Ticket: https://https://linear.app/stream/issue/XYZ-123
