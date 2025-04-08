@@ -50,31 +50,36 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
   // this effect is used to send the unsent token to stream
   useEffect(() => {
-    const pushConfig = StreamVideoRN.getConfig().push;
+    const { pushProviderName } = StreamVideoRN.getConfig().push?.ios || {};
     //  we need to wait for user to be connected before we can send the push token
-    if (
-      !pushConfig?.ios.pushProviderName ||
-      !client ||
-      !connectedUserId ||
-      !unsentToken
-    ) {
-      return;
-    }
+    if (!pushProviderName || !client || !connectedUserId) return;
+
+    // when switching users, on the same `client` instance (disconnect/connect)
+    // it is highly likely that the token has already been sent to stream
+    // but bound to the previous user.
+    // upon changing the user, we need to send the token again to stream
+    // to bind it with the new user.
+    // here we also handle the case where the device token arrived earlier.
+    const current = lastVoipTokenRef.current;
+    const tokenToSend =
+      connectedUserId !== current.userId && current.token
+        ? current.token
+        : unsentToken;
+
+    if (!tokenToSend) return;
+
     logger(
       'debug',
-      'Sending unsent voip token to stream as user logged in after token was received, token: ' +
-        unsentToken,
+      `Sending voip token to stream as user logged in after token was received, token: ${tokenToSend}`,
     );
+
     client
-      .addVoipDevice(unsentToken, 'apn', pushConfig.ios.pushProviderName)
+      .addVoipDevice(tokenToSend, 'apn', pushProviderName)
       .then(() => {
-        setLogoutCallback(client, unsentToken, lastVoipTokenRef);
-        logger(
-          'debug',
-          'Sent unsent voip token to stream - token: ' + unsentToken,
-        );
+        logger('debug', `Sent voip token to stream - token: ${tokenToSend}`);
+        setLogoutCallback(client, tokenToSend, lastVoipTokenRef);
         lastVoipTokenRef.current = {
-          token: unsentToken,
+          token: tokenToSend,
           userId: connectedUserId,
         };
         setUnsentToken(undefined);
@@ -92,7 +97,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
     }
     if (!pushConfig.android.incomingCallChannel) {
       // TODO: remove this check and find a better way once we have telecom integration for android
-      getLogger(['useIosVoipPushEventsSetupEffect'])(
+      logger(
         'debug',
         'android incomingCallChannel is not defined, so skipping the useIosVoipPushEventsSetupEffect',
       );
@@ -100,7 +105,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
     }
     if (!pushConfig.android.incomingCallChannel) {
       // TODO: remove this check and find a better way once we have telecom integration for android
-      getLogger(['useIosVoipPushEventsSetupEffect'])(
+      logger(
         'debug',
         'android incomingCallChannel is not defined, so skipping the useIosVoipPushEventsSetupEffect',
       );
@@ -116,6 +121,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
+      if (client.streamClient.anonymous) {
+        logger('debug', 'Skipped sending voip token for anonymous user');
+        setUnsentToken(token);
+        return;
+      }
       if (!token) {
         logger(
           'debug',

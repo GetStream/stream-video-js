@@ -63,6 +63,10 @@ export async function initAndroidPushToken(
   const logger = getLogger(['initAndroidPushToken']);
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
+    if (client.streamClient.anonymous) {
+      logger('debug', 'Skipped sending voip token for anonymous user');
+      return;
+    }
     if (
       lastFirebaseToken.token === token &&
       lastFirebaseToken.userId === userId
