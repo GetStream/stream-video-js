@@ -156,7 +156,6 @@ export const SettingsTabModalMenu = (props: {
         </div>
         <DeviceSelectionSettingsDropdown
           title={t('Default device preference')}
-          key="@pronto/device-preferences"
         />
       </TabWrapper>
       <TabWrapper icon="video-effects" label="Effects" inMeeting>

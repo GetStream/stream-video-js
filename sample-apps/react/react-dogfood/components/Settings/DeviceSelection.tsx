@@ -3,34 +3,31 @@ import {
   DropDownSelectOption,
   useI18n,
 } from '@stream-io/video-react-sdk';
-import { useState } from 'react';
+import { DeviceSelectionPreference } from '../../hooks/useDeviceSelectionPreference';
+import { useSettings } from '../../context/SettingsContext';
 
-const deviceSelectionOptions = ['system', 'recent'] as const;
+const deviceSelectionOptions: DeviceSelectionPreference[] = [
+  'system',
+  'recent',
+];
 
 export const DeviceSelectionSettingsDropdown = ({
   title,
-  key,
 }: {
   title: string;
-  key: string;
 }) => {
   const { t } = useI18n();
-  const [currentSetting, setCurrentSetting] = useState<
-    (typeof deviceSelectionOptions)[number]
-  >(() =>
-    window.localStorage.getItem(key) === 'disabled' ? 'system' : 'recent',
-  );
+  const {
+    settings: {
+      deviceSelectionPreference: currentSetting,
+      setDeviceSelectionPreference: setCurrentSetting,
+    },
+  } = useSettings();
   const currentIndex = deviceSelectionOptions.indexOf(currentSetting);
 
   const handleChange = (index: number) => {
     const nextSetting = deviceSelectionOptions[index];
     setCurrentSetting(nextSetting);
-
-    if (nextSetting === 'system') {
-      window.localStorage.setItem(key, 'disabled');
-    } else {
-      window.localStorage.removeItem(key);
-    }
   };
 
   return (
