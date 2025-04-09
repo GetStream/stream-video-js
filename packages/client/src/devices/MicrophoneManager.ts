@@ -14,7 +14,10 @@ import {
   OwnCapability,
 } from '../gen/coordinator';
 import { CallingState } from '../store';
-import { createSubscription } from '../store/rxUtils';
+import {
+  createSafeAsyncSubscription,
+  createSubscription,
+} from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 
@@ -32,7 +35,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
 
     this.subscriptions.push(
-      createSubscription(
+      createSafeAsyncSubscription(
         combineLatest([
           this.call.state.callingState$,
           this.call.state.ownCapabilities$,

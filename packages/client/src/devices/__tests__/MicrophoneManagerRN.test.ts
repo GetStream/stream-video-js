@@ -74,10 +74,11 @@ describe('MicrophoneManager React Native', () => {
   it(`should start sound detection if mic is disabled`, async () => {
     await manager.enable();
     // @ts-expect-error - private method
-    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+    const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     await manager.disable();
 
-    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+    expect(fn).toHaveBeenCalled();
     expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
   });
 
@@ -110,10 +111,11 @@ describe('MicrophoneManager React Native', () => {
     await manager.disable();
 
     // @ts-expect-error private method
-    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+    const fn = vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([]);
 
-    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+    expect(fn).toHaveBeenCalled();
   });
 
   it('should start speaking while muted notifications if user gains permission to send audio', async () => {
@@ -123,10 +125,11 @@ describe('MicrophoneManager React Native', () => {
     manager['call'].state.setOwnCapabilities([]);
 
     // @ts-expect-error - private method
-    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+    const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+    expect(fn).toHaveBeenCalled();
   });
 
   describe('Noise Suppression', () => {
