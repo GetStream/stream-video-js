@@ -10,6 +10,21 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 - `@stream-io/video-client` updated to version `1.19.1`
 - `@stream-io/video-react-bindings` updated to version `1.5.13`
 
+- **@stream-io/video-react-sdk:** release version 1.14.1 ([5692570](https://github.com/GetStream/stream-video-js/commit/5692570bc3ab1d2ced4517b4fac4688749aceff8))
+
+### Bug Fixes
+
+- allow filtering participants on hasAudio/hasVideo ([#1748](https://github.com/GetStream/stream-video-js/issues/1748)) ([0dde004](https://github.com/GetStream/stream-video-js/commit/0dde004750e5820fd34a8cc6ee48ed98d1e6926d))
+- Document PiP support on Pronto ([#1746](https://github.com/GetStream/stream-video-js/issues/1746)) ([3034ab0](https://github.com/GetStream/stream-video-js/commit/3034ab0023a62258fc5fa05b7e437f02f01ae96d))
+
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.0...@stream-io/video-react-sdk-1.14.1) (2025-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.1.3`
+- `@stream-io/video-client` updated to version `1.19.1`
+- `@stream-io/video-react-bindings` updated to version `1.5.13`
+
 ### Bug Fixes
 
 - allow filtering participants on hasAudio/hasVideo ([#1748](https://github.com/GetStream/stream-video-js/issues/1748)) ([0dde004](https://github.com/GetStream/stream-video-js/commit/0dde004750e5820fd34a8cc6ee48ed98d1e6926d))
