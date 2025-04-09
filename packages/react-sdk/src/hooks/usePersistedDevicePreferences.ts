@@ -62,10 +62,13 @@ const usePersistedDevicePreference = <K extends DeviceKey>(
 
   useEffect(
     function apply() {
+      const disabled = window.localStorage.getItem(key) === 'disabled';
+
       if (
         callingState === CallingState.LEFT ||
         !state.devices?.length ||
-        applyingState !== 'idle'
+        applyingState !== 'idle' ||
+        disabled
       ) {
         return;
       }

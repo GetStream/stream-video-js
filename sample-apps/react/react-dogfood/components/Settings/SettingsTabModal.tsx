@@ -31,6 +31,7 @@ import { CallRecordings } from '../CallRecordings';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
+import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -153,6 +154,10 @@ export const SettingsTabModalMenu = (props: {
           Actual incoming video quality depends on a number of factors, such as
           the quality of the source video, and network conditions.
         </div>
+        <DeviceSelectionSettingsDropdown
+          title={t('Default device preference')}
+          key="@pronto/device-preferences"
+        />
       </TabWrapper>
       <TabWrapper icon="video-effects" label="Effects" inMeeting>
         <VideoEffectsSettings />
