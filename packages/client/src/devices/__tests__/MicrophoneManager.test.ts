@@ -153,10 +153,11 @@ describe('MicrophoneManager', () => {
     it(`should start sound detection if mic is disabled`, async () => {
       await manager.enable();
       // @ts-expect-error private api
-      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       await manager.disable();
 
-      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+      expect(fn).toHaveBeenCalled();
     });
 
     it(`should stop sound detection if mic is enabled`, async () => {
@@ -198,10 +199,11 @@ describe('MicrophoneManager', () => {
       await manager.disable();
 
       // @ts-expect-error private api
-      vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+      const fn = vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([]);
 
-      expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+      expect(fn).toHaveBeenCalled();
     });
 
     // --- this ---
@@ -212,10 +214,11 @@ describe('MicrophoneManager', () => {
       manager['call'].state.setOwnCapabilities([]);
 
       // @ts-expect-error private api
-      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+      expect(fn).toHaveBeenCalled();
     });
 
     it(`disables speaking while muted notifications`, async () => {
