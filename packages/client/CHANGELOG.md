@@ -2,30 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
-## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.9...@stream-io/video-client-1.19.0) (2025-04-04)
+## [1.19.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.19.0...@stream-io/video-client-1.19.1) (2025-04-09)
 
+### Bug Fixes
+
+- add an opt-out for persisted device preferences ([#1753](https://github.com/GetStream/stream-video-js/issues/1753)) ([4d55c3e](https://github.com/GetStream/stream-video-js/commit/4d55c3ee982bcb72beec347489e7c945bb2c63e3))
+
+## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.9...@stream-io/video-client-1.19.0) (2025-04-04)
 
 ### Features
 
-* collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
+- collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
 
 ## [1.18.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.8...@stream-io/video-client-1.18.9) (2025-04-02)
 
-
 ### Bug Fixes
 
-* pick correct device for speaking while muted detection ([#1744](https://github.com/GetStream/stream-video-js/issues/1744)) ([33044f5](https://github.com/GetStream/stream-video-js/commit/33044f56ec7debba2e14d5a87dde9eaa87a02089)), closes [#1538](https://github.com/GetStream/stream-video-js/issues/1538)
-* reset the call state value when "live" ends ([#1740](https://github.com/GetStream/stream-video-js/issues/1740)) ([2123a10](https://github.com/GetStream/stream-video-js/commit/2123a104bb790a7384506fd475b779c02b116edd))
+- pick correct device for speaking while muted detection ([#1744](https://github.com/GetStream/stream-video-js/issues/1744)) ([33044f5](https://github.com/GetStream/stream-video-js/commit/33044f56ec7debba2e14d5a87dde9eaa87a02089)), closes [#1538](https://github.com/GetStream/stream-video-js/issues/1538)
+- reset the call state value when "live" ends ([#1740](https://github.com/GetStream/stream-video-js/issues/1740)) ([2123a10](https://github.com/GetStream/stream-video-js/commit/2123a104bb790a7384506fd475b779c02b116edd))
 
 ## [1.18.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.7...@stream-io/video-client-1.18.8) (2025-04-01)
 
-
-* dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
-
+- dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
 
 ### Bug Fixes
 
-* implement retry logic for call joining process ([#1738](https://github.com/GetStream/stream-video-js/issues/1738)) ([71599c3](https://github.com/GetStream/stream-video-js/commit/71599c3ddda51a247d7933cd6b12ca8fd03d7033))
+- implement retry logic for call joining process ([#1738](https://github.com/GetStream/stream-video-js/issues/1738)) ([71599c3](https://github.com/GetStream/stream-video-js/commit/71599c3ddda51a247d7933cd6b12ca8fd03d7033))
 
 ## [1.18.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.18.6...@stream-io/video-client-1.18.7) (2025-03-20)
 
