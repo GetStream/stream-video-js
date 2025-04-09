@@ -63,6 +63,10 @@ export async function initAndroidPushToken(
   const logger = getLogger(['initAndroidPushToken']);
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
+    if (client.streamClient.anonymous) {
+      logger('debug', 'Skipped sending firebase token for anonymous user');
+      return;
+    }
     if (
       lastFirebaseToken.token === token &&
       lastFirebaseToken.userId === userId
@@ -84,7 +88,7 @@ export async function initAndroidPushToken(
       }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
-    logger('debug', `sending token from firebase: ${token}`);
+    logger('debug', `sending firebase token: ${token} for userId: ${userId}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
   if (pushConfig.isExpo) {
