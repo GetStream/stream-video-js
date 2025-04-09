@@ -2,37 +2,50 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.0...@stream-io/video-react-native-sdk-1.11.1) (2025-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.19.1`
+- `@stream-io/video-react-bindings` updated to version `1.5.13`
+
+- use RN 0.76.9 as a baseline ([#1750](https://github.com/GetStream/stream-video-js/issues/1750)) ([3846aa1](https://github.com/GetStream/stream-video-js/commit/3846aa1d748a2bb2dbf9262ec0036f2cf55874ea))
+
+### Bug Fixes
+
+- send device token when switching user ([#1752](https://github.com/GetStream/stream-video-js/issues/1752)) ([4a5d72e](https://github.com/GetStream/stream-video-js/commit/4a5d72eb90d838a462dccf77996270963c8ce0d1))
+
 ## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.19...@stream-io/video-react-native-sdk-1.11.0) (2025-04-04)
 
 ### Dependency Updates
 
-* `@stream-io/video-client` updated to version `1.19.0`
-* `@stream-io/video-react-bindings` updated to version `1.5.12`
+- `@stream-io/video-client` updated to version `1.19.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.12`
 
 ### Features
 
-* collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
+- collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
 
 ## [1.10.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.18...@stream-io/video-react-native-sdk-1.10.19) (2025-04-02)
 
 ### Dependency Updates
 
-* `@stream-io/video-client` updated to version `1.18.9`
-* `@stream-io/video-react-bindings` updated to version `1.5.11`
+- `@stream-io/video-client` updated to version `1.18.9`
+- `@stream-io/video-react-bindings` updated to version `1.5.11`
 
-* remove react-native/eslint-config from the RN SDK ([#1743](https://github.com/GetStream/stream-video-js/issues/1743)) ([312d734](https://github.com/GetStream/stream-video-js/commit/312d73411642bdcc811885fb16d7d26a916c2d05))
-* rn-178 refactor theme provider ([#1739](https://github.com/GetStream/stream-video-js/issues/1739)) ([3252a90](https://github.com/GetStream/stream-video-js/commit/3252a90d51db1e47abbd7a37a9fdf8e14504f24d))
+- remove react-native/eslint-config from the RN SDK ([#1743](https://github.com/GetStream/stream-video-js/issues/1743)) ([312d734](https://github.com/GetStream/stream-video-js/commit/312d73411642bdcc811885fb16d7d26a916c2d05))
+- rn-178 refactor theme provider ([#1739](https://github.com/GetStream/stream-video-js/issues/1739)) ([3252a90](https://github.com/GetStream/stream-video-js/commit/3252a90d51db1e47abbd7a37a9fdf8e14504f24d))
 
 ## [1.10.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.17...@stream-io/video-react-native-sdk-1.10.18) (2025-04-01)
 
 ### Dependency Updates
 
-* `@stream-io/video-client` updated to version `1.18.8`
-* `@stream-io/video-react-bindings` updated to version `1.5.10`
+- `@stream-io/video-client` updated to version `1.18.8`
+- `@stream-io/video-react-bindings` updated to version `1.5.10`
 
-* align expo plugin background modes with flutter ([f6950cb](https://github.com/GetStream/stream-video-js/commit/f6950cb39d0c83413aca1c59e670efea5c5cdd6a))
-* dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
-* RN Ringing App ([#1719](https://github.com/GetStream/stream-video-js/issues/1719)) ([6fcb33f](https://github.com/GetStream/stream-video-js/commit/6fcb33f3574adbf8f22cf016625fe53a11ed1169))
+- align expo plugin background modes with flutter ([f6950cb](https://github.com/GetStream/stream-video-js/commit/f6950cb39d0c83413aca1c59e670efea5c5cdd6a))
+- dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
+- RN Ringing App ([#1719](https://github.com/GetStream/stream-video-js/issues/1719)) ([6fcb33f](https://github.com/GetStream/stream-video-js/commit/6fcb33f3574adbf8f22cf016625fe53a11ed1169))
 
 ## [1.10.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.10.16...@stream-io/video-react-native-sdk-1.10.17) (2025-03-20)
 
