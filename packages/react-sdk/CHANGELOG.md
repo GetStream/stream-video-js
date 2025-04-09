@@ -2,48 +2,59 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.0...@stream-io/video-react-sdk-1.14.1) (2025-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.1.3`
+- `@stream-io/video-client` updated to version `1.19.1`
+- `@stream-io/video-react-bindings` updated to version `1.5.13`
+
+### Bug Fixes
+
+- allow filtering participants on hasAudio/hasVideo ([#1748](https://github.com/GetStream/stream-video-js/issues/1748)) ([0dde004](https://github.com/GetStream/stream-video-js/commit/0dde004750e5820fd34a8cc6ee48ed98d1e6926d))
+- Document PiP support on Pronto ([#1746](https://github.com/GetStream/stream-video-js/issues/1746)) ([3034ab0](https://github.com/GetStream/stream-video-js/commit/3034ab0023a62258fc5fa05b7e437f02f01ae96d))
+
 ## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.2...@stream-io/video-react-sdk-1.14.0) (2025-04-04)
 
 ### Dependency Updates
 
-* `@stream-io/video-client` updated to version `1.19.0`
-* `@stream-io/video-react-bindings` updated to version `1.5.12`
+- `@stream-io/video-client` updated to version `1.19.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.12`
 
 ### Features
 
-* collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
+- collect more granular RTC stats and RPC tracing ([#1735](https://github.com/GetStream/stream-video-js/issues/1735)) ([e356d6b](https://github.com/GetStream/stream-video-js/commit/e356d6b9fe361c186a5b92de55fabf0598ea4885))
 
 ## [1.13.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.1...@stream-io/video-react-sdk-1.13.2) (2025-04-02)
 
 ### Dependency Updates
 
-* `@stream-io/video-client` updated to version `1.18.9`
-* `@stream-io/video-react-bindings` updated to version `1.5.11`
+- `@stream-io/video-client` updated to version `1.18.9`
+- `@stream-io/video-react-bindings` updated to version `1.5.11`
 
 ### Bug Fixes
 
-* correctly apply muted state from persisted settings ([#1745](https://github.com/GetStream/stream-video-js/issues/1745)) ([a718de6](https://github.com/GetStream/stream-video-js/commit/a718de618acbc505c975da9c8d4ecaac722245af)), closes [#1736](https://github.com/GetStream/stream-video-js/issues/1736) [#1741](https://github.com/GetStream/stream-video-js/issues/1741)
+- correctly apply muted state from persisted settings ([#1745](https://github.com/GetStream/stream-video-js/issues/1745)) ([a718de6](https://github.com/GetStream/stream-video-js/commit/a718de618acbc505c975da9c8d4ecaac722245af)), closes [#1736](https://github.com/GetStream/stream-video-js/issues/1736) [#1741](https://github.com/GetStream/stream-video-js/issues/1741)
 
 ## [1.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.13.0...@stream-io/video-react-sdk-1.13.1) (2025-04-01)
 
-
 ### Bug Fixes
 
-* apply muted state from persisted device preferences ([#1741](https://github.com/GetStream/stream-video-js/issues/1741)) ([75e7b66](https://github.com/GetStream/stream-video-js/commit/75e7b66d9a2ae01a157b8969cab5c8ff8a43d84d)), closes [#1736](https://github.com/GetStream/stream-video-js/issues/1736)
+- apply muted state from persisted device preferences ([#1741](https://github.com/GetStream/stream-video-js/issues/1741)) ([75e7b66](https://github.com/GetStream/stream-video-js/commit/75e7b66d9a2ae01a157b8969cab5c8ff8a43d84d)), closes [#1736](https://github.com/GetStream/stream-video-js/issues/1736)
 
 ## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.11...@stream-io/video-react-sdk-1.13.0) (2025-04-01)
 
 ### Dependency Updates
 
-* `@stream-io/video-client` updated to version `1.18.8`
-* `@stream-io/video-react-bindings` updated to version `1.5.10`
+- `@stream-io/video-client` updated to version `1.18.8`
+- `@stream-io/video-react-bindings` updated to version `1.5.10`
 
-* dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
-
+- dependency upgrades and cleanup ([#1727](https://github.com/GetStream/stream-video-js/issues/1727)) ([c3b0ede](https://github.com/GetStream/stream-video-js/commit/c3b0ede3ce444c28c51457155e8ccff584c2c1e5))
 
 ### Features
 
-* persist device label and fallback to it when device id is not found ([#1736](https://github.com/GetStream/stream-video-js/issues/1736)) ([27536f7](https://github.com/GetStream/stream-video-js/commit/27536f7a98ff7ec23bf35e9b292411ba3a9ca392))
+- persist device label and fallback to it when device id is not found ([#1736](https://github.com/GetStream/stream-video-js/issues/1736)) ([27536f7](https://github.com/GetStream/stream-video-js/commit/27536f7a98ff7ec23bf35e9b292411ba3a9ca392))
 
 ## [1.12.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.12.10...@stream-io/video-react-sdk-1.12.11) (2025-03-20)
 
