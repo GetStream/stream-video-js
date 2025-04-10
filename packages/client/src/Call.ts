@@ -684,12 +684,16 @@ export class Call {
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
    * @param params.members_limit the total number of members to return as part of the response.
+   * @param params.video if set to true, the call will be created as a video call.
+   * @param params.member_ids the list of members to ring. Limited to 100 members per request.
    */
   get = async (params?: {
     ring?: boolean;
     notify?: boolean;
     members_limit?: number;
-  }) => {
+    video?: boolean;
+    member_ids?: string[];
+  }): Promise<GetCallResponse> => {
     await this.setup();
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
@@ -770,9 +774,13 @@ export class Call {
   /**
    * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
    * Will send a `call.ring` event to the call members.
+   *
+   * @param params.member_ids the list of members to ring. Limited to 100 members per request.
    */
-  ring = async (): Promise<GetCallResponse> => {
-    return await this.get({ ring: true });
+  ring = async (params: {
+    member_ids?: string[];
+  }): Promise<GetCallResponse> => {
+    return await this.get({ ...params, ring: true });
   };
 
   /**

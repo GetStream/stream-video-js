@@ -2098,6 +2098,12 @@ export interface CallSessionResponse {
    * @type {string}
    * @memberof CallSessionResponse
    */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
   ended_at?: string;
   /**
    *
@@ -4779,6 +4785,12 @@ export interface OwnUserResponse {
   teams: Array<string>;
   /**
    *
+   * @type {{ [key: string]: string; }}
+   * @memberof OwnUserResponse
+   */
+  teams_role?: { [key: string]: string };
+  /**
+   *
    * @type {string}
    * @memberof OwnUserResponse
    */
@@ -6923,7 +6935,7 @@ export interface UserInfoResponse {
  */
 export interface UserRequest {
   /**
-   *
+   * Custom user data
    * @type {{ [key: string]: any; }}
    * @memberof UserRequest
    */
@@ -6935,7 +6947,7 @@ export interface UserRequest {
    */
   id: string;
   /**
-   *
+   * User's profile image URL
    * @type {string}
    * @memberof UserRequest
    */
@@ -7050,6 +7062,12 @@ export interface UserResponse {
    */
   teams: Array<string>;
   /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof UserResponse
+   */
+  teams_role?: { [key: string]: string };
+  /**
    * Date/time of the last update
    * @type {string}
    * @memberof UserResponse
@@ -7152,6 +7170,12 @@ export interface UserResponsePrivacyFields {
    * @memberof UserResponsePrivacyFields
    */
   teams: Array<string>;
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof UserResponsePrivacyFields
+   */
+  teams_role?: { [key: string]: string };
   /**
    *
    * @type {string}
