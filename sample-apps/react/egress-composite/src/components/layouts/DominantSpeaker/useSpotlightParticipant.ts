@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   hasVideo,
   StreamVideoParticipant,
-  useCallStateHooks,
+  useFilteredParticipants,
 } from '@stream-io/video-react-sdk';
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
@@ -10,32 +10,38 @@ export const useSpotlightParticipant = () => {
   const [speakerInSpotlight, setSpeakerInSpotlight] =
     useState<StreamVideoParticipant>();
 
-  const { useDominantSpeaker, useRemoteParticipants } = useCallStateHooks();
   const {
-    options: { 'layout.single-participant.mode': mode },
+    options: {
+      'layout.single-participant.mode': mode,
+      'participant.filter': filterParticipants,
+    },
   } = useConfigurationContext();
-  const dominantSpeaker = useDominantSpeaker();
-  const allParticipants = useRemoteParticipants();
+
+  const participants = useFilteredParticipants({
+    excludeLocalParticipant: true,
+    filterParticipants,
+  });
+
   useEffect(() => {
-    let shuffleId: NodeJS.Timeout;
     if (mode === 'shuffle') {
-      shuffleId = setInterval(() => {
+      const shuffleId = window.setInterval(() => {
         const randomParticipant =
-          allParticipants[Math.floor(Math.random() * allParticipants.length)];
+          participants[Math.floor(Math.random() * participants.length)];
         setSpeakerInSpotlight(randomParticipant);
       }, 3500);
+
+      return () => {
+        clearInterval(shuffleId);
+      };
     } else {
       const spotlightSpeaker =
-        dominantSpeaker ||
-        allParticipants.find((p) => hasVideo(p)) ||
-        allParticipants[0];
+        participants.find((p) => p.isDominantSpeaker) ||
+        participants.find((p) => hasVideo(p)) ||
+        participants[0];
 
       setSpeakerInSpotlight(spotlightSpeaker);
     }
-    return () => {
-      clearInterval(shuffleId);
-    };
-  }, [allParticipants, dominantSpeaker, mode]);
+  }, [participants, mode]);
 
   return speakerInSpotlight;
 };
