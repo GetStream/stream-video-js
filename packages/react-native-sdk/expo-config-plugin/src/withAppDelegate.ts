@@ -221,18 +221,20 @@ function addAudioSessionMethods(contents: string) {
 
 function addDidReceiveIncomingPushCallback(contents: string) {
   const onIncomingPush = `
-  // send event to JS
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-
-  // process the payload
+  // process the payload and store it in the native module's cache
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
 
+  // store the call cid and uuid in the native module's cache
   [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
 
+  // set the completion handler - this one is called by the JS SDK
   [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+
+  // send event to JS - the JS SDK will handle the rest and call the 'completionHandler'
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
 
   // display the incoming call notification
   [RNCallKeep reportNewIncomingCall: uuid
