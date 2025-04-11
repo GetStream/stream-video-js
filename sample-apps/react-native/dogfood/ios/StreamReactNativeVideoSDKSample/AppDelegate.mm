@@ -70,22 +70,20 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
-  
-  
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
 
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
-  
+
   [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
-  
+
   // required if you want to call `completion()` on the js side
   [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
-  
+
   // Process the received push // fire 'notification' event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-  
+
   [RNCallKeep reportNewIncomingCall: uuid
                              handle: createdCallerName
                          handleType: @"generic"
@@ -123,22 +121,22 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
     @"supportsVideo": @YES,
     @"includesCallsInRecents": @NO,
   }];
-  
+
   [RNVoipPushNotificationManager voipRegistration];
-  
+
   self.moduleName = @"StreamReactNativeVideoSDKSample";
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-  
+
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
-  
+
   WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
   options.enableMultitaskingCameraAccess = YES;
 //  uncomment below to see native webrtc logs
 //  options.loggingSeverity = RTCLoggingSeverityInfo;
-  
+
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
@@ -146,7 +144,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 {
   return [self bundleURL];
 }
- 
+
 - (NSURL *)bundleURL
 {
 #if DEBUG
