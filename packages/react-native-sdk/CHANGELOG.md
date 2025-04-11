@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.1...@stream-io/video-react-native-sdk-1.11.2) (2025-04-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.19.2`
+- `@stream-io/video-react-bindings` updated to version `1.5.14`
+
+### Bug Fixes
+
+- race condition on Expo iOS when processing incoming voip push notification ([#1757](https://github.com/GetStream/stream-video-js/issues/1757)) ([cd5542b](https://github.com/GetStream/stream-video-js/commit/cd5542b6624e3aa731e7f9f63c7b291f95f7ab10))
+
 ## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.0...@stream-io/video-react-native-sdk-1.11.1) (2025-04-09)
 
 ### Dependency Updates
