@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.1...@stream-io/video-react-sdk-1.14.2) (2025-04-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.19.2`
+- `@stream-io/video-react-bindings` updated to version `1.5.14`
+
+### Bug Fixes
+
+- participant filter for `single-participant` layout in egress app ([#1756](https://github.com/GetStream/stream-video-js/issues/1756)) ([8c0b05d](https://github.com/GetStream/stream-video-js/commit/8c0b05d89238db084c7b09415030ec072e9e974b))
+
 ## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.0...@stream-io/video-react-sdk-1.14.1) (2025-04-09)
 
 ### Dependency Updates
