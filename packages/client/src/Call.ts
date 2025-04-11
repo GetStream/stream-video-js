@@ -1175,6 +1175,7 @@ export class Call {
       state: this.state,
       connectionConfig,
       logTag: String(this.sfuClientTag),
+      clientDetails,
       enableTracing,
       onUnrecoverableError: (reason) => {
         this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
@@ -1203,6 +1204,7 @@ export class Call {
         connectionConfig,
         publishOptions,
         logTag: String(this.sfuClientTag),
+        clientDetails,
         enableTracing,
         onUnrecoverableError: (reason) => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
