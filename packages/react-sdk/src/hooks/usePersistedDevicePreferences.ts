@@ -20,7 +20,7 @@ type DeviceState<K extends DeviceKey> = {
   [ManagerKey in K]: DeviceManagerLike;
 } & {
   isMute?: boolean;
-  devices: MediaDeviceInfo[];
+  devices: readonly MediaDeviceInfo[];
   selectedDevice: string | undefined;
 };
 
@@ -183,7 +183,7 @@ const patchLocalDevicePreference = (
 const applyLocalDevicePreference = async (
   manager: DeviceManagerLike,
   preference: LocalDevicePreference[],
-  devices: MediaDeviceInfo[],
+  devices: readonly MediaDeviceInfo[],
 ): Promise<void> => {
   let muted: boolean | undefined;
 
@@ -211,7 +211,7 @@ const applyLocalDevicePreference = async (
 };
 
 const getSelectedDevicePreference = (
-  devices: MediaDeviceInfo[],
+  devices: readonly MediaDeviceInfo[],
   selectedDevice: string | undefined,
 ): Pick<LocalDevicePreference, 'selectedDeviceId' | 'selectedDeviceLabel'> => ({
   selectedDeviceId: selectedDevice || defaultDevice,
