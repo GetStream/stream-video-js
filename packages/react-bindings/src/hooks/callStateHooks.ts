@@ -21,7 +21,9 @@ import { isReactNative } from '../helpers/platforms';
 import { useObservableValue } from './useObservableValue';
 
 // kind-of memoized, used as a default value
-const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>([]);
+const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
+  [],
+) as MediaDeviceInfo[];
 
 /**
  * Utility hook, which provides the current call's state.
