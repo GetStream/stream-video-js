@@ -1309,7 +1309,7 @@ export class Call {
     )
       return;
     // normal close, no need to reconnect
-    if (sfuClient.isLeaving) return;
+    if (sfuClient.isLeaving || sfuClient.isClosing) return;
     this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
@@ -1583,9 +1583,10 @@ export class Call {
       },
     );
 
-    this.leaveCallHooks.add(unregisterGoAway);
-    this.leaveCallHooks.add(unregisterOnError);
-    this.leaveCallHooks.add(unregisterNetworkChanged);
+    this.leaveCallHooks
+      .add(unregisterGoAway)
+      .add(unregisterOnError)
+      .add(unregisterNetworkChanged);
   };
 
   /**

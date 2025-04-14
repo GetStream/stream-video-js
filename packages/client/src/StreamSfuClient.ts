@@ -118,6 +118,11 @@ export class StreamSfuClient {
    */
   isLeaving = false;
 
+  /**
+   * Flag to indicate if the client is in the process of closing the connection.
+   */
+  isClosing = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
@@ -288,6 +293,7 @@ export class StreamSfuClient {
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
+    this.isClosing = true;
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
