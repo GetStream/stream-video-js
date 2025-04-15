@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.2...@stream-io/video-react-sdk-1.14.3) (2025-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.1.4`
+- `@stream-io/video-client` updated to version `1.19.3`
+- `@stream-io/video-react-bindings` updated to version `1.5.15`
+
+### Bug Fixes
+
+- access device list lazily from call state hook ([#1761](https://github.com/GetStream/stream-video-js/issues/1761)) ([319353c](https://github.com/GetStream/stream-video-js/commit/319353caf709f6a9fa2197b2ac923b9ceecadb7c))
+
 ## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.1...@stream-io/video-react-sdk-1.14.2) (2025-04-11)
 
 ### Dependency Updates
