@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.19.2...@stream-io/video-client-1.19.3) (2025-04-15)
+
+### Bug Fixes
+
+- fast reconnect shouldn't be followed up with full rejoining on network switch ([#1760](https://github.com/GetStream/stream-video-js/issues/1760)) ([71363bd](https://github.com/GetStream/stream-video-js/commit/71363bdf0fb6cd6273ff6c2a0faf9ea1eb53f121))
+- watched calls should auto-subscribe for state updates ([#1762](https://github.com/GetStream/stream-video-js/issues/1762)) ([abcb45b](https://github.com/GetStream/stream-video-js/commit/abcb45b7fed4ca10e4ac6ea8ee18630ca5a9cb46)), closes [#1433](https://github.com/GetStream/stream-video-js/issues/1433)
+
 ## [1.19.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.19.1...@stream-io/video-client-1.19.2) (2025-04-11)
 
 ### Bug Fixes
