@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.3...@stream-io/video-styling-1.1.4) (2025-04-15)
+
+### Bug Fixes
+
+- access device list lazily from call state hook ([#1761](https://github.com/GetStream/stream-video-js/issues/1761)) ([319353c](https://github.com/GetStream/stream-video-js/commit/319353caf709f6a9fa2197b2ac923b9ceecadb7c))
+
 ## [1.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.2...@stream-io/video-styling-1.1.3) (2025-04-09)
 
 ### Bug Fixes
