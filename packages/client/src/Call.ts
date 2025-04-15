@@ -315,7 +315,12 @@ export class Call {
     this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
   }
 
-  private setup = async () => {
+  /**
+   * Sets up the call instance.
+   *
+   * @internal an internal method and should not be used outside the SDK.
+   */
+  setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
