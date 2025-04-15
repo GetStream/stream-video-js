@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import {
   Call,
   CallClosedCaption,
@@ -15,12 +14,16 @@ import {
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
+import { useMemo, useState } from 'react';
+import { Observable, of } from 'rxjs';
 import { useCall } from '../contexts';
-import { useObservableValue } from './useObservableValue';
 import { isReactNative } from '../helpers/platforms';
+import { useObservableValue } from './useObservableValue';
 
 // kind-of memoized, used as a default value
-const EMPTY_DEVICES_ARRAY = Object.freeze([]) as unknown as MediaDeviceInfo[];
+const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
+  [],
+) as MediaDeviceInfo[];
 
 /**
  * Utility hook, which provides the current call's state.
@@ -355,13 +358,11 @@ export const useCameraState = () => {
   const call = useCall();
   const { camera } = call as Call;
 
-  const devices$ = useMemo(() => camera.listDevices(), [camera]);
-
   const { state } = camera;
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
-  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+  const { getDevices } = useLazyDeviceList(camera);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isPromptingPermission = useObservableValue(
     state.isPromptingPermission$,
@@ -371,7 +372,9 @@ export const useCameraState = () => {
     camera,
     direction,
     mediaStream,
-    devices,
+    get devices() {
+      return getDevices();
+    },
     hasBrowserPermission,
     isPromptingPermission,
     selectedDevice,
@@ -391,12 +394,10 @@ export const useMicrophoneState = () => {
   const call = useCall();
   const { microphone } = call as Call;
 
-  const devices$ = useMemo(() => microphone.listDevices(), [microphone]);
-
   const { state } = microphone;
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
-  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+  const { getDevices } = useLazyDeviceList(microphone);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isPromptingPermission = useObservableValue(
     state.isPromptingPermission$,
@@ -406,7 +407,9 @@ export const useMicrophoneState = () => {
   return {
     microphone,
     mediaStream,
-    devices,
+    get devices() {
+      return getDevices();
+    },
     selectedDevice,
     hasBrowserPermission,
     isPromptingPermission,
@@ -432,13 +435,14 @@ export const useSpeakerState = () => {
   const call = useCall();
   const { speaker } = call as Call;
 
-  const devices$ = useMemo(() => speaker.listDevices(), [speaker]);
-  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+  const { getDevices } = useLazyDeviceList(speaker);
   const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
 
   return {
     speaker,
-    devices,
+    get devices() {
+      return getDevices();
+    },
     selectedDevice,
     isDeviceSelectionSupported: speaker.state.isDeviceSelectionSupported,
   };
@@ -503,4 +507,24 @@ function getComputedStatus(
     optimisticIsMute: optimisticStatus !== 'enabled',
     isTogglePending: optimisticStatus !== status,
   };
+}
+
+interface DeviceManagerLike {
+  listDevices(): Observable<MediaDeviceInfo[]>;
+}
+
+function useLazyDeviceList(manager: DeviceManagerLike) {
+  const placeholderDevices$ = useMemo(() => of(EMPTY_DEVICES_ARRAY), []);
+  const [devices$, setDevices$] = useState(placeholderDevices$);
+  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+
+  const getDevices = () => {
+    if (devices$ === placeholderDevices$) {
+      setDevices$(manager.listDevices());
+    }
+
+    return devices;
+  };
+
+  return { getDevices };
 }
