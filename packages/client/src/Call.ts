@@ -316,7 +316,7 @@ export class Call {
   }
 
   /**
-   * Set's up the call instance.
+   * Sets up the call instance.
    *
    * @internal an internal method and should not be used outside the SDK.
    */
