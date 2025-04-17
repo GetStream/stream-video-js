@@ -4,6 +4,8 @@
 import {
   AndroidState,
   AppleState,
+  DecodeStats,
+  EncodeStats,
   Error,
   ICETrickle,
   InputDevices,
@@ -158,13 +160,31 @@ export interface SendStatsRequest {
    */
   rtmp?: RTMPIngress;
   /**
-   * @generated from protobuf field: string subscriber_rtc_stats = 13;
+   * @deprecated
+   * @generated from protobuf field: string subscriber_rtc_stats = 13 [deprecated = true];
    */
   subscriberRtcStats: string;
   /**
-   * @generated from protobuf field: string publisher_rtc_stats = 14;
+   * @deprecated
+   * @generated from protobuf field: string publisher_rtc_stats = 14 [deprecated = true];
    */
   publisherRtcStats: string;
+  /**
+   * @generated from protobuf field: string rtc_stats = 15;
+   */
+  rtcStats: string;
+  /**
+   * Encode stats for the publisher
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.EncodeStats encode_stats = 16;
+   */
+  encodeStats: EncodeStats[];
+  /**
+   * Decode stats for the subscriber
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.DecodeStats decode_stats = 17;
+   */
+  decodeStats: DecodeStats[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendStatsResponse
@@ -533,6 +553,21 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
         name: 'publisher_rtc_stats',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
+      },
+      { no: 15, name: 'rtc_stats', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 16,
+        name: 'encode_stats',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => EncodeStats,
+      },
+      {
+        no: 17,
+        name: 'decode_stats',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => DecodeStats,
       },
     ]);
   }

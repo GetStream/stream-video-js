@@ -1,6 +1,18 @@
-import type { RTCStatsDataType, Trace } from './types';
+import type { RTCStatsDataType } from './types';
+import type { Tracer } from './Tracer';
+import {
+  DecodeStats,
+  EncodeStats,
+  PeerType,
+} from '../../gen/video/sfu/models/models';
+import { getDecodeStats, getEncodeStats } from './aggregator';
 
-export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
+export const traceRTCPeerConnection = (
+  pc: RTCPeerConnection,
+  tracer: Tracer,
+  peerType: PeerType,
+) => {
+  const trace = tracer.trace;
   pc.addEventListener('icecandidate', (e) => {
     trace('onicecandidate', e.candidate);
   });
@@ -27,11 +39,23 @@ export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
     trace('ondatachannel', [channel.id, channel.label]);
   });
 
+  let n = 1;
+  let lastEncodeStats: EncodeStats[] = [];
+  let lastDecodeStats: DecodeStats[] = [];
   let prev: Record<string, RTCStats> = {};
   const getStats = () => {
     pc.getStats(null)
       .then((stats) => {
         const now = toObject(stats);
+
+        if (peerType === PeerType.SUBSCRIBER) {
+          lastDecodeStats = getDecodeStats(prev, now, lastDecodeStats, n++);
+          tracer.setDecodeStats(lastDecodeStats);
+        } else {
+          lastEncodeStats = getEncodeStats(prev, now, lastEncodeStats, n++);
+          tracer.setEncodeStats(lastEncodeStats);
+        }
+
         trace('getstats', deltaCompression(prev, now));
         prev = now;
       })

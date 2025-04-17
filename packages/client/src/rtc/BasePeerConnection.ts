@@ -38,7 +38,7 @@ export abstract class BasePeerConnection {
   protected isIceRestarting = false;
   private isDisposed = false;
 
-  private readonly tracer?: Tracer;
+  protected readonly tracer?: Tracer;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -73,7 +73,7 @@ export abstract class BasePeerConnection {
       this.tracer = new Tracer(tag);
       this.tracer.trace('clientDetails', clientDetails);
       this.tracer.trace('create', connectionConfig);
-      traceRTCPeerConnection(this.pc, this.tracer.trace);
+      traceRTCPeerConnection(this.pc, this.tracer, peerType);
     }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);

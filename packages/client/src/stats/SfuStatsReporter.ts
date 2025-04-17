@@ -158,11 +158,12 @@ export class SfuStatsReporter {
     const publisherTrace = this.publisher?.getTrace();
     const mediaTrace = mediaStatsTracer.take();
     const sfuTrace = this.sfuClient.getTrace();
-    const publisherTraces = [
+    const traces = [
       ...mediaTrace.snapshot,
       ...(sfuTrace?.snapshot ?? []),
       ...(publisherTrace?.snapshot ?? []),
-    ];
+      ...(subscriberTrace?.snapshot ?? []),
+    ].sort(([, , , a], [, , , b]) => a - b);
 
     try {
       await this.sfuClient.sendStats({
@@ -170,12 +171,12 @@ export class SfuStatsReporter {
         sdkVersion: this.sdkVersion,
         webrtcVersion: this.webRTCVersion,
         subscriberStats,
-        subscriberRtcStats: subscriberTrace
-          ? JSON.stringify(subscriberTrace.snapshot)
-          : '',
         publisherStats,
-        publisherRtcStats:
-          publisherTraces.length > 0 ? JSON.stringify(publisherTraces) : '',
+        subscriberRtcStats: '',
+        publisherRtcStats: '',
+        rtcStats: JSON.stringify(traces),
+        encodeStats: publisherTrace?.encodeStats ?? [],
+        decodeStats: subscriberTrace?.decodeStats ?? [],
         audioDevices: this.inputDevices.get('mic'),
         videoDevices: this.inputDevices.get('camera'),
         deviceState: getDeviceState(),
