@@ -21,7 +21,7 @@ import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
-import { average, getCodecFromStats } from '../stats';
+import { average, getCodecFromStats, RTCMediaSourceStats } from '../stats';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
@@ -460,6 +460,7 @@ export class Publisher extends BasePeerConnection {
         id,
         totalEncodeTime = 0,
         framesPerSecond = 0,
+        mediaSourceId,
       } = rtp as RTCOutboundRtpStreamStats;
       if (kind === 'audio') continue;
 
@@ -476,10 +477,16 @@ export class Publisher extends BasePeerConnection {
           ? (deltaTotalEncodeTime / deltaFramesSent) * 1000
           : 0;
 
+      let trackType = TrackType.VIDEO;
+      if (mediaSourceId && currentStats[mediaSourceId]) {
+        const mediaSource = currentStats[mediaSourceId] as RTCMediaSourceStats;
+        trackType = this.getTrackType(mediaSource.trackIdentifier) || trackType;
+      }
+
       const { avgFrameEncodeTimeMs: encodeTime = 0, avgFps = framesPerSecond } =
-        lastEncodeStats.find((s) => s.trackType === TrackType.VIDEO) || {};
+        lastEncodeStats.find((s) => s.trackType === trackType) || {};
       encodeStats.push({
-        trackType: TrackType.VIDEO,
+        trackType,
         codec: getCodecFromStats(currentStats, codecId),
         avgFrameEncodeTimeMs: average(encodeTime, framesEncodeTime, iteration),
         avgFps: average(avgFps, framesPerSecond, iteration),
