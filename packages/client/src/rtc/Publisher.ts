@@ -462,12 +462,9 @@ export class Publisher extends BasePeerConnection {
         framesPerSecond = 0,
         mediaSourceId,
       } = rtp as RTCOutboundRtpStreamStats;
-      if (kind === 'audio') continue;
 
-      const prevRtp = previousStats[id] as
-        | RTCOutboundRtpStreamStats
-        | undefined;
-      if (!prevRtp) continue;
+      if (kind === 'audio' || !previousStats[id]) continue;
+      const prevRtp = previousStats[id] as RTCOutboundRtpStreamStats;
 
       const deltaTotalEncodeTime =
         totalEncodeTime - (prevRtp.totalEncodeTime || 0);

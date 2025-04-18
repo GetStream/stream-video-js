@@ -8,6 +8,7 @@ import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
   PeerType,
   PublishOption,
+  SdkType,
   TrackInfo,
   TrackType,
 } from '../../gen/video/sfu/models/models';
@@ -46,6 +47,7 @@ describe('Publisher', () => {
         ice_servers: [],
       },
       logTag: 'test',
+      enableTracing: false,
     });
 
     // @ts-expect-error readonly field
@@ -60,6 +62,19 @@ describe('Publisher', () => {
       dispatcher,
       state,
       logTag: 'test',
+      enableTracing: false,
+      clientDetails: {
+        sdk: {
+          type: SdkType.PLAIN_JAVASCRIPT,
+          major: '1',
+          minor: '0',
+          patch: '0',
+        },
+        device: {
+          name: 'test-device',
+          version: '1.0.0',
+        },
+      },
       publishOptions: [
         {
           id: 1,

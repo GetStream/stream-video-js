@@ -197,12 +197,9 @@ export class Subscriber extends BasePeerConnection {
         max = area;
       }
     }
-    if (!rtp) return [];
 
-    const prevRtp = previousStats[rtp.id] as
-      | RTCInboundRtpStreamStats
-      | undefined;
-    if (!prevRtp) return [];
+    if (!rtp || !previousStats[rtp.id]) return [];
+    const prevRtp = previousStats[rtp.id] as RTCInboundRtpStreamStats;
 
     const {
       framesDecoded = 0,
