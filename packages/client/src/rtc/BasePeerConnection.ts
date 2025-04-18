@@ -118,6 +118,13 @@ export abstract class BasePeerConnection {
    */
   protected abstract restartIce(): Promise<void>;
 
+  /**
+   * Creates performance stats from the `RTCPeerConnection`.
+   *
+   * @param previousStats the previously collected stats.
+   * @param currentStats the current stats.
+   * @param iteration the iteration, used for calculating averages.
+   */
   protected abstract createPerformanceStats(
     previousStats: Record<string, RTCStats>,
     currentStats: Record<string, RTCStats>,
@@ -132,14 +139,15 @@ export abstract class BasePeerConnection {
     let prev: Record<string, RTCStats> = {};
 
     const collectTraceStats = async () => {
+      if (!this.tracer) return;
       try {
         const stats = await this.pc.getStats();
         const now = toObject(stats);
         this.createPerformanceStats(prev, now, iteration++);
-        this.tracer?.trace('getstats', deltaCompression(prev, now));
+        this.tracer.trace('getstats', deltaCompression(prev, now));
         prev = now;
       } catch (err) {
-        this.tracer?.trace('getstatsOnFailure', (err as Error).toString());
+        this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }
     };
 
