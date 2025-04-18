@@ -57,6 +57,21 @@ export type CallStatsReport = {
 // shim for RTCMediaSourceStats, not yet available in the standard types
 // https://www.w3.org/TR/webrtc-stats/#mediasourcestats-dict*
 export interface RTCMediaSourceStats {
+  id: string;
+  type: 'media-source';
+  timestamp: number;
   kind: string;
   trackIdentifier: string;
 }
+
+// shim for RTCCodecStats, not yet available in the standard types
+export type RTCCodecStats = {
+  id: string;
+  timestamp: number;
+  type: 'codec';
+  clockRate?: number;
+  mimeType: string;
+  payloadType: number;
+  sdpFmtpLine?: string;
+  transportId?: string;
+};

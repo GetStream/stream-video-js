@@ -27,33 +27,8 @@ export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
     trace('ondatachannel', [channel.id, channel.label]);
   });
 
-  let prev: Record<string, RTCStats> = {};
-  const getStats = () => {
-    pc.getStats(null)
-      .then((stats) => {
-        const now = toObject(stats);
-        trace('getstats', deltaCompression(prev, now));
-        prev = now;
-      })
-      .catch((err) => {
-        trace('getstatsOnFailure', (err as Error).toString());
-      });
-  };
-
-  const interval = setInterval(() => {
-    getStats();
-  }, 8000);
-
-  pc.addEventListener('connectionstatechange', () => {
-    const state = pc.connectionState;
-    if (state === 'connected' || state === 'failed') {
-      getStats();
-    }
-  });
-
   const origClose = pc.close;
   pc.close = function tracedClose() {
-    clearInterval(interval);
     trace('close', undefined);
     return origClose.call(this);
   };
@@ -82,49 +57,4 @@ export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
       }
     };
   }
-};
-
-const toObject = (s: RTCStatsReport): Record<string, RTCStats> => {
-  const obj: Record<string, RTCStats> = {};
-  s.forEach((v, k) => {
-    obj[k] = v;
-  });
-  return obj;
-};
-
-/**
- * Apply delta compression to the stats report.
- * Reduces size by ~90%.
- * To reduce further, report keys could be compressed.
- */
-const deltaCompression = (
-  oldStats: Record<any, any>,
-  newStats: Record<any, any>,
-): Record<any, any> => {
-  newStats = JSON.parse(JSON.stringify(newStats));
-
-  for (const [id, report] of Object.entries(newStats)) {
-    delete report.id;
-    if (!oldStats[id]) continue;
-
-    for (const [name, value] of Object.entries(report)) {
-      if (value === oldStats[id][name]) {
-        delete report[name];
-      }
-    }
-  }
-
-  let timestamp = -Infinity;
-  for (const report of Object.values(newStats)) {
-    if (report.timestamp > timestamp) {
-      timestamp = report.timestamp;
-    }
-  }
-  for (const report of Object.values(newStats)) {
-    if (report.timestamp === timestamp) {
-      report.timestamp = 0;
-    }
-  }
-  newStats.timestamp = timestamp;
-  return newStats;
 };

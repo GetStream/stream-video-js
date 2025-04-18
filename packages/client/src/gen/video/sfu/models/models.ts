@@ -627,6 +627,56 @@ export interface AppleState {
   isLowPowerModeEnabled: boolean;
 }
 /**
+ * EncodeStats represents the encoding statistics for a track.
+ *
+ * @generated from protobuf message stream.video.sfu.models.EncodeStats
+ */
+export interface EncodeStats {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
+   */
+  codec?: Codec;
+  /**
+   * @generated from protobuf field: float avg_frame_encode_time_ms = 3;
+   */
+  avgFrameEncodeTimeMs: number;
+  /**
+   * @generated from protobuf field: float avg_fps = 4;
+   */
+  avgFps: number;
+}
+/**
+ * DecodeStats represents the decoding statistics for a track.
+ *
+ * @generated from protobuf message stream.video.sfu.models.DecodeStats
+ */
+export interface DecodeStats {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
+   */
+  codec?: Codec;
+  /**
+   * @generated from protobuf field: float avg_frame_decode_time_ms = 3;
+   */
+  avgFrameDecodeTimeMs: number;
+  /**
+   * @generated from protobuf field: float avg_fps = 4;
+   */
+  avgFps: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.VideoDimension video_dimension = 5;
+   */
+  videoDimension?: VideoDimension;
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
  */
 export enum PeerType {
@@ -1636,3 +1686,67 @@ class AppleState$Type extends MessageType<AppleState> {
  * @generated MessageType for protobuf message stream.video.sfu.models.AppleState
  */
 export const AppleState = new AppleState$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class EncodeStats$Type extends MessageType<EncodeStats> {
+  constructor() {
+    super('stream.video.sfu.models.EncodeStats', [
+      {
+        no: 1,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      { no: 2, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 3,
+        name: 'avg_frame_encode_time_ms',
+        kind: 'scalar',
+        T: 2 /*ScalarType.FLOAT*/,
+      },
+      { no: 4, name: 'avg_fps', kind: 'scalar', T: 2 /*ScalarType.FLOAT*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.EncodeStats
+ */
+export const EncodeStats = new EncodeStats$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DecodeStats$Type extends MessageType<DecodeStats> {
+  constructor() {
+    super('stream.video.sfu.models.DecodeStats', [
+      {
+        no: 1,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      { no: 2, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 3,
+        name: 'avg_frame_decode_time_ms',
+        kind: 'scalar',
+        T: 2 /*ScalarType.FLOAT*/,
+      },
+      { no: 4, name: 'avg_fps', kind: 'scalar', T: 2 /*ScalarType.FLOAT*/ },
+      {
+        no: 5,
+        name: 'video_dimension',
+        kind: 'message',
+        T: () => VideoDimension,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.DecodeStats
+ */
+export const DecodeStats = new DecodeStats$Type();
