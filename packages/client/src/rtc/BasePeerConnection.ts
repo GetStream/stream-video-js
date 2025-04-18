@@ -45,7 +45,7 @@ export abstract class BasePeerConnection {
   private isDisposed = false;
 
   protected readonly tracer?: Tracer;
-  private traceStatsInterval?: number;
+  private traceStatsInterval?: ReturnType<typeof setInterval>;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -101,7 +101,7 @@ export abstract class BasePeerConnection {
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
-    window.clearInterval(this.traceStatsInterval);
+    clearInterval(this.traceStatsInterval);
     this.tracer?.dispose();
   }
 
@@ -162,7 +162,7 @@ export abstract class BasePeerConnection {
       }
     };
 
-    this.traceStatsInterval = window.setInterval(() => {
+    this.traceStatsInterval = setInterval(() => {
       void collectTraceStats();
     }, 8000);
 
