@@ -4,18 +4,7 @@ import {
   EncodeStats,
   TrackType,
 } from '../../gen/video/sfu/models/models';
-
-// not yet part of the TS Library
-type RTCCodecStats = {
-  id: string;
-  timestamp: number;
-  type: 'codec';
-  clockRate?: number;
-  mimeType: string;
-  payloadType: number;
-  sdpFmtpLine?: string;
-  transportId?: string;
-};
+import type { RTCCodecStats } from '../types';
 
 /**
  * Prepares EncodeStats data from the provided RTCStats.
@@ -58,7 +47,7 @@ export const getEncodeStats = (
       lastEncodeStats.find((s) => s.trackType === TrackType.VIDEO) || {};
     encodeStats.push({
       trackType: TrackType.VIDEO,
-      codec: getCodec(stats, codecId),
+      codec: getCodecFromStats(stats, codecId),
       avgFrameEncodeTimeMs: average(encodeTime, framesEncodeTime, iteration),
       avgFps: average(avgFps, framesPerSecond, iteration),
     });
@@ -113,7 +102,7 @@ export const getDecodeStats = (
   return [
     DecodeStats.create({
       trackType: TrackType.VIDEO,
-      codec: getCodec(stats, rtp.codecId),
+      codec: getCodecFromStats(stats, rtp.codecId),
       avgFrameDecodeTimeMs: average(decodeTime, framesDecodeTime, iteration),
       avgFps: average(avgFps, framesPerSecond, iteration),
       videoDimension: { width: rtp.frameWidth, height: rtp.frameHeight },
@@ -132,14 +121,14 @@ const average = (currentAverage: number, currentValue: number, n: number) => {
   return currentAverage + (currentValue - currentAverage) / n;
 };
 
-const getCodec = (
+const getCodecFromStats = (
   stats: Record<string, RTCStats>,
   codecId: string | undefined,
 ): Codec | undefined => {
-  if (!codecId || !stats[codecId]) return undefined;
+  if (!codecId || !stats[codecId]) return;
   const codecStats = stats[codecId] as RTCCodecStats;
   return Codec.create({
-    name: codecStats.mimeType,
+    name: codecStats.mimeType.split('/').pop(), // video/av1 -> av1
     clockRate: codecStats.clockRate,
     payloadType: codecStats.payloadType,
     fmtp: codecStats.sdpFmtpLine,

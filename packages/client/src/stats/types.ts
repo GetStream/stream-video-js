@@ -60,3 +60,15 @@ export interface RTCMediaSourceStats {
   kind: string;
   trackIdentifier: string;
 }
+
+// shim for RTCCodecStats, not yet available in the standard types
+export type RTCCodecStats = {
+  id: string;
+  timestamp: number;
+  type: 'codec';
+  clockRate?: number;
+  mimeType: string;
+  payloadType: number;
+  sdpFmtpLine?: string;
+  transportId?: string;
+};

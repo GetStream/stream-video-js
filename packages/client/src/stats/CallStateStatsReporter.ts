@@ -2,6 +2,7 @@ import type {
   AggregatedStatsReport,
   BaseStats,
   ParticipantsStatsReport,
+  RTCCodecStats,
   RTCMediaSourceStats,
   StatsReport,
 } from './types';
@@ -257,7 +258,7 @@ const transform = (
 
       const codec = stats.find(
         (s) => s.type === 'codec' && s.id === rtcStreamStats.codecId,
-      ) as RTCRtpCodec | undefined;
+      ) as RTCCodecStats | undefined;
 
       const transport = stats.find(
         (s) => s.type === 'transport' && s.id === rtcStreamStats.transportId,
