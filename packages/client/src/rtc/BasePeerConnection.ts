@@ -9,7 +9,13 @@ import { ClientDetails, PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { Tracer, traceRTCPeerConnection, TraceSlice } from '../stats';
+import {
+  deltaCompression,
+  toObject,
+  Tracer,
+  traceRTCPeerConnection,
+  TraceSlice,
+} from '../stats';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -39,6 +45,7 @@ export abstract class BasePeerConnection {
   private isDisposed = false;
 
   protected readonly tracer?: Tracer;
+  private traceStatsInterval?: number;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -73,7 +80,8 @@ export abstract class BasePeerConnection {
       this.tracer = new Tracer(tag);
       this.tracer.trace('clientDetails', clientDetails);
       this.tracer.trace('create', connectionConfig);
-      traceRTCPeerConnection(this.pc, this.tracer, peerType);
+      traceRTCPeerConnection(this.pc, this.tracer.trace);
+      this.startStatsTracing();
     }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
@@ -93,6 +101,7 @@ export abstract class BasePeerConnection {
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
+    window.clearInterval(this.traceStatsInterval);
     this.tracer?.dispose();
   }
 
@@ -100,17 +109,6 @@ export abstract class BasePeerConnection {
    * Detaches the event handlers from the `RTCPeerConnection`.
    */
   detachEventHandlers() {
-    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
-    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
-    this.pc.removeEventListener('signalingstatechange', this.onSignalingChange);
-    this.pc.removeEventListener(
-      'iceconnectionstatechange',
-      this.onIceConnectionStateChange,
-    );
-    this.pc.removeEventListener(
-      'icegatheringstatechange',
-      this.onIceGatherChange,
-    );
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
   }
@@ -119,6 +117,44 @@ export abstract class BasePeerConnection {
    * Performs an ICE restart on the `RTCPeerConnection`.
    */
   protected abstract restartIce(): Promise<void>;
+
+  protected abstract createPerformanceStats(
+    previousStats: Record<string, RTCStats>,
+    currentStats: Record<string, RTCStats>,
+    iteration: number,
+  ): void;
+
+  /**
+   * Collects tracing stats from the `RTCPeerConnection`.
+   */
+  private startStatsTracing = () => {
+    let iteration = 1;
+    let prev: Record<string, RTCStats> = {};
+
+    const collectTraceStats = async () => {
+      try {
+        const stats = await this.pc.getStats();
+        const now = toObject(stats);
+        this.createPerformanceStats(prev, now, iteration++);
+        this.tracer?.trace('getstats', deltaCompression(prev, now));
+        prev = now;
+      } catch (err) {
+        this.tracer?.trace('getstatsOnFailure', (err as Error).toString());
+      }
+    };
+
+    this.traceStatsInterval = window.setInterval(() => {
+      void collectTraceStats();
+    }, 8000);
+
+    this.pc.addEventListener('connectionstatechange', () => {
+      const state = this.pc.connectionState;
+      this.logger('debug', `Connection state changed`, state);
+      if (state === 'connected' || state === 'failed') {
+        void collectTraceStats();
+      }
+    });
+  };
 
   /**
    * Handles events synchronously.

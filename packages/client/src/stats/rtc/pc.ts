@@ -1,18 +1,6 @@
-import type { RTCStatsDataType } from './types';
-import type { Tracer } from './Tracer';
-import {
-  DecodeStats,
-  EncodeStats,
-  PeerType,
-} from '../../gen/video/sfu/models/models';
-import { getDecodeStats, getEncodeStats } from './aggregator';
+import type { RTCStatsDataType, Trace } from './types';
 
-export const traceRTCPeerConnection = (
-  pc: RTCPeerConnection,
-  tracer: Tracer,
-  peerType: PeerType,
-) => {
-  const trace = tracer.trace;
+export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
   pc.addEventListener('icecandidate', (e) => {
     trace('onicecandidate', e.candidate);
   });
@@ -39,45 +27,8 @@ export const traceRTCPeerConnection = (
     trace('ondatachannel', [channel.id, channel.label]);
   });
 
-  let n = 1;
-  let lastEncodeStats: EncodeStats[] = [];
-  let lastDecodeStats: DecodeStats[] = [];
-  let prev: Record<string, RTCStats> = {};
-  const getStats = () => {
-    pc.getStats(null)
-      .then((stats) => {
-        const now = toObject(stats);
-
-        if (peerType === PeerType.SUBSCRIBER) {
-          lastDecodeStats = getDecodeStats(prev, now, lastDecodeStats, n++);
-          tracer.setDecodeStats(lastDecodeStats);
-        } else {
-          lastEncodeStats = getEncodeStats(prev, now, lastEncodeStats, n++);
-          tracer.setEncodeStats(lastEncodeStats);
-        }
-
-        trace('getstats', deltaCompression(prev, now));
-        prev = now;
-      })
-      .catch((err) => {
-        trace('getstatsOnFailure', (err as Error).toString());
-      });
-  };
-
-  const interval = setInterval(() => {
-    getStats();
-  }, 8000);
-
-  pc.addEventListener('connectionstatechange', () => {
-    const state = pc.connectionState;
-    if (state === 'connected' || state === 'failed') {
-      getStats();
-    }
-  });
-
   const origClose = pc.close;
   pc.close = function tracedClose() {
-    clearInterval(interval);
     trace('close', undefined);
     return origClose.call(this);
   };
@@ -106,49 +57,4 @@ export const traceRTCPeerConnection = (
       }
     };
   }
-};
-
-const toObject = (s: RTCStatsReport): Record<string, RTCStats> => {
-  const obj: Record<string, RTCStats> = {};
-  s.forEach((v, k) => {
-    obj[k] = v;
-  });
-  return obj;
-};
-
-/**
- * Apply delta compression to the stats report.
- * Reduces size by ~90%.
- * To reduce further, report keys could be compressed.
- */
-const deltaCompression = (
-  oldStats: Record<any, any>,
-  newStats: Record<any, any>,
-): Record<any, any> => {
-  newStats = JSON.parse(JSON.stringify(newStats));
-
-  for (const [id, report] of Object.entries(newStats)) {
-    delete report.id;
-    if (!oldStats[id]) continue;
-
-    for (const [name, value] of Object.entries(report)) {
-      if (value === oldStats[id][name]) {
-        delete report[name];
-      }
-    }
-  }
-
-  let timestamp = -Infinity;
-  for (const report of Object.values(newStats)) {
-    if (report.timestamp > timestamp) {
-      timestamp = report.timestamp;
-    }
-  }
-  for (const report of Object.values(newStats)) {
-    if (report.timestamp === timestamp) {
-      report.timestamp = 0;
-    }
-  }
-  newStats.timestamp = timestamp;
-  return newStats;
 };

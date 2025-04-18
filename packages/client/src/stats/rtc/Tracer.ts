@@ -13,8 +13,8 @@ export class Tracer {
   private enabled = true;
   private readonly id: string | null;
 
-  private encodeStats: EncodeStats[] | undefined;
-  private decodeStats: DecodeStats[] | undefined;
+  encodeStats: EncodeStats[] | undefined;
+  decodeStats: DecodeStats[] | undefined;
 
   constructor(id: string | null) {
     this.id = id;

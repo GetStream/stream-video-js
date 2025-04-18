@@ -4,6 +4,7 @@ import {
 } from './BasePeerConnection';
 import { TransceiverCache } from './TransceiverCache';
 import {
+  EncodeStats,
   PeerType,
   PublishOption,
   TrackInfo,
@@ -20,6 +21,7 @@ import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
+import { average, getCodecFromStats } from '../stats';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
@@ -434,5 +436,55 @@ export class Publisher extends BasePeerConnection {
     if (!track) return;
     track.stop();
     this.clonedTracks.delete(track);
+  };
+
+  /**
+   * Prepares EncodeStats data from the provided RTCStats.
+   */
+  protected createPerformanceStats = (
+    previousStats: Record<string, RTCStats>,
+    currentStats: Record<string, RTCStats>,
+    iteration: number,
+  ) => {
+    if (!this.tracer) return;
+
+    const lastEncodeStats = this.tracer.encodeStats || [];
+    const encodeStats: EncodeStats[] = [];
+    for (const rtp of Object.values(currentStats)) {
+      if (rtp.type !== 'outbound-rtp') continue;
+
+      const {
+        codecId,
+        framesSent = 0,
+        kind,
+        id,
+        totalEncodeTime = 0,
+        framesPerSecond = 0,
+      } = rtp as RTCOutboundRtpStreamStats;
+      if (kind === 'audio') continue;
+
+      const prevRtp = previousStats[id] as
+        | RTCOutboundRtpStreamStats
+        | undefined;
+      if (!prevRtp) continue;
+
+      const deltaTotalEncodeTime =
+        totalEncodeTime - (prevRtp.totalEncodeTime || 0);
+      const deltaFramesSent = framesSent - (prevRtp.framesSent || 0);
+      const framesEncodeTime =
+        deltaFramesSent > 0
+          ? (deltaTotalEncodeTime / deltaFramesSent) * 1000
+          : 0;
+
+      const { avgFrameEncodeTimeMs: encodeTime = 0, avgFps = framesPerSecond } =
+        lastEncodeStats.find((s) => s.trackType === TrackType.VIDEO) || {};
+      encodeStats.push({
+        trackType: TrackType.VIDEO,
+        codec: getCodecFromStats(currentStats, codecId),
+        avgFrameEncodeTimeMs: average(encodeTime, framesEncodeTime, iteration),
+        avgFps: average(avgFps, framesPerSecond, iteration),
+      });
+    }
+    this.tracer.setEncodeStats(encodeStats);
   };
 }
