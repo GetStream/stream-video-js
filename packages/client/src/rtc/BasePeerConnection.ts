@@ -109,6 +109,17 @@ export abstract class BasePeerConnection {
    * Detaches the event handlers from the `RTCPeerConnection`.
    */
   detachEventHandlers() {
+    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
+    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    this.pc.removeEventListener('signalingstatechange', this.onSignalingChange);
+    this.pc.removeEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    this.pc.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatherChange,
+    );
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
   }
