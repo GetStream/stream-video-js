@@ -35,6 +35,7 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
+  private encodeCostOverrides?: Map<TrackType, number>;
   private publishOptions: PublishOption[];
 
   /**
@@ -439,6 +440,16 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
+   * Sets the performance cost for the given track type.
+   *
+   * @internal don't use this method outside the SDK.
+   */
+  setEncodeCost = (cost: number, trackType = TrackType.VIDEO) => {
+    if (!this.encodeCostOverrides) this.encodeCostOverrides = new Map();
+    this.encodeCostOverrides.set(trackType, cost);
+  };
+
+  /**
    * Prepares EncodeStats data from the provided RTCStats.
    */
   protected createPerformanceStats = (
@@ -489,6 +500,19 @@ export class Publisher extends BasePeerConnection {
         avgFps: average(avgFps, framesPerSecond, iteration),
       });
     }
+
+    if (this.encodeCostOverrides) {
+      for (const stat of encodeStats) {
+        const override = this.encodeCostOverrides.get(stat.trackType);
+        if (override !== undefined) {
+          // override the encoding time with the provided cost.
+          // format: [override].[original-encode-time]
+          stat.avgFrameEncodeTimeMs =
+            override + (stat.avgFrameEncodeTimeMs || 0) / 1000;
+        }
+      }
+    }
+
     this.tracer.setEncodeStats(encodeStats);
   };
 }
