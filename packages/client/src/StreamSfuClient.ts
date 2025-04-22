@@ -381,10 +381,8 @@ export class StreamSfuClient {
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
     await this.joinTask;
-    return retryable(
-      () => this.rpc.sendStats({ ...stats, sessionId: this.sessionId }),
-      this.abortController.signal,
-    );
+    // NOTE: we don't retry sending stats
+    return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
   };
 
   startNoiseCancellation = async () => {
