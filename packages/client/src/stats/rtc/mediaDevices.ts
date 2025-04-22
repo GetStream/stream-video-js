@@ -24,10 +24,11 @@ if (
     const original = target[method];
     if (!original) continue;
 
+    let mark = 0;
     target[method] = async function tracedMethod(
       constraints: MediaStreamConstraints,
     ) {
-      const tag = `navigator.mediaDevices.${method}`;
+      const tag = `navigator.mediaDevices.${method}.${mark++}.`;
       trace(tag, constraints);
       try {
         const stream = await original.call(target, constraints);
