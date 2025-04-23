@@ -1,3 +1,53 @@
+export interface AggregatedStats {
+  publisher_aggregate_stats?: PublisherAggregateStats;
+  turn?: TURNAggregatedStats;
+}
+
+export interface CallEvent {
+  category?: string;
+  component?: string;
+  description: string;
+  end_timestamp: number;
+  internal: boolean;
+  issue_tags?: Array<string>;
+  kind: string;
+  severity: number;
+  timestamp: number;
+  type: string;
+}
+
+export interface CallTimeline {
+  events: Array<CallEvent>;
+}
+
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Count {
+  approximate: boolean;
+  value: number;
+}
+
+export interface FPSStats {
+  average_fps: number;
+  tracked: number;
+}
+
+export interface GeolocationResult {
+  accuracy_radius: number;
+  city: string;
+  continent: string;
+  continent_code: string;
+  country: string;
+  country_iso_code: string;
+  latitude: number;
+  longitude: number;
+  subdivision: string;
+  subdivision_iso_code: string;
+}
+
 export interface GetCallStatsResponse {
   aggregated?: AggregatedStats;
   average_connection_time?: number;
@@ -18,9 +68,36 @@ export interface GetCallStatsResponse {
   sfus: Array<SFULocationResponse>;
 }
 
-export interface AggregatedStats {
-  publisher_aggregate_stats?: PublisherAggregateStats;
-  turn?: TURNAggregatedStats;
+export interface MediaPubSubHint {
+  audio_published: boolean;
+  audio_subscribed: boolean;
+  video_published: boolean;
+  video_subscribed: boolean;
+}
+
+export interface PublishedTrackInfo {
+  codec_mime_type?: string;
+  duration_seconds?: number;
+  track_type?: string;
+}
+
+export interface PublisherAggregateStats {
+  by_track_type?: { [key: string]: Count };
+  total?: Count;
+}
+
+export interface SFULocationResponse {
+  coordinates: Coordinates;
+  datacenter: string;
+  id: string;
+  location: Location;
+}
+
+export interface Subsession {
+  ended_at: number;
+  joined_at: number;
+  pub_sub_hint?: MediaPubSubHint;
+  sfu_id: string;
 }
 
 export interface TimeStats {
@@ -28,12 +105,9 @@ export interface TimeStats {
   max_seconds: number;
 }
 
-export interface UserStats {
-  feedback?: string;
-  info: UserInfoResponse;
-  min_event_ts: number;
-  rating?: number;
-  session_stats: Array<UserSessionStats>;
+export interface TURNAggregatedStats {
+  tcp?: Count;
+  total?: Count;
 }
 
 export interface UserInfoResponse {
@@ -102,9 +176,12 @@ export interface UserSessionStats {
   webrtc_version?: string;
 }
 
-export interface VideoQuality {
-  resolution?: VideoDimension;
-  usage_type?: string;
+export interface UserStats {
+  feedback?: string;
+  info: UserInfoResponse;
+  min_event_ts: number;
+  rating?: number;
+  session_stats: Array<UserSessionStats>;
 }
 
 export interface VideoDimension {
@@ -112,84 +189,7 @@ export interface VideoDimension {
   width: number;
 }
 
-export interface Subsession {
-  ended_at: number;
-  joined_at: number;
-  pub_sub_hint?: MediaPubSubHint;
-  sfu_id: string;
-}
-
-export interface TURNAggregatedStats {
-  tcp?: Count;
-  total?: Count;
-}
-
-export interface CallTimeline {
-  events: Array<CallEvent>;
-}
-
-export interface SFULocationResponse {
-  coordinates: Coordinates;
-  datacenter: string;
-  id: string;
-  location: Location;
-}
-
-export interface PublisherAggregateStats {
-  by_track_type?: { [key: string]: Count };
-  total?: Count;
-}
-
-export interface Count {
-  approximate: boolean;
-  value: number;
-}
-
-export interface CallEvent {
-  category?: string;
-  component?: string;
-  description: string;
-  end_timestamp: number;
-  internal: boolean;
-  issue_tags?: Array<string>;
-  kind: string;
-  severity: number;
-  timestamp: number;
-  type: string;
-}
-
-export interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
-export interface MediaPubSubHint {
-  audio_published: boolean;
-  audio_subscribed: boolean;
-  video_published: boolean;
-  video_subscribed: boolean;
-}
-
-export interface PublishedTrackInfo {
-  codec_mime_type?: string;
-  duration_seconds?: number;
-  track_type?: string;
-}
-
-export interface GeolocationResult {
-  accuracy_radius: number;
-  city: string;
-  continent: string;
-  continent_code: string;
-  country: string;
-  country_iso_code: string;
-  latitude: number;
-  longitude: number;
-  subdivision: string;
-  subdivision_iso_code: string;
-}
-
-export interface FPSStats {
-  average_fps: number;
-  tracked: number;
+export interface VideoQuality {
+  resolution?: VideoDimension;
+  usage_type?: string;
 }
