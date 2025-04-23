@@ -7791,3 +7791,363 @@ export interface WSAuthMessage {
    */
   user_details: ConnectUserDetailsRequest;
 }
+
+/**
+ * Basic response information
+ * @export
+ * @interface GetCallReportResponse
+ */
+export interface GetCallReportResponse {
+  /**
+   *
+   * @type {ChatActivityStatsResponse}
+   * @memberof GetCallReportResponse
+   */
+  chat_activity?: ChatActivityStatsResponse;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {ReportResponse}
+   * @memberof GetCallReportResponse
+   */
+  report: ReportResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
+  session_id: string;
+}
+
+/**
+ *
+ * @export
+ * @interface ChatActivityStatsResponse
+ */
+export interface ChatActivityStatsResponse {
+  /**
+   *
+   * @type {MessageStatsResponse}
+   * @memberof ChatActivityStatsResponse
+   */
+  Messages?: MessageStatsResponse;
+}
+
+/**
+ *
+ * @export
+ * @interface MessageStatsResponse
+ */
+export interface MessageStatsResponse {
+  /**
+   *
+   * @type {Array<CountByMinuteResponse>}
+   * @memberof MessageStatsResponse
+   */
+  count_over_time?: Array<CountByMinuteResponse>;
+}
+
+/**
+ *
+ * @export
+ * @interface CountByMinuteResponse
+ */
+export interface CountByMinuteResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof CountByMinuteResponse
+   */
+  count: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CountByMinuteResponse
+   */
+  start_ts: string;
+}
+
+/**
+ *
+ * @export
+ * @interface ReportResponse
+ */
+export interface ReportResponse {
+  /**
+   *
+   * @type {CallReportResponse}
+   * @memberof ReportResponse
+   */
+  call: CallReportResponse;
+  /**
+   *
+   * @type {ParticipantReportResponse}
+   * @memberof ReportResponse
+   */
+  participants: ParticipantReportResponse;
+  /**
+   *
+   * @type {UserRatingReportResponse}
+   * @memberof ReportResponse
+   */
+  user_ratings: UserRatingReportResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallReportResponse
+ */
+export interface CallReportResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallReportResponse
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallReportResponse
+   */
+  score: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallReportResponse
+   */
+  started_at?: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantCountByMinuteResponse
+ */
+export interface ParticipantCountByMinuteResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  first: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  last: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  max: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  min: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  start_ts: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantCountOverTimeResponse
+ */
+export interface ParticipantCountOverTimeResponse {
+  /**
+   *
+   * @type {Array<ParticipantCountByMinuteResponse>}
+   * @memberof ParticipantCountOverTimeResponse
+   */
+  by_minute?: Array<ParticipantCountByMinuteResponse>;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantReportResponse
+ */
+export interface ParticipantReportResponse {
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_browser?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_country?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_device?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_operating_system?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {ParticipantCountOverTimeResponse}
+   * @memberof ParticipantReportResponse
+   */
+  count_over_time?: ParticipantCountOverTimeResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  max_concurrent?: number;
+  /**
+   *
+   * @type {PublisherStatsResponse}
+   * @memberof ParticipantReportResponse
+   */
+  publishers?: PublisherStatsResponse;
+  /**
+   *
+   * @type {SubscriberStatsResponse}
+   * @memberof ParticipantReportResponse
+   */
+  subscribers?: SubscriberStatsResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  sum: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  unique: number;
+}
+
+/**
+ *
+ * @export
+ * @interface UserRatingReportResponse
+ */
+export interface UserRatingReportResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof UserRatingReportResponse
+   */
+  average: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UserRatingReportResponse
+   */
+  count: number;
+}
+
+/**
+ *
+ * @export
+ * @interface SubscriberStatsResponse
+ */
+export interface SubscriberStatsResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof SubscriberStatsResponse
+   */
+  total: number;
+  /**
+   *
+   * @type {number}
+   * @memberof SubscriberStatsResponse
+   */
+  total_subscribed_duration_seconds: number;
+  /**
+   *
+   * @type {number}
+   * @memberof SubscriberStatsResponse
+   */
+  unique: number;
+}
+
+/**
+ *
+ * @export
+ * @interface PublisherStatsResponse
+ */
+export interface PublisherStatsResponse {
+  /**
+   *
+   * @type {Array<TrackStatsResponse>}
+   * @memberof PublisherStatsResponse
+   */
+  by_track?: Array<TrackStatsResponse>;
+  /**
+   *
+   * @type {number}
+   * @memberof PublisherStatsResponse
+   */
+  total: number;
+  /**
+   *
+   * @type {number}
+   * @memberof PublisherStatsResponse
+   */
+  unique: number;
+}
+
+/**
+ *
+ * @export
+ * @interface TrackStatsResponse
+ */
+export interface TrackStatsResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof TrackStatsResponse
+   */
+  duration_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof TrackStatsResponse
+   */
+  track_type: string;
+}
+
+/**
+ *
+ * @export
+ * @interface GroupedStatsResponse
+ */
+export interface GroupedStatsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GroupedStatsResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {number}
+   * @memberof GroupedStatsResponse
+   */
+  unique: number;
+}
