@@ -35,7 +35,6 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
-  private encodeCostOverrides?: Map<TrackType, number>;
   private publishOptions: PublishOption[];
 
   /**
@@ -440,26 +439,14 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Sets the performance cost for the given track type.
-   *
-   * @internal don't use this method outside the SDK.
-   */
-  setEncodeCost = (cost: number, trackType = TrackType.VIDEO) => {
-    if (!this.encodeCostOverrides) this.encodeCostOverrides = new Map();
-    this.encodeCostOverrides.set(trackType, cost);
-  };
-
-  /**
    * Prepares EncodeStats data from the provided RTCStats.
    */
-  protected createPerformanceStats = (
+  protected getPerformanceStats = (
     previousStats: Record<string, RTCStats>,
     currentStats: Record<string, RTCStats>,
+    lastPerformanceStats: PerformanceStats[],
     iteration: number,
-  ) => {
-    if (!this.tracer) return;
-
-    const lastEncodeStats = this.tracer.encodeStats || [];
+  ): PerformanceStats[] => {
     const encodeStats: PerformanceStats[] = [];
     for (const rtp of Object.values(currentStats)) {
       if (rtp.type !== 'outbound-rtp') continue;
@@ -494,7 +481,7 @@ export class Publisher extends BasePeerConnection {
       }
 
       const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
-        lastEncodeStats.find((s) => s.trackType === trackType) || {};
+        lastPerformanceStats.find((s) => s.trackType === trackType) || {};
       encodeStats.push({
         trackType,
         codec: getCodecFromStats(currentStats, codecId),
@@ -504,17 +491,6 @@ export class Publisher extends BasePeerConnection {
       });
     }
 
-    if (this.encodeCostOverrides) {
-      for (const stat of encodeStats) {
-        const override = this.encodeCostOverrides.get(stat.trackType);
-        if (override !== undefined) {
-          // override the encoding time with the provided cost.
-          // format: [override].[original-encode-time]
-          stat.avgFrameTimeMs = override + (stat.avgFrameTimeMs || 0) / 1000;
-        }
-      }
-    }
-
-    this.tracer.setEncodeStats(encodeStats);
+    return encodeStats;
   };
 }

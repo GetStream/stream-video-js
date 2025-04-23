@@ -19,7 +19,6 @@ import { average, getCodecFromStats } from '../stats';
  */
 export class Subscriber extends BasePeerConnection {
   private trackIdToTrackTypeCache = new Map<string, TrackType>();
-  private decodeCostOverrides?: Map<TrackType, number>;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -43,11 +42,6 @@ export class Subscriber extends BasePeerConnection {
   detachEventHandlers() {
     super.detachEventHandlers();
     this.pc.removeEventListener('track', this.handleOnTrack);
-  }
-
-  dispose() {
-    this.trackIdToTrackTypeCache.clear();
-    super.dispose();
   }
 
   /**
@@ -178,24 +172,14 @@ export class Subscriber extends BasePeerConnection {
   };
 
   /**
-   * Sets the performance cost for the given track type.
-   *
-   * @internal don't use this method outside the SDK.
-   */
-  setDecodeCost = (cost: number, trackType = TrackType.VIDEO) => {
-    if (!this.decodeCostOverrides) this.decodeCostOverrides = new Map();
-    this.decodeCostOverrides.set(trackType, cost);
-  };
-
-  /**
    * Prepares DecodeStats data from the provided RTCStats.
    */
-  protected createPerformanceStats = (
+  protected getPerformanceStats = (
     previousStats: Record<string, RTCStats>,
     currentStats: Record<string, RTCStats>,
+    lastPerformanceStats: PerformanceStats[],
     iteration: number,
-  ) => {
-    if (!this.tracer) return;
+  ): PerformanceStats[] => {
     let rtp: RTCInboundRtpStreamStats | undefined = undefined;
     let max = 0;
     for (const item of Object.values(currentStats)) {
@@ -230,11 +214,10 @@ export class Subscriber extends BasePeerConnection {
     const trackType =
       this.trackIdToTrackTypeCache.get(trackIdentifier) || TrackType.VIDEO;
 
-    const lastDecodeStats = this.tracer.decodeStats || [];
     const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
-      lastDecodeStats.find((s) => s.trackType === trackType) || {};
+      lastPerformanceStats.find((s) => s.trackType === trackType) || {};
 
-    const decodeStats = [
+    return [
       PerformanceStats.create({
         trackType,
         codec: getCodecFromStats(currentStats, rtp.codecId),
@@ -243,16 +226,5 @@ export class Subscriber extends BasePeerConnection {
         videoDimension: { width: rtp.frameWidth, height: rtp.frameHeight },
       }),
     ];
-    if (this.decodeCostOverrides) {
-      for (const stat of decodeStats) {
-        const override = this.decodeCostOverrides.get(stat.trackType);
-        if (override !== undefined) {
-          // override the decoding time with the provided cost.
-          // format: [override].[original-decode-time]
-          stat.avgFrameTimeMs = override + (stat.avgFrameTimeMs || 0) / 1000;
-        }
-      }
-    }
-    this.tracer.setDecodeStats(decodeStats);
   };
 }

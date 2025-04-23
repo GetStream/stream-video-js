@@ -5,7 +5,12 @@ import type {
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
-import { ClientDetails, PeerType } from '../gen/video/sfu/models/models';
+import {
+  ClientDetails,
+  PeerType,
+  PerformanceStats,
+  TrackType,
+} from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -46,6 +51,7 @@ export abstract class BasePeerConnection {
 
   protected readonly tracer?: Tracer;
   private traceStatsInterval?: ReturnType<typeof setInterval>;
+  private costOverrides?: Map<TrackType, number>;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -134,13 +140,15 @@ export abstract class BasePeerConnection {
    *
    * @param previousStats the previously collected stats.
    * @param currentStats the current stats.
+   * @param lastPerformanceStats the last performance stats.
    * @param iteration the iteration, used for calculating averages.
    */
-  protected abstract createPerformanceStats(
+  protected abstract getPerformanceStats(
     previousStats: Record<string, RTCStats>,
     currentStats: Record<string, RTCStats>,
+    lastPerformanceStats: PerformanceStats[],
     iteration: number,
-  ): void;
+  ): PerformanceStats[];
 
   /**
    * Collects tracing stats from the `RTCPeerConnection`.
@@ -154,7 +162,24 @@ export abstract class BasePeerConnection {
       try {
         const stats = await this.pc.getStats();
         const now = toObject(stats);
-        this.createPerformanceStats(prev, now, iteration++);
+        const pastStats = this.tracer.getPerformanceStats(this.peerType);
+        const performanceStats = this.getPerformanceStats(
+          prev,
+          now,
+          pastStats || [],
+          iteration++,
+        );
+        if (this.costOverrides) {
+          for (const s of performanceStats) {
+            const override = this.costOverrides.get(s.trackType);
+            if (override !== undefined) {
+              // override the average encode/decode time with the provided cost.
+              // format: [override].[original-encode-time]
+              s.avgFrameTimeMs = override + (s.avgFrameTimeMs || 0) / 1000;
+            }
+          }
+        }
+        this.tracer.setPerformanceStats(this.peerType, performanceStats);
         this.tracer.trace('getstats', deltaCompression(prev, now));
         prev = now;
       } catch (err) {
@@ -173,6 +198,16 @@ export abstract class BasePeerConnection {
         void collectTraceStats();
       }
     });
+  };
+
+  /**
+   * Sets the performance cost for the given track type.
+   *
+   * @internal don't use this method outside the SDK.
+   */
+  setCost = (cost: number, trackType = TrackType.VIDEO) => {
+    if (!this.costOverrides) this.costOverrides = new Map();
+    this.costOverrides.set(trackType, cost);
   };
 
   /**

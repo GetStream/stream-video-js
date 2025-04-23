@@ -1,5 +1,5 @@
 import type { Trace, TraceRecord } from './types';
-import { PerformanceStats } from '../../gen/video/sfu/models/models';
+import { PeerType, PerformanceStats } from '../../gen/video/sfu/models/models';
 
 export type TraceSlice = {
   snapshot: TraceRecord[];
@@ -12,9 +12,7 @@ export class Tracer {
   private buffer: TraceRecord[] = [];
   private enabled = true;
   private readonly id: string | null;
-
-  encodeStats: PerformanceStats[] | undefined;
-  decodeStats: PerformanceStats[] | undefined;
+  private readonly performanceStats = new Map<PeerType, PerformanceStats[]>();
 
   constructor(id: string | null) {
     this.id = id;
@@ -31,14 +29,12 @@ export class Tracer {
     this.buffer.push([tag, this.id, data, Date.now()]);
   };
 
-  setEncodeStats = (encodeStats: PerformanceStats[]) => {
-    if (!this.enabled) return;
-    this.encodeStats = encodeStats;
+  getPerformanceStats = (peerType: PeerType) => {
+    return this.performanceStats.get(peerType);
   };
 
-  setDecodeStats = (decodeStats: PerformanceStats[]) => {
-    if (!this.enabled) return;
-    this.decodeStats = decodeStats;
+  setPerformanceStats = (peerType: PeerType, stats: PerformanceStats[]) => {
+    this.performanceStats.set(peerType, stats);
   };
 
   take = (): TraceSlice => {
@@ -46,8 +42,8 @@ export class Tracer {
     this.buffer = [];
     return {
       snapshot,
-      encodeStats: this.encodeStats,
-      decodeStats: this.decodeStats,
+      encodeStats: this.getPerformanceStats(PeerType.PUBLISHER_UNSPECIFIED),
+      decodeStats: this.getPerformanceStats(PeerType.SUBSCRIBER),
       rollback: () => {
         this.buffer.unshift(...snapshot);
       },
@@ -56,7 +52,6 @@ export class Tracer {
 
   dispose = () => {
     this.buffer = [];
-    this.encodeStats = undefined;
-    this.decodeStats = undefined;
+    this.performanceStats.clear();
   };
 }
