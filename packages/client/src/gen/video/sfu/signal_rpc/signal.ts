@@ -4,12 +4,11 @@
 import {
   AndroidState,
   AppleState,
-  DecodeStats,
-  EncodeStats,
   Error,
   ICETrickle,
   InputDevices,
   PeerType,
+  PerformanceStats,
   RTMPIngress,
   TrackInfo,
   TrackType,
@@ -176,15 +175,15 @@ export interface SendStatsRequest {
   /**
    * Encode stats for the publisher
    *
-   * @generated from protobuf field: repeated stream.video.sfu.models.EncodeStats encode_stats = 16;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PerformanceStats encode_stats = 16;
    */
-  encodeStats: EncodeStats[];
+  encodeStats: PerformanceStats[];
   /**
    * Decode stats for the subscriber
    *
-   * @generated from protobuf field: repeated stream.video.sfu.models.DecodeStats decode_stats = 17;
+   * @generated from protobuf field: repeated stream.video.sfu.models.PerformanceStats decode_stats = 17;
    */
-  decodeStats: DecodeStats[];
+  decodeStats: PerformanceStats[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendStatsResponse
@@ -560,14 +559,14 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
         name: 'encode_stats',
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
-        T: () => EncodeStats,
+        T: () => PerformanceStats,
       },
       {
         no: 17,
         name: 'decode_stats',
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
-        T: () => DecodeStats,
+        T: () => PerformanceStats,
       },
     ]);
   }

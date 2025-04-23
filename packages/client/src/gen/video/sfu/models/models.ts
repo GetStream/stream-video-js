@@ -627,51 +627,38 @@ export interface AppleState {
   isLowPowerModeEnabled: boolean;
 }
 /**
- * EncodeStats represents the encoding statistics for a track.
+ * PerformanceStats represents the encoding/decoding statistics for a track.
  *
- * @generated from protobuf message stream.video.sfu.models.EncodeStats
+ * @generated from protobuf message stream.video.sfu.models.PerformanceStats
  */
-export interface EncodeStats {
+export interface PerformanceStats {
   /**
+   * the type of the track (e.g., video, audio, screen share)
+   *
    * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
    */
   trackType: TrackType;
   /**
+   * the codec used for the track
+   *
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
    */
   codec?: Codec;
   /**
-   * @generated from protobuf field: float avg_frame_encode_time_ms = 3;
+   * the average encode/decode time in ms
+   *
+   * @generated from protobuf field: float avg_frame_time_ms = 3;
    */
-  avgFrameEncodeTimeMs: number;
+  avgFrameTimeMs: number;
   /**
-   * @generated from protobuf field: float avg_fps = 4;
-   */
-  avgFps: number;
-}
-/**
- * DecodeStats represents the decoding statistics for a track.
- *
- * @generated from protobuf message stream.video.sfu.models.DecodeStats
- */
-export interface DecodeStats {
-  /**
-   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
-   */
-  trackType: TrackType;
-  /**
-   * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
-   */
-  codec?: Codec;
-  /**
-   * @generated from protobuf field: float avg_frame_decode_time_ms = 3;
-   */
-  avgFrameDecodeTimeMs: number;
-  /**
+   * the average fps for the track
+   *
    * @generated from protobuf field: float avg_fps = 4;
    */
   avgFps: number;
   /**
+   * the track dimensions
+   *
    * @generated from protobuf field: stream.video.sfu.models.VideoDimension video_dimension = 5;
    */
   videoDimension?: VideoDimension;
@@ -1687,9 +1674,9 @@ class AppleState$Type extends MessageType<AppleState> {
  */
 export const AppleState = new AppleState$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class EncodeStats$Type extends MessageType<EncodeStats> {
+class PerformanceStats$Type extends MessageType<PerformanceStats> {
   constructor() {
-    super('stream.video.sfu.models.EncodeStats', [
+    super('stream.video.sfu.models.PerformanceStats', [
       {
         no: 1,
         name: 'track_type',
@@ -1703,36 +1690,7 @@ class EncodeStats$Type extends MessageType<EncodeStats> {
       { no: 2, name: 'codec', kind: 'message', T: () => Codec },
       {
         no: 3,
-        name: 'avg_frame_encode_time_ms',
-        kind: 'scalar',
-        T: 2 /*ScalarType.FLOAT*/,
-      },
-      { no: 4, name: 'avg_fps', kind: 'scalar', T: 2 /*ScalarType.FLOAT*/ },
-    ]);
-  }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.EncodeStats
- */
-export const EncodeStats = new EncodeStats$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class DecodeStats$Type extends MessageType<DecodeStats> {
-  constructor() {
-    super('stream.video.sfu.models.DecodeStats', [
-      {
-        no: 1,
-        name: 'track_type',
-        kind: 'enum',
-        T: () => [
-          'stream.video.sfu.models.TrackType',
-          TrackType,
-          'TRACK_TYPE_',
-        ],
-      },
-      { no: 2, name: 'codec', kind: 'message', T: () => Codec },
-      {
-        no: 3,
-        name: 'avg_frame_decode_time_ms',
+        name: 'avg_frame_time_ms',
         kind: 'scalar',
         T: 2 /*ScalarType.FLOAT*/,
       },
@@ -1747,6 +1705,6 @@ class DecodeStats$Type extends MessageType<DecodeStats> {
   }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.models.DecodeStats
+ * @generated MessageType for protobuf message stream.video.sfu.models.PerformanceStats
  */
-export const DecodeStats = new DecodeStats$Type();
+export const PerformanceStats = new PerformanceStats$Type();

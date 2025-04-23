@@ -1,10 +1,10 @@
 import type { Trace, TraceRecord } from './types';
-import { DecodeStats, EncodeStats } from '../../gen/video/sfu/models/models';
+import { PerformanceStats } from '../../gen/video/sfu/models/models';
 
 export type TraceSlice = {
   snapshot: TraceRecord[];
-  encodeStats: EncodeStats[] | undefined;
-  decodeStats: DecodeStats[] | undefined;
+  encodeStats: PerformanceStats[] | undefined;
+  decodeStats: PerformanceStats[] | undefined;
   rollback: () => void;
 };
 
@@ -13,8 +13,8 @@ export class Tracer {
   private enabled = true;
   private readonly id: string | null;
 
-  encodeStats: EncodeStats[] | undefined;
-  decodeStats: DecodeStats[] | undefined;
+  encodeStats: PerformanceStats[] | undefined;
+  decodeStats: PerformanceStats[] | undefined;
 
   constructor(id: string | null) {
     this.id = id;
@@ -31,12 +31,12 @@ export class Tracer {
     this.buffer.push([tag, this.id, data, Date.now()]);
   };
 
-  setEncodeStats = (encodeStats: EncodeStats[]) => {
+  setEncodeStats = (encodeStats: PerformanceStats[]) => {
     if (!this.enabled) return;
     this.encodeStats = encodeStats;
   };
 
-  setDecodeStats = (decodeStats: DecodeStats[]) => {
+  setDecodeStats = (decodeStats: PerformanceStats[]) => {
     if (!this.enabled) return;
     this.decodeStats = decodeStats;
   };

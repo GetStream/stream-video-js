@@ -3,8 +3,8 @@ import {
   BasePeerConnectionOpts,
 } from './BasePeerConnection';
 import {
-  DecodeStats,
   PeerType,
+  PerformanceStats,
   TrackType,
 } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
@@ -231,14 +231,14 @@ export class Subscriber extends BasePeerConnection {
       this.trackIdToTrackTypeCache.get(trackIdentifier) || TrackType.VIDEO;
 
     const lastDecodeStats = this.tracer.decodeStats || [];
-    const { avgFrameDecodeTimeMs: decodeTime = 0, avgFps = framesPerSecond } =
+    const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
       lastDecodeStats.find((s) => s.trackType === trackType) || {};
 
     const decodeStats = [
-      DecodeStats.create({
+      PerformanceStats.create({
         trackType,
         codec: getCodecFromStats(currentStats, rtp.codecId),
-        avgFrameDecodeTimeMs: average(decodeTime, framesDecodeTime, iteration),
+        avgFrameTimeMs: average(avgFrameTimeMs, framesDecodeTime, iteration),
         avgFps: average(avgFps, framesPerSecond, iteration),
         videoDimension: { width: rtp.frameWidth, height: rtp.frameHeight },
       }),
@@ -248,9 +248,8 @@ export class Subscriber extends BasePeerConnection {
         const override = this.decodeCostOverrides.get(stat.trackType);
         if (override !== undefined) {
           // override the decoding time with the provided cost.
-          // format: [override].[original-encode-time]
-          stat.avgFrameDecodeTimeMs =
-            override + (stat.avgFrameDecodeTimeMs || 0) / 1000;
+          // format: [override].[original-decode-time]
+          stat.avgFrameTimeMs = override + (stat.avgFrameTimeMs || 0) / 1000;
         }
       }
     }

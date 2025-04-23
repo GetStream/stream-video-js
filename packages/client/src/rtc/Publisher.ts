@@ -4,8 +4,8 @@ import {
 } from './BasePeerConnection';
 import { TransceiverCache } from './TransceiverCache';
 import {
-  EncodeStats,
   PeerType,
+  PerformanceStats,
   PublishOption,
   TrackInfo,
   TrackType,
@@ -460,7 +460,7 @@ export class Publisher extends BasePeerConnection {
     if (!this.tracer) return;
 
     const lastEncodeStats = this.tracer.encodeStats || [];
-    const encodeStats: EncodeStats[] = [];
+    const encodeStats: PerformanceStats[] = [];
     for (const rtp of Object.values(currentStats)) {
       if (rtp.type !== 'outbound-rtp') continue;
 
@@ -471,6 +471,8 @@ export class Publisher extends BasePeerConnection {
         id,
         totalEncodeTime = 0,
         framesPerSecond = 0,
+        frameHeight = 0,
+        frameWidth = 0,
         mediaSourceId,
       } = rtp as RTCOutboundRtpStreamStats;
 
@@ -491,13 +493,14 @@ export class Publisher extends BasePeerConnection {
         trackType = this.getTrackType(mediaSource.trackIdentifier) || trackType;
       }
 
-      const { avgFrameEncodeTimeMs: encodeTime = 0, avgFps = framesPerSecond } =
+      const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
         lastEncodeStats.find((s) => s.trackType === trackType) || {};
       encodeStats.push({
         trackType,
         codec: getCodecFromStats(currentStats, codecId),
-        avgFrameEncodeTimeMs: average(encodeTime, framesEncodeTime, iteration),
+        avgFrameTimeMs: average(avgFrameTimeMs, framesEncodeTime, iteration),
         avgFps: average(avgFps, framesPerSecond, iteration),
+        videoDimension: { width: frameWidth, height: frameHeight },
       });
     }
 
@@ -507,8 +510,7 @@ export class Publisher extends BasePeerConnection {
         if (override !== undefined) {
           // override the encoding time with the provided cost.
           // format: [override].[original-encode-time]
-          stat.avgFrameEncodeTimeMs =
-            override + (stat.avgFrameEncodeTimeMs || 0) / 1000;
+          stat.avgFrameTimeMs = override + (stat.avgFrameTimeMs || 0) / 1000;
         }
       }
     }
