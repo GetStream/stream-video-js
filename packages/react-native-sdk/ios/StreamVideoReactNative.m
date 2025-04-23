@@ -254,49 +254,62 @@ RCT_EXPORT_METHOD(captureRef:(NSNumber *)reactTag
         
         // Determine the size to render
         CGSize size;
+        CGRect bounds = view.bounds;
         if (width && height) {
             size = CGSizeMake([width floatValue], [height floatValue]);
         } else {
-            size = view.bounds.size;
+            size = bounds.size;
         }
         
-        // Begin image context
+        // Abort if size is invalid
+        if (size.width <= 0 || size.height <= 0) {
+            reject(@"INVALID_SIZE", @"View has invalid size", nil);
+            return;
+        }
+        
+        // Begin image context with appropriate scale
         UIGraphicsBeginImageContextWithOptions(size, NO, 0);
         
-        // Get context and render view into it
-        CGContextRef context = UIGraphicsGetCurrentContext();
+        // Calculate scaling if needed
+        CGRect drawRect = bounds;
+        if (width && height) {
+            CGFloat scaleX = size.width / bounds.size.width;
+            CGFloat scaleY = size.height / bounds.size.height;
+            
+            // Apply transform to context for scaling if dimensions differ
+            CGContextRef context = UIGraphicsGetCurrentContext();
+            if (context) {
+                CGContextTranslateCTM(context, 0, size.height);
+                CGContextScaleCTM(context, scaleX, -scaleY);
+                drawRect = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+            }
+        }
         
-        if (context) {
-            [view.layer renderInContext:context];
-            
-            // Get the image from the context
-            UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-            UIGraphicsEndImageContext();
-            
-            if (!image) {
-                reject(@"CAPTURE_FAILED", @"Failed to capture view as image", nil);
-                return;
-            }
-            
-            // Convert to base64 string based on format
-            NSString *base64;
-            if ([format isEqualToString:@"jpg"] || [format isEqualToString:@"jpeg"]) {
-                NSData *imageData = UIImageJPEGRepresentation(image, quality);
-                base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
-            } else {
-                // Default to PNG
-                NSData *imageData = UIImagePNGRepresentation(image);
-                base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
-            }
-            
-            if (base64) {
-                resolve(base64);
-            } else {
-                reject(@"ENCODING_FAILED", @"Failed to encode image to base64", nil);
-            }
+        BOOL success = [view drawViewHierarchyInRect:drawRect afterScreenUpdates:YES];
+        
+        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        if (!success || !image) {
+            reject(@"CAPTURE_FAILED", @"Failed to capture view as image", nil);
+            return;
+        }
+        
+        // Convert to base64 string based on format
+        NSString *base64;
+        if ([format isEqualToString:@"jpg"] || [format isEqualToString:@"jpeg"]) {
+            NSData *imageData = UIImageJPEGRepresentation(image, quality);
+            base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
         } else {
-            UIGraphicsEndImageContext();
-            reject(@"CONTEXT_FAILED", @"Failed to create graphics context", nil);
+            // Default to PNG
+            NSData *imageData = UIImagePNGRepresentation(image);
+            base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
+        }
+        
+        if (base64) {
+            resolve(base64);
+        } else {
+            reject(@"ENCODING_FAILED", @"Failed to encode image to base64", nil);
         }
     });
 }
