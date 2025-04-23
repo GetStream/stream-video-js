@@ -38,7 +38,6 @@ import type {
   EndCallResponse,
   GetCallReportResponse,
   GetCallResponse,
-  GetCallStatsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -152,6 +151,7 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
+import { GetCallStatsResponse } from './gen/shims';
 
 /**
  * An object representation of a `Call`.
