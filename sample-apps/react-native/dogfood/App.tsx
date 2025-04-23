@@ -40,6 +40,7 @@ import {
   isPushNotificationiOSStreamVideoEvent,
   onPushNotificationiOSStreamVideoEvent,
   StreamTheme,
+  SnapshotProvider,
 } from '@stream-io/video-react-native-sdk';
 import { appTheme } from './src/theme';
 
@@ -183,7 +184,9 @@ export default function App() {
     <SafeAreaProvider>
       <AppGlobalContextProvider>
         <NavigationContainer ref={navigationRef}>
-          <StackNavigator />
+          <SnapshotProvider>
+            <StackNavigator />
+          </SnapshotProvider>
         </NavigationContainer>
       </AppGlobalContextProvider>
     </SafeAreaProvider>

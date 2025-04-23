@@ -4,8 +4,16 @@ import {
   OwnCapability,
   useCall,
   useCallStateHooks,
+  useSnapshot,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import {
+  NativeModules,
+  Text,
+  Modal,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
@@ -19,6 +27,11 @@ import {
 import LightDark from '../../assets/LightDark';
 import Stats from '../../assets/Stats';
 import ClosedCaptions from '../../assets/ClosedCaptions';
+import Screenshot from '../../assets/Screenshot';
+import { View, Alert, StyleSheet } from 'react-native';
+
+// Get the native module directly to avoid undefined issues
+const { StreamVideoReactNative } = NativeModules;
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -44,17 +57,24 @@ export const MoreActionsButton = ({
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [screenshotModalVisible, setScreenshotModalVisible] = useState(false);
+  const [screenshotImage, setScreenshotImage] = useState<string | null>(null);
   const setState = useAppGlobalStoreSetState();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { useIsCallCaptioningInProgress, useHasPermissions } =
-    useCallStateHooks();
+  const {
+    useIsCallCaptioningInProgress,
+    useHasPermissions,
+    useDominantSpeaker,
+  } = useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const canToggle = useHasPermissions(
     OwnCapability.START_CLOSED_CAPTIONS_CALL,
     OwnCapability.STOP_CLOSED_CAPTIONS_CALL,
   );
+  const snapshot = useSnapshot();
+  const dominantSpeaker = useDominantSpeaker();
 
   useEffect(() => {
     return () => {
@@ -63,6 +83,9 @@ export const MoreActionsButton = ({
       }
     };
   }, []);
+
+  // Check if the native module is available
+  const isScreenshotAvailable = !!StreamVideoReactNative?.captureRef;
 
   const handleRating = async (rating: number) => {
     await call
@@ -85,6 +108,42 @@ export const MoreActionsButton = ({
     isCaptioningInProgress
       ? 'Disable closed captions'
       : 'Enable closed captions';
+
+  const takeScreenshot = async () => {
+    try {
+      if (!snapshot) {
+        console.error('Snapshot system not available');
+        Alert.alert('Error', 'Screenshot functionality not available');
+        return;
+      }
+
+      // Use dominant speaker or fallback to first participant
+      if (!dominantSpeaker) {
+        Alert.alert('Error', 'No active participant to screenshot');
+        return;
+      }
+      console.log('🚀 ~ takeScreenshot ~ dominantSpeaker:', dominantSpeaker);
+
+      // Take the snapshot
+      const base64Image = await snapshot.take(dominantSpeaker);
+      console.log('🚀 ~ takeScreenshot ~ base64Image:', base64Image);
+
+      if (!base64Image) {
+        Alert.alert('Error', 'Failed to capture participant view');
+        return;
+      }
+
+      // Store the screenshot and show the modal
+      setScreenshotImage(base64Image);
+      setScreenshotModalVisible(true);
+      setIsDrawerVisible(false);
+
+      return base64Image;
+    } catch (error) {
+      console.error('Error taking screenshot:', error);
+      Alert.alert('Error', 'Failed to take screenshot: ' + error);
+    }
+  };
 
   const options: DrawerOption[] = [
     {
@@ -142,10 +201,27 @@ export const MoreActionsButton = ({
         setIsDrawerVisible(false);
       },
     },
-    ...(canToggle
+    ...(isScreenshotAvailable
       ? [
           {
             id: '4',
+            label: 'Take Screenshot',
+            icon: (
+              <IconWrapper>
+                <Screenshot
+                  color={colors.iconPrimary}
+                  size={variants.roundButtonSizes.sm}
+                />
+              </IconWrapper>
+            ),
+            onPress: takeScreenshot,
+          },
+        ]
+      : []),
+    ...(canToggle
+      ? [
+          {
+            id: '5',
             label: getCaptionsLabel(),
             icon: (
               <IconWrapper>
@@ -197,9 +273,77 @@ export const MoreActionsButton = ({
         onClose={() => setFeedbackModalVisible(false)}
         onRating={handleRating}
       />
+
+      {/* Screenshot Preview Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={screenshotModalVisible}
+        onRequestClose={() => setScreenshotModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setScreenshotModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+
+            {screenshotImage && (
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${screenshotImage}` }}
+                style={styles.screenshotImage}
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
       <IconWrapper>
         <MoreActions color={colors.iconPrimary} size={defaults.iconSize} />
       </IconWrapper>
     </CallControlsButton>
   );
 };
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    width: '80%',
+    height: '60%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  screenshotImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 5,
+  },
+});

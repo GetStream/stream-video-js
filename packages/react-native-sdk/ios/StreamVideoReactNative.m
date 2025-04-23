@@ -1,5 +1,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
+#import <React/RCTUIManager.h> 
+#import <UIKit/UIKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
@@ -223,6 +225,120 @@ RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
             resolve(@NO);
         }
     });
+}
+
+RCT_EXPORT_METHOD(captureRef:(NSNumber *)reactTag
+                  options:(NSDictionary *)options
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RCTUIManager *uiManager = [self.bridge moduleForClass:[RCTUIManager class]];
+        UIView *view = [uiManager viewForReactTag:reactTag];
+        
+        if (!view) {
+            // Try to find view with Fabric approach
+            view = [self findViewForReactTag:reactTag];
+            
+            if (!view) {
+                reject(@"VIEW_NOT_FOUND", [NSString stringWithFormat:@"View with tag %@ not found", reactTag], nil);
+                return;
+            }
+        }
+        
+        // Get capture options
+        NSString *format = options[@"format"] ? [options[@"format"] lowercaseString] : @"png";
+        CGFloat quality = options[@"quality"] ? [options[@"quality"] floatValue] : 1.0;
+        NSNumber *width = options[@"width"];
+        NSNumber *height = options[@"height"];
+        
+        // Determine the size to render
+        CGSize size;
+        if (width && height) {
+            size = CGSizeMake([width floatValue], [height floatValue]);
+        } else {
+            size = view.bounds.size;
+        }
+        
+        // Begin image context
+        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
+        
+        // Get context and render view into it
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        
+        if (context) {
+            [view.layer renderInContext:context];
+            
+            // Get the image from the context
+            UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+            UIGraphicsEndImageContext();
+            
+            if (!image) {
+                reject(@"CAPTURE_FAILED", @"Failed to capture view as image", nil);
+                return;
+            }
+            
+            // Convert to base64 string based on format
+            NSString *base64;
+            if ([format isEqualToString:@"jpg"] || [format isEqualToString:@"jpeg"]) {
+                NSData *imageData = UIImageJPEGRepresentation(image, quality);
+                base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
+            } else {
+                // Default to PNG
+                NSData *imageData = UIImagePNGRepresentation(image);
+                base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
+            }
+            
+            if (base64) {
+                resolve(base64);
+            } else {
+                reject(@"ENCODING_FAILED", @"Failed to encode image to base64", nil);
+            }
+        } else {
+            UIGraphicsEndImageContext();
+            reject(@"CONTEXT_FAILED", @"Failed to create graphics context", nil);
+        }
+    });
+}
+
+// Helper method to find a view using traversal for Fabric compatibility
+- (UIView *)findViewForReactTag:(NSNumber *)reactTag {
+    // Get the key window or first window in the scene (iOS 13+)
+    UIWindow *window = nil;
+    if (@available(iOS 13.0, *)) {
+        for (UIWindowScene *scene in [UIApplication sharedApplication].connectedScenes) {
+            if (scene.activationState == UISceneActivationStateForegroundActive) {
+                window = scene.windows.firstObject;
+                break;
+            }
+        }
+    }
+    
+    // Fallback to legacy approach
+    if (!window) {
+        window = [UIApplication sharedApplication].keyWindow;
+    }
+    
+    if (!window) {
+        return nil;
+    }
+    
+    return [self findViewWithTag:reactTag.intValue inView:window];
+}
+
+- (UIView *)findViewWithTag:(NSInteger)tag inView:(UIView *)view {
+    if (view.tag == tag) {
+        return view;
+    }
+    
+    for (UIView *subview in view.subviews) {
+        UIView *result = [self findViewWithTag:tag inView:subview];
+        if (result) {
+            return result;
+        }
+    }
+    
+    return nil;
 }
 
 -(NSArray<NSString *> *)supportedEvents {

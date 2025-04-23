@@ -1,4 +1,4 @@
-import React, { type ComponentType, useMemo } from 'react';
+import React, { type ComponentType, useMemo, useRef } from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type StreamVideoParticipant,
@@ -26,6 +26,7 @@ import {
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { CallContentProps } from '../../Call';
+import { useSnapshot } from '../../../contexts/SnapshotContext';
 
 export type ParticipantViewComponentProps = {
   /**
@@ -121,6 +122,21 @@ export const ParticipantView = ({
     participantView.highlightedContainer,
   ];
 
+  const viewRef = useRef(null);
+  const snapshot = useSnapshot();
+
+  // Register this view with the snapshot provider
+  React.useEffect(() => {
+    console.log(
+      '🚀 ~ React.useEffect ~ snapshot and viewRef:',
+      snapshot,
+      viewRef.current,
+    );
+    if (snapshot && viewRef.current) {
+      snapshot.register(participant, viewRef);
+    }
+  }, [participant, snapshot]);
+
   return (
     <View
       style={[styles.container, style, speakerStyle]}
@@ -129,6 +145,7 @@ export const ParticipantView = ({
           ? `participant-${userId}-is-speaking`
           : `participant-${userId}-is-not-speaking`
       }
+      ref={viewRef}
     >
       {ParticipantReaction && (
         <ParticipantReaction
