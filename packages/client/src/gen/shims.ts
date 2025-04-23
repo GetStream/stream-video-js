@@ -1,3 +1,5 @@
+import { VideoDimension } from './coordinator';
+
 export interface AggregatedStats {
   publisher_aggregate_stats?: PublisherAggregateStats;
   turn?: TURNAggregatedStats;
@@ -182,11 +184,6 @@ export interface UserStats {
   min_event_ts: number;
   rating?: number;
   session_stats: Array<UserSessionStats>;
-}
-
-export interface VideoDimension {
-  height: number;
-  width: number;
 }
 
 export interface VideoQuality {
