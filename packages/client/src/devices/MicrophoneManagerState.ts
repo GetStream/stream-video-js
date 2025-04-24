@@ -4,6 +4,7 @@ import {
   TrackDisableMode,
 } from './InputMediaDeviceManagerState';
 import { getAudioBrowserPermission } from './devices';
+import { RxUtils } from '../store';
 
 export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
@@ -29,14 +30,14 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
    * This feature is not available in the React Native SDK.
    */
   get speakingWhileMuted() {
-    return this.getCurrentValue(this.speakingWhileMuted$);
+    return RxUtils.getCurrentValue(this.speakingWhileMuted$);
   }
 
   /**
    * @internal
    */
   setSpeakingWhileMuted(isSpeaking: boolean) {
-    this.setCurrentValue(this.speakingWhileMutedSubject, isSpeaking);
+    RxUtils.setCurrentValue(this.speakingWhileMutedSubject, isSpeaking);
   }
 
   protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
