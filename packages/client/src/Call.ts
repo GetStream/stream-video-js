@@ -36,8 +36,8 @@ import type {
   DeleteCallRequest,
   DeleteCallResponse,
   EndCallResponse,
+  GetCallReportResponse,
   GetCallResponse,
-  GetCallStatsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -151,6 +151,7 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
+import { GetCallStatsResponse } from './gen/shims';
 
 /**
  * An object representation of a `Call`.
@@ -2394,10 +2395,26 @@ export class Call {
    *
    * @param callSessionID the call session ID to retrieve statistics for.
    * @returns The call stats.
+   * @deprecated use `call.getCallReport` instead.
+   * @internal
    */
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
+   * Retrieve call report. If the `callSessionID` is not specified, then the
+   * report for the latest call session is retrieved. If it is specified, then
+   * the report for that particular session is retrieved if it exists.
+   *
+   * @param callSessionID the optional call session ID to retrieve statistics for
+   * @returns the call report
+   */
+  getCallReport = async (callSessionID: string = '') => {
+    const endpoint = `${this.streamClientBasePath}/report`;
+    const params = callSessionID !== '' ? { session_id: callSessionID } : {};
+    return this.streamClient.get<GetCallReportResponse>(endpoint, params);
   };
 
   /**
