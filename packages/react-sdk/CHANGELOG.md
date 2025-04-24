@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.3...@stream-io/video-react-sdk-1.14.4) (2025-04-24)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.16`
+
+### Bug Fixes
+
+- apply call default camera/mic on settings ([#1766](https://github.com/GetStream/stream-video-js/issues/1766)) ([d2a2783](https://github.com/GetStream/stream-video-js/commit/d2a27838c4e6b4e4ec71821d0070f729aee9c644))
+
 ## [1.14.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.2...@stream-io/video-react-sdk-1.14.3) (2025-04-15)
 
 ### Dependency Updates
