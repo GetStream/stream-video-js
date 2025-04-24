@@ -39,6 +39,7 @@ export class SfuStatsReporter {
   private readonly state: CallState;
 
   private intervalId: NodeJS.Timeout | undefined;
+  private timeoutId: NodeJS.Timeout | undefined;
   private unsubscribeDevicePermissionsSubscription?: () => void;
   private unsubscribeListDevicesSubscription?: () => void;
   private readonly sdkName: string;
@@ -150,12 +151,15 @@ export class SfuStatsReporter {
 
   private run = async (telemetry?: Telemetry) => {
     const [subscriberStats, publisherStats] = await Promise.all([
-      this.subscriber.getStats().then(flatten).then(JSON.stringify),
-      this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
+      this.subscriber.stats.get(),
+      this.publisher?.stats.get(),
     ]);
 
-    const subscriberTrace = this.subscriber.getTrace();
-    const publisherTrace = this.publisher?.getTrace();
+    this.subscriber.tracer?.trace('getstats', subscriberStats.delta);
+    this.publisher?.tracer?.trace('getstats', publisherStats?.delta);
+
+    const subscriberTrace = this.subscriber.tracer?.take();
+    const publisherTrace = this.publisher?.tracer?.take();
     const mediaTrace = mediaStatsTracer.take();
     const sfuTrace = this.sfuClient.getTrace();
     const traces = [
@@ -170,13 +174,15 @@ export class SfuStatsReporter {
         sdk: this.sdkName,
         sdkVersion: this.sdkVersion,
         webrtcVersion: this.webRTCVersion,
-        subscriberStats,
-        publisherStats,
+        subscriberStats: JSON.stringify(flatten(subscriberStats.stats)),
+        publisherStats: publisherStats
+          ? JSON.stringify(flatten(publisherStats.stats))
+          : '[]',
         subscriberRtcStats: '',
         publisherRtcStats: '',
         rtcStats: JSON.stringify(traces),
-        encodeStats: publisherTrace?.encodeStats ?? [],
-        decodeStats: subscriberTrace?.decodeStats ?? [],
+        encodeStats: publisherStats?.performanceStats ?? [],
+        decodeStats: subscriberStats.performanceStats,
         audioDevices: this.inputDevices.get('mic'),
         videoDevices: this.inputDevices.get('camera'),
         deviceState: getDeviceState(),
@@ -203,6 +209,15 @@ export class SfuStatsReporter {
         this.logger('warn', 'Failed to report stats', err);
       });
     }, this.options.reporting_interval_ms);
+
+    // run one calibration report - the SFU will use the performance stats
+    // to adjust the quality thresholds as early as possible
+    clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
+      this.run().catch((err) => {
+        this.logger('warn', 'Failed to report stats', err);
+      });
+    }, 3000);
   };
 
   stop = () => {
@@ -214,5 +229,7 @@ export class SfuStatsReporter {
     this.inputDevices.clear();
     clearInterval(this.intervalId);
     this.intervalId = undefined;
+    clearTimeout(this.timeoutId);
+    this.timeoutId = undefined;
   };
 }

@@ -2,14 +2,9 @@ import {
   BasePeerConnection,
   BasePeerConnectionOpts,
 } from './BasePeerConnection';
-import {
-  PeerType,
-  PerformanceStats,
-  TrackType,
-} from '../gen/video/sfu/models/models';
+import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { average, getCodecFromStats } from '../stats';
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -18,8 +13,6 @@ import { average, getCodecFromStats } from '../stats';
  * @internal
  */
 export class Subscriber extends BasePeerConnection {
-  private trackIdToTrackTypeCache = new Map<string, TrackType>();
-
   /**
    * Constructs a new `Subscriber` instance.
    */
@@ -106,7 +99,7 @@ export class Subscriber extends BasePeerConnection {
       return this.logger('error', `Unknown track type: ${rawTrackType}`);
     }
 
-    this.trackIdToTrackTypeCache.set(e.track.id, trackType);
+    this.trackIdToTrackType.set(e.track.id, trackType);
 
     if (!participantToUpdate) {
       this.logger(
@@ -169,62 +162,5 @@ export class Subscriber extends BasePeerConnection {
     });
 
     this.isIceRestarting = false;
-  };
-
-  /**
-   * Prepares DecodeStats data from the provided RTCStats.
-   */
-  protected getPerformanceStats = (
-    previousStats: Record<string, RTCStats>,
-    currentStats: Record<string, RTCStats>,
-    lastPerformanceStats: PerformanceStats[],
-    iteration: number,
-  ): PerformanceStats[] => {
-    let rtp: RTCInboundRtpStreamStats | undefined = undefined;
-    let max = 0;
-    for (const item of Object.values(currentStats)) {
-      if (item.type !== 'inbound-rtp') continue;
-      const rtpItem = item as RTCInboundRtpStreamStats;
-      const { kind, frameWidth = 0, frameHeight = 0 } = rtpItem;
-      const area = frameWidth * frameHeight;
-      if (kind === 'video' && area > max) {
-        rtp = rtpItem;
-        max = area;
-      }
-    }
-
-    if (!rtp || !previousStats[rtp.id]) return [];
-    const prevRtp = previousStats[rtp.id] as RTCInboundRtpStreamStats;
-
-    const {
-      framesDecoded = 0,
-      framesPerSecond = 0,
-      totalDecodeTime = 0,
-      trackIdentifier,
-    } = rtp;
-    const deltaTotalDecodeTime =
-      totalDecodeTime - (prevRtp.totalDecodeTime || 0);
-    const deltaFramesDecoded = framesDecoded - (prevRtp.framesDecoded || 0);
-
-    const framesDecodeTime =
-      deltaFramesDecoded > 0
-        ? (deltaTotalDecodeTime / deltaFramesDecoded) * 1000
-        : 0;
-
-    const trackType =
-      this.trackIdToTrackTypeCache.get(trackIdentifier) || TrackType.VIDEO;
-
-    const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
-      lastPerformanceStats.find((s) => s.trackType === trackType) || {};
-
-    return [
-      PerformanceStats.create({
-        trackType,
-        codec: getCodecFromStats(currentStats, rtp.codecId),
-        avgFrameTimeMs: average(avgFrameTimeMs, framesDecodeTime, iteration),
-        avgFps: average(avgFps, framesPerSecond, iteration),
-        videoDimension: { width: rtp.frameWidth, height: rtp.frameHeight },
-      }),
-    ];
   };
 }

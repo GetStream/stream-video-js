@@ -5,7 +5,6 @@ import {
 import { TransceiverCache } from './TransceiverCache';
 import {
   PeerType,
-  PerformanceStats,
   PublishOption,
   TrackInfo,
   TrackType,
@@ -21,7 +20,6 @@ import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
-import { average, getCodecFromStats, RTCMediaSourceStats } from '../stats';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
@@ -101,7 +99,7 @@ export class Publisher extends BasePeerConnection {
         await this.addTransceiver(trackToPublish, publishOption);
       } else {
         const previousTrack = transceiver.sender.track;
-        await transceiver.sender.replaceTrack(trackToPublish);
+        await this.updateTransceiver(transceiver, trackToPublish, trackType);
         if (!isReactNative()) {
           this.stopTrack(previousTrack);
         }
@@ -128,8 +126,23 @@ export class Publisher extends BasePeerConnection {
     const trackType = publishOption.trackType;
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverCache.add(publishOption, transceiver);
+    this.trackIdToTrackType.set(track.id, trackType);
 
     await this.negotiate();
+  };
+
+  /**
+   * Updates the transceiver with the given track and track type.
+   */
+  private updateTransceiver = async (
+    transceiver: RTCRtpTransceiver,
+    track: MediaStreamTrack | null,
+    trackType: TrackType,
+  ) => {
+    const sender = transceiver.sender;
+    if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
+    await sender.replaceTrack(track);
+    if (track) this.trackIdToTrackType.set(track.id, trackType);
   };
 
   /**
@@ -166,7 +179,7 @@ export class Publisher extends BasePeerConnection {
       if (hasPublishOption) continue;
       // it is safe to stop the track here, it is a clone
       this.stopTrack(transceiver.sender.track);
-      await transceiver.sender.replaceTrack(null);
+      await this.updateTransceiver(transceiver, null, publishOption.trackType);
     }
   };
 
@@ -185,19 +198,6 @@ export class Publisher extends BasePeerConnection {
       if (track.readyState === 'live' && track.enabled) return true;
     }
     return false;
-  };
-
-  /**
-   * Maps the given track ID to the corresponding track type.
-   */
-  getTrackType = (trackId: string): TrackType | undefined => {
-    for (const transceiverId of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = transceiverId;
-      if (transceiver.sender.track?.id === trackId) {
-        return publishOption.trackType;
-      }
-    }
-    return undefined;
   };
 
   /**
@@ -436,61 +436,5 @@ export class Publisher extends BasePeerConnection {
     if (!track) return;
     track.stop();
     this.clonedTracks.delete(track);
-  };
-
-  /**
-   * Prepares EncodeStats data from the provided RTCStats.
-   */
-  protected getPerformanceStats = (
-    previousStats: Record<string, RTCStats>,
-    currentStats: Record<string, RTCStats>,
-    lastPerformanceStats: PerformanceStats[],
-    iteration: number,
-  ): PerformanceStats[] => {
-    const encodeStats: PerformanceStats[] = [];
-    for (const rtp of Object.values(currentStats)) {
-      if (rtp.type !== 'outbound-rtp') continue;
-
-      const {
-        codecId,
-        framesSent = 0,
-        kind,
-        id,
-        totalEncodeTime = 0,
-        framesPerSecond = 0,
-        frameHeight = 0,
-        frameWidth = 0,
-        mediaSourceId,
-      } = rtp as RTCOutboundRtpStreamStats;
-
-      if (kind === 'audio' || !previousStats[id]) continue;
-      const prevRtp = previousStats[id] as RTCOutboundRtpStreamStats;
-
-      const deltaTotalEncodeTime =
-        totalEncodeTime - (prevRtp.totalEncodeTime || 0);
-      const deltaFramesSent = framesSent - (prevRtp.framesSent || 0);
-      const framesEncodeTime =
-        deltaFramesSent > 0
-          ? (deltaTotalEncodeTime / deltaFramesSent) * 1000
-          : 0;
-
-      let trackType = TrackType.VIDEO;
-      if (mediaSourceId && currentStats[mediaSourceId]) {
-        const mediaSource = currentStats[mediaSourceId] as RTCMediaSourceStats;
-        trackType = this.getTrackType(mediaSource.trackIdentifier) || trackType;
-      }
-
-      const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
-        lastPerformanceStats.find((s) => s.trackType === trackType) || {};
-      encodeStats.push({
-        trackType,
-        codec: getCodecFromStats(currentStats, codecId),
-        avgFrameTimeMs: average(avgFrameTimeMs, framesEncodeTime, iteration),
-        avgFps: average(avgFps, framesPerSecond, iteration),
-        videoDimension: { width: frameWidth, height: frameHeight },
-      });
-    }
-
-    return encodeStats;
   };
 }
