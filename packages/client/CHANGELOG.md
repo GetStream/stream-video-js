@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.19.3...@stream-io/video-client-1.20.0) (2025-04-24)
+
+- bump test timeout ([7d922ed](https://github.com/GetStream/stream-video-js/commit/7d922ed34c46851a257fb36ee644f1ff5e4cb917))
+
+### Features
+
+- add getCallReport method ([#1767](https://github.com/GetStream/stream-video-js/issues/1767)) ([12e064f](https://github.com/GetStream/stream-video-js/commit/12e064f34a08731ded289651125bbe20e2bbf4f4))
+
 ## [1.19.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.19.2...@stream-io/video-client-1.19.3) (2025-04-15)
 
 ### Bug Fixes
