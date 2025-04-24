@@ -156,7 +156,9 @@ export class SfuStatsReporter {
     ]);
 
     this.subscriber.tracer?.trace('getstats', subscriberStats.delta);
-    this.publisher?.tracer?.trace('getstats', publisherStats?.delta);
+    if (publisherStats) {
+      this.publisher?.tracer?.trace('getstats', publisherStats.delta);
+    }
 
     const subscriberTrace = this.subscriber.tracer?.take();
     const publisherTrace = this.publisher?.tracer?.take();
