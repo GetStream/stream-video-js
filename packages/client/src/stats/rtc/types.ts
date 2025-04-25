@@ -24,3 +24,8 @@ export type TraceRecord = [
   data: RTCStatsDataType,
   timestamp: number,
 ];
+
+export type TraceSlice = {
+  snapshot: TraceRecord[];
+  rollback: () => void;
+};

@@ -4,3 +4,5 @@
 export * from './pc';
 export * from './StatsTracer';
 export * from './Tracer';
+
+export * from './types';
