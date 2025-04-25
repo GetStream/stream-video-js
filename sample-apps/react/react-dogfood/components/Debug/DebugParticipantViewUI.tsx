@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   DefaultParticipantViewUI,
@@ -25,12 +25,24 @@ export const DebugParticipantViewUI = () => {
   const call = useCall();
   const {
     participant: { sessionId, userId },
+    participantViewElement,
   } = useParticipantViewContext();
 
   const isDemoEnvironment = useIsDemoEnvironment();
   const participantContextMenuActions = isDemoEnvironment
     ? CustomParticipantActionsContextMenu
     : ParticipantActionsContextMenu;
+
+  const fullscreenModeOn = !!document.fullscreenElement;
+  const enterFullScreen = useCallback(() => {
+    if (!participantViewElement) return;
+    if (typeof participantViewElement.requestFullscreen === 'undefined') return;
+
+    if (!fullscreenModeOn) {
+      return participantViewElement.requestFullscreen().catch(console.error);
+    }
+    document.exitFullscreen().catch(console.error);
+  }, [fullscreenModeOn, participantViewElement]);
 
   const isDebug = useIsDebugMode();
   if (!isDebug) {
@@ -40,6 +52,7 @@ export const DebugParticipantViewUI = () => {
           'rd__debug__participant-view',
           isDemoEnvironment && 'rd__debug__participant-view--hide-elements',
         )}
+        onDoubleClick={enterFullScreen}
       >
         <DefaultParticipantViewUI
           ParticipantActionsContextMenu={participantContextMenuActions}
