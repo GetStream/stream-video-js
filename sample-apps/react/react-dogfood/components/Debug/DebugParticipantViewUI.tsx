@@ -33,16 +33,15 @@ export const DebugParticipantViewUI = () => {
     ? CustomParticipantActionsContextMenu
     : ParticipantActionsContextMenu;
 
-  const fullscreenModeOn = !!document.fullscreenElement;
   const enterFullScreen = useCallback(() => {
     if (!participantViewElement) return;
     if (typeof participantViewElement.requestFullscreen === 'undefined') return;
 
-    if (!fullscreenModeOn) {
+    if (!document.fullscreenElement) {
       return participantViewElement.requestFullscreen().catch(console.error);
     }
     document.exitFullscreen().catch(console.error);
-  }, [fullscreenModeOn, participantViewElement]);
+  }, [participantViewElement]);
 
   const isDebug = useIsDebugMode();
   if (!isDebug) {
