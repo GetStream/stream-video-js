@@ -13,8 +13,7 @@ import {
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { Tracer, traceRTCPeerConnection } from '../stats';
-import { StatsTracer } from './StatsTracer';
+import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;

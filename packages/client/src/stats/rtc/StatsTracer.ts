@@ -3,9 +3,17 @@ import {
   PeerType,
   PerformanceStats,
   TrackType,
-} from '../gen/video/sfu/models/models';
-import type { RTCCodecStats, RTCMediaSourceStats } from '../stats';
+} from '../../gen/video/sfu/models/models';
+import type { RTCCodecStats, RTCMediaSourceStats } from '../types';
 
+/**
+ * StatsTracer is a class that collects and processes WebRTC stats.
+ * It is used to track the performance of the WebRTC connection
+ * and to provide information about the media streams.
+ * It is used by both the Publisher and Subscriber classes.
+ *
+ * @internal
+ */
 export class StatsTracer {
   private readonly pc: RTCPeerConnection;
   private readonly peerType: PeerType;
@@ -17,6 +25,9 @@ export class StatsTracer {
   private lastPerformanceStats: PerformanceStats[] = [];
   private iteration = 1;
 
+  /**
+   * Creates a new StatsTracer instance.
+   */
   constructor(
     pc: RTCPeerConnection,
     peerType: PeerType,
@@ -27,6 +38,14 @@ export class StatsTracer {
     this.trackIdToTrackType = trackIdToTrackType;
   }
 
+  /**
+   * Get the stats from the RTCPeerConnection.
+   * When called, it will return the stats for the current connection.
+   * It will also return the delta between the current stats and the previous stats.
+   * This is used to track the performance of the connection.
+   *
+   * @internal
+   */
   get = async () => {
     const stats = await this.pc.getStats();
     const currentStats = toObject(stats);
@@ -46,6 +65,9 @@ export class StatsTracer {
     return { performanceStats, delta, stats };
   };
 
+  /**
+   * Collects encode stats from the RTCPeerConnection.
+   */
   private getEncodeStats = (
     currentStats: Record<string, RTCStats>,
   ): PerformanceStats[] => {
@@ -101,6 +123,9 @@ export class StatsTracer {
     return encodeStats;
   };
 
+  /**
+   * Collects decode stats from the RTCPeerConnection.
+   */
   private getDecodeStats = (
     currentStats: Record<string, RTCStats>,
   ): PerformanceStats[] => {
@@ -155,6 +180,11 @@ export class StatsTracer {
     ];
   };
 
+  /**
+   * Applies cost overrides to the performance stats.
+   * This is used to override the default encode/decode times with custom values.
+   * This is useful for testing and debugging purposes, and it shouldn't be used in production.
+   */
   private withOverrides = (
     performanceStats: PerformanceStats[],
   ): PerformanceStats[] => {
@@ -171,6 +201,13 @@ export class StatsTracer {
     return performanceStats;
   };
 
+  /**
+   * Set the encode/decode cost for a specific track type.
+   * This is used to override the default encode/decode times with custom values.
+   * This is useful for testing and debugging purposes, and it shouldn't be used in production.
+   *
+   * @internal
+   */
   setCost = (cost: number, trackType = TrackType.VIDEO) => {
     if (!this.costOverrides) this.costOverrides = new Map();
     this.costOverrides.set(trackType, cost);
@@ -213,12 +250,13 @@ const deltaCompression = (
   }
 
   let timestamp = -Infinity;
-  for (const report of Object.values(newStats)) {
+  const values = Object.values(newStats);
+  for (const report of values) {
     if (report.timestamp > timestamp) {
       timestamp = report.timestamp;
     }
   }
-  for (const report of Object.values(newStats)) {
+  for (const report of values) {
     if (report.timestamp === timestamp) {
       report.timestamp = 0;
     }
