@@ -635,6 +635,10 @@ describe('Publisher', () => {
       cache.add({ trackType: TrackType.AUDIO, id: 3 }, audioTransceiver);
 
       publisher['clonedTracks'].add(track).add(inactiveTrack).add(audioTrack);
+      publisher['trackIdToTrackType']
+        .set(track.id, TrackType.VIDEO)
+        .set(inactiveTrack.id, TrackType.VIDEO)
+        .set(audioTrack.id, TrackType.AUDIO);
     });
 
     it('negotiate should set up the local and remote descriptions', async () => {
