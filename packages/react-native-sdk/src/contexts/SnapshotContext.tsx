@@ -46,11 +46,6 @@ export const SnapshotProvider = ({ children }: SnapshotProviderProps) => {
       }
 
       const ref = participantRefs.current.get(participant.userId);
-      console.log(
-        '🚀 ~ SnapshotProvider ~ participantRefs:',
-        participantRefs,
-        participant.userId,
-      );
       if (!ref || !ref.current) {
         console.error(
           'Cannot take snapshot: No registered view for this participant',

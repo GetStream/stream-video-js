@@ -127,11 +127,6 @@ export const ParticipantView = ({
 
   // Register this view with the snapshot provider
   React.useEffect(() => {
-    console.log(
-      '🚀 ~ React.useEffect ~ snapshot and viewRef:',
-      snapshot,
-      viewRef.current,
-    );
     if (snapshot && viewRef.current) {
       snapshot.register(participant, viewRef);
     }
