@@ -83,11 +83,11 @@ export class SfuStatsReporter {
     device: CameraManager | MicrophoneManager,
     kind: 'mic' | 'camera',
   ) => {
-    const { hasBrowserPermission$ } = device.state;
+    const { browserPermissionState$ } = device.state;
     this.unsubscribeDevicePermissionsSubscription?.();
     this.unsubscribeDevicePermissionsSubscription = createSubscription(
-      combineLatest([hasBrowserPermission$, this.state.ownCapabilities$]),
-      ([hasPermission, ownCapabilities]) => {
+      combineLatest([browserPermissionState$, this.state.ownCapabilities$]),
+      ([browserPermissionState, ownCapabilities]) => {
         // cleanup the previous listDevices() subscription in case
         // permissions or capabilities have changed.
         // we will subscribe again if everything is in order.
@@ -96,7 +96,7 @@ export class SfuStatsReporter {
           kind === 'mic'
             ? ownCapabilities.includes(OwnCapability.SEND_AUDIO)
             : ownCapabilities.includes(OwnCapability.SEND_VIDEO);
-        if (!hasPermission || !hasCapability) {
+        if (browserPermissionState !== 'granted' || !hasCapability) {
           this.inputDevices.set(kind, {
             currentDevice: '',
             availableDevices: [],
