@@ -221,5 +221,6 @@ export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
 
 export const mockBrowserPermission = {
   asObservable: () => of(true),
+  asStateObservable: () => of('prompt'),
   getIsPromptingObservable: () => of(false),
 } as BrowserPermission;
