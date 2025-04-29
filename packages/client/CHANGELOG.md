@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.20.0...@stream-io/video-client-1.20.1) (2025-04-29)
+
+### Bug Fixes
+
+- dispose media stream if it cannot be published ([#1771](https://github.com/GetStream/stream-video-js/issues/1771)) ([83fbfd7](https://github.com/GetStream/stream-video-js/commit/83fbfd7bb77bd9a06d6955e6b48bb8238e573f57))
+- use more granular permission state for stats reporter ([#1774](https://github.com/GetStream/stream-video-js/issues/1774)) ([55afdfc](https://github.com/GetStream/stream-video-js/commit/55afdfcdac55fad25ba32978caf55a2f25f7580b))
+
 ## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.19.3...@stream-io/video-client-1.20.0) (2025-04-24)
 
 - bump test timeout ([7d922ed](https://github.com/GetStream/stream-video-js/commit/7d922ed34c46851a257fb36ee644f1ff5e4cb917))
