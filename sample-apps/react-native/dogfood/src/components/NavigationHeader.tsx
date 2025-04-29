@@ -1,4 +1,3 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
   StreamVideoRN,
   useI18n,
@@ -48,10 +47,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
                 appMode: 'None',
               });
               await StreamVideoRN.onPushLogout();
-              await Promise.all([
-                GoogleSignin.signOut(),
-                videoClient?.disconnectUser(),
-              ]);
+              await videoClient?.disconnectUser();
             } catch (error) {
               console.error('Failed to disconnect', error);
             }

@@ -13,9 +13,6 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
-  experimental: {
-    instrumentationHook: true,
-  },
   async headers() {
     return [
       {

@@ -11,6 +11,7 @@
   copyright, trademark and/or other forms of intellectual property protection.
   Dissemination of this information or reproduction of this material IS STRICTLY FORBIDDEN.
  */
+
 declare class AudioFilterNode
   extends AudioWorkletNode
   implements IAudioFilterNode

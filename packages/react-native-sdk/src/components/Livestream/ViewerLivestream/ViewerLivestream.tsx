@@ -138,6 +138,6 @@ const useStyles = () => {
           backgroundColor: theme.colors.sheetPrimary,
         },
       }),
-    [theme]
+    [theme],
   );
 };

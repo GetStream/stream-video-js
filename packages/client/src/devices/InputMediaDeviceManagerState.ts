@@ -6,7 +6,7 @@ import {
   shareReplay,
 } from 'rxjs';
 import { RxUtils } from '../store';
-import { BrowserPermission } from './BrowserPermission';
+import { BrowserPermission, BrowserPermissionState } from './BrowserPermission';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
@@ -63,9 +63,21 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
 
   /**
    * An observable that will emit `true` if browser/system permission
-   * is granted, `false` otherwise.
+   * is granted (or at least hasn't been denied), `false` otherwise.
    */
   hasBrowserPermission$: Observable<boolean>;
+
+  /**
+   * An observable that emits with browser permission state changes.
+   * Gives more granular visiblity than hasBrowserPermission$.
+   */
+  browserPermissionState$: Observable<BrowserPermissionState>;
+
+  /**
+   * An observable that emits `true` when SDK is prompting for browser permission
+   * (i.e. browser's UI for allowing or disallowing device access is visible)
+   */
+  isPromptingPermission$: Observable<boolean>;
 
   /**
    * Constructs new InputMediaDeviceManagerState instance.
@@ -81,6 +93,14 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     this.hasBrowserPermission$ = permission
       ? permission.asObservable().pipe(shareReplay(1))
       : of(true);
+
+    this.browserPermissionState$ = permission
+      ? permission.asStateObservable().pipe(shareReplay(1))
+      : of('prompt');
+
+    this.isPromptingPermission$ = permission
+      ? permission.getIsPromptingObservable().pipe(shareReplay(1))
+      : of(false);
   }
 
   /**

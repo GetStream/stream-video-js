@@ -10,6 +10,7 @@ import {
   CallAcceptedEvent,
   CallEndedEvent,
   CallResponse,
+  RejectCallResponse,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -24,12 +25,9 @@ describe('Call ringing events', () => {
       const handler = watchCallAccepted(call);
       const event: CallAcceptedEvent = {
         type: 'call.accepted',
-        // @ts-expect-error
-        user: {
-          id: 'test-user-id',
-        },
+        // @ts-expect-error incomplete data
+        user: { id: 'test-user-id' },
       };
-      // @ts-ignore
       await handler(event);
 
       expect(call.join).not.toHaveBeenCalled();
@@ -43,18 +41,11 @@ describe('Call ringing events', () => {
       const handler = watchCallAccepted(call);
       const event: CallAcceptedEvent = {
         type: 'call.accepted',
-        // @ts-expect-error
-        user: {
-          id: 'test-user-id-callee',
-        },
-        call: {
-          // @ts-expect-error
-          created_by: {
-            id: 'test-user',
-          },
-        },
+        // @ts-expect-error incomplete data
+        user: { id: 'test-user-id-callee' },
+        // @ts-expect-error incomplete data
+        call: { created_by: { id: 'test-user' } },
       };
-      // @ts-ignore
       await handler(event);
 
       expect(call.join).toHaveBeenCalled();
@@ -69,19 +60,12 @@ describe('Call ringing events', () => {
     const handler = watchCallAccepted(call);
     const event: CallAcceptedEvent = {
       type: 'call.accepted',
-      // @ts-expect-error
-      user: {
-        id: 'test-user-id-callee-1',
-      },
-      call: {
-        // @ts-expect-error
-        created_by: {
-          id: 'test-user-id-caller',
-        },
-      },
+      // @ts-expect-error incomplete data
+      user: { id: 'test-user-id-callee-1' },
+      // @ts-expect-error incomplete data
+      call: { created_by: { id: 'test-user-id-caller' } },
     };
 
-    // @ts-ignore
     await handler(event);
 
     expect(call.join).not.toHaveBeenCalled();
@@ -92,15 +76,15 @@ describe('Call ringing events', () => {
       const call = fakeCall({ currentUserId: 'm1' });
       call.state.updateFromCallResponse({
         ...fakeMetadata(),
-        // @ts-ignore
+        // @ts-expect-error type issue
         created_by: { id: 'm1' },
       });
       call.state.setMembers([
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         { user_id: 'm1' },
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         { user_id: 'm2' },
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         { user_id: 'm3' },
       ]);
       call.state.setCallingState(CallingState.RINGING);
@@ -112,16 +96,16 @@ describe('Call ringing events', () => {
       // all members reject the call
       await handler({
         type: 'call.rejected',
-        // @ts-ignore
+        // @ts-expect-error type issue
         user: {
           id: 'm2',
         },
         call: {
-          // @ts-ignore
+          // @ts-expect-error type issue
           created_by: {
             id: 'm1',
           },
-          // @ts-ignore
+          // @ts-expect-error type issue
           session: {
             rejected_by: {
               m2: new Date().toISOString(),
@@ -137,10 +121,10 @@ describe('Call ringing events', () => {
       const call = fakeCall();
       call.state.updateFromCallResponse({
         ...fakeMetadata(),
-        // @ts-ignore
+        // @ts-expect-error type issue
         created_by: { id: 'm0' },
       });
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
@@ -148,19 +132,18 @@ describe('Call ringing events', () => {
       const handler = watchCallRejected(call);
 
       // only one member rejects the call
-      // @ts-ignore
       const event: CallAcceptedEvent = {
         type: 'call.rejected',
-        // @ts-ignore
+        // @ts-expect-error type issue
         user: {
           id: 'm2',
         },
         call: {
-          // @ts-ignore
+          // @ts-expect-error type issue
           created_by: {
             id: 'm0',
           },
-          // @ts-ignore
+          // @ts-expect-error type issue
           session: {
             rejected_by: {
               m2: new Date().toISOString(),
@@ -168,7 +151,6 @@ describe('Call ringing events', () => {
           },
         },
       };
-      // @ts-ignore
       await handler(event);
 
       expect(call.leave).not.toHaveBeenCalled();
@@ -178,10 +160,10 @@ describe('Call ringing events', () => {
       const call = fakeCall({ currentUserId: 'm1' });
       call.state.updateFromCallResponse({
         ...fakeMetadata(),
-        // @ts-ignore
+        // @ts-expect-error type issue
         created_by: { id: 'm0' },
       });
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
@@ -189,19 +171,18 @@ describe('Call ringing events', () => {
       const handler = watchCallRejected(call);
 
       // only one member rejects the call
-      // @ts-ignore
       const event: CallAcceptedEvent = {
         type: 'call.rejected',
-        // @ts-ignore
+        // @ts-expect-error type issue
         user: {
           id: 'm0',
         },
         call: {
-          // @ts-ignore
+          // @ts-expect-error type issue
           created_by: {
             id: 'm0',
           },
-          // @ts-ignore
+          // @ts-expect-error type issue
           session: {
             rejected_by: {
               m0: new Date().toISOString(),
@@ -209,7 +190,6 @@ describe('Call ringing events', () => {
           },
         },
       };
-      // @ts-ignore
       await handler(event);
 
       expect(call.leave).toHaveBeenCalled();
@@ -224,9 +204,9 @@ describe('Call ringing events', () => {
       });
       const handler = watchCallEnded(call);
 
-      // @ts-ignore
+      // @ts-expect-error type issue
       const event: CallEndedEvent = { type: 'call.ended' };
-      // @ts-ignore
+      // @ts-expect-error type issue
       await handler(event);
 
       expect(call.leave).toHaveBeenCalled();
@@ -246,9 +226,9 @@ describe('Call ringing events', () => {
 
       const handler = watchCallEnded(call);
 
-      // @ts-ignore
+      // @ts-expect-error type issue
       const event: CallEndedEvent = { type: 'call.ended' };
-      // @ts-ignore
+      // @ts-expect-error type issue
       await handler(event);
 
       expect(call.leave).toHaveBeenCalled();
@@ -262,9 +242,9 @@ describe('Call ringing events', () => {
 
       const handler = watchCallEnded(call);
 
-      // @ts-ignore
+      // @ts-expect-error type issue
       const event: CallEndedEvent = { type: 'call.ended' };
-      // @ts-ignore
+      // @ts-expect-error type issue
       await handler(event);
 
       expect(call.leave).not.toHaveBeenCalled();
@@ -285,6 +265,7 @@ describe('Call ringing events', () => {
           callEnded: { reason: CallEndedReason.ENDED },
         },
       };
+      // @ts-expect-error type issue
       call['dispatcher'].dispatch(event);
 
       expect(call.leave).toHaveBeenCalled();
@@ -305,6 +286,7 @@ describe('Call ringing events', () => {
           callEnded: { reason: CallEndedReason.KICKED },
         },
       };
+      // @ts-expect-error type issue
       call['dispatcher'].dispatch(event);
 
       expect(call.leave).not.toHaveBeenCalled();
@@ -319,6 +301,7 @@ describe('Call ringing events', () => {
         .spyOn(call, 'reject')
         .mockImplementation(async () => {
           console.log('TEST: reject() called');
+          return {} as RejectCallResponse;
         });
 
       await call.leave({ reject: false });
@@ -333,6 +316,7 @@ describe('Call ringing events', () => {
         .spyOn(call, 'reject')
         .mockImplementation(async () => {
           console.log('TEST: reject() called');
+          return {} as RejectCallResponse;
         });
 
       await call.leave({ reject: true });
@@ -352,6 +336,7 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
     custom: {},
     teams: [],
     devices: [],
+    language: '',
   });
   const client = new StreamClient('api-key');
   return new Call({
@@ -369,20 +354,20 @@ const fakeMetadata = (): CallResponse => {
     type: 'development',
     cid: 'development:12345',
 
-    // @ts-ignore
+    // @ts-expect-error type issue
     created_by: {
       id: 'test-user-id',
     },
     own_capabilities: [],
     blocked_user_ids: [],
 
-    // @ts-ignore
     settings: {
       ring: {
         auto_cancel_timeout_ms: 30000,
         incoming_call_timeout_ms: 30000,
+        missed_call_timeout_ms: 30000,
       },
-      // @ts-ignore
+      // @ts-expect-error type issue
       screensharing: {
         target_resolution: undefined,
       },

@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import type { TimerWorkerEvent, TimerWorkerRequest } from './types';
 
 const timerIdMapping = new Map<number, NodeJS.Timeout>();
@@ -36,5 +34,3 @@ function tick(id: number) {
   const message: TimerWorkerEvent = { type: 'tick', id };
   self.postMessage(message);
 }
-
-/* eslint-enable */

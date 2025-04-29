@@ -84,6 +84,6 @@ const useStyles = () => {
           textAlign: 'center',
         },
       }),
-    [theme]
+    [theme],
   );
 };

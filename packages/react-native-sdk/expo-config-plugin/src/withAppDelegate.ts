@@ -4,8 +4,8 @@ import {
 } from '@expo/config-plugins';
 import {
   addObjcImports,
-  insertContentsInsideObjcFunctionBlock,
   findObjcFunctionCodeBlock,
+  insertContentsInsideObjcFunctionBlock,
 } from '@expo/config-plugins/build/ios/codeMod';
 
 import {
@@ -46,39 +46,39 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
               '"RNVoipPushNotificationManager.h"',
               '"StreamVideoReactNative.h"',
               '<WebRTC/RTCAudioSession.h>',
-            ]
+            ],
           );
 
           config.modResults.contents = addDidFinishLaunchingWithOptionsRinging(
             config.modResults.contents,
-            props.ringingPushNotifications
+            props.ringingPushNotifications,
           );
 
           config.modResults.contents = addDidUpdatePushCredentials(
-            config.modResults.contents
+            config.modResults.contents,
           );
 
           config.modResults.contents = addDidReceiveIncomingPushCallback(
-            config.modResults.contents
+            config.modResults.contents,
           );
 
           config.modResults.contents = addAudioSessionMethods(
-            config.modResults.contents
+            config.modResults.contents,
           );
         }
         config.modResults.contents = addDidFinishLaunchingWithOptions(
           config.modResults.contents,
-          props.iOSEnableMultitaskingCameraAccess
+          props.iOSEnableMultitaskingCameraAccess,
         );
         return config;
       } catch (error: any) {
         throw new Error(
-          'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed'
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed ${error}`,
         );
       }
     } else {
       throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the language is not supported'
+        'Cannot setup StreamVideoReactNativeSDK because the language is not supported',
       );
     }
   });
@@ -86,7 +86,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
 
 function addDidFinishLaunchingWithOptions(
   contents: string,
-  iOSEnableMultitaskingCameraAccess: boolean | undefined
+  iOSEnableMultitaskingCameraAccess: boolean | undefined,
 ) {
   if (iOSEnableMultitaskingCameraAccess) {
     contents = addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
@@ -99,7 +99,7 @@ function addDidFinishLaunchingWithOptions(
         contents,
         DID_FINISH_LAUNCHING_WITH_OPTIONS,
         setupMethod,
-        { position: 'tailBeforeLastReturn' }
+        { position: 'tailBeforeLastReturn' },
       );
     }
   }
@@ -108,7 +108,7 @@ function addDidFinishLaunchingWithOptions(
 
 function addDidFinishLaunchingWithOptionsRinging(
   contents: string,
-  ringingPushNotifications: RingingPushNotifications
+  ringingPushNotifications: RingingPushNotifications,
 ) {
   // call the setup RNCallKeep
   const supportsVideoString = ringingPushNotifications.disableVideoIos
@@ -128,7 +128,7 @@ function addDidFinishLaunchingWithOptionsRinging(
       contents,
       DID_FINISH_LAUNCHING_WITH_OPTIONS,
       setupCallKeep,
-      { position: 'head' }
+      { position: 'head' },
     );
   }
   // call the setup of voip push notification
@@ -138,7 +138,7 @@ function addDidFinishLaunchingWithOptionsRinging(
       contents,
       DID_FINISH_LAUNCHING_WITH_OPTIONS,
       voipSetupMethod,
-      { position: 'head' }
+      { position: 'head' },
     );
   }
   return contents;
@@ -150,7 +150,7 @@ function addDidUpdatePushCredentials(contents: string) {
   if (!contents.includes(updatedPushCredentialsMethod)) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
-      DID_UPDATE_PUSH_CREDENTIALS
+      DID_UPDATE_PUSH_CREDENTIALS,
     );
     if (!codeblock) {
       return addNewLinesToAppDelegate(contents, [
@@ -163,7 +163,7 @@ function addDidUpdatePushCredentials(contents: string) {
         contents,
         DID_UPDATE_PUSH_CREDENTIALS,
         updatedPushCredentialsMethod,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }
@@ -176,7 +176,7 @@ function addAudioSessionMethods(contents: string) {
   if (!contents.includes(audioSessionDidActivateMethod)) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
-      DID_ACTIVATE_AUDIO_SESSION
+      DID_ACTIVATE_AUDIO_SESSION,
     );
     if (!codeblock) {
       contents = addNewLinesToAppDelegate(contents, [
@@ -189,7 +189,7 @@ function addAudioSessionMethods(contents: string) {
         contents,
         DID_ACTIVATE_AUDIO_SESSION,
         audioSessionDidActivateMethod,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }
@@ -199,7 +199,7 @@ function addAudioSessionMethods(contents: string) {
   if (!contents.includes(audioSessionDidDeactivateMethod)) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
-      DID_DEACTIVATE_AUDIO_SESSION
+      DID_DEACTIVATE_AUDIO_SESSION,
     );
     if (!codeblock) {
       contents = addNewLinesToAppDelegate(contents, [
@@ -212,7 +212,7 @@ function addAudioSessionMethods(contents: string) {
         contents,
         DID_DEACTIVATE_AUDIO_SESSION,
         audioSessionDidDeactivateMethod,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }
@@ -221,18 +221,20 @@ function addAudioSessionMethods(contents: string) {
 
 function addDidReceiveIncomingPushCallback(contents: string) {
   const onIncomingPush = `
-  // send event to JS
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-
-  // process the payload
+  // process the payload and store it in the native module's cache
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
 
+  // store the call cid and uuid in the native module's cache
   [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
 
+  // set the completion handler - this one is called by the JS SDK
   [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+
+  // send event to JS - the JS SDK will handle the rest and call the 'completionHandler'
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
 
   // display the incoming call notification
   [RNCallKeep reportNewIncomingCall: uuid
@@ -250,12 +252,12 @@ function addDidReceiveIncomingPushCallback(contents: string) {
 `;
   if (
     !contents.includes(
-      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload'
+      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload',
     )
   ) {
     const codeblock = findObjcFunctionCodeBlock(
       contents,
-      DID_RECEIVE_INCOMING_PUSH
+      DID_RECEIVE_INCOMING_PUSH,
     );
     if (!codeblock) {
       return addNewLinesToAppDelegate(contents, [
@@ -268,7 +270,7 @@ function addDidReceiveIncomingPushCallback(contents: string) {
         contents,
         DID_RECEIVE_INCOMING_PUSH,
         onIncomingPush,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }

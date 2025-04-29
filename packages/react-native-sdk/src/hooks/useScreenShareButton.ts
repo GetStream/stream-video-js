@@ -4,17 +4,16 @@ import {
   OwnCapability,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import React, { useRef, useEffect } from 'react';
-import { Platform, findNodeHandle, NativeModules } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { usePrevious } from '../utils/hooks';
 import { useIsIosScreenshareBroadcastStarted } from './useIsIosScreenshareBroadcastStarted';
 
 // ios >= 14.0 or android - platform restrictions
 const CanDeviceScreenShare =
   (Platform.OS === 'ios' &&
-    // @ts-ignore
-    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14,
-  10) || Platform.OS === 'android';
+    Number.parseInt(Platform.Version.split('.')[0], 10) >= 14) ||
+  Platform.OS === 'android';
 
 export const useScreenShareButton = (
   /**
@@ -36,7 +35,7 @@ export const useScreenShareButton = (
    * Handler to be called when the permissions to stream screen share media is missing
    *
    */
-  onMissingScreenShareStreamPermission?: () => void
+  onMissingScreenShareStreamPermission?: () => void,
 ) => {
   const call = useCall();
   const { useLocalParticipant, useCallSettings, useOwnCapabilities } =
@@ -44,7 +43,7 @@ export const useScreenShareButton = (
   const callSettings = useCallSettings();
   const ownCapabilities = useOwnCapabilities();
   const hasScreenSharingPermissions = ownCapabilities?.includes(
-    OwnCapability.SCREENSHARE
+    OwnCapability.SCREENSHARE,
   );
   const isScreenSharingEnabledInCall = callSettings?.screensharing.enabled;
 
@@ -55,7 +54,7 @@ export const useScreenShareButton = (
 
   const iosScreenShareStartedFromSystem = useIsIosScreenshareBroadcastStarted();
   const prevIosScreenShareStartedFromSystem = usePrevious(
-    iosScreenShareStartedFromSystem
+    iosScreenShareStartedFromSystem,
   );
 
   const localParticipant = useLocalParticipant();
@@ -91,7 +90,7 @@ export const useScreenShareButton = (
       const logger = getLogger(['useScreenShareButton']);
       logger(
         'info',
-        'User does not have permissions to stream the screen share media, calling onMissingScreenShareStreamPermission handler if present'
+        'User does not have permissions to stream the screen share media, calling onMissingScreenShareStreamPermission handler if present',
       );
       onMissingScreenShareStreamPermission?.();
     }
@@ -111,7 +110,7 @@ export const useScreenShareButton = (
           logger(
             'info',
             'User opted to not give permissions to start a screen share stream',
-            error
+            error,
           );
         }
       }

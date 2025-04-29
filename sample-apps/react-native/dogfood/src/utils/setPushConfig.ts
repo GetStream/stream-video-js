@@ -1,17 +1,16 @@
 import {
+  isNotifeeStreamVideoEvent,
+  onAndroidNotifeeEvent,
+  oniOSNotifeeEvent,
   StreamVideoClient,
   StreamVideoRN,
-  onAndroidNotifeeEvent,
-  isNotifeeStreamVideoEvent,
-  oniOSNotifeeEvent,
 } from '@stream-io/video-react-native-sdk';
-import { AndroidImportance } from '@notifee/react-native';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { deeplinkCallId$ } from '../hooks/useDeepLinkEffect';
 import { Platform } from 'react-native';
-import notifee from '@notifee/react-native';
 import { setFirebaseListeners } from './setFirebaseListeners';
 
 export function setPushConfig() {
@@ -35,7 +34,7 @@ export function setPushConfig() {
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to open the call',
+        getBody: () => 'Tap to open the call',
       },
       callNotificationTextGetters: {
         getTitle(type, createdUserName) {
@@ -47,7 +46,7 @@ export function setPushConfig() {
             return `${createdUserName} is notifying you about a call`;
           }
         },
-        getBody(type, _createdUserName) {
+        getBody(type) {
           if (type === 'call.missed') {
             return 'Missed call!';
           } else {
@@ -121,13 +120,13 @@ const createStreamVideoClient = async () => {
   const fetchAuthDetails = async () => {
     return await createToken({ user_id: user.id }, appEnvironment);
   };
-  const { apiKey } = await fetchAuthDetails();
+  const { apiKey, token } = await fetchAuthDetails();
   const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
-  const client = StreamVideoClient.getOrCreateInstance({
+  return StreamVideoClient.getOrCreateInstance({
     apiKey,
     user,
+    token,
     tokenProvider,
     options: { logLevel: 'warn' },
   });
-  return client;
 };

@@ -4,6 +4,7 @@ import {
   withAndroidManifest,
 } from '@expo/config-plugins';
 import { type ConfigProps } from './common/types';
+
 const {
   prefixAndroidKeys,
   getMainApplicationOrThrow,
@@ -44,7 +45,7 @@ function getNotifeeService(isKeepCallAliveEnabled = false) {
 
 const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   configuration,
-  props
+  props,
 ) => {
   return withAndroidManifest(configuration, (config) => {
     const androidManifest = config.modResults;
@@ -56,7 +57,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
       // we filter out the existing notifee service (if any) so that we can override it
       services = services.filter(
         (service) =>
-          service.$['android:name'] !== 'app.notifee.core.ForegroundService'
+          service.$['android:name'] !== 'app.notifee.core.ForegroundService',
       );
       services.push(getNotifeeService(!!props?.androidKeepCallAlive));
       mainApplication.service = services;
@@ -64,7 +65,6 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
 
     if (props?.androidPictureInPicture) {
       const mainActivity = getMainActivityOrThrow(androidManifest);
-      ('keyboard|keyboardHidden|orientation|screenSize|uiMode');
       const currentConfigChangesArray = mainActivity.$['android:configChanges']
         ? mainActivity.$['android:configChanges'].split('|')
         : [];

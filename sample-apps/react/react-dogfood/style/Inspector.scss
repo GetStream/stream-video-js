@@ -32,7 +32,8 @@
   }
 }
 
-.rd__inspector button {
+.rd__inspector button,
+.rd__inspector-bookmarklet {
   font: inherit;
   padding: 5px 10px;
   border-radius: 4px;
@@ -379,4 +380,8 @@ button.rd__copy-button {
 .rd__inspector-pre {
   font-size: 13px;
   color: var(--str-video__text-color2);
+}
+
+.rd__inspector-bookmarklet {
+  text-decoration: none;
 }

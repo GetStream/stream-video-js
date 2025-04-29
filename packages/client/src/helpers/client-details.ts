@@ -151,7 +151,7 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
         'platform',
         'platformVersion',
       ]);
-    } catch (e) {
+    } catch {
       // Ignore the error
     }
   }

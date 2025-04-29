@@ -22,6 +22,8 @@ import {
 import { ActiveCall } from './ActiveCall';
 import { Feedback } from './Feedback/Feedback';
 import { DefaultAppHeader } from './DefaultAppHeader';
+import { useSettings } from '../context/SettingsContext';
+import { DEVICE_PREFERENCE_KEY } from '../hooks/useDeviceSelectionPreference';
 
 const contents = {
   'error-join': {
@@ -45,6 +47,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
+  const {
+    settings: { deviceSelectionPreference },
+  } = useSettings();
 
   const videoCodecOverride = (router.query['video_encoder'] ||
     router.query['video_codec']) as PreferredCodec | undefined;
@@ -154,12 +159,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
   useKeyboardShortcuts();
   useWakeLock();
-  usePersistedDevicePreferences('@pronto/device-preferences');
   usePersistedVideoFilter('@pronto/video-filter');
 
-  let ComponentToRender: JSX.Element;
+  let childrenToRender: JSX.Element;
   if (show === 'error-join' || show === 'error-leave') {
-    ComponentToRender = (
+    childrenToRender = (
       <ErrorPage
         heading={contents[show].heading}
         error={lastError}
@@ -168,11 +172,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       />
     );
   } else if (show === 'lobby') {
-    ComponentToRender = <Lobby onJoin={onJoin} mode={mode} />;
+    childrenToRender = <Lobby onJoin={onJoin} mode={mode} />;
   } else if (show === 'loading') {
-    ComponentToRender = <LoadingScreen />;
+    childrenToRender = <LoadingScreen />;
   } else if (show === 'left') {
-    ComponentToRender = (
+    childrenToRender = (
       <>
         <DefaultAppHeader />
         <div className="rd__leave">
@@ -183,7 +187,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       </>
     );
   } else if (!call) {
-    ComponentToRender = (
+    childrenToRender = (
       <ErrorPage
         heading={'Lost active call connection'}
         onClickHome={() => router.push(`/`)}
@@ -191,7 +195,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       />
     );
   } else {
-    ComponentToRender = (
+    childrenToRender = (
       <ActiveCall
         activeCall={call}
         chatClient={chatClient}
@@ -201,7 +205,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     );
   }
 
-  return ComponentToRender;
+  return (
+    <>
+      {childrenToRender}
+      {deviceSelectionPreference === 'recent' && (
+        <PersistedDevicePreferencesHelper />
+      )}
+    </>
+  );
 };
 
 type ErrorPageProps = {
@@ -276,3 +287,8 @@ export const LoadingScreen = () => {
     </div>
   );
 };
+
+function PersistedDevicePreferencesHelper() {
+  usePersistedDevicePreferences(DEVICE_PREFERENCE_KEY);
+  return null;
+}

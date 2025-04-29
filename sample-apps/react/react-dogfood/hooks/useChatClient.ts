@@ -45,7 +45,6 @@ export const useCreateStreamChatClient = <
           console.log('connection closed');
         });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, userData.id, tokenOrProvider]);
 
   return chatClient;

@@ -4,6 +4,7 @@ import {
   retryable,
   withHeaders,
   withRequestLogger,
+  withRequestTracer,
 } from './rpc';
 import {
   createWebSocketSignalChannel,
@@ -36,6 +37,7 @@ import {
   SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
+import { Tracer, TraceSlice } from './stats';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -67,12 +69,17 @@ export type StreamSfuClientConstructor = {
   /**
    * Callback for when the WebSocket connection is closed.
    */
-  onSignalClose?: () => void;
+  onSignalClose?: (reason: string) => void;
 
   /**
    * The StreamClient instance to use for the connection.
    */
   streamClient: StreamClient;
+
+  /**
+   * Flag to enable tracing.
+   */
+  enableTracing: boolean;
 };
 
 /**
@@ -111,6 +118,11 @@ export class StreamSfuClient {
    */
   isLeaving = false;
 
+  /**
+   * Flag to indicate if the client is in the process of closing the connection.
+   */
+  isClosing = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
@@ -118,9 +130,10 @@ export class StreamSfuClient {
   private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
+  private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
-  private readonly onSignalClose: (() => void) | undefined;
+  private readonly onSignalClose: ((reason: string) => void) | undefined;
   private readonly logger: Logger;
   private readonly logTag: string;
   private readonly credentials: Credentials;
@@ -173,6 +186,7 @@ export class StreamSfuClient {
     joinResponseTimeout = 5000,
     onSignalClose,
     streamClient,
+    enableTracing,
   }: StreamSfuClientConstructor) {
     this.dispatcher = dispatcher;
     this.sessionId = sessionId || generateUUIDv4();
@@ -183,12 +197,12 @@ export class StreamSfuClient {
     this.joinResponseTimeout = joinResponseTimeout;
     this.logTag = logTag;
     this.logger = getLogger(['SfuClient', logTag]);
+    this.tracer = enableTracing ? new Tracer(logTag) : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
-        withHeaders({
-          Authorization: `Bearer ${token}`,
-        }),
+        withHeaders({ Authorization: `Bearer ${token}` }),
+        this.tracer && withRequestTracer(this.tracer.trace),
         getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
       ].filter((v) => !!v),
     });
@@ -237,8 +251,8 @@ export class StreamSfuClient {
 
           this.signalWs.addEventListener('open', onOpen);
 
-          this.signalWs.addEventListener('close', () => {
-            this.handleWebSocketClose();
+          this.signalWs.addEventListener('close', (e) => {
+            this.handleWebSocketClose(e);
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
             // before emitting 'open'. However, strager things have happened, and we don't
             // want to leave signalReady in pending state.
@@ -261,21 +275,25 @@ export class StreamSfuClient {
   };
 
   get isHealthy() {
-    return this.signalWs.readyState === WebSocket.OPEN;
+    return (
+      this.signalWs.readyState === WebSocket.OPEN &&
+      this.joinResponseTask.isResolved()
+    );
   }
 
   get joinTask() {
     return this.joinResponseTask.promise;
   }
 
-  private handleWebSocketClose = () => {
+  private handleWebSocketClose = (e: CloseEvent) => {
     this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     getTimers().clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
-    this.onSignalClose?.();
+    this.onSignalClose?.(`${e.code} ${e.reason}`);
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
+    this.isClosing = true;
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
@@ -294,6 +312,10 @@ export class StreamSfuClient {
     this.abortController.abort();
     this.migrationTask?.resolve();
     this.iceTrickleBuffer.dispose();
+  };
+
+  getTrace = (): TraceSlice | undefined => {
+    return this.tracer?.take();
   };
 
   leaveAndClose = async (reason: string) => {
@@ -412,7 +434,10 @@ export class StreamSfuClient {
   ): Promise<JoinResponse> => {
     // wait for the signal web socket to be ready before sending "joinRequest"
     await this.signalReady();
-    if (this.joinResponseTask.isResolved || this.joinResponseTask.isRejected) {
+    if (
+      this.joinResponseTask.isResolved() ||
+      this.joinResponseTask.isRejected()
+    ) {
       // we need to lock the RPC requests until we receive a JoinResponse.
       // that's why we have this primitive lock mechanism.
       // the client starts with already initialized joinResponseTask,
@@ -424,7 +449,7 @@ export class StreamSfuClient {
     // be replaced with a new one in case a second join request is made
     const current = this.joinResponseTask;
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | undefined = undefined;
     const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
       this.logger('debug', 'Received joinResponse', joinResponse);
       clearTimeout(timeoutId);

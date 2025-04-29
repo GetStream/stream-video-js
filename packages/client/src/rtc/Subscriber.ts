@@ -144,8 +144,6 @@ export class Subscriber extends BasePeerConnection {
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    this.logger('info', `Received subscriberOffer`, subscriberOffer);
-
     await this.pc.setRemoteDescription({
       type: 'offer',
       sdp: subscriberOffer.sdp,

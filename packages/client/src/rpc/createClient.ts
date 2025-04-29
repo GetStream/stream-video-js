@@ -11,6 +11,7 @@ import {
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 import { Logger, LogLevel } from '../coordinator/connection/types';
+import type { Trace } from '../stats/rtc/types';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -59,6 +60,35 @@ export const withRequestLogger = (
         });
       }
       return invocation;
+    },
+  };
+};
+
+export const withRequestTracer = (trace: Trace): RpcInterceptor => {
+  type RpcMethodNames = {
+    [K in keyof SignalServerClient as Capitalize<K>]: boolean;
+  };
+
+  const exclusions: Record<string, boolean | undefined> = {
+    SendStats: true,
+  } satisfies Partial<RpcMethodNames>;
+  return {
+    interceptUnary(
+      next: NextUnaryFn,
+      method: MethodInfo,
+      input: object,
+      options: RpcOptions,
+    ): UnaryCall {
+      if (exclusions[method.name as keyof RpcMethodNames]) {
+        return next(method, input, options);
+      }
+      try {
+        trace(method.name, input);
+        return next(method, input, options);
+      } catch (err) {
+        trace(`${method.name}OnFailure`, [input, err]);
+        throw err;
+      }
     },
   };
 };

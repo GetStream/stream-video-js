@@ -28,6 +28,7 @@ import type { CallState } from '../store';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
+import { tracer as mediaStatsTracer } from '../stats/rtc/mediaDevices';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -535,6 +536,10 @@ export class DynascaleManager {
             const { selectedDevice } = this.speaker.state;
             if (selectedDevice && 'setSinkId' in audioElement) {
               audioElement.setSinkId(selectedDevice);
+              mediaStatsTracer.trace(
+                'navigator.mediaDevices.setSinkId',
+                selectedDevice,
+              );
             }
           }
         });
@@ -545,6 +550,10 @@ export class DynascaleManager {
       : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
           if (deviceId) {
             audioElement.setSinkId(deviceId);
+            mediaStatsTracer.trace(
+              'navigator.mediaDevices.setSinkId',
+              deviceId,
+            );
           }
         });
 

@@ -5,18 +5,21 @@ import type {
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
-import { PeerType } from '../gen/video/sfu/models/models';
+import { ClientDetails, PeerType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
-import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
+import { withoutConcurrency } from '../helpers/concurrency';
+import { Tracer, traceRTCPeerConnection, TraceSlice } from '../stats';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
-  onUnrecoverableError?: () => void;
+  onUnrecoverableError?: (reason: string) => void;
   logTag: string;
+  clientDetails: ClientDetails;
+  enableTracing: boolean;
 };
 
 /**
@@ -31,10 +34,11 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected onUnrecoverableError?: () => void;
+  protected onUnrecoverableError?: (reason: string) => void;
   protected isIceRestarting = false;
   private isDisposed = false;
 
+  private readonly tracer?: Tracer;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -50,6 +54,8 @@ export abstract class BasePeerConnection {
       dispatcher,
       onUnrecoverableError,
       logTag,
+      clientDetails,
+      enableTracing,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -62,6 +68,13 @@ export abstract class BasePeerConnection {
       logTag,
     ]);
     this.pc = new RTCPeerConnection(connectionConfig);
+    if (enableTracing) {
+      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
+      this.tracer = new Tracer(tag);
+      this.tracer.trace('clientDetails', clientDetails);
+      this.tracer.trace('create', connectionConfig);
+      traceRTCPeerConnection(this.pc, this.tracer.trace);
+    }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.addEventListener(
@@ -80,12 +93,13 @@ export abstract class BasePeerConnection {
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
+    this.tracer?.dispose();
   }
 
   /**
    * Detaches the event handlers from the `RTCPeerConnection`.
    */
-  protected detachEventHandlers() {
+  detachEventHandlers() {
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.removeEventListener('signalingstatechange', this.onSignalingChange);
@@ -93,8 +107,6 @@ export abstract class BasePeerConnection {
       'iceconnectionstatechange',
       this.onIceConnectionStateChange,
     );
-    // cancel any ongoing ICE restart process
-    withCancellation('onIceConnectionStateChange', () => Promise.resolve());
     this.pc.removeEventListener(
       'icegatheringstatechange',
       this.onIceGatherChange,
@@ -166,6 +178,13 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Returns the current tracing buffer.
+   */
+  getTrace = (): TraceSlice | undefined => {
+    return this.tracer?.take();
+  };
+
+  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */
@@ -176,7 +195,7 @@ export abstract class BasePeerConnection {
       return;
     }
 
-    const iceCandidate = this.toJSON(candidate);
+    const iceCandidate = this.asJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
       .catch((err) => {
@@ -188,7 +207,7 @@ export abstract class BasePeerConnection {
   /**
    * Converts the ICE candidate to a JSON string.
    */
-  private toJSON = (candidate: RTCIceCandidate): string => {
+  private asJSON = (candidate: RTCIceCandidate): string => {
     if (!candidate.usernameFragment) {
       // react-native-webrtc doesn't include usernameFragment in the candidate
       const segments = candidate.candidate.split(' ');
@@ -216,8 +235,9 @@ export abstract class BasePeerConnection {
       this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         if (this.isDisposed) return;
-        this.logger('error', `ICE restart failed`, e);
-        this.onUnrecoverableError?.();
+        const reason = `ICE restart failed`;
+        this.logger('error', reason, e);
+        this.onUnrecoverableError?.(`${reason}: ${e}`);
       });
     }
   };

@@ -4,7 +4,7 @@ type PushLogoutCallbacks = {
   current?: Callback[];
 };
 
-let pushLogoutCallbacks: PushLogoutCallbacks = {};
+const pushLogoutCallbacks: PushLogoutCallbacks = {};
 
 export const setPushLogoutCallback = (callback: Callback) => {
   if (!pushLogoutCallbacks.current) {

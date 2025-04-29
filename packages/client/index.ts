@@ -1,5 +1,9 @@
 import 'webrtc-adapter';
 
+// side effect: we patch the mediaDevices APIs here
+// so we can intercept invocations and collect statistics
+import './src/stats/rtc/mediaDevices';
+
 export * from './src/gen/coordinator';
 export * from './src/coordinator/connection/types';
 

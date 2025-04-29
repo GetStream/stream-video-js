@@ -2,7 +2,6 @@
   "name": "@stream-io/video-filters-react-native",
   "version": "0.2.8",
   "description": "Video Filters for the Stream React Native Video SDK",
-  "packageManager": "yarn@3.5.0",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
   "types": "dist/typescript/index.d.ts",
@@ -48,11 +47,11 @@
   },
   "homepage": "https://github.com/GetStream/stream-video-js#readme",
   "devDependencies": {
-    "@stream-io/react-native-webrtc": "^125.0.7",
-    "react-native": "0.74.1",
+    "@stream-io/react-native-webrtc": "^125.0.8",
+    "react-native": "^0.76.9",
     "react-native-builder-bob": "^0.37.0",
-    "rimraf": "^5.0.7",
-    "typescript": "^5.5.2"
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.2"
   },
   "peerDependencies": {
     "@stream-io/react-native-webrtc": ">=118.1.0",

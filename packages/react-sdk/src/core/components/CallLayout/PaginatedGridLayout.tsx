@@ -106,7 +106,15 @@ export type PaginatedGridLayoutProps = {
    * @default true
    */
   pageArrowsVisible?: boolean;
-} & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
+
+  /**
+   * Whether the layout is muted. Defaults to `false`.
+   */
+  muted?: boolean;
+} & Pick<
+  ParticipantViewProps,
+  'ParticipantViewUI' | 'VideoPlaceholder' | 'PictureInPicturePlaceholder'
+>;
 
 export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   const {
@@ -119,6 +127,8 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
     pageArrowsVisible = true,
     VideoPlaceholder,
     ParticipantViewUI = DefaultParticipantViewUI,
+    PictureInPicturePlaceholder,
+    muted,
   } = props;
   const [page, setPage] = useState(0);
   const [
@@ -169,7 +179,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
       className="str-video__paginated-grid-layout__wrapper"
       ref={setPaginatedGridLayoutWrapperElement}
     >
-      <ParticipantsAudio participants={remoteParticipants} />
+      {!muted && <ParticipantsAudio participants={remoteParticipants} />}
       <div className="str-video__paginated-grid-layout">
         {pageArrowsVisible && pageCount > 1 && (
           <IconButton
@@ -186,6 +196,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
             mirror={mirror}
             VideoPlaceholder={VideoPlaceholder}
             ParticipantViewUI={ParticipantViewUI}
+            PictureInPicturePlaceholder={PictureInPicturePlaceholder}
           />
         )}
         {pageArrowsVisible && pageCount > 1 && (

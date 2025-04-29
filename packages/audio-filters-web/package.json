@@ -1,6 +1,5 @@
 {
   "name": "@stream-io/audio-filters-web",
-  "packageManager": "yarn@3.5.0",
   "version": "0.2.3",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
@@ -32,8 +31,8 @@
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.2",
-    "rimraf": "^5.0.7",
-    "rollup": "^4.34.7",
-    "typescript": "^5.5.2"
+    "rimraf": "^6.0.1",
+    "rollup": "^4.36.0",
+    "typescript": "^5.8.2"
   }
 }

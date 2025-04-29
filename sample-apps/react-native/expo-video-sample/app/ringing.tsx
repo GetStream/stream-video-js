@@ -1,9 +1,9 @@
 import {
-  useCalls,
-  StreamCall,
-  RingingCallContent,
-  CallingState,
   Call,
+  CallingState,
+  RingingCallContent,
+  StreamCall,
+  useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
@@ -42,7 +42,6 @@ const CallLeaveOnUnmount = ({ call }: { call: Call }) => {
         call.leave();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;
 };

@@ -3,7 +3,6 @@ import {
   addConnectionEventListeners,
   isCloseEvent,
   KnownCodes,
-  randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
@@ -44,19 +43,18 @@ export class StableWSConnection {
   isConnecting: boolean;
   isDisconnected: boolean;
   isHealthy: boolean;
-  isResolved?: boolean;
+  isConnectionOpenResolved?: boolean;
   lastEvent: Date | null;
   connectionCheckTimeout: number;
   connectionCheckTimeoutRef?: NodeJS.Timeout;
-  rejectPromise?: (
+  rejectConnectionOpen?: (
     reason?: Error & {
       code?: string | number;
       isWSFailure?: boolean;
       StatusCode?: string | number;
     },
   ) => void;
-  requestID: string | undefined;
-  resolvePromise?: (value: ConnectedEvent) => void;
+  resolveConnectionOpen?: (value: ConnectedEvent) => void;
   totalFailures: number;
   ws?: WebSocket;
   wsID: number;
@@ -74,7 +72,7 @@ export class StableWSConnection {
     /** To avoid reconnect if client is disconnected */
     this.isDisconnected = false;
     /** Boolean that indicates if the connection promise is resolved */
-    this.isResolved = false;
+    this.isConnectionOpenResolved = false;
     /** Boolean that indicates if we have a working connection to the server */
     this.isHealthy = false;
     /** Incremented when a new WS connection is made */
@@ -89,9 +87,7 @@ export class StableWSConnection {
   }
 
   _log = (msg: string, extra: UR = {}, level: LogLevel = 'info') => {
-    this.client.logger(level, 'connection:' + msg, {
-      ...extra,
-    });
+    this.client.logger(level, `connection:${msg}`, extra);
   };
 
   setClient = (client: StreamClient) => {
@@ -124,7 +120,7 @@ export class StableWSConnection {
       this.consecutiveFailures += 1;
 
       if (
-        // @ts-ignore
+        // @ts-expect-error type issue
         error.code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
@@ -133,18 +129,18 @@ export class StableWSConnection {
         );
         this._reconnect({ refreshToken: true });
       } else {
-        // @ts-ignore
+        // @ts-expect-error type issue
         if (!error.isWSFailure) {
           // API rejected the connection and we should not retry
           throw new Error(
             JSON.stringify({
-              // @ts-ignore
+              // @ts-expect-error type issue
               code: error.code,
-              // @ts-ignore
+              // @ts-expect-error type issue
               StatusCode: error.StatusCode,
-              // @ts-ignore
+              // @ts-expect-error type issue
               message: error.message,
-              // @ts-ignore
+              // @ts-expect-error type issue
               isWSFailure: error.isWSFailure,
             }),
           );
@@ -285,15 +281,14 @@ export class StableWSConnection {
    * @return {ConnectAPIResponse<ConnectedEvent>} Promise that completes once the first health check message is received
    */
   async _connect() {
-    if (this.isConnecting) return; // simply ignore _connect if it's currently trying to connect
+    if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
-    this.requestID = randomId();
     let isTokenReady = false;
     try {
       this._log(`_connect() - waiting for token`);
       await this.client.tokenManager.tokenReady();
       isTokenReady = true;
-    } catch (e) {
+    } catch {
       // token provider has failed before, so try again
     }
 
@@ -310,10 +305,7 @@ export class StableWSConnection {
       }
       this._setupConnectionPromise();
       const wsURL = this._buildUrl();
-      this._log(`_connect() - Connecting to ${wsURL}`, {
-        wsURL,
-        requestID: this.requestID,
-      });
+      this._log(`_connect() - Connecting to ${wsURL}`);
       const WS = this.client.options.WebSocketImpl ?? WebSocket;
       this.ws = new WS(wsURL);
       this.ws.onopen = this.onopen.bind(this, this.wsID);
@@ -331,7 +323,7 @@ export class StableWSConnection {
     } catch (err) {
       this.client._setupConnectionIdPromise();
       this.isConnecting = false;
-      // @ts-ignore
+      // @ts-expect-error type issue
       this._log(`_connect() - Error - `, err);
       this.client.rejectConnectionId?.(err);
       throw err;
@@ -459,7 +451,7 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage: WSAuthMessage = {
+    const authMessage = JSON.stringify({
       token,
       user_details: {
         id: user.id,
@@ -467,9 +459,11 @@ export class StableWSConnection {
         image: user.image,
         custom: user.custom,
       },
-    };
+    } as WSAuthMessage);
 
-    this.ws?.send(JSON.stringify(authMessage));
+    this._log(`onopen() - Sending auth message ${authMessage}`, {}, 'trace');
+
+    this.ws?.send(authMessage);
     this._log('onopen() - onopen callback', { wsID });
   };
 
@@ -485,10 +479,14 @@ export class StableWSConnection {
     // we wait till the first message before we consider the connection open.
     // the reason for this is that auth errors and similar errors trigger a ws.onopen and immediately
     // after that a ws.onclose.
-    if (!this.isResolved && data && data.type === 'connection.error') {
-      this.isResolved = true;
+    if (
+      !this.isConnectionOpenResolved &&
+      data &&
+      data.type === 'connection.error'
+    ) {
+      this.isConnectionOpenResolved = true;
       if (data.error) {
-        this.rejectPromise?.(this._errorFromWSEvent(data, false));
+        this.rejectConnectionOpen?.(this._errorFromWSEvent(data, false));
         return;
       }
     }
@@ -505,7 +503,7 @@ export class StableWSConnection {
     }
 
     if (data && data.type === 'connection.ok') {
-      this.resolvePromise?.(data);
+      this.resolveConnectionOpen?.(data);
       this._setHealth(true);
     }
 
@@ -545,16 +543,16 @@ export class StableWSConnection {
         `WS connection reject with error ${event.reason}`,
       );
 
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.reason = event.reason;
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.code = event.code;
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.wasClean = event.wasClean;
-      // @ts-expect-error
+      // @ts-expect-error type issue
       error.target = event.target;
 
-      this.rejectPromise?.(error);
+      this.rejectConnectionOpen?.(error);
       this._log(`onclose() - WS connection reject with error ${event.reason}`, {
         event,
       });
@@ -564,7 +562,7 @@ export class StableWSConnection {
       this._setHealth(false);
       this.isConnecting = false;
 
-      this.rejectPromise?.(this._errorFromWSEvent(event));
+      this.rejectConnectionOpen?.(this._errorFromWSEvent(event));
 
       this._log(`onclose() - WS connection closed. Calling reconnect ...`, {
         event,
@@ -582,7 +580,7 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-    this.rejectPromise?.(new Error(`WebSocket error: ${event}`));
+    this.rejectConnectionOpen?.(new Error(`WebSocket error: ${event}`));
     this._log(`onerror() - WS connection resulted into error`, { event });
 
     this._reconnect();
@@ -667,7 +665,7 @@ export class StableWSConnection {
 
     try {
       this?.ws?.close();
-    } catch (e) {
+    } catch {
       // we don't care
     }
   }
@@ -676,12 +674,12 @@ export class StableWSConnection {
    * _setupPromise - sets up the this.connectOpen promise
    */
   _setupConnectionPromise = () => {
-    this.isResolved = false;
+    this.isConnectionOpenResolved = false;
     /** a promise that is resolved once ws.open is called */
     this.connectionOpenSafe = makeSafePromise(
       new Promise<ConnectedEvent>((resolve, reject) => {
-        this.resolvePromise = resolve;
-        this.rejectPromise = reject;
+        this.resolveConnectionOpen = resolve;
+        this.rejectConnectionOpen = reject;
       }),
     );
   };
@@ -706,7 +704,7 @@ export class StableWSConnection {
       // try to send on the connection
       try {
         this.ws?.send(JSON.stringify(data));
-      } catch (e) {
+      } catch {
         // error will already be detected elsewhere
       }
     }, this.pingInterval);

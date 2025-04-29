@@ -176,6 +176,6 @@ const useStyles = () => {
           flex: 1,
         },
       }),
-    [theme]
+    [theme],
   );
 };

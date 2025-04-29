@@ -29,7 +29,7 @@ export const useProcessPushNonRingingCallEffect = () => {
       .subscribe(async ({ cid, type }) => {
         getLogger(['useProcessPushNonRingingCallEffect'])(
           'debug',
-          `processNonIncomingCallFromPush with callCId: ${cid} and type: ${type}`
+          `processNonIncomingCallFromPush with callCId: ${cid} and type: ${type}`,
         );
         await processNonIncomingCallFromPush(client, cid, type);
         pushNonRingingCallData$.next(undefined); // remove the current data to avoid processing again

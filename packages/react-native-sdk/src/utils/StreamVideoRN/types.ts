@@ -39,8 +39,8 @@ export type StreamVideoConfig = {
        */
       smallIcon?: string;
       /**
-       * The name for the alias of push provider used for Android
-       * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
+       * The name for the alias of push provider used for Android.
+       * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK.
        * @example "production-fcm-video" or "staging-fcm-video" based on the environment
        */
       pushProviderName?: string;
@@ -101,7 +101,7 @@ export type StreamVideoConfig = {
       callNotificationTextGetters?: {
         getTitle: (
           type: NonRingingPushEvent,
-          createdUserName: string
+          createdUserName: string,
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
@@ -134,7 +134,7 @@ export type StreamVideoConfig = {
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
       call_cid: string,
-      type: NonRingingPushEvent
+      type: NonRingingPushEvent,
     ) => void;
   };
   foregroundService: {
