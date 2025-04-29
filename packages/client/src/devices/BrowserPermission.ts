@@ -139,6 +139,10 @@ export class BrowserPermission {
     );
   }
 
+  asStateObservable() {
+    return this.getStateObservable();
+  }
+
   getIsPromptingObservable() {
     return this.getStateObservable().pipe(
       map((state) => state === 'prompting'),
