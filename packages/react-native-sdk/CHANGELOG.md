@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.4...@stream-io/video-react-native-sdk-1.11.5) (2025-04-29)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.1`
+- `@stream-io/video-react-bindings` updated to version `1.5.17`
+
+### Bug Fixes
+
+- add missing bg task scheduler key for expo ([2f901cb](https://github.com/GetStream/stream-video-js/commit/2f901cbd07f2d808f67bf812b21ab1e17990fdac))
+- call cancellation not reliably seen on killed state RN-198 ([#1773](https://github.com/GetStream/stream-video-js/issues/1773)) ([735480e](https://github.com/GetStream/stream-video-js/commit/735480ec13e29784c97f81bf1c4d9c5f9123b85d))
+
 ## [1.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.3...@stream-io/video-react-native-sdk-1.11.4) (2025-04-24)
 
 ### Dependency Updates
