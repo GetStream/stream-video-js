@@ -329,6 +329,8 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (>= 6.1.7.5, != 7.1.0)
+  benchmark
+  bigdecimal
   cocoapods (>= 1.13, != 1.15.1, != 1.15.0)
   concurrent-ruby (< 1.3.4)
   fastlane
@@ -336,6 +338,8 @@ DEPENDENCIES
   fastlane-plugin-increment_version_name
   fastlane-plugin-load_json
   fastlane-plugin-stream_actions (= 0.3.16)
+  logger
+  mutex_m
   rubocop (= 1.60.2)
   rubocop-performance
   rubocop-require_tools

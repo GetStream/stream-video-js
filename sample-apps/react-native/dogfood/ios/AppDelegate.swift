@@ -8,34 +8,37 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+
 import UserNotifications
 import RNCPushNotificationIOS
-import React
-
 import RNCallKeep
 import PushKit
 import WebRTC
 import RNVoipPushNotification
 
 @main
-class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
+  var window: UIWindow?
+
+  var reactNativeDelegate: ReactNativeDelegate?
+  var reactNativeFactory: RCTReactNativeFactory?
   
-  override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+  func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
     return RCTLinkingManager.application(application, open: url, options: options)
   }
   
   // Required for the register event.
-  override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
   }
   
   // Required for the notification event. You must call the completion handler after handling the remote notification.
-  override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+  func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
     RNCPushNotificationIOS.didReceiveRemoteNotification(userInfo, fetchCompletionHandler: completionHandler)
   }
   
   // Required for the registrationError event.
-  override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+  func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
     RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
   }
   
@@ -44,7 +47,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     RNCPushNotificationIOS.didReceive(response)
   }
   
-  override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+  func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
     return RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
   }
   
@@ -108,8 +111,11 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
   func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {
     RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance()) // Use sharedInstance()
   }
-  
-  override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
     let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
     let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
     RNCallKeep.setup([
@@ -120,9 +126,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     
     RNVoipPushNotificationManager.voipRegistration()
     
-    self.moduleName = "StreamReactNativeVideoSDKSample"
-    self.dependencyProvider = RCTAppDependencyProvider()
-    
     let center = UNUserNotificationCenter.current()
     center.delegate = self
     
@@ -130,14 +133,31 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     options.enableMultitaskingCameraAccess = true
     //  uncomment below to see native webrtc logs
     //  options.loggingSeverity = .info // Use enum value directly
-    
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+
+    let delegate = ReactNativeDelegate()
+    let factory = RCTReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+
+    reactNativeDelegate = delegate
+    reactNativeFactory = factory
+
+    window = UIWindow(frame: UIScreen.main.bounds)
+
+    factory.startReactNative(
+      withModuleName: "StreamReactNativeVideoSDKSample",
+      in: window,
+      launchOptions: launchOptions
+    )
+
+    return true
   }
-  
+}
+
+class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()
   }
-  
+
   override func bundleURL() -> URL? {
 #if DEBUG
     RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
