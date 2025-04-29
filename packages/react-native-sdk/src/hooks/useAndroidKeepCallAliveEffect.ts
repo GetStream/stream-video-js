@@ -104,10 +104,6 @@ let isSetForegroundServiceRan = false;
  * Additionally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
-  if (!isSetForegroundServiceRan) {
-    isSetForegroundServiceRan = true;
-    setForegroundService();
-  }
   const foregroundServiceStartedRef = useRef(false);
 
   const call = useCall();
@@ -133,6 +129,10 @@ export const useAndroidKeepCallAliveEffect = () => {
       const run = async () => {
         if (foregroundServiceStartedRef.current) {
           return;
+        }
+        if (!isSetForegroundServiceRan) {
+          isSetForegroundServiceRan = true;
+          setForegroundService();
         }
         const notifee = notifeeLib.default;
         const displayedNotifications =
