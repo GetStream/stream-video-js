@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 type FileName =
+  | 'AppDelegate.swift'
   | 'AppDelegate.mm'
   | 'MainActivity.java'
   | 'MainApplication.java'

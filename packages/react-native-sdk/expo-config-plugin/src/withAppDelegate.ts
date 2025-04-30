@@ -3,6 +3,9 @@ import {
   withAppDelegate as withAppDelegateUtil,
 } from '@expo/config-plugins';
 import {
+  addSwiftImports,
+  insertContentsInsideSwiftFunctionBlock,
+  findSwiftFunctionCodeBlock,
   addObjcImports,
   findObjcFunctionCodeBlock,
   insertContentsInsideObjcFunctionBlock,
@@ -49,42 +52,78 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
             ],
           );
 
-          config.modResults.contents = addDidFinishLaunchingWithOptionsRinging(
-            config.modResults.contents,
-            props.ringingPushNotifications,
-          );
+          config.modResults.contents =
+            addDidFinishLaunchingWithOptionsRingingObjc(
+              config.modResults.contents,
+              props.ringingPushNotifications,
+            );
 
-          config.modResults.contents = addDidUpdatePushCredentials(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents = addDidReceiveIncomingPushCallback(
+          config.modResults.contents = addDidUpdatePushCredentialsObjc(
             config.modResults.contents,
           );
 
-          config.modResults.contents = addAudioSessionMethods(
+          config.modResults.contents = addDidReceiveIncomingPushCallbackObjc(
+            config.modResults.contents,
+          );
+
+          config.modResults.contents = addAudioSessionMethodsObjc(
             config.modResults.contents,
           );
         }
-        config.modResults.contents = addDidFinishLaunchingWithOptions(
+        config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
         );
         return config;
       } catch (error: any) {
         throw new Error(
-          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed ${error}`,
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate(objc) is malformed ${error}`,
         );
       }
     } else {
-      throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the language is not supported',
-      );
+      try {
+        withIosModulesSwiftBridgingHeader(config, (config) => {});
+        config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
+          config.modResults.contents,
+          props.iOSEnableMultitaskingCameraAccess,
+        );
+        return config;
+      } catch (error: any) {
+        throw new Error(
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate(swift) is malformed ${error}`,
+        );
+      }
     }
   });
 };
 
-function addDidFinishLaunchingWithOptions(
+function addDidFinishLaunchingWithOptionsSwift(
+  contents: string,
+  iOSEnableMultitaskingCameraAccess: boolean | undefined,
+) {
+  if (iOSEnableMultitaskingCameraAccess) {
+    contents = addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
+
+    if (!contents.match(/^import\s+Expo\s*$/m)) {
+      contents = addSwiftImports(contents, ['Expo']);
+    }
+
+    const setupMethod = `let options = WebRTCModuleOptions.sharedInstance()
+    options.enableMultitaskingCameraAccess = true`;
+
+    if (!contents.includes('options.enableMultitaskingCameraAccess = true')) {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        DID_FINISH_LAUNCHING_WITH_OPTIONS,
+        setupMethod,
+        { position: 'tailBeforeLastReturn' },
+      );
+    }
+  }
+  return contents;
+}
+
+function addDidFinishLaunchingWithOptionsObjc(
   contents: string,
   iOSEnableMultitaskingCameraAccess: boolean | undefined,
 ) {
@@ -106,7 +145,7 @@ function addDidFinishLaunchingWithOptions(
   return contents;
 }
 
-function addDidFinishLaunchingWithOptionsRinging(
+function addDidFinishLaunchingWithOptionsRingingObjc(
   contents: string,
   ringingPushNotifications: RingingPushNotifications,
 ) {
@@ -144,7 +183,7 @@ function addDidFinishLaunchingWithOptionsRinging(
   return contents;
 }
 
-function addDidUpdatePushCredentials(contents: string) {
+function addDidUpdatePushCredentialsObjc(contents: string) {
   const updatedPushCredentialsMethod =
     '[RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];';
   if (!contents.includes(updatedPushCredentialsMethod)) {
@@ -170,7 +209,7 @@ function addDidUpdatePushCredentials(contents: string) {
   return contents;
 }
 
-function addAudioSessionMethods(contents: string) {
+function addAudioSessionMethodsObjc(contents: string) {
   const audioSessionDidActivateMethod =
     '[[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];';
   if (!contents.includes(audioSessionDidActivateMethod)) {
@@ -219,7 +258,7 @@ function addAudioSessionMethods(contents: string) {
   return contents;
 }
 
-function addDidReceiveIncomingPushCallback(contents: string) {
+function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   const onIncomingPush = `
   // process the payload and store it in the native module's cache
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
@@ -276,5 +315,34 @@ function addDidReceiveIncomingPushCallback(contents: string) {
   }
   return contents;
 }
+
+const withIosModulesSwiftBridgingHeader: ConfigPlugin = (config) => {
+  return withXCParseXcodeProject(config, async (config) => {
+    const bridgingHeaderFileName =
+      getDesignatedSwiftBridgingHeaderFileReference(config.modResults);
+    if (!bridgingHeaderFileName) {
+      return config;
+    }
+
+    const [bridgingHeaderFilePath] = globSync(
+      `ios/${bridgingHeaderFileName.replace(/['"]/g, '')}`,
+      {
+        absolute: true,
+        cwd: config.modRequest.projectRoot,
+      },
+    );
+    if (!bridgingHeaderFilePath) {
+      return config;
+    }
+    let contents = await fs.promises.readFile(bridgingHeaderFilePath, 'utf8');
+
+    if (!contents.match(/^#import\s+<Expo\/Expo\.h>\s*$/m)) {
+      contents = addObjcImports(contents, ['<Expo/Expo.h>']);
+    }
+
+    await fs.promises.writeFile(bridgingHeaderFilePath, contents);
+    return config;
+  });
+};
 
 export default withAppDelegate;
