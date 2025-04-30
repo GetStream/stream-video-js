@@ -58,12 +58,16 @@ export const watchCallRejected = (call: Call) => {
         .every((m) => rejectedBy[m.user_id]);
       if (everyoneElseRejected) {
         call.logger('info', 'everyone rejected, leaving the call');
-        await call.leave({ reason: 'ring: everyone rejected' });
+        await call.leave({
+          reject: true,
+          reason: 'cancel',
+          message: 'ring: everyone rejected',
+        });
       }
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
         call.logger('info', 'call creator rejected, leaving call');
-        await call.leave({ reason: 'ring: creator rejected' });
+        await call.leave({ message: 'ring: creator rejected' });
       }
     }
   };
@@ -80,7 +84,7 @@ export const watchCallEnded = (call: Call) => {
       callingState !== CallingState.LEFT
     ) {
       call
-        .leave({ reason: 'call.ended event received', reject: false })
+        .leave({ message: 'call.ended event received', reject: false })
         .catch((err) => {
           call.logger('error', 'Failed to leave call after call.ended ', err);
         });
@@ -100,7 +104,7 @@ export const watchSfuCallEnded = (call: Call) => {
       // update the call state to reflect the call has ended.
       call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
-      await call.leave({ reason: `callEnded received: ${reason}` });
+      await call.leave({ message: `callEnded received: ${reason}` });
     } catch (err) {
       call.logger(
         'error',
