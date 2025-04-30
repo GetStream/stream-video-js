@@ -10,6 +10,7 @@ import {
   createWebSocketSignalChannel,
   Dispatcher,
   IceTrickleBuffer,
+  SfuEventKinds,
 } from './rtc';
 import {
   JoinRequest,
@@ -231,12 +232,22 @@ export class StreamSfuClient {
   }
 
   private createWebSocket = () => {
+    const eventsToTrace: Partial<Record<SfuEventKinds, boolean>> = {
+      callEnded: true,
+      changePublishQuality: true,
+      error: true,
+      goAway: true,
+    };
     this.signalWs = createWebSocketSignalChannel({
       logTag: this.logTag,
       endpoint: `${this.credentials.server.ws_endpoint}?tag=${this.logTag}`,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
+        const eventKind = message.eventPayload.oneofKind;
+        if (eventsToTrace[eventKind]) {
+          this.tracer?.trace(eventKind, message);
+        }
         this.dispatcher.dispatch(message, this.logTag);
       },
     });

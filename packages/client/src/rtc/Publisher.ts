@@ -52,7 +52,6 @@ export class Publisher extends BasePeerConnection {
     });
 
     this.on('changePublishQuality', async (event) => {
-      this.tracer?.trace('changePublishQuality', event);
       for (const videoSender of event.videoSenders) {
         await this.changePublishQuality(videoSender);
       }
