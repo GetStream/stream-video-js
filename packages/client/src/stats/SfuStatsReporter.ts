@@ -169,7 +169,7 @@ export class SfuStatsReporter {
       ...(sfuTrace?.snapshot ?? []),
       ...(publisherTrace?.snapshot ?? []),
       ...(subscriberTrace?.snapshot ?? []),
-    ].sort(([, , , a], [, , , b]) => a - b);
+    ];
 
     try {
       await this.sfuClient.sendStats({
