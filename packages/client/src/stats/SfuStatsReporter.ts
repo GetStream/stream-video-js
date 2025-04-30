@@ -211,15 +211,6 @@ export class SfuStatsReporter {
         this.logger('warn', 'Failed to report stats', err);
       });
     }, this.options.reporting_interval_ms);
-
-    // run one calibration report - the SFU will use the performance stats
-    // to adjust the quality thresholds as early as possible
-    clearTimeout(this.timeoutId);
-    this.timeoutId = setTimeout(() => {
-      this.run().catch((err) => {
-        this.logger('warn', 'Failed to report stats', err);
-      });
-    }, 3000);
   };
 
   stop = () => {
@@ -233,5 +224,14 @@ export class SfuStatsReporter {
     this.intervalId = undefined;
     clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
+  };
+
+  scheduleOne = (timeout: number) => {
+    clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
+      this.run().catch((err) => {
+        this.logger('warn', 'Failed to report stats', err);
+      });
+    }, timeout);
   };
 }

@@ -1,3 +1,5 @@
+import type { PerformanceStats } from '../../gen/video/sfu/models/models';
+
 export type RTCStatsDataType =
   | RTCConfiguration
   | RTCIceCandidate
@@ -28,4 +30,19 @@ export type TraceRecord = [
 export type TraceSlice = {
   snapshot: TraceRecord[];
   rollback: () => void;
+};
+
+export type ComputedStats = {
+  /**
+   * Current stats from the RTCPeerConnection.
+   */
+  stats: RTCStatsReport;
+  /**
+   * Delta between the current stats and the previous stats.
+   */
+  delta: Record<any, any>;
+  /**
+   * The current iteration of the stats.
+   */
+  performanceStats: PerformanceStats[];
 };

@@ -1704,6 +1704,12 @@ export class Call {
       }
     }
 
+    if (track.kind === 'video') {
+      // schedules calibration report - the SFU will use the performance stats
+      // to adjust the quality thresholds as early as possible
+      this.sfuStatsReporter?.scheduleOne(3000);
+    }
+
     await this.updateLocalStreamState(mediaStream, ...trackTypes);
   };
 

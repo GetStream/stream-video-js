@@ -5,6 +5,7 @@ import {
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import type { RTCCodecStats, RTCMediaSourceStats } from '../types';
+import type { ComputedStats } from './types';
 
 /**
  * StatsTracer is a class that collects and processes WebRTC stats.
@@ -46,7 +47,7 @@ export class StatsTracer {
    *
    * @internal
    */
-  get = async () => {
+  get = async (): Promise<ComputedStats> => {
     const stats = await this.pc.getStats();
     const currentStats = toObject(stats);
 
