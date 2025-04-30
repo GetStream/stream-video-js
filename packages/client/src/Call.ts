@@ -374,7 +374,7 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
-          await this.leave({ reason: 'user blocked' }).catch((err) => {
+          await this.leave({ message: 'user blocked' }).catch((err) => {
             this.logger('error', 'Error leaving call after being blocked', err);
           });
         }
@@ -555,10 +555,7 @@ export class Call {
   /**
    * Leave the call and stop the media streams that were published by the call.
    */
-  leave = async ({
-    reject,
-    reason = 'user is leaving the call',
-  }: CallLeaveOptions = {}) => {
+  leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
       if (callingState === CallingState.LEFT) {
@@ -578,7 +575,7 @@ export class Call {
 
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
-          await this.reject('decline');
+          await this.reject(reason ?? 'decline');
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
@@ -601,7 +598,9 @@ export class Call {
       this.publisher?.dispose();
       this.publisher = undefined;
 
-      await this.sfuClient?.leaveAndClose(reason);
+      await this.sfuClient?.leaveAndClose(
+        message ?? reason ?? 'user is leaving the call',
+      );
       this.sfuClient = undefined;
       this.dynascaleManager.setSfuClient(undefined);
 
@@ -1534,7 +1533,7 @@ export class Call {
       const { reconnectStrategy: strategy, error } = e;
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
-        this.leave({ reason: 'SFU instructed to disconnect' }).catch((err) => {
+        this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {
           this.logger('warn', `Can't leave call after disconnect request`, err);
         });
       } else {
@@ -2339,12 +2338,15 @@ export class Call {
 
     // 0 means no auto-drop
     if (timeoutInMs <= 0) return;
-
     this.dropTimeout = setTimeout(() => {
       // the call might have stopped ringing by this point,
       // e.g. it was already accepted and joined
       if (this.state.callingState !== CallingState.RINGING) return;
-      this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
+      this.leave({
+        reject: true,
+        reason: 'timeout',
+        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
+      }).catch((err) => {
         this.logger('error', 'Failed to drop call', err);
       });
     }, timeoutInMs);

@@ -6931,9 +6931,9 @@ __metadata:
     expo-symbols: "npm:~0.2.2"
     expo-system-ui: "npm:~4.0.9"
     expo-web-browser: "npm:~14.0.2"
-    react: "npm:^18.3.1"
+    react: "npm:18.3.1"
     react-dom: "npm:^18.3.1"
-    react-native: "npm:^0.76.9"
+    react-native: "npm:0.76.9"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.25.0"
     react-native-incall-manager: "npm:^4.2.0"
@@ -19952,7 +19952,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:^0.76.9":
+"react-native@npm:0.76.9, react-native@npm:^0.76.9":
   version: 0.76.9
   resolution: "react-native@npm:0.76.9"
   dependencies:
@@ -20146,7 +20146,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.3.1":
+"react@npm:18.3.1, react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:

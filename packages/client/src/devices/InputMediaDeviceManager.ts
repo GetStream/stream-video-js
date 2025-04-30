@@ -8,7 +8,7 @@ import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { deviceIds$ } from './devices';
+import { deviceIds$, disposeOfMediaStream } from './devices';
 import {
   settled,
   withCancellation,
@@ -307,134 +307,146 @@ export abstract class InputMediaDeviceManager<
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     let rootStream: Promise<MediaStream> | undefined;
-    if (
-      this.state.mediaStream &&
-      this.getTracks().every((t) => t.readyState === 'live')
-    ) {
-      stream = this.state.mediaStream;
-      this.enableTracks();
-    } else {
-      const defaultConstraints = this.state.defaultConstraints;
-      const constraints: MediaTrackConstraints = {
-        ...defaultConstraints,
-        deviceId: this.state.selectedDevice
-          ? { exact: this.state.selectedDevice }
-          : undefined,
-      };
 
-      /**
-       * Chains two media streams together.
-       *
-       * In our case, filters MediaStreams are derived from their parent MediaStream.
-       * However, once a child filter's track is stopped,
-       * the tracks of the parent MediaStream aren't automatically stopped.
-       * This leads to a situation where the camera indicator light is still on
-       * even though the user stopped publishing video.
-       *
-       * This function works around this issue by stopping the parent MediaStream's tracks
-       * as well once the child filter's tracks are stopped.
-       *
-       * It works by patching the stop() method of the child filter's tracks to also stop
-       * the parent MediaStream's tracks of the same type. Here we assume that
-       * the parent MediaStream has only one track of each type.
-       *
-       * @param parentStream the parent MediaStream. Omit for the root stream.
-       */
-      const chainWith =
-        (parentStream?: Promise<MediaStream>) =>
-        async (filterStream: MediaStream): Promise<MediaStream> => {
-          if (!parentStream) return filterStream;
-          // TODO OL: take care of track.enabled property as well
-          const parent = await parentStream;
-          filterStream.getTracks().forEach((track) => {
-            const originalStop = track.stop;
-            track.stop = function stop() {
-              originalStop.call(track);
-              parent.getTracks().forEach((parentTrack) => {
-                if (parentTrack.kind === track.kind) {
-                  parentTrack.stop();
-                }
-              });
-            };
-          });
-
-          parent.getTracks().forEach((parentTrack) => {
-            // When the parent stream abruptly ends, we propagate the event
-            // to the filter stream.
-            // This usually happens when the camera/microphone permissions
-            // are revoked or when the device is disconnected.
-            const handleParentTrackEnded = () => {
-              filterStream.getTracks().forEach((track) => {
-                if (parentTrack.kind !== track.kind) return;
-                track.stop();
-                track.dispatchEvent(new Event('ended')); // propagate the event
-              });
-            };
-            parentTrack.addEventListener('ended', handleParentTrackEnded);
-            this.subscriptions.push(() => {
-              parentTrack.removeEventListener('ended', handleParentTrackEnded);
-            });
-          });
-
-          return filterStream;
+    try {
+      if (
+        this.state.mediaStream &&
+        this.getTracks().every((t) => t.readyState === 'live')
+      ) {
+        stream = this.state.mediaStream;
+        this.enableTracks();
+      } else {
+        const defaultConstraints = this.state.defaultConstraints;
+        const constraints: MediaTrackConstraints = {
+          ...defaultConstraints,
+          deviceId: this.state.selectedDevice
+            ? { exact: this.state.selectedDevice }
+            : undefined,
         };
 
-      // the rootStream represents the stream coming from the actual device
-      // e.g. camera or microphone stream
-      rootStream = this.getStream(constraints as C);
-      // we publish the last MediaStream of the chain
-      stream = await this.filters.reduce(
-        (parent, entry) =>
-          parent
-            .then((inputStream) => {
-              const { stop, output } = entry.start(inputStream);
-              entry.stop = stop;
-              return output;
-            })
-            .then(chainWith(parent), (error) => {
-              this.logger(
-                'warn',
-                'Filter failed to start and will be ignored',
-                error,
-              );
-              return parent;
-            }),
-        rootStream,
-      );
-    }
-    if (this.call.state.callingState === CallingState.JOINED) {
-      await this.publishStream(stream);
-    }
-    if (this.state.mediaStream !== stream) {
-      this.state.setMediaStream(stream, await rootStream);
-      const handleTrackEnded = async () => {
-        await this.statusChangeSettled();
-        if (this.enabled) {
-          this.isTrackStoppedDueToTrackEnd = true;
-          setTimeout(() => {
-            this.isTrackStoppedDueToTrackEnd = false;
-          }, 2000);
-          await this.disable();
-        }
-      };
-      const createTrackMuteHandler = (muted: boolean) => () => {
-        if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
-        this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
-          this.logger('warn', 'Error while notifying track mute state', err);
+        /**
+         * Chains two media streams together.
+         *
+         * In our case, filters MediaStreams are derived from their parent MediaStream.
+         * However, once a child filter's track is stopped,
+         * the tracks of the parent MediaStream aren't automatically stopped.
+         * This leads to a situation where the camera indicator light is still on
+         * even though the user stopped publishing video.
+         *
+         * This function works around this issue by stopping the parent MediaStream's tracks
+         * as well once the child filter's tracks are stopped.
+         *
+         * It works by patching the stop() method of the child filter's tracks to also stop
+         * the parent MediaStream's tracks of the same type. Here we assume that
+         * the parent MediaStream has only one track of each type.
+         *
+         * @param parentStream the parent MediaStream. Omit for the root stream.
+         */
+        const chainWith =
+          (parentStream?: Promise<MediaStream>) =>
+          async (filterStream: MediaStream): Promise<MediaStream> => {
+            if (!parentStream) return filterStream;
+            // TODO OL: take care of track.enabled property as well
+            const parent = await parentStream;
+            filterStream.getTracks().forEach((track) => {
+              const originalStop = track.stop;
+              track.stop = function stop() {
+                originalStop.call(track);
+                parent.getTracks().forEach((parentTrack) => {
+                  if (parentTrack.kind === track.kind) {
+                    parentTrack.stop();
+                  }
+                });
+              };
+            });
+
+            parent.getTracks().forEach((parentTrack) => {
+              // When the parent stream abruptly ends, we propagate the event
+              // to the filter stream.
+              // This usually happens when the camera/microphone permissions
+              // are revoked or when the device is disconnected.
+              const handleParentTrackEnded = () => {
+                filterStream.getTracks().forEach((track) => {
+                  if (parentTrack.kind !== track.kind) return;
+                  track.stop();
+                  track.dispatchEvent(new Event('ended')); // propagate the event
+                });
+              };
+              parentTrack.addEventListener('ended', handleParentTrackEnded);
+              this.subscriptions.push(() => {
+                parentTrack.removeEventListener(
+                  'ended',
+                  handleParentTrackEnded,
+                );
+              });
+            });
+
+            return filterStream;
+          };
+
+        // the rootStream represents the stream coming from the actual device
+        // e.g. camera or microphone stream
+        rootStream = this.getStream(constraints as C);
+        // we publish the last MediaStream of the chain
+        stream = await this.filters.reduce(
+          (parent, entry) =>
+            parent
+              .then((inputStream) => {
+                const { stop, output } = entry.start(inputStream);
+                entry.stop = stop;
+                return output;
+              })
+              .then(chainWith(parent), (error) => {
+                this.logger(
+                  'warn',
+                  'Filter failed to start and will be ignored',
+                  error,
+                );
+                return parent;
+              }),
+          rootStream,
+        );
+      }
+      if (this.call.state.callingState === CallingState.JOINED) {
+        await this.publishStream(stream);
+      }
+      if (this.state.mediaStream !== stream) {
+        this.state.setMediaStream(stream, await rootStream);
+        const handleTrackEnded = async () => {
+          await this.statusChangeSettled();
+          if (this.enabled) {
+            this.isTrackStoppedDueToTrackEnd = true;
+            setTimeout(() => {
+              this.isTrackStoppedDueToTrackEnd = false;
+            }, 2000);
+            await this.disable();
+          }
+        };
+        const createTrackMuteHandler = (muted: boolean) => () => {
+          if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
+          this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
+            this.logger('warn', 'Error while notifying track mute state', err);
+          });
+        };
+        stream.getTracks().forEach((track) => {
+          const muteHandler = createTrackMuteHandler(true);
+          const unmuteHandler = createTrackMuteHandler(false);
+          track.addEventListener('mute', muteHandler);
+          track.addEventListener('unmute', unmuteHandler);
+          track.addEventListener('ended', handleTrackEnded);
+          this.subscriptions.push(() => {
+            track.removeEventListener('mute', muteHandler);
+            track.removeEventListener('unmute', unmuteHandler);
+            track.removeEventListener('ended', handleTrackEnded);
+          });
         });
-      };
-      stream.getTracks().forEach((track) => {
-        const muteHandler = createTrackMuteHandler(true);
-        const unmuteHandler = createTrackMuteHandler(false);
-        track.addEventListener('mute', muteHandler);
-        track.addEventListener('unmute', unmuteHandler);
-        track.addEventListener('ended', handleTrackEnded);
-        this.subscriptions.push(() => {
-          track.removeEventListener('mute', muteHandler);
-          track.removeEventListener('unmute', unmuteHandler);
-          track.removeEventListener('ended', handleTrackEnded);
-        });
-      });
+      }
+    } catch (err) {
+      if (rootStream) {
+        disposeOfMediaStream(await rootStream);
+      }
+
+      throw err;
     }
   }
 
