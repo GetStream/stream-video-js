@@ -17,7 +17,7 @@
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-firebase/app": "^21.13.0",
     "@react-native-firebase/messaging": "^21.13.0",
-    "@stream-io/react-native-webrtc": "^125.1.0",
+    "@stream-io/react-native-webrtc": "^125.2.0",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "expo": "~52.0.44",
     "expo-build-properties": "~0.13.2",
