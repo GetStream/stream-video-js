@@ -3475,6 +3475,7 @@ export const FrameRecordingSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
 } as const;
 export type FrameRecordingSettingsRequestQualityEnum =
   (typeof FrameRecordingSettingsRequestQualityEnum)[keyof typeof FrameRecordingSettingsRequestQualityEnum];
@@ -5197,11 +5198,13 @@ export const RTMPBroadcastRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
+  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPBroadcastRequestQualityEnum =
   (typeof RTMPBroadcastRequestQualityEnum)[keyof typeof RTMPBroadcastRequestQualityEnum];
@@ -5248,11 +5251,13 @@ export const RTMPSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
+  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPSettingsRequestQualityEnum =
   (typeof RTMPSettingsRequestQualityEnum)[keyof typeof RTMPSettingsRequestQualityEnum];
@@ -5353,11 +5358,13 @@ export const RecordSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
+  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
