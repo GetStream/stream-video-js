@@ -6642,6 +6642,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/react-native-webrtc@npm:125.2.0-alpha.1":
+  version: 125.2.0-alpha.1
+  resolution: "@stream-io/react-native-webrtc@npm:125.2.0-alpha.1"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+    event-target-shim: "npm:6.0.2"
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 10/f7ae910c397195268f3a66d39e7aa18a0243092ef78ad2cff54e178af4a16f38ef35733964c8fa9abbc78a352ffefb254c678d51a8f042f432f60d612486371c
+  languageName: node
+  linkType: hard
+
 "@stream-io/react-native-webrtc@npm:^125.0.8":
   version: 125.0.8
   resolution: "@stream-io/react-native-webrtc@npm:125.0.8"
@@ -6862,7 +6875,7 @@ __metadata:
     "@react-navigation/native-stack": "npm:^7.1"
     "@rnx-kit/metro-config": "npm:^1.3.17"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.36"
-    "@stream-io/react-native-webrtc": "npm:^125.0.8"
+    "@stream-io/react-native-webrtc": "npm:125.2.0-alpha.1"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^18.3.2"
