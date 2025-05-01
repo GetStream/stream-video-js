@@ -28,14 +28,14 @@ if (
     target[method] = async function tracedMethod(
       constraints: MediaStreamConstraints,
     ) {
-      const tag = `navigator.mediaDevices.${method}.${mark++}.`;
+      const tag = `navigator.mediaDevices.${method}.${mark++}`;
       trace(tag, constraints);
       try {
         const stream = await original.call(target, constraints);
-        trace(`${tag}OnSuccess`, dumpStream(stream));
+        trace(`${tag}.OnSuccess`, dumpStream(stream));
         return stream;
       } catch (err) {
-        trace(`${tag}OnFailure`, (err as Error).name);
+        trace(`${tag}.OnFailure`, (err as Error).name);
         throw err;
       }
     };

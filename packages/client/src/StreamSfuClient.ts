@@ -198,7 +198,9 @@ export class StreamSfuClient {
     this.joinResponseTimeout = joinResponseTimeout;
     this.logTag = logTag;
     this.logger = getLogger(['SfuClient', logTag]);
-    this.tracer = enableTracing ? new Tracer(logTag) : undefined;
+    this.tracer = enableTracing
+      ? new Tracer(`${logTag}-${this.edgeName}`)
+      : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
@@ -472,23 +474,24 @@ export class StreamSfuClient {
       current.reject(new Error('Waiting for "joinResponse" has timed out'));
     }, this.joinResponseTimeout);
 
-    await this.send(
-      SfuRequest.create({
-        requestPayload: {
-          oneofKind: 'joinRequest',
-          joinRequest: JoinRequest.create({
-            ...data,
-            sessionId: this.sessionId,
-            token: this.credentials.token,
-          }),
-        },
-      }),
-    );
+    const joinRequest = SfuRequest.create({
+      requestPayload: {
+        oneofKind: 'joinRequest',
+        joinRequest: JoinRequest.create({
+          ...data,
+          sessionId: this.sessionId,
+          token: this.credentials.token,
+        }),
+      },
+    });
+
+    this.tracer?.trace('joinRequest', joinRequest);
+    await this.send(joinRequest);
 
     return current.promise;
   };
 
-  ping = async () => {
+  private ping = async () => {
     return this.send(
       SfuRequest.create({
         requestPayload: {

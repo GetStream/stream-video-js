@@ -9,22 +9,22 @@ export const traceRTCPeerConnection = (pc: RTCPeerConnection, trace: Trace) => {
     trace('ontrack', `${e.track.kind}:${e.track.id} ${streams}`);
   });
   pc.addEventListener('signalingstatechange', () => {
-    trace('onsignalingstatechange', pc.signalingState);
+    trace('signalingstatechange', pc.signalingState);
   });
   pc.addEventListener('iceconnectionstatechange', () => {
-    trace('oniceconnectionstatechange', pc.iceConnectionState);
+    trace('iceconnectionstatechange', pc.iceConnectionState);
   });
   pc.addEventListener('icegatheringstatechange', () => {
-    trace('onicegatheringstatechange', pc.iceGatheringState);
+    trace('icegatheringstatechange', pc.iceGatheringState);
   });
   pc.addEventListener('connectionstatechange', () => {
-    trace('onconnectionstatechange', pc.connectionState);
+    trace('connectionstatechange', pc.connectionState);
   });
   pc.addEventListener('negotiationneeded', () => {
-    trace('onnegotiationneeded', undefined);
+    trace('negotiationneeded', undefined);
   });
   pc.addEventListener('datachannel', ({ channel }) => {
-    trace('ondatachannel', [channel.id, channel.label]);
+    trace('datachannel', [channel.id, channel.label]);
   });
 
   const origClose = pc.close;

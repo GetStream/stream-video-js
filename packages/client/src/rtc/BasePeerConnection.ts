@@ -5,11 +5,7 @@ import type {
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
-import {
-  ClientDetails,
-  PeerType,
-  TrackType,
-} from '../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -22,7 +18,6 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onUnrecoverableError?: (reason: string) => void;
   logTag: string;
-  clientDetails: ClientDetails;
   enableTracing: boolean;
 };
 
@@ -61,7 +56,6 @@ export abstract class BasePeerConnection {
       dispatcher,
       onUnrecoverableError,
       logTag,
-      clientDetails,
       enableTracing,
     }: BasePeerConnectionOpts,
   ) {
@@ -75,14 +69,6 @@ export abstract class BasePeerConnection {
       logTag,
     ]);
     this.pc = new RTCPeerConnection(connectionConfig);
-    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
-    if (enableTracing) {
-      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
-      this.tracer = new Tracer(tag);
-      this.tracer.trace('clientDetails', clientDetails);
-      this.tracer.trace('create', connectionConfig);
-      traceRTCPeerConnection(this.pc, this.tracer.trace);
-    }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.addEventListener(
@@ -95,6 +81,13 @@ export abstract class BasePeerConnection {
       'connectionstatechange',
       this.onConnectionStateChange,
     );
+    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    if (enableTracing) {
+      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
+      this.tracer = new Tracer(tag);
+      this.tracer.trace('create', connectionConfig);
+      traceRTCPeerConnection(this.pc, this.tracer.trace);
+    }
   }
 
   /**
