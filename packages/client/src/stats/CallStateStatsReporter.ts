@@ -21,6 +21,8 @@ export type StatsReporterOpts = {
   pollingIntervalInMs?: number;
 };
 
+type PeerConnectionKind = 'subscriber' | 'publisher';
+
 export type StatsReporter = {
   /**
    * Will turn on stats reporting for a given sessionId.
@@ -44,7 +46,7 @@ export type StatsReporter = {
    * @param mediaStream the media stream.
    */
   getStatsForStream: (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     tracks: MediaStreamTrack[],
   ) => Promise<StatsReport[]>;
 
@@ -55,7 +57,7 @@ export type StatsReporter = {
    * @param selector the track selector. If not provided, stats for all tracks will be returned.
    */
   getRawStatsForTrack: (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     selector?: MediaStreamTrack,
   ) => Promise<RTCStatsReport | undefined>;
 
@@ -77,7 +79,7 @@ export const createStatsReporter = ({
 }: StatsReporterOpts): StatsReporter => {
   const logger = getLogger(['stats']);
   const getRawStatsForTrack = async (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     selector?: MediaStreamTrack,
   ) => {
     if (kind === 'subscriber' && subscriber) {
@@ -90,7 +92,7 @@ export const createStatsReporter = ({
   };
 
   const getStatsForStream = async (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     tracks: MediaStreamTrack[],
   ) => {
     const pc = kind === 'subscriber' ? subscriber : publisher;
@@ -151,35 +153,20 @@ export const createStatsReporter = ({
       }
     }
 
-    const [subscriberStats, publisherStats] = await Promise.all([
-      subscriber
-        .getStats()
-        .then((report) =>
-          transform(report, {
-            kind: 'subscriber',
-            trackKind: 'video',
-            publisher,
-          }),
-        )
-        .then(aggregate),
-      publisher
-        ? publisher
-            .getStats()
-            .then((report) =>
-              transform(report, {
-                kind: 'publisher',
-                trackKind: 'video',
-                publisher,
-              }),
-            )
-            .then(aggregate)
-        : getEmptyStats(),
-    ]);
-
     const [subscriberRawStats, publisherRawStats] = await Promise.all([
       getRawStatsForTrack('subscriber'),
       publisher ? getRawStatsForTrack('publisher') : undefined,
     ]);
+
+    const process = (report: RTCStatsReport, kind: PeerConnectionKind) =>
+      aggregate(transform(report, { kind, trackKind: 'video', publisher }));
+
+    const subscriberStats = subscriberRawStats
+      ? process(subscriberRawStats, 'subscriber')
+      : getEmptyStats();
+    const publisherStats = publisherRawStats
+      ? process(publisherRawStats, 'publisher')
+      : getEmptyStats();
 
     state.setCallStatsReport({
       datacenter,
@@ -226,7 +213,7 @@ export type StatsTransformOpts = {
   /**
    * The kind of peer connection we are transforming stats for.
    */
-  kind: 'subscriber' | 'publisher';
+  kind: PeerConnectionKind;
   /**
    * The publisher instance.
    */
