@@ -24,6 +24,7 @@ export type SfuStatsReporterOptions = {
   microphone: MicrophoneManager;
   camera: CameraManager;
   state: CallState;
+  unifiedSessionId: string;
 };
 
 export class SfuStatsReporter {
@@ -37,6 +38,7 @@ export class SfuStatsReporter {
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
   private readonly state: CallState;
+  private readonly unifiedSessionId: string;
 
   private intervalId: NodeJS.Timeout | undefined;
   private timeoutId: NodeJS.Timeout | undefined;
@@ -57,6 +59,7 @@ export class SfuStatsReporter {
       microphone,
       camera,
       state,
+      unifiedSessionId,
     }: SfuStatsReporterOptions,
   ) {
     this.sfuClient = sfuClient;
@@ -66,6 +69,7 @@ export class SfuStatsReporter {
     this.microphone = microphone;
     this.camera = camera;
     this.state = state;
+    this.unifiedSessionId = unifiedSessionId;
 
     const { sdk, browser } = clientDetails;
     this.sdkName = getSdkName(sdk);
@@ -187,6 +191,7 @@ export class SfuStatsReporter {
         decodeStats: subscriberStats.performanceStats,
         audioDevices: this.inputDevices.get('mic'),
         videoDevices: this.inputDevices.get('camera'),
+        unifiedSessionId: this.unifiedSessionId,
         deviceState: getDeviceState(),
         telemetry,
       });

@@ -86,6 +86,7 @@ export class StatsTracer {
         framesPerSecond = 0,
         frameHeight = 0,
         frameWidth = 0,
+        targetBitrate = 0,
         mediaSourceId,
       } = rtp as RTCOutboundRtpStreamStats;
 
@@ -115,6 +116,7 @@ export class StatsTracer {
         codec: getCodecFromStats(currentStats, codecId),
         avgFrameTimeMs: average(this.frameTimeHistory),
         avgFps: average(this.fpsHistory),
+        targetBitrate: Math.round(targetBitrate),
         videoDimension: { width: frameWidth, height: frameHeight },
       });
     }

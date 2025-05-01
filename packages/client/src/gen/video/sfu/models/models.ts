@@ -662,6 +662,12 @@ export interface PerformanceStats {
    * @generated from protobuf field: stream.video.sfu.models.VideoDimension video_dimension = 5;
    */
   videoDimension?: VideoDimension;
+  /**
+   * the target bitrate for the track, only for published tracks
+   *
+   * @generated from protobuf field: int32 target_bitrate = 6;
+   */
+  targetBitrate: number;
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
@@ -1700,6 +1706,12 @@ class PerformanceStats$Type extends MessageType<PerformanceStats> {
         name: 'video_dimension',
         kind: 'message',
         T: () => VideoDimension,
+      },
+      {
+        no: 6,
+        name: 'target_bitrate',
+        kind: 'scalar',
+        T: 5 /*ScalarType.INT32*/,
       },
     ]);
   }

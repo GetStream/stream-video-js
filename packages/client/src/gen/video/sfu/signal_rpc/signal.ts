@@ -184,6 +184,14 @@ export interface SendStatsRequest {
    * @generated from protobuf field: repeated stream.video.sfu.models.PerformanceStats decode_stats = 17;
    */
   decodeStats: PerformanceStats[];
+  /**
+   * user_session id can change during reconnects, this helps us to
+   * identify the user across reconnects and should remain consistent until the user explicitly
+   * disconnects, is kicked or the call is ended.
+   *
+   * @generated from protobuf field: string unified_session_id = 18;
+   */
+  unifiedSessionId: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendStatsResponse
@@ -567,6 +575,12 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
         kind: 'message',
         repeat: 1 /*RepeatType.PACKED*/,
         T: () => PerformanceStats,
+      },
+      {
+        no: 18,
+        name: 'unified_session_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
       },
     ]);
   }
