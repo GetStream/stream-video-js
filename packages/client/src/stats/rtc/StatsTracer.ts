@@ -23,8 +23,8 @@ export class StatsTracer {
   private costOverrides?: Map<TrackType, number>;
 
   private previousStats: Record<string, RTCStats> = {};
-  private lastPerformanceStats: PerformanceStats[] = [];
-  private iteration = 1;
+  private frameTimeHistory: number[] = [];
+  private fpsHistory: number[] = [];
 
   /**
    * Creates a new StatsTracer instance.
@@ -61,7 +61,8 @@ export class StatsTracer {
 
     // store the current data for the next iteration
     this.previousStats = currentStats;
-    this.lastPerformanceStats = performanceStats;
+    this.frameTimeHistory = this.frameTimeHistory.slice(-2);
+    this.fpsHistory = this.fpsHistory.slice(-2);
 
     return { performanceStats, delta, stats };
   };
@@ -99,6 +100,9 @@ export class StatsTracer {
           ? (deltaTotalEncodeTime / deltaFramesSent) * 1000
           : 0;
 
+      this.frameTimeHistory.push(framesEncodeTime);
+      this.fpsHistory.push(framesPerSecond);
+
       let trackType = TrackType.VIDEO;
       if (mediaSourceId && currentStats[mediaSourceId]) {
         const mediaSource = currentStats[mediaSourceId] as RTCMediaSourceStats;
@@ -106,17 +110,11 @@ export class StatsTracer {
           this.trackIdToTrackType.get(mediaSource.trackIdentifier) || trackType;
       }
 
-      const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
-        this.lastPerformanceStats.find((s) => s.trackType === trackType) || {};
       encodeStats.push({
         trackType,
         codec: getCodecFromStats(currentStats, codecId),
-        avgFrameTimeMs: average(
-          avgFrameTimeMs,
-          framesEncodeTime,
-          this.iteration,
-        ),
-        avgFps: average(avgFps, framesPerSecond, this.iteration),
+        avgFrameTimeMs: average(this.frameTimeHistory),
+        avgFps: average(this.fpsHistory),
         videoDimension: { width: frameWidth, height: frameHeight },
       });
     }
@@ -161,21 +159,18 @@ export class StatsTracer {
         ? (deltaTotalDecodeTime / deltaFramesDecoded) * 1000
         : 0;
 
+    this.frameTimeHistory.push(framesDecodeTime);
+    this.fpsHistory.push(framesPerSecond);
+
     const trackType =
       this.trackIdToTrackType.get(trackIdentifier) || TrackType.VIDEO;
-    const { avgFrameTimeMs = 0, avgFps = framesPerSecond } =
-      this.lastPerformanceStats.find((s) => s.trackType === trackType) || {};
 
     return [
       PerformanceStats.create({
         trackType,
         codec: getCodecFromStats(currentStats, rtp.codecId),
-        avgFrameTimeMs: average(
-          avgFrameTimeMs,
-          framesDecodeTime,
-          this.iteration,
-        ),
-        avgFps: average(avgFps, framesPerSecond, this.iteration),
+        avgFrameTimeMs: average(this.frameTimeHistory),
+        avgFps: average(this.fpsHistory),
         videoDimension: { width: rtp.frameWidth, height: rtp.frameHeight },
       }),
     ];
@@ -267,14 +262,9 @@ const deltaCompression = (
 };
 
 /**
- * Based on Welford’s method for calculating variance of an infinite sequence.
- *
- * @param currentAverage current average.
- * @param currentValue current value.
- * @param n current sequence index.
+ * Calculates an average value.
  */
-const average = (currentAverage: number, currentValue: number, n: number) =>
-  currentAverage + (currentValue - currentAverage) / n;
+const average = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
 
 /**
  * Create a Codec object from the codec stats.
