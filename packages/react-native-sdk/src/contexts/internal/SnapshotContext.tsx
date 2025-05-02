@@ -99,10 +99,7 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
 
       // Take the snapshot using our native module
-      const base64Image = await StreamVideoReactNative.captureRef(tag, {
-        // format: 'jpg',
-        // quality: 0.8,
-      });
+      const base64Image = await StreamVideoReactNative.captureRef(tag, {});
 
       return base64Image;
     } catch (error) {

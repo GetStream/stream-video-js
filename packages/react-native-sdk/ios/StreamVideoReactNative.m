@@ -31,6 +31,12 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
 }
 RCT_EXPORT_MODULE();
 
+// the viewRegistry approach is taken from https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
+#ifdef RCT_NEW_ARCH_ENABLED
+@synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
+#endif // RCT_NEW_ARCH_ENABLED
+@synthesize bridge = _bridge;
+
 +(BOOL)requiresMainQueueSetup {
     return NO;
 }
@@ -227,23 +233,24 @@ RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
     });
 }
 
-RCT_EXPORT_METHOD(captureRef:(NSNumber *)reactTag
+RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
                   options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        RCTUIManager *uiManager = [self.bridge moduleForClass:[RCTUIManager class]];
-        UIView *view = [uiManager viewForReactTag:reactTag];
+#ifdef RCT_NEW_ARCH_ENABLED
+    [self.viewRegistry_DEPRECATED addUIBlock:^(RCTViewRegistry *viewRegistry) {
+        UIView *view = [self.viewRegistry_DEPRECATED viewForReactTag:reactTag];
         
+#else
+    [self.bridge.uiManager
+     addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+        UIView *view = [uiManager viewForReactTag:viewRef];
+#endif
+
         if (!view) {
-            // Try to find view with Fabric approach
-            view = [self findViewForReactTag:reactTag];
-            
-            if (!view) {
-                reject(@"VIEW_NOT_FOUND", [NSString stringWithFormat:@"View with tag %@ not found", reactTag], nil);
-                return;
-            }
+          reject(RCTErrorUnspecified, [NSString stringWithFormat:@"No view found with reactTag: %@", reactTag], nil);
+          return;
         }
         
         // Get capture options
@@ -311,47 +318,7 @@ RCT_EXPORT_METHOD(captureRef:(NSNumber *)reactTag
         } else {
             reject(@"ENCODING_FAILED", @"Failed to encode image to base64", nil);
         }
-    });
-}
-
-// Helper method to find a view using traversal for Fabric compatibility
-- (UIView *)findViewForReactTag:(NSNumber *)reactTag {
-    // Get the key window or first window in the scene (iOS 13+)
-    UIWindow *window = nil;
-    if (@available(iOS 13.0, *)) {
-        for (UIWindowScene *scene in [UIApplication sharedApplication].connectedScenes) {
-            if (scene.activationState == UISceneActivationStateForegroundActive) {
-                window = scene.windows.firstObject;
-                break;
-            }
-        }
-    }
-    
-    // Fallback to legacy approach
-    if (!window) {
-        window = [UIApplication sharedApplication].keyWindow;
-    }
-    
-    if (!window) {
-        return nil;
-    }
-    
-    return [self findViewWithTag:reactTag.intValue inView:window];
-}
-
-- (UIView *)findViewWithTag:(NSInteger)tag inView:(UIView *)view {
-    if (view.tag == tag) {
-        return view;
-    }
-    
-    for (UIView *subview in view.subviews) {
-        UIView *result = [self findViewWithTag:tag inView:subview];
-        if (result) {
-            return result;
-        }
-    }
-    
-    return nil;
+    }];
 }
 
 -(NSArray<NSString *> *)supportedEvents {

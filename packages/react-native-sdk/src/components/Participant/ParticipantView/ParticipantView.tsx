@@ -26,7 +26,6 @@ import {
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { CallContentProps } from '../../Call';
-import { useSnapshot } from '../../../contexts/internal/SnapshotContext';
 
 export type ParticipantViewComponentProps = {
   /**

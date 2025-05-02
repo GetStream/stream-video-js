@@ -284,13 +284,13 @@ export const VideoRenderer = ({
     <View
       onLayout={onLayout}
       style={[styles.container, videoRenderer.container]}
-      ref={viewRef}
     >
       {canShowVideo && videoStreamToRender ? (
         <RTCView
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
+          ref={viewRef}
           objectFit={
             objectFit ??
             (videoDimensions.width > videoDimensions.height

@@ -45,10 +45,9 @@ export function useScreenshot(): UseScreenshotResult {
 
         if (videoStreamForScreenshot) {
           try {
-            const screenshot = await StreamVideoReactNative.takeScreenshot(
+            return await StreamVideoReactNative.takeScreenshot(
               videoStreamForScreenshot.toURL(),
             );
-            return screenshot;
           } catch (error) {
             getLogger(['useScreenshot'])(
               'error',
@@ -61,7 +60,7 @@ export function useScreenshot(): UseScreenshotResult {
         return null;
       } else {
         try {
-          await take(participant, videoTrackType);
+          return await take(participant, videoTrackType);
         } catch (error) {
           getLogger(['useScreenshot'])(
             'error',

@@ -57,6 +57,7 @@ export const MoreActionsButton = ({
   const {
     useIsCallCaptioningInProgress,
     useHasPermissions,
+    useParticipants,
     useDominantSpeaker,
   } = useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
@@ -66,7 +67,7 @@ export const MoreActionsButton = ({
   );
   const dominantSpeaker = useDominantSpeaker();
   const { takeScreenshot } = useScreenshot();
-
+  const participants = useParticipants();
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -98,17 +99,21 @@ export const MoreActionsButton = ({
       : 'Enable closed captions';
 
   const getScreenshotOfDominantSpeaker = async () => {
+    let speaker = dominantSpeaker;
+    if (!speaker) {
+      speaker = participants[0];
+    }
     // Use dominant speaker or fallback to first participant
-    if (!dominantSpeaker) {
+    if (!speaker) {
       Alert.alert('Error', 'No active participant to screenshot');
       return;
     }
 
     // Take the snapshot
-    const base64Image = await takeScreenshot(dominantSpeaker, 'videoTrack');
+    const base64Image = await takeScreenshot(speaker, 'videoTrack');
 
     if (!base64Image) {
-      Alert.alert('Error', 'Failed to capture participant view');
+      Alert.alert('Error', 'Failed to capture screenshot');
       return;
     }
 
@@ -263,7 +268,7 @@ export const MoreActionsButton = ({
 
             {screenshotImage && (
               <Image
-                source={{ uri: `data:image/jpeg;base64,${screenshotImage}` }}
+                source={{ uri: `data:image/png;base64,${screenshotImage}` }}
                 style={styles.screenshotImage}
                 resizeMode="contain"
               />
