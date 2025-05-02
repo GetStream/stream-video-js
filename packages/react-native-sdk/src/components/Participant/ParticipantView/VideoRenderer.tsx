@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import type { ParticipantViewProps } from './ParticipantView';
@@ -15,6 +15,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
+import { useSnapshot } from '../../../contexts/internal/SnapshotContext';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -61,6 +62,10 @@ export const VideoRenderer = ({
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { direction } = useCameraState();
+  const viewRef = useRef(null);
+  const { register: registerSnapshot, deregister: deregisterSnapshot } =
+    useSnapshot();
+
   const videoDimensions = useTrackDimensions(participant, trackType);
   const {
     isLocalParticipant,
@@ -85,6 +90,29 @@ export const VideoRenderer = ({
     isVisible &&
     isPublishingVideoTrack &&
     isParticipantVideoEnabled(participant.sessionId);
+
+  // Register this view with the snapshot provider
+  React.useEffect(() => {
+    if (
+      Platform.OS === 'ios' &&
+      registerSnapshot &&
+      viewRef.current &&
+      canShowVideo
+    ) {
+      registerSnapshot(participant, trackType, viewRef);
+    } else {
+      deregisterSnapshot(participant, trackType);
+    }
+    return () => {
+      deregisterSnapshot(participant, trackType);
+    };
+  }, [
+    participant,
+    trackType,
+    registerSnapshot,
+    canShowVideo,
+    deregisterSnapshot,
+  ]);
 
   const mirror =
     isLocalParticipant && !isScreenSharing && direction === 'front';
@@ -256,6 +284,7 @@ export const VideoRenderer = ({
     <View
       onLayout={onLayout}
       style={[styles.container, videoRenderer.container]}
+      ref={viewRef}
     >
       {canShowVideo && videoStreamToRender ? (
         <RTCView

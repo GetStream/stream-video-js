@@ -23,6 +23,10 @@ import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
 import java.io.ByteArrayOutputStream
@@ -246,9 +250,14 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         try {
             val track = getVideoTrackForStreamURL(streamURL)
             var screenshotSink: VideoSink? = null
-            screenshotSink = VideoSink { videoFrame -> // Remove the sink before processing the frame
+            screenshotSink = VideoSink { videoFrame -> // Remove the sink before asap
                 // to avoid processing multiple frames.
-                track.removeSink(screenshotSink)
+                CoroutineScope(Dispatchers.IO).launch {
+                    // This has to be launched asynchronously - removing the sink on the
+                    // same thread as the videoframe is delivered will lead to a deadlock
+                    // (needs investigation why)
+                    track.removeSink(screenshotSink)
+                }
 
                 videoFrame.retain()
                 val bitmap = YuvFrame.bitmapFromVideoFrame(videoFrame)

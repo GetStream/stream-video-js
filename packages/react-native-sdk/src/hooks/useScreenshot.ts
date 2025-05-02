@@ -1,0 +1,70 @@
+import { useCallback } from 'react';
+import { useSnapshot } from '../contexts/internal/SnapshotContext';
+import { NativeModules, Platform } from 'react-native';
+import type { MediaStream } from '@stream-io/react-native-webrtc';
+import {
+  StreamVideoParticipant,
+  getLogger,
+  type VideoTrackType,
+} from '@stream-io/video-client';
+
+const { StreamVideoReactNative } = NativeModules;
+
+/**
+ * Hook that provides functionality to take screenshots of participant video streams.
+ *
+ * @returns An object containing the `takeScreenShot` function that captures a participant's video.
+ */
+type UseScreenshotResult = {
+  /**
+   * Takes a screenshot of a participant's video stream.
+   *
+   * @param participant - The participant whose video stream to capture
+   * @param videoTrackType - The type of video track to capture ('videoTrack' or 'screenShareTrack')
+   * @returns A Promise that resolves to a base64-encoded image string or null if the screenshot fails
+   */
+  takeScreenshot: (
+    participant: StreamVideoParticipant,
+    videoTrackType: VideoTrackType,
+  ) => Promise<string | null>;
+};
+
+export function useScreenshot(): UseScreenshotResult {
+  const { take } = useSnapshot();
+  const takeScreenshot = useCallback(
+    async (
+      participant: StreamVideoParticipant,
+      videoTrackType: VideoTrackType,
+    ) => {
+      if (Platform.OS === 'android') {
+        const { videoStream, screenShareStream } = participant;
+
+        const videoStreamForScreenshot = (videoTrackType === 'screenShareTrack'
+          ? screenShareStream
+          : videoStream) as unknown as MediaStream | undefined;
+
+        if (videoStreamForScreenshot) {
+          try {
+            const screenshot = await StreamVideoReactNative.takeScreenshot(
+              videoStreamForScreenshot.toURL(),
+            );
+            return screenshot;
+          } catch (error) {
+            getLogger(['useScreenshot'])(
+              'error',
+              'Error taking screenshot',
+              error,
+            );
+            return null;
+          }
+        }
+        return null;
+      } else {
+        await take(participant, videoTrackType);
+      }
+    },
+    [take],
+  );
+
+  return { takeScreenshot };
+}

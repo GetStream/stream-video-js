@@ -10,6 +10,7 @@ import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
 import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme } from '../theme/theme';
+import { SnapshotProvider } from '../contexts/internal/SnapshotContext';
 
 /**
  *
@@ -61,8 +62,10 @@ export const StreamVideo = (
     >
       <StreamTheme style={style}>
         <StreamVideoStoreProvider>
-          <PushRegister />
-          {children}
+          <SnapshotProvider>
+            <PushRegister />
+            {children}
+          </SnapshotProvider>
         </StreamVideoStoreProvider>
       </StreamTheme>
     </StreamVideoProvider>

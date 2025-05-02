@@ -4,16 +4,10 @@ import {
   OwnCapability,
   useCall,
   useCallStateHooks,
-  useSnapshot,
   useTheme,
+  useScreenshot,
 } from '@stream-io/video-react-native-sdk';
-import {
-  NativeModules,
-  Text,
-  Modal,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { Text, Modal, Image, TouchableOpacity } from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
@@ -29,9 +23,6 @@ import Stats from '../../assets/Stats';
 import ClosedCaptions from '../../assets/ClosedCaptions';
 import Screenshot from '../../assets/Screenshot';
 import { View, Alert, StyleSheet } from 'react-native';
-
-// Get the native module directly to avoid undefined issues
-const { StreamVideoReactNative } = NativeModules;
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -73,8 +64,8 @@ export const MoreActionsButton = ({
     OwnCapability.START_CLOSED_CAPTIONS_CALL,
     OwnCapability.STOP_CLOSED_CAPTIONS_CALL,
   );
-  const snapshot = useSnapshot();
   const dominantSpeaker = useDominantSpeaker();
+  const { takeScreenshot } = useScreenshot();
 
   useEffect(() => {
     return () => {
@@ -83,9 +74,6 @@ export const MoreActionsButton = ({
       }
     };
   }, []);
-
-  // Check if the native module is available
-  const isScreenshotAvailable = !!StreamVideoReactNative?.captureRef;
 
   const handleRating = async (rating: number) => {
     await call
@@ -109,14 +97,9 @@ export const MoreActionsButton = ({
       ? 'Disable closed captions'
       : 'Enable closed captions';
 
-  const takeScreenshot = async () => {
+  const getScreenshotOfDominantSpeaker = async () => {
     try {
-      if (!snapshot) {
-        console.error('Snapshot system not available');
-        Alert.alert('Error', 'Screenshot functionality not available');
-        return;
-      }
-
+      console.log('🚀 ~ getScreenshotOfDominantSpeaker');
       // Use dominant speaker or fallback to first participant
       if (!dominantSpeaker) {
         Alert.alert('Error', 'No active participant to screenshot');
@@ -125,7 +108,7 @@ export const MoreActionsButton = ({
       console.log('🚀 ~ takeScreenshot ~ dominantSpeaker:', dominantSpeaker);
 
       // Take the snapshot
-      const base64Image = await snapshot.take(dominantSpeaker);
+      const base64Image = await takeScreenshot(dominantSpeaker, 'videoTrack');
       console.log('🚀 ~ takeScreenshot ~ base64Image:', base64Image);
 
       if (!base64Image) {
@@ -201,23 +184,19 @@ export const MoreActionsButton = ({
         setIsDrawerVisible(false);
       },
     },
-    ...(isScreenshotAvailable
-      ? [
-          {
-            id: '4',
-            label: 'Take Screenshot',
-            icon: (
-              <IconWrapper>
-                <Screenshot
-                  color={colors.iconPrimary}
-                  size={variants.roundButtonSizes.sm}
-                />
-              </IconWrapper>
-            ),
-            onPress: takeScreenshot,
-          },
-        ]
-      : []),
+    {
+      id: '4',
+      label: 'Take Screenshot',
+      icon: (
+        <IconWrapper>
+          <Screenshot
+            color={colors.iconPrimary}
+            size={variants.roundButtonSizes.sm}
+          />
+        </IconWrapper>
+      ),
+      onPress: getScreenshotOfDominantSpeaker,
+    },
     ...(canToggle
       ? [
           {

@@ -26,7 +26,7 @@ import {
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { CallContentProps } from '../../Call';
-import { useSnapshot } from '../../../contexts/SnapshotContext';
+import { useSnapshot } from '../../../contexts/internal/SnapshotContext';
 
 export type ParticipantViewComponentProps = {
   /**
@@ -122,16 +122,6 @@ export const ParticipantView = ({
     participantView.highlightedContainer,
   ];
 
-  const viewRef = useRef(null);
-  const snapshot = useSnapshot();
-
-  // Register this view with the snapshot provider
-  React.useEffect(() => {
-    if (snapshot && viewRef.current) {
-      snapshot.register(participant, viewRef);
-    }
-  }, [participant, snapshot]);
-
   return (
     <View
       style={[styles.container, style, speakerStyle]}
@@ -140,7 +130,6 @@ export const ParticipantView = ({
           ? `participant-${userId}-is-speaking`
           : `participant-${userId}-is-not-speaking`
       }
-      ref={viewRef}
     >
       {ParticipantReaction && (
         <ParticipantReaction
