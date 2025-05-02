@@ -60,7 +60,16 @@ export function useScreenshot(): UseScreenshotResult {
         }
         return null;
       } else {
-        await take(participant, videoTrackType);
+        try {
+          await take(participant, videoTrackType);
+        } catch (error) {
+          getLogger(['useScreenshot'])(
+            'error',
+            'Error taking screenshot',
+            error,
+          );
+          return null;
+        }
       }
     },
     [take],

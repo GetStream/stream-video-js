@@ -98,34 +98,26 @@ export const MoreActionsButton = ({
       : 'Enable closed captions';
 
   const getScreenshotOfDominantSpeaker = async () => {
-    try {
-      console.log('🚀 ~ getScreenshotOfDominantSpeaker');
-      // Use dominant speaker or fallback to first participant
-      if (!dominantSpeaker) {
-        Alert.alert('Error', 'No active participant to screenshot');
-        return;
-      }
-      console.log('🚀 ~ takeScreenshot ~ dominantSpeaker:', dominantSpeaker);
-
-      // Take the snapshot
-      const base64Image = await takeScreenshot(dominantSpeaker, 'videoTrack');
-      console.log('🚀 ~ takeScreenshot ~ base64Image:', base64Image);
-
-      if (!base64Image) {
-        Alert.alert('Error', 'Failed to capture participant view');
-        return;
-      }
-
-      // Store the screenshot and show the modal
-      setScreenshotImage(base64Image);
-      setScreenshotModalVisible(true);
-      setIsDrawerVisible(false);
-
-      return base64Image;
-    } catch (error) {
-      console.error('Error taking screenshot:', error);
-      Alert.alert('Error', 'Failed to take screenshot: ' + error);
+    // Use dominant speaker or fallback to first participant
+    if (!dominantSpeaker) {
+      Alert.alert('Error', 'No active participant to screenshot');
+      return;
     }
+
+    // Take the snapshot
+    const base64Image = await takeScreenshot(dominantSpeaker, 'videoTrack');
+
+    if (!base64Image) {
+      Alert.alert('Error', 'Failed to capture participant view');
+      return;
+    }
+
+    // Store the screenshot and show the modal
+    setScreenshotImage(base64Image);
+    setScreenshotModalVisible(true);
+    setIsDrawerVisible(false);
+
+    return base64Image;
   };
 
   const options: DrawerOption[] = [
