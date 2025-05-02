@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.6...@stream-io/video-react-native-sdk-1.12.0) (2025-05-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.21.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.19`
+
+- update sample apps to webrtc-125.2.0 ([#1777](https://github.com/GetStream/stream-video-js/issues/1777)) ([f1b6070](https://github.com/GetStream/stream-video-js/commit/f1b6070d207099bf8f8538cdaa556fd14daddb9d))
+
+### Features
+
+- encode and decode PerformanceStats tracing ([#1765](https://github.com/GetStream/stream-video-js/issues/1765)) ([138ea84](https://github.com/GetStream/stream-video-js/commit/138ea84fee834da03cf3c8042fbb2f071526f135))
+
 ## [1.11.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.5...@stream-io/video-react-native-sdk-1.11.6) (2025-05-01)
 
 ### Dependency Updates
