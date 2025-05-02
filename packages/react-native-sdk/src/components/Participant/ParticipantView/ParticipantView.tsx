@@ -1,4 +1,4 @@
-import React, { type ComponentType, useMemo, useRef } from 'react';
+import React, { type ComponentType, useMemo } from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type StreamVideoParticipant,
