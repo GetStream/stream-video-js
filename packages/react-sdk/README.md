@@ -91,7 +91,7 @@ Here are some of the features we support:
 - [ ] Logging 2.0
 - [x] Hardware-accelerated video encoding on supported platforms
 - [x] Dynascale 2.0 (codec switching)
-- [x] Improved stat collection
+- [x] Improved stat collection and device performance metrics
 - [ ] E2E testing platform
 - [ ] Dynascale: turn off incoming video when the browser is in the background
 
