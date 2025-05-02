@@ -21,7 +21,7 @@ type UseScreenshotResult = {
    *
    * @param participant - The participant whose video stream to capture
    * @param videoTrackType - The type of video track to capture ('videoTrack' or 'screenShareTrack')
-   * @returns A Promise that resolves to a base64-encoded image string or null if the screenshot fails
+   * @returns A Promise that resolves to a base64-encoded png image string or null if the screenshot fails
    */
   takeScreenshot: (
     participant: StreamVideoParticipant,
