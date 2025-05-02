@@ -19,6 +19,9 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
       addBackgroundMode('voip');
       addBackgroundMode('fetch');
       addBackgroundMode('processing');
+      config.modResults['BGTaskSchedulerPermittedIdentifiers'] = [
+        '$(PRODUCT_BUNDLE_IDENTIFIER)',
+      ];
     }
     if (
       props?.enableNonRingingPushNotifications ||

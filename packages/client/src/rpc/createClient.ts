@@ -11,7 +11,7 @@ import {
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 import { Logger, LogLevel } from '../coordinator/connection/types';
-import type { Trace } from '../stats/rtc/types';
+import type { Trace } from '../stats';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',

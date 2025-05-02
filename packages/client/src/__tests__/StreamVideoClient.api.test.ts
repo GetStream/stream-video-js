@@ -39,7 +39,7 @@ describe('StreamVideoClient - coordinator API', () => {
     client.connectUser(user, tokenProvider(user.id));
   });
 
-  it('query calls', async () => {
+  it('query calls', { retry: 3, timeout: 20000 }, async () => {
     let response = await client.queryCalls();
 
     let calls = response.calls;

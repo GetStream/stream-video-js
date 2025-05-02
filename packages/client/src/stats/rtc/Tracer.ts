@@ -1,9 +1,4 @@
-import type { Trace, TraceRecord } from './types';
-
-export type TraceSlice = {
-  snapshot: TraceRecord[];
-  rollback: () => void;
-};
+import type { Trace, TraceRecord, TraceSlice } from './types';
 
 export class Tracer {
   private buffer: TraceRecord[] = [];

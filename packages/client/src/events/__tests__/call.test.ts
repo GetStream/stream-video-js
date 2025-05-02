@@ -114,7 +114,11 @@ describe('Call ringing events', () => {
           },
         },
       });
-      expect(call.leave).toHaveBeenCalled();
+      expect(call.leave).toHaveBeenCalledWith({
+        reject: true,
+        reason: 'cancel',
+        message: 'ring: everyone rejected',
+      });
     });
 
     it(`caller will not leave the call if only one callee rejects`, async () => {

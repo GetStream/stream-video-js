@@ -2,6 +2,45 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.6...@stream-io/video-react-native-sdk-1.12.0) (2025-05-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.21.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.19`
+
+- update sample apps to webrtc-125.2.0 ([#1777](https://github.com/GetStream/stream-video-js/issues/1777)) ([f1b6070](https://github.com/GetStream/stream-video-js/commit/f1b6070d207099bf8f8538cdaa556fd14daddb9d))
+
+### Features
+
+- encode and decode PerformanceStats tracing ([#1765](https://github.com/GetStream/stream-video-js/issues/1765)) ([138ea84](https://github.com/GetStream/stream-video-js/commit/138ea84fee834da03cf3c8042fbb2f071526f135))
+
+## [1.11.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.5...@stream-io/video-react-native-sdk-1.11.6) (2025-05-01)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.2`
+- `@stream-io/video-react-bindings` updated to version `1.5.18`
+
+## [1.11.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.4...@stream-io/video-react-native-sdk-1.11.5) (2025-04-29)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.1`
+- `@stream-io/video-react-bindings` updated to version `1.5.17`
+
+### Bug Fixes
+
+- add missing bg task scheduler key for expo ([2f901cb](https://github.com/GetStream/stream-video-js/commit/2f901cbd07f2d808f67bf812b21ab1e17990fdac))
+- call cancellation not reliably seen on killed state RN-198 ([#1773](https://github.com/GetStream/stream-video-js/issues/1773)) ([735480e](https://github.com/GetStream/stream-video-js/commit/735480ec13e29784c97f81bf1c4d9c5f9123b85d))
+
+## [1.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.3...@stream-io/video-react-native-sdk-1.11.4) (2025-04-24)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.16`
+
 ## [1.11.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.11.2...@stream-io/video-react-native-sdk-1.11.3) (2025-04-15)
 
 ### Dependency Updates

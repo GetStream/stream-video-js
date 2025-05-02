@@ -6,7 +6,7 @@ import {
   shareReplay,
 } from 'rxjs';
 import { RxUtils } from '../store';
-import { BrowserPermission } from './BrowserPermission';
+import { BrowserPermission, BrowserPermissionState } from './BrowserPermission';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
@@ -63,9 +63,15 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
 
   /**
    * An observable that will emit `true` if browser/system permission
-   * is granted, `false` otherwise.
+   * is granted (or at least hasn't been denied), `false` otherwise.
    */
   hasBrowserPermission$: Observable<boolean>;
+
+  /**
+   * An observable that emits with browser permission state changes.
+   * Gives more granular visiblity than hasBrowserPermission$.
+   */
+  browserPermissionState$: Observable<BrowserPermissionState>;
 
   /**
    * An observable that emits `true` when SDK is prompting for browser permission
@@ -88,6 +94,10 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
       ? permission.asObservable().pipe(shareReplay(1))
       : of(true);
 
+    this.browserPermissionState$ = permission
+      ? permission.asStateObservable().pipe(shareReplay(1))
+      : of('prompt');
+
     this.isPromptingPermission$ = permission
       ? permission.getIsPromptingObservable().pipe(shareReplay(1))
       : of(false);
@@ -97,44 +107,36 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * The device status
    */
   get status() {
-    return this.getCurrentValue(this.status$);
+    return RxUtils.getCurrentValue(this.status$);
   }
 
   /**
    * The requested device status. Useful for optimistic UIs
    */
   get optimisticStatus() {
-    return this.getCurrentValue(this.optimisticStatus$);
+    return RxUtils.getCurrentValue(this.optimisticStatus$);
   }
 
   /**
    * The currently selected device
    */
   get selectedDevice() {
-    return this.getCurrentValue(this.selectedDevice$);
+    return RxUtils.getCurrentValue(this.selectedDevice$);
   }
 
   /**
    * The current media stream, or `undefined` if the device is currently disabled.
    */
   get mediaStream() {
-    return this.getCurrentValue(this.mediaStream$);
+    return RxUtils.getCurrentValue(this.mediaStream$);
   }
-
-  /**
-   * Gets the current value of an observable, or undefined if the observable has
-   * not emitted a value yet.
-   *
-   * @param observable$ the observable to get the value from.
-   */
-  getCurrentValue = RxUtils.getCurrentValue;
 
   /**
    * @internal
    * @param status
    */
   setStatus(status: InputDeviceStatus) {
-    this.setCurrentValue(this.statusSubject, status);
+    RxUtils.setCurrentValue(this.statusSubject, status);
   }
 
   /**
@@ -142,7 +144,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * @param pendingStatus
    */
   setPendingStatus(pendingStatus: InputDeviceStatus) {
-    this.setCurrentValue(this.optimisticStatusSubject, pendingStatus);
+    RxUtils.setCurrentValue(this.optimisticStatusSubject, pendingStatus);
   }
 
   /**
@@ -157,7 +159,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     stream: MediaStream | undefined,
     rootStream: MediaStream | undefined,
   ) {
-    this.setCurrentValue(this.mediaStreamSubject, stream);
+    RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
     if (rootStream) {
       this.setDevice(this.getDeviceIdFromStream(rootStream));
     }
@@ -168,14 +170,14 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * @param deviceId the device id to set.
    */
   setDevice(deviceId: string | undefined) {
-    this.setCurrentValue(this.selectedDeviceSubject, deviceId);
+    RxUtils.setCurrentValue(this.selectedDeviceSubject, deviceId);
   }
 
   /**
    * Gets the default constraints for the device.
    */
   get defaultConstraints() {
-    return this.getCurrentValue(this.defaultConstraints$);
+    return RxUtils.getCurrentValue(this.defaultConstraints$);
   }
 
   /**
@@ -185,21 +187,8 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    * @param constraints the constraints to set.
    */
   setDefaultConstraints(constraints: C | undefined) {
-    this.setCurrentValue(this.defaultConstraintsSubject, constraints);
+    RxUtils.setCurrentValue(this.defaultConstraintsSubject, constraints);
   }
-
-  /**
-   * Updates the value of the provided Subject.
-   * An `update` can either be a new value or a function which takes
-   * the current value and returns a new value.
-   *
-   * @internal
-   *
-   * @param subject the subject to update.
-   * @param update the update to apply to the subject.
-   * @return the updated value.
-   */
-  protected setCurrentValue = RxUtils.setCurrentValue;
 
   protected abstract getDeviceIdFromStream(
     stream: MediaStream,
