@@ -1,6 +1,7 @@
-import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { RxUtils } from '../store';
 import { checkIfAudioOutputChangeSupported } from './devices';
+import { tracer as mediaStatsTracer } from '../stats/rtc/mediaDevices';
 
 export class SpeakerState {
   protected selectedDeviceSubject = new BehaviorSubject<string>('');
@@ -39,7 +40,7 @@ export class SpeakerState {
    * Note: this feature is not supported in React Native
    */
   get selectedDevice() {
-    return this.getCurrentValue(this.selectedDevice$);
+    return RxUtils.getCurrentValue(this.selectedDevice$);
   }
 
   /**
@@ -48,23 +49,16 @@ export class SpeakerState {
    * Note: this feature is not supported in React Native
    */
   get volume() {
-    return this.getCurrentValue(this.volume$);
+    return RxUtils.getCurrentValue(this.volume$);
   }
-
-  /**
-   * Gets the current value of an observable, or undefined if the observable has
-   * not emitted a value yet.
-   *
-   * @param observable$ the observable to get the value from.
-   */
-  getCurrentValue = RxUtils.getCurrentValue;
 
   /**
    * @internal
    * @param deviceId
    */
   setDevice(deviceId: string) {
-    this.setCurrentValue(this.selectedDeviceSubject, deviceId);
+    RxUtils.setCurrentValue(this.selectedDeviceSubject, deviceId);
+    mediaStatsTracer.trace('navigator.mediaDevices.setSinkId', deviceId);
   }
 
   /**
@@ -72,19 +66,6 @@ export class SpeakerState {
    * @param volume
    */
   setVolume(volume: number) {
-    this.setCurrentValue(this.volumeSubject, volume);
+    RxUtils.setCurrentValue(this.volumeSubject, volume);
   }
-
-  /**
-   * Updates the value of the provided Subject.
-   * An `update` can either be a new value or a function which takes
-   * the current value and returns a new value.
-   *
-   * @internal
-   *
-   * @param subject the subject to update.
-   * @param update the update to apply to the subject.
-   * @return the updated value.
-   */
-  protected setCurrentValue = RxUtils.setCurrentValue;
 }

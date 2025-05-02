@@ -1,6 +1,7 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { ScreenShareSettings } from '../types';
+import { RxUtils } from '../store';
 
 export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaStreamOptions> {
   private audioEnabledSubject = new BehaviorSubject<boolean>(true);
@@ -34,21 +35,21 @@ export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaS
    * The current screen share audio status.
    */
   get audioEnabled() {
-    return this.getCurrentValue(this.audioEnabled$);
+    return RxUtils.getCurrentValue(this.audioEnabled$);
   }
 
   /**
    * Set the current screen share audio status.
    */
   setAudioEnabled(isEnabled: boolean) {
-    this.setCurrentValue(this.audioEnabledSubject, isEnabled);
+    RxUtils.setCurrentValue(this.audioEnabledSubject, isEnabled);
   }
 
   /**
    * The current screen share settings.
    */
   get settings() {
-    return this.getCurrentValue(this.settings$);
+    return RxUtils.getCurrentValue(this.settings$);
   }
 
   /**
@@ -57,6 +58,6 @@ export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaS
    * @param settings the screen share settings to set.
    */
   setSettings(settings: ScreenShareSettings | undefined) {
-    this.setCurrentValue(this.settingsSubject, settings);
+    RxUtils.setCurrentValue(this.settingsSubject, settings);
   }
 }
