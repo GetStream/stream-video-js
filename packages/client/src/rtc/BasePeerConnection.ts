@@ -83,9 +83,12 @@ export abstract class BasePeerConnection {
     );
     this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
     if (enableTracing) {
-      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}-${sfuClient.edgeName}`;
+      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
       this.tracer = new Tracer(tag);
-      this.tracer.trace('create', connectionConfig);
+      this.tracer.trace('create', {
+        url: sfuClient.edgeName,
+        ...connectionConfig,
+      });
       traceRTCPeerConnection(this.pc, this.tracer.trace);
     }
   }
