@@ -3,7 +3,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
-import { tracer as mediaStatsTracer } from './rtc/mediaDevices';
+import { Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
@@ -24,6 +24,7 @@ export type SfuStatsReporterOptions = {
   microphone: MicrophoneManager;
   camera: CameraManager;
   state: CallState;
+  tracers: Tracer[];
   unifiedSessionId: string;
 };
 
@@ -38,6 +39,7 @@ export class SfuStatsReporter {
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
   private readonly state: CallState;
+  private readonly tracers: Tracer[];
   private readonly unifiedSessionId: string;
 
   private intervalId: NodeJS.Timeout | undefined;
@@ -59,6 +61,7 @@ export class SfuStatsReporter {
       microphone,
       camera,
       state,
+      tracers,
       unifiedSessionId,
     }: SfuStatsReporterOptions,
   ) {
@@ -69,6 +72,7 @@ export class SfuStatsReporter {
     this.microphone = microphone;
     this.camera = camera;
     this.state = state;
+    this.tracers = tracers;
     this.unifiedSessionId = unifiedSessionId;
 
     const { sdk, browser } = clientDetails;
@@ -164,12 +168,12 @@ export class SfuStatsReporter {
       this.publisher?.tracer?.trace('getstats', publisherStats.delta);
     }
 
-    const subscriberTrace = this.subscriber.tracer?.take();
-    const publisherTrace = this.publisher?.tracer?.take();
-    const mediaTrace = mediaStatsTracer.take();
+    const tracers = this.tracers.map((t) => t.take());
     const sfuTrace = this.sfuClient.getTrace();
-    const traces = [
-      ...mediaTrace.snapshot,
+    const publisherTrace = this.publisher?.tracer?.take();
+    const subscriberTrace = this.subscriber.tracer?.take();
+    const traces: TraceRecord[] = [
+      ...tracers.flatMap((t) => t.snapshot),
       ...(sfuTrace?.snapshot ?? []),
       ...(publisherTrace?.snapshot ?? []),
       ...(subscriberTrace?.snapshot ?? []),
@@ -196,10 +200,10 @@ export class SfuStatsReporter {
         telemetry,
       });
     } catch (err) {
+      tracers.forEach((t) => t.rollback());
+      sfuTrace?.rollback();
       publisherTrace?.rollback();
       subscriberTrace?.rollback();
-      mediaTrace.rollback();
-      sfuTrace?.rollback();
       throw err;
     }
   };

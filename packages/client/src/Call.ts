@@ -120,8 +120,8 @@ import {
   getSdkSignature,
   SfuStatsReporter,
   StatsReporter,
+  Tracer,
 } from './stats';
-import { tracer as mediaStatsTracer } from './stats/rtc/mediaDevices';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -1225,7 +1225,14 @@ export class Call {
       });
     }
 
-    mediaStatsTracer.setEnabled(enableTracing);
+    const tracers: Tracer[] = [
+      this.camera.tracer,
+      this.microphone.tracer,
+      this.screenShare.tracer,
+      this.speaker.tracer,
+    ];
+    tracers.forEach((tracer) => tracer.setEnabled(enableTracing));
+
     this.statsReporter?.stop();
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
@@ -1245,6 +1252,7 @@ export class Call {
         microphone: this.microphone,
         camera: this.camera,
         state: this.state,
+        tracers,
         unifiedSessionId: this.unifiedSessionId,
       });
       this.sfuStatsReporter.start();

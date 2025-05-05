@@ -19,6 +19,7 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
+import { Tracer } from '../stats';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -30,6 +31,11 @@ export abstract class InputMediaDeviceManager<
   stopOnLeave = true;
   logger: Logger;
 
+  tracer = new Tracer(null);
+  state: T;
+
+  protected readonly call: Call;
+  protected readonly trackType: TrackType;
   protected subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
@@ -38,11 +44,10 @@ export abstract class InputMediaDeviceManager<
     'filterRegistrationConcurrencyTag',
   );
 
-  protected constructor(
-    protected readonly call: Call,
-    public readonly state: T,
-    protected readonly trackType: TrackType,
-  ) {
+  protected constructor(call: Call, state: T, trackType: TrackType) {
+    this.call = call;
+    this.state = state;
+    this.trackType = trackType;
     this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
     if (
       deviceIds$ &&

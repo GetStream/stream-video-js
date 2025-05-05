@@ -3,9 +3,11 @@ import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
 import { deviceIds$, getAudioOutputDevices } from './devices';
+import { Tracer } from '../stats';
 
 export class SpeakerManager {
-  public readonly state = new SpeakerState();
+  readonly tracer = new Tracer(null);
+  readonly state = new SpeakerState(this.tracer);
   private subscriptions: Subscription[] = [];
   private readonly call: Call;
 
