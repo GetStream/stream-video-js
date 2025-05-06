@@ -1,6 +1,3 @@
-import { Mod, withMod } from '@expo/config-plugins';
-import { addObjcImports } from '@expo/config-plugins/build/ios/codeMod';
-import { ExpoConfig } from '@expo/config-types';
 import fs from 'fs';
 import path from 'path';
 
@@ -26,13 +23,18 @@ function findBridgingHeaderName(dir: string): string | null {
   return null; // Not found
 }
 
+/**
+ * Adds contents to the Swift bridging header file.
+ * @param projectRoot The root directory of the project.
+ * @param action The function to add the contents the bridging header file.
+ */
 export async function addToSwiftBridgingHeaderFile(
   projectRoot: string,
-  action: (contents: string) => string,
+  action: (headerFileContents: string) => string,
 ) {
   const bridgingHeaderFileName = findBridgingHeaderName(projectRoot);
   if (!bridgingHeaderFileName) {
-    console.log('No bridging header found.');
+    console.error('No bridging header found.');
     return;
   }
 
@@ -41,13 +43,16 @@ export async function addToSwiftBridgingHeaderFile(
     `ios/${bridgingHeaderFileName.replace(/['"]/g, '')}`,
   );
   if (!fs.existsSync(bridgingHeaderFullPath)) {
-    console.log(`File not found at: ${bridgingHeaderFullPath}`);
+    console.error(`File not found at: ${bridgingHeaderFullPath}`);
     return;
   }
 
-  const contents = await fs.promises.readFile(bridgingHeaderFullPath, 'utf8');
+  const headerFileContents = await fs.promises.readFile(
+    bridgingHeaderFullPath,
+    'utf8',
+  );
 
-  const newContents = action(contents);
+  const newHeaderFileContents = action(headerFileContents);
 
-  await fs.promises.writeFile(bridgingHeaderFullPath, newContents);
+  await fs.promises.writeFile(bridgingHeaderFullPath, newHeaderFileContents);
 }

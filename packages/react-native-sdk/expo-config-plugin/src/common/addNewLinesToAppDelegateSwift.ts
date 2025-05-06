@@ -1,11 +1,11 @@
-export default function addNewLinesToAppDelegate(
+export default function addNewLinesToAppDelegateSwift(
   content: string,
   toAdd: string[],
 ) {
   const lines = content.split('\n');
-  let lineIndex = lines.findIndex((line) => line.match('@end'));
+  let lineIndex = lines.lastIndexOf('}');
   if (lineIndex < 0) {
-    throw Error('Malformed app delegate');
+    throw Error('Malformed app delegate (swift)');
   }
   toAdd.unshift('');
   lineIndex -= 1;
