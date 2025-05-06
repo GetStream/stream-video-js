@@ -16,6 +16,7 @@ import {
   type RingingPushNotifications,
 } from './common/types';
 import addNewLinesToAppDelegate from './common/addNewLinesToAppDelegate';
+import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
 const DID_FINISH_LAUNCHING_WITH_OPTIONS =
   'application:didFinishLaunchingWithOptions:';
@@ -82,8 +83,18 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
       }
     } else {
       try {
-        withIosModulesSwiftBridgingHeader(config, (config) => {});
-        config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
+        addToSwiftBridgingHeaderFile(
+          config.modRequest.projectRoot,
+          (headerFileContents) => {
+            headerFileContents = addObjcImports(headerFileContents, [
+              'ProcessorProvider.h',
+              'StreamVideoReactNative.h',
+              '<WebRTCModuleOptions.h>',
+            ]);
+            return headerFileContents;
+          },
+        );
+        config.modResults.contents = addDidFinishLaunchingWithOptionsSwift(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
         );
@@ -102,12 +113,6 @@ function addDidFinishLaunchingWithOptionsSwift(
   iOSEnableMultitaskingCameraAccess: boolean | undefined,
 ) {
   if (iOSEnableMultitaskingCameraAccess) {
-    contents = addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
-
-    if (!contents.match(/^import\s+Expo\s*$/m)) {
-      contents = addSwiftImports(contents, ['Expo']);
-    }
-
     const setupMethod = `let options = WebRTCModuleOptions.sharedInstance()
     options.enableMultitaskingCameraAccess = true`;
 
@@ -316,33 +321,6 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   return contents;
 }
 
-const withIosModulesSwiftBridgingHeader: ConfigPlugin = (config) => {
-  return withXCParseXcodeProject(config, async (config) => {
-    const bridgingHeaderFileName =
-      getDesignatedSwiftBridgingHeaderFileReference(config.modResults);
-    if (!bridgingHeaderFileName) {
-      return config;
-    }
-
-    const [bridgingHeaderFilePath] = globSync(
-      `ios/${bridgingHeaderFileName.replace(/['"]/g, '')}`,
-      {
-        absolute: true,
-        cwd: config.modRequest.projectRoot,
-      },
-    );
-    if (!bridgingHeaderFilePath) {
-      return config;
-    }
-    let contents = await fs.promises.readFile(bridgingHeaderFilePath, 'utf8');
-
-    if (!contents.match(/^#import\s+<Expo\/Expo\.h>\s*$/m)) {
-      contents = addObjcImports(contents, ['<Expo/Expo.h>']);
-    }
-
-    await fs.promises.writeFile(bridgingHeaderFilePath, contents);
-    return config;
-  });
-};
+const withIosModulesSwiftBridgingHeader: ConfigPlugin = (config) => {};
 
 export default withAppDelegate;
