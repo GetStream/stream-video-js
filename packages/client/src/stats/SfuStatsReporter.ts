@@ -168,10 +168,10 @@ export class SfuStatsReporter {
       this.publisher?.tracer?.trace('getstats', publisherStats.delta);
     }
 
+    const subscriberTrace = this.subscriber.tracer?.take();
+    const publisherTrace = this.publisher?.tracer?.take();
     const tracer = this.tracer.take();
     const sfuTrace = this.sfuClient.getTrace();
-    const publisherTrace = this.publisher?.tracer?.take();
-    const subscriberTrace = this.subscriber.tracer?.take();
     const traces: TraceRecord[] = [
       ...tracer.snapshot,
       ...(sfuTrace?.snapshot ?? []),
@@ -200,10 +200,10 @@ export class SfuStatsReporter {
         telemetry,
       });
     } catch (err) {
-      tracer.rollback();
-      sfuTrace?.rollback();
       publisherTrace?.rollback();
       subscriberTrace?.rollback();
+      tracer.rollback();
+      sfuTrace?.rollback();
       throw err;
     }
   };
