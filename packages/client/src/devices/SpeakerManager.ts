@@ -3,16 +3,15 @@ import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
 import { deviceIds$, getAudioOutputDevices } from './devices';
-import { Tracer } from '../stats';
 
 export class SpeakerManager {
-  readonly tracer = new Tracer(null);
-  readonly state = new SpeakerState(this.tracer);
+  readonly state: SpeakerState;
   private subscriptions: Subscription[] = [];
   private readonly call: Call;
 
   constructor(call: Call) {
     this.call = call;
+    this.state = new SpeakerState(call.tracer);
     if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
         combineLatest([deviceIds$!, this.state.selectedDevice$]).subscribe(

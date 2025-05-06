@@ -19,7 +19,6 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
-import { Tracer } from '../stats';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -31,7 +30,6 @@ export abstract class InputMediaDeviceManager<
   stopOnLeave = true;
   logger: Logger;
 
-  tracer = new Tracer(null);
   state: T;
 
   protected readonly call: Call;

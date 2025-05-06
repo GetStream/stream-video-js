@@ -24,7 +24,7 @@ export type SfuStatsReporterOptions = {
   microphone: MicrophoneManager;
   camera: CameraManager;
   state: CallState;
-  tracers: Tracer[];
+  tracer: Tracer;
   unifiedSessionId: string;
 };
 
@@ -39,7 +39,7 @@ export class SfuStatsReporter {
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
   private readonly state: CallState;
-  private readonly tracers: Tracer[];
+  private readonly tracer: Tracer;
   private readonly unifiedSessionId: string;
 
   private intervalId: NodeJS.Timeout | undefined;
@@ -61,7 +61,7 @@ export class SfuStatsReporter {
       microphone,
       camera,
       state,
-      tracers,
+      tracer,
       unifiedSessionId,
     }: SfuStatsReporterOptions,
   ) {
@@ -72,7 +72,7 @@ export class SfuStatsReporter {
     this.microphone = microphone;
     this.camera = camera;
     this.state = state;
-    this.tracers = tracers;
+    this.tracer = tracer;
     this.unifiedSessionId = unifiedSessionId;
 
     const { sdk, browser } = clientDetails;
@@ -168,12 +168,12 @@ export class SfuStatsReporter {
       this.publisher?.tracer?.trace('getstats', publisherStats.delta);
     }
 
-    const tracers = this.tracers.map((t) => t.take());
+    const tracer = this.tracer.take();
     const sfuTrace = this.sfuClient.getTrace();
     const publisherTrace = this.publisher?.tracer?.take();
     const subscriberTrace = this.subscriber.tracer?.take();
     const traces: TraceRecord[] = [
-      ...tracers.flatMap((t) => t.snapshot),
+      ...tracer.snapshot,
       ...(sfuTrace?.snapshot ?? []),
       ...(publisherTrace?.snapshot ?? []),
       ...(subscriberTrace?.snapshot ?? []),
@@ -200,7 +200,7 @@ export class SfuStatsReporter {
         telemetry,
       });
     } catch (err) {
-      tracers.forEach((t) => t.rollback());
+      tracer.rollback();
       sfuTrace?.rollback();
       publisherTrace?.rollback();
       subscriberTrace?.rollback();

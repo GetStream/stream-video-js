@@ -76,7 +76,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     if (!this.state.audioEnabled) {
       constraints.audio = false;
     }
-    return getScreenShareStream(constraints, this.tracer);
+    return getScreenShareStream(constraints, this.call.tracer);
   }
 
   protected async stopPublishStream(): Promise<void> {

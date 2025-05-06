@@ -220,6 +220,7 @@ export class Call {
    * The permissions context of this call.
    */
   readonly permissionsContext = new PermissionsContext();
+  readonly tracer = new Tracer(null);
   readonly logger: Logger;
 
   /**
@@ -1225,14 +1226,6 @@ export class Call {
       });
     }
 
-    const tracers: Tracer[] = [
-      this.camera.tracer,
-      this.microphone.tracer,
-      this.screenShare.tracer,
-      this.speaker.tracer,
-    ];
-    tracers.forEach((tracer) => tracer.setEnabled(enableTracing));
-
     this.statsReporter?.stop();
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
@@ -1241,6 +1234,7 @@ export class Call {
       datacenter: sfuClient.edgeName,
     });
 
+    this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
       this.unifiedSessionId ??= sfuClient.sessionId;
@@ -1252,7 +1246,7 @@ export class Call {
         microphone: this.microphone,
         camera: this.camera,
         state: this.state,
-        tracers,
+        tracer: this.tracer,
         unifiedSessionId: this.unifiedSessionId,
       });
       this.sfuStatsReporter.start();
@@ -1556,6 +1550,7 @@ export class Call {
     const unregisterNetworkChanged = this.streamClient.on(
       'network.changed',
       (e) => {
+        this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger('debug', '[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;

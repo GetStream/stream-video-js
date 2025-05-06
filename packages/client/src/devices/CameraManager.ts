@@ -158,6 +158,6 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
-    return getVideoStream(constraints, this.tracer);
+    return getVideoStream(constraints, this.call.tracer);
   }
 }
