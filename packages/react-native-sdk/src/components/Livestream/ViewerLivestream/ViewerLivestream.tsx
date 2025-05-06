@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
@@ -16,12 +16,14 @@ import {
   LivestreamLayout as DefaultLivestreamLayout,
   type LivestreamLayoutProps,
 } from '../LivestreamLayout';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
 } from '../../Participant';
-import { hasVideo } from '@stream-io/video-client';
+import { CallingState, hasVideo } from '@stream-io/video-client';
+import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
+import { ViewerLobby } from './ViewerLobby';
 
 /**
  * Props for the ViewerLivestream component.
@@ -62,6 +64,7 @@ export const ViewerLivestream = ({
   onLeaveStreamHandler,
 }: ViewerLivestreamProps) => {
   const styles = useStyles();
+  const call = useCall();
   const {
     theme: { viewerLivestream },
   } = useTheme();
@@ -76,6 +79,7 @@ export const ViewerLivestream = ({
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
+  const [callJoined, setCallJoined] = useState<boolean>(false);
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
@@ -92,9 +96,55 @@ export const ViewerLivestream = ({
     },
   };
 
+  const { useIsCallLive } = useCallStateHooks();
+  const isCallLive = useIsCallLive();
+  console.log('🚀 ~ isCallLive:', isCallLive);
+
+  /**
+   * The call is joined using the anonymous user/client.
+   */
+  const handleJoinCall = async () => {
+    try {
+      if (!(call && isCallLive)) {
+        return;
+      }
+      if (
+        [CallingState.JOINED, CallingState.JOINING].includes(
+          call.state.callingState,
+        )
+      ) {
+        setCallJoined(true);
+        return;
+      }
+      await call?.join();
+      setCallJoined(true);
+    } catch (error) {
+      console.error('Failed to join call', error);
+    }
+  };
+
+  const callingState = call?.state.callingState;
+
+  if (
+    !isCallLive ||
+    (callingState !== CallingState.LEFT && callingState !== CallingState.JOINED)
+  ) {
+    return (
+      <ViewerLobby
+        isLive={isCallLive}
+        setCallJoined={setCallJoined}
+        handleJoinCall={handleJoinCall}
+      />
+    );
+  }
+
+  if (callingState === CallingState.LEFT) {
+    return <CallEndedView />;
+  }
+
   return (
     <View style={[styles.container, viewerLivestream.container]}>
-      {ViewerLivestreamTopView && <ViewerLivestreamTopView {...topViewProps} />}
+      {/* {ViewerLivestreamTopView && <ViewerLivestreamTopView {...topViewProps} />} */}
       {FloatingParticipantView &&
         floatingParticipant &&
         topViewHeight &&

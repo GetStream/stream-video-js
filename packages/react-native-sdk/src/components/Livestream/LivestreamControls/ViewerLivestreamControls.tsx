@@ -1,12 +1,26 @@
-import React from 'react';
-import { StyleSheet, View, type ViewProps } from 'react-native';
-
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, StyleSheet, View, type ViewProps } from 'react-native';
 import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
   type ViewerLeaveStreamButtonProps,
 } from './ViewerLeaveStreamButton';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
+import {
+  DurationBadge,
+  FollowerCount,
+  LiveIndicator,
+} from '../LivestreamTopView';
+import { IconWrapper, Maximize, PhoneDown } from '../../../icons';
+import { useCall } from '@stream-io/video-react-bindings';
+import { getLogger } from '@stream-io/video-client';
+import InCallManager from 'react-native-incall-manager';
+import {
+  VolumeOff,
+  VolumeOn,
+  PauseIcon,
+  PlayIcon,
+} from '../../../icons/LivestreamControls';
 
 /**
  * Props for the ViewerLivestreamControls component.
@@ -27,50 +41,287 @@ export const ViewerLivestreamControls = ({
   onLeaveStreamHandler,
   onLayout,
 }: ViewerLivestreamControlsProps) => {
+  const styles = useStyles();
+  const call = useCall();
   const {
-    theme: { colors, viewerLivestreamControls },
+    theme: { colors, viewerLivestreamControls, variants },
   } = useTheme();
 
-  return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetOverlay },
-        viewerLivestreamControls.container,
-      ]}
-      onLayout={onLayout}
-    >
-      <View style={[styles.leftElement, viewerLivestreamControls.leftElement]}>
-        {ViewerLeaveStreamButton && (
-          <ViewerLeaveStreamButton
-            onLeaveStreamHandler={onLeaveStreamHandler}
-          />
-        )}
+  const [showControls, setShowControls] = useState(true);
+  const [previewControls, setPreviewControls] = useState(false);
+  const hideTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [showPlayPauseButton, setShowPlayPauseButton] = useState(true);
+  const playPauseTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (hideTimeout.current) {
+        clearTimeout(hideTimeout.current);
+      }
+      if (playPauseTimeout.current) {
+        clearTimeout(playPauseTimeout.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    hidePlayPauseButton();
+  }, []);
+
+  const hidePlayPauseButton = () => {
+    if (playPauseTimeout.current) {
+      clearTimeout(playPauseTimeout.current);
+    }
+
+    playPauseTimeout.current = setTimeout(() => {
+      setShowPlayPauseButton(false);
+      playPauseTimeout.current = null;
+    }, 3000);
+  };
+
+  const showPlayPauseButtonWithTimeout = () => {
+    setShowPlayPauseButton(true);
+    hidePlayPauseButton();
+  };
+
+  const showControlsWithTimeout = () => {
+    showPlayPauseButtonWithTimeout();
+
+    if (showControls) {
+      return;
+    }
+
+    setShowControls(true);
+    setPreviewControls(true);
+
+    if (hideTimeout.current) {
+      clearTimeout(hideTimeout.current);
+    }
+
+    hideTimeout.current = setTimeout(() => {
+      if (previewControls) {
+        setShowControls(false);
+        setPreviewControls(false);
+      }
+      hideTimeout.current = null;
+    }, 2000);
+  };
+
+  const toggleControls = () => {
+    if (hideTimeout.current) {
+      clearTimeout(hideTimeout.current);
+      hideTimeout.current = null;
+    }
+
+    setShowControls(!showControls);
+    setPreviewControls(false);
+  };
+
+  const onLeaveHandler = async () => {
+    if (onLeaveStreamHandler) {
+      onLeaveStreamHandler();
+      return;
+    }
+    try {
+      await call?.leave();
+    } catch (error) {
+      const logger = getLogger(['ViewerLeaveStreamButton']);
+      logger('error', 'Error stopping livestream', error);
+    }
+  };
+
+  const toggleAudio = () => {
+    setIsMuted(!isMuted);
+    InCallManager.setForceSpeakerphoneOn(isMuted);
+  };
+
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+    showPlayPauseButtonWithTimeout();
+  };
+
+  const volumeButton = (
+    <Pressable onPress={toggleAudio} style={[styles.fullscreenButton]}>
+      <View style={[styles.icon]}>
+        <IconWrapper>
+          {isMuted ? (
+            <VolumeOff
+              color={colors.iconPrimary}
+              size={variants.iconSizes.sm}
+            />
+          ) : (
+            <VolumeOn color={colors.iconPrimary} size={variants.iconSizes.sm} />
+          )}
+        </IconWrapper>
       </View>
-      <View
-        style={[styles.rightElement, viewerLivestreamControls.rightElement]}
-      />
-    </View>
+    </Pressable>
+  );
+
+  const maximizeButton = (
+    <Pressable onPress={toggleControls} style={[styles.fullscreenButton]}>
+      <View style={[styles.icon]}>
+        <Maximize
+          color={colors.iconPrimary}
+          width={variants.iconSizes.sm}
+          height={variants.iconSizes.sm}
+        />
+      </View>
+    </Pressable>
+  );
+
+  const playPauseButton = (
+    <Pressable onPress={togglePlayPause} style={styles.playPauseButton}>
+      <View style={styles.playPauseIcon}>
+        <IconWrapper>
+          {isPlaying ? (
+            <PauseIcon
+              color={colors.iconPrimary}
+              size={variants.iconSizes.lg * 3}
+            />
+          ) : (
+            <PlayIcon
+              color={colors.iconPrimary}
+              size={variants.iconSizes.lg * 3}
+            />
+          )}
+        </IconWrapper>
+      </View>
+    </Pressable>
+  );
+
+  const leaveButton = (
+    <Pressable onPress={onLeaveHandler} style={[styles.fullscreenButton]}>
+      <View style={[styles.icon]}>
+        <PhoneDown color={colors.iconPrimary} size={variants.iconSizes.sm} />
+      </View>
+    </Pressable>
+  );
+
+  return (
+    <Pressable
+      style={StyleSheet.absoluteFill}
+      onPress={showControlsWithTimeout}
+    >
+      {!isPlaying && <View style={styles.blackOverlay} />}
+
+      {showPlayPauseButton && (
+        <View style={styles.centerButtonContainer}>{playPauseButton}</View>
+      )}
+
+      {(showControls || previewControls) && (
+        <View
+          style={[styles.container, viewerLivestreamControls.container]}
+          onLayout={onLayout}
+        >
+          <View
+            style={[styles.leftElement, viewerLivestreamControls.leftElement]}
+          >
+            <View style={[styles.leftElement]}>
+              <View style={[styles.liveInfo]}>
+                {LiveIndicator && <LiveIndicator />}
+                {FollowerCount && <FollowerCount />}
+              </View>
+            </View>
+          </View>
+          <View>{DurationBadge && <DurationBadge mode="viewer" />}</View>
+
+          <View
+            style={[styles.rightElement, viewerLivestreamControls.rightElement]}
+          >
+            <View style={styles.buttonContainer}>
+              {volumeButton}
+              {maximizeButton}
+              {leaveButton}
+            </View>
+          </View>
+        </View>
+      )}
+    </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-  content: {},
-  leftElement: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  rightElement: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          position: 'absolute',
+          bottom: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 16,
+          paddingHorizontal: 8,
+          zIndex: Z_INDEX.IN_FRONT,
+          backgroundColor: theme.colors.sheetOverlay,
+        },
+        leftElement: {
+          flex: 1,
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+        },
+        rightElement: {
+          flex: 1,
+          alignItems: 'flex-end',
+        },
+        liveInfo: {
+          flexDirection: 'row',
+        },
+        icon: {
+          height: theme.variants.iconSizes.sm,
+          width: theme.variants.iconSizes.sm,
+        },
+        fullscreenButton: {
+          backgroundColor: theme.colors.buttonSecondary,
+          height: theme.variants.buttonSizes.xs,
+          width: theme.variants.buttonSizes.xs,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          zIndex: 2,
+        },
+        buttonContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: theme.variants.spacingSizes.sm,
+        },
+        centerButtonContainer: {
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: Z_INDEX.IN_FRONT,
+          pointerEvents: 'box-none',
+        },
+        playPauseButton: {
+          height: 200,
+          width: 200,
+
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: Z_INDEX.IN_FRONT + 1,
+        },
+        playPauseIcon: {
+          height: 200,
+          width: 200,
+        },
+        blackOverlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'black',
+          zIndex: Z_INDEX.IN_FRONT - 1,
+        },
+      }),
+    [theme],
+  );
+};

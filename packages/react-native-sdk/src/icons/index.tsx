@@ -20,3 +20,4 @@ export * from './StopScreenShare';
 export * from './EndStreamIcon';
 export * from './LeaveStreamIcon';
 export * from './IconWrapper';
+export * from './Maximize';

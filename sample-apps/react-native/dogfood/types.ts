@@ -141,6 +141,7 @@ export type LiveStreamParamList = {
   JoinLiveStream: { mode: 'host' | 'viewer' };
   HostLiveStream: { callId: string };
   ViewerLiveStream: { callId: string };
+  QRScanner: { onScan: (callId: string) => void };
 };
 
 export type AppModeParamList = {
