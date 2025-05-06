@@ -26,10 +26,33 @@ jest.mock('@expo/config-plugins', () => {
   };
 });
 
+// Expo 53 and above
+const ExpoModulesAppDelegateSwift = getFixture('AppDelegate.swift');
+
+// Expo 52 and below
 const ExpoModulesAppDelegate = getFixture('AppDelegate.mm');
 
 describe('withStreamVideoReactNativeSDKAppDelegate', () => {
-  it('should not modify config if push is not enabled', () => {
+  it('objc - should not modify config if push is not enabled', () => {
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'objc',
+        contents: ExpoModulesAppDelegate,
+      },
+    };
+
+    const props: ConfigProps = {};
+    const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
+
+    expect(
+      updatedConfig.modResults.contents === config.modResults.contents,
+    ).toBeTruthy();
+  });
+
+  it('objc - should not modify config if push is not enabled', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
       name: 'test-app',

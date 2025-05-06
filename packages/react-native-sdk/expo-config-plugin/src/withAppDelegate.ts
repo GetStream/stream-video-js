@@ -3,6 +3,9 @@ import {
   withAppDelegate as withAppDelegateUtil,
 } from '@expo/config-plugins';
 import {
+  addSwiftImports,
+  insertContentsInsideSwiftFunctionBlock,
+  findSwiftFunctionCodeBlock,
   addObjcImports,
   findObjcFunctionCodeBlock,
   insertContentsInsideObjcFunctionBlock,
@@ -13,6 +16,7 @@ import {
   type RingingPushNotifications,
 } from './common/types';
 import addNewLinesToAppDelegate from './common/addNewLinesToAppDelegate';
+import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
 const DID_FINISH_LAUNCHING_WITH_OPTIONS =
   'application:didFinishLaunchingWithOptions:';
@@ -49,42 +53,82 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
             ],
           );
 
-          config.modResults.contents = addDidFinishLaunchingWithOptionsRinging(
-            config.modResults.contents,
-            props.ringingPushNotifications,
-          );
+          config.modResults.contents =
+            addDidFinishLaunchingWithOptionsRingingObjc(
+              config.modResults.contents,
+              props.ringingPushNotifications,
+            );
 
-          config.modResults.contents = addDidUpdatePushCredentials(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents = addDidReceiveIncomingPushCallback(
+          config.modResults.contents = addDidUpdatePushCredentialsObjc(
             config.modResults.contents,
           );
 
-          config.modResults.contents = addAudioSessionMethods(
+          config.modResults.contents = addDidReceiveIncomingPushCallbackObjc(
+            config.modResults.contents,
+          );
+
+          config.modResults.contents = addAudioSessionMethodsObjc(
             config.modResults.contents,
           );
         }
-        config.modResults.contents = addDidFinishLaunchingWithOptions(
+        config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
         );
         return config;
       } catch (error: any) {
         throw new Error(
-          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed ${error}`,
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate(objc) is malformed ${error}`,
         );
       }
     } else {
-      throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the language is not supported',
-      );
+      try {
+        addToSwiftBridgingHeaderFile(
+          config.modRequest.projectRoot,
+          (headerFileContents) => {
+            headerFileContents = addObjcImports(headerFileContents, [
+              'ProcessorProvider.h',
+              'StreamVideoReactNative.h',
+              '<WebRTCModuleOptions.h>',
+            ]);
+            return headerFileContents;
+          },
+        );
+        config.modResults.contents = addDidFinishLaunchingWithOptionsSwift(
+          config.modResults.contents,
+          props.iOSEnableMultitaskingCameraAccess,
+        );
+        return config;
+      } catch (error: any) {
+        throw new Error(
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate(swift) is malformed ${error}`,
+        );
+      }
     }
   });
 };
 
-function addDidFinishLaunchingWithOptions(
+function addDidFinishLaunchingWithOptionsSwift(
+  contents: string,
+  iOSEnableMultitaskingCameraAccess: boolean | undefined,
+) {
+  if (iOSEnableMultitaskingCameraAccess) {
+    const setupMethod = `let options = WebRTCModuleOptions.sharedInstance()
+    options.enableMultitaskingCameraAccess = true`;
+
+    if (!contents.includes('options.enableMultitaskingCameraAccess = true')) {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        DID_FINISH_LAUNCHING_WITH_OPTIONS,
+        setupMethod,
+        { position: 'tailBeforeLastReturn' },
+      );
+    }
+  }
+  return contents;
+}
+
+function addDidFinishLaunchingWithOptionsObjc(
   contents: string,
   iOSEnableMultitaskingCameraAccess: boolean | undefined,
 ) {
@@ -106,7 +150,7 @@ function addDidFinishLaunchingWithOptions(
   return contents;
 }
 
-function addDidFinishLaunchingWithOptionsRinging(
+function addDidFinishLaunchingWithOptionsRingingObjc(
   contents: string,
   ringingPushNotifications: RingingPushNotifications,
 ) {
@@ -144,7 +188,7 @@ function addDidFinishLaunchingWithOptionsRinging(
   return contents;
 }
 
-function addDidUpdatePushCredentials(contents: string) {
+function addDidUpdatePushCredentialsObjc(contents: string) {
   const updatedPushCredentialsMethod =
     '[RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];';
   if (!contents.includes(updatedPushCredentialsMethod)) {
@@ -170,7 +214,7 @@ function addDidUpdatePushCredentials(contents: string) {
   return contents;
 }
 
-function addAudioSessionMethods(contents: string) {
+function addAudioSessionMethodsObjc(contents: string) {
   const audioSessionDidActivateMethod =
     '[[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];';
   if (!contents.includes(audioSessionDidActivateMethod)) {
@@ -219,7 +263,7 @@ function addAudioSessionMethods(contents: string) {
   return contents;
 }
 
-function addDidReceiveIncomingPushCallback(contents: string) {
+function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   const onIncomingPush = `
   // process the payload and store it in the native module's cache
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
@@ -276,5 +320,7 @@ function addDidReceiveIncomingPushCallback(contents: string) {
   }
   return contents;
 }
+
+const withIosModulesSwiftBridgingHeader: ConfigPlugin = (config) => {};
 
 export default withAppDelegate;

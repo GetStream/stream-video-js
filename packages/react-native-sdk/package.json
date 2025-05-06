@@ -112,8 +112,8 @@
     }
   },
   "devDependencies": {
-    "@expo/config-plugins": "~9.0.17",
-    "@expo/config-types": "^52.0.5",
+    "@expo/config-plugins": "10.0.0",
+    "@expo/config-types": "^53.0",
     "@expo/plist": "^0.2.2",
     "@notifee/react-native": "9.1.8",
     "@react-native-community/netinfo": "11.4.1",
@@ -131,7 +131,7 @@
     "@types/react": "^18.2.44",
     "@types/react-native-incall-manager": "^4.0.3",
     "@types/react-test-renderer": "^18.3.1",
-    "expo": "~52.0.44",
+    "expo": "~53.0.2",
     "expo-build-properties": "^0.13.2",
     "expo-module-scripts": "^4.0.5",
     "expo-modules-core": "2.2.3",
@@ -147,7 +147,8 @@
     "react-native-voip-push-notification": "3.3.2",
     "react-test-renderer": "^18.3.1",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "xcparse": "^0.0.3"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
