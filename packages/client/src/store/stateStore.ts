@@ -29,7 +29,7 @@ export class StreamVideoWriteableStateStore {
 
           logger('info', `User disconnected, leaving call: ${call.cid}`);
           await call
-            .leave({ reason: 'client.disconnectUser() called' })
+            .leave({ message: 'client.disconnectUser() called' })
             .catch((err) => {
               logger('error', `Error leaving call: ${call.cid}`, err);
             });

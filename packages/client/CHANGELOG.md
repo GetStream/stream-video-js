@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.21.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.20.2...@stream-io/video-client-1.21.0) (2025-05-02)
+
+### Features
+
+- encode and decode PerformanceStats tracing ([#1765](https://github.com/GetStream/stream-video-js/issues/1765)) ([138ea84](https://github.com/GetStream/stream-video-js/commit/138ea84fee834da03cf3c8042fbb2f071526f135))
+
+## [1.20.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.20.1...@stream-io/video-client-1.20.2) (2025-05-01)
+
+### Bug Fixes
+
+- add options for 4K RTMP and Recording ([#1775](https://github.com/GetStream/stream-video-js/issues/1775)) ([c09213d](https://github.com/GetStream/stream-video-js/commit/c09213df5fc8a46f5a8c5c1ef18f07fd05e1d547))
+- use timeout reason when auto-dropping calls (instead of decline) ([#1776](https://github.com/GetStream/stream-video-js/issues/1776)) ([a043148](https://github.com/GetStream/stream-video-js/commit/a04314814e728c3d05d53c8940e9c223fec18fcc))
+
 ## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.20.0...@stream-io/video-client-1.20.1) (2025-04-29)
 
 ### Bug Fixes

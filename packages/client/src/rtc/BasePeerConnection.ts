@@ -5,11 +5,11 @@ import type {
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
-import { ClientDetails, PeerType } from '../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { Tracer, traceRTCPeerConnection, TraceSlice } from '../stats';
+import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -18,7 +18,6 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onUnrecoverableError?: (reason: string) => void;
   logTag: string;
-  clientDetails: ClientDetails;
   enableTracing: boolean;
 };
 
@@ -38,7 +37,10 @@ export abstract class BasePeerConnection {
   protected isIceRestarting = false;
   private isDisposed = false;
 
-  private readonly tracer?: Tracer;
+  protected trackIdToTrackType = new Map<string, TrackType>();
+
+  readonly tracer?: Tracer;
+  readonly stats: StatsTracer;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
 
@@ -54,7 +56,6 @@ export abstract class BasePeerConnection {
       dispatcher,
       onUnrecoverableError,
       logTag,
-      clientDetails,
       enableTracing,
     }: BasePeerConnectionOpts,
   ) {
@@ -68,13 +69,6 @@ export abstract class BasePeerConnection {
       logTag,
     ]);
     this.pc = new RTCPeerConnection(connectionConfig);
-    if (enableTracing) {
-      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
-      this.tracer = new Tracer(tag);
-      this.tracer.trace('clientDetails', clientDetails);
-      this.tracer.trace('create', connectionConfig);
-      traceRTCPeerConnection(this.pc, this.tracer.trace);
-    }
     this.pc.addEventListener('icecandidate', this.onIceCandidate);
     this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.addEventListener(
@@ -83,6 +77,17 @@ export abstract class BasePeerConnection {
     );
     this.pc.addEventListener('icegatheringstatechange', this.onIceGatherChange);
     this.pc.addEventListener('signalingstatechange', this.onSignalingChange);
+    this.pc.addEventListener(
+      'connectionstatechange',
+      this.onConnectionStateChange,
+    );
+    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    if (enableTracing) {
+      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}-${sfuClient.edgeName}`;
+      this.tracer = new Tracer(tag);
+      this.tracer.trace('create', connectionConfig);
+      traceRTCPeerConnection(this.pc, this.tracer.trace);
+    }
   }
 
   /**
@@ -178,10 +183,10 @@ export abstract class BasePeerConnection {
   };
 
   /**
-   * Returns the current tracing buffer.
+   * Maps the given track ID to the corresponding track type.
    */
-  getTrace = (): TraceSlice | undefined => {
-    return this.tracer?.take();
+  getTrackType = (trackId: string): TrackType | undefined => {
+    return this.trackIdToTrackType.get(trackId);
   };
 
   /**
@@ -216,6 +221,23 @@ export abstract class BasePeerConnection {
       return JSON.stringify({ ...candidate, usernameFragment });
     }
     return JSON.stringify(candidate.toJSON());
+  };
+
+  /**
+   * Handles the ConnectionStateChange event.
+   */
+  private onConnectionStateChange = async () => {
+    const state = this.pc.connectionState;
+    this.logger('debug', `Connection state changed`, state);
+    if (!this.tracer) return;
+    if (state === 'connected' || state === 'failed') {
+      try {
+        const stats = await this.stats.get();
+        this.tracer.trace('getstats', stats.delta);
+      } catch (err) {
+        this.tracer.trace('getstatsOnFailure', (err as Error).toString());
+      }
+    }
   };
 
   /**
