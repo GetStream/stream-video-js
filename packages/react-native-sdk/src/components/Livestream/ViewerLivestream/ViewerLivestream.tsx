@@ -87,18 +87,8 @@ export const ViewerLivestream = ({
     return () => InCallManager.stop();
   }, []);
 
-  const topViewProps: ViewerLivestreamTopViewProps = {
-    LiveIndicator,
-    FollowerCount,
-    DurationBadge,
-    onLayout: (event) => {
-      setTopViewHeight(event.nativeEvent.layout.height);
-    },
-  };
-
   const { useIsCallLive } = useCallStateHooks();
   const isCallLive = useIsCallLive();
-  console.log('🚀 ~ isCallLive:', isCallLive);
 
   /**
    * The call is joined using the anonymous user/client.

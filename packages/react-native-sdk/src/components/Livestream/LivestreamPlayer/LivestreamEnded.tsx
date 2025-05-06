@@ -1,15 +1,16 @@
+import React from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
 import { useState, useEffect, useMemo } from 'react';
-import {
-  Text,
-  FlatList,
-  Pressable,
-  Linking,
-  StyleSheet,
-  View,
-} from 'react-native';
 import { useTheme } from '../../../contexts';
 import { ListRecordingsResponse } from '@stream-io/video-client';
+import {
+  FlatList,
+  Pressable,
+  View,
+  Text,
+  StyleSheet,
+  Linking,
+} from 'react-native';
 
 export const CallEndedView = () => {
   const call = useCall();

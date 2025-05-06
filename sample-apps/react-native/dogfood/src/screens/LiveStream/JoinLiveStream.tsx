@@ -1,5 +1,5 @@
 import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -36,7 +36,7 @@ export const JoinLiveStream = ({
   const { t } = useI18n();
   const orientation = useOrientation();
   const {
-    params: { mode },
+    params: { mode, scannedCallId },
   } = route;
   const [callId, setCallId] = useState<string>(
     mode === 'host' ? randomId() : '',
@@ -52,11 +52,17 @@ export const JoinLiveStream = ({
 
   const openQRScanner = () => {
     navigation.navigate('QRScanner', {
-      onScan: (scannedCallId) => {
-        setCallId(scannedCallId);
+      onScan: (id) => {
+        setCallId(id);
       },
     });
   };
+
+  useEffect(() => {
+    if (scannedCallId) {
+      setCallId(scannedCallId);
+    }
+  }, [scannedCallId]);
 
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',

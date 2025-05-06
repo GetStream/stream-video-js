@@ -38,22 +38,25 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
           const id = url.searchParams.get('id');
           if (id) {
             onScan(id);
-            safeGoBack();
+            safeGoBack(id);
           }
         } catch (error) {
           // If not a valid URL, pass the raw QR data
           onScan(qrData);
-          safeGoBack();
+          safeGoBack(qrData);
         }
       }
     },
   });
 
-  const safeGoBack = () => {
+  const safeGoBack = (callId: string) => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate('ViewerLiveStream');
+      navigation.navigate('JoinLiveStream', {
+        mode: 'viewer',
+        scannedCallId: callId,
+      });
     }
   };
 

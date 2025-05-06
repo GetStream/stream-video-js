@@ -138,7 +138,7 @@ export type CallStackParamList = {
 
 export type LiveStreamParamList = {
   LiveStreamChoose: undefined;
-  JoinLiveStream: { mode: 'host' | 'viewer' };
+  JoinLiveStream: { mode: 'host' | 'viewer'; scannedCallId?: string };
   HostLiveStream: { callId: string };
   ViewerLiveStream: { callId: string };
   QRScanner: { onScan: (callId: string) => void };
