@@ -81,14 +81,6 @@ export const ScreenshotIosContextProvider = ({
           );
         }
 
-        if (!participant?.userId) {
-          getLogger(['ScreenshotIosContextProvider'])(
-            'error',
-            'Cannot take snapshot: Invalid participant',
-          );
-          return null;
-        }
-
         const ref = participantVideoViewRefMap.get(
           `${participant.userId}-${videoTrackType}`,
         );
