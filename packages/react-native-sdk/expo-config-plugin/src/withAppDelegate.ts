@@ -415,8 +415,8 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
                                      supportsGrouping: true,
                                      supportsUngrouping: true,
                                      fromPushKit: true,
-                                     payload: stream, // Completion handler is already handled above
-  `;
+                                     payload: stream,
+                                     withCompletionHandler: nil)
   if (
     !contents.includes('RNVoipPushNotificationManager.didReceiveIncomingPush')
   ) {
