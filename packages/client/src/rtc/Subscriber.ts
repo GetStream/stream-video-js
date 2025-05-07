@@ -99,6 +99,8 @@ export class Subscriber extends BasePeerConnection {
       return this.logger('error', `Unknown track type: ${rawTrackType}`);
     }
 
+    this.trackIdToTrackType.set(e.track.id, trackType);
+
     if (!participantToUpdate) {
       this.logger(
         'warn',
