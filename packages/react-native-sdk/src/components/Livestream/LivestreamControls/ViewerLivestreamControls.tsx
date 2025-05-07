@@ -11,9 +11,7 @@ import {
   FollowerCount,
   LiveIndicator,
 } from '../LivestreamTopView';
-import { IconWrapper, Maximize, PhoneDown } from '../../../icons';
-import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger } from '@stream-io/video-client';
+import { IconWrapper, Maximize } from '../../../icons';
 import InCallManager from 'react-native-incall-manager';
 import {
   VolumeOff,
@@ -42,7 +40,6 @@ export const ViewerLivestreamControls = ({
   onLayout,
 }: ViewerLivestreamControlsProps) => {
   const styles = useStyles();
-  const call = useCall();
   const {
     theme: { colors, viewerLivestreamControls, variants },
   } = useTheme();
@@ -119,19 +116,6 @@ export const ViewerLivestreamControls = ({
     setPreviewControls(false);
   };
 
-  const onLeaveHandler = async () => {
-    if (onLeaveStreamHandler) {
-      onLeaveStreamHandler();
-      return;
-    }
-    try {
-      await call?.leave();
-    } catch (error) {
-      const logger = getLogger(['ViewerLeaveStreamButton']);
-      logger('error', 'Error stopping livestream', error);
-    }
-  };
-
   const toggleAudio = () => {
     setIsMuted(!isMuted);
     InCallManager.setForceSpeakerphoneOn(isMuted);
@@ -191,14 +175,6 @@ export const ViewerLivestreamControls = ({
     </Pressable>
   );
 
-  const leaveButton = (
-    <Pressable onPress={onLeaveHandler} style={[styles.fullscreenButton]}>
-      <View style={[styles.icon]}>
-        <PhoneDown color={colors.iconPrimary} size={variants.iconSizes.sm} />
-      </View>
-    </Pressable>
-  );
-
   return (
     <Pressable
       style={StyleSheet.absoluteFill}
@@ -233,7 +209,11 @@ export const ViewerLivestreamControls = ({
             <View style={styles.buttonContainer}>
               {volumeButton}
               {maximizeButton}
-              {leaveButton}
+              {ViewerLeaveStreamButton && (
+                <ViewerLeaveStreamButton
+                  onLeaveStreamHandler={onLeaveStreamHandler}
+                />
+              )}
             </View>
           </View>
         </View>

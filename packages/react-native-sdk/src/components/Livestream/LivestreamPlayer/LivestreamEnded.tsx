@@ -28,7 +28,7 @@ export const CallEndedView = () => {
           const callRecordingsResponse = await call?.queryRecordings();
           setRecordingsResponse(callRecordingsResponse);
         } catch (error) {
-          console.error('Error fetching recordings:', error);
+          console.log('Error fetching recordings:', error);
           setRecordingsResponse(undefined);
         }
       }

@@ -2,10 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
-import {
-  ViewerLivestreamTopView as DefaultViewerLivestreamTopView,
-  type ViewerLivestreamTopViewProps,
-} from '../LivestreamTopView/ViewerLivestreamTopView';
+import { type ViewerLivestreamTopViewProps } from '../LivestreamTopView/ViewerLivestreamTopView';
 import {
   ViewerLivestreamControls as DefaultViewerLivestreamControls,
   type ViewerLivestreamControlsProps,
@@ -67,8 +64,12 @@ export const ViewerLivestream = ({
   const {
     theme: { viewerLivestream },
   } = useTheme();
-  const { useHasOngoingScreenShare, useParticipants, useCallCallingState } =
-    useCallStateHooks();
+  const {
+    useHasOngoingScreenShare,
+    useParticipants,
+    useCallCallingState,
+    useCallEndedAt,
+  } = useCallStateHooks();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const [currentSpeaker] = useParticipants();
   const floatingParticipant =
@@ -120,6 +121,7 @@ export const ViewerLivestream = ({
   };
 
   const callingState = useCallCallingState();
+  const endedAt = useCallEndedAt();
 
   if (
     !isCallLive ||
@@ -128,7 +130,7 @@ export const ViewerLivestream = ({
     return <ViewerLobby isLive={isCallLive} handleJoinCall={handleJoinCall} />;
   }
 
-  if (callingState === CallingState.LEFT) {
+  if (endedAt != null || callingState === CallingState.LEFT) {
     return <CallEndedView />;
   }
 

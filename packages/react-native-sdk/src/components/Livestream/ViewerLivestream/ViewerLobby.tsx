@@ -34,8 +34,6 @@ export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
   useEffect(() => {
     if (!startsAt || isLive) return;
 
-    let intervalId: NodeJS.Timeout;
-
     const updateCountdown = () => {
       const now = Date.now();
       const timeRemaining = Math.max(0, startsAt.getTime() - now);
@@ -53,7 +51,7 @@ export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
 
     updateCountdown();
 
-    intervalId = setInterval(updateCountdown, 1000);
+    const intervalId = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(intervalId);
   }, [startsAt, isLive]);
