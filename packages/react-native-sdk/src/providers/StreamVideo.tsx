@@ -10,7 +10,7 @@ import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
 import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme } from '../theme/theme';
-import { SnapshotProvider } from '../contexts/internal/SnapshotContext';
+import { ScreenshotIosContextProvider } from '../contexts/internal/ScreenshotIosContext';
 
 /**
  *
@@ -62,10 +62,10 @@ export const StreamVideo = (
     >
       <StreamTheme style={style}>
         <StreamVideoStoreProvider>
-          <SnapshotProvider>
+          <ScreenshotIosContextProvider>
             <PushRegister />
             {children}
-          </SnapshotProvider>
+          </ScreenshotIosContextProvider>
         </StreamVideoStoreProvider>
       </StreamTheme>
     </StreamVideoProvider>

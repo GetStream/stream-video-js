@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useSnapshot } from '../contexts/internal/SnapshotContext';
+import { useScreenshotIosContext } from '../contexts/internal/ScreenshotIosContext';
 import { NativeModules, Platform } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import {
@@ -30,7 +30,7 @@ type UseScreenshotResult = {
 };
 
 export function useScreenshot(): UseScreenshotResult {
-  const { take } = useSnapshot();
+  const { take } = useScreenshotIosContext();
   const takeScreenshot = useCallback(
     async (
       participant: StreamVideoParticipant,

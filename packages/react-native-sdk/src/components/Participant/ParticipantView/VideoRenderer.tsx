@@ -15,7 +15,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
-import { useSnapshot } from '../../../contexts/internal/SnapshotContext';
+import { useScreenshotIosContext } from '../../../contexts/internal/ScreenshotIosContext';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -63,8 +63,10 @@ export const VideoRenderer = ({
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { direction } = useCameraState();
   const viewRef = useRef(null);
-  const { register: registerSnapshot, deregister: deregisterSnapshot } =
-    useSnapshot();
+  const {
+    register: registerIosScreenshot,
+    deregister: deregisterIosScreenshot,
+  } = useScreenshotIosContext();
 
   const videoDimensions = useTrackDimensions(participant, trackType);
   const {
@@ -91,27 +93,24 @@ export const VideoRenderer = ({
     isPublishingVideoTrack &&
     isParticipantVideoEnabled(participant.sessionId);
 
-  // Register this view with the snapshot provider
   React.useEffect(() => {
     if (
       Platform.OS === 'ios' &&
-      registerSnapshot &&
+      registerIosScreenshot &&
       viewRef.current &&
       canShowVideo
     ) {
-      registerSnapshot(participant, trackType, viewRef);
-    } else {
-      deregisterSnapshot(participant, trackType);
+      registerIosScreenshot(participant, trackType, viewRef);
+      return () => {
+        deregisterIosScreenshot(participant, trackType);
+      };
     }
-    return () => {
-      deregisterSnapshot(participant, trackType);
-    };
   }, [
     participant,
     trackType,
-    registerSnapshot,
+    registerIosScreenshot,
     canShowVideo,
-    deregisterSnapshot,
+    deregisterIosScreenshot,
   ]);
 
   const mirror =

@@ -6,7 +6,6 @@ import {
 import React, {
   createContext,
   useContext,
-  useRef,
   RefObject,
   useCallback,
   useMemo,
@@ -15,7 +14,7 @@ import { NativeModules, findNodeHandle, Platform } from 'react-native';
 
 const { StreamVideoReactNative } = NativeModules;
 
-type SnapshotContextType = {
+type ScreenshotIosContextType = {
   register: (
     participant: StreamVideoParticipant,
     videoTrackType: VideoTrackType,
@@ -32,17 +31,15 @@ type SnapshotContextType = {
 };
 
 // Create the context with a default undefined value
-const SnapshotContext = createContext<SnapshotContextType | undefined>(
-  undefined,
-);
+const ScreenshotIosContext = createContext<
+  ScreenshotIosContextType | undefined
+>(undefined);
 
-// Reference map type
-type RefMap = Map<string, RefObject<any>>;
+const participantVideoViewRefMap: Map<string, RefObject<any>> = new Map();
 
-export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
-  // Use a ref to store the map of participant IDs to their view refs
-  const participantRefs = useRef<RefMap>(new Map());
-
+export const ScreenshotIosContextProvider = ({
+  children,
+}: React.PropsWithChildren<{}>) => {
   // Register a participant's RTCView ref
   const register = useCallback(
     (
@@ -51,7 +48,7 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
       ref: RefObject<any>,
     ) => {
       if (ref && participant.userId) {
-        participantRefs.current.set(
+        participantVideoViewRefMap.set(
           `${participant.userId}-${videoTrackType}`,
           ref,
         );
@@ -63,7 +60,7 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const deregister = useCallback(
     (participant: StreamVideoParticipant, videoTrackType: VideoTrackType) => {
       if (participant.userId) {
-        participantRefs.current.delete(
+        participantVideoViewRefMap.delete(
           `${participant.userId}-${videoTrackType}`,
         );
       }
@@ -79,22 +76,24 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
     ): Promise<string | null> => {
       try {
         if (Platform.OS !== 'ios') {
-          throw new Error('SnapshotProvider is only supported on iOS');
+          throw new Error(
+            'ScreenshotIosContextProvider is only supported on iOS',
+          );
         }
 
         if (!participant?.userId) {
-          getLogger(['SnapshotProvider'])(
+          getLogger(['ScreenshotIosContextProvider'])(
             'error',
             'Cannot take snapshot: Invalid participant',
           );
           return null;
         }
 
-        const ref = participantRefs.current.get(
+        const ref = participantVideoViewRefMap.get(
           `${participant.userId}-${videoTrackType}`,
         );
         if (!ref || !ref.current) {
-          getLogger(['SnapshotProvider'])(
+          getLogger(['ScreenshotIosContextProvider'])(
             'error',
             'Cannot take snapshot: No registered view for this participant',
           );
@@ -104,7 +103,7 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
         // Get the native handle for the view
         const tag = findNodeHandle(ref.current);
         if (!tag) {
-          getLogger(['SnapshotProvider'])(
+          getLogger(['ScreenshotIosContextProvider'])(
             'error',
             'Cannot take snapshot: Cannot get native handle for view',
           );
@@ -116,7 +115,7 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
         return base64Image;
       } catch (error) {
-        getLogger(['SnapshotProvider'])(
+        getLogger(['ScreenshotIosContextProvider'])(
           'error',
           'Error taking participant snapshot:',
           error,
@@ -137,16 +136,18 @@ export const SnapshotProvider = ({ children }: React.PropsWithChildren<{}>) => {
   );
 
   return (
-    <SnapshotContext.Provider value={value}>
+    <ScreenshotIosContext.Provider value={value}>
       {children}
-    </SnapshotContext.Provider>
+    </ScreenshotIosContext.Provider>
   );
 };
 
-export const useSnapshot = (): SnapshotContextType => {
-  const context = useContext(SnapshotContext);
+export const useScreenshotIosContext = (): ScreenshotIosContextType => {
+  const context = useContext(ScreenshotIosContext);
   if (!context) {
-    throw new Error('useSnapshot must be used within a SnapshotProvider');
+    throw new Error(
+      'useScreenshotIosContext must be used within a ScreenshotIosContextProvider',
+    );
   }
   return context;
 };
