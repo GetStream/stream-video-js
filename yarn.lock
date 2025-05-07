@@ -6534,7 +6534,7 @@ __metadata:
     "@react-native-firebase/messaging": "npm:^21.13.0"
     "@rnx-kit/metro-config": "npm:^1.3.17"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.36"
-    "@stream-io/react-native-webrtc": "npm:^125.2.0"
+    "@stream-io/react-native-webrtc": "npm:^125.2.1"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~18.3.12"
     "@types/react-native-incall-manager": "npm:^4.0.3"
@@ -6622,19 +6622,6 @@ __metadata:
     "@stream-io/openai-realtime-api":
       optional: true
   checksum: 10/ff49c95275c958ce3ae78d537dee25f11877773990bdafcb985afe0cbeb1c7a5a17b31b119764635f457696047e75ce5717ff415bc186d85f6003edb64c53316
-  languageName: node
-  linkType: hard
-
-"@stream-io/react-native-webrtc@npm:^125.2.0":
-  version: 125.2.0
-  resolution: "@stream-io/react-native-webrtc@npm:125.2.0"
-  dependencies:
-    base64-js: "npm:1.5.1"
-    debug: "npm:4.3.4"
-    event-target-shim: "npm:6.0.2"
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: 10/e2fcdf743ae9932178d5a544a82cbae15da763de5758abd137f8d33e927d15edf66171b53199cc574b8f05a2b2715078d8a0099be65bc5daa685c9f1fae083ac
   languageName: node
   linkType: hard
 
