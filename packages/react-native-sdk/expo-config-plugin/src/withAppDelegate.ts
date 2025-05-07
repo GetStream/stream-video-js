@@ -416,7 +416,7 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
                                      supportsUngrouping: true,
                                      fromPushKit: true,
                                      payload: stream,
-                                     withCompletionHandler: nil)
+                                     withCompletionHandler: nil)`;
   if (
     !contents.includes('RNVoipPushNotificationManager.didReceiveIncomingPush')
   ) {
