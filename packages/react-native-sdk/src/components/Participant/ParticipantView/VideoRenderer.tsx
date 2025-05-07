@@ -58,8 +58,12 @@ export const VideoRenderer = ({
     useCallStateHooks();
   const { isParticipantVideoEnabled } = useIncomingVideoSettings();
   const callingState = useCallCallingState();
-  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
-  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension | undefined>(
+    undefined,
+  );
+  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension | undefined>(
+    undefined,
+  );
   const { direction } = useCameraState();
   const videoDimensions = useTrackDimensions(participant, trackType);
   const {
