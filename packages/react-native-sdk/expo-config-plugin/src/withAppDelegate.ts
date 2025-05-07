@@ -184,13 +184,13 @@ function addDidFinishLaunchingWithOptionsRingingSwift(
     : 'true';
   const includesCallsInRecents =
     ringingPushNotifications.includesCallsInRecentsIos ? 'false' : 'true';
-  const setupCallKeep = `let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
-  let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
-  RNCallKeep.setup([
-    "appName": localizedAppName != nil ? localizedAppName! : appName as Any,
-    "supportsVideo": ${supportsVideoString},
-    "includesCallsInRecents": ${includesCallsInRecents},
-  ])`;
+  const setupCallKeep = `  let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
+    let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
+    RNCallKeep.setup([
+      "appName": localizedAppName != nil ? localizedAppName! : appName as Any,
+      "supportsVideo": ${supportsVideoString},
+      "includesCallsInRecents": ${includesCallsInRecents},
+    ])`;
   if (!contents.includes('RNCallKeep.setup')) {
     contents = insertContentsInsideSwiftFunctionBlock(
       contents,
@@ -205,7 +205,7 @@ function addDidFinishLaunchingWithOptionsRingingSwift(
     contents = insertContentsInsideSwiftFunctionBlock(
       contents,
       functionSelector,
-      voipSetupMethod,
+      '  ' /* indentation */ + voipSetupMethod,
       { position: 'head' },
     );
   }
