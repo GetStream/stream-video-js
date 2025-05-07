@@ -11,14 +11,9 @@ import { CallingState } from '@stream-io/video-client';
 type LobbyProps = {
   isLive: boolean;
   handleJoinCall?: () => void;
-  setCallJoined: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const ViewerLobby = ({
-  isLive,
-  handleJoinCall,
-  setCallJoined,
-}: LobbyProps) => {
+export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
   const styles = useStyles();
   const { theme } = useTheme();
   const { t } = useI18n();
@@ -28,10 +23,6 @@ export const ViewerLobby = ({
   const [error, setError] = useState<Error | undefined>(undefined);
   const [countdown, setCountdown] = React.useState('');
   const participants = useParticipants();
-
-  useEffect(() => {
-    setCallJoined(false);
-  }, [setCallJoined]);
 
   // Automatically join call when isLive becomes true
   useEffect(() => {
@@ -115,7 +106,7 @@ export const ViewerLobby = ({
         {isLive
           ? t('Stream is ready!')
           : startsAt
-            ? `Livestream will start in:`
+            ? t('Livestream will start in:')
             : t('Livestream will start soon')}
       </Text>
       {startsAt && !isLive && (
@@ -124,7 +115,7 @@ export const ViewerLobby = ({
       {!isLive && participants.length > 0 && (
         <>
           <Text style={styles.participantsText}>
-            {`${participants.length} participants have joined early`}
+            {`${participants.length} ${t('participants have joined early')}`}
           </Text>
         </>
       )}

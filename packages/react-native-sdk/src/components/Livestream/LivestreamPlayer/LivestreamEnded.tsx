@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../../../contexts';
 import { ListRecordingsResponse } from '@stream-io/video-client';
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 export const CallEndedView = () => {
+  const { t } = useI18n();
   const call = useCall();
   const [recordingsResponse, setRecordingsResponse] = useState<
     ListRecordingsResponse | undefined
@@ -22,7 +23,7 @@ export const CallEndedView = () => {
 
   useEffect(() => {
     const fetchRecordings = async () => {
-      if (recordingsResponse === null) {
+      if (recordingsResponse == null) {
         try {
           const callRecordingsResponse = await call?.queryRecordings();
           setRecordingsResponse(callRecordingsResponse);
@@ -51,11 +52,11 @@ export const CallEndedView = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>The livestream has ended.</Text>
+      <Text style={styles.title}>{t('The livestream has ended.')}</Text>
 
       {showRecordings && (
         <>
-          <Text style={styles.subtitle}>Watch recordings:</Text>
+          <Text style={styles.subtitle}>{t('Watch recordings:')}</Text>
           <View style={styles.recordingsContainer}>
             <FlatList
               data={recordingsResponse.recordings}
@@ -65,7 +66,9 @@ export const CallEndedView = () => {
                   style={styles.recordingButton}
                   onPress={() => openUrl(item.url)}
                 >
-                  <Text style={styles.recordingText}>{item.url}</Text>
+                  <Text style={styles.recordingText}>
+                    {item.url.substring(0, 70)}...
+                  </Text>
                 </Pressable>
               )}
             />
