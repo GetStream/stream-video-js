@@ -182,6 +182,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
 
     // Check Swift imports
+    expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
     expect(updatedConfig.modResults.contents).toMatch(/import WebRTC/);
     expect(updatedConfig.modResults.contents).toMatch(/import RNCallKeep/);
     expect(updatedConfig.modResults.contents).toMatch(/import PushKit/);

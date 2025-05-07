@@ -4,6 +4,7 @@ import {
 } from '@expo/config-plugins';
 import {
   addSwiftImports,
+  insertContentsInsideSwiftClassBlock,
   insertContentsInsideSwiftFunctionBlock,
   findSwiftFunctionCodeBlock,
   addObjcImports,
@@ -16,7 +17,6 @@ import {
   type RingingPushNotifications,
 } from './common/types';
 import addNewLinesToAppDelegateObjc from './common/addNewLinesToAppDelegateObjc';
-import addNewLinesToAppDelegateSwift from './common/addNewLinesToAppDelegateSwift';
 import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
 const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
@@ -72,6 +72,30 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
       }
     } else {
       try {
+        if (props?.ringingPushNotifications) {
+          // make it public class AppDelegate: ExpoAppDelegate, PKPushRegistryDelegate {
+          const regex = /(class\s+AppDelegate[^{]*)(\s*\{)/;
+          config.modResults.contents = config.modResults.contents.replace(
+            regex,
+            (match, declarationPart, openBrace) => {
+              // Check if PKPushRegistryDelegate is already in the declaration part
+              if (declarationPart.includes('PKPushRegistryDelegate')) {
+                return match; // Already present, no change needed
+              }
+
+              const trimmedDecl = declarationPart.trimRight();
+
+              // If the declaration already has a colon (superclass or other protocols)
+              if (trimmedDecl.includes(':')) {
+                return `${trimmedDecl}, PKPushRegistryDelegate${openBrace}`;
+              } else {
+                // No colon, so AppDelegate is the first thing to be listed after :
+                // This means the class declaration was like "class AppDelegate {"
+                return `${trimmedDecl}: PKPushRegistryDelegate${openBrace}`;
+              }
+            },
+          );
+        }
         config.modResults.contents = addSwiftImports(
           config.modResults.contents,
           ['WebRTC'],
@@ -138,7 +162,7 @@ function addDidFinishLaunchingWithOptionsSwift(
         contents,
         functionSelector,
         setupMethod,
-        { position: 'tailBeforeLastReturn' },
+        { position: 'head' },
       );
     }
   }
@@ -161,7 +185,7 @@ function addDidFinishLaunchingWithOptionsObjc(
         contents,
         functionSelector,
         setupMethod,
-        { position: 'tailBeforeLastReturn' },
+        { position: 'head' },
       );
     }
   }
@@ -253,15 +277,20 @@ function addDidUpdatePushCredentialsSwift(contents: string) {
     const functionSelector = 'pushRegistry(_:didUpdate:for:)';
     const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
-      return addNewLinesToAppDelegateSwift(contents, [
-        'func pushRegistry(',
-        '  _ registry: PKPushRegistry,',
-        '  didUpdate credentials: PKPushCredentials,',
-        '  for type: PKPushType',
-        ') {',
-        '  ' /* indentation */ + updatedPushCredentialsMethod,
-        '}',
-      ]);
+      return insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+    public func pushRegistry(
+      _ registry: PKPushRegistry,
+      didUpdate credentials: PKPushCredentials,
+      for type: PKPushType
+    ) {
+      ${updatedPushCredentialsMethod}
+    }
+            `,
+        { position: 'tail' },
+      );
     } else {
       return insertContentsInsideSwiftFunctionBlock(
         contents,
@@ -303,13 +332,17 @@ function addAudioSessionMethodsSwift(contents: string) {
     'RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance())';
   if (!contents.includes(audioSessionDidActivateMethod)) {
     const functionSelector = 'provider(_:didActivate:)';
-    const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      contents = addNewLinesToAppDelegateSwift(contents, [
-        'func provider(_ provider: CXProvider, didActivateAudioSession audioSession: AVAudioSession) {',
-        '  ' /* indentation */ + audioSessionDidActivateMethod,
-        '}',
-      ]);
+    if (!contents.includes('didActivateAudioSession')) {
+      contents = insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+  func provider(_ provider: CXProvider, didActivateAudioSession audioSession: AVAudioSession) {
+    ${audioSessionDidActivateMethod}
+  }
+    `,
+        { position: 'tail' },
+      );
     } else {
       contents = insertContentsInsideSwiftFunctionBlock(
         contents,
@@ -324,13 +357,17 @@ function addAudioSessionMethodsSwift(contents: string) {
 
   if (!contents.includes(audioSessionDidDeactivateMethod)) {
     const functionSelector = 'provider(_:didDeactivate:)';
-    const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      contents = addNewLinesToAppDelegateSwift(contents, [
-        'func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {',
-        '  ' /* indentation */ + audioSessionDidDeactivateMethod,
-        '}',
-      ]);
+    if (!contents.includes('didDeactivateAudioSession')) {
+      contents = insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+  func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {
+    ${audioSessionDidDeactivateMethod}
+  }
+    `,
+        { position: 'tail' },
+      );
     } else {
       contents = insertContentsInsideSwiftFunctionBlock(
         contents,
@@ -390,7 +427,7 @@ function addAudioSessionMethodsObjc(contents: string) {
 
 function addDidReceiveIncomingPushCallbackSwift(contents: string) {
   const onIncomingPush = `
-  guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
+    guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
           let createdCallerName = stream["created_by_display_name"] as? String,
           let cid = stream["call_cid"] as? String else {
       completion()
@@ -424,16 +461,21 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
       'pushRegistry(_:didReceiveIncomingPushWith:for:completion:)';
     const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
-      return addNewLinesToAppDelegateSwift(contents, [
-        'func pushRegistry(',
-        '  _ registry: PKPushRegistry,',
-        '  didReceiveIncomingPushWith payload: PKPushPayload,',
-        '  for type: PKPushType,',
-        '  completion: @escaping () -> Void',
-        ') {',
-        '  ' /* indentation */ + onIncomingPush,
-        '}',
-      ]);
+      return insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+  public func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType,
+    completion: @escaping () -> Void
+  ) {
+    ${onIncomingPush}
+  }
+        `,
+        { position: 'tail' },
+      );
     } else {
       return insertContentsInsideSwiftFunctionBlock(
         contents,
