@@ -6015,9 +6015,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/app@npm:^21.13.0":
-  version: 21.13.0
-  resolution: "@react-native-firebase/app@npm:21.13.0"
+"@react-native-firebase/app@npm:^22.1.0":
+  version: 22.1.0
+  resolution: "@react-native-firebase/app@npm:22.1.0"
   dependencies:
     firebase: "npm:11.3.1"
   peerDependencies:
@@ -6027,20 +6027,20 @@ __metadata:
   peerDependenciesMeta:
     expo:
       optional: true
-  checksum: 10/97b1b3e40e5715594cb1a03d0c426e44b9650cc634536a8b0431891edbebee589fcd76cbfdb12e6a57a8369c14b073d20a078003c8954bb25da56a7dfcd42736
+  checksum: 10/479f57f5a08d9779b85c502578aa907854c6ef70b36c51c606fe85a69dbe5e4908616121d4ddceb7810a42152a0ee7d6cc7a0c0f5dac5d0796280dcd3a170470
   languageName: node
   linkType: hard
 
-"@react-native-firebase/messaging@npm:^21.13.0":
-  version: 21.13.0
-  resolution: "@react-native-firebase/messaging@npm:21.13.0"
+"@react-native-firebase/messaging@npm:^22.1.0":
+  version: 22.1.0
+  resolution: "@react-native-firebase/messaging@npm:22.1.0"
   peerDependencies:
-    "@react-native-firebase/app": 21.13.0
+    "@react-native-firebase/app": 22.1.0
     expo: ">=47.0.0"
   peerDependenciesMeta:
     expo:
       optional: true
-  checksum: 10/208e1baf5337d7e068c81d7acc22cea4ea89f829aedf301331a642889c8153ebfe1dcf56d44ebf5da8390ef90640a077dd6145ad191da5ea67e5398d08900b46
+  checksum: 10/f6122d1be53455c1d9cc8b2130907b19ad9246d19ef513590b2c35211980d75c70e028bd6fd5ac3f76e6538c4c530571309a51764b6e24957acc89d51ffb1ca8
   languageName: node
   linkType: hard
 
@@ -7689,8 +7689,8 @@ __metadata:
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-async-storage/async-storage": "npm:1.24.0"
     "@react-native-community/netinfo": "npm:11.4.1"
-    "@react-native-firebase/app": "npm:^21.13.0"
-    "@react-native-firebase/messaging": "npm:^21.13.0"
+    "@react-native-firebase/app": "npm:^22.1.0"
+    "@react-native-firebase/messaging": "npm:^22.1.0"
     "@rnx-kit/metro-config": "npm:^1.3.17"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.36"
     "@stream-io/react-native-webrtc": "npm:^125.0.8"
@@ -7995,8 +7995,8 @@ __metadata:
     "@react-native-community/cli-platform-ios": "npm:18.0.0"
     "@react-native-community/netinfo": "npm:^11.4.1"
     "@react-native-community/push-notification-ios": "npm:^1.11.0"
-    "@react-native-firebase/app": "npm:^21.13.0"
-    "@react-native-firebase/messaging": "npm:^21.13.0"
+    "@react-native-firebase/app": "npm:^22.1.0"
+    "@react-native-firebase/messaging": "npm:^22.1.0"
     "@react-native/babel-preset": "npm:0.79.1"
     "@react-native/eslint-config": "npm:0.79.1"
     "@react-native/metro-config": "npm:0.79.1"
@@ -8061,8 +8061,8 @@ __metadata:
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-async-storage/async-storage": "npm:2.1.2"
     "@react-native-community/netinfo": "npm:11.4.1"
-    "@react-native-firebase/app": "npm:^21.13.0"
-    "@react-native-firebase/messaging": "npm:^21.13.0"
+    "@react-native-firebase/app": "npm:^22.1.0"
+    "@react-native-firebase/messaging": "npm:^22.1.0"
     "@react-navigation/bottom-tabs": "npm:^7.2.0"
     "@react-navigation/native": "npm:^7.0.14"
     "@rnx-kit/metro-config": "npm:^1.3.17"
@@ -8111,8 +8111,8 @@ __metadata:
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-community/netinfo": "npm:11.4.1"
     "@react-native-community/push-notification-ios": "npm:1.11.0"
-    "@react-native-firebase/app": "npm:^21.13.0"
-    "@react-native-firebase/messaging": "npm:^21.13.0"
+    "@react-native-firebase/app": "npm:^22.1.0"
+    "@react-native-firebase/messaging": "npm:^22.1.0"
     "@react-native/babel-preset": "npm:^0.76.9"
     "@stream-io/react-native-webrtc": "npm:^125.0.8"
     "@stream-io/video-client": "workspace:*"
