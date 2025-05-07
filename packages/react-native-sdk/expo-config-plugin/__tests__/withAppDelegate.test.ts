@@ -188,10 +188,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /import RNVoipPushNotification/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /import StreamVideoReactNative.h/,
-    );
-
     // Check Swift implementation
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = true/,

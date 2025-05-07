@@ -94,13 +94,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         if (props?.ringingPushNotifications) {
           config.modResults.contents = addSwiftImports(
             config.modResults.contents,
-            [
-              'RNCallKeep',
-              'PushKit',
-              'RNVoipPushNotification',
-              'StreamVideoReactNative.h',
-              'WebRTC',
-            ],
+            ['RNCallKeep', 'PushKit', 'RNVoipPushNotification'],
           );
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingSwift(
