@@ -84,8 +84,10 @@ export function setPushConfig() {
     // https://docs.expo.dev/push-notifications/receiving-notifications/#foreground-notification-behavior
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: false,
         shouldShowAlert: true,
-        shouldPlaySound: false,
+        shouldPlaySound: true,
         shouldSetBadge: false,
       }),
     });
