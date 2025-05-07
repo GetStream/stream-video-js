@@ -121,7 +121,7 @@
     "@react-native-firebase/app": "^22.1.0",
     "@react-native-firebase/messaging": "^22.1.0",
     "@react-native/babel-preset": "^0.76.9",
-    "@stream-io/react-native-webrtc": "^125.2.0",
+    "@stream-io/react-native-webrtc": "^125.2.1",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.9.0",
