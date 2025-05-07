@@ -80,8 +80,8 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           config.modRequest.projectRoot,
           (headerFileContents) => {
             headerFileContents = addObjcImports(headerFileContents, [
-              'ProcessorProvider.h',
-              'StreamVideoReactNative.h',
+              '"ProcessorProvider.h"',
+              '"StreamVideoReactNative.h"',
               '<WebRTCModuleOptions.h>',
             ]);
             return headerFileContents;
@@ -140,7 +140,7 @@ function addDidFinishLaunchingWithOptionsSwift(
     options.enableMultitaskingCameraAccess = true`;
 
     if (!contents.includes('options.enableMultitaskingCameraAccess = true')) {
-      contents = insertContentsInsideObjcFunctionBlock(
+      contents = insertContentsInsideSwiftFunctionBlock(
         contents,
         functionSelector,
         setupMethod,
@@ -252,15 +252,6 @@ function addDidFinishLaunchingWithOptionsRingingObjc(
 }
 
 function addDidUpdatePushCredentialsSwift(contents: string) {
-  /*
-    func pushRegistry(
-    _ registry: PKPushRegistry,
-    didUpdate credentials: PKPushCredentials,
-    for type: PKPushType
-  ) {
-    RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)
-  }
-  */
   const updatedPushCredentialsMethod =
     'RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)';
 
@@ -290,15 +281,6 @@ function addDidUpdatePushCredentialsSwift(contents: string) {
 }
 
 function addDidUpdatePushCredentialsObjc(contents: string) {
-  /*
-    func pushRegistry(
-    _ registry: PKPushRegistry,
-    didUpdate credentials: PKPushCredentials,
-    for type: PKPushType
-  ) {
-    RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)
-  }
-  */
   const updatedPushCredentialsMethod =
     '[RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];';
   if (!contents.includes(updatedPushCredentialsMethod)) {
@@ -507,7 +489,7 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
     )
   ) {
     const functionSelector =
-      'pushRegistry(_:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:)';
+      'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
     const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
       return addNewLinesToAppDelegateObjc(contents, [
