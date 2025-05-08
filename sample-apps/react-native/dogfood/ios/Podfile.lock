@@ -2075,10 +2075,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (125.2.0):
+  - stream-react-native-webrtc (125.2.1):
     - React-Core
     - StreamWebRTC (~> 125.6422.070)
-  - stream-video-react-native (1.11.6):
+  - stream-video-react-native (1.12.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2464,11 +2464,11 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 8e135bcf2be7bc458b1dc297acc2dce74da452b4
   stream-io-video-filters-react-native: b34b88d6c1d1b0dfaceee70343bd1280691b50e9
-  stream-react-native-webrtc: 76a23186152346a16a7ee6f26d59f5edd5742de3
-  stream-video-react-native: 4a012b29c4560f1cb270a7ae165a248762828c24
+  stream-react-native-webrtc: 67f99bff8e2bf6e601afd5ddc24d8c520f2aa8a1
+  stream-video-react-native: a1e4714800a3d9d589e80d4918da992cdcb70b45
   StreamWebRTC: a50ebd8beba4def8f4e378b4895824c3520f9889
   Yoga: 1259c7a8cbaccf7b4c3ddf8ee36ca11be9dee407
 
 PODFILE CHECKSUM: 22e502ced1a8b5a5e637f60837d3de140b3387b8
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2
