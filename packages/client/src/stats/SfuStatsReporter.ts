@@ -3,7 +3,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
-import { tracer as mediaStatsTracer } from './rtc/mediaDevices';
+import { Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
@@ -24,6 +24,7 @@ export type SfuStatsReporterOptions = {
   microphone: MicrophoneManager;
   camera: CameraManager;
   state: CallState;
+  tracer: Tracer;
   unifiedSessionId: string;
 };
 
@@ -38,6 +39,7 @@ export class SfuStatsReporter {
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
   private readonly state: CallState;
+  private readonly tracer: Tracer;
   private readonly unifiedSessionId: string;
 
   private intervalId: NodeJS.Timeout | undefined;
@@ -59,6 +61,7 @@ export class SfuStatsReporter {
       microphone,
       camera,
       state,
+      tracer,
       unifiedSessionId,
     }: SfuStatsReporterOptions,
   ) {
@@ -69,6 +72,7 @@ export class SfuStatsReporter {
     this.microphone = microphone;
     this.camera = camera;
     this.state = state;
+    this.tracer = tracer;
     this.unifiedSessionId = unifiedSessionId;
 
     const { sdk, browser } = clientDetails;
@@ -166,10 +170,10 @@ export class SfuStatsReporter {
 
     const subscriberTrace = this.subscriber.tracer?.take();
     const publisherTrace = this.publisher?.tracer?.take();
-    const mediaTrace = mediaStatsTracer.take();
+    const tracer = this.tracer.take();
     const sfuTrace = this.sfuClient.getTrace();
-    const traces = [
-      ...mediaTrace.snapshot,
+    const traces: TraceRecord[] = [
+      ...tracer.snapshot,
       ...(sfuTrace?.snapshot ?? []),
       ...(publisherTrace?.snapshot ?? []),
       ...(subscriberTrace?.snapshot ?? []),
@@ -198,7 +202,7 @@ export class SfuStatsReporter {
     } catch (err) {
       publisherTrace?.rollback();
       subscriberTrace?.rollback();
-      mediaTrace.rollback();
+      tracer.rollback();
       sfuTrace?.rollback();
       throw err;
     }

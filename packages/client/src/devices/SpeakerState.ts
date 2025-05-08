@@ -1,7 +1,7 @@
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { RxUtils } from '../store';
 import { checkIfAudioOutputChangeSupported } from './devices';
-import { tracer as mediaStatsTracer } from '../stats/rtc/mediaDevices';
+import { Tracer } from '../stats';
 
 export class SpeakerState {
   protected selectedDeviceSubject = new BehaviorSubject<string>('');
@@ -25,7 +25,10 @@ export class SpeakerState {
    */
   volume$: Observable<number>;
 
-  constructor() {
+  private tracer: Tracer;
+
+  constructor(tracer: Tracer) {
+    this.tracer = tracer;
     this.selectedDevice$ = this.selectedDeviceSubject
       .asObservable()
       .pipe(distinctUntilChanged());
@@ -58,7 +61,7 @@ export class SpeakerState {
    */
   setDevice(deviceId: string) {
     RxUtils.setCurrentValue(this.selectedDeviceSubject, deviceId);
-    mediaStatsTracer.trace('navigator.mediaDevices.setSinkId', deviceId);
+    this.tracer.trace('navigator.mediaDevices.setSinkId', deviceId);
   }
 
   /**

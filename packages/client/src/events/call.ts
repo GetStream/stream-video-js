@@ -1,6 +1,10 @@
 import { CallingState } from '../store';
 import { Call } from '../Call';
-import type { CallAcceptedEvent, CallRejectedEvent } from '../gen/coordinator';
+import {
+  CallAcceptedEvent,
+  CallRejectedEvent,
+  OwnCapability,
+} from '../gen/coordinator';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
 
@@ -99,6 +103,13 @@ export const watchSfuCallEnded = (call: Call) => {
   return call.on('callEnded', async (e: CallEnded) => {
     if (call.state.callingState === CallingState.LEFT) return;
     try {
+      if (e.reason === CallEndedReason.LIVE_ENDED) {
+        call.state.setBackstage(true);
+
+        // don't leave the call if the user has permission to join backstage
+        const { hasPermission } = call.permissionsContext;
+        if (hasPermission(OwnCapability.JOIN_BACKSTAGE)) return;
+      }
       // `call.ended` event arrived after the call is already left
       // and all event handlers are detached. We need to manually
       // update the call state to reflect the call has ended.
