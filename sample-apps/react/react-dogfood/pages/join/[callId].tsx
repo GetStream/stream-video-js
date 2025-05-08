@@ -169,7 +169,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   useGleap(gleapApiKey, client, call, user);
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>();
+  const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
