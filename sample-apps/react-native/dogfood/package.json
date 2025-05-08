@@ -25,7 +25,7 @@
     "@stream-io/video-react-native-sdk": "workspace:^",
     "axios": "^1.8.1",
     "react": "19.0.0",
-    "react-native": "0.79.1",
+    "react-native": "0.79.2",
     "react-native-blob-util": "^0.19.11",
     "react-native-callkeep": "^4.3.16",
     "react-native-device-info": "^14.0.4",
