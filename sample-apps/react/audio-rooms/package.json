@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@stream-io/video-react-sdk": "workspace:^",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-router-dom": "^6.30.0"
   },
   "devDependencies": {

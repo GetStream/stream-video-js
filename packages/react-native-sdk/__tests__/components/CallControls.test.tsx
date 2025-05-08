@@ -31,7 +31,7 @@ describe('ReactionsButton', () => {
       [OwnCapability.CREATE_REACTION],
     );
 
-    render(<ReactionsButton reactions={defaultEmojiReactions} />, {
+    render(<ReactionsButton supportedReactions={defaultEmojiReactions} />, {
       call,
     });
 

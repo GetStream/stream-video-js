@@ -14,8 +14,8 @@
     "@mui/material": "^6.4.5",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.3",

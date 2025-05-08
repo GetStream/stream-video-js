@@ -6643,8 +6643,8 @@ __metadata:
     "@types/react": "npm:^19.1.3"
     "@types/react-dom": "npm:^19.1.3"
     "@vitejs/plugin-react": "npm:^4.4.1"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     react-router-dom: "npm:^6.30.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
@@ -6663,8 +6663,8 @@ __metadata:
     "@types/react": "npm:^19.1.3"
     "@types/react-dom": "npm:^19.1.3"
     "@vitejs/plugin-react": "npm:^4.4.1"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
   languageName: unknown
@@ -6685,8 +6685,8 @@ __metadata:
     clsx: "npm:^2.0.0"
     js-base64: "npm:^3.7.5"
     nanoid: "npm:^5.1.5"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
   languageName: unknown
@@ -6754,8 +6754,8 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.4.1"
     clsx: "npm:^2.0.0"
     hls.js: "npm:^1.5.20"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     react-router-dom: "npm:^6.30.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
@@ -6776,8 +6776,8 @@ __metadata:
     dotenv: "npm:^16.5.0"
     immer: "npm:^9.0.16"
     nanoid: "npm:^5.1.5"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     react-router-dom: "npm:^6.30.0"
     sass: "npm:^1.69.5"
     stream-chat: "npm:^8.57.6"
@@ -6825,8 +6825,8 @@ __metadata:
     "@types/react": "npm:^19.1.3"
     "@types/react-dom": "npm:^19.1.3"
     "@vitejs/plugin-react": "npm:^4.4.1"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
   languageName: unknown
@@ -6944,7 +6944,7 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@types/react": "npm:^19.1.3"
     i18next: "npm:^23.5.1"
-    react: "npm:^19.1.0"
+    react: "npm:19.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.40.2"
     rxjs: "npm:~7.8.1"
@@ -6988,8 +6988,8 @@ __metadata:
     next: "npm:^15.3.2"
     next-auth: "npm:^4.24.11"
     qrcode.react: "npm:^3.1.0"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     react-form: "npm:^4.0.1"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.69.5"
@@ -7035,8 +7035,8 @@ __metadata:
     "@types/react-native-incall-manager": "npm:^4.0.3"
     "@types/react-native-video": "npm:^5.0.20"
     axios: "npm:^1.8.1"
-    react: "npm:^19.1.0"
-    react-native: "npm:^0.79.2"
+    react: "npm:19.0.0"
+    react-native: "npm:0.79.2"
     react-native-blob-util: "npm:^0.19.11"
     react-native-callkeep: "npm:^4.3.16"
     react-native-device-info: "npm:^14.0.4"
@@ -7096,9 +7096,9 @@ __metadata:
     expo-symbols: "npm:~0.4.4"
     expo-system-ui: "npm:~5.0.7"
     expo-web-browser: "npm:~14.1.6"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
-    react-native: "npm:^0.79.2"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
+    react-native: "npm:0.79.2"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.25.0"
     react-native-incall-manager: "npm:^4.2.1"
@@ -7131,7 +7131,7 @@ __metadata:
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"
     "@testing-library/jest-native": "npm:^5.4.3"
-    "@testing-library/react-native": "npm:^12.9.0"
+    "@testing-library/react-native": "npm:13.2.0"
     "@tsconfig/node14": "npm:14.1.3"
     "@types/jest": "npm:^29.5.14"
     "@types/lodash.merge": "npm:^4.6.9"
@@ -7146,6 +7146,7 @@ __metadata:
     intl-pluralrules: "npm:2.0.1"
     jest: "npm:^29.7.0"
     lodash.merge: "npm:^4.6.2"
+    react: "npm:19.0.0"
     react-native: "npm:0.79.2"
     react-native-builder-bob: "npm:~0.23"
     react-native-callkeep: "npm:^4.3.16"
@@ -7155,12 +7156,11 @@ __metadata:
     react-native-svg: "npm:15.11.2"
     react-native-url-polyfill: "npm:1.3.0"
     react-native-voip-push-notification: "npm:3.3.3"
-    react-test-renderer: "npm:^19.1.0"
+    react-test-renderer: "npm:19.0.0"
     rimraf: "npm:^6.0.1"
     rxjs: "npm:~7.8.1"
     text-encoding-polyfill: "npm:0.6.7"
     typescript: "npm:^5.8.3"
-    xcparse: "npm:^0.0.3"
   peerDependencies:
     "@notifee/react-native": ">=9.0.0"
     "@react-native-community/netinfo": ">=9.0.0"
@@ -7225,9 +7225,9 @@ __metadata:
     "@types/react-dom": "npm:^19.1.3"
     chart.js: "npm:^4.4.4"
     clsx: "npm:^2.0.0"
-    react: "npm:^19.1.0"
+    react: "npm:19.0.0"
     react-chartjs-2: "npm:^5.3.0"
-    react-dom: "npm:^19.1.0"
+    react-dom: "npm:19.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.40.2"
     typescript: "npm:^5.8.3"
@@ -7259,8 +7259,8 @@ __metadata:
     dotenv: "npm:^16.5.0"
     nanoid: "npm:^5.1.5"
     postcss: "npm:^8.4.31"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
     react-router-dom: "npm:^6.30.0"
     stream-chat: "npm:^8.57.6"
     stream-chat-react: "npm:^12.13.1"
@@ -7303,7 +7303,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react-native@npm:^12.5.2, @testing-library/react-native@npm:^12.9.0":
+"@testing-library/react-native@npm:13.2.0":
+  version: 13.2.0
+  resolution: "@testing-library/react-native@npm:13.2.0"
+  dependencies:
+    chalk: "npm:^4.1.2"
+    jest-matcher-utils: "npm:^29.7.0"
+    pretty-format: "npm:^29.7.0"
+    redent: "npm:^3.0.0"
+  peerDependencies:
+    jest: ">=29.0.0"
+    react: ">=18.2.0"
+    react-native: ">=0.71"
+    react-test-renderer: ">=18.2.0"
+  peerDependenciesMeta:
+    jest:
+      optional: true
+  checksum: 10/b5c4bc61ed61ceb835224e223a528bb1a43c82776f964511f53559c8bd606feb11b85654abfe7ef5bdebd25fa5855682ebcf50afdab9aaffce45d46decdcf29e
+  languageName: node
+  linkType: hard
+
+"@testing-library/react-native@npm:^12.5.2":
   version: 12.9.0
   resolution: "@testing-library/react-native@npm:12.9.0"
   dependencies:
@@ -20067,14 +20087,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.1.0":
-  version: 19.1.0
-  resolution: "react-dom@npm:19.1.0"
+"react-dom@npm:19.0.0":
+  version: 19.0.0
+  resolution: "react-dom@npm:19.0.0"
   dependencies:
-    scheduler: "npm:^0.26.0"
+    scheduler: "npm:^0.25.0"
   peerDependencies:
-    react: ^19.1.0
-  checksum: 10/c5b58605862c7b0bb044416b01c73647bb8e89717fb5d7a2c279b11815fb7b49b619fe685c404e59f55eb52c66831236cc565c25ee1c2d042739f4a2cc538aa2
+    react: ^19.0.0
+  checksum: 10/aa64a2f1991042f516260e8b0eca0ae777b6c8f1aa2b5ae096e80bbb6ac9b005aef2bca697969841d34f7e1819556263476bdfea36c35092e8d9aefde3de2d9a
   languageName: node
   linkType: hard
 
@@ -20687,15 +20707,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:^19.1.0":
-  version: 19.1.0
-  resolution: "react-test-renderer@npm:19.1.0"
+"react-test-renderer@npm:19.0.0":
+  version: 19.0.0
+  resolution: "react-test-renderer@npm:19.0.0"
   dependencies:
-    react-is: "npm:^19.1.0"
-    scheduler: "npm:^0.26.0"
+    react-is: "npm:^19.0.0"
+    scheduler: "npm:^0.25.0"
   peerDependencies:
-    react: ^19.1.0
-  checksum: 10/73ae0ea779bacd0ff084dd3644b763a4431d68adf9c6acffdaa3d0810aab5322f24c95c60259c23b77f38b5f36d9d614ffaa46d91a33840536f2d4b7188dcc89
+    react: ^19.0.0
+  checksum: 10/b95a90331e1dedeff2bbdcdc57b9cd1cd8d7cd620f9b29a4efd31a961c8e5b660fe55129ffc72f2bbf0c21fec34e6a498b9f07b6c65c22bf10ae87b68e124f91
   languageName: node
   linkType: hard
 
@@ -20737,6 +20757,13 @@ __metadata:
     react: ">=16 || >=17 || >= 18"
     react-dom: ">=16 || >=17 || >= 18"
   checksum: 10/fe601913b9d61cd97d80859124c5b4408238183f4354d2e2832df74ae01d52ce925f4aa2ce574c46b25239b607d191c86f3653d5481961bf3c133f9d962a7aef
+  languageName: node
+  linkType: hard
+
+"react@npm:19.0.0":
+  version: 19.0.0
+  resolution: "react@npm:19.0.0"
+  checksum: 10/2490969c503f644703c88990d20e4011fa6119ddeca451e9de48f6d7ab058d670d2852a5fcd3aa3cd90a923ab2815d532637bd4a814add402ae5c0d4f129ee71
   languageName: node
   linkType: hard
 
@@ -21522,7 +21549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:0.25.0":
+"scheduler@npm:0.25.0, scheduler@npm:^0.25.0":
   version: 0.25.0
   resolution: "scheduler@npm:0.25.0"
   checksum: 10/e661e38503ab29a153429a99203fefa764f28b35c079719eb5efdd2c1c1086522f6653d8ffce388209682c23891a6d1d32fa6badf53c35fb5b9cd0c55ace42de
@@ -21535,13 +21562,6 @@ __metadata:
   dependencies:
     loose-envify: "npm:^1.1.0"
   checksum: 10/e8d68b89d18d5b028223edf090092846868a765a591944760942b77ea1f69b17235f7e956696efbb62c8130ab90af7e0949bfb8eba7896335507317236966bc9
-  languageName: node
-  linkType: hard
-
-"scheduler@npm:^0.26.0":
-  version: 0.26.0
-  resolution: "scheduler@npm:0.26.0"
-  checksum: 10/1ecf2e5d7de1a7a132796834afe14a2d589ba7e437615bd8c06f3e0786a3ac3434655e67aac8755d9b14e05754c177e49c064261de2673aaa3c926bc98caa002
   languageName: node
   linkType: hard
 
@@ -24684,13 +24704,6 @@ __metadata:
     simple-plist: "npm:^1.1.0"
     uuid: "npm:^7.0.3"
   checksum: 10/539d7b808ccce648078c5ceb63c4f9c14a7018a7db688fe0ff55c7d59e685c67392f18e9f531ce524f8d71162e836714b8835fa0a8688e976d4a293b147917c3
-  languageName: node
-  linkType: hard
-
-"xcparse@npm:^0.0.3":
-  version: 0.0.3
-  resolution: "xcparse@npm:0.0.3"
-  checksum: 10/0463c9e28954009b613d2f53a518f7428b1ac6efaaf5e8a3245d54dd0d20094f57542baa15ae487ba1178c7682530c856cde62f4c928f760bfef051fcb6e7fd0
   languageName: node
   linkType: hard
 
