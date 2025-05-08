@@ -323,7 +323,7 @@ export class Publisher extends BasePeerConnection {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
-    return withoutConcurrency('publisher.negotiate', async () => {
+    return withoutConcurrency(`publisher.negotiate.${this.lock}`, async () => {
       const offer = await this.pc.createOffer(options);
       const tracks = this.getAnnouncedTracks(offer.sdp);
       if (!tracks.length) throw new Error(`Can't negotiate without any tracks`);

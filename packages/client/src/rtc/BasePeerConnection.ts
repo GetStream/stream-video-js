@@ -43,6 +43,7 @@ export abstract class BasePeerConnection {
   readonly stats: StatsTracer;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
+  protected readonly lock = Math.random().toString(36).slice(2);
 
   /**
    * Constructs a new `BasePeerConnection` instance.
@@ -138,7 +139,8 @@ export abstract class BasePeerConnection {
   ): void => {
     this.subscriptions.push(
       this.dispatcher.on(event, (e) => {
-        withoutConcurrency(`pc.${event}`, async () => fn(e)).catch((err) => {
+        const lockKey = `pc.${this.lock}.${event}`;
+        withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
           this.logger('warn', `Error handling ${event}`, err);
         });
