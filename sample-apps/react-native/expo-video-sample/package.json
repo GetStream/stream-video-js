@@ -30,7 +30,7 @@
     "expo-splash-screen": "~0.30.8",
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.7",
-    "react": "^19.1.0",
+    "react": "19.0.0",
     "react-native": "^0.79.2",
     "react-native-callkeep": "^4.3.16",
     "react-native-gesture-handler": "^2.25.0",
