@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 5,
+    marginHorizontal: 8,
     overflow: 'hidden',
   },
   selectedButton: {
