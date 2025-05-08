@@ -216,10 +216,9 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
         <View style={styles.overlay}>
           <SafeAreaView style={styles.safeArea}>
             <Animated.View
-              {...panResponder.panHandlers}
               style={[styles.container, { transform: [{ translateY }] }]}
             >
-              {dragIndicator}
+              <View {...panResponder.panHandlers}>{dragIndicator}</View>
               {!showCallStats && moreActions}
               {showCallStats && <CallStats showCodecInfo />}
             </Animated.View>

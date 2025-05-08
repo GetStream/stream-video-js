@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import type { ParticipantViewProps } from './ParticipantView';
@@ -15,6 +15,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
+import { useScreenshotIosContext } from '../../../contexts/internal/ScreenshotIosContext';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -65,6 +66,12 @@ export const VideoRenderer = ({
     undefined,
   );
   const { direction } = useCameraState();
+  const viewRef = useRef(null);
+  const {
+    register: registerIosScreenshot,
+    deregister: deregisterIosScreenshot,
+  } = useScreenshotIosContext();
+
   const videoDimensions = useTrackDimensions(participant, trackType);
   const {
     isLocalParticipant,
@@ -89,6 +96,26 @@ export const VideoRenderer = ({
     isVisible &&
     isPublishingVideoTrack &&
     isParticipantVideoEnabled(participant.sessionId);
+
+  React.useEffect(() => {
+    if (
+      Platform.OS === 'ios' &&
+      registerIosScreenshot &&
+      viewRef.current &&
+      canShowVideo
+    ) {
+      registerIosScreenshot(participant, trackType, viewRef);
+      return () => {
+        deregisterIosScreenshot(participant, trackType);
+      };
+    }
+  }, [
+    participant,
+    trackType,
+    registerIosScreenshot,
+    canShowVideo,
+    deregisterIosScreenshot,
+  ]);
 
   const mirror =
     isLocalParticipant && !isScreenSharing && direction === 'front';
@@ -266,6 +293,7 @@ export const VideoRenderer = ({
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
+          ref={viewRef}
           objectFit={
             objectFit ??
             (videoDimensions.width > videoDimensions.height
