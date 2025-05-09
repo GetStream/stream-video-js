@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.21.0...@stream-io/video-client-1.22.0) (2025-05-08)
+
+### Features
+
+- Expo 53 Swift Config Plugin and React Native 0.79 compatibility ([#1714](https://github.com/GetStream/stream-video-js/issues/1714)) ([380331e](https://github.com/GetStream/stream-video-js/commit/380331e11fd6182c3111413aa25689a669dd3c9c))
+
+### Bug Fixes
+
+- graceful handling of LIVE_ENDED CallEnded reason ([#1783](https://github.com/GetStream/stream-video-js/issues/1783)) ([ff54390](https://github.com/GetStream/stream-video-js/commit/ff54390099e10c550b8bbac42658080a65007a30))
+- isolate mediaDevices traces ([#1779](https://github.com/GetStream/stream-video-js/issues/1779)) ([d8623f0](https://github.com/GetStream/stream-video-js/commit/d8623f0b06a6229bff96ea01dd1f2b851b7d3558)), closes [#1765](https://github.com/GetStream/stream-video-js/issues/1765)
+- make camera.flip() work more reliably with older devices ([#1781](https://github.com/GetStream/stream-video-js/issues/1781)) ([9dfbc55](https://github.com/GetStream/stream-video-js/commit/9dfbc556155c1ae9b528b50b140313c4decb024f)), closes [#1679](https://github.com/GetStream/stream-video-js/issues/1679)
+- use scoped locking for PeerConnection events ([#1785](https://github.com/GetStream/stream-video-js/issues/1785)) ([b0f93e8](https://github.com/GetStream/stream-video-js/commit/b0f93e83e70520b527efd94e9192ac7dca031864))
+
 ## [1.21.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.20.2...@stream-io/video-client-1.21.0) (2025-05-02)
 
 ### Features

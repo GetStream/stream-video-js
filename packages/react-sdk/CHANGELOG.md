@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.15.0...@stream-io/video-react-sdk-1.16.0) (2025-05-08)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.3.0`
+- `@stream-io/video-client` updated to version `1.22.0`
+- `@stream-io/video-filters-web` updated to version `0.2.0`
+- `@stream-io/video-react-bindings` updated to version `1.6.0`
+
+### Features
+
+- Expo 53 Swift Config Plugin and React Native 0.79 compatibility ([#1714](https://github.com/GetStream/stream-video-js/issues/1714)) ([380331e](https://github.com/GetStream/stream-video-js/commit/380331e11fd6182c3111413aa25689a669dd3c9c))
+
 ## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.6...@stream-io/video-react-sdk-1.15.0) (2025-05-02)
 
 ### Dependency Updates

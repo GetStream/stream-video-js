@@ -35,7 +35,7 @@ const RoomList = (props: Props) => {
   // state for the pull to refresh
   const [refreshing, setRefreshing] = React.useState(false);
   // holds the cursor to the next page of calls
-  const nextPage = useRef<string>();
+  const nextPage = useRef<string | undefined>(undefined);
 
   const queryLiveCalls = useCallback(async () => {
     if (!client) {
@@ -143,7 +143,7 @@ const RoomList = (props: Props) => {
     ) : (
       <Button onPress={queryLiveCalls} title={t('Load more')} />
     );
-  }, [loadingCalls, queryLiveCalls]);
+  }, [loadingCalls, queryLiveCalls, t]);
 
   const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(() => {
     let text = 'No live audio rooms found';
