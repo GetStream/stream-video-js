@@ -37,7 +37,6 @@ import {
   useChatContext,
 } from 'stream-chat-react-native';
 import { Channel as ChannelType } from 'stream-chat';
-import { StreamChatGenerics } from '../../../types';
 import { Cross } from '../../assets/Cross';
 import { FlatList as GestureHandlerFlatlist } from 'react-native-gesture-handler';
 
@@ -209,7 +208,7 @@ const BottomSheetChatWrapper = React.forwardRef<
 BottomSheetChatWrapper.displayName = 'BottomSheetChatWrapper';
 
 type LivestreamChatProps = {
-  channel: ChannelType<StreamChatGenerics>;
+  channel: ChannelType;
   focusOutsideMessageInput: () => void;
 };
 

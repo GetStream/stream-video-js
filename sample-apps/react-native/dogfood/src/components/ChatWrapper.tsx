@@ -2,7 +2,6 @@ import React, { PropsWithChildren, useMemo } from 'react';
 import { Chat, OverlayProvider, Streami18n } from 'stream-chat-react-native';
 import { useChatClient } from '../hooks/useChatClient';
 import { AuthenticationProgress } from './AuthenticatingProgress';
-import { StreamChatGenerics } from '../../types';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useStreamChatTheme } from '../hooks/useTheme';
 
@@ -34,10 +33,7 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <OverlayProvider<StreamChatGenerics>
-      i18nInstance={streami18n}
-      value={{ style: theme }}
-    >
+    <OverlayProvider i18nInstance={streami18n} value={{ style: theme }}>
       <Chat client={chatClient} i18nInstance={streami18n}>
         {children}
       </Chat>

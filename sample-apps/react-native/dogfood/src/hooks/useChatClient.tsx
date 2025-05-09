@@ -1,25 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import { StreamChat, OwnUserResponse, UserResponse } from 'stream-chat';
-import { StreamChatGenerics } from '../../types';
+import { OwnUserResponse, StreamChat, UserResponse } from 'stream-chat';
 import { createToken } from '../modules/helpers/createToken';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
-export const useChatClient = <
-  SCG extends StreamChatGenerics = StreamChatGenerics,
->({
+export const useChatClient = ({
   userData,
 }: {
-  userData: OwnUserResponse<SCG> | UserResponse<SCG>;
+  userData: OwnUserResponse | UserResponse;
 }) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
-  const [chatClient, setChatClient] = useState<StreamChat<SCG> | undefined>();
+  const [chatClient, setChatClient] = useState<StreamChat | undefined>();
   const disconnectRef = useRef(Promise.resolve());
 
   useEffect(() => {
     let connectPromise: Promise<void> | undefined;
-    let client: StreamChat<SCG> | undefined;
+    let client: StreamChat | undefined;
     const run = async () => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id: userData.id }, appEnvironment);
@@ -27,7 +24,7 @@ export const useChatClient = <
       const { apiKey } = await fetchAuthDetails();
       const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
 
-      client = new StreamChat<SCG>(apiKey);
+      client = new StreamChat(apiKey);
       const connectUser = async () => {
         await disconnectRef.current;
         try {

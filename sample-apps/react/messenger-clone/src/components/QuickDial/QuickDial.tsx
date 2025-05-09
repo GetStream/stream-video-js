@@ -5,12 +5,7 @@ import { produce } from 'immer';
 import dayjs from 'dayjs';
 import { clsx } from 'clsx';
 
-import type {
-  DefaultGenerics,
-  Event,
-  ExtendableGenerics,
-  UserResponse,
-} from 'stream-chat';
+import type { Event, UserResponse } from 'stream-chat';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { meetingId } from '../../utils/meetingId';
 
@@ -26,6 +21,7 @@ const useGetUsers = () => {
             // FIXME: find proper solution for filtering online users
             { online: true },
           ],
+          // @ts-expect-error not available in stream-chat
           id: { $nin: [client.user!.id] },
         })
         .then(({ users }) =>
@@ -75,6 +71,7 @@ export const QuickDial = () => {
     return () => {
       client.off('user.presence.changed', updateUsers);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
 
   if (!Object.values(users).length) return null;
@@ -88,13 +85,11 @@ export const QuickDial = () => {
   );
 };
 
-type QuickDialButtonProps<SCG extends ExtendableGenerics = DefaultGenerics> = {
-  user: UserResponse<SCG>;
+type QuickDialButtonProps = {
+  user: UserResponse;
 };
 
-const QuickDialButton = <SCG extends ExtendableGenerics = DefaultGenerics>({
-  user,
-}: QuickDialButtonProps<SCG>) => {
+const QuickDialButton = ({ user }: QuickDialButtonProps) => {
   const videoClient = useStreamVideoClient();
   const createCall = useCallback(() => {
     videoClient?.call('default', meetingId()).getOrCreate({
