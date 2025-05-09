@@ -2294,6 +2294,12 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamWebRTC (125.6422.070)
+  - VisionCamera (4.6.4):
+    - VisionCamera/Core (= 4.6.4)
+    - VisionCamera/React (= 4.6.4)
+  - VisionCamera/Core (4.6.4)
+  - VisionCamera/React (4.6.4):
+    - React-Core
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2391,6 +2397,7 @@ DEPENDENCIES:
   - "stream-io-video-filters-react-native (from `../node_modules/@stream-io/video-filters-react-native`)"
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
   - "stream-video-react-native (from `../node_modules/@stream-io/video-react-native-sdk`)"
+  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2585,6 +2592,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@stream-io/react-native-webrtc"
   stream-video-react-native:
     :path: "../node_modules/@stream-io/video-react-native-sdk"
+  VisionCamera:
+    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 

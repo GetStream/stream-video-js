@@ -36,7 +36,7 @@ export const LiveStreamChooseScreen = ({
       <View style={styles.topContainer}>
         <Image source={require('../../assets/Logo.png')} style={styles.logo} />
         <View>
-          <Text style={styles.title}>{t('Stream Live stream App')}</Text>
+          <Text style={styles.title}>{t('Stream Livestream App')}</Text>
           <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
         </View>
       </View>

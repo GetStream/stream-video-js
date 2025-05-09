@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
-
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
-import {
-  ViewerLivestreamTopView as DefaultViewerLivestreamTopView,
-  type ViewerLivestreamTopViewProps,
-} from '../LivestreamTopView/ViewerLivestreamTopView';
+import { type ViewerLivestreamTopViewProps } from '../LivestreamTopView/ViewerLivestreamTopView';
 import {
   ViewerLivestreamControls as DefaultViewerLivestreamControls,
   type ViewerLivestreamControlsProps,
@@ -16,12 +12,14 @@ import {
   LivestreamLayout as DefaultLivestreamLayout,
   type LivestreamLayoutProps,
 } from '../LivestreamLayout';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
 } from '../../Participant';
-import { hasVideo } from '@stream-io/video-client';
+import { CallingState, hasVideo } from '@stream-io/video-client';
+import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
+import { ViewerLobby } from './ViewerLobby';
 
 /**
  * Props for the ViewerLivestream component.
@@ -51,7 +49,7 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
  * The ViewerLivestream component renders the UI for the Viewer's live stream.
  */
 export const ViewerLivestream = ({
-  ViewerLivestreamTopView = DefaultViewerLivestreamTopView,
+  ViewerLivestreamTopView,
   ViewerLivestreamControls = DefaultViewerLivestreamControls,
   LivestreamLayout = DefaultLivestreamLayout,
   FloatingParticipantView = DefaultFloatingParticipantView,
@@ -62,10 +60,16 @@ export const ViewerLivestream = ({
   onLeaveStreamHandler,
 }: ViewerLivestreamProps) => {
   const styles = useStyles();
+  const call = useCall();
   const {
     theme: { viewerLivestream },
   } = useTheme();
-  const { useHasOngoingScreenShare, useParticipants } = useCallStateHooks();
+  const {
+    useHasOngoingScreenShare,
+    useParticipants,
+    useCallCallingState,
+    useCallEndedAt,
+  } = useCallStateHooks();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const [currentSpeaker] = useParticipants();
   const floatingParticipant =
@@ -77,12 +81,6 @@ export const ViewerLivestream = ({
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
 
-  // Automatically route audio to speaker devices as relevant for watching videos.
-  useEffect(() => {
-    InCallManager.start({ media: 'video' });
-    return () => InCallManager.stop();
-  }, []);
-
   const topViewProps: ViewerLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
@@ -91,6 +89,50 @@ export const ViewerLivestream = ({
       setTopViewHeight(event.nativeEvent.layout.height);
     },
   };
+
+  // Automatically route audio to speaker devices as relevant for watching videos.
+  useEffect(() => {
+    InCallManager.start({ media: 'video' });
+    return () => InCallManager.stop();
+  }, []);
+
+  const { useIsCallLive } = useCallStateHooks();
+  const isCallLive = useIsCallLive();
+
+  /**
+   * The call is joined using the anonymous user/client.
+   */
+  const handleJoinCall = async () => {
+    try {
+      if (!(call && isCallLive)) {
+        return;
+      }
+      if (
+        [CallingState.JOINED, CallingState.JOINING].includes(
+          call.state.callingState,
+        )
+      ) {
+        return;
+      }
+      await call?.join();
+    } catch (error) {
+      console.error('Failed to join call', error);
+    }
+  };
+
+  const callingState = useCallCallingState();
+  const endedAt = useCallEndedAt();
+
+  if (
+    !isCallLive ||
+    (callingState !== CallingState.LEFT && callingState !== CallingState.JOINED)
+  ) {
+    return <ViewerLobby isLive={isCallLive} handleJoinCall={handleJoinCall} />;
+  }
+
+  if (endedAt != null || callingState === CallingState.LEFT) {
+    return <CallEndedView />;
+  }
 
   return (
     <View style={[styles.container, viewerLivestream.container]}>
