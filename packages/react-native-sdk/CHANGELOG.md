@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.13.0...@stream-io/video-react-native-sdk-1.13.1) (2025-05-09)
+
+### Bug Fixes
+
+- ios compilation error on old arch ([#1787](https://github.com/GetStream/stream-video-js/issues/1787)) ([9b03335](https://github.com/GetStream/stream-video-js/commit/9b03335eb4eb020021e9a3d40c2b1f81d33ad0fe))
+
 ## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.12.0...@stream-io/video-react-native-sdk-1.13.0) (2025-05-08)
 
 ### Dependency Updates
