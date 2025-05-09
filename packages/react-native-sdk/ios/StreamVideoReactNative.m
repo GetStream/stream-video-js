@@ -245,7 +245,7 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
 #else
     [self.bridge.uiManager
      addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        UIView *view = [uiManager viewForReactTag:viewRef];
+        UIView *view = [uiManager viewForReactTag:reactTag];
 #endif
 
         if (!view) {
