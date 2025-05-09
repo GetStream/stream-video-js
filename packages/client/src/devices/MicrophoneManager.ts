@@ -235,7 +235,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
-    return getAudioStream(constraints);
+    return getAudioStream(constraints, this.call.tracer);
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {

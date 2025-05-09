@@ -120,8 +120,8 @@ import {
   getSdkSignature,
   SfuStatsReporter,
   StatsReporter,
+  Tracer,
 } from './stats';
-import { tracer as mediaStatsTracer } from './stats/rtc/mediaDevices';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -220,6 +220,7 @@ export class Call {
    * The permissions context of this call.
    */
   readonly permissionsContext = new PermissionsContext();
+  readonly tracer = new Tracer(null);
   readonly logger: Logger;
 
   /**
@@ -238,6 +239,7 @@ export class Call {
   public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private sfuClientTag = 0;
+  private unifiedSessionId?: string;
 
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
@@ -612,6 +614,7 @@ export class Call {
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
       this.hasJoinedOnce = false;
+      this.unifiedSessionId = undefined;
       this.ringingSubject.next(false);
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
@@ -1180,7 +1183,6 @@ export class Call {
       state: this.state,
       connectionConfig,
       logTag: String(this.sfuClientTag),
-      clientDetails,
       enableTracing,
       onUnrecoverableError: (reason) => {
         this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
@@ -1209,7 +1211,6 @@ export class Call {
         connectionConfig,
         publishOptions,
         logTag: String(this.sfuClientTag),
-        clientDetails,
         enableTracing,
         onUnrecoverableError: (reason) => {
           this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
@@ -1225,7 +1226,6 @@ export class Call {
       });
     }
 
-    mediaStatsTracer.setEnabled(enableTracing);
     this.statsReporter?.stop();
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
@@ -1234,8 +1234,10 @@ export class Call {
       datacenter: sfuClient.edgeName,
     });
 
+    this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
+      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1244,6 +1246,8 @@ export class Call {
         microphone: this.microphone,
         camera: this.camera,
         state: this.state,
+        tracer: this.tracer,
+        unifiedSessionId: this.unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }
@@ -1546,6 +1550,7 @@ export class Call {
     const unregisterNetworkChanged = this.streamClient.on(
       'network.changed',
       (e) => {
+        this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger('debug', '[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;
@@ -1702,6 +1707,12 @@ export class Call {
         await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
         trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
       }
+    }
+
+    if (track.kind === 'video') {
+      // schedules calibration report - the SFU will use the performance stats
+      // to adjust the quality thresholds as early as possible
+      this.sfuStatsReporter?.scheduleOne(3000);
     }
 
     await this.updateLocalStreamState(mediaStream, ...trackTypes);

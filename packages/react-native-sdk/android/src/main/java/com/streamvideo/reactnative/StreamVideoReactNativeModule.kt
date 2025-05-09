@@ -4,18 +4,32 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
+import android.util.Base64
+import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.oney.WebRTCModule.WebRTCModule
+import com.oney.WebRTCModule.WebRTCView
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.RingtoneUtil
+import com.streamvideo.reactnative.util.YuvFrame
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.webrtc.VideoSink
+import org.webrtc.VideoTrack
+import java.io.ByteArrayOutputStream
 
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
@@ -201,6 +215,64 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
             promise.resolve(powerManager.isPowerSaveMode)
         } catch (e: Exception) {
+            promise.reject("ERROR", e.message)
+        }
+    }
+
+    private fun getVideoTrackForStreamURL(streamURL: String): VideoTrack {
+        var videoTrack: VideoTrack? = null
+
+
+        val module = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
+        val stream = module!!.getStreamForReactTag(streamURL)
+
+        if (stream != null) {
+            val videoTracks = stream.videoTracks
+
+            if (videoTracks.isNotEmpty()) {
+                videoTrack = videoTracks[0]
+            }
+        }
+
+        if (videoTrack != null) {
+            return videoTrack
+        }
+
+        throw Exception("No video stream for react tag: $streamURL")
+    }
+
+    @ReactMethod
+    fun takeScreenshot(streamURL: String?, promise: Promise) {
+        if (streamURL == null) {
+            promise.reject("ERROR", "Null stream URL provided")
+            return
+        }
+        try {
+            val track = getVideoTrackForStreamURL(streamURL)
+            var screenshotSink: VideoSink? = null
+            screenshotSink = VideoSink { videoFrame -> // Remove the sink before asap
+                // to avoid processing multiple frames.
+                CoroutineScope(Dispatchers.IO).launch {
+                    // This has to be launched asynchronously - removing the sink on the
+                    // same thread as the videoframe is delivered will lead to a deadlock
+                    // (needs investigation why)
+                    track.removeSink(screenshotSink)
+                }
+
+                videoFrame.retain()
+                val bitmap = YuvFrame.bitmapFromVideoFrame(videoFrame)
+                videoFrame.release()
+
+                bitmap?.let {
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    it.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                    val base64Encoded = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
+                    promise.resolve(base64Encoded)
+                }
+            }
+            track.addSink(screenshotSink)
+        }
+        catch (e: Exception) {
             promise.reject("ERROR", e.message)
         }
     }

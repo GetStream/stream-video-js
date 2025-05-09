@@ -14,6 +14,7 @@ import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
 import { PermissionsContext } from '../../permissions';
+import { Tracer } from '../../stats';
 
 const getVideoStream = vi.hoisted(() =>
   vi.fn(() => Promise.resolve(mockVideoStream())),
@@ -78,11 +79,14 @@ describe('CameraManager', () => {
   it('get stream', async () => {
     await manager.enable();
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
   });
 
   it('should get device id from stream', async () => {
@@ -133,29 +137,38 @@ describe('CameraManager', () => {
 
     await manager.enable();
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
 
     await manager.selectDirection('front');
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      width: 1280,
-      height: 720,
-      facingMode: 'user',
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        width: 1280,
+        height: 720,
+        facingMode: 'user',
+      },
+      expect.any(Tracer),
+    );
 
     await manager.selectDirection('back');
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      facingMode: 'environment',
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        facingMode: 'environment',
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
   });
 
   it(`shouldn't set deviceId and facingMode at the same time`, async () => {
@@ -163,11 +176,14 @@ describe('CameraManager', () => {
 
     await manager.flip();
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      facingMode: 'environment',
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        facingMode: 'environment',
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
 
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);

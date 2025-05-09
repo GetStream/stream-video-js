@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.5.19...@stream-io/video-react-bindings-1.6.0) (2025-05-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.22.0`
+
+### Features
+
+- Expo 53 Swift Config Plugin and React Native 0.79 compatibility ([#1714](https://github.com/GetStream/stream-video-js/issues/1714)) ([380331e](https://github.com/GetStream/stream-video-js/commit/380331e11fd6182c3111413aa25689a669dd3c9c))
+
+## [1.5.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.5.18...@stream-io/video-react-bindings-1.5.19) (2025-05-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.21.0`
+
+## [1.5.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.5.17...@stream-io/video-react-bindings-1.5.18) (2025-05-01)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.2`
+
 ## [1.5.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.5.16...@stream-io/video-react-bindings-1.5.17) (2025-04-29)
 
 ### Dependency Updates

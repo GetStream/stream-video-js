@@ -24,6 +24,7 @@ import {
   SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
 import { PermissionsContext } from '../../permissions';
+import { Tracer } from '../../stats';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -92,9 +93,10 @@ describe('MicrophoneManager', () => {
   it('get stream', async () => {
     await manager.enable();
 
-    expect(getAudioStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-    });
+    expect(getAudioStream).toHaveBeenCalledWith(
+      { deviceId: undefined },
+      expect.any(Tracer),
+    );
   });
 
   it('should get device id from stream', async () => {

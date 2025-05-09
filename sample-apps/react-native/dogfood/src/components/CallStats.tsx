@@ -34,7 +34,7 @@ export const CallStats = (props: CallStatsProps) => {
   const call = useCall();
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
-  const previousStats = useRef<CallStatsReport>();
+  const previousStats = useRef<CallStatsReport | undefined>(undefined);
 
   const { useCallStatsReport } = useCallStateHooks();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
