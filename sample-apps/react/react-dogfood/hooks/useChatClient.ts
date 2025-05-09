@@ -18,7 +18,7 @@ export const useCreateStreamChatClient = ({
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
 
   useEffect(() => {
-    const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'false';
+    const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
     if (disableChat || !apiKey) return;
 
     const client = new StreamChat(apiKey, {
