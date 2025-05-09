@@ -1,31 +1,27 @@
 import { useEffect, useState } from 'react';
 import {
-  DefaultGenerics,
-  ExtendableGenerics,
   OwnUserResponse,
   StreamChat,
   TokenOrProvider,
   UserResponse,
 } from 'stream-chat';
 
-export const useCreateStreamChatClient = <
-  SCG extends ExtendableGenerics = DefaultGenerics,
->({
+export const useCreateStreamChatClient = ({
   apiKey,
   userData,
   tokenOrProvider,
 }: {
   apiKey: string | undefined;
-  userData: OwnUserResponse<SCG> | UserResponse<SCG>;
+  userData: OwnUserResponse | UserResponse;
   tokenOrProvider: TokenOrProvider;
 }) => {
-  const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
+  const [chatClient, setChatClient] = useState<StreamChat | null>(null);
 
-  const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
   useEffect(() => {
+    const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'false';
     if (disableChat || !apiKey) return;
 
-    const client = new StreamChat<SCG>(apiKey, {
+    const client = new StreamChat(apiKey, {
       timeout: 5000,
     });
 
@@ -45,6 +41,7 @@ export const useCreateStreamChatClient = <
           console.log('connection closed');
         });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, userData.id, tokenOrProvider]);
 
   return chatClient;
