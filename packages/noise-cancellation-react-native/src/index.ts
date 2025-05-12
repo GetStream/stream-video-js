@@ -43,5 +43,3 @@ export const setNoiseCancellationEnabled = (
 export const deviceSupportsAdvancedAudioProcessing = (): Promise<boolean> => {
   return NoiseCancellationReactNative.deviceSupportsAdvancedAudioProcessing();
 };
-
-export default NoiseCancellationReactNative;

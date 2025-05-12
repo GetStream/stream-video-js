@@ -22,6 +22,11 @@ import LightDark from '../../assets/LightDark';
 import Stats from '../../assets/Stats';
 import ClosedCaptions from '../../assets/ClosedCaptions';
 import Screenshot from '../../assets/Screenshot';
+import Hearing from '../../assets/Hearing';
+import {
+  isNoiseCancellationEnabled,
+  setNoiseCancellationEnabled,
+} from '@stream-io/noise-cancellation-react-native';
 import { View, Alert, StyleSheet } from 'react-native';
 
 /**
@@ -45,6 +50,7 @@ export const MoreActionsButton = ({
   const {
     theme: { colors, variants, moreActionsButton, defaults },
   } = useTheme();
+  const [isNoiseCancelEnabled, setIsNoiseCancelEnabled] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
@@ -68,6 +74,15 @@ export const MoreActionsButton = ({
   const dominantSpeaker = useDominantSpeaker();
   const { takeScreenshot } = useScreenshot();
   const participants = useParticipants();
+
+  useEffect(() => {
+    const fetchNoiseCancellationStatus = async () => {
+      const isEnabled = await isNoiseCancellationEnabled();
+      setNoiseCancellationEnabled(isEnabled);
+    };
+    fetchNoiseCancellationStatus();
+  }, []);
+
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -97,6 +112,13 @@ export const MoreActionsButton = ({
     isCaptioningInProgress
       ? 'Disable closed captions'
       : 'Enable closed captions';
+
+  const toggleNoiseCancellation = async () => {
+    setIsNoiseCancelEnabled((prev) => {
+      setNoiseCancellationEnabled(!prev);
+      return !prev;
+    });
+  };
 
   const getScreenshotOfDominantSpeaker = async () => {
     let speaker = dominantSpeaker;
@@ -194,10 +216,25 @@ export const MoreActionsButton = ({
       ),
       onPress: getScreenshotOfDominantSpeaker,
     },
+    {
+      id: '5',
+      label: isNoiseCancelEnabled
+        ? 'Disable noise cancellation'
+        : 'Enable noise cancellation',
+      icon: (
+        <IconWrapper>
+          <Hearing
+            color={colors.iconPrimary}
+            size={variants.roundButtonSizes.sm}
+          />
+        </IconWrapper>
+      ),
+      onPress: toggleNoiseCancellation,
+    },
     ...(canToggle
       ? [
           {
-            id: '5',
+            id: '6',
             label: getCaptionsLabel(),
             icon: (
               <IconWrapper>
