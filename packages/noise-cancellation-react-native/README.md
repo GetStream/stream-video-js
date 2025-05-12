@@ -1,11 +1,11 @@
-# @stream-io/video-filters-react-native
+# @stream-io/noise-cancellation-react-native
 
-Video Filters for React Native WebRTC
+Noise Cancellation for React Native WebRTC
 
 ## Installation
 
 ```sh
-npm install @stream-io/video-filters-react-native @stream-io/react-native-webrtc
+npm install @stream-io/noise-cancellation-react-native @stream-io/react-native-webrtc
 ```
 
 ## Usage
@@ -49,16 +49,6 @@ function clearVideoFilters() {
   });
 }
 ```
-
-## Much easier to use with Stream Video React Native SDK
-
-The Stream Video React Native SDK is a comprehensive toolkit designed to help you swiftly implement features such as video calling, audio calling, audio rooms, and live streaming within your app. It uses this library and exposes APIs to directly apply video filters to your media stream. For more details on video filter usage in the SDK, please visit https://getstream.io/video/docs/reactnative/advanced/apply-video-filters/. The website also explains how to add your custom video filters to your app.
-
-## Preview
-
-|                     Preview of background blur filter                     |               Preview of background image replacement filter               |
-| :-----------------------------------------------------------------------: | :------------------------------------------------------------------------: |
-| ![](https://getstream.io/_astro/preview-blur-filter.CUGKSbS1_11qSrf.webp) | ![](https://getstream.io/_astro/preview-image-filter.CjN7b2zD_1c6jkz.webp) |
 
 ---
 

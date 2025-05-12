@@ -9,7 +9,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.android.tools.build:gradle:8.7.2"
+    classpath("com.android.tools.build:gradle:7.3.1")
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}"
   }
@@ -74,8 +74,16 @@ repositories {
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
+println "Building Noise Cancellation React Native module with Kotlin version: $kotlin_version"
+println "Using compileSdkVersion: ${getExtOrIntegerDefault("compileSdkVersion")}"
+println "Using minSdkVersion: ${getExtOrIntegerDefault("minSdkVersion")}"
+println "Using targetSdkVersion: ${getExtOrIntegerDefault("targetSdkVersion")}"
+
+
 dependencies {
-  implementation "com.facebook.react:react-android"
+  implementation "com.facebook.react:react-native:+"
+  implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.3'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation project(':stream-io_react-native-webrtc')
 }
 

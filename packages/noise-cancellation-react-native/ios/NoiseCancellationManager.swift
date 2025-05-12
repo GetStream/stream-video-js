@@ -1,39 +1,40 @@
 import Foundation
+import StreamVideoNoiseCancellation
+import stream_react_native_webrtc
 
-// Ensure that StreamAudioFilterProcessingModule, NoiseCancellationFilter,
-// NoiseCancellationProcessor, and AudioManager are accessible from this file.
-// If they are part of a specific module, you might need to import it here.
-// e.g., import YourAudioProcessingModule
-
-class NoiseCancellationManager {
+@objcMembers
+public final class NoiseCancellationManager: NSObject {
     // MARK: - Singleton Instance
     private static let _sharedInstance = NoiseCancellationManager()
 
-    // Public static method to get the instance
-    static func getInstance() -> NoiseCancellationManager {
+    // Public static method to get the instance (Objective-C compatible)
+    public static func getInstance() -> NoiseCancellationManager {
         return _sharedInstance
     }
 
     // MARK: - Properties
-    let processingModule = StreamAudioFilterProcessingModule()
-    var noiseCancellationFilter: NoiseCancellationFilter!
-    var noiseCancellationProcessor: NoiseCancellationProcessor!
+    public let processingModule = StreamAudioFilterProcessingModule()
+    public var noiseCancellationFilter: NoiseCancellationFilter!
+    public var noiseCancellationProcessor: NoiseCancellationProcessor!
 
     // Private initializer to enforce the singleton pattern
-    private init() {}
+    private override init() {}
 
     // MARK: - Processor Registration
-    func registerProcessor() {
+    public func registerProcessor() {
         // Initialize the noise cancellation processor and filter
-        noiseCancellationProcessor = NoiseCancellationProcessor()
-        noiseCancellationFilter = NoiseCancellationFilter(
+        let processor = NoiseCancellationProcessor()
+        let filter = NoiseCancellationFilter(
             name: "noise-cancellation",
-            initialize: noiseCancellationProcessor.initialize,
-            process: noiseCancellationProcessor.process,
-            release: noiseCancellationProcessor.release
+            initialize: processor.initialize,
+            process: processor.process,
+            release: processor.release
         )
+        noiseCancellationProcessor = processor
+        noiseCancellationFilter = filter
 
         // Set up the audio processing module with AudioManager
-        AudioManager.sharedInstance().audioProcessingModule = processingModule
+        let options = WebRTCModuleOptions.sharedInstance()
+        options.audioProcessingModule = processingModule
     }
 } 

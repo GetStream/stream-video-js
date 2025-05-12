@@ -20,13 +20,14 @@ class NoiseCancellationReactNative: NSObject {
         if NoiseCancellationManager.getInstance().noiseCancellationFilter == nil {
             reject(
                 "NOISE_CANCELLATION_FILTER_NOT_REGISTERED",
-                "Noise cancellation filter not registered"
+                "Noise cancellation filter not registered",
+                nil
             )
             return
         }
         
         if enabled {
-            NoiseCancellationManager.getInstance().processingModule.setAudioFilter(NoiseCancellationManager.shared.noiseCancellationFilter)
+            NoiseCancellationManager.getInstance().processingModule.setAudioFilter(NoiseCancellationManager.getInstance().noiseCancellationFilter)
         } else {
             if NoiseCancellationManager.getInstance().processingModule.activeAudioFilter != nil {
                 NoiseCancellationManager.getInstance().processingModule.setAudioFilter(nil)

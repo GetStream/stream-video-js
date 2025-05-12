@@ -16,20 +16,12 @@ const NoiseCancellationReactNative = NativeModules.NoiseCancellationReactNative
         },
       },
     );
-/**
- * Registers the noise cancellation processor.
- * This must be called before using any other methods.
- * @returns A promise that resolves when the processor is registered.
- */
-export const registerProcessor = (): Promise<boolean> => {
-  return NoiseCancellationReactNative.registerProcessor();
-};
 
 /**
  * Checks if noise cancellation is currently enabled.
  * @returns A promise that resolves with a boolean indicating if noise cancellation is enabled.
  */
-export const isEnabled = (): Promise<boolean> => {
+export const isNoiseCancellationEnabled = (): Promise<boolean> => {
   return NoiseCancellationReactNative.isEnabled();
 };
 
@@ -38,7 +30,9 @@ export const isEnabled = (): Promise<boolean> => {
  * @param enabled - Whether to enable or disable noise cancellation.
  * @returns A promise that resolves when the operation is complete.
  */
-export const setEnabled = (enabled: boolean): Promise<boolean> => {
+export const setNoiseCancellationEnabled = (
+  enabled: boolean,
+): Promise<boolean> => {
   return NoiseCancellationReactNative.setEnabled(enabled);
 };
 
