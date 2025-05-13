@@ -4,11 +4,15 @@ import Head from 'next/head';
 import {
   Call,
   CallControls,
+  CallingState,
+  Icon,
   PreferredCodec,
   SpeakerLayout,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useCall,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import {
   getServerSideCredentialsProps,
@@ -86,9 +90,6 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
         : undefined,
     });
 
-    _call.join({ create: true }).catch((e) => {
-      console.error('Failed to join call', e);
-    });
     window.call = _call;
     return () => {
       _call.leave().catch((e) => console.error('Failed to leave call', e));
@@ -108,14 +109,59 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
 
       <StreamVideo client={client}>
         <StreamCall call={call}>
-          <SpeakerLayout participantsBarPosition="right" />
-          <div className="rd__bare__call-controls">
-            <CallControls />
-          </div>
+          <Stage />
         </StreamCall>
       </StreamVideo>
     </>
   );
 }
+
+const Stage = () => {
+  const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const showLobby = [
+    CallingState.IDLE,
+    CallingState.LEFT,
+    CallingState.UNKNOWN,
+  ].includes(callingState);
+  return (
+    <>
+      {showLobby && (
+        <Lobby
+          onJoin={() => {
+            call?.join({ create: true }).catch((e) => {
+              console.error('Failed to join call', e);
+            });
+          }}
+        />
+      )}
+      {!showLobby && (
+        <>
+          <SpeakerLayout participantsBarPosition="right" />
+          <div className="rd__bare__call-controls">
+            <CallControls />
+          </div>
+        </>
+      )}
+    </>
+  );
+};
+
+const Lobby = (props: { onJoin: () => void }) => {
+  return (
+    <div className="rd__bare__call-lobby">
+      <button
+        className="rd__button rd__button--primary rd__button--large rd__lobby-join"
+        type="button"
+        data-testid="join-call-button"
+        onClick={props.onJoin}
+      >
+        <Icon className="rd__button__icon" icon="login" />
+        Join
+      </button>
+    </div>
+  );
+};
 
 export const getServerSideProps = getServerSideCredentialsProps;
