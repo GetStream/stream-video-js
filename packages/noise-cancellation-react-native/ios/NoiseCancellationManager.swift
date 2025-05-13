@@ -2,12 +2,13 @@ import Foundation
 import StreamVideoNoiseCancellation
 import stream_react_native_webrtc
 
-@objcMembers
+@objc
 public final class NoiseCancellationManager: NSObject {
     // MARK: - Singleton Instance
     private static let _sharedInstance = NoiseCancellationManager()
 
     // Public static method to get the instance
+    @objc
     public static func getInstance() -> NoiseCancellationManager {
         return _sharedInstance
     }
@@ -21,6 +22,7 @@ public final class NoiseCancellationManager: NSObject {
     private override init() {}
 
     // MARK: - Processor Registration
+    @objc
     public func registerProcessor() {
         // Initialize the noise cancellation processor and filter
         noiseCancellationProcessor = NoiseCancellationProcessor()
