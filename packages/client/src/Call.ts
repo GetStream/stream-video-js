@@ -591,6 +591,7 @@ export class Call {
       this.statsReporter?.stop();
       this.statsReporter = undefined;
 
+      this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 

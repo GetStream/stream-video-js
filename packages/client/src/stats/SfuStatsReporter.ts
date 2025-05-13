@@ -235,6 +235,12 @@ export class SfuStatsReporter {
     this.timeoutId = undefined;
   };
 
+  flush = () => {
+    this.run().catch((err) => {
+      this.logger('warn', 'Failed to flush report stats', err);
+    });
+  };
+
   scheduleOne = (timeout: number) => {
     clearTimeout(this.timeoutId);
     this.timeoutId = setTimeout(() => {
