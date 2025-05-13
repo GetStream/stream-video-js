@@ -260,9 +260,7 @@ export abstract class BasePeerConnection {
 
     if (state === 'failed') {
       this.onUnrecoverableError?.('ICE connection failed');
-    }
-
-    if (state === 'disconnected') {
+    } else if (state === 'disconnected') {
       this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         const reason = `ICE restart failed`;
