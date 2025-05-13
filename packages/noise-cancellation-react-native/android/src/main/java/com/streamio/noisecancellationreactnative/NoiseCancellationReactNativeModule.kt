@@ -1,4 +1,4 @@
-package com.streamio.noisecancellationreactnative
+package io.getstream.rn.noisecancellation
 
 import android.content.pm.PackageManager
 import com.facebook.react.bridge.ReactApplicationContext

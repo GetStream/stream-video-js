@@ -11,7 +11,7 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import com.streamio.noisecancellationreactnative.NoiseCancellationReactNative
+import io.getstream.rn.noisecancellation.NoiseCancellationReactNative
 
 class MainApplication : Application(), ReactApplication {
 

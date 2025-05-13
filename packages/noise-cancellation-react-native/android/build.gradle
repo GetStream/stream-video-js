@@ -35,7 +35,7 @@ def supportsNamespace() {
 
 android {
   if (supportsNamespace()) {
-    namespace "com.streamio.noisecancellationreactnative"
+    namespace "io.getstream.rn.noisecancellation"
 
     sourceSets {
       main {
