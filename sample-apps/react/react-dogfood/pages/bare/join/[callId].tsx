@@ -129,10 +129,24 @@ const Stage = () => {
     <>
       {showLobby && (
         <Lobby
-          onJoin={() => {
-            call?.join({ create: true }).catch((e) => {
-              console.error('Failed to join call', e);
-            });
+          onJoin={async () => {
+            if (!call) return;
+            try {
+              await call.join({ create: true });
+              console.log('Joined call:', call.cid);
+
+              const appId = process.env.NEXT_PUBLIC_STREAM_APP_ID || '';
+              const path = encodeURIComponent(
+                `app/${appId}/${call.cid}/${call.state.session?.id}/`,
+              );
+              console.log(
+                'RTC stats:',
+                `http://localhost:8081/?path=${path}`,
+                `http://rtcstats.gtstrm.com:8081/?path=${path}`,
+              );
+            } catch (err) {
+              console.error('Failed to join call', err);
+            }
           }}
         />
       )}
