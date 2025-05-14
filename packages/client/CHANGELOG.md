@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.22.0...@stream-io/video-client-1.22.1) (2025-05-14)
+
+### Bug Fixes
+
+- fixes an edge case where tracks weren't restored after a reconnect ([#1789](https://github.com/GetStream/stream-video-js/issues/1789)) ([d825e8e](https://github.com/GetStream/stream-video-js/commit/d825e8e39ac8cbd072ec9d5124e1ea0226216e08))
+
 ## [1.22.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.21.0...@stream-io/video-client-1.22.0) (2025-05-08)
 
 ### Features
