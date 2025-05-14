@@ -591,6 +591,7 @@ export class Call {
       this.statsReporter?.stop();
       this.statsReporter = undefined;
 
+      this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 
@@ -1013,7 +1014,7 @@ export class Call {
       );
     }
 
-    if (performingRejoin) {
+    if (performingRejoin && isWsHealthy) {
       const strategy = WebsocketReconnectStrategy[this.reconnectStrategy];
       await previousSfuClient?.leaveAndClose(
         `Closing previous WS after reconnect with strategy: ${strategy}`,
@@ -1338,16 +1339,12 @@ export class Call {
   ): Promise<void> => {
     if (
       this.state.callingState === CallingState.RECONNECTING ||
+      this.state.callingState === CallingState.MIGRATING ||
       this.state.callingState === CallingState.RECONNECTING_FAILED
     )
       return;
 
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
-      this.logger(
-        'info',
-        `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
-      );
-
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
@@ -1374,6 +1371,12 @@ export class Call {
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
+
+          this.logger(
+            'info',
+            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
+          );
+
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
@@ -1428,6 +1431,7 @@ export class Call {
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
       );
+      this.logger('info', '[Reconnect] Reconnection flow finished');
     });
   };
 
