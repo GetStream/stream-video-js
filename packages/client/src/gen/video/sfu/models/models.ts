@@ -289,6 +289,14 @@ export interface PublishOption {
    * @generated from protobuf field: int32 id = 8;
    */
   id: number;
+  /**
+   * If true, instructs the publisher to send only the highest available simulcast layer,
+   * disabling all lower layers. This applies to simulcast encodings.
+   * For SVC codecs, prefer using the L1T3 (single spatial, 3 temporal layers) mode instead.
+   *
+   * @generated from protobuf field: bool use_single_layer = 9;
+   */
+  useSingleLayer: boolean;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
@@ -1314,6 +1322,12 @@ class PublishOption$Type extends MessageType<PublishOption> {
         T: () => VideoDimension,
       },
       { no: 8, name: 'id', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      {
+        no: 9,
+        name: 'use_single_layer',
+        kind: 'scalar',
+        T: 8 /*ScalarType.BOOL*/,
+      },
     ]);
   }
 }

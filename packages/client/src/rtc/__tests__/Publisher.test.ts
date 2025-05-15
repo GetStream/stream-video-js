@@ -243,11 +243,11 @@ describe('Publisher', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onUnrecoverableError'] = vi.fn();
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'failed';
       publisher['onIceConnectionStateChange']();
-      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['onUnrecoverableError']).toHaveBeenCalled();
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {

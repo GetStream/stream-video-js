@@ -41,7 +41,7 @@ Fill out what's applicable
 
 - Browser [e.g. chrome, safari]
 
-**React Native**
+**React Native / Expo**
 
 - OS: [e.g. iOS, linux...]
 - Device or emulator [e.g. android emulator, real iPhone X...]

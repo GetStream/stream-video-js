@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import { Event, Channel as ChannelType } from 'stream-chat';
+import { Channel as ChannelType, Event } from 'stream-chat';
 import { useCall } from '@stream-io/video-react-native-sdk';
-import { StreamChatGenerics } from '../../types';
 
 /**
  * This hook is responsible for returning the unread count of the channel.
@@ -19,7 +18,7 @@ export const useUnreadCount = () => {
 
   // Effect to watch the channel
   useEffect(() => {
-    let channel: ChannelType<StreamChatGenerics>;
+    let channel: ChannelType;
     const watchChannel = async () => {
       channel = client.channel(CHANNEL_TYPE, call?.id);
       await channel.watch();

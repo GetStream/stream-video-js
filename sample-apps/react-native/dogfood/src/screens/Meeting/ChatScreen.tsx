@@ -15,7 +15,7 @@ import {
 } from 'stream-chat-react-native';
 import { AuthenticationProgress } from '../../components/AuthenticatingProgress';
 import { Channel as ChannelType } from 'stream-chat';
-import { MeetingStackParamList, StreamChatGenerics } from '../../../types';
+import { MeetingStackParamList } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import {
@@ -63,9 +63,7 @@ const ChannelHeader = () => {
 };
 
 export const ChatScreen = ({ route }: ChatScreenProps) => {
-  const [channel, setChannel] = useState<
-    ChannelType<StreamChatGenerics> | undefined
-  >(undefined);
+  const [channel, setChannel] = useState<ChannelType>();
   const { client } = useChatContext();
   const {
     params: { callId },
@@ -73,11 +71,8 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   const CHANNEL_TYPE = 'videocall';
 
   useEffect(() => {
-    const createChannel = async () => {
-      const newChannel = await client.channel(CHANNEL_TYPE, callId);
-      setChannel(newChannel);
-    };
-    createChannel();
+    const newChannel = client.channel(CHANNEL_TYPE, callId);
+    setChannel(newChannel);
   }, [client, callId]);
 
   if (!channel) {
