@@ -1,32 +1,33 @@
-import {
+import React, {
   createContext,
   PropsWithChildren,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import {
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '@stream-io/video-client';
+
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import type { INoiseCancellation } from '@stream-io/video-client';
-
-export type NoiseCancellationProviderProps = {
-  /**
-   * The noise cancellation instance to use.
-   */
-  noiseCancellation: INoiseCancellation;
-};
-
+import {
+  getNoiseCancellationLibThrowIfNotInstalled,
+  NoiseCancellationWrapper,
+} from './lib';
 /**
  * The Noise Cancellation API.
  */
 export type NoiseCancellationAPI = {
   /**
+   * A boolean providing information whether the device supports advanced audio processing recommended for noise cancellation.
+   * This boolean returns `true` if the iOS device supports Apple's Neural Engine or if an Android device has the FEATURE_AUDIO_PROCESSING feature enabled.
+   * Devices with this capability are better suited for handling noise cancellation efficiently.
+   */
+  deviceSupportsAdvancedAudioProcessing: boolean | undefined;
+  /**
    * A boolean providing information whether Noise Cancelling functionalities
-   * are supported on this platform and for the current user.
+   * are supported for the current user in call settings.
    */
   isSupported: boolean | undefined;
   /**
@@ -34,7 +35,7 @@ export type NoiseCancellationAPI = {
    */
   isEnabled: boolean;
   /**
-   * Allows you to temporary enable or disable the Noise Cancellation filters.
+   * Allows you to enable or disable the Noise Cancellation audio filter.
    *
    * @param enabled a boolean or a setter.
    */
@@ -59,11 +60,12 @@ export const useNoiseCancellation = (): NoiseCancellationAPI => {
   return context;
 };
 
-export const NoiseCancellationProvider = (
-  props: PropsWithChildren<NoiseCancellationProviderProps>,
-) => {
-  const { children, noiseCancellation } = props;
+export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   const call = useCall();
+  const [
+    deviceSupportsAdvancedAudioProcessing,
+    setDeviceSupportsAdvancedAudioProcessing,
+  ] = useState<boolean | undefined>(undefined);
   const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
   const noiseCancellationAllowed = !!(
@@ -76,70 +78,53 @@ export const NoiseCancellationProvider = (
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
-  const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<
-    boolean | undefined
-  >(undefined);
+  const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
-    const result = noiseCancellation.isSupported();
+    const noiseCancellationNativeLib =
+      getNoiseCancellationLibThrowIfNotInstalled();
+    noiseCancellationNativeLib
+      .deviceSupportsAdvancedAudioProcessing()
+      .then((result) => setDeviceSupportsAdvancedAudioProcessing(result));
+  }, []);
 
-    if (typeof result === 'boolean') {
-      setIsSupportedByBrowser(result);
-    } else {
-      result
-        .then((_isSupportedByBrowser) =>
-          setIsSupportedByBrowser(_isSupportedByBrowser),
-        )
-        .catch((err) =>
-          console.error(
-            `Can't determine if noise cancellation is supported`,
-            err,
-          ),
-        );
-    }
-  }, [noiseCancellation]);
+  const isSupported = hasCapability && noiseCancellationAllowed;
 
-  const isSupported =
-    isSupportedByBrowser && hasCapability && noiseCancellationAllowed;
-
-  const [isEnabled, setIsEnabled] = useState(false);
-  const deinit = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call || !isSupported) return;
-    const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));
-    const init = (deinit.current || Promise.resolve())
-      .then(() => noiseCancellation.init())
-      .then(() => call.microphone.enableNoiseCancellation(noiseCancellation))
+    const ncInstance = NoiseCancellationWrapper.getInstance();
+    const unsubscribe = ncInstance.on('change', (v) => setIsEnabled(v));
+    call.microphone
+      .enableNoiseCancellation(ncInstance)
       .catch((err) => console.error(`Can't initialize noise suppression`, err));
 
     return () => {
-      deinit.current = init
-        .then(() => call.microphone.disableNoiseCancellation())
-        .then(() => noiseCancellation.dispose())
-        .then(() => unsubscribe());
+      call.microphone.disableNoiseCancellation();
+      unsubscribe();
     };
-  }, [call, isSupported, noiseCancellation]);
+  }, [call, isSupported]);
 
   return (
     <NoiseCancellationContext.Provider
       value={{
+        deviceSupportsAdvancedAudioProcessing,
         isSupported,
         isEnabled,
         setEnabled: (enabledOrSetter) => {
-          if (!noiseCancellation) return;
+          const ncInstance = NoiseCancellationWrapper.getInstance();
           const enable =
             typeof enabledOrSetter === 'function'
               ? enabledOrSetter(isEnabled)
               : enabledOrSetter;
           if (enable) {
-            noiseCancellation.enable();
+            ncInstance.enable();
           } else {
-            noiseCancellation.disable();
+            ncInstance.disable();
           }
         },
       }}
     >
-      {children}
+      {props.children}
     </NoiseCancellationContext.Provider>
   );
 };

@@ -59,6 +59,7 @@
     "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
+    "@stream-io/noise-cancellation-react-native": ">=0.1.0",
     "@stream-io/react-native-webrtc": ">=125.2.1",
     "@stream-io/video-filters-react-native": ">=0.1.0",
     "expo": ">=47.0.0",
@@ -84,6 +85,9 @@
       "optional": true
     },
     "@react-native-firebase/messaging": {
+      "optional": true
+    },
+    "@stream-io/noise-cancellation-react-native": {
       "optional": true
     },
     "@stream-io/video-filters-react-native": {

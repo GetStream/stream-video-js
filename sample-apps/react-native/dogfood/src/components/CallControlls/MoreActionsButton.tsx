@@ -6,6 +6,7 @@ import {
   useCallStateHooks,
   useTheme,
   useScreenshot,
+  useNoiseCancellation,
 } from '@stream-io/video-react-native-sdk';
 import { Text, Modal, Image, TouchableOpacity } from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
@@ -23,10 +24,6 @@ import Stats from '../../assets/Stats';
 import ClosedCaptions from '../../assets/ClosedCaptions';
 import Screenshot from '../../assets/Screenshot';
 import Hearing from '../../assets/Hearing';
-import {
-  isNoiseCancellationEnabled,
-  setNoiseCancellationEnabled,
-} from '@stream-io/noise-cancellation-react-native';
 import { View, Alert, StyleSheet } from 'react-native';
 
 /**
@@ -50,7 +47,11 @@ export const MoreActionsButton = ({
   const {
     theme: { colors, variants, moreActionsButton, defaults },
   } = useTheme();
-  const [isNoiseCancelEnabled, setIsNoiseCancelEnabled] = useState(false);
+  const {
+    deviceSupportsAdvancedAudioProcessing,
+    isEnabled: isNoiseCancellationEnabled,
+    setEnabled: setNoiseCancellationEnabled,
+  } = useNoiseCancellation();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
@@ -74,14 +75,6 @@ export const MoreActionsButton = ({
   const dominantSpeaker = useDominantSpeaker();
   const { takeScreenshot } = useScreenshot();
   const participants = useParticipants();
-
-  useEffect(() => {
-    const fetchNoiseCancellationStatus = async () => {
-      const isEnabled = await isNoiseCancellationEnabled();
-      setNoiseCancellationEnabled(isEnabled);
-    };
-    fetchNoiseCancellationStatus();
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -114,7 +107,7 @@ export const MoreActionsButton = ({
       : 'Enable closed captions';
 
   const toggleNoiseCancellation = async () => {
-    setIsNoiseCancelEnabled((prev) => {
+    setNoiseCancellationEnabled((prev) => {
       setNoiseCancellationEnabled(!prev);
       return !prev;
     });
@@ -216,21 +209,25 @@ export const MoreActionsButton = ({
       ),
       onPress: getScreenshotOfDominantSpeaker,
     },
-    {
-      id: '5',
-      label: isNoiseCancelEnabled
-        ? 'Disable noise cancellation'
-        : 'Enable noise cancellation',
-      icon: (
-        <IconWrapper>
-          <Hearing
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
-          />
-        </IconWrapper>
-      ),
-      onPress: toggleNoiseCancellation,
-    },
+    ...(deviceSupportsAdvancedAudioProcessing
+      ? [
+          {
+            id: '5',
+            label: isNoiseCancellationEnabled
+              ? 'Disable noise cancellation'
+              : 'Enable noise cancellation',
+            icon: (
+              <IconWrapper>
+                <Hearing
+                  color={colors.iconPrimary}
+                  size={variants.roundButtonSizes.sm}
+                />
+              </IconWrapper>
+            ),
+            onPress: toggleNoiseCancellation,
+          },
+        ]
+      : []),
     ...(canToggle
       ? [
           {

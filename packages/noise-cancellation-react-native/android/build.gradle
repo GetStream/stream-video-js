@@ -6,6 +6,7 @@ buildscript {
   repositories {
     google()
     mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
   }
 
   dependencies {
@@ -82,7 +83,7 @@ println "Using targetSdkVersion: ${getExtOrIntegerDefault("targetSdkVersion")}"
 
 dependencies {
   implementation "com.facebook.react:react-native:+"
-  implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.3'
+  implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.2.1-SNAPSHOT'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation project(':stream-io_react-native-webrtc')
 }

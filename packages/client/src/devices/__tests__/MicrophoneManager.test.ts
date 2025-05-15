@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import type { INoiseCancellation } from '../../types';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { sleep } from '../../coordinator/connection/utils';

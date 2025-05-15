@@ -294,6 +294,45 @@ export type CallConstructor = {
 };
 
 /**
+ * A list of noise cancellation events one can subscribe to.
+ */
+export type NoiseCancellationEvents = {
+  /**
+   * Fires when Noise Cancellation state changes.
+   *
+   * @param enabled true when enabled, false otherwise.
+   */
+  change: (enabled: boolean) => void;
+};
+
+/**
+ * An interface for the NoiseCancellation implementation.
+ * Provided for easier unit testing.
+ */
+export interface INoiseCancellation {
+  isSupported: () => boolean | Promise<boolean>;
+  init: () => Promise<void>;
+  canAutoEnable?: () => Promise<boolean>;
+  enable: () => void;
+  disable: () => void;
+  dispose: () => Promise<void>;
+  toFilter: () => (mediaStream: MediaStream) => {
+    output: MediaStream;
+  };
+  on: <E extends keyof NoiseCancellationEvents, T = NoiseCancellationEvents[E]>(
+    event: E,
+    callback: T,
+  ) => () => void;
+  off: <
+    E extends keyof NoiseCancellationEvents,
+    T = NoiseCancellationEvents[E],
+  >(
+    event: E,
+    callback: T,
+  ) => void;
+}
+
+/**
  * The options to pass to {@link Call.join} method.
  */
 export type JoinCallData = Omit<JoinCallRequest, 'location'>;
