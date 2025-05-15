@@ -4,7 +4,13 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useTheme } from '../../../contexts';
 import { CallingState } from '@stream-io/video-client';
 
@@ -13,23 +19,18 @@ type LobbyProps = {
   handleJoinCall?: () => void;
 };
 
-export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
+export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const styles = useStyles();
   const { theme } = useTheme();
   const { t } = useI18n();
-  const { useCallStartsAt, useParticipants } = useCallStateHooks();
+  const { useCallStartsAt, useParticipants, useCallCallingState } =
+    useCallStateHooks();
+  const callingState = useCallCallingState();
   const call = useCall();
   const startsAt = useCallStartsAt();
   const [error, setError] = useState<Error | undefined>(undefined);
   const [countdown, setCountdown] = React.useState('');
   const participants = useParticipants();
-
-  // Automatically join call when isLive becomes true
-  useEffect(() => {
-    if (isLive && handleJoinCall) {
-      handleJoinCall();
-    }
-  }, [isLive, handleJoinCall]);
 
   useEffect(() => {
     if (!startsAt || isLive) return;
@@ -87,9 +88,7 @@ export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
     );
   }
 
-  const isJoiningLiveCall =
-    isLive || call?.state.callingState === CallingState.JOINING;
-
+  const isJoiningLiveCall = callingState === CallingState.JOINING;
   if (isJoiningLiveCall) {
     return (
       <View style={styles.container}>
@@ -102,7 +101,7 @@ export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
     <View style={styles.container}>
       <Text style={styles.text}>
         {isLive
-          ? t('Stream is ready!')
+          ? t('Livestream is still in progress')
           : startsAt
             ? t('Livestream will start in:')
             : t('Livestream will start soon')}
@@ -116,6 +115,9 @@ export const ViewerLobby = ({ isLive, handleJoinCall }: LobbyProps) => {
             {`${participants.length} ${t('participants have joined early')}`}
           </Text>
         </>
+      )}
+      {isLive && (
+        <Button title={t('Join Livestream')} onPress={() => call?.join()} />
       )}
     </View>
   );

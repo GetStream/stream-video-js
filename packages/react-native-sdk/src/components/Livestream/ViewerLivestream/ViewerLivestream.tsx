@@ -69,7 +69,11 @@ export const ViewerLivestream = ({
     useParticipants,
     useCallCallingState,
     useCallEndedAt,
+    useIsCallLive,
   } = useCallStateHooks();
+  const isCallLive = useIsCallLive();
+  const callingState = useCallCallingState();
+  const endedAt = useCallEndedAt();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const [currentSpeaker] = useParticipants();
   const floatingParticipant =
@@ -81,6 +85,12 @@ export const ViewerLivestream = ({
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
 
+  // Automatically route audio to speaker devices as relevant for watching videos.
+  useEffect(() => {
+    InCallManager.start({ media: 'video' });
+    return () => InCallManager.stop();
+  }, []);
+
   const topViewProps: ViewerLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
@@ -90,48 +100,40 @@ export const ViewerLivestream = ({
     },
   };
 
-  // Automatically route audio to speaker devices as relevant for watching videos.
+  // Automatically join call when isLive becomes true
   useEffect(() => {
-    InCallManager.start({ media: 'video' });
-    return () => InCallManager.stop();
-  }, []);
+    const handleJoinCall = async () => {
+      try {
+        if (!(call && isCallLive)) {
+          return;
+        }
 
-  const { useIsCallLive } = useCallStateHooks();
-  const isCallLive = useIsCallLive();
+        const isAlreadyJoined = [
+          CallingState.JOINED,
+          CallingState.JOINING,
+        ].includes(call.state.callingState);
 
-  /**
-   * The call is joined using the anonymous user/client.
-   */
-  const handleJoinCall = async () => {
-    try {
-      if (!(call && isCallLive)) {
-        return;
+        if (isAlreadyJoined) {
+          return;
+        }
+
+        await call?.join();
+      } catch (error) {
+        console.error('Failed to join call', error);
       }
-      if (
-        [CallingState.JOINED, CallingState.JOINING].includes(
-          call.state.callingState,
-        )
-      ) {
-        return;
-      }
-      await call?.join();
-    } catch (error) {
-      console.error('Failed to join call', error);
+    };
+
+    if (isCallLive) {
+      handleJoinCall();
     }
-  };
+  }, [isCallLive, call]);
 
-  const callingState = useCallCallingState();
-  const endedAt = useCallEndedAt();
-
-  if (
-    !isCallLive ||
-    (callingState !== CallingState.LEFT && callingState !== CallingState.JOINED)
-  ) {
-    return <ViewerLobby isLive={isCallLive} handleJoinCall={handleJoinCall} />;
+  if (endedAt != null) {
+    return <CallEndedView />;
   }
 
-  if (endedAt != null || callingState === CallingState.LEFT) {
-    return <CallEndedView />;
+  if (!isCallLive || callingState !== CallingState.JOINED) {
+    return <ViewerLobby isLive={isCallLive} />;
   }
 
   return (

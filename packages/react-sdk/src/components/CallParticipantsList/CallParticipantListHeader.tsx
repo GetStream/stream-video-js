@@ -15,6 +15,7 @@ export const CallParticipantListHeader = ({
   const { useParticipants, useAnonymousParticipantCount } = useCallStateHooks();
   const participants = useParticipants();
   const anonymousParticipantCount = useAnonymousParticipantCount();
+  const totalParticipantCount = participants.length + anonymousParticipantCount;
   const { t } = useI18n();
 
   return (
