@@ -6727,8 +6727,8 @@ __metadata:
     react-dom: "npm:19.0.0"
     react-router-dom: "npm:^6.30.0"
     sass: "npm:^1.69.5"
-    stream-chat: "npm:^9.0.1"
-    stream-chat-react: "npm:^13.0.0"
+    stream-chat: "npm:^9.1.1"
+    stream-chat-react: "npm:^13.0.1"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
   languageName: unknown
@@ -6942,8 +6942,8 @@ __metadata:
     sass: "npm:^1.69.5"
     source-map-loader: "npm:^5.0.0"
     starwars-names: "npm:^1.6.0"
-    stream-chat: "npm:^9.0.1"
-    stream-chat-react: "npm:^13.0.0"
+    stream-chat: "npm:^9.1.1"
+    stream-chat-react: "npm:^13.0.1"
     swr: "npm:^2.3.3"
     yargs: "npm:^17.7.2"
   languageName: unknown
@@ -7000,7 +7000,7 @@ __metadata:
     react-native-video: "npm:^6.13.0"
     react-native-voip-push-notification: "npm:~3.3.3"
     rxjs: "npm:~7.8.1"
-    stream-chat: "npm:^9.0.1"
+    stream-chat: "npm:^9.1.1"
     stream-chat-react-native: "npm:^7.0.0"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -7208,8 +7208,8 @@ __metadata:
     react: "npm:19.0.0"
     react-dom: "npm:19.0.0"
     react-router-dom: "npm:^6.30.0"
-    stream-chat: "npm:^9.0.1"
-    stream-chat-react: "npm:^13.0.0"
+    stream-chat: "npm:^9.1.1"
+    stream-chat-react: "npm:^13.0.1"
     tailwindcss: "npm:^3.2.4"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
@@ -22079,9 +22079,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "stream-chat-react@npm:13.0.0"
+"stream-chat-react@npm:^13.0.1":
+  version: 13.0.1
+  resolution: "stream-chat-react@npm:13.0.1"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@popperjs/core": "npm:^2.11.5"
@@ -22138,13 +22138,13 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/20c215a2390dbc95eb12f4913003f6e5d3faaa5f2af1d09fd585423b31dd079decbf210ca1a080667ecc03d8d52cdabe37f59ee7f93bdab9d4b76c404e0e6ea5
+  checksum: 10/676e4c6a9c721c58ee2319d808e896b9a4ab88c9c5ceca8f56d3935dae6068249b6ae46655312a5f707d35ac51363078316142c4a4042ea7db05ae072904e166
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^9.0.0, stream-chat@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "stream-chat@npm:9.0.1"
+"stream-chat@npm:^9.0.0, stream-chat@npm:^9.1.1":
+  version: 9.1.1
+  resolution: "stream-chat@npm:9.1.1"
   dependencies:
     "@types/jsonwebtoken": "npm:^9.0.8"
     "@types/ws": "npm:^8.5.14"
@@ -22155,7 +22155,7 @@ __metadata:
     jsonwebtoken: "npm:^9.0.2"
     linkifyjs: "npm:^4.2.0"
     ws: "npm:^8.18.1"
-  checksum: 10/55f3f7d0fc8aa3527d4e50edea503d7aa4aadd16f46eb31592d2bee75b2263d4d7fde35ba7bc25b1eae13ca432230191993b0b4ab79cf28bdd56ba37564907f8
+  checksum: 10/1a3fdb86ee0443095752d9a650c46c30a9f0e1e0f101f97c9a79e1331baebc905d295b6be832c498a808b670c57e6d0637f69026d3ad51ddb97da744e3d9c7d7
   languageName: node
   linkType: hard
 

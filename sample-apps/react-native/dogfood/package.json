@@ -43,7 +43,7 @@
     "react-native-video": "^6.13.0",
     "react-native-voip-push-notification": "~3.3.3",
     "rxjs": "~7.8.1",
-    "stream-chat": "^9.0.1",
+    "stream-chat": "^9.1.1",
     "stream-chat-react-native": "^7.0.0"
   },
   "devDependencies": {
