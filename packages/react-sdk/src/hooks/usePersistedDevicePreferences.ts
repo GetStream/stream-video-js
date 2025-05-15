@@ -41,17 +41,36 @@ const defaultDevice = 'default';
 export const usePersistedDevicePreferences = (
   key: string = '@stream-io/device-preferences',
 ): void => {
-  const { useCameraState, useMicrophoneState, useSpeakerState } =
-    useCallStateHooks();
-  usePersistedDevicePreference(key, 'camera', useCameraState());
-  usePersistedDevicePreference(key, 'microphone', useMicrophoneState());
-  usePersistedDevicePreference(key, 'speaker', useSpeakerState());
+  const {
+    useCallSettings,
+    useCameraState,
+    useMicrophoneState,
+    useSpeakerState,
+  } = useCallStateHooks();
+  const settings = useCallSettings();
+
+  usePersistedDevicePreference(
+    key,
+    'camera',
+    useCameraState(),
+    settings ? !settings.video.camera_default_on : undefined,
+  );
+
+  usePersistedDevicePreference(
+    key,
+    'microphone',
+    useMicrophoneState(),
+    settings ? !settings.audio.mic_default_on : undefined,
+  );
+
+  usePersistedDevicePreference(key, 'speaker', useSpeakerState(), false);
 };
 
 const usePersistedDevicePreference = <K extends DeviceKey>(
   key: string,
   deviceKey: K,
   state: DeviceState<K>,
+  defaultMuted?: boolean,
 ): void => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -65,6 +84,7 @@ const usePersistedDevicePreference = <K extends DeviceKey>(
       if (
         callingState === CallingState.LEFT ||
         !state.devices?.length ||
+        typeof defaultMuted !== 'boolean' ||
         applyingState !== 'idle'
       ) {
         return;
@@ -75,8 +95,16 @@ const usePersistedDevicePreference = <K extends DeviceKey>(
 
       setApplyingState('applying');
 
-      if (preference && !manager.state.selectedDevice) {
-        applyLocalDevicePreference(manager, [preference].flat(), state.devices)
+      if (!manager.state.selectedDevice) {
+        const applyPromise = preference
+          ? applyLocalDevicePreference(
+              manager,
+              [preference].flat(),
+              state.devices,
+            )
+          : applyMutedState(manager, defaultMuted);
+
+        applyPromise
           .catch((err) => {
             console.warn(
               `Failed to apply ${deviceKey} device preferences`,
@@ -88,7 +116,15 @@ const usePersistedDevicePreference = <K extends DeviceKey>(
         setApplyingState('applied');
       }
     },
-    [applyingState, callingState, deviceKey, key, manager, state.devices],
+    [
+      applyingState,
+      callingState,
+      defaultMuted,
+      deviceKey,
+      key,
+      manager,
+      state.devices,
+    ],
   );
 
   useEffect(
@@ -206,8 +242,12 @@ const applyLocalDevicePreference = async (
   }
 
   if (typeof muted === 'boolean') {
-    await manager[muted ? 'disable' : 'enable']?.();
+    await applyMutedState(manager, muted);
   }
+};
+
+const applyMutedState = async (manager: DeviceManagerLike, muted: boolean) => {
+  await manager[muted ? 'disable' : 'enable']?.();
 };
 
 const getSelectedDevicePreference = (

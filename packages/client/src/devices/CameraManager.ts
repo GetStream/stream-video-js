@@ -33,30 +33,34 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    * @param direction the direction of the camera to select.
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
-    if (this.isDirectionSupportedByDevice()) {
-      if (isReactNative()) {
-        const videoTrack = this.getTracks()[0];
-        if (!videoTrack) {
-          this.logger('warn', 'No video track found to do direction selection');
-          return;
-        }
-        await videoTrack.applyConstraints({
-          facingMode: direction === 'front' ? 'user' : 'environment',
-        });
-        this.state.setDirection(direction);
-        this.state.setDevice(undefined);
-      } else {
-        // web mobile
-        this.state.setDirection(direction);
-        // Providing both device id and direction doesn't work, so we deselect the device
-        this.state.setDevice(undefined);
-        this.getTracks().forEach((track) => {
-          track.stop();
-        });
+    if (!this.isDirectionSupportedByDevice()) {
+      this.logger('warn', 'Setting direction is not supported on this device');
+      return;
+    }
+
+    // providing both device id and direction doesn't work, so we deselect the device
+    this.state.setDirection(direction);
+    this.state.setDevice(undefined);
+
+    if (isReactNative()) {
+      const videoTrack = this.getTracks()[0] as MediaStreamTrack | undefined;
+      await videoTrack?.applyConstraints({
+        facingMode: direction === 'front' ? 'user' : 'environment',
+      });
+      return;
+    }
+
+    this.getTracks().forEach((track) => track.stop());
+    try {
+      await this.unmuteStream();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'NotReadableError') {
+        // the camera is already in use, and the device can't use it unless it's released.
+        // in that case, we need to stop the stream and start it again.
+        await this.muteStream();
         await this.unmuteStream();
       }
-    } else {
-      this.logger('warn', 'Camera direction ignored for desktop devices');
+      throw error;
     }
   }
 
@@ -158,6 +162,6 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
-    return getVideoStream(constraints);
+    return getVideoStream(constraints, this.call.tracer);
   }
 }

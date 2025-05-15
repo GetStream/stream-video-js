@@ -10,6 +10,7 @@ import {
   createWebSocketSignalChannel,
   Dispatcher,
   IceTrickleBuffer,
+  SfuEventKinds,
 } from './rtc';
 import {
   JoinRequest,
@@ -118,6 +119,11 @@ export class StreamSfuClient {
    */
   isLeaving = false;
 
+  /**
+   * Flag to indicate if the client is in the process of closing the connection.
+   */
+  isClosing = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
@@ -192,7 +198,9 @@ export class StreamSfuClient {
     this.joinResponseTimeout = joinResponseTimeout;
     this.logTag = logTag;
     this.logger = getLogger(['SfuClient', logTag]);
-    this.tracer = enableTracing ? new Tracer(logTag) : undefined;
+    this.tracer = enableTracing
+      ? new Tracer(`${logTag}-${this.edgeName}`)
+      : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
@@ -226,12 +234,22 @@ export class StreamSfuClient {
   }
 
   private createWebSocket = () => {
+    const eventsToTrace: Partial<Record<SfuEventKinds, boolean>> = {
+      callEnded: true,
+      changePublishQuality: true,
+      error: true,
+      goAway: true,
+    };
     this.signalWs = createWebSocketSignalChannel({
       logTag: this.logTag,
       endpoint: `${this.credentials.server.ws_endpoint}?tag=${this.logTag}`,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
+        const eventKind = message.eventPayload.oneofKind;
+        if (eventsToTrace[eventKind]) {
+          this.tracer?.trace(eventKind, message);
+        }
         this.dispatcher.dispatch(message, this.logTag);
       },
     });
@@ -288,6 +306,7 @@ export class StreamSfuClient {
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
+    this.isClosing = true;
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
@@ -375,10 +394,8 @@ export class StreamSfuClient {
 
   sendStats = async (stats: Omit<SendStatsRequest, 'sessionId'>) => {
     await this.joinTask;
-    return retryable(
-      () => this.rpc.sendStats({ ...stats, sessionId: this.sessionId }),
-      this.abortController.signal,
-    );
+    // NOTE: we don't retry sending stats
+    return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
   };
 
   startNoiseCancellation = async () => {
@@ -457,23 +474,24 @@ export class StreamSfuClient {
       current.reject(new Error('Waiting for "joinResponse" has timed out'));
     }, this.joinResponseTimeout);
 
-    await this.send(
-      SfuRequest.create({
-        requestPayload: {
-          oneofKind: 'joinRequest',
-          joinRequest: JoinRequest.create({
-            ...data,
-            sessionId: this.sessionId,
-            token: this.credentials.token,
-          }),
-        },
-      }),
-    );
+    const joinRequest = SfuRequest.create({
+      requestPayload: {
+        oneofKind: 'joinRequest',
+        joinRequest: JoinRequest.create({
+          ...data,
+          sessionId: this.sessionId,
+          token: this.credentials.token,
+        }),
+      },
+    });
+
+    this.tracer?.trace('joinRequest', joinRequest);
+    await this.send(joinRequest);
 
     return current.promise;
   };
 
-  ping = async () => {
+  private ping = async () => {
     return this.send(
       SfuRequest.create({
         requestPayload: {

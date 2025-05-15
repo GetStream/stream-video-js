@@ -6,7 +6,11 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
 import { SfuEvent, SubscriberOffer } from '../../gen/video/sfu/event/events';
-import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import {
+  PeerType,
+  SdkType,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -39,6 +43,7 @@ describe('Subscriber', () => {
         token: 'token',
         ice_servers: [],
       },
+      enableTracing: false,
     });
     // @ts-expect-error readonly field
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
@@ -49,6 +54,15 @@ describe('Subscriber', () => {
       state,
       connectionConfig: { iceServers: [] },
       logTag: 'test',
+      enableTracing: false,
+      clientDetails: {
+        sdk: {
+          type: SdkType.PLAIN_JAVASCRIPT,
+          major: '1',
+          minor: '0',
+          patch: '1',
+        },
+      },
     });
   });
 
@@ -89,11 +103,11 @@ describe('Subscriber', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      subscriber['onUnrecoverableError'] = vi.fn();
       // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'failed';
       subscriber['onIceConnectionStateChange']();
-      expect(subscriber.restartIce).toHaveBeenCalled();
+      expect(subscriber['onUnrecoverableError']).toHaveBeenCalled();
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {

@@ -26,7 +26,7 @@ const [, raiseHandReaction] = defaultReactions;
 export const usePushToTalk = (key: string) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute } = useMicrophoneState();
-  const hotkeyHandlerRef = useRef<(e: KeyboardEvent) => void>();
+  const hotkeyHandlerRef = useRef<(e: KeyboardEvent) => void>(undefined);
   const enableMicWithPushToTalkPromiseRef = useRef<Promise<void> | null>(null);
 
   hotkeyHandlerRef.current = (e) => {

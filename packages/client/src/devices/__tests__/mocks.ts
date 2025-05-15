@@ -7,6 +7,7 @@ import {
 import { Call } from '../../Call';
 import { of, Subject } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
+import { Tracer } from '../../stats';
 
 export const mockVideoDevices = [
   {
@@ -93,13 +94,11 @@ export const mockCall = (): Partial<Call> => {
   });
   return {
     state: callState,
-    publishVideoStream: vi.fn(),
-    publishAudioStream: vi.fn(),
-    publishScreenShareStream: vi.fn(),
     publish: vi.fn(),
     stopPublish: vi.fn(),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
+    tracer: new Tracer('tests'),
   };
 };
 
@@ -221,5 +220,6 @@ export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
 
 export const mockBrowserPermission = {
   asObservable: () => of(true),
+  asStateObservable: () => of('prompt'),
   getIsPromptingObservable: () => of(false),
 } as BrowserPermission;

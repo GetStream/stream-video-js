@@ -2,6 +2,7 @@ import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { getVideoBrowserPermission } from './devices';
+import { RxUtils } from '../store';
 
 export type CameraDirection = 'front' | 'back' | undefined;
 
@@ -28,14 +29,14 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
    * back - means the camera facing the environment
    */
   get direction() {
-    return this.getCurrentValue(this.direction$);
+    return RxUtils.getCurrentValue(this.direction$);
   }
 
   /**
    * @internal
    */
   setDirection(direction: CameraDirection) {
-    this.setCurrentValue(this.directionSubject, direction);
+    RxUtils.setCurrentValue(this.directionSubject, direction);
   }
 
   /**

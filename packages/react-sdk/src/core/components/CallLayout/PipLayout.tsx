@@ -1,4 +1,8 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { useEffect, useState } from 'react';
 
 import { ParticipantsAudio } from '../Audio';
@@ -13,6 +17,8 @@ import {
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
 } from './hooks';
+import { hasScreenShare } from '@stream-io/video-client';
+import { Icon } from '../../../components';
 
 export type PipLayoutProps = {
   /**
@@ -46,19 +52,16 @@ export type PipLayoutProps = {
    * @default true
    */
   mirrorLocalParticipantVideo?: boolean;
-} & Pick<
-  ParticipantViewProps,
-  'ParticipantViewUI' | 'VideoPlaceholder' | 'PictureInPicturePlaceholder'
->;
+} & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
 
 const Pip = (props: PipLayoutProps) => {
+  const { t } = useI18n();
   const {
     excludeLocalParticipant = false,
     filterParticipants,
     mirrorLocalParticipantVideo = true,
     VideoPlaceholder,
     ParticipantViewUI = DefaultParticipantViewUI,
-    PictureInPicturePlaceholder,
   } = props;
   const [layoutWrapperElement, setLayoutWrapperElement] =
     useState<HTMLDivElement | null>(null);
@@ -68,6 +71,7 @@ const Pip = (props: PipLayoutProps) => {
     excludeLocalParticipant,
     filterParticipants,
   });
+  const screenSharingParticipant = participants.find((p) => hasScreenShare(p));
 
   usePaginatedLayoutSortPreset(call);
 
@@ -82,6 +86,24 @@ const Pip = (props: PipLayoutProps) => {
 
   return (
     <div className="str-video__pip-layout" ref={setLayoutWrapperElement}>
+      {screenSharingParticipant &&
+        (screenSharingParticipant.isLocalParticipant ? (
+          <div className="str-video__pip-screen-share-local">
+            <Icon icon="screen-share-off" />
+            <span className="str-video__pip-screen-share-local__title">
+              {t('You are presenting your screen')}
+            </span>
+          </div>
+        ) : (
+          <ParticipantView
+            participant={screenSharingParticipant}
+            trackType="screenShareTrack"
+            muteAudio
+            mirror={false}
+            VideoPlaceholder={VideoPlaceholder}
+            ParticipantViewUI={ParticipantViewUI}
+          />
+        ))}
       {participants.map((participant) => (
         <ParticipantView
           key={participant.sessionId}
@@ -89,7 +111,6 @@ const Pip = (props: PipLayoutProps) => {
           muteAudio
           mirror={mirror}
           VideoPlaceholder={VideoPlaceholder}
-          PictureInPicturePlaceholder={PictureInPicturePlaceholder}
           ParticipantViewUI={ParticipantViewUI}
         />
       ))}

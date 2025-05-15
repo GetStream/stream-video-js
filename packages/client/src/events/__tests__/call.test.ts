@@ -10,6 +10,7 @@ import {
   CallAcceptedEvent,
   CallEndedEvent,
   CallResponse,
+  OwnCapability,
   RejectCallResponse,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
@@ -114,7 +115,11 @@ describe('Call ringing events', () => {
           },
         },
       });
-      expect(call.leave).toHaveBeenCalled();
+      expect(call.leave).toHaveBeenCalledWith({
+        reject: true,
+        reason: 'cancel',
+        message: 'ring: everyone rejected',
+      });
     });
 
     it(`caller will not leave the call if only one callee rejects`, async () => {
@@ -290,6 +295,28 @@ describe('Call ringing events', () => {
       call['dispatcher'].dispatch(event);
 
       expect(call.leave).not.toHaveBeenCalled();
+    });
+
+    it('will stay in backstage if live ended and has permission', async () => {
+      const call = fakeCall();
+      call.state.setBackstage(false);
+      call.permissionsContext.setPermissions([OwnCapability.JOIN_BACKSTAGE]);
+      vi.spyOn(call, 'leave').mockImplementation(async () => {
+        console.log(`TEST: leave() called`);
+      });
+
+      watchSfuCallEnded(call);
+      const event: SfuEvent = {
+        eventPayload: {
+          oneofKind: 'callEnded',
+          callEnded: { reason: CallEndedReason.LIVE_ENDED },
+        },
+      };
+      // @ts-expect-error type issue
+      call['dispatcher'].dispatch(event);
+
+      expect(call.leave).not.toHaveBeenCalled();
+      expect(call.state.backstage).toBe(true);
     });
   });
 

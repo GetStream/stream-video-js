@@ -239,6 +239,10 @@ export const firebaseDataHandler = async (
                 callingState === CallingState.IDLE ||
                 callingState === CallingState.LEFT
               ) {
+                getLogger(['firebaseMessagingOnMessageHandler'])(
+                  'debug',
+                  `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
+                );
                 unsubscribeFunctions.forEach((fn) => fn());
                 notifee.stopForegroundService();
               }

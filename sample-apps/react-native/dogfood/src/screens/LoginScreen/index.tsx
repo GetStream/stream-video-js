@@ -174,11 +174,11 @@ const LoginScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: appTheme.spacing.lg,
     flex: 1,
     backgroundColor: appTheme.colors.static_grey,
   },
   keyboardContainer: {
+    margin: appTheme.spacing.lg,
     flex: 1,
     justifyContent: 'space-evenly',
   },

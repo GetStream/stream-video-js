@@ -98,7 +98,7 @@ export class Publisher extends BasePeerConnection {
         await this.addTransceiver(trackToPublish, publishOption);
       } else {
         const previousTrack = transceiver.sender.track;
-        await transceiver.sender.replaceTrack(trackToPublish);
+        await this.updateTransceiver(transceiver, trackToPublish, trackType);
         if (!isReactNative()) {
           this.stopTrack(previousTrack);
         }
@@ -122,11 +122,30 @@ export class Publisher extends BasePeerConnection {
       sendEncodings,
     });
 
+    const params = transceiver.sender.getParameters();
+    params.degradationPreference = 'maintain-framerate';
+    await transceiver.sender.setParameters(params);
+
     const trackType = publishOption.trackType;
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverCache.add(publishOption, transceiver);
+    this.trackIdToTrackType.set(track.id, trackType);
 
     await this.negotiate();
+  };
+
+  /**
+   * Updates the transceiver with the given track and track type.
+   */
+  private updateTransceiver = async (
+    transceiver: RTCRtpTransceiver,
+    track: MediaStreamTrack | null,
+    trackType: TrackType,
+  ) => {
+    const sender = transceiver.sender;
+    if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
+    await sender.replaceTrack(track);
+    if (track) this.trackIdToTrackType.set(track.id, trackType);
   };
 
   /**
@@ -163,7 +182,7 @@ export class Publisher extends BasePeerConnection {
       if (hasPublishOption) continue;
       // it is safe to stop the track here, it is a clone
       this.stopTrack(transceiver.sender.track);
-      await transceiver.sender.replaceTrack(null);
+      await this.updateTransceiver(transceiver, null, publishOption.trackType);
     }
   };
 
@@ -182,19 +201,6 @@ export class Publisher extends BasePeerConnection {
       if (track.readyState === 'live' && track.enabled) return true;
     }
     return false;
-  };
-
-  /**
-   * Maps the given track ID to the corresponding track type.
-   */
-  getTrackType = (trackId: string): TrackType | undefined => {
-    for (const transceiverId of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = transceiverId;
-      if (transceiver.sender.track?.id === trackId) {
-        return publishOption.trackType;
-      }
-    }
-    return undefined;
   };
 
   /**
@@ -321,7 +327,7 @@ export class Publisher extends BasePeerConnection {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
-    return withoutConcurrency('publisher.negotiate', async () => {
+    return withoutConcurrency(`publisher.negotiate.${this.lock}`, async () => {
       const offer = await this.pc.createOffer(options);
       const tracks = this.getAnnouncedTracks(offer.sdp);
       if (!tracks.length) throw new Error(`Can't negotiate without any tracks`);

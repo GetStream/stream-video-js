@@ -119,4 +119,29 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
       'remote-notification',
     ]);
   });
+
+  it('should add multiple modes for ringing notifications', async () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        UIBackgroundModes: undefined,
+      },
+    };
+    const props: ConfigProps = {
+      ringingPushNotifications: {
+        disableVideoIos: true,
+        includesCallsInRecentsIos: true,
+      },
+    };
+    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
+      config,
+      props,
+    ) as CustomExpoConfig;
+
+    expect(modifiedConfig.modResults.UIBackgroundModes).toContain('audio');
+    expect(modifiedConfig.modResults.UIBackgroundModes).toContain('voip');
+    expect(modifiedConfig.modResults.UIBackgroundModes).toContain('fetch');
+    expect(modifiedConfig.modResults.UIBackgroundModes).toContain('processing');
+  });
 });

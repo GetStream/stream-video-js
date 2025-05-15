@@ -103,7 +103,7 @@ export const NoiseCancellationProvider = (
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;
 
   const [isEnabled, setIsEnabled] = useState(false);
-  const deinit = useRef<Promise<void>>();
+  const deinit = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call || !isSupported) return;
     const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));

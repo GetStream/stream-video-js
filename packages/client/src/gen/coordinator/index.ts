@@ -71,25 +71,6 @@ export interface AcceptCallResponse {
 /**
  *
  * @export
- * @interface AggregatedStats
- */
-export interface AggregatedStats {
-  /**
-   *
-   * @type {PublisherAggregateStats}
-   * @memberof AggregatedStats
-   */
-  publisher_aggregate_stats?: PublisherAggregateStats;
-  /**
-   *
-   * @type {TURNAggregatedStats}
-   * @memberof AggregatedStats
-   */
-  turn?: TURNAggregatedStats;
-}
-/**
- *
- * @export
  * @interface AudioSettingsRequest
  */
 export interface AudioSettingsRequest {
@@ -658,73 +639,6 @@ export interface CallEndedEvent {
    * @memberof CallEndedEvent
    */
   user?: UserResponse;
-}
-/**
- *
- * @export
- * @interface CallEvent
- */
-export interface CallEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallEvent
-   */
-  category?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallEvent
-   */
-  component?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallEvent
-   */
-  description: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CallEvent
-   */
-  end_timestamp: number;
-  /**
-   *
-   * @type {boolean}
-   * @memberof CallEvent
-   */
-  internal: boolean;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof CallEvent
-   */
-  issue_tags?: Array<string>;
-  /**
-   *
-   * @type {string}
-   * @memberof CallEvent
-   */
-  kind: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CallEvent
-   */
-  severity: number;
-  /**
-   *
-   * @type {number}
-   * @memberof CallEvent
-   */
-  timestamp: number;
-  /**
-   *
-   * @type {string}
-   * @memberof CallEvent
-   */
-  type: string;
 }
 /**
  * This event is sent when frame recording has failed
@@ -1584,6 +1498,31 @@ export interface CallRejectedEvent {
    * @memberof CallRejectedEvent
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallReportResponse
+ */
+export interface CallReportResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallReportResponse
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallReportResponse
+   */
+  score: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallReportResponse
+   */
+  started_at?: string;
 }
 /**
  * CallRequest is the payload for creating a call.
@@ -2454,19 +2393,6 @@ export interface CallStatsReportSummaryResponse {
   quality_score?: number;
 }
 /**
- *
- * @export
- * @interface CallTimeline
- */
-export interface CallTimeline {
-  /**
-   *
-   * @type {Array<CallEvent>}
-   * @memberof CallTimeline
-   */
-  events: Array<CallEvent>;
-}
-/**
  * CallTranscription represents a transcription of a call.
  * @export
  * @interface CallTranscription
@@ -2729,6 +2655,19 @@ export interface CallsPerDayReportResponse {
   daily: Array<DailyAggregateCallsPerDayReportResponse>;
 }
 /**
+ *
+ * @export
+ * @interface ChatActivityStatsResponse
+ */
+export interface ChatActivityStatsResponse {
+  /**
+   *
+   * @type {MessageStatsResponse}
+   * @memberof ChatActivityStatsResponse
+   */
+  Messages?: MessageStatsResponse;
+}
+/**
  * This event is sent when closed captions are being sent in a call, clients should use this to show the closed captions in the call screen
  * @export
  * @interface ClosedCaptionEvent
@@ -2929,40 +2868,21 @@ export interface ConnectionErrorEvent {
 /**
  *
  * @export
- * @interface Coordinates
+ * @interface CountByMinuteResponse
  */
-export interface Coordinates {
+export interface CountByMinuteResponse {
   /**
    *
    * @type {number}
-   * @memberof Coordinates
+   * @memberof CountByMinuteResponse
    */
-  latitude: number;
+  count: number;
   /**
    *
-   * @type {number}
-   * @memberof Coordinates
+   * @type {string}
+   * @memberof CountByMinuteResponse
    */
-  longitude: number;
-}
-/**
- *
- * @export
- * @interface Count
- */
-export interface Count {
-  /**
-   *
-   * @type {boolean}
-   * @memberof Count
-   */
-  approximate: boolean;
-  /**
-   *
-   * @type {number}
-   * @memberof Count
-   */
-  value: number;
+  start_ts: string;
 }
 /**
  * Create device request
@@ -3505,25 +3425,6 @@ export interface EndCallResponse {
 /**
  *
  * @export
- * @interface FPSStats
- */
-export interface FPSStats {
-  /**
-   *
-   * @type {number}
-   * @memberof FPSStats
-   */
-  average_fps: number;
-  /**
-   *
-   * @type {number}
-   * @memberof FPSStats
-   */
-  tracked: number;
-}
-/**
- *
- * @export
  * @interface FrameRecordingResponse
  */
 export interface FrameRecordingResponse {
@@ -3580,6 +3481,7 @@ export const FrameRecordingSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
 } as const;
 export type FrameRecordingSettingsRequestQualityEnum =
   (typeof FrameRecordingSettingsRequestQualityEnum)[keyof typeof FrameRecordingSettingsRequestQualityEnum];
@@ -3650,73 +3552,6 @@ export interface GeofenceSettingsResponse {
 /**
  *
  * @export
- * @interface GeolocationResult
- */
-export interface GeolocationResult {
-  /**
-   *
-   * @type {number}
-   * @memberof GeolocationResult
-   */
-  accuracy_radius: number;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  city: string;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  continent: string;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  continent_code: string;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  country: string;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  country_iso_code: string;
-  /**
-   *
-   * @type {number}
-   * @memberof GeolocationResult
-   */
-  latitude: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GeolocationResult
-   */
-  longitude: number;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  subdivision: string;
-  /**
-   *
-   * @type {string}
-   * @memberof GeolocationResult
-   */
-  subdivision_iso_code: string;
-}
-/**
- *
- * @export
  * @interface GetCallResponse
  */
 export interface GetCallResponse {
@@ -3754,111 +3589,33 @@ export interface GetCallResponse {
 /**
  * Basic response information
  * @export
- * @interface GetCallStatsResponse
+ * @interface GetCallReportResponse
  */
-export interface GetCallStatsResponse {
+export interface GetCallReportResponse {
   /**
    *
-   * @type {AggregatedStats}
-   * @memberof GetCallStatsResponse
+   * @type {ChatActivityStatsResponse}
+   * @memberof GetCallReportResponse
    */
-  aggregated?: AggregatedStats;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  average_connection_time?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  call_duration_seconds: number;
-  /**
-   *
-   * @type {string}
-   * @memberof GetCallStatsResponse
-   */
-  call_status: string;
-  /**
-   *
-   * @type {CallTimeline}
-   * @memberof GetCallStatsResponse
-   */
-  call_timeline?: CallTimeline;
+  chat_activity?: ChatActivityStatsResponse;
   /**
    * Duration of the request in milliseconds
    * @type {string}
-   * @memberof GetCallStatsResponse
+   * @memberof GetCallReportResponse
    */
   duration: string;
   /**
    *
-   * @type {boolean}
-   * @memberof GetCallStatsResponse
+   * @type {ReportResponse}
+   * @memberof GetCallReportResponse
    */
-  is_truncated_report: boolean;
+  report: ReportResponse;
   /**
    *
-   * @type {TimeStats}
-   * @memberof GetCallStatsResponse
+   * @type {string}
+   * @memberof GetCallReportResponse
    */
-  jitter?: TimeStats;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof GetCallStatsResponse
-   */
-  latency?: TimeStats;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  max_freezes_duration_seconds: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  max_participants: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  max_total_quality_limitation_duration_seconds: number;
-  /**
-   *
-   * @type {Array<UserStats>}
-   * @memberof GetCallStatsResponse
-   */
-  participant_report: Array<UserStats>;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  publishing_participants: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  quality_score: number;
-  /**
-   *
-   * @type {number}
-   * @memberof GetCallStatsResponse
-   */
-  sfu_count: number;
-  /**
-   *
-   * @type {Array<SFULocationResponse>}
-   * @memberof GetCallStatsResponse
-   */
-  sfus: Array<SFULocationResponse>;
+  session_id: string;
 }
 /**
  * Basic response information
@@ -4026,6 +3783,25 @@ export interface GoLiveResponse {
    * @memberof GoLiveResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface GroupedStatsResponse
+ */
+export interface GroupedStatsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GroupedStatsResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {number}
+   * @memberof GroupedStatsResponse
+   */
+  unique: number;
 }
 /**
  *
@@ -4427,37 +4203,6 @@ export interface Location {
   subdivision_iso_code: string;
 }
 /**
- *
- * @export
- * @interface MediaPubSubHint
- */
-export interface MediaPubSubHint {
-  /**
-   *
-   * @type {boolean}
-   * @memberof MediaPubSubHint
-   */
-  audio_published: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof MediaPubSubHint
-   */
-  audio_subscribed: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof MediaPubSubHint
-   */
-  video_published: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof MediaPubSubHint
-   */
-  video_subscribed: boolean;
-}
-/**
  * MemberRequest is the payload for adding a member to a call.
  * @export
  * @interface MemberRequest
@@ -4530,6 +4275,19 @@ export interface MemberResponse {
    * @memberof MemberResponse
    */
   user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface MessageStatsResponse
+ */
+export interface MessageStatsResponse {
+  /**
+   *
+   * @type {Array<CountByMinuteResponse>}
+   * @memberof MessageStatsResponse
+   */
+  count_over_time?: Array<CountByMinuteResponse>;
 }
 /**
  *
@@ -4799,6 +4557,123 @@ export interface OwnUserResponse {
 /**
  *
  * @export
+ * @interface ParticipantCountByMinuteResponse
+ */
+export interface ParticipantCountByMinuteResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  first: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  last: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  max: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  min: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantCountByMinuteResponse
+   */
+  start_ts: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantCountOverTimeResponse
+ */
+export interface ParticipantCountOverTimeResponse {
+  /**
+   *
+   * @type {Array<ParticipantCountByMinuteResponse>}
+   * @memberof ParticipantCountOverTimeResponse
+   */
+  by_minute?: Array<ParticipantCountByMinuteResponse>;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantReportResponse
+ */
+export interface ParticipantReportResponse {
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_browser?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_country?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_device?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {Array<GroupedStatsResponse>}
+   * @memberof ParticipantReportResponse
+   */
+  by_operating_system?: Array<GroupedStatsResponse>;
+  /**
+   *
+   * @type {ParticipantCountOverTimeResponse}
+   * @memberof ParticipantReportResponse
+   */
+  count_over_time?: ParticipantCountOverTimeResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  max_concurrent?: number;
+  /**
+   *
+   * @type {PublisherStatsResponse}
+   * @memberof ParticipantReportResponse
+   */
+  publishers?: PublisherStatsResponse;
+  /**
+   *
+   * @type {SubscriberStatsResponse}
+   * @memberof ParticipantReportResponse
+   */
+  subscribers?: SubscriberStatsResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  sum: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantReportResponse
+   */
+  unique: number;
+}
+/**
+ *
+ * @export
  * @interface PerSDKUsageReport
  */
 export interface PerSDKUsageReport {
@@ -4888,46 +4763,27 @@ export interface PinResponse {
 /**
  *
  * @export
- * @interface PublishedTrackInfo
+ * @interface PublisherStatsResponse
  */
-export interface PublishedTrackInfo {
+export interface PublisherStatsResponse {
   /**
    *
-   * @type {string}
-   * @memberof PublishedTrackInfo
+   * @type {Array<TrackStatsResponse>}
+   * @memberof PublisherStatsResponse
    */
-  codec_mime_type?: string;
+  by_track?: Array<TrackStatsResponse>;
   /**
    *
    * @type {number}
-   * @memberof PublishedTrackInfo
+   * @memberof PublisherStatsResponse
    */
-  duration_seconds?: number;
+  total: number;
   /**
    *
-   * @type {string}
-   * @memberof PublishedTrackInfo
+   * @type {number}
+   * @memberof PublisherStatsResponse
    */
-  track_type?: string;
-}
-/**
- *
- * @export
- * @interface PublisherAggregateStats
- */
-export interface PublisherAggregateStats {
-  /**
-   *
-   * @type {{ [key: string]: Count; }}
-   * @memberof PublisherAggregateStats
-   */
-  by_track_type?: { [key: string]: Count };
-  /**
-   *
-   * @type {Count}
-   * @memberof PublisherAggregateStats
-   */
-  total?: Count;
+  unique: number;
 }
 /**
  *
@@ -5283,6 +5139,31 @@ export interface QueryCallsResponse {
   prev?: string;
 }
 /**
+ *
+ * @export
+ * @interface ReportResponse
+ */
+export interface ReportResponse {
+  /**
+   *
+   * @type {CallReportResponse}
+   * @memberof ReportResponse
+   */
+  call: CallReportResponse;
+  /**
+   *
+   * @type {ParticipantReportResponse}
+   * @memberof ReportResponse
+   */
+  participants: ParticipantReportResponse;
+  /**
+   *
+   * @type {UserRatingReportResponse}
+   * @memberof ReportResponse
+   */
+  user_ratings: UserRatingReportResponse;
+}
+/**
  * RTMPBroadcastRequest is the payload for starting an RTMP broadcast.
  * @export
  * @interface RTMPBroadcastRequest
@@ -5329,11 +5210,13 @@ export const RTMPBroadcastRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
+  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPBroadcastRequestQualityEnum =
   (typeof RTMPBroadcastRequestQualityEnum)[keyof typeof RTMPBroadcastRequestQualityEnum];
@@ -5380,11 +5263,13 @@ export const RTMPSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
+  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPSettingsRequestQualityEnum =
   (typeof RTMPSettingsRequestQualityEnum)[keyof typeof RTMPSettingsRequestQualityEnum];
@@ -5485,11 +5370,13 @@ export const RecordSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
+  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
+  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
@@ -5696,37 +5583,6 @@ export interface SDKUsageReportResponse {
    * @memberof SDKUsageReportResponse
    */
   daily: Array<DailyAggregateSDKUsageReportResponse>;
-}
-/**
- *
- * @export
- * @interface SFULocationResponse
- */
-export interface SFULocationResponse {
-  /**
-   *
-   * @type {Coordinates}
-   * @memberof SFULocationResponse
-   */
-  coordinates: Coordinates;
-  /**
-   *
-   * @type {string}
-   * @memberof SFULocationResponse
-   */
-  datacenter: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SFULocationResponse
-   */
-  id: string;
-  /**
-   *
-   * @type {Location}
-   * @memberof SFULocationResponse
-   */
-  location: Location;
 }
 /**
  *
@@ -6286,52 +6142,27 @@ export interface StopTranscriptionResponse {
 /**
  *
  * @export
- * @interface Subsession
+ * @interface SubscriberStatsResponse
  */
-export interface Subsession {
+export interface SubscriberStatsResponse {
   /**
    *
    * @type {number}
-   * @memberof Subsession
+   * @memberof SubscriberStatsResponse
    */
-  ended_at: number;
+  total: number;
   /**
    *
    * @type {number}
-   * @memberof Subsession
+   * @memberof SubscriberStatsResponse
    */
-  joined_at: number;
+  total_subscribed_duration_seconds: number;
   /**
    *
-   * @type {MediaPubSubHint}
-   * @memberof Subsession
+   * @type {number}
+   * @memberof SubscriberStatsResponse
    */
-  pub_sub_hint?: MediaPubSubHint;
-  /**
-   *
-   * @type {string}
-   * @memberof Subsession
-   */
-  sfu_id: string;
-}
-/**
- *
- * @export
- * @interface TURNAggregatedStats
- */
-export interface TURNAggregatedStats {
-  /**
-   *
-   * @type {Count}
-   * @memberof TURNAggregatedStats
-   */
-  tcp?: Count;
-  /**
-   *
-   * @type {Count}
-   * @memberof TURNAggregatedStats
-   */
-  total?: Count;
+  unique: number;
 }
 /**
  *
@@ -6400,21 +6231,21 @@ export interface ThumbnailsSettingsResponse {
 /**
  *
  * @export
- * @interface TimeStats
+ * @interface TrackStatsResponse
  */
-export interface TimeStats {
+export interface TrackStatsResponse {
   /**
    *
    * @type {number}
-   * @memberof TimeStats
+   * @memberof TrackStatsResponse
    */
-  average_seconds: number;
+  duration_seconds: number;
   /**
    *
-   * @type {number}
-   * @memberof TimeStats
+   * @type {string}
+   * @memberof TrackStatsResponse
    */
-  max_seconds: number;
+  track_type: string;
 }
 /**
  *
@@ -6894,39 +6725,21 @@ export interface UserFeedbackReportResponse {
 /**
  *
  * @export
- * @interface UserInfoResponse
+ * @interface UserRatingReportResponse
  */
-export interface UserInfoResponse {
+export interface UserRatingReportResponse {
   /**
    *
-   * @type {{ [key: string]: any; }}
-   * @memberof UserInfoResponse
+   * @type {number}
+   * @memberof UserRatingReportResponse
    */
-  custom: { [key: string]: any };
+  average: number;
   /**
    *
-   * @type {string}
-   * @memberof UserInfoResponse
+   * @type {number}
+   * @memberof UserRatingReportResponse
    */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserInfoResponse
-   */
-  image: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserInfoResponse
-   */
-  name: string;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof UserInfoResponse
-   */
-  roles: Array<string>;
+  count: number;
 }
 /**
  * User request object
@@ -7182,370 +6995,6 @@ export interface UserResponsePrivacyFields {
    * @memberof UserResponsePrivacyFields
    */
   updated_at: string;
-}
-/**
- *
- * @export
- * @interface UserSessionStats
- */
-export interface UserSessionStats {
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  average_connection_time?: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  browser?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  browser_version?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  current_ip?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  current_sfu?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  device_model?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  device_version?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  distance_to_sfu_kilometers?: number;
-  /**
-   *
-   * @type {FPSStats}
-   * @memberof UserSessionStats
-   */
-  fps?: FPSStats;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  freeze_duration_seconds: number;
-  /**
-   *
-   * @type {GeolocationResult}
-   * @memberof UserSessionStats
-   */
-  geolocation?: GeolocationResult;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  group: string;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof UserSessionStats
-   */
-  jitter?: TimeStats;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof UserSessionStats
-   */
-  latency?: TimeStats;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  max_fir_per_second?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  max_freeze_fraction: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  max_freezes_duration_seconds: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  max_freezes_per_second?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  max_nack_per_second?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  max_pli_per_second?: number;
-  /**
-   *
-   * @type {VideoQuality}
-   * @memberof UserSessionStats
-   */
-  max_publishing_video_quality?: VideoQuality;
-  /**
-   *
-   * @type {VideoQuality}
-   * @memberof UserSessionStats
-   */
-  max_receiving_video_quality?: VideoQuality;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  min_event_ts: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  os?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  os_version?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  packet_loss_fraction: number;
-  /**
-   *
-   * @type {MediaPubSubHint}
-   * @memberof UserSessionStats
-   */
-  pub_sub_hints?: MediaPubSubHint;
-  /**
-   *
-   * @type {Array<PublishedTrackInfo>}
-   * @memberof UserSessionStats
-   */
-  published_tracks?: Array<PublishedTrackInfo>;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof UserSessionStats
-   */
-  publisher_jitter?: TimeStats;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof UserSessionStats
-   */
-  publisher_latency?: TimeStats;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  publisher_noise_cancellation_seconds?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  publisher_packet_loss_fraction: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  publisher_quality_limitation_fraction?: number;
-  /**
-   *
-   * @type {{ [key: string]: number; }}
-   * @memberof UserSessionStats
-   */
-  publisher_video_quality_limitation_duration_seconds?: {
-    [key: string]: number;
-  };
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  publishing_audio_codec?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  publishing_duration_seconds: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  publishing_video_codec?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  quality_score: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  receiving_audio_codec?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  receiving_duration_seconds: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  receiving_video_codec?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  sdk?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  sdk_version?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  session_id: string;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof UserSessionStats
-   */
-  subscriber_jitter?: TimeStats;
-  /**
-   *
-   * @type {TimeStats}
-   * @memberof UserSessionStats
-   */
-  subscriber_latency?: TimeStats;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  subscriber_video_quality_throttled_duration_seconds?: number;
-  /**
-   *
-   * @type {Array<Subsession>}
-   * @memberof UserSessionStats
-   */
-  subsessions?: Array<Subsession>;
-  /**
-   *
-   * @type {CallTimeline}
-   * @memberof UserSessionStats
-   */
-  timeline?: CallTimeline;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  total_pixels_in: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserSessionStats
-   */
-  total_pixels_out: number;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UserSessionStats
-   */
-  truncated?: boolean;
-  /**
-   *
-   * @type {string}
-   * @memberof UserSessionStats
-   */
-  webrtc_version?: string;
-}
-/**
- *
- * @export
- * @interface UserStats
- */
-export interface UserStats {
-  /**
-   *
-   * @type {string}
-   * @memberof UserStats
-   */
-  feedback?: string;
-  /**
-   *
-   * @type {UserInfoResponse}
-   * @memberof UserStats
-   */
-  info: UserInfoResponse;
-  /**
-   *
-   * @type {number}
-   * @memberof UserStats
-   */
-  min_event_ts: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UserStats
-   */
-  rating?: number;
-  /**
-   *
-   * @type {Array<UserSessionStats>}
-   * @memberof UserStats
-   */
-  session_stats: Array<UserSessionStats>;
 }
 /**
  * This event is sent when a user gets updated. The event contains information about the updated user.

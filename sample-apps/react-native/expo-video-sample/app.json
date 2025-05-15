@@ -50,7 +50,8 @@
             "showWhenLockedAndroid": true
           },
           "enableNonRingingPushNotifications": true,
-          "androidPictureInPicture": true
+          "androidPictureInPicture": true,
+          "iOSEnableMultitaskingCameraAccess": true
         }
       ],
       "@config-plugins/react-native-callkeep",

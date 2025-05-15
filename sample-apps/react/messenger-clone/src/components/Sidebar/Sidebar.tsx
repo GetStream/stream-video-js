@@ -8,11 +8,10 @@ import {
   UserResponse,
 } from 'stream-chat';
 
-import type { StreamChatType } from '../../types/chat';
 import { ChannelPreview } from '../ChannelPreview';
 
 type SidebarProps = {
-  user?: UserResponse<StreamChatType>;
+  user?: UserResponse;
 };
 
 export const Sidebar = ({ user }: SidebarProps) => {

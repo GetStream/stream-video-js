@@ -2,6 +2,85 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.16.0...@stream-io/video-react-sdk-1.16.1) (2025-05-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.22.1`
+- `@stream-io/video-react-bindings` updated to version `1.6.1`
+
+## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.15.0...@stream-io/video-react-sdk-1.16.0) (2025-05-08)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.3.0`
+- `@stream-io/video-client` updated to version `1.22.0`
+- `@stream-io/video-filters-web` updated to version `0.2.0`
+- `@stream-io/video-react-bindings` updated to version `1.6.0`
+
+### Features
+
+- Expo 53 Swift Config Plugin and React Native 0.79 compatibility ([#1714](https://github.com/GetStream/stream-video-js/issues/1714)) ([380331e](https://github.com/GetStream/stream-video-js/commit/380331e11fd6182c3111413aa25689a669dd3c9c))
+
+## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.6...@stream-io/video-react-sdk-1.15.0) (2025-05-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.21.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.19`
+
+### Features
+
+- encode and decode PerformanceStats tracing ([#1765](https://github.com/GetStream/stream-video-js/issues/1765)) ([138ea84](https://github.com/GetStream/stream-video-js/commit/138ea84fee834da03cf3c8042fbb2f071526f135))
+
+## [1.14.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.5...@stream-io/video-react-sdk-1.14.6) (2025-05-01)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.2`
+- `@stream-io/video-react-bindings` updated to version `1.5.18`
+
+## [1.14.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.4...@stream-io/video-react-sdk-1.14.5) (2025-04-29)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.1`
+- `@stream-io/video-react-bindings` updated to version `1.5.17`
+
+## [1.14.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.3...@stream-io/video-react-sdk-1.14.4) (2025-04-24)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.20.0`
+- `@stream-io/video-react-bindings` updated to version `1.5.16`
+
+### Bug Fixes
+
+- apply call default camera/mic on settings ([#1766](https://github.com/GetStream/stream-video-js/issues/1766)) ([d2a2783](https://github.com/GetStream/stream-video-js/commit/d2a27838c4e6b4e4ec71821d0070f729aee9c644))
+
+## [1.14.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.2...@stream-io/video-react-sdk-1.14.3) (2025-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.1.4`
+- `@stream-io/video-client` updated to version `1.19.3`
+- `@stream-io/video-react-bindings` updated to version `1.5.15`
+
+### Bug Fixes
+
+- access device list lazily from call state hook ([#1761](https://github.com/GetStream/stream-video-js/issues/1761)) ([319353c](https://github.com/GetStream/stream-video-js/commit/319353caf709f6a9fa2197b2ac923b9ceecadb7c))
+
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.1...@stream-io/video-react-sdk-1.14.2) (2025-04-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.19.2`
+- `@stream-io/video-react-bindings` updated to version `1.5.14`
+
+### Bug Fixes
+
+- participant filter for `single-participant` layout in egress app ([#1756](https://github.com/GetStream/stream-video-js/issues/1756)) ([8c0b05d](https://github.com/GetStream/stream-video-js/commit/8c0b05d89238db084c7b09415030ec072e9e974b))
+
 ## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.14.0...@stream-io/video-react-sdk-1.14.1) (2025-04-09)
 
 ### Dependency Updates
