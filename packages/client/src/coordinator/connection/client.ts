@@ -594,13 +594,13 @@ export class StreamClient {
     response: AxiosResponse<APIErrorResponse>,
   ): ErrorFromResponse<APIErrorResponse> => {
     const { data, status } = response;
-    const err = new ErrorFromResponse<APIErrorResponse>();
-    err.message = `Stream error code ${data.code}: ${data.message}`;
-    err.code = data.code;
-    err.unrecoverable = data.unrecoverable;
-    err.response = response;
-    err.status = status;
-    return err;
+    return new ErrorFromResponse<APIErrorResponse>({
+      message: `Stream error code ${data.code}: ${data.message}`,
+      code: data.code ?? null,
+      unrecoverable: data.unrecoverable ?? null,
+      response: response,
+      status: status,
+    });
   };
 
   handleResponse = <T>(response: AxiosResponse<T>) => {
