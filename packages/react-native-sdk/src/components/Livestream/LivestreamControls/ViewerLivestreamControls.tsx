@@ -28,6 +28,15 @@ export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
    * Component to customize the leave stream button on the viewer's end live stream.
    */
   ViewerLeaveStreamButton?: React.ComponentType<ViewerLeaveStreamButtonProps> | null;
+
+  /**
+   * Handler to be called when the leave stream button is pressed.
+   */
+  onLeaveStreamHandler?: () => void;
+
+  /**
+   * Handler to be called when the layout of the component changes.
+   */
   onLayout?: ViewProps['onLayout'];
 };
 
@@ -45,29 +54,21 @@ export const ViewerLivestreamControls = ({
   } = useTheme();
 
   const [showControls, setShowControls] = useState(true);
-  const [previewControls, setPreviewControls] = useState(false);
-  const hideTimeout = useRef<NodeJS.Timeout | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [showPlayPauseButton, setShowPlayPauseButton] = useState(true);
   const playPauseTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    hidePlayPauseButtonAfterDelay();
     return () => {
-      if (hideTimeout.current) {
-        clearTimeout(hideTimeout.current);
-      }
       if (playPauseTimeout.current) {
         clearTimeout(playPauseTimeout.current);
       }
     };
   }, []);
 
-  useEffect(() => {
-    hidePlayPauseButton();
-  }, []);
-
-  const hidePlayPauseButton = () => {
+  const hidePlayPauseButtonAfterDelay = () => {
     if (playPauseTimeout.current) {
       clearTimeout(playPauseTimeout.current);
     }
@@ -80,40 +81,20 @@ export const ViewerLivestreamControls = ({
 
   const showPlayPauseButtonWithTimeout = () => {
     setShowPlayPauseButton(true);
-    hidePlayPauseButton();
+    hidePlayPauseButtonAfterDelay();
   };
 
   const showControlsWithTimeout = () => {
     showPlayPauseButtonWithTimeout();
-
     if (showControls) {
       return;
     }
 
     setShowControls(true);
-    setPreviewControls(true);
-
-    if (hideTimeout.current) {
-      clearTimeout(hideTimeout.current);
-    }
-
-    hideTimeout.current = setTimeout(() => {
-      if (previewControls) {
-        setShowControls(false);
-        setPreviewControls(false);
-      }
-      hideTimeout.current = null;
-    }, 2000);
   };
 
   const toggleControls = () => {
-    if (hideTimeout.current) {
-      clearTimeout(hideTimeout.current);
-      hideTimeout.current = null;
-    }
-
     setShowControls(!showControls);
-    setPreviewControls(false);
   };
 
   const toggleAudio = () => {
@@ -126,7 +107,7 @@ export const ViewerLivestreamControls = ({
     showPlayPauseButtonWithTimeout();
   };
 
-  const volumeButton = (
+  const VolumeButton = (
     <Pressable onPress={toggleAudio} style={[styles.fullscreenButton]}>
       <View style={[styles.icon]}>
         <IconWrapper>
@@ -143,7 +124,7 @@ export const ViewerLivestreamControls = ({
     </Pressable>
   );
 
-  const maximizeButton = (
+  const MaximizeButton = (
     <Pressable onPress={toggleControls} style={[styles.fullscreenButton]}>
       <View style={[styles.icon]}>
         <Maximize
@@ -155,7 +136,7 @@ export const ViewerLivestreamControls = ({
     </Pressable>
   );
 
-  const playPauseButton = (
+  const PlayPauseButton = (
     <Pressable onPress={togglePlayPause} style={styles.playPauseButton}>
       <View style={styles.playPauseIcon}>
         <IconWrapper>
@@ -183,10 +164,10 @@ export const ViewerLivestreamControls = ({
       {!isPlaying && <View style={styles.blackOverlay} />}
 
       {showPlayPauseButton && (
-        <View style={styles.centerButtonContainer}>{playPauseButton}</View>
+        <View style={styles.centerButtonContainer}>{PlayPauseButton}</View>
       )}
 
-      {(showControls || previewControls) && (
+      {showControls && (
         <View
           style={[styles.container, viewerLivestreamControls.container]}
           onLayout={onLayout}
@@ -196,19 +177,21 @@ export const ViewerLivestreamControls = ({
           >
             <View style={[styles.leftElement]}>
               <View style={[styles.liveInfo]}>
-                {LiveIndicator && <LiveIndicator />}
-                {FollowerCount && <FollowerCount />}
+                <LiveIndicator />
+                <FollowerCount />
               </View>
             </View>
           </View>
-          <View>{DurationBadge && <DurationBadge mode="viewer" />}</View>
+          <View>
+            <DurationBadge mode="viewer" />
+          </View>
 
           <View
             style={[styles.rightElement, viewerLivestreamControls.rightElement]}
           >
             <View style={styles.buttonContainer}>
-              {volumeButton}
-              {maximizeButton}
+              {VolumeButton}
+              {MaximizeButton}
               {ViewerLeaveStreamButton && (
                 <ViewerLeaveStreamButton
                   onLeaveStreamHandler={onLeaveStreamHandler}

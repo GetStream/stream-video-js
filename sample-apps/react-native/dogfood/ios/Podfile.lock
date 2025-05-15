@@ -2240,7 +2240,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - stream-io-video-filters-react-native (0.3.0):
+  - stream-io-video-filters-react-native (0.3.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2268,7 +2268,7 @@ PODS:
   - stream-react-native-webrtc (125.2.1):
     - React-Core
     - StreamWebRTC (~> 125.6422.070)
-  - stream-video-react-native (1.13.1):
+  - stream-video-react-native (1.13.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2688,10 +2688,10 @@ SPEC CHECKSUMS:
   RNSVG: 257f59c952e296c9c36035a8f49b61fda48e398a
   RNVoipPushNotification: a6f7c09e1ca7220e2be1c45e9b6b897c9600024b
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 98cdfdea7a7bee3311b8404dc589bd8a7826ce38
-  stream-io-video-filters-react-native: c3fce0cbe462b65c4299c8ece8028f04dc1ac64d
-  stream-react-native-webrtc: 67f99bff8e2bf6e601afd5ddc24d8c520f2aa8a1
-  stream-video-react-native: 4a6b36e79a130db336aa8b748a43c71205cddc6c
+  stream-chat-react-native: 424aa90cfaead2a04ca59b956fd3e206ff38cc74
+  stream-io-video-filters-react-native: 5a94e0830f247a7e0dc97ea7de1d7f55afaa265c
+  stream-react-native-webrtc: 2a0d4992834ce47455282325a083366e45a7b1f2
+  stream-video-react-native: f6efa199d3dc3a04b290232e8c0532a9225c7fd6
   StreamWebRTC: a50ebd8beba4def8f4e378b4895824c3520f9889
   VisionCamera: b5c2b3c45e641102902a5194af11dc532805221e
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
