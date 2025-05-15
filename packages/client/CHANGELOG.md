@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.22.1...@stream-io/video-client-1.22.2) (2025-05-15)
+
+- adjust ErrorFromResponse class ([#1791](https://github.com/GetStream/stream-video-js/issues/1791)) ([c0abcba](https://github.com/GetStream/stream-video-js/commit/c0abcbacfddeb87d8378c4418f80e6770981cdc8)), closes [GetStream/chat#1540](https://github.com/GetStream/chat/issues/1540)
+
+### Bug Fixes
+
+- enable chore releases ([#1792](https://github.com/GetStream/stream-video-js/issues/1792)) ([6046654](https://github.com/GetStream/stream-video-js/commit/6046654fe19505a1c115a4fb838759d010540614))
+
 ## [1.22.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.22.0...@stream-io/video-client-1.22.1) (2025-05-14)
 
 ### Bug Fixes
