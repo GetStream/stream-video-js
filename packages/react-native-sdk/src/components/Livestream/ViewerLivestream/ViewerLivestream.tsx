@@ -120,6 +120,8 @@ export const ViewerLivestream = ({
         if (!(call && canJoinLive)) {
           return;
         }
+        // get latest call data
+        await call?.get();
 
         const isAlreadyJoined = [
           CallingState.JOINED,
@@ -204,6 +206,8 @@ const useCanJoinEarly = () => {
       return () => clearInterval(handle);
     }
   }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
+
+  return canJoinEarly;
 };
 
 const checkCanJoinEarly = (
