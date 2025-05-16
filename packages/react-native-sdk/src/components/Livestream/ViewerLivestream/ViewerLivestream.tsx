@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
@@ -43,6 +43,14 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
      * Component to customize the FloatingParticipantView when screen is shared.
      */
     FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
+     * Determines when the viewer joins the call.
+     *
+     * `"asap"` behavior means joining the call as soon as it is possible
+     * (either the `join_ahead_time_seconds` setting allows it, or the user
+     * has a the capability to join backstage).
+     */
+    joinBehavior?: 'asap' | 'live';
   };
 
 /**
@@ -58,6 +66,7 @@ export const ViewerLivestream = ({
   DurationBadge,
   ViewerLeaveStreamButton,
   onLeaveStreamHandler,
+  joinBehavior,
 }: ViewerLivestreamProps) => {
   const styles = useStyles();
   const call = useCall();
@@ -70,8 +79,9 @@ export const ViewerLivestream = ({
     useCallCallingState,
     useCallEndedAt,
     useIsCallLive,
+    useOwnCapabilities,
   } = useCallStateHooks();
-  const isCallLive = useIsCallLive();
+  const canJoinLive = useIsCallLive();
   const callingState = useCallCallingState();
   const endedAt = useCallEndedAt();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
@@ -81,6 +91,41 @@ export const ViewerLivestream = ({
     currentSpeaker &&
     hasVideo(currentSpeaker) &&
     currentSpeaker;
+
+  const useCanJoinEarly = () => {
+    const { useCallStartsAt, useCallSettings } = useCallStateHooks();
+    const startsAt = useCallStartsAt();
+    const settings = useCallSettings();
+    const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+    const [canJoinEarly, setCanJoinEarly] = useState(() =>
+      checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
+    );
+
+    useEffect(() => {
+      if (!canJoinEarly) {
+        const handle = setInterval(() => {
+          setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+        }, 1000);
+
+        return () => clearInterval(handle);
+      }
+    }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
+  };
+
+  const checkCanJoinEarly = (
+    startsAt: Date | undefined,
+    joinAheadTimeSeconds: number | undefined,
+  ) => {
+    if (!startsAt) {
+      return false;
+    }
+
+    return Date.now() >= +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
+  };
+
+  const canJoinEarly = useCanJoinEarly();
+  const canJoinBackstage =
+    useOwnCapabilities()?.includes('join-backstage') ?? false;
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
@@ -100,11 +145,10 @@ export const ViewerLivestream = ({
     },
   };
 
-  // Automatically join call when isLive becomes true
   useEffect(() => {
     const handleJoinCall = async () => {
       try {
-        if (!(call && isCallLive)) {
+        if (!(call && canJoinLive)) {
           return;
         }
 
@@ -123,17 +167,22 @@ export const ViewerLivestream = ({
       }
     };
 
-    if (isCallLive) {
+    const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
+    const join = joinBehavior ?? 'asap';
+    const canJoin =
+      (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
+
+    if (call && call.state.callingState === CallingState.IDLE && canJoin) {
       handleJoinCall();
     }
-  }, [isCallLive, call]);
+  }, [canJoinLive, call, canJoinBackstage, canJoinEarly, joinBehavior]);
 
   if (endedAt != null) {
     return <CallEndedView />;
   }
 
-  if (!isCallLive || callingState !== CallingState.JOINED) {
-    return <ViewerLobby isLive={isCallLive} />;
+  if (!canJoinLive || callingState !== CallingState.JOINED) {
+    return <ViewerLobby isLive={canJoinLive} />;
   }
 
   return (

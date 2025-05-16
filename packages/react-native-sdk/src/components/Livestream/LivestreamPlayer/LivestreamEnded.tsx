@@ -22,19 +22,28 @@ export const CallEndedView = () => {
   const styles = useStyles();
 
   useEffect(() => {
+    let isCanceled = false;
     const fetchRecordings = async () => {
       if (recordingsResponse == null) {
         try {
           const callRecordingsResponse = await call?.queryRecordings();
-          setRecordingsResponse(callRecordingsResponse);
+          if (!isCanceled) {
+            setRecordingsResponse(callRecordingsResponse);
+          }
         } catch (error) {
           console.log('Error fetching recordings:', error);
-          setRecordingsResponse(undefined);
+          if (!isCanceled) {
+            setRecordingsResponse(undefined);
+          }
         }
       }
     };
 
     fetchRecordings();
+
+    return () => {
+      isCanceled = true;
+    };
   }, [call, recordingsResponse]);
 
   const openUrl = (url: string) => {

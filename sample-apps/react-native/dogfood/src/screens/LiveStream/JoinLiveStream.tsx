@@ -58,11 +58,9 @@ export const JoinLiveStream = ({
     });
   };
 
-  useEffect(() => {
-    if (scannedCallId) {
-      setCallId(scannedCallId);
-    }
-  }, [scannedCallId]);
+  if (callId !== scannedCallId && scannedCallId) {
+    setCallId(scannedCallId);
+  }
 
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',

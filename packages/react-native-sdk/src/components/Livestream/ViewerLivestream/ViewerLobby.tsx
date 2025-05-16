@@ -29,25 +29,21 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const call = useCall();
   const startsAt = useCallStartsAt();
   const [error, setError] = useState<Error | undefined>(undefined);
-  const [countdown, setCountdown] = React.useState('');
+  const [countdown, setCountdown] = React.useState(getCountdown(startsAt));
   const participants = useParticipants();
 
   useEffect(() => {
     if (!startsAt || isLive) return;
 
     const updateCountdown = () => {
-      const now = Date.now();
-      const timeRemaining = Math.max(0, startsAt.getTime() - now);
-
+      const timeRemaining = Math.max(0, startsAt.getTime() - Date.now());
       if (timeRemaining <= 0) {
         setCountdown('0:00');
         clearInterval(intervalId);
         return;
       }
 
-      const minutes = Math.floor(timeRemaining / (1000 * 60));
-      const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-      setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      setCountdown(getCountdown(startsAt));
     };
 
     updateCountdown();
@@ -156,4 +152,17 @@ const useStyles = () => {
       }),
     [theme],
   );
+};
+
+const getCountdown = (startsAt: Date | undefined) => {
+  if (!startsAt) {
+    return '';
+  }
+
+  const now = Date.now();
+  const timeRemaining = Math.max(0, startsAt.getTime() - now);
+
+  const minutes = Math.floor(timeRemaining / (1000 * 60));
+  const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };

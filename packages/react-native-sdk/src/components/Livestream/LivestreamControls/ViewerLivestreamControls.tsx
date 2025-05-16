@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, StyleSheet, View, type ViewProps } from 'react-native';
 import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
@@ -59,16 +65,7 @@ export const ViewerLivestreamControls = ({
   const [showPlayPauseButton, setShowPlayPauseButton] = useState(true);
   const playPauseTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    hidePlayPauseButtonAfterDelay();
-    return () => {
-      if (playPauseTimeout.current) {
-        clearTimeout(playPauseTimeout.current);
-      }
-    };
-  }, []);
-
-  const hidePlayPauseButtonAfterDelay = () => {
+  const hidePlayPauseButtonAfterDelay = useCallback(() => {
     if (playPauseTimeout.current) {
       clearTimeout(playPauseTimeout.current);
     }
@@ -77,14 +74,23 @@ export const ViewerLivestreamControls = ({
       setShowPlayPauseButton(false);
       playPauseTimeout.current = null;
     }, 3000);
-  };
+  }, []);
+
+  useEffect(() => {
+    hidePlayPauseButtonAfterDelay();
+    return () => {
+      if (playPauseTimeout.current) {
+        clearTimeout(playPauseTimeout.current);
+      }
+    };
+  }, [hidePlayPauseButtonAfterDelay]);
 
   const showPlayPauseButtonWithTimeout = () => {
     setShowPlayPauseButton(true);
     hidePlayPauseButtonAfterDelay();
   };
 
-  const showControlsWithTimeout = () => {
+  const showControlsHandler = () => {
     showPlayPauseButtonWithTimeout();
     if (showControls) {
       return;
@@ -157,10 +163,7 @@ export const ViewerLivestreamControls = ({
   );
 
   return (
-    <Pressable
-      style={StyleSheet.absoluteFill}
-      onPress={showControlsWithTimeout}
-    >
+    <Pressable style={StyleSheet.absoluteFill} onPress={showControlsHandler}>
       {!isPlaying && <View style={styles.blackOverlay} />}
 
       {showPlayPauseButton && (
