@@ -11,7 +11,7 @@ const withStreamVideoReactNativeSDKMainApplication: ConfigPlugin<
   return withMainApplication(configuration, (config) => {
     const isMainActivityJava = config.modResults.language === 'java';
 
-    if (props?.enableNoiseCancellation) {
+    if (props?.addNoiseCancellation) {
       config.modResults.contents = addImports(
         config.modResults.contents,
         ['io.getstream.rn.noisecancellation.NoiseCancellationReactNative'],

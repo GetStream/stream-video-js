@@ -41,7 +41,7 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     };
 
     const props: ConfigProps = {
-      enableNoiseCancellation: true,
+      addNoiseCancellation: true,
     };
 
     const updatedConfig = withMainApplication(
@@ -54,7 +54,7 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     );
 
     const props2: ConfigProps = {
-      enableNoiseCancellation: false,
+      addNoiseCancellation: false,
     };
 
     const config2: CustomExpoConfig = {

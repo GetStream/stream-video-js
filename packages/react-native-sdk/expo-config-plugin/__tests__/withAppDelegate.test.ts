@@ -110,6 +110,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
+      addNoiseCancellation: true,
       ringingPushNotifications: {
         disableVideoIos: true,
         includesCallsInRecentsIos: true,
@@ -117,6 +118,14 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
 
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
+
+    expect(updatedConfig.modResults.contents).toMatch(
+      /#import "NoiseCancellationManagerObjc.h"/,
+    );
+
+    expect(updatedConfig.modResults.contents).toMatch(
+      /NoiseCancellationManagerObjc sharedInstance/,
+    );
 
     expect(updatedConfig.modResults.contents).toMatch(
       /#import <WebRTCModuleOptions.h>/,
@@ -173,6 +182,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
+      addNoiseCancellation: true,
       ringingPushNotifications: {
         disableVideoIos: true,
         includesCallsInRecentsIos: true,
@@ -182,6 +192,12 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
 
     // Check Swift imports
+    expect(updatedConfig.modResults.contents).toMatch(
+      /import stream_io_noise_cancellation_react_native/,
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /NoiseCancellationManager.getInstance/,
+    );
     expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
     expect(updatedConfig.modResults.contents).toMatch(/import WebRTC/);
     expect(updatedConfig.modResults.contents).toMatch(/import RNCallKeep/);

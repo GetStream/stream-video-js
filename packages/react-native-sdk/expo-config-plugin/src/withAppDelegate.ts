@@ -24,23 +24,23 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
     if (
       !props?.ringingPushNotifications &&
       !props?.iOSEnableMultitaskingCameraAccess &&
-      !props?.enableNoiseCancellation
+      !props?.addNoiseCancellation
     ) {
       // quit early if no change is necessary
       return config;
     }
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
       try {
-        if (props?.enableNoiseCancellation) {
+        if (props?.addNoiseCancellation) {
           config.modResults.contents = addObjcImports(
             config.modResults.contents,
-            ['NoiseCancellationManagerObjc.h'],
+            ['"NoiseCancellationManagerObjc.h"'],
           );
         }
         config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
-          props.enableNoiseCancellation,
+          props.addNoiseCancellation,
         );
         if (props?.ringingPushNotifications) {
           config.modResults.contents = addObjcImports(
@@ -119,7 +119,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
             return headerFileContents;
           },
         );
-        if (props?.enableNoiseCancellation) {
+        if (props?.addNoiseCancellation) {
           config.modResults.contents = addObjcImports(
             config.modResults.contents,
             ['stream_io_noise_cancellation_react_native'],
@@ -128,7 +128,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         config.modResults.contents = addDidFinishLaunchingWithOptionsSwift(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
-          props.enableNoiseCancellation,
+          props.addNoiseCancellation,
         );
         if (props?.ringingPushNotifications) {
           config.modResults.contents = addSwiftImports(
