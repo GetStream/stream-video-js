@@ -23,16 +23,24 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
   return withAppDelegateUtil(configuration, (config) => {
     if (
       !props?.ringingPushNotifications &&
-      !props?.iOSEnableMultitaskingCameraAccess
+      !props?.iOSEnableMultitaskingCameraAccess &&
+      !props?.enableNoiseCancellation
     ) {
       // quit early if no change is necessary
       return config;
     }
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
       try {
+        if (props?.enableNoiseCancellation) {
+          config.modResults.contents = addObjcImports(
+            config.modResults.contents,
+            ['NoiseCancellationManagerObjc.h'],
+          );
+        }
         config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
+          props.enableNoiseCancellation,
         );
         if (props?.ringingPushNotifications) {
           config.modResults.contents = addObjcImports(
@@ -111,9 +119,16 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
             return headerFileContents;
           },
         );
+        if (props?.enableNoiseCancellation) {
+          config.modResults.contents = addObjcImports(
+            config.modResults.contents,
+            ['stream_io_noise_cancellation_react_native'],
+          );
+        }
         config.modResults.contents = addDidFinishLaunchingWithOptionsSwift(
           config.modResults.contents,
           props.iOSEnableMultitaskingCameraAccess,
+          props.enableNoiseCancellation,
         );
         if (props?.ringingPushNotifications) {
           config.modResults.contents = addSwiftImports(
@@ -151,13 +166,25 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
 function addDidFinishLaunchingWithOptionsSwift(
   contents: string,
   iOSEnableMultitaskingCameraAccess: boolean | undefined,
+  enableNoiseCancellation: boolean | undefined,
 ) {
+  const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
   if (iOSEnableMultitaskingCameraAccess) {
-    const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
     const setupMethod = `let options = WebRTCModuleOptions.sharedInstance()
     options.enableMultitaskingCameraAccess = true`;
 
     if (!contents.includes('options.enableMultitaskingCameraAccess = true')) {
+      contents = insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        setupMethod,
+        { position: 'head' },
+      );
+    }
+  }
+  if (enableNoiseCancellation) {
+    const setupMethod = `NoiseCancellationManager.getInstance().registerProcessor()`;
+    if (!contents.includes(setupMethod)) {
       contents = insertContentsInsideSwiftFunctionBlock(
         contents,
         functionSelector,
@@ -172,15 +199,27 @@ function addDidFinishLaunchingWithOptionsSwift(
 function addDidFinishLaunchingWithOptionsObjc(
   contents: string,
   iOSEnableMultitaskingCameraAccess: boolean | undefined,
+  enableNoiseCancellation: boolean | undefined,
 ) {
+  const functionSelector = 'application:didFinishLaunchingWithOptions:';
   if (iOSEnableMultitaskingCameraAccess) {
-    const functionSelector = 'application:didFinishLaunchingWithOptions:';
     contents = addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
 
     const setupMethod = `WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
   options.enableMultitaskingCameraAccess = YES;`;
 
     if (!contents.includes('options.enableMultitaskingCameraAccess = YES')) {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        functionSelector,
+        setupMethod,
+        { position: 'head' },
+      );
+    }
+  }
+  if (enableNoiseCancellation) {
+    const setupMethod = `[[NoiseCancellationManagerObjc sharedInstance] registerProcessor];`;
+    if (!contents.includes(setupMethod)) {
       contents = insertContentsInsideObjcFunctionBlock(
         contents,
         functionSelector,
