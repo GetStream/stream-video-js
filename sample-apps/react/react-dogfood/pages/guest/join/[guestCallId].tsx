@@ -10,7 +10,7 @@ import {
   User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
-import type { INoiseCancellation } from '@stream-io/video-client';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { MeetingUI } from '../../../components';

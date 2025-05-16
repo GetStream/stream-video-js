@@ -17,19 +17,7 @@ const NoiseCancellationReactNative = NativeModules.NoiseCancellationReactNative
       },
     );
 
-import type { INoiseCancellation } from '@stream-io/video-client';
-
-/**
- * A list of events one can subscribe to.
- */
-export type Events = {
-  /**
-   * Fires when Noise Cancellation state changes.
-   *
-   * @param enabled true when enabled, false otherwise.
-   */
-  change: (enabled: boolean) => void;
-};
+import type { INoiseCancellation, Events } from './types';
 
 /**
  * A wrapper around the native stream noise cancellation SDK.

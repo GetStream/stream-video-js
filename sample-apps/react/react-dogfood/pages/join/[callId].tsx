@@ -12,7 +12,7 @@ import {
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
-import type { INoiseCancellation } from '@stream-io/video-client';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { TranslationLanguages } from 'stream-chat';
 import { useCreateStreamChatClient } from '../../hooks';
 import { MeetingUI } from '../../components';

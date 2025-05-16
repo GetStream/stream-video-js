@@ -10,10 +10,6 @@ import type {
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
-import type {
-  INoiseCancellation,
-  NoiseCancellationEvents,
-} from '@stream-io/video-client';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -33,6 +29,38 @@ export type NoiseCancellationOptions = {
 };
 
 /**
+ * An interface for the NoiseCancellation implementation.
+ * Provided for easier unit testing.
+ */
+export interface INoiseCancellation {
+  isSupported: () => boolean | Promise<boolean>;
+  init: () => Promise<void>;
+  enable: () => void;
+  disable: () => void;
+  dispose: () => Promise<void>;
+  toFilter: () => (mediaStream: MediaStream) => {
+    output: MediaStream;
+  };
+  on: <E extends keyof Events, T = Events[E]>(
+    event: E,
+    callback: T,
+  ) => () => void;
+  off: <E extends keyof Events, T = Events[E]>(event: E, callback: T) => void;
+}
+
+/**
+ * A list of events one can subscribe to.
+ */
+export type Events = {
+  /**
+   * Fires when Noise Cancellation state changes.
+   *
+   * @param enabled true when enabled, false otherwise.
+   */
+  change: (enabled: boolean) => void;
+};
+
+/**
  * A wrapper around the Krisp.AI SDK.
  */
 export class NoiseCancellation implements INoiseCancellation {
@@ -43,9 +71,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly basePath: string;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
-  private readonly listeners: Partial<
-    Record<keyof NoiseCancellationEvents, Array<any>>
-  > = {};
+  private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
 
   /**
    * Constructs a new instance.
@@ -188,13 +214,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * @param event the event to listen.
    * @param callback the callback to call.
    */
-  on = <
-    E extends keyof NoiseCancellationEvents,
-    T = NoiseCancellationEvents[E],
-  >(
-    event: E,
-    callback: T,
-  ) => {
+  on = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
     (this.listeners[event] ??= [] as T[]).push(callback);
     return () => {
       this.off(event, callback);
@@ -207,13 +227,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * @param event the event.
    * @param callback the callback to unregister.
    */
-  off = <
-    E extends keyof NoiseCancellationEvents,
-    T = NoiseCancellationEvents[E],
-  >(
-    event: E,
-    callback: T,
-  ) => {
+  off = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
     const listeners = this.listeners[event] || [];
     this.listeners[event] = listeners.filter((cb) => cb !== callback);
   };
@@ -224,10 +238,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * @param event the event.
    * @param payload the payload.
    */
-  private dispatch = <
-    E extends keyof NoiseCancellationEvents,
-    P = Parameters<NoiseCancellationEvents[E]>[0],
-  >(
+  private dispatch = <E extends keyof Events, P = Parameters<Events[E]>[0]>(
     event: E,
     payload: P,
   ) => {

@@ -11,7 +11,7 @@ import {
   OwnCapability,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import type { INoiseCancellation } from '@stream-io/video-client';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 export type NoiseCancellationProviderProps = {
   /**
