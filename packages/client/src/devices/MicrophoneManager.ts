@@ -139,6 +139,16 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         },
       );
 
+      // Krisp recommends disabling browser's built-in noise cancellation
+      // and echo cancellation when using Krisp, so we do that here.
+      // https://sdk-docs.krisp.ai/docs/getting-started-js
+      this.setDefaultConstraints({
+        ...this.state.defaultConstraints,
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      });
+
       const registrationResult = this.registerFilter(
         noiseCancellation.toFilter(),
       );

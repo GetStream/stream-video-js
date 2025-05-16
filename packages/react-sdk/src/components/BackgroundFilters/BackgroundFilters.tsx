@@ -239,7 +239,7 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
       start(ms, (error) => handleErrorRef.current?.(error)),
     );
     return () => {
-      unregister();
+      unregister().catch((err) => console.warn(`Can't unregister filter`, err));
     };
   }, [backgroundFilter, call, start]);
 

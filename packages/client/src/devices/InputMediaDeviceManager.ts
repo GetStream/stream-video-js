@@ -169,7 +169,7 @@ export abstract class InputMediaDeviceManager<
       start: filter,
       stop: undefined,
     };
-
+    this.call.tracer.trace(`registerFilter.${TrackType[this.trackType]}`, null);
     const registered = withoutConcurrency(
       this.filterRegistrationConcurrencyTag,
       async () => {
