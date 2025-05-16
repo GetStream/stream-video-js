@@ -35,6 +35,11 @@ export default function EnvSwitcherButton() {
               closeModal={closeModal}
               useLocalSfu
             />
+            <SwitcherButton
+              environment="livestream"
+              label="livestream"
+              closeModal={closeModal}
+            />
           </View>
         </Pressable>
       </Modal>

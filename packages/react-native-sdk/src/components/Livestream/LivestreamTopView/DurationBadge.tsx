@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { ShieldBadge } from '../../../icons';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   type CallSessionResponse,
@@ -19,6 +18,7 @@ export type DurationBadgeProps = {
  * The HostDurationBadge component displays the duration while the live stream is active.
  */
 export const DurationBadge = ({ mode }: DurationBadgeProps) => {
+  const styles = useStyles();
   const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
 
@@ -33,11 +33,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
 
   const call = useCall();
   const {
-    theme: {
-      colors,
-      variants: { iconSizes },
-      durationBadge,
-    },
+    theme: { colors, durationBadge },
   } = useTheme();
 
   // for host
@@ -127,18 +123,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
         durationBadge.container,
       ]}
     >
-      <View
-        style={[
-          styles.icon,
-          {
-            height: iconSizes.xs,
-            width: iconSizes.xs,
-          },
-          durationBadge.icon,
-        ]}
-      >
-        <ShieldBadge />
-      </View>
+      <View style={[styles.dot, durationBadge.icon]} />
       <Text
         style={[
           styles.label,
@@ -152,22 +137,34 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {},
-  label: {
-    textAlign: 'center',
-    fontSize: 13,
-    fontWeight: '400',
-    flexShrink: 1,
-    includeFontPadding: false,
-    paddingLeft: 4,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          paddingHorizontal: theme.variants.spacingSizes.sm,
+          paddingVertical: theme.variants.spacingSizes.sm,
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        dot: {
+          backgroundColor: theme.colors.iconWarning,
+          marginRight: theme.variants.spacingSizes.xs,
+          borderRadius: 90,
+          height: 10,
+          width: 10,
+        },
+        label: {
+          textAlign: 'center',
+          fontSize: theme.variants.fontSizes.md,
+          fontWeight: '600',
+          flexShrink: 1,
+          paddingLeft: theme.variants.spacingSizes.xs,
+        },
+      }),
+    [theme],
+  );
+};
