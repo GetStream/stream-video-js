@@ -199,7 +199,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * Disposes the instance and releases all resources.
    */
   dispose = async () => {
-    window.clearInterval(this.restoreTimeoutId);
+    window.clearTimeout(this.restoreTimeoutId);
     if (this.audioContext && this.audioContext.state !== 'closed') {
       await this.audioContext.close().catch((err) => {
         console.warn('Failed to close the audio context', err);
