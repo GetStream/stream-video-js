@@ -23,6 +23,13 @@ export type NoiseCancellationOptions = {
   basePath?: string;
 
   /**
+   * When Krisp SDK detects buffer overflow, it will disable the filter and
+   * wait for this timeout before enabling it again.
+   * Defaults to 15000 ms.
+   */
+  restoreTimeoutMs?: number;
+
+  /**
    * Optional Krisp SDK parameters.
    */
   krispSDKParams?: ISDKPartialOptions['params'];
@@ -35,9 +42,11 @@ export type NoiseCancellationOptions = {
 export interface INoiseCancellation {
   isSupported: () => boolean | Promise<boolean>;
   init: () => Promise<void>;
+  isEnabled: () => boolean;
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
+  setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
   };
@@ -67,8 +76,10 @@ export class NoiseCancellation implements INoiseCancellation {
   private sdk?: IKrispSDK;
   private filterNode?: IAudioFilterNode;
   private audioContext?: AudioContext;
+  private restoreTimeoutId?: number;
 
   private readonly basePath: string;
+  private readonly restoreTimeoutMs: number;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
@@ -78,9 +89,11 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   constructor({
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
+    restoreTimeoutMs = 15000,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
     this.basePath = basePath;
+    this.restoreTimeoutMs = restoreTimeoutMs;
     this.krispSDKParams = krispSDKParams;
   }
 
@@ -115,9 +128,8 @@ export class NoiseCancellation implements INoiseCancellation {
         logProcessStats: false,
         useSharedArrayBuffer: false,
         models: {
-          model8: `${this.basePath}/model_8.kw`,
-          model16: `${this.basePath}/model_16.kw`,
-          model32: `${this.basePath}/model_32.kw`,
+          // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
+          modelNC: `${this.basePath}/c6.f.s.da1785.kef`,
         },
         ...this.krispSDKParams,
       },
@@ -147,12 +159,22 @@ export class NoiseCancellation implements INoiseCancellation {
     }
 
     const { promise: ready, resolve: filterReady } = promiseWithResolvers();
-    this.filterNode = await sdk.createNoiseFilter(
+    const filterNode = await sdk.createNoiseFilter(
       this.audioContext,
       () => filterReady(),
       () => document.removeEventListener('click', resume),
     );
+    filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
+    this.filterNode = filterNode;
     return ready;
+  };
+
+  /**
+   * Checks if the noise cancellation is enabled.
+   */
+  isEnabled = () => {
+    if (!this.filterNode) return false;
+    return this.filterNode.isEnabled();
   };
 
   /**
@@ -177,6 +199,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * Disposes the instance and releases all resources.
    */
   dispose = async () => {
+    window.clearInterval(this.restoreTimeoutId);
     if (this.audioContext && this.audioContext.state !== 'closed') {
       await this.audioContext.close().catch((err) => {
         console.warn('Failed to close the audio context', err);
@@ -185,6 +208,10 @@ export class NoiseCancellation implements INoiseCancellation {
     }
     if (this.filterNode) {
       this.disable();
+      this.filterNode.removeEventListener(
+        'buffer_overflow',
+        this.handleBufferOverflow,
+      );
       this.filterNode.dispose();
       this.filterNode = undefined;
     }
@@ -192,6 +219,28 @@ export class NoiseCancellation implements INoiseCancellation {
       this.sdk.dispose();
       this.sdk = undefined;
     }
+  };
+
+  /**
+   * Sets the noise suppression level (0-100).
+   *
+   * @param level 0 for no suppression, 100 for maximum suppression.
+   */
+  setSuppressionLevel = (level: number) => {
+    if (!this.filterNode) {
+      throw new Error('NoiseCancellation is not initialized');
+    }
+    // @ts-expect-error not yet in the types, but exists in the implementation
+    if (!this.filterNode.setNoiseSuppressionLevel) {
+      throw new Error(
+        'NoiseCancellation is not initialized with a filter node that supports noise suppression level',
+      );
+    }
+    if (level < 0 || level > 100) {
+      throw new Error('NoiseCancellation level must be between 0 and 100');
+    }
+    // @ts-expect-error not yet in the types, but exists in the implementation
+    this.filterNode.setNoiseSuppressionLevel(level);
   };
 
   /**
@@ -246,5 +295,19 @@ export class NoiseCancellation implements INoiseCancellation {
     for (const listener of listeners) {
       listener(payload);
     }
+  };
+
+  /**
+   * Handles the buffer overflow event.
+   * Disables the filter and waits for the restore timeout before enabling it again.
+   *
+   * Based on: https://sdk-docs.krisp.ai/docs/getting-started-js#system-overload-handling
+   */
+  private handleBufferOverflow = () => {
+    this.disable();
+    window.clearTimeout(this.restoreTimeoutId);
+    this.restoreTimeoutId = window.setTimeout(() => {
+      this.enable();
+    }, this.restoreTimeoutMs);
   };
 }
