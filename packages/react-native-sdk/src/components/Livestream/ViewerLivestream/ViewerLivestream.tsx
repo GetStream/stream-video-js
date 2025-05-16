@@ -92,37 +92,6 @@ export const ViewerLivestream = ({
     hasVideo(currentSpeaker) &&
     currentSpeaker;
 
-  const useCanJoinEarly = () => {
-    const { useCallStartsAt, useCallSettings } = useCallStateHooks();
-    const startsAt = useCallStartsAt();
-    const settings = useCallSettings();
-    const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
-    const [canJoinEarly, setCanJoinEarly] = useState(() =>
-      checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
-    );
-
-    useEffect(() => {
-      if (!canJoinEarly) {
-        const handle = setInterval(() => {
-          setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
-        }, 1000);
-
-        return () => clearInterval(handle);
-      }
-    }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
-  };
-
-  const checkCanJoinEarly = (
-    startsAt: Date | undefined,
-    joinAheadTimeSeconds: number | undefined,
-  ) => {
-    if (!startsAt) {
-      return false;
-    }
-
-    return Date.now() >= +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
-  };
-
   const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
     useOwnCapabilities()?.includes('join-backstage') ?? false;
@@ -215,6 +184,37 @@ export const ViewerLivestream = ({
       )}
     </View>
   );
+};
+
+const useCanJoinEarly = () => {
+  const { useCallStartsAt, useCallSettings } = useCallStateHooks();
+  const startsAt = useCallStartsAt();
+  const settings = useCallSettings();
+  const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+  const [canJoinEarly, setCanJoinEarly] = useState(() =>
+    checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
+  );
+
+  useEffect(() => {
+    if (!canJoinEarly) {
+      const handle = setInterval(() => {
+        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+      }, 1000);
+
+      return () => clearInterval(handle);
+    }
+  }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
+};
+
+const checkCanJoinEarly = (
+  startsAt: Date | undefined,
+  joinAheadTimeSeconds: number | undefined,
+) => {
+  if (!startsAt) {
+    return false;
+  }
+
+  return Date.now() >= +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
 };
 
 const useStyles = () => {
