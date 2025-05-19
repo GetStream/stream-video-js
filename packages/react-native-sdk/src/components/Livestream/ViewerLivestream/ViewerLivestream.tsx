@@ -91,6 +91,7 @@ export const ViewerLivestream = ({
     currentSpeaker &&
     hasVideo(currentSpeaker) &&
     currentSpeaker;
+  const [hasLeft, setHasLeft] = useState(false);
 
   const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
@@ -105,6 +106,12 @@ export const ViewerLivestream = ({
     return () => InCallManager.stop();
   }, []);
 
+  useEffect(() => {
+    if (callingState === CallingState.LEFT) {
+      setHasLeft(true);
+    }
+  }, [callingState]);
+
   const topViewProps: ViewerLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
@@ -117,21 +124,6 @@ export const ViewerLivestream = ({
   useEffect(() => {
     const handleJoinCall = async () => {
       try {
-        if (!(call && canJoinLive)) {
-          return;
-        }
-        // get latest call data
-        await call?.get();
-
-        const isAlreadyJoined = [
-          CallingState.JOINED,
-          CallingState.JOINING,
-        ].includes(call.state.callingState);
-
-        if (isAlreadyJoined) {
-          return;
-        }
-
         await call?.join();
       } catch (error) {
         console.error('Failed to join call', error);
@@ -143,10 +135,18 @@ export const ViewerLivestream = ({
     const canJoin =
       (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
 
-    if (call && call.state.callingState === CallingState.IDLE && canJoin) {
+    if (call && callingState === CallingState.IDLE && canJoin && !hasLeft) {
       handleJoinCall();
     }
-  }, [canJoinLive, call, canJoinBackstage, canJoinEarly, joinBehavior]);
+  }, [
+    canJoinLive,
+    call,
+    canJoinBackstage,
+    canJoinEarly,
+    joinBehavior,
+    callingState,
+    hasLeft,
+  ]);
 
   if (endedAt != null) {
     return <CallEndedView />;

@@ -52,10 +52,6 @@ export const LivestreamPlayer = ({
     }
     const myCall = client.call(callType, callId);
     setCall(myCall);
-    myCall.join().catch((e) => {
-      const logger = getLogger(['LivestreamPlayer']);
-      logger('error', 'Error joining call:', e);
-    });
     return () => {
       if (myCall.state.callingState !== CallingState.LEFT) {
         myCall.leave().catch((e) => {
