@@ -48,6 +48,7 @@ export const MoreActionsButton = ({
     theme: { colors, variants, moreActionsButton, defaults },
   } = useTheme();
   const {
+    isSupported,
     deviceSupportsAdvancedAudioProcessing,
     isEnabled: isNoiseCancellationEnabled,
     setEnabled: setNoiseCancellationEnabled,
@@ -209,7 +210,7 @@ export const MoreActionsButton = ({
       ),
       onPress: getScreenshotOfDominantSpeaker,
     },
-    ...(deviceSupportsAdvancedAudioProcessing
+    ...(isSupported && deviceSupportsAdvancedAudioProcessing
       ? [
           {
             id: '5',
