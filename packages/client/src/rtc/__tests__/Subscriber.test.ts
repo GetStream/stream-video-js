@@ -103,11 +103,11 @@ describe('Subscriber', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      subscriber['onUnrecoverableError'] = vi.fn();
       // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'failed';
       subscriber['onIceConnectionStateChange']();
-      expect(subscriber.restartIce).toHaveBeenCalled();
+      expect(subscriber['onUnrecoverableError']).toHaveBeenCalled();
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {

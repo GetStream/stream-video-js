@@ -2215,7 +2215,7 @@ PODS:
   - RNVoipPushNotification (3.3.3):
     - React-Core
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (6.7.0):
+  - stream-chat-react-native (7.0.0):
     - DoubleConversion
     - glog
     - hermes-engine

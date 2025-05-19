@@ -122,6 +122,10 @@ export class Publisher extends BasePeerConnection {
       sendEncodings,
     });
 
+    const params = transceiver.sender.getParameters();
+    params.degradationPreference = 'maintain-framerate';
+    await transceiver.sender.setParameters(params);
+
     const trackType = publishOption.trackType;
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverCache.add(publishOption, transceiver);

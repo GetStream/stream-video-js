@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.3.0...@stream-io/audio-filters-web-0.3.1) (2025-05-15)
+
+### Bug Fixes
+
+- enable chore releases ([#1792](https://github.com/GetStream/stream-video-js/issues/1792)) ([6046654](https://github.com/GetStream/stream-video-js/commit/6046654fe19505a1c115a4fb838759d010540614))
+
 ## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.2.3...@stream-io/audio-filters-web-0.3.0) (2025-05-08)
 
 ### Features
