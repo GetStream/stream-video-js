@@ -40,6 +40,7 @@
     "@openapitools/openapi-generator-cli": "^2.13.4",
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.2",
+    "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/node-sdk": "^0.4.24",
     "@types/sdp-transform": "^2.4.9",
     "@types/ua-parser-js": "^0.7.39",
