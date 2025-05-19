@@ -35,7 +35,7 @@ function addNoiseCancellationInsideOnCreate(contents: string, isJava: boolean) {
     contents = appendContentsInsideDeclarationBlock(
       contents,
       'onCreate',
-      addBlock,
+      addBlock + '\n',
     );
   }
   return contents;
