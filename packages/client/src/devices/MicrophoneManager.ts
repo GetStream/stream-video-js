@@ -127,6 +127,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       this.noiseCancellationChangeUnsubscribe = this.noiseCancellation.on(
         'change',
         (enabled: boolean) => {
+          this.call.tracer.trace('noiseCancellation.enabled', enabled);
           if (enabled) {
             this.call.notifyNoiseCancellationStarting().catch((err) => {
               this.logger('warn', `notifyNoiseCancellationStart failed`, err);
@@ -139,7 +140,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         },
       );
 
-      // Krisp recommends disabling browser's built-in noise cancellation
+      // Krisp recommends disabling the browser's built-in noise cancellation
       // and echo cancellation when using Krisp, so we do that here.
       // https://sdk-docs.krisp.ai/docs/getting-started-js
       this.setDefaultConstraints({

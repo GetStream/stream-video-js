@@ -9,6 +9,7 @@ export type RTCStatsDataType =
   | RTCPeerConnectionState
   | [number | null | string] // RTCDataChannelEvent
   | string
+  | boolean
   | RTCOfferOptions
   | [string | RTCDataChannelInit | undefined] // createDataChannel
   | (RTCOfferOptions | undefined) // createOffer | createAnswer

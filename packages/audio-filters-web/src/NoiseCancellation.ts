@@ -30,6 +30,12 @@ export type NoiseCancellationOptions = {
   restoreTimeoutMs?: number;
 
   /**
+   * The number of attempts to restore the filter after a buffer overflow.
+   * Defaults to 3.
+   */
+  restoreAttempts?: number;
+
+  /**
    * Optional Krisp SDK parameters.
    */
   krispSDKParams?: ISDKPartialOptions['params'];
@@ -80,6 +86,7 @@ export class NoiseCancellation implements INoiseCancellation {
 
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
+  private readonly restoreAttempts: number;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
@@ -90,10 +97,12 @@ export class NoiseCancellation implements INoiseCancellation {
   constructor({
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
     restoreTimeoutMs = 15000,
+    restoreAttempts = 3,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
+    this.restoreAttempts = restoreAttempts;
     this.krispSDKParams = krispSDKParams;
   }
 
@@ -227,11 +236,8 @@ export class NoiseCancellation implements INoiseCancellation {
    * @param level 0 for no suppression, 100 for maximum suppression.
    */
   setSuppressionLevel = (level: number) => {
-    if (!this.filterNode) {
-      throw new Error('NoiseCancellation is not initialized');
-    }
     // @ts-expect-error not yet in the types, but exists in the implementation
-    if (!this.filterNode.setNoiseSuppressionLevel) {
+    if (!this.filterNode || !this.filterNode.setNoiseSuppressionLevel) {
       throw new Error(
         'NoiseCancellation is not initialized with a filter node that supports noise suppression level',
       );
@@ -303,11 +309,19 @@ export class NoiseCancellation implements INoiseCancellation {
    *
    * Based on: https://sdk-docs.krisp.ai/docs/getting-started-js#system-overload-handling
    */
-  private handleBufferOverflow = () => {
-    this.disable();
+  private handleBufferOverflow = (
+    // extending the Event type to include the data property as it is not yet
+    // in the types but exists in the implementation
+    e: Event & { data?: { overflowCount: number } },
+  ) => {
     window.clearTimeout(this.restoreTimeoutId);
-    this.restoreTimeoutId = window.setTimeout(() => {
-      this.enable();
-    }, this.restoreTimeoutMs);
+    this.disable();
+
+    const count = (e && e.data && e.data.overflowCount) ?? 0;
+    if (count < this.restoreAttempts) {
+      this.restoreTimeoutId = window.setTimeout(() => {
+        this.enable();
+      }, this.restoreTimeoutMs);
+    }
   };
 }
