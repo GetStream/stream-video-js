@@ -173,6 +173,7 @@ export abstract class InputMediaDeviceManager<
     const registered = withoutConcurrency(
       this.filterRegistrationConcurrencyTag,
       async () => {
+        await settled(this.statusChangeConcurrencyTag);
         this.filters.push(entry);
         await this.applySettingsToStream();
       },
@@ -182,6 +183,7 @@ export abstract class InputMediaDeviceManager<
       registered,
       unregister: () =>
         withoutConcurrency(this.filterRegistrationConcurrencyTag, async () => {
+          await settled(this.statusChangeConcurrencyTag);
           entry.stop?.();
           this.filters = this.filters.filter((f) => f !== entry);
           await this.applySettingsToStream();
