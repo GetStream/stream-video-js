@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.3.1...@stream-io/video-filters-react-native-0.4.0) (2025-05-20)
+
+### Features
+
+- **react-native:** Noise Cancellation ([#1793](https://github.com/GetStream/stream-video-js/issues/1793)) ([d7843e1](https://github.com/GetStream/stream-video-js/commit/d7843e1a23e6f6a35d1c159438d09bdfd17450a5))
+
 ## [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.3.0...@stream-io/video-filters-react-native-0.3.1) (2025-05-15)
 
 ### Bug Fixes
