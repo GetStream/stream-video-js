@@ -41,7 +41,7 @@
     "url": "git+https://github.com/GetStream/stream-video-js.git"
   },
   "author": "https://getstream.io <support@getstream.io> (https://github.com/GetStream)",
-  "license": "MIT",
+  "license": "See license in LICENSE",
   "bugs": {
     "url": "https://github.com/GetStream/stream-video-js/issues"
   },
