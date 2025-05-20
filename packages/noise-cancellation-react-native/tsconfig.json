@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    "paths": {
-      "@stream-io/video-filters-react-native": ["./src/index"]
-    },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
