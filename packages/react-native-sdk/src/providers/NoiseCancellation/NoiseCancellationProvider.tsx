@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  getLogger,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '@stream-io/video-client';
@@ -15,6 +16,7 @@ import {
   getNoiseCancellationLibThrowIfNotInstalled,
   NoiseCancellationWrapper,
 } from './lib';
+
 /**
  * The Noise Cancellation API.
  */
@@ -65,7 +67,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   const [
     deviceSupportsAdvancedAudioProcessing,
     setDeviceSupportsAdvancedAudioProcessing,
-  ] = useState<boolean | undefined>(undefined);
+  ] = useState<boolean>();
   const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
   const noiseCancellationAllowed = !!(
@@ -86,6 +88,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     noiseCancellationNativeLib
       .deviceSupportsAdvancedAudioProcessing()
       .then((result) => setDeviceSupportsAdvancedAudioProcessing(result));
+    noiseCancellationNativeLib.isEnabled().then((e) => setIsEnabled(e));
   }, []);
 
   const isSupported = hasCapability && noiseCancellationAllowed;
@@ -96,10 +99,24 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     const unsubscribe = ncInstance.on('change', (v) => setIsEnabled(v));
     call.microphone
       .enableNoiseCancellation(ncInstance)
-      .catch((err) => console.error(`Can't initialize noise suppression`, err));
+      .catch((err) =>
+        getLogger(['NoiseCancellationProvider'])(
+          'error',
+          `Can't initialize noise suppression`,
+          err,
+        ),
+      );
 
     return () => {
-      call.microphone.disableNoiseCancellation();
+      call.microphone
+        .disableNoiseCancellation()
+        .catch((err) =>
+          getLogger(['NoiseCancellationProvider'])(
+            'error',
+            `Can't disable noise suppression`,
+            err,
+          ),
+        );
       unsubscribe();
     };
   }, [call, isSupported]);

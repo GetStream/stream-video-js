@@ -1,4 +1,5 @@
 import { combineLatest, Observable } from 'rxjs';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
@@ -19,7 +20,6 @@ import {
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -132,6 +132,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       this.noiseCancellationChangeUnsubscribe = this.noiseCancellation.on(
         'change',
         (enabled: boolean) => {
+          this.call.tracer.trace('noiseCancellation.enabled', enabled);
           if (enabled) {
             this.call.notifyNoiseCancellationStarting().catch((err) => {
               this.logger('warn', `notifyNoiseCancellationStart failed`, err);
@@ -148,6 +149,16 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         // no filter registration in React Native, its done in the native code on app init
         this.noiseCancellationRegistration = Promise.resolve();
       } else {
+        // Krisp recommends disabling the browser's built-in noise cancellation
+        // and echo cancellation when using Krisp, so we do that here.
+        // https://sdk-docs.krisp.ai/docs/getting-started-js
+        this.setDefaultConstraints({
+          ...this.state.defaultConstraints,
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        });
+
         const registrationResult = this.registerFilter(
           noiseCancellation.toFilter(),
         );
