@@ -7015,6 +7015,7 @@ __metadata:
     react-native-screens: "npm:4.10.0"
     react-native-svg: "npm:^15.11.2"
     react-native-video: "npm:^6.13.0"
+    react-native-vision-camera: "npm:^4.6.4"
     react-native-voip-push-notification: "npm:~3.3.3"
     rxjs: "npm:~7.8.1"
     stream-chat: "npm:^9.1.1"
@@ -20197,6 +20198,26 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/3c672231b8b82998228097ca88181ee111ff482440c3b9e86f1ef7068b5dd3819a8e8ab1f52e2194519fa45ad4862988f09f6ad6b3b93f0ed3802f5f7624885f
+  languageName: node
+  linkType: hard
+
+"react-native-vision-camera@npm:^4.6.4":
+  version: 4.6.4
+  resolution: "react-native-vision-camera@npm:4.6.4"
+  peerDependencies:
+    "@shopify/react-native-skia": "*"
+    react: "*"
+    react-native: "*"
+    react-native-reanimated: "*"
+    react-native-worklets-core: "*"
+  peerDependenciesMeta:
+    "@shopify/react-native-skia":
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-worklets-core:
+      optional: true
+  checksum: 10/9de4166aae94f72d29ab6dc2b04066a8216b5d630508345da7cedfa300196b8c2500dd2b5c0076731357c0b9695961d4e71fe891b2714fffb278a410b081c3b5
   languageName: node
   linkType: hard
 
