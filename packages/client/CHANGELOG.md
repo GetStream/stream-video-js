@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.22.2...@stream-io/video-client-1.23.0) (2025-05-20)
+
+### Features
+
+- **react-native:** Noise Cancellation ([#1793](https://github.com/GetStream/stream-video-js/issues/1793)) ([d7843e1](https://github.com/GetStream/stream-video-js/commit/d7843e1a23e6f6a35d1c159438d09bdfd17450a5))
+- **web:** improved noise cancellation ([#1794](https://github.com/GetStream/stream-video-js/issues/1794)) ([d59f19b](https://github.com/GetStream/stream-video-js/commit/d59f19b1ba1ff83fe5f024d783b868f4e98d3380))
+
+### Bug Fixes
+
+- do not mutate filters array during pipeline setup ([#1798](https://github.com/GetStream/stream-video-js/issues/1798)) ([e9832e5](https://github.com/GetStream/stream-video-js/commit/e9832e5ef41b3f6cddfe2d0cb2cf840e9b28bb86))
+
 ## [1.22.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.22.1...@stream-io/video-client-1.22.2) (2025-05-15)
 
 - adjust ErrorFromResponse class ([#1791](https://github.com/GetStream/stream-video-js/issues/1791)) ([c0abcba](https://github.com/GetStream/stream-video-js/commit/c0abcbacfddeb87d8378c4418f80e6770981cdc8)), closes [GetStream/chat#1540](https://github.com/GetStream/chat/issues/1540)
