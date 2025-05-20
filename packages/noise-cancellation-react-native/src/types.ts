@@ -2,9 +2,11 @@ export interface INoiseCancellation {
   isSupported: () => boolean | Promise<boolean>;
   init: () => Promise<void>;
   canAutoEnable?: () => Promise<boolean>;
+  isEnabled: () => boolean;
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
+  setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
   };

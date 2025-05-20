@@ -15,6 +15,7 @@ import {
   getNoiseCancellationLibThrowIfNotInstalled,
   NoiseCancellationWrapper,
 } from './lib';
+
 /**
  * The Noise Cancellation API.
  */
@@ -65,7 +66,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   const [
     deviceSupportsAdvancedAudioProcessing,
     setDeviceSupportsAdvancedAudioProcessing,
-  ] = useState<boolean | undefined>(undefined);
+  ] = useState<boolean>();
   const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
   const noiseCancellationAllowed = !!(
@@ -78,7 +79,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled, setIsEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     const noiseCancellationNativeLib =
@@ -86,6 +87,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     noiseCancellationNativeLib
       .deviceSupportsAdvancedAudioProcessing()
       .then((result) => setDeviceSupportsAdvancedAudioProcessing(result));
+    noiseCancellationNativeLib.isEnabled().then((e) => setIsEnabled(e));
   }, []);
 
   const isSupported = hasCapability && noiseCancellationAllowed;
@@ -99,7 +101,9 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
       .catch((err) => console.error(`Can't initialize noise suppression`, err));
 
     return () => {
-      call.microphone.disableNoiseCancellation();
+      call.microphone.disableNoiseCancellation().catch((err) => {
+        console.error(`Can't disable noise suppression`, err);
+      });
       unsubscribe();
     };
   }, [call, isSupported]);

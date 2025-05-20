@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import type { Events, INoiseCancellation } from './types';
 
 const LINKING_ERROR =
   `The package '@stream-io/noise-cancellation-react-native' doesn't seem to be linked. Make sure: \n\n` +
@@ -16,8 +17,6 @@ const NoiseCancellationReactNative = NativeModules.NoiseCancellationReactNative
         },
       },
     );
-
-import type { INoiseCancellation, Events } from './types';
 
 /**
  * A wrapper around the native stream noise cancellation SDK.
@@ -59,6 +58,15 @@ export class NoiseCancellation implements INoiseCancellation {
    * Disposes the instance and releases all resources.
    */
   dispose = async () => Promise.resolve();
+
+  // no-op in React Native
+  setSuppressionLevel = () => {};
+
+  isEnabled = () => {
+    throw new Error(
+      `NoiseCancellation.isEnabled() isn't supported in React Native. Use the exported isEnabled() instead.`,
+    );
+  };
 
   /**
    * A utility method convenient for our Microphone filters API.
