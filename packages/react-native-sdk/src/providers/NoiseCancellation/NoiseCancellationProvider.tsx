@@ -79,7 +79,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
-  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+  const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
     const noiseCancellationNativeLib =

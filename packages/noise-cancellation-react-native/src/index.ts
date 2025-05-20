@@ -62,10 +62,8 @@ export class NoiseCancellation implements INoiseCancellation {
   // no-op in React Native
   setSuppressionLevel = () => {};
 
-  isEnabled = () => {
-    throw new Error(
-      `NoiseCancellation.isEnabled() isn't supported in React Native. Use the exported isEnabled() instead.`,
-    );
+  isEnabled = async () => {
+    return isEnabled();
   };
 
   /**

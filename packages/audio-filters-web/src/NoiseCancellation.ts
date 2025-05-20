@@ -48,7 +48,7 @@ export type NoiseCancellationOptions = {
 export interface INoiseCancellation {
   isSupported: () => boolean | Promise<boolean>;
   init: () => Promise<void>;
-  isEnabled: () => boolean;
+  isEnabled: () => Promise<boolean>;
   canAutoEnable?: () => Promise<boolean>;
   enable: () => void;
   disable: () => void;
@@ -182,7 +182,7 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * Checks if the noise cancellation is enabled.
    */
-  isEnabled = () => {
+  isEnabled = async () => {
     if (!this.filterNode) return false;
     return this.filterNode.isEnabled();
   };
