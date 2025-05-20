@@ -8,6 +8,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
     'android.permission.BLUETOOTH',
     'android.permission.BLUETOOTH_CONNECT',
     'android.permission.BLUETOOTH_ADMIN',
+    'android.permission.WAKE_LOCK',
   ];
   if (props?.ringingPushNotifications || props?.enableScreenshare) {
     permissions.push(

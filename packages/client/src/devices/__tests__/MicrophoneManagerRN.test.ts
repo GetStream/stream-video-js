@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { NoiseCancellationStub } from './NoiseCancellationStub';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -130,18 +129,6 @@ describe('MicrophoneManager React Native', () => {
 
     await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
     expect(fn).toHaveBeenCalled();
-  });
-
-  describe('Noise Suppression', () => {
-    it('enable: should throw an error in React Native', async () => {
-      await expect(() => {
-        return manager.enableNoiseCancellation(new NoiseCancellationStub());
-      }).rejects.toThrow();
-    });
-
-    it('disable: should throw an error in React Native', async () => {
-      await expect(() => manager.disableNoiseCancellation()).rejects.toThrow();
-    });
   });
 
   afterEach(() => {

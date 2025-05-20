@@ -49,6 +49,7 @@ export interface INoiseCancellation {
   isSupported: () => boolean | Promise<boolean>;
   init: () => Promise<void>;
   isEnabled: () => boolean;
+  canAutoEnable?: () => Promise<boolean>;
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
