@@ -1,5 +1,5 @@
 #import "NoiseCancellationManagerObjc.h"
-#import "stream_io_noise_cancellation_react_native-Swift.h"
+#import "stream_io_noise_cancellation_react_native/stream_io_noise_cancellation_react_native-Swift.h"
 
 @interface NoiseCancellationManagerObjc ()
 @end
