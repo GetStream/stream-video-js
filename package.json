@@ -30,7 +30,7 @@
     "build:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native run build",
     "build:noise-cancellation-react-native": "yarn workspace @stream-io/noise-cancellation-react-native run build",
     "build:react:deps": "yarn build:client && yarn build:styling && yarn build:react:bindings && yarn build:video-filters-web && yarn build:audio-filters-web && yarn build:react:sdk",
-    "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:video-filters-react-native && yarn build:react-native:sdk",
+    "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:video-filters-react-native && yarn build:noise-cancellation-react-native && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
     "build:egress": "yarn workspace @stream-io/egress-composite build",
