@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  getLogger,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '@stream-io/video-client';
@@ -98,12 +99,24 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     const unsubscribe = ncInstance.on('change', (v) => setIsEnabled(v));
     call.microphone
       .enableNoiseCancellation(ncInstance)
-      .catch((err) => console.error(`Can't initialize noise suppression`, err));
+      .catch((err) =>
+        getLogger(['NoiseCancellationProvider'])(
+          'error',
+          `Can't initialize noise suppression`,
+          err,
+        ),
+      );
 
     return () => {
-      call.microphone.disableNoiseCancellation().catch((err) => {
-        console.error(`Can't disable noise suppression`, err);
-      });
+      call.microphone
+        .disableNoiseCancellation()
+        .catch((err) =>
+          getLogger(['NoiseCancellationProvider'])(
+            'error',
+            `Can't disable noise suppression`,
+            err,
+          ),
+        );
       unsubscribe();
     };
   }, [call, isSupported]);
