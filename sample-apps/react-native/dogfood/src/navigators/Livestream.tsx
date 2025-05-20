@@ -6,6 +6,7 @@ import { HostLiveStreamScreen } from '../screens/LiveStream/HostLiveStream';
 import { ViewLiveStreamScreen } from '../screens/LiveStream/ViewLiveStream';
 import { NavigationHeader } from '../components/NavigationHeader';
 import { JoinLiveStream } from '../screens/LiveStream/JoinLiveStream';
+import { QRScanner } from '../screens/LiveStream/QRScanner';
 
 const LiveStreamStack = createNativeStackNavigator<LiveStreamParamList>();
 
@@ -30,6 +31,11 @@ export const LiveStream = () => {
       <LiveStreamStack.Screen
         name="ViewerLiveStream"
         component={ViewLiveStreamScreen}
+        options={{ headerShown: false }}
+      />
+      <LiveStreamStack.Screen
+        name="QRScanner"
+        component={QRScanner}
         options={{ headerShown: false }}
       />
     </LiveStreamStack.Navigator>

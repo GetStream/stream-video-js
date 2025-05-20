@@ -21,12 +21,26 @@ export type LivestreamPlayerProps = {
    * **Default** [ViewerLivestream](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Livestream/ViewerLivestream/ViewerLivestream.tsx)
    */
   ViewerLivestream?: React.ComponentType<ViewerLivestreamProps>;
+
+  /**
+   * Determines when the viewer joins the call.
+   *
+   * `"asap"` behavior means joining the call as soon as it is possible
+   * (either the `join_ahead_time_seconds` setting allows it, or the user
+   * has a the capability to join backstage).
+   *
+   * `"live"` behavior means joining the call when it goes live.
+   *
+   * @default "asap"
+   */
+  joinBehavior?: 'asap' | 'live';
 };
 
 export const LivestreamPlayer = ({
   callType,
   callId,
   ViewerLivestream = DefaultViewerLivestream,
+  joinBehavior = 'asap',
 }: LivestreamPlayerProps) => {
   const client = useStreamVideoClient();
 
@@ -38,10 +52,6 @@ export const LivestreamPlayer = ({
     }
     const myCall = client.call(callType, callId);
     setCall(myCall);
-    myCall.join().catch((e) => {
-      const logger = getLogger(['LivestreamPlayer']);
-      logger('error', 'Error joining call:', e);
-    });
     return () => {
       if (myCall.state.callingState !== CallingState.LEFT) {
         myCall.leave().catch((e) => {
@@ -71,7 +81,7 @@ export const LivestreamPlayer = ({
 
   return (
     <StreamCall call={call}>
-      <ViewerLivestream />
+      <ViewerLivestream joinBehavior={joinBehavior} />
     </StreamCall>
   );
 };
