@@ -6,6 +6,7 @@ import {
   useIsInPiPMode,
   useCallStateHooks,
   useToggleCallRecording,
+  NoiseCancellationProvider,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -96,23 +97,25 @@ export const ActiveCall = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
-      />
-      {!isInPiPMode && <CustomTopControls />}
-      <CallContent
-        iOSPiPIncludeLocalParticipantVideo
-        onHangupCallHandler={onHangupCallHandler}
-        CallControls={CustomBottomControls}
-        landscape={isLandscape}
-        layout={selectedLayout}
-      />
-      <ParticipantsInfoList
-        isCallParticipantsInfoVisible={isCallParticipantsVisible}
-        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-      />
-    </View>
+    <NoiseCancellationProvider>
+      <View style={styles.container}>
+        <StatusBar
+          barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
+        />
+        {!isInPiPMode && <CustomTopControls />}
+        <CallContent
+          iOSPiPIncludeLocalParticipantVideo
+          onHangupCallHandler={onHangupCallHandler}
+          CallControls={CustomBottomControls}
+          landscape={isLandscape}
+          layout={selectedLayout}
+        />
+        <ParticipantsInfoList
+          isCallParticipantsInfoVisible={isCallParticipantsVisible}
+          setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
+        />
+      </View>
+    </NoiseCancellationProvider>
   );
 };
 
