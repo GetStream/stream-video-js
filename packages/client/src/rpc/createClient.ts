@@ -12,6 +12,7 @@ import {
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 import { Logger, LogLevel } from '../coordinator/connection/types';
 import type { Trace } from '../stats';
+import type { SfuResponseWithError } from './retryable';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -69,6 +70,9 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
     [K in keyof SignalServerClient as Capitalize<K>]: boolean;
   };
 
+  const traceError = (name: string, input: object, err: unknown) =>
+    trace(`${name}OnFailure`, [err, input]);
+
   const exclusions: Record<string, boolean | undefined> = {
     SendStats: true,
   } satisfies Partial<RpcMethodNames>;
@@ -82,11 +86,21 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
       if (exclusions[method.name as keyof RpcMethodNames]) {
         return next(method, input, options);
       }
+
+      const { name } = method;
       try {
-        trace(method.name, input);
-        return next(method, input, options);
+        trace(name, input);
+        const unaryCall = next(method, input, options);
+        unaryCall.then(
+          (invocation) => {
+            const err = (invocation.response as SfuResponseWithError)?.error;
+            if (err) traceError(name, input, err);
+          },
+          (err) => traceError(name, input, err),
+        );
+        return unaryCall;
       } catch (err) {
-        trace(`${method.name}OnFailure`, [input, err]);
+        traceError(name, input, err);
         throw err;
       }
     },

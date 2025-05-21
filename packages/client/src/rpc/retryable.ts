@@ -49,8 +49,8 @@ export const retryable = async <
       const isAborted = signal?.aborted ?? false;
       if (isRequestCancelled || isAborted) throw err;
       getLogger(['sfu-client', 'rpc'])('debug', `rpc failed (${attempt})`, err);
-      attempt++;
     }
+    attempt++;
   } while (!result || result.response.error?.shouldRetry);
 
   return result;

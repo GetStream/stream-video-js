@@ -6,6 +6,8 @@ import {
   withRequestTracer,
 } from '../createClient';
 import { TwirpFetchTransport } from '@protobuf-ts/twirp-transport';
+import { NextUnaryFn, UnaryCall } from '@protobuf-ts/runtime-rpc';
+import { promiseWithResolvers } from '../../helpers/promise';
 
 describe('createClient', () => {
   it('should create a client with TwirpFetchTransport', () => {
@@ -40,7 +42,8 @@ describe('createClient', () => {
   it('withRequestTracer should add trace to the request', () => {
     const trace = vi.fn();
     const interceptor = withRequestTracer(trace);
-    const next = vi.fn();
+    // @ts-expect-error - partial implementation
+    const next: NextUnaryFn = vi.fn(() => ({ then: () => Promise.resolve() }));
     interceptor.interceptUnary(
       next,
       // @ts-expect-error - invalid name
@@ -50,6 +53,35 @@ describe('createClient', () => {
     );
     expect(next).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith('TestMethod', { param: 'value' });
+  });
+
+  it('withRequestTracer should add a failure trace when the SFU returns an error', async () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace);
+    const { promise, resolve } = promiseWithResolvers<UnaryCall['then']>();
+    // @ts-expect-error - partial implementation
+    const next = vi.fn<NextUnaryFn>(() => ({
+      // @ts-expect-error - incompatible type
+      then: (...args) => promise.then(...args),
+    }));
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'TestMethod' },
+      { param: 'value' },
+      { meta: {} },
+    );
+    expect(next).toHaveBeenCalled();
+
+    // @ts-expect-error - partial data
+    resolve({ response: { error: { msg: 'err' } } });
+    await promise;
+
+    expect(trace).toHaveBeenCalledWith('TestMethod', { param: 'value' });
+    expect(trace).toHaveBeenCalledWith('TestMethodOnFailure', [
+      { msg: 'err' },
+      { param: 'value' },
+    ]);
   });
 
   it('withRequestTracer should add an error trace', () => {
@@ -69,8 +101,8 @@ describe('createClient', () => {
       ),
     ).toThrow('test error');
     expect(trace).toHaveBeenLastCalledWith('TestMethodOnFailure', [
-      { param: 'value' },
       err,
+      { param: 'value' },
     ]);
   });
 });
