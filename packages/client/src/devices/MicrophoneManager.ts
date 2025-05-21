@@ -149,16 +149,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         // no filter registration in React Native, its done in the native code on app init
         this.noiseCancellationRegistration = Promise.resolve();
       } else {
-        // Krisp recommends disabling the browser's built-in noise cancellation
-        // and echo cancellation when using Krisp, so we do that here.
-        // https://sdk-docs.krisp.ai/docs/getting-started-js
-        this.setDefaultConstraints({
-          ...this.state.defaultConstraints,
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        });
-
         const registrationResult = this.registerFilter(
           noiseCancellation.toFilter(),
         );
