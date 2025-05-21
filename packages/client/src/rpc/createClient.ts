@@ -50,16 +50,13 @@ export const withRequestLogger = (
       input: object,
       options: RpcOptions,
     ): UnaryCall => {
-      let invocation: UnaryCall | undefined;
-      try {
-        invocation = next(method, input, options);
-      } finally {
-        logger(level, `Invoked SFU RPC method ${method.name}`, {
-          request: invocation?.request,
-          headers: invocation?.requestHeaders,
-          response: invocation?.response,
-        });
-      }
+      const invocation = next(method, input, options);
+      logger(level, `Invoked SFU RPC method ${method.name}`, {
+        request: invocation.request,
+        headers: invocation.requestHeaders,
+        response: invocation.response,
+      });
+
       return invocation;
     },
   };
@@ -87,22 +84,16 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
         return next(method, input, options);
       }
 
-      const { name } = method;
-      try {
-        trace(name, input);
-        const unaryCall = next(method, input, options);
-        unaryCall.then(
-          (invocation) => {
-            const err = (invocation.response as SfuResponseWithError)?.error;
-            if (err) traceError(name, input, err);
-          },
-          (err) => traceError(name, input, err),
-        );
-        return unaryCall;
-      } catch (err) {
-        traceError(name, input, err);
-        throw err;
-      }
+      trace(method.name, input);
+      const unaryCall = next(method, input, options);
+      unaryCall.then(
+        (invocation) => {
+          const err = (invocation.response as SfuResponseWithError)?.error;
+          if (err) traceError(method.name, input, err);
+        },
+        (err) => traceError(method.name, input, err),
+      );
+      return unaryCall;
     },
   };
 };
