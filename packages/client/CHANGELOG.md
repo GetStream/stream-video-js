@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.0...@stream-io/video-client-1.23.1) (2025-05-21)
+
+### Bug Fixes
+
+- restore echoCancellation settings ([#1799](https://github.com/GetStream/stream-video-js/issues/1799)) ([e839036](https://github.com/GetStream/stream-video-js/commit/e839036f279ee9b27ce3d62d4f07e3517c3e5fef)), closes [#1794](https://github.com/GetStream/stream-video-js/issues/1794)
+
 ## [1.23.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.22.2...@stream-io/video-client-1.23.0) (2025-05-20)
 
 ### Features
