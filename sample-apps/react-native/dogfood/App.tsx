@@ -187,21 +187,16 @@ const RingingWatcher = () => {
   const setState = useAppGlobalStoreSetState();
   const calls = useCalls().filter((c) => c.ringing);
 
-  const handleMoreCalls = React.useCallback(async () => {
-    const lastCallCreatedBy = calls[1]?.state.createdBy;
-    Alert.alert(
-      `Incoming call from ${
-        lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
-      }, only 1 call at a time is supported`,
-    );
-  }, [calls]);
-
-  // Reset the state of the show variable when there are no calls.
   useEffect(() => {
     if (calls.length > 1) {
-      handleMoreCalls();
+      const lastCallCreatedBy = calls[1]?.state.createdBy;
+      Alert.alert(
+        `Incoming call from ${
+          lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
+        }, only 1 call at a time is supported`,
+      );
     }
-  }, [calls.length, handleMoreCalls]);
+  }, [calls]);
 
   const firstCall = calls[0];
 
