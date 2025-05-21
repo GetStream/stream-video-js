@@ -107,7 +107,8 @@ const CallPanel = () => {
         </StreamCall>
       )}
       {!call && (
-        <>
+        <div className="ringContainer">
+          <label>My user_id: {user_id}</label>
           <label>Callee user_id: </label>
           <input
             type="text"
@@ -117,7 +118,7 @@ const CallPanel = () => {
             }}
           />
           <button onClick={initiateRingCall}>Ring</button>
-        </>
+        </div>
       )}
     </StreamTheme>
   );
