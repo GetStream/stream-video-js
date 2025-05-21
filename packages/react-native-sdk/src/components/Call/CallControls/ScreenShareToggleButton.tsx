@@ -41,7 +41,7 @@ export const ScreenShareToggleButton = ({
   const { onPress, hasPublishedScreenShare } = useScreenShareButton(
     screenCapturePickerViewiOSRef,
     onScreenShareStartedHandler,
-    onScreenShareStoppedHandler
+    onScreenShareStoppedHandler,
   );
 
   if (!onPress) return null;

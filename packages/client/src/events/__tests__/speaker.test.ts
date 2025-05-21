@@ -12,9 +12,9 @@ describe('speaker events', () => {
     const state = new CallState();
     state.setSortParticipantsBy(noopComparator());
     state.setParticipants([
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       { userId: 'user-1', sessionId: 'session-1', isDominantSpeaker: false },
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       { userId: 'user-2', sessionId: 'session-2', isDominantSpeaker: true },
     ]);
     const dispatcher = new Dispatcher();
@@ -24,7 +24,7 @@ describe('speaker events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'dominantSpeakerChanged',
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         dominantSpeakerChanged: {
           userId: 'user-1',
           sessionId: 'session-1',
@@ -42,14 +42,14 @@ describe('speaker events', () => {
     const state = new CallState();
     state.setSortParticipantsBy(noopComparator());
     state.setParticipants([
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       {
         userId: 'user-1',
         sessionId: 'session-1',
         audioLevel: 0,
         isSpeaking: false,
       },
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       {
         userId: 'user-2',
         sessionId: 'session-2',
@@ -64,7 +64,7 @@ describe('speaker events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'audioLevelChanged',
-        // @ts-expect-error
+        // @ts-expect-error incomplete data
         audioLevelChanged: {
           audioLevels: [
             { sessionId: 'session-1', level: 0.5, isSpeaking: true },

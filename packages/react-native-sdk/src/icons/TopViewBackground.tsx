@@ -5,7 +5,7 @@ import {
   Defs,
   LinearGradient,
   Stop,
-  NumberProp,
+  type NumberProp,
 } from 'react-native-svg';
 
 type Props = {

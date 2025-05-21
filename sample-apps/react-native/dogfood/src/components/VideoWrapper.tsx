@@ -47,12 +47,13 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id: user.id }, appEnvironment);
       };
-      const { apiKey } = await fetchAuthDetails();
+      const { apiKey, token } = await fetchAuthDetails();
       const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
       setState({ apiKey });
       _videoClient = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user,
+        token,
         tokenProvider,
         options: {
           logLevel: 'debug',

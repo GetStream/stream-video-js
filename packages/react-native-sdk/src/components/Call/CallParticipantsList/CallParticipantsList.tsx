@@ -5,11 +5,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import {
+  FlatList,
+  type StyleProp,
+  StyleSheet,
+  type ViewStyle,
+} from 'react-native';
 
 import {
-  StreamVideoParticipant,
-  StreamVideoParticipantPatches,
+  type StreamVideoParticipant,
+  type StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
@@ -17,10 +22,10 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   ParticipantView as DefaultParticipantView,
-  ParticipantViewComponentProps,
-  ParticipantViewProps,
+  type ParticipantViewComponentProps,
+  type ParticipantViewProps,
 } from '../../Participant/ParticipantView';
-import { CallContentProps } from '../CallContent';
+import type { CallContentProps } from '../CallContent';
 import { useTheme } from '../../../contexts';
 
 type FlatListProps = React.ComponentProps<
@@ -111,7 +116,7 @@ export const CallParticipantsList = ({
     const participantPatches: StreamVideoParticipantPatches = {};
     let mustUpdate = false;
     const newVisibleParticipantSessionIds = new Set<string>(
-      viewableItems.map((v) => v.key)
+      viewableItems.map((v) => v.key),
     );
     const oldVisibleParticipantSessionIds =
       viewableParticipantSessionIds.current;
@@ -146,7 +151,7 @@ export const CallParticipantsList = ({
 
   // NOTE: key must be sessionId always as it is used to track viewable participants
   const keyExtractor = useRef<NonNullable<FlatListProps['keyExtractor']>>(
-    (item) => item.sessionId
+    (item) => item.sessionId,
   ).current;
 
   const onLayout = useRef<NonNullable<FlatListProps['onLayout']>>((event) => {
@@ -194,7 +199,7 @@ export const CallParticipantsList = ({
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
       const isVisible = viewableParticipantSessionIds.current.has(
-        participant.sessionId
+        participant.sessionId,
       );
       return (
         <>
@@ -212,7 +217,7 @@ export const CallParticipantsList = ({
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [itemContainerStyle]
+    [itemContainerStyle],
   );
 
   // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid
@@ -276,7 +281,7 @@ const useStyles = () => {
           margin: theme.variants.spacingSizes.xs,
         },
       }),
-    [theme]
+    [theme],
   );
 };
 

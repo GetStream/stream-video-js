@@ -8,7 +8,7 @@ import mockParticipant from './participant';
 export const mockCall = (
   client: StreamVideoClient,
   participants?: StreamVideoParticipant[],
-  ownCapabilities?: OwnCapability[]
+  ownCapabilities?: OwnCapability[],
 ) => {
   const call = client?.call('default', 'test-123');
   const _participants = participants || [mockParticipant()];

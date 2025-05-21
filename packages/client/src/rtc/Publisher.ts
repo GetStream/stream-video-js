@@ -19,6 +19,7 @@ import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { isReactNative } from '../helpers/platforms';
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
@@ -31,6 +32,7 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
  */
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
+  private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
 
   /**
@@ -39,13 +41,13 @@ export class Publisher extends BasePeerConnection {
   constructor({ publishOptions, ...baseOptions }: PublisherConstructorOpts) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
     this.publishOptions = publishOptions;
-    this.pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
     this.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
       this.restartIce().catch((err) => {
-        this.logger('warn', `ICERestart failed`, err);
-        this.onUnrecoverableError?.();
+        const reason = `ICE restart failed`;
+        this.logger('warn', reason, err);
+        this.onUnrecoverableError?.(`${reason}: ${err}`);
       });
     });
 
@@ -62,13 +64,12 @@ export class Publisher extends BasePeerConnection {
   }
 
   /**
-   * Detaches the event handlers from the `RTCPeerConnection`.
-   * This is useful when we want to replace the `RTCPeerConnection`
-   * instance with a new one (in case of migration).
+   * Disposes this Publisher instance.
    */
-  detachEventHandlers() {
-    super.detachEventHandlers();
-    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
+  dispose() {
+    super.dispose();
+    this.stopAllTracks();
+    this.clonedTracks.clear();
   }
 
   /**
@@ -90,13 +91,17 @@ export class Publisher extends BasePeerConnection {
 
       // create a clone of the track as otherwise the same trackId will
       // appear in the SDP in multiple transceivers
-      const trackToPublish = track.clone();
+      const trackToPublish = this.cloneTrack(track);
 
       const transceiver = this.transceiverCache.get(publishOption);
       if (!transceiver) {
-        this.addTransceiver(trackToPublish, publishOption);
+        await this.addTransceiver(trackToPublish, publishOption);
       } else {
-        await transceiver.sender.replaceTrack(trackToPublish);
+        const previousTrack = transceiver.sender.track;
+        await this.updateTransceiver(transceiver, trackToPublish, trackType);
+        if (!isReactNative()) {
+          this.stopTrack(previousTrack);
+        }
       }
     }
   };
@@ -104,7 +109,7 @@ export class Publisher extends BasePeerConnection {
   /**
    * Adds a new transceiver carrying the given track to the peer connection.
    */
-  private addTransceiver = (
+  private addTransceiver = async (
     track: MediaStreamTrack,
     publishOption: PublishOption,
   ) => {
@@ -117,9 +122,30 @@ export class Publisher extends BasePeerConnection {
       sendEncodings,
     });
 
+    const params = transceiver.sender.getParameters();
+    params.degradationPreference = 'maintain-framerate';
+    await transceiver.sender.setParameters(params);
+
     const trackType = publishOption.trackType;
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
     this.transceiverCache.add(publishOption, transceiver);
+    this.trackIdToTrackType.set(track.id, trackType);
+
+    await this.negotiate();
+  };
+
+  /**
+   * Updates the transceiver with the given track and track type.
+   */
+  private updateTransceiver = async (
+    transceiver: RTCRtpTransceiver,
+    track: MediaStreamTrack | null,
+    trackType: TrackType,
+  ) => {
+    const sender = transceiver.sender;
+    if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
+    await sender.replaceTrack(track);
+    if (track) this.trackIdToTrackType.set(track.id, trackType);
   };
 
   /**
@@ -141,8 +167,8 @@ export class Publisher extends BasePeerConnection {
 
       // take the track from the existing transceiver for the same track type,
       // clone it and publish it with the new publish options
-      const track = item.transceiver.sender.track!.clone();
-      this.addTransceiver(track, publishOption);
+      const track = this.cloneTrack(item.transceiver.sender.track!);
+      await this.addTransceiver(track, publishOption);
     }
 
     // stop publishing with options not required anymore -> [vp9]
@@ -155,8 +181,8 @@ export class Publisher extends BasePeerConnection {
       );
       if (hasPublishOption) continue;
       // it is safe to stop the track here, it is a clone
-      transceiver.sender.track?.stop();
-      await transceiver.sender.replaceTrack(null);
+      this.stopTrack(transceiver.sender.track);
+      await this.updateTransceiver(transceiver, null, publishOption.trackType);
     }
   };
 
@@ -178,26 +204,25 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Maps the given track ID to the corresponding track type.
-   */
-  getTrackType = (trackId: string): TrackType | undefined => {
-    for (const transceiverId of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = transceiverId;
-      if (transceiver.sender.track?.id === trackId) {
-        return publishOption.trackType;
-      }
-    }
-    return undefined;
-  };
-
-  /**
    * Stops the cloned track that is being published to the SFU.
    */
   stopTracks = (...trackTypes: TrackType[]) => {
     for (const item of this.transceiverCache.items()) {
       const { publishOption, transceiver } = item;
       if (!trackTypes.includes(publishOption.trackType)) continue;
-      transceiver.sender.track?.stop();
+      this.stopTrack(transceiver.sender.track);
+    }
+  };
+
+  /**
+   * Stops all the cloned tracks that are being published to the SFU.
+   */
+  stopAllTracks = () => {
+    for (const { transceiver } of this.transceiverCache.items()) {
+      this.stopTrack(transceiver.sender.track);
+    }
+    for (const track of this.clonedTracks) {
+      this.stopTrack(track);
     }
   };
 
@@ -208,10 +233,12 @@ export class Publisher extends BasePeerConnection {
     const tag = 'Update publish quality:';
     this.logger('info', `${tag} requested layers by SFU:`, enabledLayers);
 
-    const sender = this.transceiverCache.getWith(
-      trackType,
-      publishOptionId,
-    )?.sender;
+    const transceiverId = this.transceiverCache.find(
+      (t) =>
+        t.publishOption.id === publishOptionId &&
+        t.publishOption.trackType === trackType,
+    );
+    const sender = transceiverId?.transceiver.sender;
     if (!sender) {
       return this.logger('warn', `${tag} no video sender found.`);
     }
@@ -221,8 +248,8 @@ export class Publisher extends BasePeerConnection {
       return this.logger('warn', `${tag} there are no encodings set.`);
     }
 
-    const [codecInUse] = params.codecs;
-    const usesSvcCodec = codecInUse && isSvcCodec(codecInUse.mimeType);
+    const codecInUse = transceiverId?.publishOption.codec?.name;
+    const usesSvcCodec = codecInUse && isSvcCodec(codecInUse);
 
     let changed = false;
     for (const encoder of params.encodings) {
@@ -230,8 +257,8 @@ export class Publisher extends BasePeerConnection {
         ? // for SVC, we only have one layer (q) and often rid is omitted
           enabledLayers[0]
         : // for non-SVC, we need to find the layer by rid (simulcast)
-          enabledLayers.find((l) => l.name === encoder.rid) ??
-          (params.encodings.length === 1 ? enabledLayers[0] : undefined);
+          (enabledLayers.find((l) => l.name === encoder.rid) ??
+          (params.encodings.length === 1 ? enabledLayers[0] : undefined));
 
       // flip 'active' flag only when necessary
       const shouldActivate = !!layer?.active;
@@ -284,7 +311,7 @@ export class Publisher extends BasePeerConnection {
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
-  restartIce = async () => {
+  restartIce = async (): Promise<void> => {
     this.logger('debug', 'Restarting ICE connection');
     const signalingState = this.pc.signalingState;
     if (this.isIceRestarting || signalingState === 'have-local-offer') {
@@ -294,43 +321,33 @@ export class Publisher extends BasePeerConnection {
     await this.negotiate({ iceRestart: true });
   };
 
-  private onNegotiationNeeded = () => {
-    withoutConcurrency('publisher.negotiate', () => this.negotiate()).catch(
-      (err) => {
-        this.logger('error', `Negotiation failed.`, err);
-        this.onUnrecoverableError?.();
-      },
-    );
-  };
-
   /**
    * Initiates a new offer/answer exchange with the currently connected SFU.
    *
    * @param options the optional offer options to use.
    */
-  private negotiate = async (options?: RTCOfferOptions) => {
-    const offer = await this.pc.createOffer(options);
-    const trackInfos = this.getAnnouncedTracks(offer.sdp);
-    if (trackInfos.length === 0) {
-      throw new Error(`Can't negotiate without announcing any tracks`);
-    }
+  private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
+    return withoutConcurrency(`publisher.negotiate.${this.lock}`, async () => {
+      const offer = await this.pc.createOffer(options);
+      const tracks = this.getAnnouncedTracks(offer.sdp);
+      if (!tracks.length) throw new Error(`Can't negotiate without any tracks`);
 
-    try {
-      this.isIceRestarting = options?.iceRestart ?? false;
-      await this.pc.setLocalDescription(offer);
+      try {
+        this.isIceRestarting = options?.iceRestart ?? false;
+        await this.pc.setLocalDescription(offer);
 
-      const { response } = await this.sfuClient.setPublisher({
-        sdp: offer.sdp || '',
-        tracks: trackInfos,
-      });
+        const { sdp = '' } = offer;
+        const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
+        if (response.error) throw new Error(response.error.message);
 
-      if (response.error) throw new Error(response.error.message);
-      await this.pc.setRemoteDescription({ type: 'answer', sdp: response.sdp });
-    } finally {
-      this.isIceRestarting = false;
-    }
+        const { sdp: answerSdp } = response;
+        await this.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+      } finally {
+        this.isIceRestarting = false;
+      }
 
-    this.addTrickledIceCandidates();
+      this.addTrickledIceCandidates();
+    });
   };
 
   /**
@@ -410,5 +427,17 @@ export class Publisher extends BasePeerConnection {
       codec: publishOption.codec,
       publishOptionId: publishOption.id,
     };
+  };
+
+  private cloneTrack = (track: MediaStreamTrack): MediaStreamTrack => {
+    const clone = track.clone();
+    this.clonedTracks.add(clone);
+    return clone;
+  };
+
+  private stopTrack = (track: MediaStreamTrack | null | undefined) => {
+    if (!track) return;
+    track.stop();
+    this.clonedTracks.delete(track);
   };
 }

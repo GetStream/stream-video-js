@@ -42,7 +42,7 @@ describe('DynascaleManager', () => {
         },
       );
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -90,9 +90,9 @@ describe('DynascaleManager', () => {
 
     beforeEach(() => {
       videoElement = document.createElement('video');
-      // @ts-ignore
+      // @ts-expect-error private property
       videoElement.clientWidth = 100;
-      // @ts-ignore
+      // @ts-expect-error private property
       videoElement.clientHeight = 100;
     });
 
@@ -100,17 +100,16 @@ describe('DynascaleManager', () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
       const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
-      // @ts-expect-error setSinkId is not defined in types
       audioElement.setSinkId = vi.fn();
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
         publishedTracks: [],
       });
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id-local', {
         userId: 'user-id-local',
         sessionId: 'session-id-local',
@@ -134,15 +133,10 @@ describe('DynascaleManager', () => {
 
       expect(play).toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(mediaStream);
-
       expect(audioElement.volume).toBe(1);
-
-      // @ts-expect-error setSinkId is not defined in types
       expect(audioElement.setSinkId).not.toHaveBeenCalled();
 
       call.speaker.select('different-device-id');
-
-      // @ts-expect-error setSinkId is not defined in types
       expect(audioElement.setSinkId).toHaveBeenCalledWith(
         'different-device-id',
       );
@@ -164,7 +158,7 @@ describe('DynascaleManager', () => {
       const audioElement = document.createElement('audio');
       const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -199,7 +193,7 @@ describe('DynascaleManager', () => {
         'updateParticipantTracks',
       );
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -257,7 +251,7 @@ describe('DynascaleManager', () => {
       );
       const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -297,7 +291,7 @@ describe('DynascaleManager', () => {
     });
 
     it('video: should update subscription when element becomes visible', () => {
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -374,7 +368,7 @@ describe('DynascaleManager', () => {
     });
 
     it('video: should update subscription when element resizes', () => {
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -385,12 +379,16 @@ describe('DynascaleManager', () => {
         },
       });
 
-      let updateSubscription = vi.spyOn(call.state, 'updateParticipantTracks');
+      const updateSubscription = vi.spyOn(
+        call.state,
+        'updateParticipantTracks',
+      );
 
-      let resizeObserverCallback: ResizeObserverCallback;
+      let resizeObserverCallback: ResizeObserverCallback | undefined =
+        undefined;
       window.ResizeObserver = class ResizeObserver {
         observe = vi.fn().mockImplementation(() => {
-          // @ts-ignore simulate initial trigger
+          // @ts-expect-error simulate initial trigger
           resizeObserverCallback();
         });
         unobserve = vi.fn();
@@ -416,12 +414,12 @@ describe('DynascaleManager', () => {
         },
       });
 
-      // @ts-ignore simulate resize
+      // @ts-expect-error simulate resize
       videoElement.clientHeight = 101;
-      // @ts-ignore simulate resize
+      // @ts-expect-error simulate resize
       videoElement.clientWidth = 101;
 
-      // @ts-ignore simulate resize
+      // @ts-expect-error simulate resize
       resizeObserverCallback();
 
       expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
@@ -436,7 +434,7 @@ describe('DynascaleManager', () => {
     });
 
     it('video: should unsubscribe when element dimensions are zero', () => {
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
@@ -447,11 +445,14 @@ describe('DynascaleManager', () => {
         },
       });
 
-      let updateSubscription = vi.spyOn(call.state, 'updateParticipantTracks');
+      const updateSubscription = vi.spyOn(
+        call.state,
+        'updateParticipantTracks',
+      );
 
-      // @ts-ignore simulate resize
+      // @ts-expect-error simulate resize
       videoElement.clientHeight = 0;
-      // @ts-ignore simulate resize
+      // @ts-expect-error simulate resize
       videoElement.clientWidth = 0;
 
       const cleanup = dynascaleManager.bindVideoElement(

@@ -13,8 +13,8 @@ import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 import {
-  PropsWithErrorHandler,
   createCallControlHandler,
+  PropsWithErrorHandler,
 } from '../../utilities/callControlHandler';
 
 export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
@@ -30,8 +30,12 @@ export const ToggleAudioPreviewButton = (
   const { caption, onMenuToggle, ...restCompositeButtonProps } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, optimisticIsMute, hasBrowserPermission } =
-    useMicrophoneState();
+  const {
+    microphone,
+    optimisticIsMute,
+    hasBrowserPermission,
+    isPromptingPermission,
+  } = useMicrophoneState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () =>
     microphone.toggle(),
@@ -42,7 +46,7 @@ export const ToggleAudioPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser audio permissions')
-          : caption ?? t('Mic')
+          : (caption ?? t('Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -74,6 +78,13 @@ export const ToggleAudioPreviewButton = (
             children="!"
           />
         )}
+        {isPromptingPermission && (
+          <span
+            className="str-video__pending-permission"
+            title={t('Waiting for permission')}
+            children="?"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -102,8 +113,12 @@ export const ToggleAudioPublishingButton = (
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, optimisticIsMute, hasBrowserPermission } =
-    useMicrophoneState();
+  const {
+    microphone,
+    optimisticIsMute,
+    hasBrowserPermission,
+    isPromptingPermission,
+  } = useMicrophoneState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, async () => {
     if (!hasPermission) {
@@ -128,7 +143,7 @@ export const ToggleAudioPublishingButton = (
               ? t('You have no permission to share your audio')
               : !hasBrowserPermission
                 ? t('Check your browser mic permissions')
-                : caption ?? t('Mic')
+                : (caption ?? t('Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -153,6 +168,14 @@ export const ToggleAudioPublishingButton = (
             <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
             {(!hasBrowserPermission || !hasPermission) && (
               <span className="str-video__no-media-permission">!</span>
+            )}
+            {isPromptingPermission && (
+              <span
+                className="str-video__pending-permission"
+                title={t('Waiting for permission')}
+              >
+                ?
+              </span>
             )}
           </CompositeButton>
         </WithTooltip>

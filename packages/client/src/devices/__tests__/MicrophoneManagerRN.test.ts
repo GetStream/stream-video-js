@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -13,8 +12,9 @@ import {
 import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
+import { SoundStateChangeHandler } from '../../helpers/sound-detector';
 
-let handler;
+let handler: SoundStateChangeHandler = () => {};
 
 vi.mock('../../helpers/platforms.ts', () => {
   return {
@@ -47,12 +47,12 @@ vi.mock('../../helpers/RNSpeechDetector.ts', () => {
   console.log('MOCKING RNSpeechDetector');
   return {
     RNSpeechDetector: vi.fn().mockImplementation(() => ({
-      start: vi.fn(),
-      stop: vi.fn(),
-      onSpeakingDetectedStateChange: vi.fn((callback) => {
+      start: vi.fn((callback) => {
         handler = callback;
         return vi.fn();
       }),
+      stop: vi.fn(),
+      onSpeakingDetectedStateChange: vi.fn(),
     })),
   };
 });
@@ -72,11 +72,12 @@ describe('MicrophoneManager React Native', () => {
 
   it(`should start sound detection if mic is disabled`, async () => {
     await manager.enable();
-    // @ts-expect-error
-    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+    // @ts-expect-error - private method
+    const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     await manager.disable();
 
-    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+    expect(fn).toHaveBeenCalled();
     expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
   });
 
@@ -91,6 +92,7 @@ describe('MicrophoneManager React Native', () => {
 
   it('should update speaking while muted state', async () => {
     await manager['startSpeakingWhileMutedDetection']();
+    expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
 
     expect(manager.state.speakingWhileMuted).toBe(false);
 
@@ -107,11 +109,12 @@ describe('MicrophoneManager React Native', () => {
     await manager.enable();
     await manager.disable();
 
-    // @ts-expect-error
-    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+    // @ts-expect-error private method
+    const fn = vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([]);
 
-    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+    await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+    expect(fn).toHaveBeenCalled();
   });
 
   it('should start speaking while muted notifications if user gains permission to send audio', async () => {
@@ -120,34 +123,12 @@ describe('MicrophoneManager React Native', () => {
 
     manager['call'].state.setOwnCapabilities([]);
 
-    // @ts-expect-error
-    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+    // @ts-expect-error - private method
+    const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
-  });
-
-  describe('Noise Suppression', () => {
-    it('enable: should throw an error in React Native', async () => {
-      await expect(() => {
-        return manager.enableNoiseCancellation(
-          new (class implements INoiseCancellation {
-            isSupported = () => true;
-            init = () => Promise.resolve(undefined);
-            enable = () => {};
-            disable = () => {};
-            dispose = () => Promise.resolve(undefined);
-            toFilter = () => async (ms: MediaStream) => ms;
-            on = () => () => {};
-            off = () => {};
-          })(),
-        );
-      }).rejects.toThrow();
-    });
-
-    it('disable: should throw an error in React Native', async () => {
-      await expect(() => manager.disableNoiseCancellation()).rejects.toThrow();
-    });
+    await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+    expect(fn).toHaveBeenCalled();
   });
 
   afterEach(() => {

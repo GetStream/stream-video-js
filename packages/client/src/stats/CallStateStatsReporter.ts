@@ -2,6 +2,7 @@ import type {
   AggregatedStatsReport,
   BaseStats,
   ParticipantsStatsReport,
+  RTCCodecStats,
   RTCMediaSourceStats,
   StatsReport,
 } from './types';
@@ -19,6 +20,8 @@ export type StatsReporterOpts = {
   datacenter: string;
   pollingIntervalInMs?: number;
 };
+
+type PeerConnectionKind = 'subscriber' | 'publisher';
 
 export type StatsReporter = {
   /**
@@ -43,7 +46,7 @@ export type StatsReporter = {
    * @param mediaStream the media stream.
    */
   getStatsForStream: (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     tracks: MediaStreamTrack[],
   ) => Promise<StatsReport[]>;
 
@@ -54,7 +57,7 @@ export type StatsReporter = {
    * @param selector the track selector. If not provided, stats for all tracks will be returned.
    */
   getRawStatsForTrack: (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     selector?: MediaStreamTrack,
   ) => Promise<RTCStatsReport | undefined>;
 
@@ -76,7 +79,7 @@ export const createStatsReporter = ({
 }: StatsReporterOpts): StatsReporter => {
   const logger = getLogger(['stats']);
   const getRawStatsForTrack = async (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     selector?: MediaStreamTrack,
   ) => {
     if (kind === 'subscriber' && subscriber) {
@@ -89,7 +92,7 @@ export const createStatsReporter = ({
   };
 
   const getStatsForStream = async (
-    kind: 'subscriber' | 'publisher',
+    kind: PeerConnectionKind,
     tracks: MediaStreamTrack[],
   ) => {
     const pc = kind === 'subscriber' ? subscriber : publisher;
@@ -98,9 +101,9 @@ export const createStatsReporter = ({
     for (const track of tracks) {
       const report = await pc.getStats(track);
       const stats = transform(report, {
-        // @ts-ignore
-        trackKind: track.kind,
+        trackKind: track.kind as 'audio' | 'video',
         kind,
+        publisher: undefined,
       });
       statsForStream.push(stats);
     }
@@ -150,35 +153,20 @@ export const createStatsReporter = ({
       }
     }
 
-    const [subscriberStats, publisherStats] = await Promise.all([
-      subscriber
-        .getStats()
-        .then((report) =>
-          transform(report, {
-            kind: 'subscriber',
-            trackKind: 'video',
-            publisher,
-          }),
-        )
-        .then(aggregate),
-      publisher
-        ? publisher
-            .getStats()
-            .then((report) =>
-              transform(report, {
-                kind: 'publisher',
-                trackKind: 'video',
-                publisher,
-              }),
-            )
-            .then(aggregate)
-        : getEmptyStats(),
-    ]);
-
     const [subscriberRawStats, publisherRawStats] = await Promise.all([
       getRawStatsForTrack('subscriber'),
       publisher ? getRawStatsForTrack('publisher') : undefined,
     ]);
+
+    const process = (report: RTCStatsReport, kind: PeerConnectionKind) =>
+      aggregate(transform(report, { kind, trackKind: 'video', publisher }));
+
+    const subscriberStats = subscriberRawStats
+      ? process(subscriberRawStats, 'subscriber')
+      : getEmptyStats();
+    const publisherStats = publisherRawStats
+      ? process(publisherRawStats, 'publisher')
+      : getEmptyStats();
 
     state.setCallStatsReport({
       datacenter,
@@ -225,7 +213,7 @@ export type StatsTransformOpts = {
   /**
    * The kind of peer connection we are transforming stats for.
    */
-  kind: 'subscriber' | 'publisher';
+  kind: PeerConnectionKind;
   /**
    * The publisher instance.
    */
@@ -257,7 +245,7 @@ const transform = (
 
       const codec = stats.find(
         (s) => s.type === 'codec' && s.id === rtcStreamStats.codecId,
-      ) as RTCRtpCodec | undefined;
+      ) as RTCCodecStats | undefined;
 
       const transport = stats.find(
         (s) => s.type === 'transport' && s.id === rtcStreamStats.transportId,
@@ -298,7 +286,6 @@ const transform = (
         jitter: rtcStreamStats.jitter,
         kind: rtcStreamStats.kind,
         mediaSourceId: rtcStreamStats.mediaSourceId,
-        // @ts-ignore: available in Chrome only, TS doesn't recognize this
         qualityLimitationReason: rtcStreamStats.qualityLimitationReason,
         rid: rtcStreamStats.rid,
         ssrc: rtcStreamStats.ssrc,

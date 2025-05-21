@@ -13,8 +13,8 @@ import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 import {
-  PropsWithErrorHandler,
   createCallControlHandler,
+  PropsWithErrorHandler,
 } from '../../utilities/callControlHandler';
 
 export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
@@ -36,7 +36,12 @@ export const ToggleVideoPreviewButton = (
   } = props;
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
-  const { camera, optimisticIsMute, hasBrowserPermission } = useCameraState();
+  const {
+    camera,
+    optimisticIsMute,
+    hasBrowserPermission,
+    isPromptingPermission,
+  } = useCameraState();
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () => camera.toggle());
 
@@ -45,7 +50,7 @@ export const ToggleVideoPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser video permissions')
-          : caption ?? t('Video')
+          : (caption ?? t('Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -79,6 +84,13 @@ export const ToggleVideoPreviewButton = (
             children="!"
           />
         )}
+        {isPromptingPermission && (
+          <span
+            className="str-video__pending-permission"
+            title={t('Waiting for permission')}
+            children="?"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -107,7 +119,12 @@ export const ToggleVideoPublishingButton = (
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
   const { useCameraState, useCallSettings } = useCallStateHooks();
-  const { camera, optimisticIsMute, hasBrowserPermission } = useCameraState();
+  const {
+    camera,
+    optimisticIsMute,
+    hasBrowserPermission,
+    isPromptingPermission,
+  } = useCameraState();
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
@@ -169,6 +186,14 @@ export const ToggleVideoPublishingButton = (
               !hasPermission ||
               !isPublishingVideoAllowed) && (
               <span className="str-video__no-media-permission">!</span>
+            )}
+            {isPromptingPermission && (
+              <span
+                className="str-video__pending-permission"
+                title={t('Waiting for permission')}
+              >
+                ?
+              </span>
             )}
           </CompositeButton>
         </WithTooltip>

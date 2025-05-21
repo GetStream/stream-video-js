@@ -31,7 +31,7 @@ export const ChooseAppModeScreen = () => {
   };
 
   const onLiveStreamSelect = () => {
-    setState({ appMode: 'LiveStream' });
+    setState({ appMode: 'LiveStream', appEnvironment: 'livestream' });
   };
 
   const onRingingSelect = () => {
@@ -67,7 +67,7 @@ export const ChooseAppModeScreen = () => {
           buttonStyle={styles.callButton}
         />
         <Button
-          title={t('Live streaming')}
+          title={t('Livestreaming')}
           onPress={onLiveStreamSelect}
           buttonStyle={styles.callButton}
         />

@@ -76,7 +76,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     if (!this.state.audioEnabled) {
       constraints.audio = false;
     }
-    return getScreenShareStream(constraints);
+    return getScreenShareStream(constraints, this.call.tracer);
   }
 
   protected async stopPublishStream(): Promise<void> {
@@ -88,10 +88,8 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 
   /**
    * Overrides the default `select` method to throw an error.
-   *
-   * @param deviceId ignored.
    */
-  async select(deviceId: string | undefined): Promise<void> {
-    throw new Error('This method is not supported in for Screen Share');
+  async select(): Promise<void> {
+    throw new Error('Not supported');
   }
 }

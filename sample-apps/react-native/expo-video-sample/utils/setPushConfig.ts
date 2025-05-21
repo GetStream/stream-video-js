@@ -1,9 +1,9 @@
 import {
-  StreamVideoClient,
-  StreamVideoRN,
-  oniOSNotifeeEvent,
   isNotifeeStreamVideoEvent,
   onAndroidNotifeeEvent,
+  oniOSNotifeeEvent,
+  StreamVideoClient,
+  StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
 import { Platform } from 'react-native';
 import notifee, { AndroidImportance } from '@notifee/react-native';
@@ -35,23 +35,29 @@ export function setPushConfig() {
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to open the call',
+        getBody: () => 'Tap to open the call',
       },
       callNotificationTextGetters: {
         getTitle(type, createdUserName) {
           if (type === 'call.live_started') {
             return `Call went live, it was started by ${createdUserName}`;
+          } else if (type === 'call.missed') {
+            return `Missed call from ${createdUserName}`;
           } else {
             return `${createdUserName} is notifying you about a call`;
           }
         },
-        getBody(_type, _createdUserName) {
-          return 'Tap to open the call';
+        getBody(type) {
+          if (type === 'call.missed') {
+            return 'Missed call!';
+          } else {
+            return 'Tap to open the call';
+          }
         },
       },
     },
     createStreamVideoClient,
-    onTapNonRingingCallNotification: (_cid, _type) => {
+    onTapNonRingingCallNotification: () => {
       staticNavigateToNonRingingCall();
     },
   });
@@ -78,8 +84,10 @@ export function setPushConfig() {
     // https://docs.expo.dev/push-notifications/receiving-notifications/#foreground-notification-behavior
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: false,
         shouldShowAlert: true,
-        shouldPlaySound: false,
+        shouldPlaySound: true,
         shouldSetBadge: false,
       }),
     });
@@ -108,13 +116,13 @@ const createStreamVideoClient = async () => {
   const fetchAuthDetails = async () => {
     return await createToken({ user_id: user.id });
   };
-  const { apiKey } = await fetchAuthDetails();
+  const { apiKey, token } = await fetchAuthDetails();
   const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
-  const client = StreamVideoClient.getOrCreateInstance({
+  return StreamVideoClient.getOrCreateInstance({
     apiKey,
     user,
+    token,
     tokenProvider,
     options: { logLevel: 'warn' },
   });
-  return client;
 };

@@ -2,10 +2,10 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import {
   CallingState,
-  setThermalState,
   setPowerState,
+  setThermalState,
 } from '@stream-io/video-client';
-import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
 const eventEmitter = NativeModules?.StreamVideoReactNative
   ? new NativeEventEmitter(NativeModules?.StreamVideoReactNative)
@@ -24,21 +24,21 @@ export const DeviceStats = () => {
     }
 
     NativeModules?.StreamVideoReactNative.isLowPowerModeEnabled().then(
-      (initialPowerMode: boolean) => setPowerState(initialPowerMode)
+      (initialPowerMode: boolean) => setPowerState(initialPowerMode),
     );
 
-    let powerModeSubscription = eventEmitter?.addListener(
+    const powerModeSubscription = eventEmitter?.addListener(
       'isLowPowerModeEnabled',
-      (isLowPowerMode: boolean) => setPowerState(isLowPowerMode)
+      (isLowPowerMode: boolean) => setPowerState(isLowPowerMode),
     );
 
     NativeModules?.StreamVideoReactNative.currentThermalState().then(
-      (initialState: string) => setThermalState(initialState)
+      (initialState: string) => setThermalState(initialState),
     );
 
-    let thermalStateSubscription = eventEmitter?.addListener(
+    const thermalStateSubscription = eventEmitter?.addListener(
       'thermalStateDidChange',
-      (thermalState: string) => setThermalState(thermalState)
+      (thermalState: string) => setThermalState(thermalState),
     );
 
     // on android we need to explicitly start and stop the thermal status updates

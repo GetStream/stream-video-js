@@ -19,7 +19,7 @@ describe('Avatar', () => {
 
     expect(await screen.findByTestId(ImageTestIds.AVATAR)).toBeOnTheScreen();
     expect(() => screen.getByText('TT')).toThrow(
-      /unable to find an element with text: TT/i
+      /unable to find an element with text: TT/i,
     );
   });
 
@@ -28,7 +28,7 @@ describe('Avatar', () => {
     const size = 200;
     render(<Avatar participant={testParticipant} size={size} />);
     expect(
-      await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR)
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR),
     ).toHaveStyle({
       borderRadius: size / 2,
       height: size,

@@ -22,8 +22,12 @@
     }
 
     .str-video__reactions-menu__button {
-      font-family: 'Twemoji Mozilla', Apple Color Emoji, 'Segoe UI Emoji',
-        'Noto Color Emoji', 'EmojiOne Color';
+      font-family:
+        'Twemoji Mozilla',
+        Apple Color Emoji,
+        'Segoe UI Emoji',
+        'Noto Color Emoji',
+        'EmojiOne Color';
       font-size: 1.2rem;
       height: 38px;
       width: 38px;
@@ -42,22 +46,32 @@
   }
 }
 
-.str-video__no-media-permission {
+.str-video__no-media-permission,
+.str-video__pending-permission {
   position: absolute;
-  background-color: var(--str-video__alert-caution);
   height: 12px;
   width: 12px;
+  outline: 1px solid var(--str-video__base-color6);
   border-radius: var(--str-video__border-radius-circle);
   display: flex;
   justify-content: center;
   align-items: center;
 
   font-size: var(--str-video__font-size-xxs);
-  color: var(--str-video__base-color4);
   cursor: pointer;
   font-weight: 600;
   top: 0;
   right: -3px;
+}
+
+.str-video__no-media-permission {
+  background-color: var(--str-video__alert-caution);
+  color: var(--str-video__base-color4);
+}
+
+.str-video__pending-permission {
+  background-color: var(--str-video__button-secondary-active);
+  color: var(--str-video__text-color1);
 }
 
 .str-video__composite-button.str-video__device-unavailable {

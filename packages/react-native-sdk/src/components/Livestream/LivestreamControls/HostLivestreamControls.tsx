@@ -1,12 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { StyleSheet, View, type ViewProps } from 'react-native';
 import {
   HostStartStreamButton as DefaultHostStartStreamButton,
-  HostStartStreamButtonProps,
+  type HostStartStreamButtonProps,
 } from './HostStartStreamButton';
 import {
   LivestreamMediaControls as DefaultLivestreamMediaControls,
-  LivestreamMediaControlsProps,
+  type LivestreamMediaControlsProps,
 } from './LivestreamMediaControls';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';

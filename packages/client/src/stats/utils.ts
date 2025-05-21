@@ -1,5 +1,4 @@
-import { LocalClientDetailsType } from '../client-details';
-import { Sdk, SdkType } from '../gen/video/sfu/models/models';
+import { ClientDetails, Sdk, SdkType } from '../gen/video/sfu/models/models';
 
 /**
  * Flatten the stats report into an array of stats objects.
@@ -14,7 +13,22 @@ export const flatten = (report: RTCStatsReport) => {
   return stats;
 };
 
-export const getSdkSignature = (clientDetails: LocalClientDetailsType) => {
+/**
+ * Dump the provided MediaStream into a JSON object.
+ */
+export const dumpStream = (stream: MediaStream) => ({
+  id: stream.id,
+  tracks: stream.getTracks().map((track) => ({
+    id: track.id,
+    kind: track.kind,
+    label: track.label,
+    enabled: track.enabled,
+    muted: track.muted,
+    readyState: track.readyState,
+  })),
+});
+
+export const getSdkSignature = (clientDetails: ClientDetails) => {
   const { sdk, ...platform } = clientDetails;
   const sdkName = getSdkName(sdk);
   const sdkVersion = getSdkVersion(sdk);

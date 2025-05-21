@@ -13,6 +13,7 @@ export {
   useVerticalScrollPosition,
   useRequestPermission,
   usePersistedDevicePreferences,
+  useDeviceList,
 } from './src/hooks';
 
 const [major, minor, patch] = (

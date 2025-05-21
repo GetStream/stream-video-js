@@ -12,6 +12,7 @@ import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
+import { RejectReason } from './coordinator/connection/types';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -225,9 +226,14 @@ export type CallLeaveOptions = {
 
   /**
    * The reason for leaving the call.
-   * This will be sent to the backend and will be visible in the logs.
+   * This will be sent as the `reason` field in the `call.rejected` event.
    */
-  reason?: string;
+  reason?: RejectReason;
+
+  /**
+   * You can provide extra information about why the call is being left and/or rejected, used for logging purposes.
+   */
+  message?: string;
 };
 
 /**

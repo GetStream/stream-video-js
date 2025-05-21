@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import {
   Call,
   CallClosedCaption,
@@ -9,17 +8,22 @@ import {
   CallStatsReport,
   Comparator,
   EgressResponse,
+  InputDeviceStatus,
   MemberResponse,
   OwnCapability,
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
+import { useMemo, useState } from 'react';
+import { Observable, of } from 'rxjs';
 import { useCall } from '../contexts';
-import { useObservableValue } from './useObservableValue';
 import { isReactNative } from '../helpers/platforms';
+import { useObservableValue } from './useObservableValue';
 
 // kind-of memoized, used as a default value
-const EMPTY_DEVICES_ARRAY = Object.freeze([]) as unknown as MediaDeviceInfo[];
+const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
+  [],
+) as MediaDeviceInfo[];
 
 /**
  * Utility hook, which provides the current call's state.
@@ -354,31 +358,30 @@ export const useCameraState = () => {
   const call = useCall();
   const { camera } = call as Call;
 
-  const devices$ = useMemo(() => camera.listDevices(), [camera]);
-
   const { state } = camera;
-  const status = useObservableValue(state.status$);
-  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
-  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+  const { getDevices } = useLazyDeviceList(camera);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
-  const isMute = status !== 'enabled';
-  const optimisticIsMute = optimisticStatus !== 'enabled';
+  const isPromptingPermission = useObservableValue(
+    state.isPromptingPermission$,
+  );
 
   return {
     camera,
-    status,
-    optimisticStatus,
-    isEnabled: status === 'enabled',
     direction,
     mediaStream,
-    devices,
+    get devices() {
+      return getDevices();
+    },
     hasBrowserPermission,
+    isPromptingPermission,
     selectedDevice,
-    isMute,
-    optimisticIsMute,
+    ...getComputedStatus(
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
+    ),
   };
 };
 
@@ -391,31 +394,30 @@ export const useMicrophoneState = () => {
   const call = useCall();
   const { microphone } = call as Call;
 
-  const devices$ = useMemo(() => microphone.listDevices(), [microphone]);
-
   const { state } = microphone;
-  const status = useObservableValue(state.status$);
-  const optimisticStatus = useObservableValue(state.optimisticStatus$);
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
-  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+  const { getDevices } = useLazyDeviceList(microphone);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
+  const isPromptingPermission = useObservableValue(
+    state.isPromptingPermission$,
+  );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
-  const isMute = status !== 'enabled';
-  const optimisticIsMute = optimisticStatus !== 'enabled';
 
   return {
     microphone,
-    status,
-    optimisticStatus,
-    isEnabled: status === 'enabled',
     mediaStream,
-    devices,
+    get devices() {
+      return getDevices();
+    },
     selectedDevice,
     hasBrowserPermission,
+    isPromptingPermission,
     isSpeakingWhileMuted,
-    isMute,
-    optimisticIsMute,
+    ...getComputedStatus(
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
+    ),
   };
 };
 
@@ -433,13 +435,14 @@ export const useSpeakerState = () => {
   const call = useCall();
   const { speaker } = call as Call;
 
-  const devices$ = useMemo(() => speaker.listDevices(), [speaker]);
-  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+  const { getDevices } = useLazyDeviceList(speaker);
   const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
 
   return {
     speaker,
-    devices,
+    get devices() {
+      return getDevices();
+    },
     selectedDevice,
     isDeviceSelectionSupported: speaker.state.isDeviceSelectionSupported,
   };
@@ -452,20 +455,13 @@ export const useScreenShareState = () => {
   const call = useCall();
   const { screenShare } = call as Call;
 
-  const status = useObservableValue(screenShare.state.status$);
-  const pendingStatus = useObservableValue(screenShare.state.optimisticStatus$);
-  const mediaStream = useObservableValue(screenShare.state.mediaStream$);
-  const isMute = status !== 'enabled';
-  const optimisticStatus = pendingStatus ?? status;
-  const optimisticIsMute = optimisticStatus !== 'enabled';
-
   return {
     screenShare,
-    mediaStream,
-    status,
-    optimisticStatus,
-    isMute,
-    optimisticIsMute,
+    mediaStream: useObservableValue(screenShare.state.mediaStream$),
+    ...getComputedStatus(
+      useObservableValue(screenShare.state.status$),
+      useObservableValue(screenShare.state.optimisticStatus$),
+    ),
   };
 };
 
@@ -496,3 +492,39 @@ export const useIsCallCaptioningInProgress = (): boolean => {
   const { captioning$ } = useCallState();
   return useObservableValue(captioning$);
 };
+
+function getComputedStatus(
+  status: InputDeviceStatus,
+  pendingStatus: InputDeviceStatus,
+) {
+  const optimisticStatus = pendingStatus ?? status;
+
+  return {
+    status,
+    optimisticStatus,
+    isEnabled: status === 'enabled',
+    isMute: status !== 'enabled',
+    optimisticIsMute: optimisticStatus !== 'enabled',
+    isTogglePending: optimisticStatus !== status,
+  };
+}
+
+interface DeviceManagerLike {
+  listDevices(): Observable<MediaDeviceInfo[]>;
+}
+
+function useLazyDeviceList(manager: DeviceManagerLike) {
+  const placeholderDevices$ = useMemo(() => of(EMPTY_DEVICES_ARRAY), []);
+  const [devices$, setDevices$] = useState(placeholderDevices$);
+  const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
+
+  const getDevices = () => {
+    if (devices$ === placeholderDevices$) {
+      setDevices$(manager.listDevices());
+    }
+
+    return devices;
+  };
+
+  return { getDevices };
+}

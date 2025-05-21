@@ -1,5 +1,8 @@
-import { MediaStream } from '@stream-io/react-native-webrtc';
-import { CallingState, disposeOfMediaStream } from '@stream-io/video-client';
+import {
+  CallingState,
+  disposeOfMediaStream,
+  getLogger,
+} from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 
@@ -15,9 +18,7 @@ export const useCallMediaStreamCleanup = () => {
 
   useEffect(() => {
     return () => {
-      const mediaStream = callRef.current?.camera.state.mediaStream as
-        | MediaStream
-        | undefined;
+      const mediaStream = callRef.current?.camera.state.mediaStream;
       if (
         mediaStream &&
         !(
@@ -25,8 +26,11 @@ export const useCallMediaStreamCleanup = () => {
           callRef.current?.state.callingState === CallingState.JOINING
         )
       ) {
+        getLogger(['useCallMediaStreamCleanup'])(
+          'debug',
+          'Cleaning up camera media stream',
+        );
         // we cleanup media stream only if call is not joined or joining
-        // @ts-ignore Due to DOM typing incompatible with RN
         disposeOfMediaStream(mediaStream);
       }
     };

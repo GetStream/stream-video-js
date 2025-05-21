@@ -309,7 +309,7 @@ describe('InputMediaDeviceManager.test', () => {
     const device = mockVideoDevices[0];
     await manager.select(device.deviceId);
 
-    //@ts-expect-error
+    // @ts-expect-error - private method
     vi.spyOn(manager, 'applySettingsToStream');
 
     emitDeviceIds([

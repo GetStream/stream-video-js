@@ -38,7 +38,7 @@ const Wrapper = ({
 // that way we can wrap the component with the necessary providers
 const render = (
   component: RenderProps['component'],
-  { call, ...options }: RenderProps['options'] = {}
+  { call, ...options }: RenderProps['options'] = {},
 ): RenderResult => {
   const testClient = mockClientWithUser({ id: 'test-user-id' });
   const testCall = call || mockCall(testClient);

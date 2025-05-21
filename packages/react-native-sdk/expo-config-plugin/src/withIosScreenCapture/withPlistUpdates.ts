@@ -1,12 +1,12 @@
 import {
-  ConfigPlugin,
+  type ConfigPlugin,
   withEntitlementsPlist,
   withInfoPlist,
   withPlugins,
 } from '@expo/config-plugins';
-import { ConfigProps } from '../common/types';
+import type { ConfigProps } from '../common/types';
 
-const withPlistUpdates: ConfigPlugin<ConfigProps> = (config, _props) =>
+const withPlistUpdates: ConfigPlugin<ConfigProps> = (config) =>
   withPlugins(config, [withAppEntitlements, withInfoPlistRTC]);
 
 export default withPlistUpdates;

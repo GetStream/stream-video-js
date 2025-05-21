@@ -26,17 +26,24 @@ const useStyles = () => {
         rootContainer: {
           backgroundColor: theme.colors.sheetPrimary,
           padding: theme.variants.spacingSizes.md,
-          height: 55,
+          width: '100%',
+          minHeight: 55,
         },
         closedCaptionItem: {
           flexDirection: 'row',
+          flexWrap: 'wrap',
+          flexShrink: 1,
           gap: theme.variants.spacingSizes.xs,
+          alignItems: 'flex-start',
+          marginBottom: 4,
         },
         speakerName: {
           color: theme.colors.textSecondary,
         },
         closedCaption: {
           color: theme.colors.textPrimary,
+          flexShrink: 1,
+          flex: 1,
         },
       }),
     [theme],

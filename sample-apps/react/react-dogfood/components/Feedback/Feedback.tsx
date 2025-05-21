@@ -42,12 +42,11 @@ const Input = (props: {
 };
 
 const TextArea = (props: {
-  className?: string;
   placeholder: string;
   name: string;
   required?: boolean;
 }) => {
-  const { name, className, ...rest } = props;
+  const { name, ...rest } = props;
   const {
     meta: { error, isTouched },
     getInputProps,
@@ -226,11 +225,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           type="email"
           placeholder="Email"
         />
-        <TextArea
-          className="rd__feedback-textarea"
-          name="message"
-          placeholder="Message"
-        />
+        <TextArea name="message" placeholder="Message" />
         <div className="rd__feedback-footer">
           <div className="rd__feedback-actions">
             {inMeeting ? (

@@ -196,8 +196,8 @@ export const Video = ({
           }}
         />
       )}
-      {isPiP && (
-        <DefaultPictureInPicturePlaceholder
+      {isPiP && PictureInPicturePlaceholder && (
+        <PictureInPicturePlaceholder
           style={{ position: 'absolute' }}
           participant={participant}
         />

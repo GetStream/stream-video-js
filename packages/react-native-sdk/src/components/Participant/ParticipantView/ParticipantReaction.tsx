@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { Z_INDEX, defaultEmojiReactions } from '../../../constants';
-import { ParticipantViewProps } from './ParticipantView';
+import { defaultEmojiReactions, Z_INDEX } from '../../../constants';
+import type { ParticipantViewProps } from './ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../../Call';
+import type { CallContentProps } from '../../Call';
 
 /**
  * Props for the ParticipantReaction component.
@@ -53,7 +53,7 @@ export const ParticipantReaction = ({
     reaction &&
     supportedReactions.find(
       (supportedReaction) =>
-        supportedReaction.emoji_code === reaction.emoji_code
+        supportedReaction.emoji_code === reaction.emoji_code,
     );
 
   return (
@@ -90,6 +90,6 @@ const useStyles = () => {
           justifyContent: 'center',
         },
       }),
-    [theme]
+    [theme],
   );
 };

@@ -1,4 +1,4 @@
-import { Call } from '@stream-io/video-client';
+import { Call, CallingState } from '@stream-io/video-client';
 
 const renderAudioButton = (call: Call) => {
   const audioButton = document.createElement('button');
@@ -59,6 +59,26 @@ const renderFlipButton = (call: Call) => {
 
   return flipButton;
 };
+const renderLeaveJoinButton = (call: Call) => {
+  const btn = document.createElement('button');
+  btn.addEventListener('click', () => {
+    if (call.state.callingState === CallingState.LEFT) {
+      call.join();
+    } else {
+      call.leave();
+    }
+  });
+
+  call.state.callingState$.subscribe((s) => {
+    if (s !== CallingState.JOINED) {
+      btn.innerText = 'Join';
+    } else {
+      btn.innerText = 'Leave';
+    }
+  });
+
+  return btn;
+};
 
 export const renderControls = (call: Call) => {
   return {
@@ -66,5 +86,6 @@ export const renderControls = (call: Call) => {
     videoButton: renderVideoButton(call),
     screenShareButton: renderScreenShareButton(call),
     flipButton: renderFlipButton(call),
+    leaveJoinCallButton: renderLeaveJoinButton(call),
   };
 };

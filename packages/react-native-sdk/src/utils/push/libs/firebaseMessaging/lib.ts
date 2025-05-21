@@ -4,7 +4,7 @@ let lib: Type | undefined;
 
 try {
   lib = require('@react-native-firebase/messaging').default;
-} catch (_e) {}
+} catch {}
 
 export { lib };
 

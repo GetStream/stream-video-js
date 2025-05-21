@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { LobbyProps } from './Lobby';
+import { type LobbyProps } from './Lobby';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -84,6 +84,6 @@ const useStyles = () => {
           textAlign: 'center',
         },
       }),
-    [theme]
+    [theme],
   );
 };

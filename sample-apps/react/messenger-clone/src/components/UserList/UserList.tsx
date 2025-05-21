@@ -18,8 +18,7 @@ export const UserList = () => {
           <li className="user-list-item" key={u.id}>
             <button
               className="user-list-item--link"
-              // @ts-ignore
-              onClick={async () => {
+              onClick={() => {
                 selectUser(u);
                 navigate('/chat');
               }}

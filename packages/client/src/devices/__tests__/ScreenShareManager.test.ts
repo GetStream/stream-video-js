@@ -7,6 +7,7 @@ import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { Tracer } from '../../stats';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -50,7 +51,7 @@ describe('ScreenShareManager', () => {
   });
 
   it('select device', async () => {
-    await expect(manager.select('any-device-id')).rejects.toThrowError();
+    await expect(manager.select()).rejects.toThrowError();
   });
 
   it('get stream', async () => {
@@ -62,6 +63,7 @@ describe('ScreenShareManager', () => {
       expect.objectContaining({
         deviceId: undefined,
       }),
+      expect.any(Tracer),
     );
   });
 
@@ -75,6 +77,7 @@ describe('ScreenShareManager', () => {
         deviceId: undefined,
         audio: false,
       }),
+      expect.any(Tracer),
     );
   });
 
@@ -106,6 +109,7 @@ describe('ScreenShareManager', () => {
           height: 600,
         },
       }),
+      expect.any(Tracer),
     );
   });
 

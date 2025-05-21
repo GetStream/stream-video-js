@@ -8,7 +8,10 @@ import './PaginatedGrid.scss';
 
 export const PaginatedGrid = () => {
   const {
-    options: { 'layout.grid.page_size': pageSize = 20 },
+    options: {
+      'layout.grid.page_size': pageSize = 20,
+      'participant.filter': filterParticipants,
+    },
   } = useConfigurationContext();
 
   return (
@@ -21,6 +24,7 @@ export const PaginatedGrid = () => {
           />
         }
         excludeLocalParticipant
+        filterParticipants={filterParticipants}
         pageArrowsVisible={false}
         groupSize={pageSize}
       />

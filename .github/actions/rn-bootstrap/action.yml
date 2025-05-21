@@ -70,39 +70,3 @@ runs:
           ~/.android/avd/*
           ~/.android/adb*
         key: ${{ env.IMAGE }}-android-emulator
-
-    # Required for Maestro on iOS
-    - uses: actions/setup-python@v4.3.0
-      if: ${{ env.INSTALL_PYTHON == 'true' }}
-      with:
-        python-version: 3.8
-        cache: 'pip'
-
-    # Required to run E2E testing
-    - name: Install Maestro
-      if: ${{ env.INSTALL_MAESTRO == 'true' }}
-      shell: bash
-      run: |
-        if [ "${{ env.INSTALL_PYTHON }}" = "true" ]; then
-          brew install facebook/fb/idb-companion
-          pip install fb-idb
-        fi
-        env MAESTRO_VERSION="1.29.0" curl -Ls 'https://get.maestro.mobile.dev' | bash
-        echo "$HOME/.maestro/bin" >> $GITHUB_PATH
-
-    # Required to emulate the participants during E2E testing
-    - name: Install Stream Video Buddy
-      if: ${{ env.INSTALL_VIDEO_BUDDY == 'true' }}
-      run: npm install -g "https://github.com/GetStream/stream-video-buddy#1.6.9"
-      shell: bash
-
-    # Required to emulate the participants during E2E testing
-    - name: Install Chromium
-      if: ${{ env.INSTALL_VIDEO_BUDDY == 'true' }}
-      run: cd && npx playwright install
-      shell: bash
-
-    # Required to capture Android video during E2E testing
-    - name: Install FFmpeg
-      if: ${{ env.INSTALL_FFMPEG == 'true' }}
-      uses: FedericoCarboni/setup-ffmpeg@v2

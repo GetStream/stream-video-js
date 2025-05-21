@@ -1,27 +1,35 @@
 package com.streamvideo.reactnative
 
-import android.app.AppOpsManager
-import android.app.PictureInPictureParams
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
-import android.os.Process
+import android.util.Base64
 import android.util.Log
-import android.util.Rational
-import androidx.annotation.RequiresApi
-import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.oney.WebRTCModule.WebRTCModule
+import com.oney.WebRTCModule.WebRTCView
+import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
+import com.streamvideo.reactnative.util.CallAliveServiceChecker
+import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.RingtoneUtil
+import com.streamvideo.reactnative.util.YuvFrame
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.webrtc.VideoSink
+import org.webrtc.VideoTrack
+import java.io.ByteArrayOutputStream
 
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
@@ -35,43 +43,11 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     override fun initialize() {
         super.initialize()
-        StreamVideoReactNative.addPipListener { isInPictureInPictureMode, newConfig ->
-            // Send event to JavaScript
-            reactApplicationContext.getJSModule(
-                RCTDeviceEventEmitter::class.java
-            ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
-            // inform the activity
-            if (isInPictureInPictureMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasPiPSupport()) {
-                (reactApplicationContext.currentActivity as? ReactActivity)?.let { activity ->
-                    try {
-                        val params = getPiPParams()
-                        val aspect =
-                            if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                                Rational(9, 16)
-                            } else {
-                                Rational(16, 9)
-                            }
-                        params.setAspectRatio(aspect)
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                            // this platform doesn't support autoEnterEnabled
-                            // so we manually enter here
-                            activity.enterPictureInPictureMode(params.build())
-                        } else {
-                            activity.setPictureInPictureParams(params.build())
-                        }
-                        // NOTE: workaround - on PiP mode, android goes to "paused but can render" state
-                        // RN pauses rendering in paused mode, so we instruct it to resume here
-                        reactApplicationContext?.onHostResume(activity)
-                    } catch (e: IllegalStateException) {
-                        Log.d(
-                            NAME,
-                            "Skipping Picture-in-Picture mode. Its not enabled for activity"
-                        )
-                    }
-                }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            StreamVideoReactNative.addPipListener { isInPictureInPictureMode, newConfig ->
+                PiPHelper.onPiPChange(reactApplicationContext, isInPictureInPictureMode, newConfig)
             }
         }
-
         val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         reactApplicationContext.registerReceiver(powerReceiver, filter)
     }
@@ -92,9 +68,27 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun isInPiPMode(promise: Promise) {
-        val inPictureInPictureMode: Boolean? =
-            reactApplicationContext.currentActivity?.isInPictureInPictureMode
-        promise.resolve(inPictureInPictureMode)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            promise.resolve(PiPHelper.isInPiPMode(reactApplicationContext))
+        } else {
+            promise.resolve(false)
+        }
+    }
+
+    @ReactMethod
+    fun isCallAliveConfigured(promise: Promise) {
+        val permissionsDeclared =
+            CallAlivePermissionsHelper.hasForegroundServicePermissionsDeclared(reactApplicationContext)
+        if (!permissionsDeclared) {
+            promise.resolve(false)
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val isForegroundServiceDeclared = CallAliveServiceChecker.isForegroundServiceDeclared(reactApplicationContext)
+            promise.resolve(isForegroundServiceDeclared)
+        } else {
+            promise.resolve(true)
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -116,22 +110,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun canAutoEnterPipMode(value: Boolean) {
-        StreamVideoReactNative.canAutoEnterPictureInPictureMode = value
-        if (!hasPiPSupport() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val activity = reactApplicationContext!!.currentActivity!!
-        try {
-            if (value) {
-                activity.setPictureInPictureParams(getPiPParams().build())
-                // NOTE: for SDK_INT < Build.VERSION_CODES.S
-                // onUserLeaveHint from Activity is used, SDK cant directly use it
-                // onUserLeaveHint will call the PiP listener and we call enterPictureInPictureMode there
-            } else {
-                val params = PictureInPictureParams.Builder()
-                params.setAutoEnterEnabled(false)
-                activity.setPictureInPictureParams(params.build())
-            }
-        } catch (e: IllegalStateException) {
-            Log.d(NAME, "Skipping Picture-in-Picture mode. Its not enabled for activity")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PiPHelper.canAutoEnterPipMode(reactApplicationContext, value)
         }
     }
 
@@ -239,59 +219,65 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    private fun hasPiPSupport(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(
-                PackageManager.FEATURE_PICTURE_IN_PICTURE
-            )
-        ) {
-            val appOps =
-                reactApplicationContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-            val packageName = reactApplicationContext.packageName
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                appOps.unsafeCheckOpNoThrow(
-                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                    Process.myUid(),
-                    packageName
-                ) == AppOpsManager.MODE_ALLOWED
-            } else {
-                appOps.checkOpNoThrow(
-                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                    Process.myUid(),
-                    packageName
-                ) == AppOpsManager.MODE_ALLOWED
+    private fun getVideoTrackForStreamURL(streamURL: String): VideoTrack {
+        var videoTrack: VideoTrack? = null
+
+
+        val module = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
+        val stream = module!!.getStreamForReactTag(streamURL)
+
+        if (stream != null) {
+            val videoTracks = stream.videoTracks
+
+            if (videoTracks.isNotEmpty()) {
+                videoTrack = videoTracks[0]
             }
-        } else {
-            false
         }
+
+        if (videoTrack != null) {
+            return videoTrack
+        }
+
+        throw Exception("No video stream for react tag: $streamURL")
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun getPiPParams(): PictureInPictureParams.Builder {
-        val activity = reactApplicationContext!!.currentActivity!!
-        val currentOrientation = activity.resources.configuration.orientation
-
-        val aspect =
-            if (currentOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                Rational(9, 16)
-            } else {
-                Rational(16, 9)
-            }
-
-        val params = PictureInPictureParams.Builder()
-        params.setAspectRatio(aspect).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                setAutoEnterEnabled(true)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                setTitle("Video Player")
-                setSeamlessResizeEnabled(false)
-            }
+    @ReactMethod
+    fun takeScreenshot(streamURL: String?, promise: Promise) {
+        if (streamURL == null) {
+            promise.reject("ERROR", "Null stream URL provided")
+            return
         }
-        return params
+        try {
+            val track = getVideoTrackForStreamURL(streamURL)
+            var screenshotSink: VideoSink? = null
+            screenshotSink = VideoSink { videoFrame -> // Remove the sink before asap
+                // to avoid processing multiple frames.
+                CoroutineScope(Dispatchers.IO).launch {
+                    // This has to be launched asynchronously - removing the sink on the
+                    // same thread as the videoframe is delivered will lead to a deadlock
+                    // (needs investigation why)
+                    track.removeSink(screenshotSink)
+                }
+
+                videoFrame.retain()
+                val bitmap = YuvFrame.bitmapFromVideoFrame(videoFrame)
+                videoFrame.release()
+
+                bitmap?.let {
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    it.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                    val base64Encoded = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
+                    promise.resolve(base64Encoded)
+                }
+            }
+            track.addSink(screenshotSink)
+        }
+        catch (e: Exception) {
+            promise.reject("ERROR", e.message)
+        }
     }
 
     companion object {
         private const val NAME = "StreamVideoReactNative"
-        private const val PIP_CHANGE_EVENT = NAME + "_PIP_CHANGE_EVENT"
     }
 }

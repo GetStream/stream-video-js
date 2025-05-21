@@ -9,10 +9,10 @@ import { StableWSConnection } from './connection';
 import { TokenManager } from './token_manager';
 import {
   addConnectionEventListeners,
+  generateUUIDv4,
   isErrorResponse,
   isFunction,
   KnownCodes,
-  randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
@@ -38,6 +38,7 @@ import {
   CreateGuestResponse,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
+import { getLogLevel } from '../../logger';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -58,10 +59,10 @@ export class StreamClient {
   node: boolean;
   options: StreamClientOptions;
   secret?: string;
-  setUserPromise: ConnectAPIResponse | null;
+  connectUserTask: ConnectAPIResponse | null;
   tokenManager: TokenManager;
   user?: UserWithId;
-  userAgent?: string;
+  private cachedUserAgent?: string;
   userID?: string;
   wsBaseURL?: string;
   wsConnection: StableWSConnection | null;
@@ -135,7 +136,7 @@ export class StreamClient {
     // WS connection is initialized when setUser is called
     this.wsConnection = null;
     this.wsPromiseSafe = null;
-    this.setUserPromise = null;
+    this.connectUserTask = null;
 
     // mapping between channel groups and configs
     this.anonymous = false;
@@ -147,7 +148,7 @@ export class StreamClient {
     this.tokenManager = new TokenManager(this.secret);
     this.consecutiveFailures = 0;
 
-    this.defaultWSTimeout = 15000;
+    this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
 
     this.logger = isFunction(inputOptions.logger)
       ? inputOptions.logger
@@ -188,14 +189,14 @@ export class StreamClient {
    * connectUser - Set the current user and open a WebSocket connection
    *
    * @param user Data about this user. IE {name: "john"}
-   * @param {TokenOrProvider} userTokenOrProvider Token or provider
+   * @param {TokenOrProvider} tokenOrProvider Token or provider
    *
    * @return {ConnectAPIResponse} Returns a promise that resolves when the connection is setup
    */
   connectUser = async (
     user: UserWithId,
-    userTokenOrProvider: TokenOrProvider,
-  ) => {
+    tokenOrProvider: TokenOrProvider,
+  ): ConnectAPIResponse => {
     if (!user.id) {
       throw new Error('The "id" field on the user is missing');
     }
@@ -204,12 +205,12 @@ export class StreamClient {
      * Calling connectUser multiple times is potentially the result of a  bad integration, however,
      * If the user id remains the same we don't throw error
      */
-    if (this.userID === user.id && this.setUserPromise) {
+    if (this.userID === user.id && this.connectUserTask) {
       this.logger(
         'warn',
         'Consecutive calls to connectUser is detected, ideally you should only call this function once in your app.',
       );
-      return this.setUserPromise;
+      return this.connectUserTask;
     }
 
     if (this.userID) {
@@ -218,10 +219,7 @@ export class StreamClient {
       );
     }
 
-    if (
-      (this._isUsingServerAuth() || this.node) &&
-      !this.options.allowServerSideConnect
-    ) {
+    if ((this.secret || this.node) && !this.options.allowServerSideConnect) {
       this.logger(
         'warn',
         'Please do not use connectUser server side. Use our @stream-io/node-sdk instead: https://getstream.io/video/docs/api/',
@@ -231,44 +229,24 @@ export class StreamClient {
     // we generate the client id client side
     this.userID = user.id;
     this.anonymous = false;
-
-    const setTokenPromise = this._setToken(
-      user,
-      userTokenOrProvider,
-      this.anonymous,
-    );
+    await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, false);
     this._setUser(user);
 
-    const wsPromise = this.openConnection();
-
-    this.setUserPromise = Promise.all([setTokenPromise, wsPromise]).then(
-      (result) => result[1], // We only return connection promise;
-    );
+    this.connectUserTask = this.openConnection();
 
     try {
       addConnectionEventListeners(this.updateNetworkConnectionStatus);
-      return await this.setUserPromise;
+      return await this.connectUserTask;
     } catch (err) {
       if (this.persistUserOnConnectionFailure) {
         // cleanup client to allow the user to retry connectUser again
-        this.closeConnection();
+        await this.closeConnection();
       } else {
-        this.disconnectUser();
+        await this.disconnectUser();
       }
       throw err;
     }
   };
-
-  _setToken = (
-    user: UserWithId,
-    userTokenOrProvider: TokenOrProvider,
-    isAnonymous: boolean,
-  ) =>
-    this.tokenManager.setTokenOrProvider(
-      userTokenOrProvider,
-      user,
-      isAnonymous,
-    );
 
   _setUser = (user: UserWithId) => {
     /**
@@ -326,9 +304,9 @@ export class StreamClient {
       return;
     }
 
-    await this._setupConnectionIdPromise();
+    this._setupConnectionIdPromise();
 
-    this.clientID = `${this.userID}--${randomId()}`;
+    this.clientID = `${this.userID}--${generateUUIDv4()}`;
     const newWsPromise = this.connect();
     this.wsPromiseSafe = makeSafePromise(newWsPromise);
     return await newWsPromise;
@@ -382,10 +360,10 @@ export class StreamClient {
     tokenOrProvider: TokenOrProvider,
   ) => {
     addConnectionEventListeners(this.updateNetworkConnectionStatus);
-    await this._setupConnectionIdPromise();
+    this._setupConnectionIdPromise();
 
     this.anonymous = true;
-    await this._setToken(user, tokenOrProvider, this.anonymous);
+    await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, true);
 
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.
@@ -469,6 +447,7 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     },
   ) => {
+    if (getLogLevel() !== 'trace') return;
     this.logger('trace', `client: ${type} - Request - ${url}`, {
       payload: data,
       config,
@@ -480,6 +459,7 @@ export class StreamClient {
     url: string,
     response: AxiosResponse<T>,
   ) => {
+    if (getLogLevel() !== 'trace') return;
     this.logger(
       'trace',
       `client:${type} - Response - url: ${url} > status ${response.status}`,
@@ -512,7 +492,7 @@ export class StreamClient {
       // we need to wait for presence of connection id before making requests
       try {
         await this.connectionIdPromise;
-      } catch (e) {
+      } catch {
         // in case connection id was rejected
         // reconnection maybe in progress
         // we can wait for healthy connection to resolve, which rejects when 15s timeout is reached
@@ -549,7 +529,6 @@ export class StreamClient {
       this._logApiResponse<T>(type, url, response);
       this.consecutiveFailures = 0;
       return this.handleResponse(response);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any /**TODO: generalize error types  */) {
       e.client_request_id = requestConfig.headers?.['x-client-request-id'];
       this.consecutiveFailures += 1;
@@ -569,7 +548,7 @@ export class StreamClient {
         return this.handleResponse(e.response);
       } else {
         this._logApiError(type, url, e);
-        // eslint-disable-next-line no-throw-literal
+
         throw e as AxiosError<APIErrorResponse>;
       }
     }
@@ -615,13 +594,13 @@ export class StreamClient {
     response: AxiosResponse<APIErrorResponse>,
   ): ErrorFromResponse<APIErrorResponse> => {
     const { data, status } = response;
-    const err = new ErrorFromResponse<APIErrorResponse>();
-    err.message = `Stream error code ${data.code}: ${data.message}`;
-    err.code = data.code;
-    err.unrecoverable = data.unrecoverable;
-    err.response = response;
-    err.status = status;
-    return err;
+    return new ErrorFromResponse<APIErrorResponse>({
+      message: `Stream error code ${data.code}: ${data.message}`,
+      code: data.code ?? null,
+      unrecoverable: data.unrecoverable ?? null,
+      response: response,
+      status: status,
+    });
   };
 
   handleResponse = <T>(response: AxiosResponse<T>) => {
@@ -666,24 +645,24 @@ export class StreamClient {
     return await this.wsConnection.connect(this.defaultWSTimeout);
   };
 
-  getUserAgent = () => {
-    const version = process.env.PKG_VERSION || '0.0.0-development';
-    return (
-      this.userAgent ||
-      `stream-video-javascript-client-${
-        this.node ? 'node' : 'browser'
-      }-${version}`
-    );
-  };
+  getUserAgent = (): string => {
+    if (!this.cachedUserAgent) {
+      const { clientAppIdentifier = {} } = this.options;
+      const {
+        sdkName = 'js',
+        sdkVersion = process.env.PKG_VERSION || '0.0.0',
+        ...extras
+      } = clientAppIdentifier;
 
-  setUserAgent = (userAgent: string) => {
-    this.userAgent = userAgent;
-  };
+      this.cachedUserAgent = [
+        `stream-video-${sdkName}-v${sdkVersion}`,
+        ...Object.entries(extras).map(([key, value]) => `${key}=${value}`),
+        `client_bundle=${process.env.CLIENT_BUNDLE || (this.node ? 'node' : 'browser')}`,
+      ].join('|');
+    }
 
-  /**
-   * _isUsingServerAuth - Returns true if we're using server side auth
-   */
-  _isUsingServerAuth = () => !!this.secret;
+    return this.cachedUserAgent;
+  };
 
   _enrichAxiosOptions = (
     options: AxiosRequestConfig & { config?: AxiosRequestConfig } & {
@@ -701,7 +680,7 @@ export class StreamClient {
     if (!options.headers?.['x-client-request-id']) {
       options.headers = {
         ...options.headers,
-        'x-client-request-id': randomId(),
+        'x-client-request-id': generateUUIDv4(),
       };
     }
 

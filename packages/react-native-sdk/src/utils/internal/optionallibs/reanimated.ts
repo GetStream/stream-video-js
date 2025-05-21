@@ -4,7 +4,7 @@ let reanimated: ReanimatedType | undefined;
 
 try {
   reanimated = require('react-native-reanimated');
-} catch (e) {}
+} catch {}
 
 export const getReanimatedLib = (onPackageNotFound = () => {}) => {
   if (!reanimated) {

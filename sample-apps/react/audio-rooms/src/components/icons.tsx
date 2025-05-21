@@ -1,4 +1,4 @@
-import { ComponentProps } from 'react';
+import { ComponentProps, JSX } from 'react';
 
 export function CloseIcon(): JSX.Element {
   return (

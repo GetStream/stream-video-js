@@ -4,23 +4,23 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
-  CallContentProps,
+  type CallContentProps,
 } from '../CallContent';
 import {
   IncomingCall as DefaultIncomingCall,
-  IncomingCallProps,
+  type IncomingCallProps,
 } from './IncomingCall';
 import {
   OutgoingCall as DefaultOutgoingCall,
-  OutgoingCallProps,
+  type OutgoingCallProps,
 } from './OutgoingCall';
 import {
   CallLeftIndicator as DefaultCallLeftIndicator,
-  CallLeftIndicatorProps,
+  type CallLeftIndicatorProps,
 } from './CallLeftIndicator';
 import {
   CallPreparingIndicator as DefaultCallPreparingIndicator,
-  CallPreparingIndicatorProps,
+  type CallPreparingIndicatorProps,
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
 

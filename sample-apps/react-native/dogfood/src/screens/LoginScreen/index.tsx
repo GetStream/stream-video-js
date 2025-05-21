@@ -8,11 +8,8 @@ import {
   View,
   ViewStyle,
   TextInput as NativeTextInput,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -27,34 +24,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EnvSwitcherButton from './EnvSwitcherButton';
 import { Alert } from 'react-native';
 
-GoogleSignin.configure({
-  // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
-  // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-  hostedDomain: 'getstream.io', // specifies a hosted domain restriction
-  // forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
-  // accountName: '', // [Android] specifies an account name on the device that should be used
-  // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
-  // googleServicePlistPath: '', // [iOS] if you renamed your GoogleService-Info file, new name here, e.g. GoogleService-Info-Staging
-  // openIdRealm: '', // [iOS] The OpenID2 realm of the home web server. This allows Google to include the user's OpenID Identifier in the OpenID Connect ID token.
-  // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
-});
-
 const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
-const ENABLE_PRONTO_SWITCH = true;
+const ENABLE_PRONTO_SWITCH = __DEV__;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
-  const [loader, setLoader] = useState(false);
   const { t } = useI18n();
   const orientation = useOrientation();
+  const [tapCount, setTapCount] = useState(0);
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const setState = useAppGlobalStoreSetState();
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
+  const devMode = useAppGlobalStoreValue((store) => store.devMode);
   const useLocalSfu = useAppGlobalStoreValue((store) => store.useLocalSfu);
   const localIpAddress = useAppGlobalStoreValue(
     (store) => store.localIpAddress,
@@ -82,36 +69,23 @@ const LoginScreen = () => {
     }
   };
 
-  const isProntoEnv =
-    appEnvironment === 'pronto' || appEnvironment === 'pronto-staging';
-
-  const signInViaGoogle = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const userId = generateValidUserId(userInfo.user.email);
-      const userName = userInfo.user.name as string;
-
-      setState({
-        userId,
-        userName,
-        userImageUrl:
-          userInfo.user.photo ??
-          `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
-        appMode: appEnvironment === 'demo' ? 'Meeting' : 'None',
-        appEnvironment: appEnvironment,
-      });
-    } catch (error: any) {
-      if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (e.g. sign in) is in progress already
-      } else {
-        setLoader(false);
-      }
-    }
-  };
-
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
+  const handleImagePress = () => {
+    setTapCount((prev) => prev + 1);
+
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+    }
+
+    tapTimerRef.current = setTimeout(async () => {
+      if (tapCount + 1 >= 3) {
+        setState({ devMode: true });
+      }
+      setTapCount(0);
+    }, 500);
   };
 
   return (
@@ -120,7 +94,7 @@ const LoginScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.keyboardContainer, landscapeStyles]}
       >
-        {ENABLE_PRONTO_SWITCH && (
+        {(ENABLE_PRONTO_SWITCH || devMode) && (
           <View style={styles.header}>
             <Text
               style={styles.envText}
@@ -129,27 +103,23 @@ const LoginScreen = () => {
           </View>
         )}
         <View style={styles.topContainer}>
-          <Image
-            source={require('../../assets/Logo.png')}
-            style={styles.logo}
-          />
+          <TouchableWithoutFeedback onPress={handleImagePress}>
+            <Image
+              source={require('../../assets/Logo.png')}
+              style={styles.logo}
+            />
+          </TouchableWithoutFeedback>
           <View>
-            <Text style={styles.title}>
-              {isProntoEnv ? t('Pronto') : t('Stream Video Calling')}
-            </Text>
+            <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             <Text style={styles.subTitle}>
-              {isProntoEnv
-                ? t(
-                    'Please sign in with your Google Stream account or use a custom user id',
-                  )
-                : t('Please sign in with Custom User ID')}
+              {t(
+                'Build reliable video calling, audio rooms, and live streaming with our easy-to-use SDKs and global edge network',
+              )}
             </Text>
           </View>
-        </View>
-        <View style={styles.bottomContainer}>
           <View style={styles.textBoxContainer}>
             <TextInput
-              placeholder={t('Enter User ID')}
+              placeholder={t('Enter your name')}
               onChangeText={(text) => {
                 setLocalUserId(text);
               }}
@@ -160,7 +130,12 @@ const LoginScreen = () => {
               title={t('Login')}
               disabled={!localUserId}
               onPress={loginHandler}
-              buttonStyle={styles.textBoxButton}
+              buttonStyle={{
+                ...styles.textBoxButton,
+                backgroundColor: localUserId
+                  ? appTheme.colors.primary
+                  : appTheme.colors.disabled,
+              }}
             />
           </View>
           {useLocalSfu && (
@@ -191,17 +166,6 @@ const LoginScreen = () => {
               />
             </View>
           )}
-          {isProntoEnv && (
-            <>
-              <Text style={styles.orText}>{t('OR')}</Text>
-              <Button
-                title={t('Google Sign In')}
-                onPress={signInViaGoogle}
-                disabled={loader}
-                buttonStyle={styles.googleSignin}
-              />
-            </>
-          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -210,11 +174,11 @@ const LoginScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: appTheme.spacing.lg,
     flex: 1,
     backgroundColor: appTheme.colors.static_grey,
   },
   keyboardContainer: {
+    margin: appTheme.spacing.lg,
     flex: 1,
     justifyContent: 'space-evenly',
   },
@@ -250,7 +214,7 @@ const styles = StyleSheet.create({
     color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginHorizontal: appTheme.spacing.xl,
+    margin: appTheme.spacing.xl,
   },
   bottomContainer: {
     flex: 1,
@@ -271,9 +235,6 @@ const styles = StyleSheet.create({
     color: appTheme.colors.static_white,
     fontWeight: '500',
     marginVertical: appTheme.spacing.lg,
-  },
-  googleSignin: {
-    width: '100%',
   },
 });
 

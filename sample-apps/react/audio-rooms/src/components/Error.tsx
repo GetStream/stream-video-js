@@ -1,6 +1,6 @@
 export const ErrorPanel = ({ error }: { error: Error }) => {
   let message = error.message;
-  // @ts-ignore See APIErrorCodes
+  // @ts-expect-error See APIErrorCodes
   if (error.code === 16) {
     message = `Room doesn't exist yet. Please create it first.`;
   }

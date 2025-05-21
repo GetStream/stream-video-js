@@ -1,17 +1,16 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListComponentProps,
+  type CallParticipantsListComponentProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../CallContent';
-import { ParticipantViewComponentProps } from '../../Participant';
+import type { CallContentProps } from '../CallContent';
+import type { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
-import { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -79,12 +78,15 @@ export const CallParticipantsGrid = ({
     : allParticipants;
 
   if (isInPiPMode) {
-    participants =
-      remoteParticipants.length > 0
-        ? [dominantSpeaker || (remoteParticipants[0] as StreamVideoParticipant)]
-        : localParticipant
-          ? [localParticipant]
-          : [];
+    if (dominantSpeaker && !dominantSpeaker.isLocalParticipant) {
+      participants = [dominantSpeaker];
+    } else if (remoteParticipants[0]) {
+      participants = [remoteParticipants[0]];
+    } else if (localParticipant) {
+      participants = [localParticipant];
+    } else {
+      participants = [];
+    }
   }
 
   const participantViewProps: CallParticipantsListComponentProps = {

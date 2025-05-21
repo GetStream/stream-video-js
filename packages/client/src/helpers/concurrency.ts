@@ -48,7 +48,10 @@ export function hasPending(tag: string | symbol) {
 }
 
 export async function settled(tag: string | symbol) {
-  await pendingPromises.get(tag)?.promise;
+  let pending: PendingPromise | undefined;
+  while ((pending = pendingPromises.get(tag))) {
+    await pending.promise;
+  }
 }
 
 /**

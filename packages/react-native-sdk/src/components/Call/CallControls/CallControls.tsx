@@ -1,10 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
 import { ToggleAudioPublishingButton } from './ToggleAudioPublishingButton';
 import { ToggleVideoPublishingButton } from './ToggleVideoPublishingButton';
 import { ToggleCameraFaceButton } from './ToggleCameraFaceButton';
 import { Z_INDEX } from '../../../constants';
-import { HangUpCallButton, HangUpCallButtonProps } from './HangupCallButton';
+import {
+  HangUpCallButton,
+  type HangUpCallButtonProps,
+} from './HangupCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -32,7 +35,7 @@ export const CallControls = ({
     theme: { colors, callControls },
   } = useTheme();
   const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'column-reverse' : 'row',
+    flexDirection: 'row',
     paddingHorizontal: landscape ? 12 : 0,
     paddingVertical: landscape ? 0 : 12,
   };

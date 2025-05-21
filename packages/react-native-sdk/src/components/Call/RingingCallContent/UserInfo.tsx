@@ -5,7 +5,7 @@ import {
   useCallStateHooks,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
-import { UserResponse } from '@stream-io/video-client';
+import { type UserResponse } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 enum AvatarModes {
@@ -63,7 +63,7 @@ export const UserInfo = ({
   }
 
   const memberUserIds = membersToShow.map(
-    (memberToShow) => memberToShow.name ?? memberToShow.id
+    (memberToShow) => memberToShow.name ?? memberToShow.id,
   );
 
   const callTitle = generateCallTitle(memberUserIds, totalMembersToShow);

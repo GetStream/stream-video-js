@@ -45,7 +45,7 @@ export type LivestreamLayoutProps = {
   showSpeakerName?: boolean;
 
   /**
-   * When set to `false` disables mirroring of the local partipant's video.
+   * When set to `false` disables mirroring of the local participant's video.
    * @default true
    */
   mirrorLocalParticipantVideo?: boolean;
@@ -84,7 +84,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
     />
   );
 
-  const { floatingParticipantProps } = props;
+  const { floatingParticipantProps, muted } = props;
   const FloatingParticipantOverlay = hasOngoingScreenShare && (
     <ParticipantOverlay
       // these elements aren't needed for the video feed
@@ -99,7 +99,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
 
   return (
     <div className="str-video__livestream-layout__wrapper">
-      <ParticipantsAudio participants={remoteParticipants} />
+      {!muted && <ParticipantsAudio participants={remoteParticipants} />}
       {hasOngoingScreenShare && presenter && (
         <ParticipantView
           className="str-video__livestream-layout__screen-share"

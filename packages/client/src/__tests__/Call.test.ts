@@ -105,7 +105,7 @@ it('keeps user handlers for SFU and coordinator events', async () => {
 
 it("doesn't break when joining and leaving the same instance in quick succession", async () => {
   const call = client.call('default', generateUUIDv4());
-  let states: CallingState[] = [];
+  const states: CallingState[] = [];
   call.state.callingState$.subscribe((state) => states.push(state));
   call.getOrCreate();
   call.leave();

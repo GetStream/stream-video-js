@@ -33,9 +33,11 @@ import type {
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
+  DeleteCallRequest,
+  DeleteCallResponse,
   EndCallResponse,
+  GetCallReportResponse,
   GetCallResponse,
-  GetCallStatsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -60,17 +62,25 @@ import type {
   SendReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
+  StartFrameRecordingRequest,
+  StartFrameRecordingResponse,
   StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StartRTMPBroadcastsRequest,
+  StartRTMPBroadcastsResponse,
   StartTranscriptionRequest,
   StartTranscriptionResponse,
   StatsOptions,
+  StopAllRTMPBroadcastsResponse,
   StopClosedCaptionsRequest,
   StopClosedCaptionsResponse,
+  StopFrameRecordingResponse,
   StopHLSBroadcastingResponse,
+  StopLiveRequest,
   StopLiveResponse,
   StopRecordingResponse,
+  StopRTMPBroadcastsResponse,
   StopTranscriptionResponse,
   UnblockUserRequest,
   UnblockUserResponse,
@@ -105,12 +115,18 @@ import {
   TrackType,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
-import { createStatsReporter, SfuStatsReporter, StatsReporter } from './stats';
+import {
+  createStatsReporter,
+  getSdkSignature,
+  SfuStatsReporter,
+  StatsReporter,
+  Tracer,
+} from './stats';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { sleep } from './coordinator/connection/utils';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   AllCallEvents,
   CallEventListener,
@@ -119,7 +135,7 @@ import {
   RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
+import { getClientDetails } from './helpers/client-details';
 import { getLogger } from './logger';
 import {
   CameraManager,
@@ -127,8 +143,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
-import { getSdkSignature } from './stats/utils';
-import { withoutConcurrency } from './helpers/concurrency';
+import { hasPending, withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
@@ -136,6 +151,7 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
+import { GetCallStatsResponse } from './gen/shims';
 
 /**
  * An object representation of a `Call`.
@@ -204,6 +220,7 @@ export class Call {
    * The permissions context of this call.
    */
   readonly permissionsContext = new PermissionsContext();
+  readonly tracer = new Tracer(null);
   readonly logger: Logger;
 
   /**
@@ -222,10 +239,12 @@ export class Call {
   public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private sfuClientTag = 0;
+  private unifiedSessionId?: string;
 
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+  private reconnectReason = '';
   private fastReconnectDeadlineSeconds: number = 0;
   private disconnectionTimeoutSeconds: number = 0;
   private lastOfflineTimestamp: number = 0;
@@ -299,7 +318,12 @@ export class Call {
     this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
   }
 
-  private setup = async () => {
+  /**
+   * Sets up the call instance.
+   *
+   * @internal an internal method and should not be used outside the SDK.
+   */
+  setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
@@ -352,7 +376,7 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
-          await this.leave({ reason: 'user blocked' }).catch((err) => {
+          await this.leave({ message: 'user blocked' }).catch((err) => {
             this.logger('error', 'Error leaving call after being blocked', err);
           });
         }
@@ -360,7 +384,7 @@ export class Call {
     );
 
     this.leaveCallHooks.add(
-      // cancel auto-drop when call is
+      // cancel auto-drop when call is accepted or rejected
       createSubscription(this.state.session$, (session) => {
         if (!this.ringing) return;
 
@@ -372,6 +396,21 @@ export class Call {
 
         if (isAcceptedByMe || isRejectedByMe) {
           this.cancelAutoDrop();
+        }
+
+        const isAcceptedElsewhere =
+          isAcceptedByMe && this.state.callingState === CallingState.RINGING;
+
+        if (
+          (isAcceptedElsewhere || isRejectedByMe) &&
+          !hasPending(this.joinLeaveConcurrencyTag)
+        ) {
+          this.leave().catch(() => {
+            this.logger(
+              'error',
+              'Could not leave a call that was accepted or rejected elsewhere',
+            );
+          });
         }
       }),
     );
@@ -518,10 +557,7 @@ export class Call {
   /**
    * Leave the call and stop the media streams that were published by the call.
    */
-  leave = async ({
-    reject,
-    reason = 'user is leaving the call',
-  }: CallLeaveOptions = {}) => {
+  leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
       if (callingState === CallingState.LEFT) {
@@ -541,7 +577,7 @@ export class Call {
 
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
-          await this.reject(reason);
+          await this.reject(reason ?? 'decline');
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
@@ -555,6 +591,7 @@ export class Call {
       this.statsReporter?.stop();
       this.statsReporter = undefined;
 
+      this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 
@@ -564,17 +601,23 @@ export class Call {
       this.publisher?.dispose();
       this.publisher = undefined;
 
-      await this.sfuClient?.leaveAndClose(reason);
+      await this.sfuClient?.leaveAndClose(
+        message ?? reason ?? 'user is leaving the call',
+      );
       this.sfuClient = undefined;
       this.dynascaleManager.setSfuClient(undefined);
 
       this.state.setCallingState(CallingState.LEFT);
+      this.state.setParticipants([]);
       this.state.dispose();
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
       this.hasJoinedOnce = false;
+      this.unifiedSessionId = undefined;
+      this.ringingSubject.next(false);
+      this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
       this.camera.dispose();
@@ -666,7 +709,7 @@ export class Call {
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
 
-    if (params?.ring || this.ringing) {
+    if (params?.ring) {
       // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
@@ -697,7 +740,7 @@ export class Call {
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
 
-    if (data?.ring || this.ringing) {
+    if (data?.ring) {
       // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
@@ -719,6 +762,18 @@ export class Call {
    */
   create = async (data?: GetOrCreateCallRequest) => {
     return this.getOrCreate(data);
+  };
+
+  /**
+   * Deletes the call.
+   */
+  delete = async (
+    data: DeleteCallRequest = {},
+  ): Promise<DeleteCallResponse> => {
+    return this.streamClient.post<DeleteCallResponse, DeleteCallRequest>(
+      `${this.streamClientBasePath}/delete`,
+      data,
+    );
   };
 
   /**
@@ -759,7 +814,9 @@ export class Call {
    *
    * @param reason the reason for rejecting the call.
    */
-  reject = async (reason?: RejectReason): Promise<RejectCallResponse> => {
+  reject = async (
+    reason: RejectReason = 'decline',
+  ): Promise<RejectCallResponse> => {
     return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
       `${this.streamClientBasePath}/reject`,
       { reason: reason },
@@ -771,13 +828,48 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async (data?: JoinCallData): Promise<void> => {
-    const connectStartTime = Date.now();
+  join = async ({
+    maxJoinRetries = 3,
+    ...data
+  }: JoinCallData & {
+    maxJoinRetries?: number;
+  } = {}): Promise<void> => {
     await this.setup();
     const callingState = this.state.callingState;
+
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
+
+    this.state.setCallingState(CallingState.JOINING);
+
+    maxJoinRetries = Math.max(maxJoinRetries, 1);
+    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+      try {
+        this.logger('trace', `Joining call (${attempt})`, this.cid);
+        return await this.doJoin(data);
+      } catch (err) {
+        this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+        if (attempt === maxJoinRetries - 1) {
+          // restore the previous call state if the join-flow fails
+          this.state.setCallingState(callingState);
+          throw err;
+        }
+      }
+
+      await sleep(retryInterval(attempt));
+    }
+  };
+
+  /**
+   * Will make a single attempt to watch for call related WebSocket events
+   * and initiate a call session with the server.
+   *
+   * @returns a promise which resolves once the call join-flow has finished.
+   */
+  doJoin = async (data?: JoinCallData): Promise<void> => {
+    const connectStartTime = Date.now();
+    const callingState = this.state.callingState;
 
     this.joinCallData = data;
 
@@ -803,8 +895,14 @@ export class Call {
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
       } catch (error) {
-        // restore the previous call state if the join-flow fails
-        this.state.setCallingState(callingState);
+        // prevent triggering reconnect flow if the state is OFFLINE
+        const avoidRestoreState =
+          this.state.callingState === CallingState.OFFLINE;
+
+        if (!avoidRestoreState) {
+          // restore the previous call state if the join-flow fails
+          this.state.setCallingState(callingState);
+        }
         throw error;
       }
     }
@@ -815,20 +913,22 @@ export class Call {
     const sfuClient =
       performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
-            logTag: String(this.sfuClientTag++),
+            logTag: String(++this.sfuClientTag),
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             streamClient: this.streamClient,
+            enableTracing: statsOptions.enable_rtc_stats,
             // a new session_id is necessary for the REJOIN strategy.
             // we use the previous session_id if available
             sessionId: performingRejoin ? undefined : previousSessionId,
-            onSignalClose: () => this.handleSfuSignalClose(sfuClient),
+            onSignalClose: (reason) =>
+              this.handleSfuSignalClose(sfuClient, reason),
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
     this.dynascaleManager.setSfuClient(sfuClient);
 
-    const clientDetails = getClientDetails();
+    const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
       // prepare a generic SDP and send it to the SFU.
@@ -872,6 +972,11 @@ export class Call {
           );
         }
       } catch (error) {
+        this.logger('warn', 'Join SFU request failed', error);
+        sfuClient.close(
+          StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+          'Join request failed, connection considered unhealthy',
+        );
         // restore the previous call state if the join-flow fails
         this.state.setCallingState(callingState);
         throw error;
@@ -909,7 +1014,7 @@ export class Call {
       );
     }
 
-    if (performingRejoin) {
+    if (performingRejoin && isWsHealthy) {
       const strategy = WebsocketReconnectStrategy[this.reconnectStrategy];
       await previousSfuClient?.leaveAndClose(
         `Closing previous WS after reconnect with strategy: ${strategy}`,
@@ -936,6 +1041,7 @@ export class Call {
     delete this.joinCallData?.notify;
     // reset the reconnect strategy to unspecified after a successful reconnection
     this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+    this.reconnectReason = '';
 
     this.logger('info', `Joined call ${this.cid}`);
   };
@@ -959,6 +1065,7 @@ export class Call {
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
+      reason: this.reconnectReason,
     };
   };
 
@@ -1067,6 +1174,7 @@ export class Call {
       publishOptions,
       closePreviousInstances,
     } = opts;
+    const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
       this.subscriber.dispose();
     }
@@ -1076,14 +1184,17 @@ export class Call {
       state: this.state,
       connectionConfig,
       logTag: String(this.sfuClientTag),
-      onUnrecoverableError: () => {
-        this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
-          this.logger(
-            'warn',
-            '[Reconnect] Error reconnecting after a subscriber error',
-            err,
-          );
-        });
+      enableTracing,
+      onUnrecoverableError: (reason) => {
+        this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
+          (err) => {
+            this.logger(
+              'warn',
+              `[Reconnect] Error reconnecting after a subscriber error: ${reason}`,
+              err,
+            );
+          },
+        );
       },
     });
 
@@ -1101,14 +1212,17 @@ export class Call {
         connectionConfig,
         publishOptions,
         logTag: String(this.sfuClientTag),
-        onUnrecoverableError: () => {
-          this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
-            this.logger(
-              'warn',
-              '[Reconnect] Error reconnecting after a publisher error',
-              err,
-            );
-          });
+        enableTracing,
+        onUnrecoverableError: (reason) => {
+          this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
+            (err) => {
+              this.logger(
+                'warn',
+                `[Reconnect] Error reconnecting after a publisher error: ${reason}`,
+                err,
+              );
+            },
+          );
         },
       });
     }
@@ -1121,8 +1235,10 @@ export class Call {
       datacenter: sfuClient.edgeName,
     });
 
+    this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
+      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1131,6 +1247,8 @@ export class Call {
         microphone: this.microphone,
         camera: this.camera,
         state: this.state,
+        tracer: this.tracer,
+        unifiedSessionId: this.unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }
@@ -1154,11 +1272,14 @@ export class Call {
     this.state.setMembers(joinResponse.members);
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
 
-    if (data?.ring && !this.ringing) {
+    if (data?.ring) {
       this.ringingSubject.next(true);
     }
 
-    if (this.ringing && !this.isCreatedByMe) {
+    const isReconnecting =
+      this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
+
+    if (!isReconnecting && this.ringing && !this.isCreatedByMe) {
       // signals other users that I have accepted the incoming call.
       await this.accept();
     }
@@ -1176,15 +1297,30 @@ export class Call {
    *
    * @internal
    * @param sfuClient the SFU client instance that was closed.
+   * @param reason the reason for the closure.
    */
-  private handleSfuSignalClose = (sfuClient: StreamSfuClient) => {
+  private handleSfuSignalClose = (
+    sfuClient: StreamSfuClient,
+    reason: string,
+  ) => {
     this.logger('debug', '[Reconnect] SFU signal connection closed');
-    // SFU WS closed before we finished current join, no need to schedule reconnect
-    // because join operation will fail
-    if (this.state.callingState === CallingState.JOINING) return;
+    const { callingState } = this.state;
+    if (
+      // SFU WS closed before we finished current join,
+      // no need to schedule reconnecting
+      callingState === CallingState.JOINING ||
+      // we are already in the process of reconnecting,
+      // no need to schedule another one
+      callingState === CallingState.RECONNECTING ||
+      // SFU WS closed as a result of unsuccessful join,
+      // and no further retries need to be made
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.LEFT
+    )
+      return;
     // normal close, no need to reconnect
-    if (sfuClient.isLeaving) return;
-    this.reconnect(WebsocketReconnectStrategy.REJOIN).catch((err) => {
+    if (sfuClient.isLeaving || sfuClient.isClosing) return;
+    this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
   };
@@ -1195,24 +1331,23 @@ export class Call {
    * @internal
    *
    * @param strategy the reconnection strategy to use.
+   * @param reason the reason for the reconnection.
    */
   private reconnect = async (
     strategy: WebsocketReconnectStrategy,
+    reason: string,
   ): Promise<void> => {
     if (
       this.state.callingState === CallingState.RECONNECTING ||
+      this.state.callingState === CallingState.MIGRATING ||
       this.state.callingState === CallingState.RECONNECTING_FAILED
     )
       return;
 
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
-      this.logger(
-        'info',
-        `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[strategy]}`,
-      );
-
-      let reconnectStartTime = Date.now();
+      const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
+      this.reconnectReason = reason;
 
       do {
         if (
@@ -1236,6 +1371,12 @@ export class Call {
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
+
+          this.logger(
+            'info',
+            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
+          );
+
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
@@ -1259,6 +1400,15 @@ export class Call {
           }
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (this.state.callingState === CallingState.OFFLINE) {
+            this.logger(
+              'trace',
+              `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
+            );
+            break;
+            // we don't need to handle the error if the call is offline
+            // network change event will trigger the reconnection
+          }
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
             this.logger(
               'warn',
@@ -1281,6 +1431,7 @@ export class Call {
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
       );
+      this.logger('info', '[Reconnect] Reconnection flow finished');
     });
   };
 
@@ -1292,7 +1443,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.join(this.joinCallData);
+    await this.doJoin(this.joinCallData);
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
       (Date.now() - reconnectStartTime) / 1000,
@@ -1307,7 +1458,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.join(this.joinCallData);
+    await this.doJoin(this.joinCallData);
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -1339,7 +1490,7 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.join({ ...this.joinCallData, migrating_from: currentSfu });
+      await this.doJoin({ ...this.joinCallData, migrating_from: currentSfu });
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
       // as we don't want to keep dirty data in the join call data
@@ -1364,7 +1515,7 @@ export class Call {
       currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
-      currentSfuClient.close();
+      currentSfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'Migrating away');
     }
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.MIGRATE,
@@ -1380,21 +1531,21 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.reconnect(WebsocketReconnectStrategy.MIGRATE).catch((err) => {
-        this.logger('warn', '[Reconnect] Error reconnecting', err);
-      });
+      this.reconnect(WebsocketReconnectStrategy.MIGRATE, 'goAway').catch(
+        (err) => this.logger('warn', '[Reconnect] Error reconnecting', err),
+      );
     });
 
     // handles the "error" event, through which the SFU can request a reconnect
     const unregisterOnError = this.on('error', (e) => {
-      const { reconnectStrategy: strategy } = e;
+      const { reconnectStrategy: strategy, error } = e;
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
-        this.leave({ reason: 'SFU instructed to disconnect' }).catch((err) => {
+        this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {
           this.logger('warn', `Can't leave call after disconnect request`, err);
         });
       } else {
-        this.reconnect(strategy).catch((err) => {
+        this.reconnect(strategy, error?.message || 'SFU Error').catch((err) => {
           this.logger('warn', '[Reconnect] Error reconnecting', err);
         });
       }
@@ -1403,6 +1554,7 @@ export class Call {
     const unregisterNetworkChanged = this.streamClient.on(
       'network.changed',
       (e) => {
+        this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger('debug', '[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;
@@ -1420,7 +1572,7 @@ export class Call {
               }
             }
 
-            this.reconnect(strategy).catch((err) => {
+            this.reconnect(strategy, 'Going online').catch((err) => {
               this.logger(
                 'warn',
                 '[Reconnect] Error reconnecting after going online',
@@ -1445,9 +1597,10 @@ export class Call {
       },
     );
 
-    this.leaveCallHooks.add(unregisterGoAway);
-    this.leaveCallHooks.add(unregisterOnError);
-    this.leaveCallHooks.add(unregisterNetworkChanged);
+    this.leaveCallHooks
+      .add(unregisterGoAway)
+      .add(unregisterOnError)
+      .add(unregisterNetworkChanged);
   };
 
   /**
@@ -1558,6 +1711,12 @@ export class Call {
         await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
         trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
       }
+    }
+
+    if (track.kind === 'video') {
+      // schedules calibration report - the SFU will use the performance stats
+      // to adjust the quality thresholds as early as possible
+      this.sfuStatsReporter?.scheduleOne(3000);
     }
 
     await this.updateLocalStreamState(mediaStream, ...trackTypes);
@@ -1984,10 +2143,10 @@ export class Call {
   /**
    * Stops the livestreaming of the call.
    */
-  stopLive = async () => {
+  stopLive = async (data: StopLiveRequest = {}) => {
     return this.streamClient.post<StopLiveResponse>(
       `${this.streamClientBasePath}/stop_live`,
-      {},
+      data,
     );
   };
 
@@ -2008,6 +2167,60 @@ export class Call {
     return this.streamClient.post<StopHLSBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
+    );
+  };
+
+  /**
+   * Starts the RTMP-out broadcasting of the call.
+   */
+  startRTMPBroadcasts = async (
+    data: StartRTMPBroadcastsRequest,
+  ): Promise<StartRTMPBroadcastsResponse> => {
+    return this.streamClient.post<
+      StartRTMPBroadcastsResponse,
+      StartRTMPBroadcastsRequest
+    >(`${this.streamClientBasePath}/rtmp_broadcasts`, data);
+  };
+
+  /**
+   * Stops all RTMP-out broadcasting of the call.
+   */
+  stopAllRTMPBroadcasts = async (): Promise<StopAllRTMPBroadcastsResponse> => {
+    return this.streamClient.post<StopAllRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/rtmp_broadcasts/stop`,
+    );
+  };
+
+  /**
+   * Stops the RTMP-out broadcasting of the call specified by it's name.
+   */
+  stopRTMPBroadcast = async (
+    name: string,
+  ): Promise<StopRTMPBroadcastsResponse> => {
+    return this.streamClient.post<StopRTMPBroadcastsResponse>(
+      `${this.streamClientBasePath}/rtmp_broadcasts/${name}/stop`,
+    );
+  };
+
+  /**
+   * Starts frame by frame recording.
+   * Sends call.frame_recording_started events
+   */
+  startFrameRecording = async (
+    data: StartFrameRecordingRequest,
+  ): Promise<StartFrameRecordingResponse> => {
+    return this.streamClient.post<
+      StartFrameRecordingResponse,
+      StartFrameRecordingRequest
+    >(`${this.streamClientBasePath}/start_frame_recording`, data);
+  };
+
+  /**
+   * Stops frame recording.
+   */
+  stopFrameRecording = async (): Promise<StopFrameRecordingResponse> => {
+    return this.streamClient.post<StopFrameRecordingResponse>(
+      `${this.streamClientBasePath}/stop_frame_recording`,
     );
   };
 
@@ -2140,12 +2353,15 @@ export class Call {
 
     // 0 means no auto-drop
     if (timeoutInMs <= 0) return;
-
     this.dropTimeout = setTimeout(() => {
       // the call might have stopped ringing by this point,
       // e.g. it was already accepted and joined
       if (this.state.callingState !== CallingState.RINGING) return;
-      this.leave({ reject: true, reason: 'timeout' }).catch((err) => {
+      this.leave({
+        reject: true,
+        reason: 'timeout',
+        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
+      }).catch((err) => {
         this.logger('error', 'Failed to drop call', err);
       });
     }, timeoutInMs);
@@ -2196,10 +2412,26 @@ export class Call {
    *
    * @param callSessionID the call session ID to retrieve statistics for.
    * @returns The call stats.
+   * @deprecated use `call.getCallReport` instead.
+   * @internal
    */
   getCallStats = async (callSessionID: string) => {
     const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
     return this.streamClient.get<GetCallStatsResponse>(endpoint);
+  };
+
+  /**
+   * Retrieve call report. If the `callSessionID` is not specified, then the
+   * report for the latest call session is retrieved. If it is specified, then
+   * the report for that particular session is retrieved if it exists.
+   *
+   * @param callSessionID the optional call session ID to retrieve statistics for
+   * @returns the call report
+   */
+  getCallReport = async (callSessionID: string = '') => {
+    const endpoint = `${this.streamClientBasePath}/report`;
+    const params = callSessionID !== '' ? { session_id: callSessionID } : {};
+    return this.streamClient.get<GetCallReportResponse>(endpoint, params);
   };
 
   /**
@@ -2208,42 +2440,24 @@ export class Call {
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
    * @param reason The reason/description for the rating
    * @param custom Custom data
-   * @returns
    */
   submitFeedback = async (
     rating: number,
     {
       reason,
       custom,
-    }: {
-      reason?: string;
-      custom?: Record<string, any>;
-    } = {},
-  ) => {
-    if (rating < 1 || rating > 5) {
-      throw new Error('Rating must be between 1 and 5');
-    }
-    const callSessionId = this.state.session?.id;
-    if (!callSessionId) {
-      throw new Error(
-        'Feedback can be submitted only in the context of a call session',
-      );
-    }
-
-    const { sdkName, sdkVersion, ...platform } =
-      getSdkSignature(getClientDetails());
-
-    // user sessionId is not available once the call has been left
-    // until we relax the backend validation, we'll send N/A
-    const userSessionId = this.sfuClient?.sessionId ?? 'N/A';
-    const endpoint = `${this.streamClientBasePath}/feedback/${callSessionId}`;
+    }: Pick<CollectUserFeedbackRequest, 'reason' | 'custom'> = {},
+  ): Promise<CollectUserFeedbackResponse> => {
+    const { sdkName, sdkVersion, ...platform } = getSdkSignature(
+      await getClientDetails(),
+    );
     return this.streamClient.post<
       CollectUserFeedbackResponse,
       CollectUserFeedbackRequest
-    >(endpoint, {
+    >(`${this.streamClientBasePath}/feedback`, {
       rating,
       reason,
-      user_session_id: userSessionId,
+      user_session_id: this.sfuClient?.sessionId,
       sdk: sdkName,
       sdk_version: sdkVersion,
       custom: {

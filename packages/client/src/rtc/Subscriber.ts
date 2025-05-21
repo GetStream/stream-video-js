@@ -99,6 +99,8 @@ export class Subscriber extends BasePeerConnection {
       return this.logger('error', `Unknown track type: ${rawTrackType}`);
     }
 
+    this.trackIdToTrackType.set(e.track.id, trackType);
+
     if (!participantToUpdate) {
       this.logger(
         'warn',
@@ -144,8 +146,6 @@ export class Subscriber extends BasePeerConnection {
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    this.logger('info', `Received subscriberOffer`, subscriberOffer);
-
     await this.pc.setRemoteDescription({
       type: 'offer',
       sdp: subscriberOffer.sdp,

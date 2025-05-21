@@ -1,8 +1,8 @@
 import type { Event } from '@notifee/react-native';
-import { FirebaseMessagingTypes } from './libs/firebaseMessaging';
-import { ExpoNotification } from './libs/expoNotifications';
-import { NonRingingPushEvent } from '../StreamVideoRN/types';
-import { PushNotificationiOSType } from './libs/iosPushNotification';
+import type { FirebaseMessagingTypes } from './libs/firebaseMessaging';
+import type { ExpoNotification } from './libs/expoNotifications';
+import type { NonRingingPushEvent } from '../StreamVideoRN/types';
+import type { PushNotificationiOSType } from './libs/iosPushNotification';
 
 export type StreamPushPayload =
   | {
@@ -13,7 +13,7 @@ export type StreamPushPayload =
   | undefined;
 
 export function isFirebaseStreamVideoMessage(
-  message: FirebaseMessagingTypes.RemoteMessage
+  message: FirebaseMessagingTypes.RemoteMessage,
 ) {
   return message.data?.sender === 'stream.video';
 }
@@ -45,7 +45,7 @@ export function isExpoNotificationStreamVideoEvent(event: ExpoNotification) {
 }
 
 export function isPushNotificationiOSStreamVideoEvent(
-  notification: PushNotificationiOSType
+  notification: PushNotificationiOSType,
 ) {
   const data = notification.getData();
   const streamPayload = data?.stream as StreamPushPayload;

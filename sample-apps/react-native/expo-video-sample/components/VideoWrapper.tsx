@@ -1,5 +1,4 @@
-import React from 'react';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import {
   StreamVideo,
   StreamVideoClient,
@@ -21,11 +20,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id });
       };
-      const { apiKey } = await fetchAuthDetails();
+      const { apiKey, token } = await fetchAuthDetails();
       const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
       _videoClient = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user,
+        token,
         tokenProvider,
         options: { logLevel: 'warn' },
       });
@@ -43,6 +43,5 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     return null;
   }
 
-  // @ts-ignore
   return <StreamVideo client={videoClient}>{children}</StreamVideo>;
 };

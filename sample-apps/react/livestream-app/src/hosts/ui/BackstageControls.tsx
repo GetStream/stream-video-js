@@ -19,16 +19,16 @@ export const BackstageControls = () => {
       <ToggleVideoPublishingButton caption="" />
       <CancelCallButton />
       <ToggleLivestreamButton call={call} />
+      <ToggleHLSBroadcastButton call={call} />
     </div>
   );
 };
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
-  const { useIsCallHLSBroadcastingInProgress, useCallIngress } =
-    useCallStateHooks();
+  const { useCallIngress, useIsCallLive } = useCallStateHooks();
   const ingress = useCallIngress();
-  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
+  const isBroadcasting = useIsCallLive();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
     setIsAwaitingResponse((isAwaiting) => {
@@ -67,6 +67,54 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
         <StartBroadcastIcon />
       )}
       <span>{isBroadcasting ? 'End Stream' : 'Start Stream'}</span>
+    </button>
+  );
+};
+
+const ToggleHLSBroadcastButton = (props: { call: Call }) => {
+  const { call } = props;
+  const { useIsCallHLSBroadcastingInProgress, useCallIngress } =
+    useCallStateHooks();
+  const ingress = useCallIngress();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+  useEffect(() => {
+    setIsAwaitingResponse((isAwaiting) => {
+      if (isAwaiting) return false;
+      return isAwaiting;
+    });
+  }, [isBroadcasting]);
+  useEffect(() => {
+    if (!ingress) return;
+    console.log(`RTMP address: ${ingress.rtmp.address}`);
+  }, [ingress]);
+  return (
+    <button
+      type="button"
+      className={`livestream-toggle-button ${
+        isBroadcasting ? 'broadcasting' : ''
+      }`}
+      onClick={async () => {
+        if (isBroadcasting) {
+          call.stopHLS().catch((err) => {
+            console.error('Error stopping HLS livestream', err);
+          });
+        } else {
+          call.startHLS().catch((err) => {
+            console.error('Error stopping HLS livestream', err);
+          });
+        }
+        setIsAwaitingResponse(true);
+      }}
+    >
+      {isAwaitingResponse ? (
+        <LoadingIndicator />
+      ) : isBroadcasting ? (
+        <EndBroadcastIcon />
+      ) : (
+        <StartBroadcastIcon />
+      )}
+      <span>{isBroadcasting ? 'End HLS' : 'Start HLS'}</span>
     </button>
   );
 };

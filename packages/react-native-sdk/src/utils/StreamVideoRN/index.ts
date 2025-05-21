@@ -1,8 +1,10 @@
-import { StreamVideoConfig } from './types';
+import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import newNotificationCallbacks, {
-  NewCallNotificationCallback,
+  type NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
+import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
+import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
@@ -40,7 +42,7 @@ export class StreamVideoRN {
   static updateAndroidIncomingCallChannel(
     updateChannel: Partial<
       NonNullable<StreamVideoConfig['push']>['android']['incomingCallChannel']
-    >
+    >,
   ) {
     const prevChannel = this.config.push?.android?.incomingCallChannel;
     if (prevChannel) {
@@ -78,11 +80,14 @@ export class StreamVideoRN {
       throw new Error(
         `Support for navigateAcceptCall or navigateToIncomingCall in pushConfig has been removed.
         Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`
+        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`,
       );
     }
 
     this.config.push = pushConfig;
+
+    setupIosCallKeepEvents(pushConfig);
+    setupIosVoipPushEvents(pushConfig);
   }
 
   static getConfig() {
@@ -96,10 +101,14 @@ export class StreamVideoRN {
   static onPushLogout() {
     if (pushLogoutCallbacks.current) {
       return Promise.all(
-        pushLogoutCallbacks.current.map((callback) => callback())
+        pushLogoutCallbacks.current.map((callback) => callback()),
       ).then(() => {});
     }
     return Promise.resolve();
+  }
+
+  static clearPushLogoutCallbacks() {
+    pushLogoutCallbacks.current = [];
   }
 
   /**
@@ -108,7 +117,7 @@ export class StreamVideoRN {
    * @returns Unsubscribe function
    */
   static addOnNewCallNotificationListener(
-    callback: NewCallNotificationCallback
+    callback: NewCallNotificationCallback,
   ) {
     if (!newNotificationCallbacks.current) {
       newNotificationCallbacks.current = [callback];

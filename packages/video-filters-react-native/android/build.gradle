@@ -88,6 +88,11 @@ repositories {
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
+println "Building Video Filters React Native module with Kotlin version: $kotlin_version"
+println "Using compileSdkVersion: ${getExtOrIntegerDefault("compileSdkVersion")}"
+println "Using minSdkVersion: ${getExtOrIntegerDefault("minSdkVersion")}"
+println "Using targetSdkVersion: ${getExtOrIntegerDefault("targetSdkVersion")}"
+
 dependencies {
   // For < 0.71, this will be from the local maven repo
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin

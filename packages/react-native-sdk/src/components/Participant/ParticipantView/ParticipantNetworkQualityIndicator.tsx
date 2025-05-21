@@ -3,7 +3,7 @@ import { Path, Svg } from 'react-native-svg';
 import { SfuModels } from '@stream-io/video-client';
 import React from 'react';
 import { Z_INDEX } from '../../../constants';
-import { ParticipantViewProps } from './ParticipantView';
+import { type ParticipantViewProps } from './ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
@@ -15,7 +15,7 @@ export type ParticipantNetworkQualityIndicatorProps = Pick<
 >;
 
 const useConnectionQualitySignalColors = (
-  participant: ParticipantViewProps['participant']
+  participant: ParticipantViewProps['participant'],
 ) => {
   const {
     theme: { colors },

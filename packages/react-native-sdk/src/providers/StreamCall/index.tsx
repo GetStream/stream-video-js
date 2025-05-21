@@ -1,5 +1,5 @@
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren, useEffect } from 'react';
+import React, { type PropsWithChildren, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useIosCallkeepWithCallingStateEffect } from '../../hooks/push/useIosCallkeepWithCallingStateEffect';
 import {

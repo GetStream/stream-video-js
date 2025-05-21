@@ -18,10 +18,19 @@
   cursor: pointer;
 }
 
-.rd__debug-participant-view {
+.rd__debug__participant-view {
   width: 100%;
   height: 100%;
-  position: relative;
+  position: absolute;
+  padding-top: var(--str-video__spacing-md);
+  padding-left: var(--str-video__spacing-md);
+}
+
+.rd__debug__participant-view--hide-elements {
+  .str-video__participant-details__connection-quality,
+  .str-video__notification {
+    display: none;
+  }
 }
 
 .rd__debug__extra {

@@ -23,7 +23,7 @@ import { generateParticipantTitle } from '../utils';
 
 type CallParticipantOptionType = {
   title: string;
-  icon?: JSX.Element;
+  icon?: React.ReactNode;
   onPressHandler: () => void;
 };
 

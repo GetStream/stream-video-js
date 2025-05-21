@@ -13,6 +13,7 @@ import {
 
 import { Feedback } from './Feedback/Feedback';
 import { DevMenu } from './DevMenu';
+import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 const ToggleFeedbackButton = forwardRef<HTMLButtonElement>(
   function ToggleFeedbackButton(_, ref) {
@@ -39,19 +40,22 @@ const ToggleDevMenuButton = forwardRef<HTMLButtonElement>(
 );
 
 const Menu = () => {
+  const isPronto = useIsProntoEnvironment();
   return (
     <ul className="rd__more-menu">
       <li className="rd__more-menu__item">
         <DefaultReactionsMenu reactions={defaultReactions} />
       </li>
-      <li className="rd__more-menu__item">
-        <MenuToggle
-          ToggleButton={ToggleDevMenuButton}
-          visualType={MenuVisualType.PORTAL}
-        >
-          <DevMenu />
-        </MenuToggle>
-      </li>
+      {isPronto && (
+        <li className="rd__more-menu__item">
+          <MenuToggle
+            ToggleButton={ToggleDevMenuButton}
+            visualType={MenuVisualType.PORTAL}
+          >
+            <DevMenu />
+          </MenuToggle>
+        </li>
+      )}
 
       <li className="rd__more-menu__item">
         <MenuToggle

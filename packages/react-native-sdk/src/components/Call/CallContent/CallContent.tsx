@@ -1,36 +1,36 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
   CallParticipantsGrid,
-  CallParticipantsGridProps,
+  type CallParticipantsGridProps,
   CallParticipantsSpotlight,
-  CallParticipantsSpotlightProps,
+  type CallParticipantsSpotlightProps,
 } from '../CallLayout';
 import {
-  CallControlProps,
+  type CallControlProps,
   CallControls as DefaultCallControls,
-  HangUpCallButtonProps,
+  type HangUpCallButtonProps,
 } from '../CallControls';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StreamReaction } from '@stream-io/video-client';
+import { type StreamReaction } from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
-  FloatingParticipantViewProps,
-  ParticipantViewComponentProps,
+  type FloatingParticipantViewProps,
+  type ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts';
 import {
-  CallParticipantsListComponentProps,
-  CallParticipantsListProps,
+  type CallParticipantsListComponentProps,
+  type CallParticipantsListProps,
 } from '../CallParticipantsList';
-import { useIsInPiPMode, useAutoEnterPiPEffect } from '../../../hooks';
+import { useAutoEnterPiPEffect, useIsInPiPMode } from '../../../hooks';
 import {
   ScreenShareOverlay as DefaultScreenShareOverlay,
-  ScreenShareOverlayProps,
+  type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import RTCViewPipIOS from './RTCViewPipIOS';
 
@@ -84,6 +84,14 @@ export type CallContentProps = Pick<
      * If true, disables the Picture-in-Picture mode for iOS and Android
      */
     disablePictureInPicture?: boolean;
+    /**
+     * Props to set the audio mode for the InCallManager.
+     * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
+     * Changing the mode on the fly is not supported.
+     * Manually invoke `InCallManager.start({ media })` to achieve this.
+     * @default 'video'
+     */
+    initialInCallManagerAudioMode?: 'video' | 'audio';
   };
 
 export const CallContent = ({
@@ -103,6 +111,7 @@ export const CallContent = ({
   supportedReactions,
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
+  initialInCallManagerAudioMode = 'video',
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -113,7 +122,6 @@ export const CallContent = ({
     theme: { callContent },
   } = useTheme();
   const {
-    useCallSettings,
     useHasOngoingScreenShare,
     useRemoteParticipants,
     useLocalParticipant,
@@ -121,8 +129,7 @@ export const CallContent = ({
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const callSettings = useCallSettings();
-  const isVideoEnabledInCall = callSettings?.video.enabled;
+  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
 
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
@@ -146,10 +153,10 @@ export const CallContent = ({
    * This hook is used to handle IncallManager specs of the application.
    */
   useEffect(() => {
-    InCallManager.start({ media: isVideoEnabledInCall ? 'video' : 'audio' });
+    InCallManager.start({ media: incallManagerModeRef.current });
 
     return () => InCallManager.stop();
-  }, [isVideoEnabledInCall]);
+  }, []);
 
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {
@@ -255,6 +262,6 @@ const useStyles = () => {
           zIndex: Z_INDEX.IN_FRONT,
         },
       }),
-    [theme]
+    [theme],
   );
 };

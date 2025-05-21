@@ -1,16 +1,16 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { StyleSheet, View, type ViewProps } from 'react-native';
 import {
   DurationBadge as DefaultDurationBadge,
-  DurationBadgeProps,
+  type DurationBadgeProps,
 } from './DurationBadge';
 import {
   LiveIndicator as DefaultLiveIndicator,
-  LiveIndicatorProps,
+  type LiveIndicatorProps,
 } from './LiveIndicator';
 import {
   FollowerCount as DefaultFollowerCount,
-  FollowerCountProps,
+  type FollowerCountProps,
 } from './FollowerCount';
 import { useTheme } from '../../../contexts';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';

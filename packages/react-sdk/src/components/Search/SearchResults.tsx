@@ -18,13 +18,13 @@ export type SearchResultsProps<T> = Pick<
   LoadingIndicator?: ComponentType;
 };
 
-export const SearchResults = <T extends unknown>({
+export function SearchResults<T>({
   EmptySearchResultComponent,
   LoadingIndicator = DefaultLoadingIndicator,
   searchQueryInProgress,
   searchResults,
   SearchResultList,
-}: SearchResultsProps<T>) => {
+}: SearchResultsProps<T>) {
   if (searchQueryInProgress) {
     return (
       <div className="str-video__search-results--loading">
@@ -37,4 +37,4 @@ export const SearchResults = <T extends unknown>({
   }
 
   return <SearchResultList data={searchResults} />;
-};
+}

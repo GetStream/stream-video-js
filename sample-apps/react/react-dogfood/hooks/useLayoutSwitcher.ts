@@ -113,9 +113,7 @@ export const useLayoutSwitcher = () => {
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout;
     if (!storedLayout) return DEFAULT_LAYOUT;
-    return LayoutMap.hasOwnProperty(storedLayout)
-      ? storedLayout
-      : DEFAULT_LAYOUT;
+    return LayoutMap[storedLayout] ? storedLayout : DEFAULT_LAYOUT;
   });
 
   const { useHasOngoingScreenShare } = useCallStateHooks();
@@ -130,7 +128,7 @@ export const useLayoutSwitcher = () => {
     }
 
     const storedLayout = getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
-    const isStoredLayoutInMap = LayoutMap.hasOwnProperty(storedLayout);
+    const isStoredLayoutInMap = LayoutMap[storedLayout];
     setLayout(
       // reset to "stored" layout, use default if incompatible layout is used
       storedLayout === 'LegacySpeaker' || !isStoredLayoutInMap

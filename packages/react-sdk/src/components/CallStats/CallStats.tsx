@@ -41,7 +41,7 @@ export const CallStats = (props: CallStatsProps) => {
   const { t } = useI18n();
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
-  const previousStats = useRef<CallStatsReport>();
+  const previousStats = useRef<CallStatsReport>(undefined);
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 

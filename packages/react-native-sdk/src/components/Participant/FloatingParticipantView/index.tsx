@@ -1,27 +1,27 @@
 import React from 'react';
 import {
   Pressable,
-  StyleProp,
+  type StyleProp,
   StyleSheet,
   View,
-  ViewStyle,
+  type ViewStyle,
 } from 'react-native';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import FloatingView from './FloatingView';
 import {
-  CallContentProps,
-  CallParticipantsListComponentProps,
+  type CallContentProps,
+  type CallParticipantsListComponentProps,
 } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
 import {
   ParticipantView as DefaultParticipantView,
-  ParticipantViewComponentProps,
-  ParticipantViewProps,
+  type ParticipantViewComponentProps,
+  type ParticipantViewProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { type StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
   | 'top-left'

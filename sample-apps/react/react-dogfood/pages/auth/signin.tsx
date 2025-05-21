@@ -126,10 +126,12 @@ const GuestLoginItem = (props: {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (session) {
+    const { query } = context;
+    const params = new URLSearchParams(query as Record<string, string>);
     // redirect to "base path" if already signed in
     return {
       redirect: {
-        destination: '/',
+        destination: `/?${params.toString()}`,
       },
     };
   }

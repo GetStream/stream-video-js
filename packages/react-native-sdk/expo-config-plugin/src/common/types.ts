@@ -11,6 +11,7 @@ export type ConfigProps =
       androidPictureInPicture?: boolean;
       androidKeepCallAlive?: boolean;
       enableScreenshare?: boolean;
+      addNoiseCancellation?: boolean;
       appleTeamId?: string;
       iOSEnableMultitaskingCameraAccess?: boolean;
     }

@@ -1,11 +1,20 @@
 import { createContext, PropsWithChildren, useContext } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
+import {
+  DeviceSelectionPreference,
+  useDeviceSelectionPreference,
+} from '../hooks/useDeviceSelectionPreference';
 
-const defaultState: Settings = {};
+const defaultState: Settings = {
+  deviceSelectionPreference: 'recent',
+  setDeviceSelectionPreference: () => {},
+};
 
 export type Settings = {
   language?: string;
   fallbackLanguage?: string;
+  deviceSelectionPreference: DeviceSelectionPreference;
+  setDeviceSelectionPreference: (value: DeviceSelectionPreference) => void;
 };
 
 export type SettingsContextValue = {
@@ -18,10 +27,14 @@ const SettingsContext = createContext<SettingsContextValue>({
 
 export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const { language, fallbackLanguage } = useLanguage();
+  const { deviceSelectionPreference, setDeviceSelectionPreference } =
+    useDeviceSelectionPreference();
 
   const settings: Settings = {
     language,
     fallbackLanguage,
+    deviceSelectionPreference,
+    setDeviceSelectionPreference,
   };
 
   return (

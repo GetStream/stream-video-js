@@ -22,7 +22,7 @@
         },
         "trackDeps": true,
         "push": true,
-        "skipCommitTypes": ["chore", "ci", "refactor", "test"],
+        "skipCommitTypes": ["ci", "refactor", "test"],
         "postTargets": [
           "@stream-io/video-styling:github",
           "@stream-io/video-styling:publish"

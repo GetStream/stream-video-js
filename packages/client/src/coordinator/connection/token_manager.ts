@@ -8,19 +8,16 @@ import type { TokenOrProvider, UserWithId } from './types';
  * Handles all the operations around user token.
  */
 export class TokenManager {
-  loadTokenPromise: Promise<string> | null;
-  type: 'static' | 'provider';
-  secret?: string;
-  token?: string;
-  tokenProvider?: TokenOrProvider;
-  user?: UserWithId;
-  /**
-   * Constructor
-   */
+  private loadTokenPromise: Promise<string> | null = null;
+  private type: 'static' | 'provider' = 'static';
+  private readonly secret?: string;
+  private token?: string;
+  private tokenProvider?: TokenOrProvider;
+  private user?: UserWithId;
+  private isAnonymous?: boolean;
+
   constructor(secret?: string) {
-    this.loadTokenPromise = null;
     this.secret = secret;
-    this.type = 'static';
   }
 
   /**
@@ -36,8 +33,9 @@ export class TokenManager {
     user: UserWithId,
     isAnonymous: boolean,
   ) => {
-    this.validateToken(tokenOrProvider, user, isAnonymous);
     this.user = user;
+    this.isAnonymous = isAnonymous;
+    this.validateToken(tokenOrProvider);
 
     if (isFunction(tokenOrProvider)) {
       this.tokenProvider = tokenOrProvider;
@@ -65,37 +63,29 @@ export class TokenManager {
   };
 
   // Validates the user token.
-  validateToken = (
-    tokenOrProvider: TokenOrProvider,
-    user: UserWithId,
-    isAnonymous: boolean,
-  ) => {
+  validateToken = (tokenOrProvider: TokenOrProvider) => {
     // allow empty token for anon user
-    if (user && isAnonymous && !tokenOrProvider) return;
+    if (this.user && this.isAnonymous && !tokenOrProvider) return;
 
     // Don't allow empty token for non-server side client.
     if (!this.secret && !tokenOrProvider) {
-      throw new Error('UserWithId token can not be empty');
+      throw new Error('User token can not be empty');
     }
 
-    if (
-      tokenOrProvider &&
-      typeof tokenOrProvider !== 'string' &&
-      !isFunction(tokenOrProvider)
-    ) {
-      throw new Error('user token should either be a string or a function');
+    if (typeof tokenOrProvider !== 'string' && !isFunction(tokenOrProvider)) {
+      throw new Error('User token should either be a string or a function');
     }
 
     if (typeof tokenOrProvider === 'string') {
       // Allow empty token for anonymous users
-      if (isAnonymous && tokenOrProvider === '') return;
+      if (this.isAnonymous && tokenOrProvider === '') return;
 
       const tokenUserId = getUserFromToken(tokenOrProvider);
       if (
         tokenOrProvider != null &&
         (tokenUserId == null ||
           tokenUserId === '' ||
-          (!isAnonymous && tokenUserId !== user.id))
+          (!this.isAnonymous && tokenUserId !== this.user!.id))
       ) {
         throw new Error(
           'userToken does not have a user_id or is not matching with user.id',
@@ -118,7 +108,9 @@ export class TokenManager {
 
       if (this.tokenProvider && typeof this.tokenProvider !== 'string') {
         try {
-          this.token = await this.tokenProvider();
+          const token = await this.tokenProvider();
+          this.validateToken(token);
+          this.token = token;
         } catch (e) {
           return reject(
             new Error(`Call to tokenProvider failed with message: ${e}`),

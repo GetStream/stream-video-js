@@ -1,44 +1,16 @@
 import {
   CallingState,
+  getLogger,
   hasScreenShare,
   speakerLayoutSortPreset,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useMemo } from 'react';
-import {
-  findNodeHandle,
-  HostComponent,
-  Platform,
-  requireNativeComponent,
-  UIManager,
-} from 'react-native';
+import { findNodeHandle } from 'react-native';
+import { onNativeCallClosed, RTCViewPipNative } from './RTCViewPipNative';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
-
-const COMPONENT_NAME = 'RTCViewPip';
-
-type RTCViewPipNativeProps = {
-  streamURL?: string;
-};
-
-const RTCViewPipNative: HostComponent<RTCViewPipNativeProps> =
-  requireNativeComponent(COMPONENT_NAME);
-
-/** Wrapper for the native view
- * meant to stay private and not exposed */
-const RTCViewPip = React.memo(
-  React.forwardRef<
-    React.Ref<any>,
-    {
-      streamURL?: string;
-    }
-  >((props, ref) => {
-    if (Platform.OS !== 'ios') return null;
-    // @ts-ignore
-    return <RTCViewPipNative streamURL={props.streamURL} ref={ref} />;
-  })
-);
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
@@ -52,9 +24,17 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
   });
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
 
-  const [participantInSpotlight] = allParticipants.filter((participant) =>
-    includeLocalParticipantVideo ? true : !participant.isLocalParticipant
+  const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
+    (participant) =>
+      includeLocalParticipantVideo ? true : !participant.isLocalParticipant,
   );
+
+  // show the dominant remote speaker in PiP mode
+  // local speaker is shown only if remote doesn't exist
+  let participantInSpotlight = dominantSpeaker;
+  if (dominantSpeaker?.isLocalParticipant && dominantSpeaker2) {
+    participantInSpotlight = dominantSpeaker2;
+  }
 
   useEffect(() => {
     shouldDisableIOSLocalVideoOnBackgroundRef.current =
@@ -72,20 +52,25 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
       callClosedInvokedOnce = true;
       const node = findNodeHandle(nativeRef.current);
       if (node !== null) {
-        UIManager.dispatchViewManagerCommand(
-          node,
-          // @ts-ignore
-          UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
-          []
-        );
+        onNativeCallClosed(node);
       }
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
     };
     const unsubFunc = call?.on('call.ended', () => {
+      getLogger(['RTCViewPipIOS'])(
+        'debug',
+        `onCallClosed due to call.ended event`,
+      );
+      unsubFunc?.();
       onCallClosed();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
       if (state === CallingState.LEFT || state === CallingState.IDLE) {
+        getLogger(['RTCViewPipIOS'])(
+          'debug',
+          `onCallClosed due to callingState: ${state}`,
+        );
+        subscription?.unsubscribe();
         onCallClosed();
       }
     });
@@ -112,7 +97,9 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
     return videoStreamToRender?.toURL();
   }, [participantInSpotlight]);
 
-  return <RTCViewPip streamURL={streamURL} ref={nativeRef} />;
+  return <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />;
 });
+
+RTCViewPipIOS.displayName = 'RTCViewPipIOS';
 
 export default RTCViewPipIOS;

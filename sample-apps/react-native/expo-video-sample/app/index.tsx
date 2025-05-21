@@ -5,13 +5,16 @@ import {
   Platform,
   ScrollView,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import {
   isExpoNotificationStreamVideoEvent,
   oniOSExpoNotificationEvent,
+  useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
 import { NavigationHeader } from '../components/NavigationHeader';
 import CreateMeetingCall from '../components/CreateMeetingCall';
 import CreateRingingCall from '../components/CreateRingingCall';
@@ -45,6 +48,26 @@ export default function CreateCallScreen() {
       };
     }
   }, []);
+
+  const calls = useCalls().filter((c) => c.ringing);
+
+  useEffect(() => {
+    if (calls.length) {
+      if (calls.length > 1) {
+        const lastCall = calls[calls.length - 1];
+        Alert.alert(
+          `More than 1 active ringing call at a time is not supported in the app, last call details -- id: ${lastCall.id}`,
+        );
+      } else {
+        router.push('/ringing');
+      }
+    }
+  }, [calls]);
+
+  useEffect(() => {
+    if (calls.length === 1) {
+    }
+  }, [calls]);
 
   return (
     <KeyboardAvoidingView

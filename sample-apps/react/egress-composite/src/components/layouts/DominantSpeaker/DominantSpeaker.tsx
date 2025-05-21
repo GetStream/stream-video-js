@@ -15,8 +15,8 @@ import './DominantSpeaker.scss';
 export const DominantSpeaker = () => {
   const activeCall = useCall();
   const speakerInSpotlight = useSpotlightParticipant();
-  const { useParticipants } = useCallStateHooks();
-  const participants = useParticipants();
+  const { useRemoteParticipants } = useCallStateHooks();
+  const remoteParticipants = useRemoteParticipants();
   const { setVideoElement, setVideoPlaceholderElement } =
     useEgressReadyWhenAnyParticipantMounts(
       speakerInSpotlight!,
@@ -29,7 +29,7 @@ export const DominantSpeaker = () => {
       className="eca__dominant-speaker__container"
       data-testid="single-participant"
     >
-      <ParticipantsAudio participants={participants} />
+      <ParticipantsAudio participants={remoteParticipants} />
       {speakerInSpotlight && (
         <ParticipantView
           participant={speakerInSpotlight}

@@ -1,5 +1,5 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, UserRequest, WSEvent } from '../../gen/coordinator';
+import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 
 export type UR = Record<string, unknown>;
@@ -42,10 +42,52 @@ export type APIErrorResponse = {
 };
 
 export class ErrorFromResponse<T> extends Error {
-  code?: number;
-  response?: AxiosResponse<T>;
-  status?: number;
-  unrecoverable?: boolean;
+  public code: number | null;
+  public status: number;
+  public response: AxiosResponse<T>;
+  public name = 'ErrorFromResponse';
+  public unrecoverable: boolean | null;
+
+  constructor({
+    message,
+    code,
+    status,
+    response,
+    unrecoverable,
+  }: Pick<
+    ErrorFromResponse<T>,
+    'message' | 'code' | 'status' | 'response' | 'unrecoverable'
+  >) {
+    super(message);
+    this.code = code;
+    this.response = response;
+    this.status = status;
+    this.unrecoverable = unrecoverable;
+  }
+
+  // Vitest helper (serialized errors are too large to read)
+  // https://github.com/vitest-dev/vitest/blob/v3.1.3/packages/utils/src/error.ts#L60-L62
+  public toJSON() {
+    const extra = [
+      ['status', this.status],
+      ['code', this.code],
+      ['unrecoverable', this.unrecoverable],
+    ] as const;
+
+    const joinable = [];
+
+    for (const [key, value] of extra) {
+      if (typeof value !== 'undefined' && value !== null) {
+        joinable.push(`${key}: ${value}`);
+      }
+    }
+
+    return {
+      message: `(${joinable.join(', ')}) - ${this.message}`,
+      stack: this.stack,
+      name: this.name,
+    };
+  }
 }
 
 export type ConnectionChangedEvent = {
@@ -68,7 +110,7 @@ export type ConnectionRecoveredEvent = {
 };
 
 export type StreamVideoEvent = (
-  | WSEvent
+  | VideoEvent
   | NetworkChangedEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
@@ -77,7 +119,7 @@ export type StreamVideoEvent = (
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
-export type EventTypes = 'all' | WSEvent['type'];
+export type EventTypes = 'all' | VideoEvent['type'];
 
 export type AllClientEventTypes = 'all' | StreamVideoEvent['type'];
 export type AllClientEvents = {
@@ -88,7 +130,7 @@ export type ClientEventListener<E extends keyof AllClientEvents> = (
 ) => void;
 
 export type AllClientCallEvents = {
-  [K in EventTypes]: Extract<WSEvent, { type: K }>;
+  [K in EventTypes]: Extract<VideoEvent, { type: K }>;
 };
 
 export type AllCallEvents = AllClientCallEvents & AllSfuEvents;
@@ -152,10 +194,41 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * timer throttling issues in inactive browser tabs.
    */
   enableTimerWorker?: boolean;
+
+  /**
+   * The client app identifier.
+   */
+  clientAppIdentifier?: ClientAppIdentifier;
+
+  /**
+   * The default timeout for WebSocket connections.
+   */
+  defaultWsTimeout?: number;
+
+  /**
+   * The maximum number of retries to connect a user.
+   */
+  maxConnectUserRetries?: number;
+
+  /**
+   * A callback to be called one the maxUserConnectRetries is exhausted.
+   * @param lastError the last error.
+   * @param allErrors all errors.
+   */
+  onConnectUserError?: (lastError: Error, allErrors: Error[]) => void;
+};
+
+export type ClientAppIdentifier = {
+  sdkName?: 'react' | 'react-native' | 'plain-javascript' | (string & {});
+  sdkVersion?: string;
+  app?: string;
+  app_version?: string;
+  os?: string;
+  device_model?: string;
 };
 
 export type TokenProvider = () => Promise<string>;
 export type TokenOrProvider = null | string | TokenProvider | undefined;
 
-export type BuiltInRejectReason = 'busy' | 'decline' | 'cancel';
-export type RejectReason = BuiltInRejectReason | string;
+export type BuiltInRejectReason = 'busy' | 'decline' | 'cancel' | 'timeout';
+export type RejectReason = BuiltInRejectReason | (string & {});

@@ -2,6 +2,7 @@ import { Fragment, ReactNode, useEffect, useState } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
+  TranscriptionSettingsRequestLanguageEnum,
   TranscriptionSettingsRequestModeEnum,
   useCall,
   useCallStateHooks,
@@ -53,13 +54,19 @@ export const TranscriptionSettings = () => {
 
   useEffect(() => {
     if (!call) return;
+    const language = transcriptionLanguage
+      ? // @ts-expect-error - TS doesn't know about the enum values
+        TranscriptionSettingsRequestLanguageEnum[
+          transcriptionLanguage.toUpperCase()
+        ]
+      : TranscriptionSettingsRequestLanguageEnum.AUTO;
     call
       .update({
         settings_override: {
           transcription: {
             ...call.state.settings?.transcription,
             mode: TranscriptionSettingsRequestModeEnum.AUTO_ON,
-            language: transcriptionLanguage,
+            language,
           },
         },
       })

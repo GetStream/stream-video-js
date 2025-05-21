@@ -2,11 +2,11 @@ import React, { useCallback, useEffect } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
+  Call as StreamCallType,
   CallingState,
   RingingCallContent,
   StreamCall,
   useCalls,
-  Call as StreamCallType,
 } from '@stream-io/video-react-native-sdk';
 import { Alert, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -64,7 +64,6 @@ const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
         call.leave();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;
 };

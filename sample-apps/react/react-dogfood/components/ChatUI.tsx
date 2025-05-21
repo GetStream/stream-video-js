@@ -1,17 +1,16 @@
-import { useEffect, ComponentProps } from 'react';
+import { useEffect } from 'react';
 import {
   Channel,
-  Window,
-  MessageList,
-  MessageInput,
-  useChatContext,
-  useChannelStateContext,
   MESSAGE_ACTIONS,
+  MessageInput,
+  MessageList,
+  SendButtonProps,
+  useChannelStateContext,
+  useChatContext,
+  Window,
 } from 'stream-chat-react';
 
-import type { Message } from 'stream-chat';
-
-import { IconButton, Icon } from '@stream-io/video-react-sdk';
+import { Icon, IconButton } from '@stream-io/video-react-sdk';
 
 import { CHANNEL_TYPE } from '.';
 
@@ -56,17 +55,7 @@ export const NoMessages = () => {
   return null;
 };
 
-export type ChatSendButtonProps = {
-  sendMessage: (
-    event: React.BaseSyntheticEvent,
-    customMessageData?: Partial<Message>,
-  ) => void;
-} & ComponentProps<'button'>;
-
-export const ChatSendButton = ({
-  sendMessage,
-  ...rest
-}: ChatSendButtonProps) => {
+export const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
   return (
     <div className="str-chat__send-button-container">
       <button

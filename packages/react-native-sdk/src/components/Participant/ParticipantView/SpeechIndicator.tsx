@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 
 /**
@@ -41,7 +41,7 @@ export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
               duration: (index + 1) * 300,
               useNativeDriver: true,
             }),
-          ])
+          ]),
         ).start();
       });
     } else {
@@ -96,7 +96,7 @@ const useStyles = () => {
           borderRadius: 2,
         },
       }),
-    [theme]
+    [theme],
   );
 };
 

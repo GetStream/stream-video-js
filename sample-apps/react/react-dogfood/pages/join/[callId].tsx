@@ -22,10 +22,7 @@ import {
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
-import {
-  useAppEnvironment,
-  useIsDemoEnvironment,
-} from '../../context/AppEnvironmentContext';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { TourProvider } from '../../context/TourContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
@@ -50,24 +47,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   // support for connecting to any application using an API key and user token
   const apiKeyOverride = !!router.query['api_key'];
-
-  const isDemoEnvironment = useIsDemoEnvironment();
-  useEffect(() => {
-    if (!isDemoEnvironment) return;
-    // For backwards compatibility, we need to append `?id=${callId}` to the URL
-    // if it's not already there.
-    // Otherwise, deep links in the mobile apps won't work.
-    const id = router.query['id'] as string | undefined;
-    if (id !== callId) {
-      router
-        .replace({
-          pathname: router.pathname,
-          query: { ...router.query, id: callId },
-        })
-        .catch((err) => console.error('Failed to replace router', err));
-    }
-  }, [callId, isDemoEnvironment, router]);
-
   const { apiKey, userToken, user, gleapApiKey } = props;
 
   const environment = useAppEnvironment();
@@ -99,33 +78,23 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     [fetchAuthDetails],
   );
 
-  const [credentials, setCredentials] = useState<CreateJwtTokenResponse>();
-  useEffect(() => {
-    const abortController = new AbortController();
-    fetchAuthDetails({ signal: abortController.signal })
-      .then((data) => setCredentials(data))
-      .catch((err) => console.log('Failed to fetch auth details', err));
-    return () => abortController.abort();
-  }, [fetchAuthDetails]);
-
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
-    if (!credentials) return;
     const _client = new StreamVideoClient({
-      apiKey: credentials.apiKey,
+      apiKey,
       user,
+      token: userToken,
       tokenProvider,
       options: {
         baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
         logLevel: 'debug',
-        logger: customSentryLogger,
+        logger: customSentryLogger(),
         transformRequest: defaultRequestTransformers,
         transformResponse: defaultResponseTransformers,
       },
     });
     setClient(_client);
 
-    // @ts-ignore - for debugging
     window.client = _client;
 
     return () => {
@@ -133,13 +102,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         .disconnectUser()
         .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
-      // @ts-ignore - for debugging
+
       window.client = undefined;
     };
-  }, [credentials, tokenProvider, user]);
+  }, [apiKey, tokenProvider, user, userToken]);
 
   const chatClient = useCreateStreamChatClient({
-    apiKey: credentials?.apiKey,
+    apiKey,
     tokenOrProvider: tokenProvider,
     userData: {
       id: '!anon',
@@ -154,14 +123,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     const _call = client.call(callType, callId);
     setCall(_call);
 
-    // @ts-ignore - for debugging
     window.call = _call;
 
     return () => {
       if (_call.state.callingState !== CallingState.LEFT) {
         _call.leave().catch((e) => console.error('Failed to leave call', e));
         setCall(undefined);
-        // @ts-ignore - for debugging
+
         window.call = undefined;
       }
     };
@@ -201,7 +169,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   useGleap(gleapApiKey, client, call, user);
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>();
+  const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))

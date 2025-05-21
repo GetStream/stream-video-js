@@ -19,6 +19,7 @@
     }
 
     &.str-video__call-controls--media {
+      justify-content: center;
       margin-left: 0;
       .str-video__call-controls__mobile {
         display: flex;
@@ -67,10 +68,6 @@
         .str-video__call-controls__mobile {
           display: none;
         }
-      }
-
-      &.str-video__call-controls--media {
-        justify-content: center;
       }
 
       &.str-video__call-controls--sidebar {

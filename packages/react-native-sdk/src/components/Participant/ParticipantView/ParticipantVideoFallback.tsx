@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../../utility';
-import { ParticipantViewProps } from './ParticipantView';
+import { type ParticipantViewProps } from './ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**

@@ -23,5 +23,7 @@
   "quality/short/720p": "720p",
   "quality/short/480p": "480p",
   "quality/short/144p": "144p",
-  "quality/short/off": "Video off"
+  "quality/short/off": "Video off",
+  "device-selection/system": "Use system default",
+  "device-selection/recent": "Most recently used"
 }

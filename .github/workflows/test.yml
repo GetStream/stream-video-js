@@ -41,8 +41,8 @@ jobs:
       - name: Test packages
         run: yarn test:ci:all
 
-      - name: Test RN SDK
-        run: yarn test:react-native:sdk
-
       - name: Build packages
         run: NODE_ENV=production yarn build:all
+
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk

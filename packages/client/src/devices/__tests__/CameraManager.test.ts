@@ -10,11 +10,15 @@ import {
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
-import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
 import { PermissionsContext } from '../../permissions';
+import { Tracer } from '../../stats';
+
+const getVideoStream = vi.hoisted(() =>
+  vi.fn(() => Promise.resolve(mockVideoStream())),
+);
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -23,7 +27,7 @@ vi.mock('../devices.ts', () => {
     getVideoDevices: vi.fn(() => {
       return of(mockVideoDevices);
     }),
-    getVideoStream: vi.fn(() => Promise.resolve(mockVideoStream())),
+    getVideoStream,
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: mockDeviceIds$(),
@@ -75,11 +79,14 @@ describe('CameraManager', () => {
   it('get stream', async () => {
     await manager.enable();
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
   });
 
   it('should get device id from stream', async () => {
@@ -111,11 +118,18 @@ describe('CameraManager', () => {
   });
 
   it('flip', async () => {
+    getVideoStream.mockReturnValue(Promise.resolve(mockVideoStream()));
     await manager.selectDirection('front');
-
+    expect(manager.state.direction).toBe('front');
+    vi.spyOn(manager, 'selectDirection');
+    getVideoStream.mockReturnValue(
+      Promise.resolve(mockVideoStream('environment')),
+    );
     await manager.flip();
-
+    expect(manager.selectDirection).toHaveBeenCalledWith('back');
     expect(manager.state.direction).toBe('back');
+    // reset the mock
+    getVideoStream.mockReturnValue(Promise.resolve(mockVideoStream()));
   });
 
   it('select camera direction', async () => {
@@ -123,29 +137,38 @@ describe('CameraManager', () => {
 
     await manager.enable();
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
 
     await manager.selectDirection('front');
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      width: 1280,
-      height: 720,
-      facingMode: 'user',
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        width: 1280,
+        height: 720,
+        facingMode: 'user',
+      },
+      expect.any(Tracer),
+    );
 
     await manager.selectDirection('back');
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-      facingMode: 'environment',
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        deviceId: undefined,
+        facingMode: 'environment',
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
   });
 
   it(`shouldn't set deviceId and facingMode at the same time`, async () => {
@@ -153,11 +176,14 @@ describe('CameraManager', () => {
 
     await manager.flip();
 
-    expect(getVideoStream).toHaveBeenCalledWith({
-      facingMode: 'environment',
-      width: 1280,
-      height: 720,
-    });
+    expect(getVideoStream).toHaveBeenCalledWith(
+      {
+        facingMode: 'environment',
+        width: 1280,
+        height: 720,
+      },
+      expect.any(Tracer),
+    );
 
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);

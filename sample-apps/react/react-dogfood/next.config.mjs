@@ -13,9 +13,6 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
-  experimental: {
-    instrumentationHook: true,
-  },
   async headers() {
     return [
       {
@@ -80,7 +77,7 @@ const sentryWebpackPluginOptions = {
   dryRun: typeof process.env.CI === 'undefined',
   authToken: process.env.PRONTO_SENTRY_AUTH_TOKEN,
   org: 'stream',
-  project: 'video-dogfooding',
+  project: 'video-pronto',
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 

@@ -30,11 +30,10 @@ export const CallRecordingsPage = ({
       apiKey,
       user,
       token: userToken,
-      options: { logLevel: 'info', logger: customSentryLogger },
+      options: { logLevel: 'info', logger: customSentryLogger() },
     });
     setVideoClient(_client);
 
-    // @ts-ignore - for debugging
     window.client = _client;
 
     return () => {

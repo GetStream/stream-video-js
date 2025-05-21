@@ -54,7 +54,7 @@ export const useGleap = (
       if (typeof o !== 'object') return o;
       try {
         return JSON.stringify(o);
-      } catch (e) {
+      } catch {
         return o;
       }
     };

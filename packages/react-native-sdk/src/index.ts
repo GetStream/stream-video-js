@@ -32,5 +32,6 @@ export * from './translations';
 // Explicitly re-exporting to resolve ambiguity.
 export { StreamVideo } from './providers/StreamVideo';
 export { StreamCall } from './providers/StreamCall';
+export * from './providers/NoiseCancellation';
 
 setClientDetails();

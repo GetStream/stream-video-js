@@ -1,5 +1,5 @@
 import { palette } from './constants';
-import { ColorScheme } from './types';
+import { type ColorScheme } from './types';
 
 const colors: ColorScheme = {
   primary: palette.primary100,

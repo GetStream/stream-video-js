@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { User } from '../coordinator/connection/types';
 import { StreamClient } from '@stream-io/node-sdk';
+import { ConnectedEvent } from '../gen/coordinator';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -111,5 +112,165 @@ describe('StreamVideoClient', () => {
 
   afterEach(() => {
     client.disconnectUser();
+  });
+
+  describe('StreamVideoClient.getOrCreateInstance', () => {
+    afterEach(() => {
+      // @ts-expect-error - private field
+      StreamVideoClient._instances.clear();
+    });
+
+    it('throws an error if userId is not provided except for anon users', () => {
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({ apiKey, user: { id: '' } });
+      }).toThrow();
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { type: 'anonymous' },
+        });
+      }).not.toThrow();
+    });
+
+    it('throws an error if token or token provider is not provided for authenticated users', () => {
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { id: 'jane', type: 'authenticated' },
+        });
+      }).toThrow();
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { id: 'jane', type: 'guest' },
+        });
+      }).not.toThrow();
+      expect(() => {
+        StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { type: 'anonymous' },
+        });
+      }).not.toThrow();
+    });
+
+    it('returns the same instance for the same userId and apiKey', () => {
+      const instance1 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
+      });
+      const instance2 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
+      });
+      expect(instance1).toBe(instance2);
+    });
+
+    it('returns different instances for different userIds', () => {
+      const instance1 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
+      });
+      const instance2 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'john' },
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
+      });
+      expect(instance1).not.toBe(instance2);
+    });
+
+    it('returns different instances if existing user is disconnected', async () => {
+      const instance1 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
+      });
+      await instance1.disconnectUser();
+
+      const instance2 = StreamVideoClient.getOrCreateInstance({
+        apiKey,
+        user: { id: 'jane' },
+        token: serverClient.generateUserToken({ user_id: 'jane' }),
+      });
+
+      expect(instance1).not.toBe(instance2);
+    });
+  });
+});
+
+describe('StreamVideoClient.connectUser retries', () => {
+  it('should retry connecting user', async () => {
+    const client = new StreamVideoClient(apiKey, {
+      // tests run in node, so we have to fake being in browser env
+      browser: true,
+      maxConnectUserRetries: 2,
+    });
+    client.streamClient.connectUser = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('something happened'));
+
+    const user = { id: 'jane' };
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+    expect(client.streamClient.connectUser).toBeCalledTimes(2);
+
+    await client.disconnectUser();
+  });
+
+  it('should propagate error if max retries reached', async () => {
+    const onConnectUserError = vi.fn();
+    const client = new StreamVideoClient(apiKey, {
+      // tests run in node, so we have to fake being in browser env
+      browser: true,
+      maxConnectUserRetries: 3,
+      onConnectUserError,
+    });
+
+    client.streamClient.connectUser = vi
+      .fn()
+      .mockRejectedValue(new Error('something happened'));
+
+    const user = { id: 'jane' };
+    await expect(async () => {
+      const token = serverClient.generateUserToken({ user_id: user.id });
+      await client.connectUser(user, token);
+    }).rejects.toThrowError('something happened');
+
+    expect(onConnectUserError).toBeCalledTimes(1);
+
+    const invocation = onConnectUserError.mock.calls[0];
+    const [lastError, allErrors] = invocation;
+    expect(lastError.message).toBe('something happened');
+    expect(allErrors.length).toBe(3);
+    expect(
+      allErrors.every((error: Error) => error.message === 'something happened'),
+    ).toBe(true);
+
+    await client.disconnectUser();
+  });
+
+  it('should connect the user if all is good', async () => {
+    const onConnectUserError = vi.fn();
+    const client = new StreamVideoClient(apiKey, {
+      // tests run in node, so we have to fake being in browser env
+      browser: true,
+      onConnectUserError,
+    });
+
+    const user = { id: 'jane' };
+
+    client.streamClient.connectUser = vi.fn().mockResolvedValue({
+      me: { id: user.id },
+    } as ConnectedEvent);
+
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+
+    expect(onConnectUserError).not.toBeCalled();
+    expect(client.state.connectedUser?.id).toBe(user.id);
+
+    await client.disconnectUser();
   });
 });

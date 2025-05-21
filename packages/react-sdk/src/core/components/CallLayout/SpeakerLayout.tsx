@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import {
-  hasScreenShare,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
@@ -16,7 +13,12 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import { useFilteredParticipants, useSpeakerLayoutSortPreset } from './hooks';
+import {
+  ParticipantFilter,
+  ParticipantPredicate,
+  useFilteredParticipants,
+  useSpeakerLayoutSortPreset,
+} from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
 
@@ -25,39 +27,66 @@ export type SpeakerLayoutProps = {
    * The UI to be used for the participant in the spotlight.
    */
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
+
   /**
    * The UI to be used for the participants in the participants bar.
    */
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
+
   /**
    * The position of the participants who are not in focus.
    * Providing `null` will hide the bar.
    */
   participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right' | null;
+
   /**
    * Hard limits the number of the participants rendered in the participants bar.
    * Providing string `dynamic` will calculate hard limit based on screen width/height.
    */
   participantsBarLimit?: 'dynamic' | number;
+
   /**
    * When set to `true` will exclude the local participant from layout.
    * @default false
    */
   excludeLocalParticipant?: boolean;
+
   /**
-   * Predicate to filter call participants.
+   * Predicate to filter call participants or a filter object.
+   * @example
+   * // With a predicate:
+   * <SpeakerLayout
+   *   filterParticipants={p => p.roles.includes('student')}
+   * />
+   * @example
+   * // With a filter object:
+   * <SpeakerLayout
+   *   filterParticipants={{
+   *     $or: [
+   *       { roles: { $contains: 'student' } },
+   *       { isPinned: true },
+   *     ],
+   *   }}
+   * />
    */
-  filterParticipants?: (participant: StreamVideoParticipant) => boolean;
+  filterParticipants?: ParticipantPredicate | ParticipantFilter;
+
   /**
    * When set to `false` disables mirroring of the local participant's video.
    * @default true
    */
   mirrorLocalParticipantVideo?: boolean;
+
   /**
    * Turns on/off the pagination arrows.
    * @default true
    */
   pageArrowsVisible?: boolean;
+
+  /**
+   * Whether the layout is muted. Defaults to `false`.
+   */
+  muted?: boolean;
 } & Pick<
   ParticipantViewProps,
   'VideoPlaceholder' | 'PictureInPicturePlaceholder'
@@ -78,6 +107,7 @@ export const SpeakerLayout = ({
   excludeLocalParticipant = false,
   filterParticipants,
   pageArrowsVisible = true,
+  muted,
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
@@ -143,7 +173,7 @@ export const SpeakerLayout = ({
     (participantsWithAppliedLimit.length > 0 || isSpeakerScreenSharing);
   return (
     <div className="str-video__speaker-layout__wrapper">
-      <ParticipantsAudio participants={remoteParticipants} />
+      {!muted && <ParticipantsAudio participants={remoteParticipants} />}
       <div
         className={clsx(
           'str-video__speaker-layout',

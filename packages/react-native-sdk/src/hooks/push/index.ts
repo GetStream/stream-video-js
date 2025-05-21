@@ -1,4 +1,3 @@
-import { useIosCallKeepEventsSetupEffect } from './useIosCallKeepEventsSetupEffect';
 import { useIosVoipPushEventsSetupEffect } from './useIosVoipPushEventsSetupEffect';
 import { useProcessPushCallEffect } from './useProcessPushCallEffect';
 import { useInitAndroidTokenAndRest } from './useInitAndroidTokenAndRest';
@@ -11,7 +10,6 @@ import { useProcessPushNonRingingCallEffect } from './useProcessPushNonRingingCa
  */
 export const usePushRegisterEffect = () => {
   useIosInitRemoteNotifications();
-  useIosCallKeepEventsSetupEffect();
   useIosVoipPushEventsSetupEffect();
   useProcessPushNonRingingCallEffect();
   useProcessPushCallEffect();

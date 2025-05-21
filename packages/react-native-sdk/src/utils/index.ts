@@ -1,11 +1,11 @@
 // Utility to join strings with commas and 'and'
 export const generateCallTitle = (
   memberUserIds: string[],
-  totalMembersToShow?: number
+  totalMembersToShow?: number,
 ) => {
   const supportedAmountOfMemberUserIds = memberUserIds.slice(
     0,
-    totalMembersToShow
+    totalMembersToShow,
   );
   if (
     totalMembersToShow &&

@@ -5,9 +5,9 @@ import { OwnCapability } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { IconWrapper, Reaction } from '../../../icons';
 import { ReactionsPicker } from './internal/ReactionsPicker';
-import { LayoutChangeEvent, LayoutRectangle } from 'react-native';
+import { type LayoutChangeEvent, type LayoutRectangle } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { StreamReactionType } from '../CallContent';
+import { type StreamReactionType } from '../CallContent';
 
 /**
  * Props for the Reaction button

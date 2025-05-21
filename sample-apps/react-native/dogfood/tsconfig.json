@@ -1,3 +1,11 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "lib": ["dom"],
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react-native": ["./node_modules/react-native"]
+    }
+  }
 }

@@ -93,6 +93,7 @@ export const computeVideoLayers = (
     maxSpatialLayers = 3,
     maxTemporalLayers = 3,
     videoDimension = { width: 1280, height: 720 },
+    useSingleLayer,
   } = publishOption;
   const maxBitrate = getComputedMaxBitrate(
     videoDimension,
@@ -109,14 +110,15 @@ export const computeVideoLayers = (
       rid,
       width: Math.round(width / downscaleFactor),
       height: Math.round(height / downscaleFactor),
-      maxBitrate: maxBitrate / bitrateFactor || defaultBitratePerRid[rid],
+      maxBitrate:
+        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
       maxFramerate: fps,
     };
     if (svcCodec) {
       // for SVC codecs, we need to set the scalability mode, and the
       // codec will handle the rest (layers, temporal layers, etc.)
       layer.scalabilityMode = toScalabilityMode(
-        maxSpatialLayers,
+        useSingleLayer ? 1 : maxSpatialLayers,
         maxTemporalLayers,
       );
     } else {
@@ -135,7 +137,7 @@ export const computeVideoLayers = (
 
   // for simplicity, we start with all layers enabled, then this function
   // will clear/reassign the layers that are not needed
-  return withSimulcastConstraints(settings, optimalVideoLayers);
+  return withSimulcastConstraints(settings, optimalVideoLayers, useSingleLayer);
 };
 
 /**
@@ -179,6 +181,7 @@ export const getComputedMaxBitrate = (
 const withSimulcastConstraints = (
   settings: MediaTrackSettings,
   optimalVideoLayers: OptimalVideoLayer[],
+  useSingleLayer: boolean,
 ) => {
   let layers: OptimalVideoLayer[];
 
@@ -195,8 +198,9 @@ const withSimulcastConstraints = (
   }
 
   const ridMapping = ['q', 'h', 'f'];
-  return layers.map<OptimalVideoLayer>((layer, index) => ({
+  return layers.map<OptimalVideoLayer>((layer, index, arr) => ({
     ...layer,
     rid: ridMapping[index], // reassign rid
+    active: useSingleLayer && index < arr.length - 1 ? false : layer.active,
   }));
 };

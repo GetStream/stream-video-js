@@ -1,31 +1,31 @@
-import React, { ComponentType, useMemo } from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { type ComponentType, useMemo } from 'react';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
-  StreamVideoParticipant,
-  VideoTrackType,
+  type StreamVideoParticipant,
+  type VideoTrackType,
 } from '@stream-io/video-client';
 import {
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
-  ParticipantNetworkQualityIndicatorProps,
+  type ParticipantNetworkQualityIndicatorProps,
 } from './ParticipantNetworkQualityIndicator';
 import {
   ParticipantReaction as DefaultParticipantReaction,
-  ParticipantReactionProps,
+  type ParticipantReactionProps,
 } from './ParticipantReaction';
 import {
   ParticipantLabel as DefaultParticipantLabel,
-  ParticipantLabelProps,
+  type ParticipantLabelProps,
 } from './ParticipantLabel';
 import {
   ParticipantVideoFallback as DefaultParticipantVideoFallback,
-  ParticipantVideoFallbackProps,
+  type ParticipantVideoFallbackProps,
 } from './ParticipantVideoFallback';
 import {
   VideoRenderer as DefaultVideoRenderer,
-  VideoRendererProps,
+  type VideoRendererProps,
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallContentProps } from '../../Call';
+import type { CallContentProps } from '../../Call';
 
 export type ParticipantViewComponentProps = {
   /**
@@ -117,7 +117,6 @@ export const ParticipantView = ({
   const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
-    styles.highlightedContainer,
     { borderColor: colors.buttonPrimary },
     participantView.highlightedContainer,
   ];
@@ -174,17 +173,16 @@ const useStyles = () => {
           overflow: 'hidden',
           justifyContent: 'flex-end',
           borderRadius: theme.variants.borderRadiusSizes.md,
+          borderWidth: 2,
+          borderColor: 'transparent',
         },
         footerContainer: {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
         },
-        highlightedContainer: {
-          borderWidth: 2,
-        },
         networkIndicatorOnly: { justifyContent: 'flex-end' },
       }),
-    [theme]
+    [theme],
   );
 };

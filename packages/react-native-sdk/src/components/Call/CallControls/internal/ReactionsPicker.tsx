@@ -1,16 +1,16 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
-  LayoutRectangle,
-  Pressable,
-  StyleSheet,
   Animated,
   Easing,
+  type LayoutRectangle,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { SendReactionRequest, getLogger } from '@stream-io/video-client';
+import { getLogger, type SendReactionRequest } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import { ReactionsButtonProps } from '../ReactionsButton';
+import type { ReactionsButtonProps } from '../ReactionsButton';
 import { defaultEmojiReactions } from '../../../../constants';
 
 type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {
@@ -187,6 +187,6 @@ const useStyles = () => {
           fontSize: 18.5,
         },
       }),
-    [theme]
+    [theme],
   );
 };

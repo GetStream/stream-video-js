@@ -8,7 +8,6 @@ import {
 } from 'stream-chat-react';
 
 import { MenuIcon } from './icons';
-import type { StreamChatType } from '../../types/chat';
 import { CreateCallButton } from '../CreateCallButton';
 
 export type ChannelHeaderProps = {
@@ -23,9 +22,8 @@ export type ChannelHeaderProps = {
 const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { image: overrideImage, live, title: overrideTitle } = props;
 
-  const { channel, watcher_count } =
-    useChannelStateContext<StreamChatType>('ChannelHeader');
-  const { openMobileNav } = useChatContext<StreamChatType>('ChannelHeader');
+  const { channel, watcher_count } = useChannelStateContext('ChannelHeader');
+  const { openMobileNav } = useChatContext('ChannelHeader');
   const { t } = useTranslationContext('ChannelHeader');
   const { displayImage, displayTitle } = useChannelPreviewInfo({
     channel,

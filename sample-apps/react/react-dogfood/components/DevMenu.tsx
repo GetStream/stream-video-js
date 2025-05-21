@@ -1,5 +1,6 @@
 import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { decodeBase64 } from 'stream-chat';
+import { getConnectionString } from '../lib/connectionString';
 
 export const DevMenu = () => {
   const call = useCall();
@@ -26,6 +27,9 @@ export const DevMenu = () => {
 
       <li className="rd__dev-menu__item">
         <SfuCallStats />
+      </li>
+      <li className="rd__dev-menu__item">
+        <TraceStats />
       </li>
 
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
@@ -83,6 +87,16 @@ export const DevMenu = () => {
       >
         Switch to Pronto
       </a>
+      {call && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={`/inspect?conn=${getConnectionString(call)}`}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to Inspector
+        </a>
+      )}
     </ul>
   );
 };
@@ -276,6 +290,29 @@ const SfuCallStats = () => {
     >
       <Icon className="rd__button__icon" icon="folder" />
       SFU Call State Info
+    </button>
+  );
+};
+
+const TraceStats = () => {
+  const call = useCall();
+  if (!call) return null;
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      disabled={!call}
+      onClick={() => {
+        const appId = process.env.NEXT_PUBLIC_STREAM_APP_ID || '';
+        if (!appId) return window.open('http://localhost:8081/', '_blank');
+        const path = `app/${appId}/${call.cid}/${call.state.session?.id}/`;
+        window.open(
+          `http://localhost:8081/?path=${encodeURIComponent(path)}`,
+          '_blank',
+        );
+      }}
+    >
+      <Icon className="rd__button__icon" icon="folder" />
+      Trace Stats
     </button>
   );
 };

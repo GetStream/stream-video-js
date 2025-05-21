@@ -39,7 +39,7 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error | undefined>();
-  const nextPage = useRef<string | undefined>();
+  const nextPage = useRef<string | undefined>(undefined);
 
   const loadCalls = useCallback(async () => {
     if (!client) return;

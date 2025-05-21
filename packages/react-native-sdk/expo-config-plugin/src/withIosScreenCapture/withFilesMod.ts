@@ -1,13 +1,13 @@
 import {
-  ConfigPlugin,
-  InfoPlist,
+  type ConfigPlugin,
+  type InfoPlist,
   withDangerousMod,
   withPlugins,
 } from '@expo/config-plugins';
 import plist from '@expo/plist';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ConfigProps } from '../common/types';
+import type { ConfigProps } from '../common/types';
 
 const withFilesMod: ConfigPlugin<ConfigProps> = (config) =>
   withPlugins(config, [
@@ -24,12 +24,12 @@ const withBroadcastExtensionHandler: ConfigPlugin = (configuration) => {
     (config) => {
       const extensionRootPath = path.join(
         config.modRequest.platformProjectRoot,
-        'broadcast'
+        'broadcast',
       );
       fs.mkdirSync(extensionRootPath, { recursive: true });
       fs.copyFileSync(
         path.join(__dirname, '..', '..', 'static', 'SampleHandler.swift'),
-        path.join(extensionRootPath, 'SampleHandler.swift')
+        path.join(extensionRootPath, 'SampleHandler.swift'),
       );
       return config;
     },
@@ -43,7 +43,7 @@ const withBroadcastExtensionPlist: ConfigPlugin = (configuration) => {
     (config) => {
       const extensionRootPath = path.join(
         config.modRequest.platformProjectRoot,
-        'broadcast'
+        'broadcast',
       );
       const extensionPlistPath = path.join(extensionRootPath, 'Info.plist');
 
