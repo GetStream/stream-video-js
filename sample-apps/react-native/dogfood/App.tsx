@@ -189,7 +189,7 @@ const RingingWatcher = () => {
 
   useEffect(() => {
     if (calls.length > 1) {
-      const lastCallCreatedBy = calls[1]?.state.createdBy;
+      const lastCallCreatedBy = calls.at(-1)?.state.createdBy;
       Alert.alert(
         `Incoming call from ${
           lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
