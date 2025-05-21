@@ -55,6 +55,28 @@ describe('createClient', () => {
     expect(trace).toHaveBeenCalledWith('TestMethod', { param: 'value' });
   });
 
+  it('withRequestTracer should add an error trace', () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace);
+    const err = new Error('test error');
+    const next = vi.fn(() => {
+      throw err;
+    });
+    expect(() =>
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - invalid name
+        { name: 'TestMethod' },
+        { param: 'value' },
+        { meta: {} },
+      ),
+    ).toThrow('test error');
+    expect(trace).toHaveBeenLastCalledWith('TestMethodOnFailure', [
+      err,
+      { param: 'value' },
+    ]);
+  });
+
   it('withRequestTracer should add a failure trace when the SFU returns an error', async () => {
     const trace = vi.fn();
     const interceptor = withRequestTracer(trace);
@@ -80,28 +102,6 @@ describe('createClient', () => {
     expect(trace).toHaveBeenCalledWith('TestMethod', { param: 'value' });
     expect(trace).toHaveBeenCalledWith('TestMethodOnFailure', [
       { msg: 'err' },
-      { param: 'value' },
-    ]);
-  });
-
-  it('withRequestTracer should add an error trace', () => {
-    const trace = vi.fn();
-    const interceptor = withRequestTracer(trace);
-    const err = new Error('test error');
-    const next = vi.fn(() => {
-      throw err;
-    });
-    expect(() =>
-      interceptor.interceptUnary(
-        next,
-        // @ts-expect-error - invalid name
-        { name: 'TestMethod' },
-        { param: 'value' },
-        { meta: {} },
-      ),
-    ).toThrow('test error');
-    expect(trace).toHaveBeenLastCalledWith('TestMethodOnFailure', [
-      err,
       { param: 'value' },
     ]);
   });
