@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.1...@stream-io/video-client-1.23.2) (2025-05-22)
+
+### Bug Fixes
+
+- rpc error tracing ([#1801](https://github.com/GetStream/stream-video-js/issues/1801)) ([a9e86d5](https://github.com/GetStream/stream-video-js/commit/a9e86d5e51e72b15d044e012f5fcc5a44907c325))
+
 ## [1.23.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.0...@stream-io/video-client-1.23.1) (2025-05-21)
 
 ### Bug Fixes
