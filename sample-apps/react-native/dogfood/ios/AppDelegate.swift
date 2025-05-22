@@ -15,6 +15,7 @@ import RNCallKeep
 import PushKit
 import WebRTC
 import RNVoipPushNotification
+import stream_io_noise_cancellation_react_native
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
@@ -128,6 +129,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     let center = UNUserNotificationCenter.current()
     center.delegate = self
+    
+    NoiseCancellationManager.getInstance().registerProcessor()
     
     let options = WebRTCModuleOptions.sharedInstance()
     options.enableMultitaskingCameraAccess = true

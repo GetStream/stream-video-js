@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.4...@stream-io/video-styling-1.1.5) (2025-05-15)
+
+### Bug Fixes
+
+- enable chore releases ([#1792](https://github.com/GetStream/stream-video-js/issues/1792)) ([6046654](https://github.com/GetStream/stream-video-js/commit/6046654fe19505a1c115a4fb838759d010540614))
+
 ## [1.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.1.3...@stream-io/video-styling-1.1.4) (2025-04-15)
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.13.1",
+  "version": "1.14.1",
   "description": "Stream Video SDK for React Native",
   "author": "https://getstream.io",
   "homepage": "https://getstream.io/video/docs/react-native/",
@@ -59,6 +59,7 @@
     "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
+    "@stream-io/noise-cancellation-react-native": ">=0.1.0",
     "@stream-io/react-native-webrtc": ">=125.2.1",
     "@stream-io/video-filters-react-native": ">=0.1.0",
     "expo": ">=47.0.0",
@@ -84,6 +85,9 @@
       "optional": true
     },
     "@react-native-firebase/messaging": {
+      "optional": true
+    },
+    "@stream-io/noise-cancellation-react-native": {
       "optional": true
     },
     "@stream-io/video-filters-react-native": {
@@ -121,7 +125,8 @@
     "@react-native-firebase/app": "^22.1.0",
     "@react-native-firebase/messaging": "^22.1.0",
     "@react-native/babel-preset": "^0.79.2",
-    "@stream-io/react-native-webrtc": "^125.2.1",
+    "@stream-io/noise-cancellation-react-native": "workspace:^",
+    "@stream-io/react-native-webrtc": "^125.3.0",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "13.2.0",

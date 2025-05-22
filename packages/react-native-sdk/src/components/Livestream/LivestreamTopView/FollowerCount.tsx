@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -13,62 +13,55 @@ export type FollowerCountProps = {};
  * The FollowerCount component that displays the number of participants while in the call.
  */
 export const FollowerCount = ({}: FollowerCountProps) => {
+  const styles = useStyles();
   const {
-    theme: {
-      colors,
-      variants: { iconSizes },
-      followerCount,
-    },
+    theme: { followerCount },
   } = useTheme();
+
   const { useParticipantCount } = useCallStateHooks();
   const totalParticipants = useParticipantCount();
+
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetTertiary },
-        followerCount.container,
-      ]}
-    >
-      <View
-        style={[
-          styles.icon,
-          { height: iconSizes.xs, width: iconSizes.xs },
-          followerCount.icon,
-        ]}
-      >
+    <View style={[styles.container, followerCount.container]}>
+      <View style={[styles.icon, followerCount.icon]}>
         <Eye />
       </View>
-      <Text
-        style={[
-          styles.label,
-          { color: colors.textPrimary },
-          followerCount.label,
-        ]}
-      >
+      <Text style={[styles.label, followerCount.label]}>
         {totalParticipants}
       </Text>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {},
-  label: {
-    fontSize: 13,
-    fontWeight: '400',
-    flexShrink: 1,
-    textAlign: 'center',
-    includeFontPadding: false,
-    marginLeft: 4,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          paddingHorizontal: theme.variants.spacingSizes.sm,
+          paddingVertical: 4,
+          borderTopRightRadius: 4,
+          borderBottomRightRadius: 4,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.sheetTertiary,
+        },
+        icon: {
+          height: theme.variants.iconSizes.sm,
+          width: theme.variants.iconSizes.sm,
+        },
+        label: {
+          fontSize: theme.variants.fontSizes.md,
+          fontWeight: '600',
+          flexShrink: 1,
+          textAlign: 'center',
+          includeFontPadding: false,
+          marginLeft: theme.variants.spacingSizes.xs,
+          color: theme.colors.textPrimary,
+        },
+      }),
+    [theme],
+  );
+};

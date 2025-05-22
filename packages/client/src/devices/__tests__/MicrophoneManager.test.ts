@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import { NoiseCancellationStub } from './NoiseCancellationStub';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { sleep } from '../../coordinator/connection/utils';
@@ -53,22 +53,6 @@ vi.mock('../../Call.ts', () => {
     Call: vi.fn(() => mockCall()),
   };
 });
-
-class NoiseCancellationStub implements INoiseCancellation {
-  private listeners: { [event: string]: Array<(arg: boolean) => void> } = {};
-
-  isSupported = () => true;
-  init = () => Promise.resolve(undefined);
-  enable = () => this.listeners['change']?.forEach((l) => l(true));
-  disable = () => this.listeners['change']?.forEach((l) => l(false));
-  dispose = () => Promise.resolve(undefined);
-  toFilter = () => (ms: MediaStream) => ({ output: ms });
-  on = (event, callback) => {
-    (this.listeners[event] ??= []).push(callback);
-    return () => {};
-  };
-  off = () => {};
-}
 
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;

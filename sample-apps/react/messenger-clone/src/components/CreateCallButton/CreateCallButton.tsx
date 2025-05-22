@@ -6,11 +6,10 @@ import {
 import { useChannelStateContext } from 'stream-chat-react';
 import { LocalPhone } from '@mui/icons-material';
 import { meetingId } from '../../utils/meetingId';
-import type { StreamChatType } from '../../types/chat';
 
 export const CreateCallButton = () => {
   const videoClient = useStreamVideoClient();
-  const { channel } = useChannelStateContext<StreamChatType>();
+  const { channel } = useChannelStateContext();
 
   const createCall = useCallback(() => {
     videoClient?.call('default', meetingId()).getOrCreate({

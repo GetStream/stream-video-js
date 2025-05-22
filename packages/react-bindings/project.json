@@ -23,7 +23,7 @@
         },
         "trackDeps": true,
         "push": true,
-        "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
+        "skipCommitTypes": ["ci", "refactor", "test", "docs"],
         "postTargets": [
           "@stream-io/video-react-bindings:github",
           "@stream-io/video-react-bindings:publish"

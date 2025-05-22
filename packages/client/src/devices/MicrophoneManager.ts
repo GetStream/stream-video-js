@@ -78,7 +78,17 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
         if (autoOn && callingState === CallingState.JOINED) {
           this.noiseCancellationRegistration
-            .then(() => this.noiseCancellation?.enable())
+            .then(() => {
+              if (this.noiseCancellation?.canAutoEnable) {
+                return this.noiseCancellation.canAutoEnable();
+              }
+              return true;
+            })
+            .then((canAutoEnable) => {
+              if (canAutoEnable) {
+                this.noiseCancellation?.enable();
+              }
+            })
             .catch((err) => {
               this.logger('warn', `Failed to enable noise cancellation`, err);
               return this.call.notifyNoiseCancellationStopped();
@@ -97,14 +107,9 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   /**
    * Enables noise cancellation for the microphone.
    *
-   * Note: not supported in React Native.
    * @param noiseCancellation - a noise cancellation instance to use.
    */
   async enableNoiseCancellation(noiseCancellation: INoiseCancellation) {
-    if (isReactNative()) {
-      throw new Error('Noise cancellation is not supported in React Native');
-    }
-
     const { ownCapabilities, settings } = this.call.state;
     const hasNoiseCancellationCapability = ownCapabilities.includes(
       OwnCapability.ENABLE_NOISE_CANCELLATION,
@@ -127,6 +132,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       this.noiseCancellationChangeUnsubscribe = this.noiseCancellation.on(
         'change',
         (enabled: boolean) => {
+          this.call.tracer.trace('noiseCancellation.enabled', enabled);
           if (enabled) {
             this.call.notifyNoiseCancellationStarting().catch((err) => {
               this.logger('warn', `notifyNoiseCancellationStart failed`, err);
@@ -139,12 +145,17 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         },
       );
 
-      const registrationResult = this.registerFilter(
-        noiseCancellation.toFilter(),
-      );
-      this.noiseCancellationRegistration = registrationResult.registered;
-      this.unregisterNoiseCancellation = registrationResult.unregister;
-      await this.noiseCancellationRegistration;
+      if (isReactNative()) {
+        // no filter registration in React Native, its done in the native code on app init
+        this.noiseCancellationRegistration = Promise.resolve();
+      } else {
+        const registrationResult = this.registerFilter(
+          noiseCancellation.toFilter(),
+        );
+        this.noiseCancellationRegistration = registrationResult.registered;
+        this.unregisterNoiseCancellation = registrationResult.unregister;
+        await this.noiseCancellationRegistration;
+      }
 
       // handles an edge case where a noise cancellation is enabled after
       // the participant as joined the call -> we immediately enable NC
@@ -153,7 +164,13 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
           NoiseCancellationSettingsModeEnum.AUTO_ON &&
         this.call.state.callingState === CallingState.JOINED
       ) {
-        noiseCancellation.enable();
+        let canAutoEnable = true;
+        if (noiseCancellation.canAutoEnable) {
+          canAutoEnable = await noiseCancellation.canAutoEnable();
+        }
+        if (canAutoEnable) {
+          noiseCancellation.enable();
+        }
       }
     } catch (e) {
       this.logger('warn', 'Failed to enable noise cancellation', e);
@@ -165,13 +182,8 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
   /**
    * Disables noise cancellation for the microphone.
-   *
-   * Note: not supported in React Native.
    */
   async disableNoiseCancellation() {
-    if (isReactNative()) {
-      throw new Error('Noise cancellation is not supported in React Native');
-    }
     await (this.unregisterNoiseCancellation?.() ?? Promise.resolve())
       .then(() => this.noiseCancellation?.disable())
       .then(() => this.noiseCancellationChangeUnsubscribe?.())

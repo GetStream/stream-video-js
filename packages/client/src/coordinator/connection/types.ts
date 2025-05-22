@@ -42,10 +42,52 @@ export type APIErrorResponse = {
 };
 
 export class ErrorFromResponse<T> extends Error {
-  code?: number;
-  response?: AxiosResponse<T>;
-  status?: number;
-  unrecoverable?: boolean;
+  public code: number | null;
+  public status: number;
+  public response: AxiosResponse<T>;
+  public name = 'ErrorFromResponse';
+  public unrecoverable: boolean | null;
+
+  constructor({
+    message,
+    code,
+    status,
+    response,
+    unrecoverable,
+  }: Pick<
+    ErrorFromResponse<T>,
+    'message' | 'code' | 'status' | 'response' | 'unrecoverable'
+  >) {
+    super(message);
+    this.code = code;
+    this.response = response;
+    this.status = status;
+    this.unrecoverable = unrecoverable;
+  }
+
+  // Vitest helper (serialized errors are too large to read)
+  // https://github.com/vitest-dev/vitest/blob/v3.1.3/packages/utils/src/error.ts#L60-L62
+  public toJSON() {
+    const extra = [
+      ['status', this.status],
+      ['code', this.code],
+      ['unrecoverable', this.unrecoverable],
+    ] as const;
+
+    const joinable = [];
+
+    for (const [key, value] of extra) {
+      if (typeof value !== 'undefined' && value !== null) {
+        joinable.push(`${key}: ${value}`);
+      }
+    }
+
+    return {
+      message: `(${joinable.join(', ')}) - ${this.message}`,
+      stack: this.stack,
+      name: this.name,
+    };
+  }
 }
 
 export type ConnectionChangedEvent = {

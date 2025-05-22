@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
@@ -8,7 +8,7 @@ import {
   StreamCall,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
@@ -24,22 +24,6 @@ const Calls = () => {
   const calls = useCalls().filter((c) => c.ringing);
   const { top } = useSafeAreaInsets();
   const orientation = useOrientation();
-
-  const handleMoreCalls = useCallback(async () => {
-    const lastCallCreatedBy = calls[1]?.state.createdBy;
-    Alert.alert(
-      `Incoming call from ${
-        lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
-      }, only 1 call at a time is supported`,
-    );
-  }, [calls]);
-
-  // Reset the state of the show variable when there are no calls.
-  useEffect(() => {
-    if (calls.length > 1) {
-      handleMoreCalls();
-    }
-  }, [calls.length, handleMoreCalls]);
 
   const firstCall = calls[0];
 
@@ -64,7 +48,7 @@ const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
         call.leave();
       }
     };
-  }, []);
+  }, [call]);
   return null;
 };
 

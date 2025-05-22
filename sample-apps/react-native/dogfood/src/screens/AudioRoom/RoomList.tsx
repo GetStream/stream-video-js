@@ -143,7 +143,7 @@ const RoomList = (props: Props) => {
     ) : (
       <Button onPress={queryLiveCalls} title={t('Load more')} />
     );
-  }, [loadingCalls, queryLiveCalls]);
+  }, [loadingCalls, queryLiveCalls, t]);
 
   const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(() => {
     let text = 'No live audio rooms found';

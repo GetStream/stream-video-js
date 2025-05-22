@@ -32,7 +32,7 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { LogBox } from 'react-native';
+import { Alert, LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
@@ -40,6 +40,7 @@ import {
   isPushNotificationiOSStreamVideoEvent,
   onPushNotificationiOSStreamVideoEvent,
   StreamTheme,
+  useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { appTheme } from './src/theme';
 
@@ -170,12 +171,42 @@ const StackNavigator = () => {
   return (
     <GestureHandlerRootView style={containerStyle}>
       <VideoWrapper>
+        <RingingWatcher />
         <ChatWrapper>
           <Stack.Navigator>{mode}</Stack.Navigator>
         </ChatWrapper>
       </VideoWrapper>
     </GestureHandlerRootView>
   );
+};
+
+/**
+ * This component is used to watch for incoming calls and set the app mode to 'Call'
+ */
+const RingingWatcher = () => {
+  const setState = useAppGlobalStoreSetState();
+  const calls = useCalls().filter((c) => c.ringing);
+
+  useEffect(() => {
+    if (calls.length > 1) {
+      const lastCallCreatedBy = calls.at(-1)?.state.createdBy;
+      Alert.alert(
+        `Incoming call from ${
+          lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
+        }, only 1 call at a time is supported`,
+      );
+    }
+  }, [calls]);
+
+  const firstCall = calls[0];
+
+  useEffect(() => {
+    if (firstCall) {
+      setState({ appMode: 'Call' });
+    }
+  }, [firstCall, setState]);
+
+  return null;
 };
 
 export default function App() {

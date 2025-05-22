@@ -138,9 +138,10 @@ export type CallStackParamList = {
 
 export type LiveStreamParamList = {
   LiveStreamChoose: undefined;
-  JoinLiveStream: { mode: 'host' | 'viewer' };
+  JoinLiveStream: { mode: 'host' | 'viewer'; scannedCallId?: string };
   HostLiveStream: { callId: string };
   ViewerLiveStream: { callId: string };
+  QRScanner: { onScan: (callId: string) => void };
 };
 
 export type AppModeParamList = {
@@ -161,27 +162,3 @@ export type ScreenTypes =
   | 'error-leave'
   | 'active-call'
   | 'loading';
-
-type LocalAttachmentType = Record<string, unknown>;
-type LocalChannelType = Record<string, unknown>;
-type LocalCommandType = string;
-type LocalEventType = Record<string, unknown>;
-type LocalMessageType = Record<string, unknown>;
-type LocalReactionType = Record<string, unknown>;
-type LocalUserType = Record<string, unknown>;
-type LocalPollOptionType = Record<string, unknown>;
-type LocalPollType = Record<string, unknown>;
-type LocalMemberType = Record<string, unknown>;
-
-export type StreamChatGenerics = {
-  attachmentType: LocalAttachmentType;
-  channelType: LocalChannelType;
-  commandType: LocalCommandType;
-  eventType: LocalEventType;
-  memberType: LocalMemberType;
-  messageType: LocalMessageType;
-  pollOptionType: LocalPollOptionType;
-  pollType: LocalPollType;
-  reactionType: LocalReactionType;
-  userType: LocalUserType;
-};

@@ -42,6 +42,7 @@
         "@stream-io/video-react-native-sdk",
         {
           "enableScreenshare": true,
+          "addNoiseCancellation": true,
           "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {

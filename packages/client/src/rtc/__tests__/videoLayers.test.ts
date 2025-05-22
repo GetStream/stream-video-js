@@ -170,6 +170,50 @@ describe('videoLayers', () => {
     expect(layers[2].rid).toBe('f');
   });
 
+  it('should activate only a single layer when useSingleLayer is true', () => {
+    const track = new MediaStreamTrack();
+    // @ts-expect-error - incomplete data
+    const layers = computeVideoLayers(track, { useSingleLayer: true });
+    expect(layers.length).toBe(3);
+    expect(layers[0].active).toBe(false);
+    expect(layers[0].rid).toBe('q');
+    expect(layers[1].active).toBe(false);
+    expect(layers[1].rid).toBe('h');
+    expect(layers[2].active).toBe(true);
+    expect(layers[2].rid).toBe('f');
+  });
+
+  it('should activate only a single layer when useSingleLayer is true in single layer mode', () => {
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({ width: 320, height: 180 });
+    // @ts-expect-error - incomplete data
+    const layers = computeVideoLayers(track, { useSingleLayer: true });
+    expect(layers.length).toBe(1);
+    expect(layers[0].active).toBe(true);
+    expect(layers[0].rid).toBe('q');
+  });
+
+  it('should activate only one temporal layer when useSingleLayer is true for SVC', () => {
+    const track = new MediaStreamTrack();
+    const layers = computeVideoLayers(track, {
+      // @ts-expect-error - incomplete data
+      codec: { name: 'vp9' },
+      maxSpatialLayers: 3,
+      maxTemporalLayers: 3,
+      useSingleLayer: true,
+    });
+    expect(layers.length).toBe(3);
+    expect(layers[0].rid).toBe('q');
+    expect(layers[0].active).toBe(false);
+    expect(layers[0].scalabilityMode).toBe('L1T3');
+    expect(layers[1].active).toBe(false);
+    expect(layers[1].rid).toBe('h');
+    expect(layers[1].scalabilityMode).toBe('L1T3');
+    expect(layers[2].active).toBe(true);
+    expect(layers[2].rid).toBe('f');
+    expect(layers[2].scalabilityMode).toBe('L1T3');
+  });
+
   it('should map rids to VideoQuality', () => {
     expect(ridToVideoQuality('q')).toBe(VideoQuality.LOW_UNSPECIFIED);
     expect(ridToVideoQuality('h')).toBe(VideoQuality.MID);

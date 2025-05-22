@@ -1,1 +1,1 @@
-export const krispSDKVersion = '1.4.1';
+export const krispSDKVersion = '2.3.1';
