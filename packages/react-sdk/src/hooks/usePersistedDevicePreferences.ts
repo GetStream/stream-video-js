@@ -76,8 +76,8 @@ export const usePersistedDevicePreferences = (
 
       (async () => {
         for (const [deviceKey, state, defaultMuted] of [
-          ['camera', cameraState, settings.video.camera_default_on],
-          ['microphone', microphoneState, settings.audio.mic_default_on],
+          ['camera', cameraState, !settings.video.camera_default_on],
+          ['microphone', microphoneState, !settings.audio.mic_default_on],
           ['speaker', speakerState, false],
         ] as const) {
           const preferences = parseLocalDevicePreferences(key);
