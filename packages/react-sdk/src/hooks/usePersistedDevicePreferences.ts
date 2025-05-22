@@ -44,15 +44,15 @@ export const usePersistedDevicePreferences = (
   const {
     useCallSettings,
     useCallCallingState,
-    useCameraState,
     useMicrophoneState,
+    useCameraState,
     useSpeakerState,
   } = useCallStateHooks();
   const settings = useCallSettings();
   const callingState = useCallCallingState();
 
-  const cameraState: DeviceState<'camera'> = useCameraState();
   const microphoneState: DeviceState<'microphone'> = useMicrophoneState();
+  const cameraState: DeviceState<'camera'> = useCameraState();
   const speakerState: DeviceState<'speaker'> = useSpeakerState();
 
   const [applyingState, setApplyingState] = useState<
@@ -63,8 +63,8 @@ export const usePersistedDevicePreferences = (
     function apply() {
       if (
         callingState === CallingState.LEFT ||
-        !cameraState.devices.length ||
         !microphoneState.devices.length ||
+        !cameraState.devices.length ||
         !speakerState.devices ||
         !settings ||
         applyingState !== 'idle'
@@ -76,8 +76,8 @@ export const usePersistedDevicePreferences = (
 
       (async () => {
         for (const [deviceKey, state, defaultMuted] of [
-          ['camera', cameraState, !settings.video.camera_default_on],
           ['microphone', microphoneState, !settings.audio.mic_default_on],
+          ['camera', cameraState, !settings.video.camera_default_on],
           ['speaker', speakerState, false],
         ] as const) {
           const preferences = parseLocalDevicePreferences(key);
