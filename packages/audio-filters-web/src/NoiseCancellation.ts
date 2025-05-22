@@ -277,6 +277,8 @@ export class NoiseCancellation implements INoiseCancellation {
     const destination = this.audioContext.createMediaStreamDestination();
 
     source.connect(this.filterNode).connect(destination);
+    (window as any)._filterNodes ??= [];
+    (window as any)._filterNodes.push({ source, destination });
     return { output: destination.stream };
   };
 
