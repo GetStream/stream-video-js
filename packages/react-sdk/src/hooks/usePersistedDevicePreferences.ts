@@ -43,121 +43,230 @@ export const usePersistedDevicePreferences = (
 ): void => {
   const {
     useCallSettings,
+    useCallCallingState,
     useCameraState,
     useMicrophoneState,
     useSpeakerState,
   } = useCallStateHooks();
   const settings = useCallSettings();
-
-  usePersistedDevicePreference(
-    key,
-    'camera',
-    useCameraState(),
-    settings ? !settings.video.camera_default_on : undefined,
-  );
-
-  usePersistedDevicePreference(
-    key,
-    'microphone',
-    useMicrophoneState(),
-    settings ? !settings.audio.mic_default_on : undefined,
-  );
-
-  usePersistedDevicePreference(key, 'speaker', useSpeakerState(), false);
-};
-
-const usePersistedDevicePreference = <K extends DeviceKey>(
-  key: string,
-  deviceKey: K,
-  state: DeviceState<K>,
-  defaultMuted?: boolean,
-): void => {
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+
+  const cameraState: DeviceState<'camera'> = useCameraState();
+  const microphoneState: DeviceState<'microphone'> = useMicrophoneState();
+  const speakerState: DeviceState<'speaker'> = useSpeakerState();
+
   const [applyingState, setApplyingState] = useState<
     'idle' | 'applying' | 'applied'
   >('idle');
-  const manager = state[deviceKey];
 
   useEffect(
     function apply() {
       if (
         callingState === CallingState.LEFT ||
-        !state.devices?.length ||
-        typeof defaultMuted !== 'boolean' ||
+        !cameraState.devices.length ||
+        !microphoneState.devices.length ||
+        !speakerState.devices ||
+        !settings ||
         applyingState !== 'idle'
       ) {
         return;
       }
 
-      const preferences = parseLocalDevicePreferences(key);
-      const preference = preferences[deviceKey];
-
       setApplyingState('applying');
 
-      if (!manager.state.selectedDevice) {
-        const applyPromise = preference
-          ? applyLocalDevicePreference(
-              manager,
-              [preference].flat(),
-              state.devices,
-            )
-          : applyMutedState(manager, defaultMuted);
+      (async () => {
+        for (const [deviceKey, state, defaultMuted] of [
+          ['camera', cameraState, settings.video.camera_default_on],
+          ['microphone', microphoneState, settings.audio.mic_default_on],
+          ['speaker', speakerState, false],
+        ] as const) {
+          const preferences = parseLocalDevicePreferences(key);
+          const preference = preferences[deviceKey];
+          const manager = (
+            state as DeviceState<'camera' | 'microphone' | 'speaker'>
+          )[deviceKey];
 
-        applyPromise
-          .catch((err) => {
-            console.warn(
-              `Failed to apply ${deviceKey} device preferences`,
-              err,
-            );
-          })
-          .finally(() => setApplyingState('applied'));
-      } else {
-        setApplyingState('applied');
-      }
+          if (!manager.state.selectedDevice) {
+            const applyPromise = preference
+              ? applyLocalDevicePreference(
+                  manager,
+                  [preference].flat(),
+                  state.devices,
+                )
+              : applyMutedState(manager, defaultMuted);
+
+            await applyPromise.catch((err) => {
+              console.warn(
+                `Failed to apply ${deviceKey} device preferences`,
+                err,
+              );
+            });
+          }
+        }
+      })().finally(() =>
+        setApplyingState((state) => (state === 'applying' ? 'applied' : state)),
+      );
     },
     [
       applyingState,
       callingState,
-      defaultMuted,
-      deviceKey,
+      cameraState,
+      cameraState.devices,
       key,
-      manager,
-      state.devices,
+      microphoneState,
+      microphoneState.devices,
+      settings,
+      speakerState,
+      speakerState.devices,
     ],
   );
 
   useEffect(
     function persist() {
-      if (
-        callingState === CallingState.LEFT ||
-        !state.devices?.length ||
-        applyingState !== 'applied'
-      ) {
+      if (callingState === CallingState.LEFT || applyingState !== 'applied') {
         return;
       }
 
-      try {
-        patchLocalDevicePreference(key, deviceKey, {
-          devices: state.devices,
-          selectedDevice: state.selectedDevice,
-          isMute: state.isMute,
-        });
-      } catch (err) {
-        console.warn(`Failed to save ${deviceKey} device preferences`, err);
+      for (const [deviceKey, devices, selectedDevice, isMute] of [
+        [
+          'camera',
+          cameraState.devices,
+          cameraState.selectedDevice,
+          cameraState.isMute,
+        ],
+        [
+          'microphone',
+          microphoneState.devices,
+          microphoneState.selectedDevice,
+          microphoneState.isMute,
+        ],
+        [
+          'speaker',
+          speakerState.devices,
+          speakerState.selectedDevice,
+          speakerState.isMute,
+        ],
+      ] as const) {
+        try {
+          patchLocalDevicePreference(key, deviceKey, {
+            devices,
+            selectedDevice,
+            isMute,
+          });
+        } catch (err) {
+          console.warn(`Failed to save ${deviceKey} device preferences`, err);
+        }
       }
     },
     [
       applyingState,
       callingState,
-      deviceKey,
+      cameraState.devices,
+      cameraState.isMute,
+      cameraState.selectedDevice,
       key,
-      state.devices,
-      state.isMute,
-      state.selectedDevice,
+      microphoneState.devices,
+      microphoneState.isMute,
+      microphoneState.selectedDevice,
+      speakerState.devices,
+      speakerState.isMute,
+      speakerState.selectedDevice,
     ],
   );
 };
+
+// const usePersistedDevicePreference = <K extends DeviceKey>(
+//   key: string,
+//   deviceKey: K,
+//   state: DeviceState<K>,
+//   defaultMuted?: boolean,
+// ): void => {
+//   const { useCallCallingState } = useCallStateHooks();
+//   const callingState = useCallCallingState();
+//   const [applyingState, setApplyingState] = useState<
+//     'idle' | 'applying' | 'applied'
+//   >('idle');
+//   const manager = state[deviceKey];
+
+//   useEffect(
+//     function apply() {
+//       if (
+//         callingState === CallingState.LEFT ||
+//         !state.devices?.length ||
+//         typeof defaultMuted !== 'boolean' ||
+//         applyingState !== 'idle'
+//       ) {
+//         return;
+//       }
+
+//       const preferences = parseLocalDevicePreferences(key);
+//       const preference = preferences[deviceKey];
+
+//       setApplyingState('applying');
+
+//       if (!manager.state.selectedDevice) {
+//         const applyPromise = preference
+//           ? applyLocalDevicePreference(
+//               manager,
+//               [preference].flat(),
+//               state.devices,
+//             )
+//           : applyMutedState(manager, defaultMuted);
+
+//         applyPromise
+//           .catch((err) => {
+//             console.warn(
+//               `Failed to apply ${deviceKey} device preferences`,
+//               err,
+//             );
+//           })
+//           .finally(() => setApplyingState('applied'));
+//       } else {
+//         setApplyingState('applied');
+//       }
+//     },
+//     [
+//       applyingState,
+//       callingState,
+//       defaultMuted,
+//       deviceKey,
+//       key,
+//       manager,
+//       state.devices,
+//     ],
+//   );
+
+//   useEffect(
+//     function persist() {
+//       if (
+//         callingState === CallingState.LEFT ||
+//         !state.devices?.length ||
+//         applyingState !== 'applied'
+//       ) {
+//         return;
+//       }
+
+//       try {
+//         patchLocalDevicePreference(key, deviceKey, {
+//           devices: state.devices,
+//           selectedDevice: state.selectedDevice,
+//           isMute: state.isMute,
+//         });
+//       } catch (err) {
+//         console.warn(`Failed to save ${deviceKey} device preferences`, err);
+//       }
+//     },
+//     [
+//       applyingState,
+//       callingState,
+//       deviceKey,
+//       key,
+//       state.devices,
+//       state.isMute,
+//       state.selectedDevice,
+//     ],
+//   );
+// };
 
 const parseLocalDevicePreferences = (key: string): LocalDevicePreferences => {
   const preferencesStr = window.localStorage.getItem(key);
