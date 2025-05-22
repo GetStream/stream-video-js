@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.17.1...@stream-io/video-react-sdk-1.18.0) (2025-05-22)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.2.0`
+- `@stream-io/video-client` updated to version `1.23.2`
+- `@stream-io/video-react-bindings` updated to version `1.6.5`
+
+### Features
+
+- add backstage mode for LivestreamPlayer ([#1796](https://github.com/GetStream/stream-video-js/issues/1796)) ([94e2863](https://github.com/GetStream/stream-video-js/commit/94e2863aa8c52542f2ecb53f71485d5d5f2e79fd))
+
+### Bug Fixes
+
+- sequential uPDP ([#1802](https://github.com/GetStream/stream-video-js/issues/1802)) ([f613b97](https://github.com/GetStream/stream-video-js/commit/f613b97ea03e85fd64ca5de76f4e34d1507fef27))
+
 ## [1.17.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.17.0...@stream-io/video-react-sdk-1.17.1) (2025-05-21)
 
 ### Dependency Updates
