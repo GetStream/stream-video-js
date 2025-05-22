@@ -160,6 +160,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     rootStream: MediaStream | undefined,
   ) {
     RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
+    (this as any)._rootStream = rootStream;
     if (rootStream) {
       this.setDevice(this.getDeviceIdFromStream(rootStream));
     }
