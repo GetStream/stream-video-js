@@ -25,6 +25,7 @@ import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
 import { ClosedCaptions } from './ClosedCaptions';
+import { useCustomVideoFilters } from './VideoEffects/CustomFilters';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -49,6 +50,7 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
+  const { applyBlurFilter, disableCustomFilter } = useCustomVideoFilters();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -72,8 +74,12 @@ export const ActiveCall = ({
 
   useEffect(() => {
     // @ts-expect-error type issue due to experimental call events
-    return call?.on('call_moderation.blur', (event) => {
+    const unsub = call?.on('call_moderation.blur', (event) => {
       console.log('call_moderation.blur', event);
+      applyBlurFilter();
+      setTimeout(() => {
+        disableCustomFilter();
+      }, 20000);
       Toast.show({
         type: 'error',
         text1: `Call Moderation Blur`,
@@ -82,7 +88,11 @@ export const ActiveCall = ({
         bottomOffset: 150,
       });
     });
-  }, [call]);
+    return () => {
+      unsub?.();
+      disableCustomFilter();
+    };
+  }, [call, applyBlurFilter, disableCustomFilter]);
 
   useEffect(() => {
     return call?.on('call.ended', (event) => {

@@ -12,11 +12,12 @@ const VideoEffectsModule = NativeModules.VideoEffectsModule;
 
 const isSupported = Platform.OS === 'android' || Platform.OS === 'ios';
 
-type CustomFilters = 'GrayScale';
+type CustomFilters = 'GrayScale' | 'Blur';
 
 export const useCustomVideoFilters = () => {
   const call = useCall();
   const isGrayScaleRegisteredRef = useRef(false);
+  const isBlurRegisteredRef = useRef(false);
   const { disableAllFilters } = useBackgroundFilters();
   const [currentCustomFilter, setCustomFilter] = useState<CustomFilters>();
 
@@ -37,6 +38,23 @@ export const useCustomVideoFilters = () => {
     setCustomFilter('GrayScale');
   }, [call, disableAllFilters]);
 
+  const applyBlurFilter = useCallback(async () => {
+    if (!isSupported) {
+      return;
+    }
+    if (!isBlurRegisteredRef.current) {
+      await VideoEffectsModule?.registerVideoFilters();
+      isBlurRegisteredRef.current = true;
+    }
+    disableAllFilters();
+    (call?.camera.state.mediaStream as MediaStream | undefined)
+      ?.getVideoTracks()
+      .forEach((track) => {
+        track._setVideoEffect('blur');
+      });
+    setCustomFilter('Blur');
+  }, [call, disableAllFilters]);
+
   const disableCustomFilter = useCallback(() => {
     disableAllFilters();
     setCustomFilter(undefined);
@@ -45,6 +63,7 @@ export const useCustomVideoFilters = () => {
   return {
     currentCustomFilter,
     applyGrayScaleFilter,
+    applyBlurFilter,
     disableCustomFilter,
   };
 };
