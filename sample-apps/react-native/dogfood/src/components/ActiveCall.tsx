@@ -79,7 +79,7 @@ export const ActiveCall = ({
       applyBlurFilter();
       setTimeout(() => {
         disableCustomFilter();
-      }, 20000);
+      }, 10000);
       Toast.show({
         type: 'error',
         text1: `Call Moderation Blur`,
