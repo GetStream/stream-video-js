@@ -13,35 +13,6 @@ import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
 
-import {
-  OVERRIDE_API_KEY,
-  OVERRIDE_TOKEN,
-  OVERRIDE_USER_ID,
-  OVERRIDE_USER_NAME,
-  OVERRIDE_USER_IMAGE_URL,
-} from '@env';
-
-const getOverrideSettings = () => {
-  if (
-    OVERRIDE_API_KEY &&
-    OVERRIDE_TOKEN &&
-    OVERRIDE_USER_ID &&
-    OVERRIDE_USER_NAME &&
-    OVERRIDE_USER_IMAGE_URL
-  ) {
-    return {
-      apiKey: OVERRIDE_API_KEY,
-      token: OVERRIDE_TOKEN,
-      user: {
-        id: OVERRIDE_USER_ID,
-        name: OVERRIDE_USER_NAME,
-        image: OVERRIDE_USER_IMAGE_URL,
-      },
-    };
-  }
-};
-
-const overrideSettings = getOverrideSettings();
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
@@ -62,14 +33,11 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   );
 
   const user = useMemo(
-    () =>
-      overrideSettings
-        ? overrideSettings.user
-        : {
-            id: userId,
-            name: userName,
-            image: userImageUrl,
-          },
+    () => ({
+      id: userId,
+      name: userName,
+      image: userImageUrl,
+    }),
     [userId, userName, userImageUrl],
   );
 
@@ -79,12 +47,8 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id: user.id }, appEnvironment);
       };
-      let { apiKey, token } = await fetchAuthDetails();
+      const { apiKey, token } = await fetchAuthDetails();
       const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
-      if (overrideSettings) {
-        apiKey = overrideSettings.apiKey;
-        token = overrideSettings.token;
-      }
       setState({ apiKey });
       _videoClient = StreamVideoClient.getOrCreateInstance({
         apiKey,
