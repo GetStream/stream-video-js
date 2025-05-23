@@ -163,13 +163,25 @@ const Stage = () => {
 };
 
 const Lobby = (props: { onJoin: () => void }) => {
+  const { onJoin } = props;
+  const router = useRouter();
+  const skipLobby =
+    !!router.query['skip_lobby'] ||
+    process.env.NEXT_PUBLIC_SKIP_LOBBY === 'true';
+
+  useEffect(() => {
+    if (!skipLobby) return;
+    const id = setTimeout(() => onJoin(), 300);
+    return () => clearTimeout(id);
+  }, [onJoin, skipLobby]);
+
   return (
     <div className="rd__bare__call-lobby">
       <button
         className="rd__button rd__button--primary rd__button--large rd__lobby-join"
         type="button"
         data-testid="join-call-button"
-        onClick={props.onJoin}
+        onClick={onJoin}
       >
         <Icon className="rd__button__icon" icon="login" />
         Join
