@@ -3,7 +3,7 @@ type AppEnvironment =
   | 'pronto-staging'
   | 'demo'
   | 'livestream'
-  | 'moderation';
+  | 'video-moderation';
 
 declare module '@env' {
   export const REACT_NATIVE_DOGFOOD_APP_ENVIRONMENT: AppEnvironment;

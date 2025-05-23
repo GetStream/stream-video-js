@@ -7014,6 +7014,7 @@ __metadata:
     react-native-safe-area-context: "npm:5.4.0"
     react-native-screens: "npm:4.10.0"
     react-native-svg: "npm:^15.11.2"
+    react-native-toast-message: "npm:^2.3.0"
     react-native-video: "npm:^6.13.0"
     react-native-vision-camera: "npm:^4.6.4"
     react-native-voip-push-notification: "npm:~3.3.3"
@@ -20177,6 +20178,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/bab86df8fdd4f500ad3f242558726693b0409b5e9b2a97cb3e9b5c1dfdcef01fe73fd36f01926ef20b19f99928b6ab1fb9e942bbeb1308aab27aa0d6c4877a5e
+  languageName: node
+  linkType: hard
+
+"react-native-toast-message@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "react-native-toast-message@npm:2.3.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/50c2d13299dd08f3a08d99e761e6e61732fd089ac77a154885abbc4d90f83a950cdc2c3f8d5a6c88f53330fe25f2e97ad0e102e57d07180a0d9185bec1be7daf
   languageName: node
   linkType: hard
 

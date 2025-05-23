@@ -8,7 +8,13 @@ import {
   useToggleCallRecording,
   NoiseCancellationProvider,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
@@ -17,6 +23,7 @@ import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
+import Toast from 'react-native-toast-message';
 import { ClosedCaptions } from './ClosedCaptions';
 
 type ActiveCallProps = {
@@ -48,7 +55,44 @@ export const ActiveCall = ({
   }, []);
 
   useEffect(() => {
-    return call?.on('call.ended', () => {
+    // @ts-expect-error type issue due to experimental call events
+    return call?.on('call_moderation.warning', (event) => {
+      console.log('call_moderation.warning', event);
+      Toast.show({
+        position: 'bottom',
+        type: 'error',
+        // @ts-expect-error type issue due to experimental call events
+        text1: `Call Moderation Warning | Harm Type: ${event.harm_type}`,
+        // @ts-expect-error type issue due to experimental call events
+        text2: `Message: ${event.message}`,
+        bottomOffset: 150,
+      });
+    });
+  }, [call]);
+
+  useEffect(() => {
+    // @ts-expect-error type issue due to experimental call events
+    return call?.on('call_moderation.blur', (event) => {
+      console.log('call_moderation.blur', event);
+      Toast.show({
+        type: 'error',
+        text1: `Call Moderation Blur`,
+        // @ts-expect-error type issue due to experimental call events
+        text2: `Harm Type: ${event.harm_type}`,
+        bottomOffset: 150,
+      });
+    });
+  }, [call]);
+
+  useEffect(() => {
+    return call?.on('call.ended', (event) => {
+      // @ts-expect-error type issue due to experimental call events
+      if (event.reason === 'PolicyViolationModeration') {
+        Alert.alert(
+          'Call Terminated',
+          'The video call was terminated due to a policy violation detected during moderation',
+        );
+      }
       onCallEnded();
     });
   }, [call, onCallEnded]);

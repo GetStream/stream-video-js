@@ -10,10 +10,10 @@ import { Button } from '../../components/Button';
 
 const appEnvironments: AppEnvironment[] = [
   'pronto',
-  'pronto-staging',
+  'video-moderation',
   'demo',
+  'pronto-staging',
   'livestream',
-  'moderation',
 ];
 export default function EnvSwitcherButton() {
   const [modalVisible, setModalVisible] = useState(false);
