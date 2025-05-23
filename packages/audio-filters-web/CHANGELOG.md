@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.3.1...@stream-io/audio-filters-web-0.4.0) (2025-05-20)
+
+### Features
+
+- **react-native:** Noise Cancellation ([#1793](https://github.com/GetStream/stream-video-js/issues/1793)) ([d7843e1](https://github.com/GetStream/stream-video-js/commit/d7843e1a23e6f6a35d1c159438d09bdfd17450a5))
+- **web:** improved noise cancellation ([#1794](https://github.com/GetStream/stream-video-js/issues/1794)) ([d59f19b](https://github.com/GetStream/stream-video-js/commit/d59f19b1ba1ff83fe5f024d783b868f4e98d3380))
+
+## [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.3.0...@stream-io/audio-filters-web-0.3.1) (2025-05-15)
+
+### Bug Fixes
+
+- enable chore releases ([#1792](https://github.com/GetStream/stream-video-js/issues/1792)) ([6046654](https://github.com/GetStream/stream-video-js/commit/6046654fe19505a1c115a4fb838759d010540614))
+
 ## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.2.3...@stream-io/audio-filters-web-0.3.0) (2025-05-08)
 
 ### Features

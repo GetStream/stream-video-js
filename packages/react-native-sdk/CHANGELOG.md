@@ -2,6 +2,47 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.14.1...@stream-io/video-react-native-sdk-1.14.2) (2025-05-22)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.2`
+- `@stream-io/video-react-bindings` updated to version `1.6.5`
+
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.14.0...@stream-io/video-react-native-sdk-1.14.1) (2025-05-21)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.1`
+- `@stream-io/video-react-bindings` updated to version `1.6.4`
+
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.13.3...@stream-io/video-react-native-sdk-1.14.0) (2025-05-20)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.1.0`
+- `@stream-io/video-filters-react-native` updated to version `0.4.0`
+- `@stream-io/video-client` updated to version `1.23.0`
+- `@stream-io/video-react-bindings` updated to version `1.6.3`
+
+### Features
+
+- **react-native:** Noise Cancellation ([#1793](https://github.com/GetStream/stream-video-js/issues/1793)) ([d7843e1](https://github.com/GetStream/stream-video-js/commit/d7843e1a23e6f6a35d1c159438d09bdfd17450a5))
+- rn livestream improvements ([#1780](https://github.com/GetStream/stream-video-js/issues/1780)) ([8a3bb59](https://github.com/GetStream/stream-video-js/commit/8a3bb594b257c48a7045bfb6978fc233649945f5))
+- **web:** improved noise cancellation ([#1794](https://github.com/GetStream/stream-video-js/issues/1794)) ([d59f19b](https://github.com/GetStream/stream-video-js/commit/d59f19b1ba1ff83fe5f024d783b868f4e98d3380))
+
+## [1.13.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.13.2...@stream-io/video-react-native-sdk-1.13.3) (2025-05-15)
+
+### Dependency Updates
+
+- `@stream-io/video-filters-react-native` updated to version `0.3.1`
+- `@stream-io/video-client` updated to version `1.22.2`
+- `@stream-io/video-react-bindings` updated to version `1.6.2`
+
+### Bug Fixes
+
+- enable chore releases ([#1792](https://github.com/GetStream/stream-video-js/issues/1792)) ([6046654](https://github.com/GetStream/stream-video-js/commit/6046654fe19505a1c115a4fb838759d010540614))
+
 ## [1.13.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.13.1...@stream-io/video-react-native-sdk-1.13.2) (2025-05-14)
 
 ### Dependency Updates

@@ -13,6 +13,10 @@
   "You are muted. Unmute to speak.": "You are muted. Unmute to speak.",
 
   "Live": "Live",
+  "Livestream starts soon": "Livestream starts soon",
+  "Livestream starts at {{ startsAt }}": "Livestream starts at {{ startsAt, datetime }}",
+  "{{ count }} participants joined early_one": "{{ count }} participant joined early",
+  "{{ count }} participants joined early_other": "{{ count }} participants joined early",
 
   "You can now speak.": "You can now speak.",
   "Awaiting for an approval to speak.": "Awaiting for an approval to speak.",

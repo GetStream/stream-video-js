@@ -80,7 +80,7 @@ export const LivestreamLayout = ({
       style={[
         styles.container,
         landScapeStyles,
-        { backgroundColor: colors.sheetTertiary },
+        { backgroundColor: colors.sheetPrimary },
         livestreamLayout.container,
       ]}
     >

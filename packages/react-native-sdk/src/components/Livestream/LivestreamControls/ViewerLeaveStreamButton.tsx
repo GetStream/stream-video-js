@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { LeaveStreamIcon } from '../../../icons';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { PhoneDown } from '../../../icons';
+import { useCall } from '@stream-io/video-react-bindings';
 import { getLogger } from '@stream-io/video-client';
 
 /**
@@ -30,12 +24,11 @@ export const ViewerLeaveStreamButton = ({
 }: ViewerLeaveStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const call = useCall();
-  const { t } = useI18n();
+  const styles = useStyles();
   const {
     theme: {
       colors,
       variants: { iconSizes },
-      typefaces,
       viewerLeaveStreamButton,
     },
   } = useTheme();
@@ -57,46 +50,35 @@ export const ViewerLeaveStreamButton = ({
 
   return (
     <Pressable
-      style={[
-        styles.container,
-        { backgroundColor: colors.buttonSecondary },
-        viewerLeaveStreamButton.container,
-      ]}
+      style={viewerLeaveStreamButton.container}
       onPress={onLeaveStreamButtonPress}
     >
-      <View
-        style={[
-          styles.icon,
-          { height: iconSizes.xs, width: iconSizes.xs },
-          viewerLeaveStreamButton.icon,
-        ]}
-      >
-        {isAwaitingResponse ? <ActivityIndicator /> : <LeaveStreamIcon />}
+      <View style={[styles.icon, viewerLeaveStreamButton.icon]}>
+        {isAwaitingResponse ? (
+          <ActivityIndicator />
+        ) : (
+          <PhoneDown color={colors.iconPrimary} size={iconSizes.sm} />
+        )}
       </View>
-      <Text
-        style={[
-          styles.text,
-          typefaces.subtitleBold,
-          { color: colors.textPrimary },
-          viewerLeaveStreamButton.text,
-        ]}
-      >
-        {isAwaitingResponse ? t('Loading...') : t('Leave Stream')}
-      </Text>
     </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 4,
-  },
-  icon: {},
-  text: {
-    marginLeft: 8,
-    includeFontPadding: false,
-  },
-});
+const useStyles = () => {
+  const { theme } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        icon: {
+          backgroundColor: theme.colors.buttonSecondary,
+          height: theme.variants.buttonSizes.xs,
+          width: theme.variants.buttonSizes.xs,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: theme.variants.borderRadiusSizes.sm,
+          zIndex: 2,
+        },
+      }),
+    [theme],
+  );
+};
