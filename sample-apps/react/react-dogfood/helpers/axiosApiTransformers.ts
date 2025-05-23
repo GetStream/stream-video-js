@@ -52,13 +52,19 @@ const generalLocationOverrideTransformer: AxiosRequestTransformer =
    * as it executes in the context of the current axios instance.
    */
   function generalLocationOverrideTransformer(data) {
-    if (
-      typeof window === 'undefined' ||
-      !this.url?.endsWith('/join') ||
-      process.env.NEXT_PUBLIC_ENABLE_LOCATION_RANDOMIZATION !== 'true'
-    ) {
+    if (typeof window === 'undefined' || !this.url?.endsWith('/join'))
       return data;
-    }
+
+    const params = new URLSearchParams(window.location.search);
+    const forceRandomLocation = params.get('random_location');
+    const randomize =
+      forceRandomLocation === 'true'
+        ? true
+        : forceRandomLocation === 'false'
+          ? false
+          : process.env.NEXT_PUBLIC_ENABLE_LOCATION_RANDOMIZATION === 'true';
+
+    if (!randomize) return data;
 
     // prettier-ignore
     const iataCodes = [
