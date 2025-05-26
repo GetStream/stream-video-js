@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.0...@stream-io/audio-filters-web-0.4.1) (2025-05-26)
+
+### Bug Fixes
+
+- add audio context state tracing ([#1805](https://github.com/GetStream/stream-video-js/issues/1805)) ([0d86623](https://github.com/GetStream/stream-video-js/commit/0d8662398a2e8b5c07bf3ef5b68faf0a4003c702))
+
 ## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.3.1...@stream-io/audio-filters-web-0.4.0) (2025-05-20)
 
 ### Features
