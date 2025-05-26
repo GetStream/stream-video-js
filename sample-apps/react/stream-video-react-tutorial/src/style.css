@@ -1,18 +1,42 @@
-body,
-html {
-  height: 100%;
-  width: 100%;
-  margin: 0;
+.my-theme-overrides {
   font-family: sans-serif;
 }
 
-.str-video {
-  background-color: #272a30;
-  color: #ffffff;
-  height: 100dvh;
-  width: 100%;
+.my-theme-overrides .str-video__speaker-layout__wrapper {
+  color: white;
+}
+
+.ringContainer {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.ringContainer label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.ringContainer input {
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.ringContainer button {
+  padding: 0.5rem 1rem;
+  background-color: #006cff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ringContainer button:hover {
+  background-color: #0052cc;
 }
