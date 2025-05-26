@@ -50,8 +50,8 @@ export type PromiseWithResolvers<T> = {
   promise: Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
   reject: (reason: any) => void;
-  isResolved: boolean;
-  isRejected: boolean;
+  isResolved: () => boolean;
+  isRejected: () => boolean;
 };
 
 /**
@@ -85,7 +85,7 @@ export const promiseWithResolvers = <T = void>(): PromiseWithResolvers<T> => {
     promise,
     resolve: resolver,
     reject: rejecter,
-    isResolved,
-    isRejected,
+    isResolved: () => isResolved,
+    isRejected: () => isRejected,
   };
 };

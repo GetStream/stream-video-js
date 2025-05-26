@@ -12,6 +12,7 @@ import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
+import { dumpStream, Tracer } from '../stats';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -158,15 +159,27 @@ export const getAudioOutputDevices = lazy(() => {
   );
 });
 
-const getStream = async (constraints: MediaStreamConstraints) => {
-  const stream = await navigator.mediaDevices.getUserMedia(constraints);
-  if (isFirefox()) {
-    // When enumerating devices, Firefox will hide device labels unless there's been
-    // an active user media stream on the page. So we force device list updates after
-    // every successful getUserMedia call.
-    navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+let getUserMediaExecId = 0;
+const getStream = async (
+  constraints: MediaStreamConstraints,
+  tracer: Tracer | undefined,
+) => {
+  const tag = `navigator.mediaDevices.getUserMedia.${getUserMediaExecId++}.`;
+  try {
+    tracer?.trace(tag, constraints);
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    tracer?.trace(`${tag}OnSuccess`, dumpStream(stream));
+    if (isFirefox()) {
+      // When enumerating devices, Firefox will hide device labels unless there's been
+      // an active user media stream on the page. So we force device list updates after
+      // every successful getUserMedia call.
+      navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+    }
+    return stream;
+  } catch (error) {
+    tracer?.trace(`${tag}OnFailure`, (error as Error).name);
+    throw error;
   }
-  return stream;
 };
 
 function isNotFoundOrOverconstrainedError(error: unknown) {
@@ -195,12 +208,13 @@ function isNotFoundOrOverconstrainedError(error: unknown) {
  * Returns an audio media stream that fulfills the given constraints.
  * If no constraints are provided, it uses the browser's default ones.
  *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param trackConstraints the constraints to use when requesting the stream.
- * @returns the new `MediaStream` fulfilling the given constraints.
+ * @param tracer the tracer to use for tracing the stream creation.
+ * @returns a new `MediaStream` fulfilling the given constraints.
  */
 export const getAudioStream = async (
   trackConstraints?: MediaTrackConstraints,
+  tracer?: Tracer,
 ): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     audio: {
@@ -214,9 +228,10 @@ export const getAudioStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
-    return await getStream(constraints);
+    return await getStream(constraints, tracer);
   } catch (error) {
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -238,12 +253,13 @@ export const getAudioStream = async (
  * Returns a video media stream that fulfills the given constraints.
  * If no constraints are provided, it uses the browser's default ones.
  *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param trackConstraints the constraints to use when requesting the stream.
+ * @param tracer the tracer to use for tracing the stream creation.
  * @returns a new `MediaStream` fulfilling the given constraints.
  */
 export const getVideoStream = async (
   trackConstraints?: MediaTrackConstraints,
+  tracer?: Tracer,
 ): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     video: {
@@ -256,9 +272,10 @@ export const getVideoStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
-    return await getStream(constraints);
+    return await getStream(constraints, tracer);
   } catch (error) {
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
       getLogger(['devices'])(
         'warn',
@@ -276,21 +293,25 @@ export const getVideoStream = async (
   }
 };
 
+let getDisplayMediaExecId = 0;
+
 /**
  * Prompts the user for a permission to share a screen.
  * If the user grants the permission, a screen sharing stream is returned. Throws otherwise.
  *
  * The callers of this API are responsible to handle the possible errors.
  *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- *
  * @param options any additional options to pass to the [`getDisplayMedia`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) API.
+ * @param tracer the tracer to use for tracing the stream creation.
  */
 export const getScreenShareStream = async (
   options?: DisplayMediaStreamOptions,
+  tracer?: Tracer | undefined,
 ) => {
+  const tag = `navigator.mediaDevices.getDisplayMedia.${getDisplayMediaExecId++}.`;
   try {
-    return await navigator.mediaDevices.getDisplayMedia({
+    tracer?.trace(tag, options);
+    const stream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: {
         channelCount: {
@@ -304,7 +325,10 @@ export const getScreenShareStream = async (
       systemAudio: 'include',
       ...options,
     });
+    tracer?.trace(`${tag}OnSuccess`, dumpStream(stream));
+    return stream;
   } catch (e) {
+    tracer?.trace(`${tag}OnFailure`, (e as Error).name);
     getLogger(['devices'])('error', 'Failed to get screen share stream', e);
     throw e;
   }
@@ -333,7 +357,7 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
   });
   // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
   if (typeof stream.release === 'function') {
-    // @ts-expect-error
+    // @ts-expect-error - release() is present in react-native-webrtc
     stream.release();
   }
 };

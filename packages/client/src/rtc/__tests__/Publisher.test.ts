@@ -8,6 +8,7 @@ import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
   PeerType,
   PublishOption,
+  SdkType,
   TrackInfo,
   TrackType,
 } from '../../gen/video/sfu/models/models';
@@ -46,12 +47,13 @@ describe('Publisher', () => {
         ice_servers: [],
       },
       logTag: 'test',
+      enableTracing: false,
     });
 
     // @ts-expect-error readonly field
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
-    // @ts-ignore
+    // @ts-expect-error private field
     sfuClient['sessionId'] = sessionId;
 
     state = new CallState();
@@ -60,6 +62,19 @@ describe('Publisher', () => {
       dispatcher,
       state,
       logTag: 'test',
+      enableTracing: false,
+      clientDetails: {
+        sdk: {
+          type: SdkType.PLAIN_JAVASCRIPT,
+          major: '1',
+          minor: '0',
+          patch: '0',
+        },
+        device: {
+          name: 'test-device',
+          version: '1.0.0',
+        },
+      },
       publishOptions: [
         {
           id: 1,
@@ -84,7 +99,7 @@ describe('Publisher', () => {
   describe('Publishing', () => {
     it('should throw when publishing ended tracks', async () => {
       const track = new MediaStreamTrack();
-      // @ts-ignore readonly field
+      // @ts-expect-error readonly field
       track.readyState = 'ended';
       await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toThrow();
     });
@@ -98,6 +113,8 @@ describe('Publisher', () => {
       const track = new MediaStreamTrack();
       const clone = new MediaStreamTrack();
       vi.spyOn(track, 'clone').mockReturnValue(clone);
+      // @ts-expect-error - private method
+      const negotiateSpy = vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       await publisher.publish(track, TrackType.VIDEO);
 
@@ -117,6 +134,7 @@ describe('Publisher', () => {
         ],
       });
       expect(publisher['clonedTracks'].size).toBe(1);
+      expect(negotiateSpy).toHaveBeenCalled();
     });
 
     it('should update an existing transceiver for a new track', async () => {
@@ -125,7 +143,7 @@ describe('Publisher', () => {
       vi.spyOn(track, 'clone').mockReturnValue(clone);
 
       const transceiver = new RTCRtpTransceiver();
-      // @ts-ignore test setup
+      // @ts-expect-error test setup
       transceiver.sender.track = track;
       publisher['transceiverCache'].add(
         publisher['publishOptions'][0],
@@ -215,9 +233,9 @@ describe('Publisher', () => {
     });
 
     it(`should drop consequent ICE restart requests`, async () => {
-      // @ts-ignore
+      // @ts-expect-error private method
       publisher['pc'].signalingState = 'have-local-offer';
-      // @ts-ignore
+      // @ts-expect-error private method
       vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       await publisher.restartIce();
@@ -225,16 +243,16 @@ describe('Publisher', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      // @ts-ignore
+      publisher['onUnrecoverableError'] = vi.fn();
+      // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'failed';
       publisher['onIceConnectionStateChange']();
-      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['onUnrecoverableError']).toHaveBeenCalled();
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-      // @ts-ignore
+      // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'disconnected';
       publisher['onIceConnectionStateChange']();
       expect(publisher.restartIce).toHaveBeenCalled();
@@ -506,6 +524,8 @@ describe('Publisher', () => {
       vi.spyOn(track, 'clone').mockReturnValue(track);
       // @ts-expect-error private method
       vi.spyOn(publisher, 'addTransceiver');
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       publisher['publishOptions'] = [
         // @ts-expect-error incomplete data
@@ -544,6 +564,7 @@ describe('Publisher', () => {
           codec: { name: 'vp9' },
         }),
       );
+      expect(publisher['negotiate']).toHaveBeenCalledTimes(2);
     });
 
     it('disables extra transceivers', async () => {
@@ -558,7 +579,7 @@ describe('Publisher', () => {
 
       const track = new MediaStreamTrack();
       const transceiver = new RTCRtpTransceiver();
-      // @ts-ignore test setup
+      // @ts-expect-error test setup
       transceiver.sender.track = track;
 
       publisher['transceiverCache'].add(publishOptions[0], transceiver);
@@ -614,6 +635,10 @@ describe('Publisher', () => {
       cache.add({ trackType: TrackType.AUDIO, id: 3 }, audioTransceiver);
 
       publisher['clonedTracks'].add(track).add(inactiveTrack).add(audioTrack);
+      publisher['trackIdToTrackType']
+        .set(track.id, TrackType.VIDEO)
+        .set(inactiveTrack.id, TrackType.VIDEO)
+        .set(audioTrack.id, TrackType.AUDIO);
     });
 
     it('negotiate should set up the local and remote descriptions', async () => {
@@ -671,12 +696,6 @@ describe('Publisher', () => {
       });
     });
 
-    it('onNegotiationNeeded delegates to negotiate', () => {
-      publisher['negotiate'] = vi.fn().mockResolvedValue(void 0);
-      publisher['onNegotiationNeeded']();
-      expect(publisher['negotiate']).toHaveBeenCalled();
-    });
-
     it('getPublishedTracks returns the published tracks', () => {
       const tracks = publisher.getPublishedTracks();
       expect(tracks).toHaveLength(2);
@@ -712,7 +731,7 @@ describe('Publisher', () => {
     });
 
     it('stopTracks should stop tracks', () => {
-      const track = cache['cache'][0].transceiver.sender.track;
+      const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
       publisher.stopTracks(TrackType.VIDEO);
@@ -721,7 +740,7 @@ describe('Publisher', () => {
     });
 
     it('stopAllTracks should stop all tracks', () => {
-      const track = cache['cache'][0].transceiver.sender.track;
+      const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
       publisher.stopAllTracks();

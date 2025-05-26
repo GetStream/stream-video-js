@@ -12,8 +12,8 @@
     "@stream-io/video-client": "workspace:^"
   },
   "devDependencies": {
-    "@vitejs/plugin-basic-ssl": "^1.0.1",
-    "typescript": "^5.5.2",
-    "vite": "^5.4.6"
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   }
 }

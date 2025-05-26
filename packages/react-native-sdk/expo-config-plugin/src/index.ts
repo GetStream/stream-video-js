@@ -8,6 +8,7 @@ import withAndroidPermissions from './withAndroidPermissions';
 import withAndroidManifest from './withAndroidManifest';
 import withiOSInfoPlist from './withiOSInfoPlist';
 import withMainActivity from './withMainActivity';
+import withMainApplication from './withMainApplication';
 import withBuildProperties from './withBuildProperties';
 import withAppBuildGradle from './withAppBuildGradle';
 import withIosScreenCapture from './withIosScreenCapture';
@@ -18,7 +19,7 @@ const pkg = require('../../package.json');
 
 const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
   config,
-  props
+  props,
 ) => {
   return withPlugins(config, [
     // ios
@@ -31,11 +32,12 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
     withBuildProperties,
     () => withAndroidManifest(config, props),
     () => withMainActivity(config, props),
+    () => withMainApplication(config, props),
   ]);
 };
 
 export default createRunOncePlugin(
   withStreamVideoReactNativeSDK,
   pkg.name,
-  pkg.version
+  pkg.version,
 );

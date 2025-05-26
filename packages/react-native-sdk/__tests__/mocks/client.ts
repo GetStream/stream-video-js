@@ -3,13 +3,13 @@ import { OwnUserResponse, StreamVideoClient } from '@stream-io/video-client';
 const apiKey = 'API_KEY';
 const simulateUserConnection = (
   client: StreamVideoClient,
-  user: OwnUserResponse
+  user: OwnUserResponse,
 ) => {
   client.streamClient._setUser(user);
 };
 
 export const mockClientWithUser = (
-  user: Partial<OwnUserResponse> = {}
+  user: Partial<OwnUserResponse> = {},
 ): StreamVideoClient => {
   const client = new StreamVideoClient(apiKey);
   simulateUserConnection(client, {

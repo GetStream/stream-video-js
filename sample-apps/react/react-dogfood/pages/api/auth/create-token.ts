@@ -38,12 +38,12 @@ const createJwtToken = async (
   req: NextApiRequest,
   res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
 ) => {
-  let {
+  const {
     user_id: userId,
-    environment,
     api_key: apiKeyFromRequest,
     ...params
   } = req.query as CreateJwtTokenRequest;
+  let environment = params.environment;
 
   // support for the deprecated `api_key` param during the transition phase
   if (apiKeyFromRequest && !environment) {
@@ -86,7 +86,7 @@ const createJwtToken = async (
     try {
       // support `?call_cids=["cid:1","cid:2"]` query param
       params.call_cids = JSON.parse(params.call_cids);
-    } catch (e) {
+    } catch {
       // support ?call_cids=cid:1,cid:2 query param
       params.call_cids = (params.call_cids as string)
         .split(',')

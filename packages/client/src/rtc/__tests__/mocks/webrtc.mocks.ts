@@ -51,11 +51,11 @@ vi.stubGlobal('MediaStreamTrack', MediaStreamTrackMock);
 
 const RTCRtpTransceiverMock = vi.fn((): Partial<RTCRtpTransceiver> => {
   return {
-    // @ts-ignore
+    // @ts-expect-error - incomplete mock
     sender: {
       track: null,
       replaceTrack: vi.fn(),
-      getParameters: vi.fn(),
+      getParameters: vi.fn().mockReturnValue({}),
       setParameters: vi.fn(),
     },
     setCodecPreferences: vi.fn(),
@@ -84,7 +84,7 @@ vi.stubGlobal('RTCRtpReceiver', RTCRtpReceiverMock);
 const RTCRtpSenderMock = vi.fn((): Partial<typeof RTCRtpSender> => {
   return {
     getCapabilities: vi.fn(),
-    // @ts-ignore
+    // @ts-expect-error - incomplete mock
     track: vi.fn(),
   };
 });

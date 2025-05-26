@@ -3,6 +3,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
+import { Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
@@ -23,6 +24,8 @@ export type SfuStatsReporterOptions = {
   microphone: MicrophoneManager;
   camera: CameraManager;
   state: CallState;
+  tracer: Tracer;
+  unifiedSessionId: string;
 };
 
 export class SfuStatsReporter {
@@ -36,8 +39,11 @@ export class SfuStatsReporter {
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
   private readonly state: CallState;
+  private readonly tracer: Tracer;
+  private readonly unifiedSessionId: string;
 
   private intervalId: NodeJS.Timeout | undefined;
+  private timeoutId: NodeJS.Timeout | undefined;
   private unsubscribeDevicePermissionsSubscription?: () => void;
   private unsubscribeListDevicesSubscription?: () => void;
   private readonly sdkName: string;
@@ -55,6 +61,8 @@ export class SfuStatsReporter {
       microphone,
       camera,
       state,
+      tracer,
+      unifiedSessionId,
     }: SfuStatsReporterOptions,
   ) {
     this.sfuClient = sfuClient;
@@ -64,6 +72,8 @@ export class SfuStatsReporter {
     this.microphone = microphone;
     this.camera = camera;
     this.state = state;
+    this.tracer = tracer;
+    this.unifiedSessionId = unifiedSessionId;
 
     const { sdk, browser } = clientDetails;
     this.sdkName = getSdkName(sdk);
@@ -82,11 +92,11 @@ export class SfuStatsReporter {
     device: CameraManager | MicrophoneManager,
     kind: 'mic' | 'camera',
   ) => {
-    const { hasBrowserPermission$ } = device.state;
+    const { browserPermissionState$ } = device.state;
     this.unsubscribeDevicePermissionsSubscription?.();
     this.unsubscribeDevicePermissionsSubscription = createSubscription(
-      combineLatest([hasBrowserPermission$, this.state.ownCapabilities$]),
-      ([hasPermission, ownCapabilities]) => {
+      combineLatest([browserPermissionState$, this.state.ownCapabilities$]),
+      ([browserPermissionState, ownCapabilities]) => {
         // cleanup the previous listDevices() subscription in case
         // permissions or capabilities have changed.
         // we will subscribe again if everything is in order.
@@ -95,7 +105,7 @@ export class SfuStatsReporter {
           kind === 'mic'
             ? ownCapabilities.includes(OwnCapability.SEND_AUDIO)
             : ownCapabilities.includes(OwnCapability.SEND_VIDEO);
-        if (!hasPermission || !hasCapability) {
+        if (browserPermissionState !== 'granted' || !hasCapability) {
           this.inputDevices.set(kind, {
             currentDevice: '',
             availableDevices: [],
@@ -147,23 +157,55 @@ export class SfuStatsReporter {
     });
   };
 
-  private run = async (telemetryData?: Telemetry) => {
+  private run = async (telemetry?: Telemetry) => {
     const [subscriberStats, publisherStats] = await Promise.all([
-      this.subscriber.getStats().then(flatten).then(JSON.stringify),
-      this.publisher?.getStats().then(flatten).then(JSON.stringify) ?? '[]',
+      this.subscriber.stats.get(),
+      this.publisher?.stats.get(),
     ]);
 
-    await this.sfuClient.sendStats({
-      sdk: this.sdkName,
-      sdkVersion: this.sdkVersion,
-      webrtcVersion: this.webRTCVersion,
-      subscriberStats,
-      publisherStats,
-      audioDevices: this.inputDevices.get('mic'),
-      videoDevices: this.inputDevices.get('camera'),
-      deviceState: getDeviceState(),
-      telemetry: telemetryData,
-    });
+    this.subscriber.tracer?.trace('getstats', subscriberStats.delta);
+    if (publisherStats) {
+      this.publisher?.tracer?.trace('getstats', publisherStats.delta);
+    }
+
+    const subscriberTrace = this.subscriber.tracer?.take();
+    const publisherTrace = this.publisher?.tracer?.take();
+    const tracer = this.tracer.take();
+    const sfuTrace = this.sfuClient.getTrace();
+    const traces: TraceRecord[] = [
+      ...tracer.snapshot,
+      ...(sfuTrace?.snapshot ?? []),
+      ...(publisherTrace?.snapshot ?? []),
+      ...(subscriberTrace?.snapshot ?? []),
+    ];
+
+    try {
+      await this.sfuClient.sendStats({
+        sdk: this.sdkName,
+        sdkVersion: this.sdkVersion,
+        webrtcVersion: this.webRTCVersion,
+        subscriberStats: JSON.stringify(flatten(subscriberStats.stats)),
+        publisherStats: publisherStats
+          ? JSON.stringify(flatten(publisherStats.stats))
+          : '[]',
+        subscriberRtcStats: '',
+        publisherRtcStats: '',
+        rtcStats: JSON.stringify(traces),
+        encodeStats: publisherStats?.performanceStats ?? [],
+        decodeStats: subscriberStats.performanceStats,
+        audioDevices: this.inputDevices.get('mic'),
+        videoDevices: this.inputDevices.get('camera'),
+        unifiedSessionId: this.unifiedSessionId,
+        deviceState: getDeviceState(),
+        telemetry,
+      });
+    } catch (err) {
+      publisherTrace?.rollback();
+      subscriberTrace?.rollback();
+      tracer.rollback();
+      sfuTrace?.rollback();
+      throw err;
+    }
   };
 
   start = () => {
@@ -189,5 +231,22 @@ export class SfuStatsReporter {
     this.inputDevices.clear();
     clearInterval(this.intervalId);
     this.intervalId = undefined;
+    clearTimeout(this.timeoutId);
+    this.timeoutId = undefined;
+  };
+
+  flush = () => {
+    this.run().catch((err) => {
+      this.logger('warn', 'Failed to flush report stats', err);
+    });
+  };
+
+  scheduleOne = (timeout: number) => {
+    clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
+      this.run().catch((err) => {
+        this.logger('warn', 'Failed to report stats', err);
+      });
+    }, timeout);
   };
 }

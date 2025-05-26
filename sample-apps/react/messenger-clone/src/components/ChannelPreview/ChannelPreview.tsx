@@ -6,11 +6,8 @@ import {
 } from 'stream-chat-react';
 import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 import { ChannelPreviewCallControls } from './ChannelPreviewCallControls';
-import type { StreamChatType } from '../../types/chat';
 
-const UnMemoizedChannelPreview = (
-  props: ChannelPreviewUIComponentProps<StreamChatType>,
-) => {
+const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
   const {
     active,
     Avatar = DefaultAvatar,

@@ -42,6 +42,7 @@
         "@stream-io/video-react-native-sdk",
         {
           "enableScreenshare": true,
+          "addNoiseCancellation": true,
           "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
@@ -50,7 +51,8 @@
             "showWhenLockedAndroid": true
           },
           "enableNonRingingPushNotifications": true,
-          "androidPictureInPicture": true
+          "androidPictureInPicture": true,
+          "iOSEnableMultitaskingCameraAccess": true
         }
       ],
       "@config-plugins/react-native-callkeep",

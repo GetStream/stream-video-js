@@ -32,7 +32,7 @@ const decodeBase64 = (s: string): string => {
     b = (b << 6) + c;
     l += 6;
     while (l >= 8) {
-      ((a = (b >>> (l -= 8)) & 0xff) || x < L - 2) && (r += w(a));
+      if ((a = (b >>> (l -= 8)) & 0xff) || x < L - 2) r += w(a);
     }
   }
   return r;

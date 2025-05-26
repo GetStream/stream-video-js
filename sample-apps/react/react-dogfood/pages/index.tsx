@@ -144,10 +144,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'demo') {
     const { query } = ctx;
     const params = new URLSearchParams(query as Record<string, string>);
-    const callId = params.get('id') || meetingId();
-    params.set('id', callId);
+    const callId = meetingId();
 
-    // support the legacy https://getstream.io/video/demos?id=<call-id>
     return {
       redirect: {
         destination: `/join/${callId}?${params.toString()}`,

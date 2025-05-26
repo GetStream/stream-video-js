@@ -23,7 +23,7 @@ describe('Participant events', () => {
       const onParticipantUpdated = watchParticipantUpdated(state);
 
       onParticipantJoined({
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',
@@ -65,7 +65,7 @@ describe('Participant events', () => {
       ]);
 
       onParticipantLeft({
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',
@@ -84,6 +84,7 @@ describe('Participant events', () => {
         trackLookupPrefix: 'track-lookup-prefix',
         trackType: TrackType.VIDEO,
         track: mediaStream,
+        id: mediaStream.id,
       });
       const onParticipantJoined = watchParticipantJoined(state);
       onParticipantJoined({
@@ -108,6 +109,7 @@ describe('Participant events', () => {
         trackLookupPrefix: 'track-lookup-prefix',
         trackType: TrackType.AUDIO,
         track: mediaStream,
+        id: mediaStream.id,
       });
       const onTrackPublished = watchTrackPublished(state);
       onTrackPublished({
@@ -132,6 +134,7 @@ describe('Participant events', () => {
         trackLookupPrefix: 'track-lookup-prefix',
         trackType: TrackType.SCREEN_SHARE,
         track: mediaStream,
+        id: mediaStream.id,
       });
       const onTrackUnPublished = watchTrackUnpublished(state);
       onTrackUnPublished({
@@ -155,10 +158,10 @@ describe('Participant events', () => {
       const state = new CallState();
       const handler = watchTrackPublished(state);
 
-      // @ts-ignore setup one participant
+      // @ts-expect-error setup one participant
       state.setParticipants([{ sessionId: 'session-id', publishedTracks: [] }]);
 
-      // @ts-ignore
+      // @ts-expect-error incomplete data
       handler({
         sessionId: 'session-id',
         type: TrackType.VIDEO,
@@ -174,11 +177,10 @@ describe('Participant events', () => {
       const state = new CallState();
       const handler = watchTrackPublished(state);
 
-      // @ts-ignore
       handler({
         sessionId: 'session-id',
         type: TrackType.VIDEO,
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',
@@ -198,7 +200,7 @@ describe('Participant events', () => {
       const handler = watchTrackPublished(state);
 
       state.setParticipants([
-        // @ts-ignore setup one participant
+        // @ts-expect-error setup one participant
         {
           sessionId: 'session-id',
           publishedTracks: [],
@@ -206,11 +208,10 @@ describe('Participant events', () => {
         },
       ]);
 
-      // @ts-ignore
       handler({
         sessionId: 'session-id',
         type: TrackType.VIDEO,
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',
@@ -233,15 +234,12 @@ describe('Participant events', () => {
       const handler = watchTrackUnpublished(state);
 
       state.setParticipants([
-        // @ts-ignore setup one participant
+        // @ts-expect-error setup one participant
         { sessionId: 'session-id', publishedTracks: [TrackType.VIDEO] },
       ]);
 
-      // @ts-ignore
-      handler({
-        sessionId: 'session-id',
-        type: TrackType.VIDEO,
-      });
+      // @ts-expect-error incomplete data
+      handler({ sessionId: 'session-id', type: TrackType.VIDEO });
 
       expect(state.findParticipantBySessionId('session-id')).toEqual({
         sessionId: 'session-id',
@@ -253,11 +251,10 @@ describe('Participant events', () => {
       const state = new CallState();
       const handler = watchTrackUnpublished(state);
 
-      // @ts-ignore
       handler({
         sessionId: 'session-id',
         type: TrackType.AUDIO,
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',
@@ -277,7 +274,7 @@ describe('Participant events', () => {
       const handler = watchTrackUnpublished(state);
 
       state.setParticipants([
-        // @ts-ignore setup one participant
+        // @ts-expect-error setup one participant
         {
           userId: 'user-id',
           sessionId: 'session-id',
@@ -286,11 +283,10 @@ describe('Participant events', () => {
         },
       ]);
 
-      // @ts-ignore
       handler({
         sessionId: 'session-id',
         type: TrackType.AUDIO,
-        // @ts-ignore
+        // @ts-expect-error incomplete data
         participant: {
           userId: 'user-id',
           sessionId: 'session-id',

@@ -62,7 +62,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     });
     setClient(_client);
 
-    // @ts-ignore - for debugging
     window.client = _client;
 
     return () => {
@@ -78,7 +77,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     const _call = client?.call(callType, callId);
     setCall(_call);
 
-    // @ts-ignore - for debugging
     window.call = _call;
 
     return () => {
@@ -99,7 +97,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
 
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>();
+  const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))

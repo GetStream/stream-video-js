@@ -28,6 +28,7 @@ import {
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
   createTokenOrProvider,
@@ -63,7 +64,8 @@ export class StreamVideoClient {
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
-  protected eventHandlersToUnregister: Array<() => void> = [];
+  private effectsRegistered = false;
+  private eventHandlersToUnregister: Array<() => void> = [];
   private readonly connectionConcurrencyTag = Symbol(
     'connectionConcurrencyTag',
   );
@@ -156,35 +158,8 @@ export class StreamVideoClient {
     return this.readOnlyStateStore;
   }
 
-  /**
-   * Connects the given user to the client.
-   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
-   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
-   *
-   * @param user the user to connect.
-   * @param token a token or a function that returns a token.
-   */
-  connectUser = async (
-    user: User,
-    token?: TokenOrProvider,
-  ): Promise<void | ConnectedEvent> => {
-    if (user.type === 'anonymous') {
-      user.id = '!anon';
-      return this.connectAnonymousUser(user as UserWithId, token);
-    }
-    const connectUser =
-      user.type === 'guest'
-        ? () => this.streamClient.connectGuestUser(user)
-        : () => this.streamClient.connectUser(user, token);
-
-    const connectUserResponse = await withoutConcurrency(
-      this.connectionConcurrencyTag,
-      () => connectUser(),
-    );
-    // connectUserResponse will be void if connectUser called twice for the same user
-    if (connectUserResponse?.me) {
-      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
-    }
+  private registerEffects = () => {
+    if (this.effectsRegistered) return;
 
     this.eventHandlersToUnregister.push(
       this.on('connection.changed', (event) => {
@@ -209,7 +184,7 @@ export class StreamVideoClient {
     this.eventHandlersToUnregister.push(
       this.on('call.created', (event) => {
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
+        if (this.state.connectedUser?.id === call.created_by.id) {
           this.logger(
             'warn',
             'Received `call.created` sent by the current user',
@@ -232,7 +207,7 @@ export class StreamVideoClient {
     this.eventHandlersToUnregister.push(
       this.on('call.ring', async (event) => {
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
+        if (this.state.connectedUser?.id === call.created_by.id) {
           this.logger(
             'debug',
             'Received `call.ring` sent by the current user so ignoring the event',
@@ -260,6 +235,69 @@ export class StreamVideoClient {
       }),
     );
 
+    this.effectsRegistered = true;
+  };
+
+  /**
+   * Connects the given user to the client.
+   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
+   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  connectUser = async (
+    user: User,
+    tokenOrProvider?: TokenOrProvider,
+  ): Promise<void | ConnectedEvent> => {
+    if (user.type === 'anonymous') {
+      user.id = '!anon';
+      return this.connectAnonymousUser(user as UserWithId, tokenOrProvider);
+    }
+
+    const connectUserResponse = await withoutConcurrency(
+      this.connectionConcurrencyTag,
+      async () => {
+        const client = this.streamClient;
+        const { onConnectUserError, persistUserOnConnectionFailure } =
+          client.options;
+        let { maxConnectUserRetries = 5 } = client.options;
+        maxConnectUserRetries = Math.max(maxConnectUserRetries, 1);
+
+        const errorQueue: Error[] = [];
+        for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {
+          try {
+            this.logger('trace', `Connecting user (${attempt})`, user);
+            return user.type === 'guest'
+              ? await client.connectGuestUser(user)
+              : await client.connectUser(user, tokenOrProvider);
+          } catch (err) {
+            this.logger('warn', `Failed to connect a user (${attempt})`, err);
+            errorQueue.push(err as Error);
+            if (attempt === maxConnectUserRetries - 1) {
+              onConnectUserError?.(err as Error, errorQueue);
+              throw err;
+            }
+
+            // we need to force to disconnect the user if the client is
+            // configured to persist the user on connection failure
+            if (persistUserOnConnectionFailure) {
+              await client.disconnectUser();
+            }
+
+            await sleep(retryInterval(attempt));
+          }
+        }
+      },
+    );
+
+    // connectUserResponse will be void if connectUser called twice for the same user
+    if (connectUserResponse?.me) {
+      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
+    }
+
+    this.registerEffects();
+
     return connectUserResponse;
   };
 
@@ -272,17 +310,20 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    const { user, key } = this.streamClient;
-    if (!user) return;
-    await withoutConcurrency(this.connectionConcurrencyTag, () =>
-      this.streamClient.disconnectUser(timeout),
-    );
-    if (user.id) {
-      StreamVideoClient._instances.delete(getInstanceKey(key, user));
-    }
-    this.eventHandlersToUnregister.forEach((unregister) => unregister());
-    this.eventHandlersToUnregister = [];
-    this.writeableStateStore.setConnectedUser(undefined);
+    await withoutConcurrency(this.connectionConcurrencyTag, async () => {
+      const { user, key } = this.streamClient;
+      if (!user) return;
+
+      await this.streamClient.disconnectUser(timeout);
+
+      if (user.id) {
+        StreamVideoClient._instances.delete(getInstanceKey(key, user));
+      }
+      this.eventHandlersToUnregister.forEach((unregister) => unregister());
+      this.eventHandlersToUnregister = [];
+      this.effectsRegistered = false;
+      this.writeableStateStore.setConnectedUser(undefined);
+    });
   };
 
   /**
@@ -365,6 +406,7 @@ export class StreamVideoClient {
       call.state.updateFromCallResponse(c.call);
       await call.applyDeviceConfig(c.call.settings, false);
       if (data.watch) {
+        await call.setup();
         this.writeableStateStore.registerCall(call);
       }
       calls.push(call);

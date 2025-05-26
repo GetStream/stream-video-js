@@ -104,6 +104,7 @@ import Foundation
         _ pictureInPictureController: AVPictureInPictureController,
         failedToStartPictureInPictureWithError error: Error
     ) {
+        NSLog("PiP - failedToStartPictureInPictureWithError:\(error)")
     }
     
     public func pictureInPictureControllerWillStopPictureInPicture(
@@ -183,5 +184,11 @@ import Foundation
     
     private func didUpdatePictureInPictureActiveState(_ isActive: Bool) {
         trackStateAdapter.isEnabled = isActive
+    }
+    
+    func stopPictureInPicture() {
+        if (pictureInPictureController?.isPictureInPictureActive ?? false) {
+            pictureInPictureController?.stopPictureInPicture()
+        }
     }
 }

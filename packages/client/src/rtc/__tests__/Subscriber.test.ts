@@ -6,7 +6,11 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
 import { SfuEvent, SubscriberOffer } from '../../gen/video/sfu/event/events';
-import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import {
+  PeerType,
+  SdkType,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -20,7 +24,7 @@ vi.mock('../../StreamSfuClient', () => {
 describe('Subscriber', () => {
   let sfuClient: StreamSfuClient;
   let subscriber: Subscriber;
-  let state = new CallState();
+  const state = new CallState();
   let dispatcher: Dispatcher;
 
   beforeEach(() => {
@@ -39,6 +43,7 @@ describe('Subscriber', () => {
         token: 'token',
         ice_servers: [],
       },
+      enableTracing: false,
     });
     // @ts-expect-error readonly field
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
@@ -49,6 +54,15 @@ describe('Subscriber', () => {
       state,
       connectionConfig: { iceServers: [] },
       logTag: 'test',
+      enableTracing: false,
+      clientDetails: {
+        sdk: {
+          type: SdkType.PLAIN_JAVASCRIPT,
+          major: '1',
+          minor: '0',
+          patch: '1',
+        },
+      },
     });
   });
 
@@ -61,7 +75,7 @@ describe('Subscriber', () => {
   describe('Subscriber ICE restart', () => {
     it(`should drop consequent ICE restart requests`, async () => {
       sfuClient.iceRestart = vi.fn();
-      // @ts-ignore
+      // @ts-expect-error - private field
       subscriber['pc'].signalingState = 'have-remote-offer';
 
       await subscriber.restartIce();
@@ -70,7 +84,7 @@ describe('Subscriber', () => {
 
     it('should skip ICE restart when connection is still new', async () => {
       sfuClient.iceRestart = vi.fn();
-      // @ts-ignore
+      // @ts-expect-error - private field
       subscriber['pc'].connectionState = 'new';
 
       await subscriber.restartIce();
@@ -79,7 +93,7 @@ describe('Subscriber', () => {
 
     it('should ask the SFU for ICE restart', async () => {
       sfuClient.iceRestart = vi.fn();
-      // @ts-ignore
+      // @ts-expect-error - private field
       subscriber['pc'].connectionState = 'connected';
 
       await subscriber.restartIce();
@@ -89,16 +103,16 @@ describe('Subscriber', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
-      // @ts-ignore
+      subscriber['onUnrecoverableError'] = vi.fn();
+      // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'failed';
       subscriber['onIceConnectionStateChange']();
-      expect(subscriber.restartIce).toHaveBeenCalled();
+      expect(subscriber['onUnrecoverableError']).toHaveBeenCalled();
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
-      // @ts-ignore
+      // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'disconnected';
       subscriber['onIceConnectionStateChange']();
       expect(subscriber.restartIce).toHaveBeenCalled();
@@ -109,7 +123,7 @@ describe('Subscriber', () => {
     it('should add unknown tracks to the to the call state', () => {
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
-      // @ts-ignore - mock
+      // @ts-expect-error - mock
       mediaStream.id = '123:TRACK_TYPE_VIDEO';
 
       const registerOrphanedTrackSpy = vi.spyOn(state, 'registerOrphanedTrack');
@@ -131,7 +145,7 @@ describe('Subscriber', () => {
     it('should assign known tracks to the participant', () => {
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
-      // @ts-ignore - mock
+      // @ts-expect-error - mock
       mediaStream.id = '123:TRACK_TYPE_VIDEO';
 
       const registerOrphanedTrackSpy = vi.spyOn(state, 'registerOrphanedTrack');
@@ -156,7 +170,7 @@ describe('Subscriber', () => {
     it('should replace participant stream when a new one arrives', () => {
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
-      // @ts-ignore - mock
+      // @ts-expect-error - mock
       mediaStream.id = '123:TRACK_TYPE_VIDEO';
 
       const updateParticipantSpy = vi.spyOn(state, 'updateParticipant');
@@ -190,6 +204,7 @@ describe('Subscriber', () => {
       subscriber['pc'].createAnswer = vi
         .fn()
         .mockResolvedValue({ sdp: 'answer-sdp' });
+      vi.spyOn(subscriber['pc'], 'setRemoteDescription').mockResolvedValue();
 
       const offer = SubscriberOffer.create({ sdp: 'offer-sdp' });
       // @ts-expect-error - private method

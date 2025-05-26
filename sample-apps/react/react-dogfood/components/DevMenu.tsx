@@ -28,6 +28,9 @@ export const DevMenu = () => {
       <li className="rd__dev-menu__item">
         <SfuCallStats />
       </li>
+      <li className="rd__dev-menu__item">
+        <TraceStats />
+      </li>
 
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
 
@@ -287,6 +290,29 @@ const SfuCallStats = () => {
     >
       <Icon className="rd__button__icon" icon="folder" />
       SFU Call State Info
+    </button>
+  );
+};
+
+const TraceStats = () => {
+  const call = useCall();
+  if (!call) return null;
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      disabled={!call}
+      onClick={() => {
+        const appId = process.env.NEXT_PUBLIC_STREAM_APP_ID || '';
+        if (!appId) return window.open('http://localhost:8081/', '_blank');
+        const path = `app/${appId}/${call.cid}/${call.state.session?.id}/`;
+        window.open(
+          `http://localhost:8081/?path=${encodeURIComponent(path)}`,
+          '_blank',
+        );
+      }}
+    >
+      <Icon className="rd__button__icon" icon="folder" />
+      Trace Stats
     </button>
   );
 };

@@ -20,7 +20,7 @@ export type DispatchableMessage<K extends SfuEventKinds> = {
   };
 };
 
-const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
+const sfuEventKinds: Record<SfuEventKinds, undefined> = {
   subscriberOffer: undefined,
   publisherAnswer: undefined,
   connectionQualityChanged: undefined,

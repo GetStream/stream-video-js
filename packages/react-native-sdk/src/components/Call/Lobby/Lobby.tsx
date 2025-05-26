@@ -7,6 +7,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { Avatar } from '../../utility/Avatar';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
+import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import { LobbyControls as DefaultLobbyControls } from '../CallControls/LobbyControls';
 import {
@@ -14,7 +15,7 @@ import {
   type JoinCallButtonProps,
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { MediaStream } from '@stream-io/react-native-webrtc';
+
 import {
   LobbyFooter as DefaultLobbyFooter,
   type LobbyFooterProps,
@@ -201,6 +202,6 @@ const useStyles = (landscape = false) => {
           flexShrink: 1,
         },
       }),
-    [theme, landscape]
+    [theme, landscape],
   );
 };

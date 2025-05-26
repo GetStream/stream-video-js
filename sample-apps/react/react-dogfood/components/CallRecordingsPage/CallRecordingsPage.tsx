@@ -34,7 +34,6 @@ export const CallRecordingsPage = ({
     });
     setVideoClient(_client);
 
-    // @ts-ignore - for debugging
     window.client = _client;
 
     return () => {

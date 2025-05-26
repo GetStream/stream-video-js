@@ -13,7 +13,7 @@ export type StreamPushPayload =
   | undefined;
 
 export function isFirebaseStreamVideoMessage(
-  message: FirebaseMessagingTypes.RemoteMessage
+  message: FirebaseMessagingTypes.RemoteMessage,
 ) {
   return message.data?.sender === 'stream.video';
 }
@@ -45,7 +45,7 @@ export function isExpoNotificationStreamVideoEvent(event: ExpoNotification) {
 }
 
 export function isPushNotificationiOSStreamVideoEvent(
-  notification: PushNotificationiOSType
+  notification: PushNotificationiOSType,
 ) {
   const data = notification.getData();
   const streamPayload = data?.stream as StreamPushPayload;

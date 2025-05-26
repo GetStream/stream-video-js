@@ -1,34 +1,36 @@
 import {
+  BackgroundFiltersProvider,
+  getLogger,
   SendReactionRequest,
   useCall,
   useTheme,
-  getLogger,
 } from '@stream-io/video-react-native-sdk';
 import { defaultEmojiReactions } from '@stream-io/video-react-native-sdk/src/constants';
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
+  Animated,
+  Dimensions,
+  Easing,
+  FlatList,
   Modal,
-  View,
+  PanResponder,
+  SafeAreaView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  SafeAreaView,
-  Animated,
   TouchableWithoutFeedback,
-  Dimensions,
-  PanResponder,
-  Easing,
+  View,
 } from 'react-native';
 import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
 import RaiseHand from '../assets/RaiseHand';
 import { CallStats } from './CallStats';
+import { VideoFilters } from './VideoEffects';
 
 export type DrawerOption = {
   id: string;
   label: string;
-  icon?: JSX.Element;
+  icon?: React.ReactNode;
   onPress: () => void;
 };
 
@@ -176,6 +178,12 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     </TouchableOpacity>
   );
 
+  const filtersRow = (
+    <BackgroundFiltersProvider>
+      <VideoFilters onSelectFilter={onClose} />
+    </BackgroundFiltersProvider>
+  );
+
   const otherButtons = (
     <FlatList
       data={options}
@@ -192,6 +200,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     <>
       {emojiReactions}
       {raiseHand}
+      {filtersRow}
       {otherButtons}
     </>
   );
@@ -208,10 +217,9 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
         <View style={styles.overlay}>
           <SafeAreaView style={styles.safeArea}>
             <Animated.View
-              {...panResponder.panHandlers}
               style={[styles.container, { transform: [{ translateY }] }]}
             >
-              {dragIndicator}
+              <View {...panResponder.panHandlers}>{dragIndicator}</View>
               {!showCallStats && moreActions}
               {showCallStats && <CallStats showCodecInfo />}
             </Animated.View>

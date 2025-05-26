@@ -3,40 +3,45 @@ import {
   withAppDelegate as withAppDelegateUtil,
 } from '@expo/config-plugins';
 import {
+  addSwiftImports,
+  insertContentsInsideSwiftClassBlock,
+  insertContentsInsideSwiftFunctionBlock,
+  findSwiftFunctionCodeBlock,
   addObjcImports,
-  insertContentsInsideObjcFunctionBlock,
   findObjcFunctionCodeBlock,
+  insertContentsInsideObjcFunctionBlock,
 } from '@expo/config-plugins/build/ios/codeMod';
 
 import {
   type ConfigProps,
   type RingingPushNotifications,
 } from './common/types';
-import addNewLinesToAppDelegate from './common/addNewLinesToAppDelegate';
-
-const DID_FINISH_LAUNCHING_WITH_OPTIONS =
-  'application:didFinishLaunchingWithOptions:';
-const DID_UPDATE_PUSH_CREDENTIALS =
-  'pushRegistry:didUpdatePushCredentials:forType:';
-const DID_RECEIVE_INCOMING_PUSH =
-  'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
-const DID_ACTIVATE_AUDIO_SESSION =
-  'provider:didActivateAudioSession:audioSession';
-const DID_DEACTIVATE_AUDIO_SESSION =
-  'provider:didDeactivateAudioSession:audioSession';
+import addNewLinesToAppDelegateObjc from './common/addNewLinesToAppDelegateObjc';
+import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
 const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
   return withAppDelegateUtil(configuration, (config) => {
     if (
       !props?.ringingPushNotifications &&
-      !props?.iOSEnableMultitaskingCameraAccess
+      !props?.iOSEnableMultitaskingCameraAccess &&
+      !props?.addNoiseCancellation
     ) {
       // quit early if no change is necessary
       return config;
     }
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
       try {
-        // all the imports that are needed
+        if (props?.addNoiseCancellation) {
+          config.modResults.contents = addObjcImports(
+            config.modResults.contents,
+            ['"NoiseCancellationManagerObjc.h"'],
+          );
+        }
+        config.modResults.contents = addDidFinishLaunchingWithOptionsObjc(
+          config.modResults.contents,
+          props.iOSEnableMultitaskingCameraAccess,
+          props.addNoiseCancellation,
+        );
         if (props?.ringingPushNotifications) {
           config.modResults.contents = addObjcImports(
             config.modResults.contents,
@@ -46,48 +51,157 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
               '"RNVoipPushNotificationManager.h"',
               '"StreamVideoReactNative.h"',
               '<WebRTC/RTCAudioSession.h>',
-            ]
+            ],
           );
 
-          config.modResults.contents = addDidFinishLaunchingWithOptionsRinging(
+          config.modResults.contents =
+            addDidFinishLaunchingWithOptionsRingingObjc(
+              config.modResults.contents,
+              props.ringingPushNotifications,
+            );
+
+          config.modResults.contents = addDidUpdatePushCredentialsObjc(
             config.modResults.contents,
-            props.ringingPushNotifications
           );
 
-          config.modResults.contents = addDidUpdatePushCredentials(
-            config.modResults.contents
+          config.modResults.contents = addDidReceiveIncomingPushCallbackObjc(
+            config.modResults.contents,
           );
 
-          config.modResults.contents = addDidReceiveIncomingPushCallback(
-            config.modResults.contents
-          );
-
-          config.modResults.contents = addAudioSessionMethods(
-            config.modResults.contents
+          config.modResults.contents = addAudioSessionMethodsObjc(
+            config.modResults.contents,
           );
         }
-        config.modResults.contents = addDidFinishLaunchingWithOptions(
-          config.modResults.contents,
-          props.iOSEnableMultitaskingCameraAccess
-        );
         return config;
       } catch (error: any) {
         throw new Error(
-          'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed'
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate(objc) is malformed ${error}`,
         );
       }
     } else {
-      throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the language is not supported'
-      );
+      try {
+        if (props?.ringingPushNotifications) {
+          // make it public class AppDelegate: ExpoAppDelegate, PKPushRegistryDelegate {
+          const regex = /(class\s+AppDelegate[^{]*)(\s*\{)/;
+          config.modResults.contents = config.modResults.contents.replace(
+            regex,
+            (match, declarationPart, openBrace) => {
+              // Check if PKPushRegistryDelegate is already in the declaration part
+              if (declarationPart.includes('PKPushRegistryDelegate')) {
+                return match; // Already present, no change needed
+              }
+
+              const trimmedDecl = declarationPart.trimRight();
+
+              // If the declaration already has a colon (superclass or other protocols)
+              if (trimmedDecl.includes(':')) {
+                return `${trimmedDecl}, PKPushRegistryDelegate${openBrace}`;
+              } else {
+                // No colon, so AppDelegate is the first thing to be listed after :
+                // This means the class declaration was like "class AppDelegate {"
+                return `${trimmedDecl}: PKPushRegistryDelegate${openBrace}`;
+              }
+            },
+          );
+        }
+        config.modResults.contents = addSwiftImports(
+          config.modResults.contents,
+          ['WebRTC'],
+        );
+        addToSwiftBridgingHeaderFile(
+          config.modRequest.projectRoot,
+          (headerFileContents) => {
+            headerFileContents = addObjcImports(headerFileContents, [
+              '"ProcessorProvider.h"',
+              '"StreamVideoReactNative.h"',
+              '<WebRTCModuleOptions.h>',
+            ]);
+            return headerFileContents;
+          },
+        );
+        if (props?.addNoiseCancellation) {
+          config.modResults.contents = addObjcImports(
+            config.modResults.contents,
+            ['stream_io_noise_cancellation_react_native'],
+          );
+        }
+        config.modResults.contents = addDidFinishLaunchingWithOptionsSwift(
+          config.modResults.contents,
+          props.iOSEnableMultitaskingCameraAccess,
+          props.addNoiseCancellation,
+        );
+        if (props?.ringingPushNotifications) {
+          config.modResults.contents = addSwiftImports(
+            config.modResults.contents,
+            ['RNCallKeep', 'PushKit', 'RNVoipPushNotification'],
+          );
+          config.modResults.contents =
+            addDidFinishLaunchingWithOptionsRingingSwift(
+              config.modResults.contents,
+              props.ringingPushNotifications,
+            );
+
+          config.modResults.contents = addDidUpdatePushCredentialsSwift(
+            config.modResults.contents,
+          );
+
+          config.modResults.contents = addDidReceiveIncomingPushCallbackSwift(
+            config.modResults.contents,
+          );
+
+          config.modResults.contents = addAudioSessionMethodsSwift(
+            config.modResults.contents,
+          );
+        }
+        return config;
+      } catch (error: any) {
+        throw new Error(
+          `Cannot setup StreamVideoReactNativeSDK because the AppDelegate(swift) is malformed ${error}`,
+        );
+      }
     }
   });
 };
 
-function addDidFinishLaunchingWithOptions(
+function addDidFinishLaunchingWithOptionsSwift(
   contents: string,
-  iOSEnableMultitaskingCameraAccess: boolean | undefined
+  iOSEnableMultitaskingCameraAccess: boolean | undefined,
+  enableNoiseCancellation: boolean | undefined,
 ) {
+  const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
+  if (iOSEnableMultitaskingCameraAccess) {
+    const setupMethod = `let options = WebRTCModuleOptions.sharedInstance()
+    options.enableMultitaskingCameraAccess = true`;
+
+    if (!contents.includes('options.enableMultitaskingCameraAccess = true')) {
+      contents = insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        setupMethod,
+        { position: 'head' },
+      );
+    }
+  }
+  if (enableNoiseCancellation) {
+    const setupMethod = `NoiseCancellationManager.getInstance().registerProcessor()`;
+    if (!contents.includes(setupMethod)) {
+      contents = insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        setupMethod,
+        { position: 'head' },
+      );
+    }
+  }
+  return contents;
+}
+
+function addDidFinishLaunchingWithOptionsObjc(
+  contents: string,
+  iOSEnableMultitaskingCameraAccess: boolean | undefined,
+  enableNoiseCancellation: boolean | undefined,
+) {
+  const functionSelector = 'application:didFinishLaunchingWithOptions:';
   if (iOSEnableMultitaskingCameraAccess) {
     contents = addObjcImports(contents, ['<WebRTCModuleOptions.h>']);
 
@@ -97,19 +211,69 @@ function addDidFinishLaunchingWithOptions(
     if (!contents.includes('options.enableMultitaskingCameraAccess = YES')) {
       contents = insertContentsInsideObjcFunctionBlock(
         contents,
-        DID_FINISH_LAUNCHING_WITH_OPTIONS,
+        functionSelector,
         setupMethod,
-        { position: 'tailBeforeLastReturn' }
+        { position: 'head' },
+      );
+    }
+  }
+  if (enableNoiseCancellation) {
+    const setupMethod = `[[NoiseCancellationManagerObjc sharedInstance] registerProcessor];`;
+    if (!contents.includes(setupMethod)) {
+      contents = insertContentsInsideObjcFunctionBlock(
+        contents,
+        functionSelector,
+        setupMethod,
+        { position: 'head' },
       );
     }
   }
   return contents;
 }
 
-function addDidFinishLaunchingWithOptionsRinging(
+function addDidFinishLaunchingWithOptionsRingingSwift(
   contents: string,
-  ringingPushNotifications: RingingPushNotifications
+  ringingPushNotifications: RingingPushNotifications,
 ) {
+  const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
+  const supportsVideoString = ringingPushNotifications.disableVideoIos
+    ? 'false'
+    : 'true';
+  const includesCallsInRecents =
+    ringingPushNotifications.includesCallsInRecentsIos ? 'false' : 'true';
+  const setupCallKeep = `  let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
+    let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
+    RNCallKeep.setup([
+      "appName": localizedAppName != nil ? localizedAppName! : appName as Any,
+      "supportsVideo": ${supportsVideoString},
+      "includesCallsInRecents": ${includesCallsInRecents},
+    ])`;
+  if (!contents.includes('RNCallKeep.setup')) {
+    contents = insertContentsInsideSwiftFunctionBlock(
+      contents,
+      functionSelector,
+      setupCallKeep,
+      { position: 'head' },
+    );
+  }
+  // call the setup of voip push notification
+  const voipSetupMethod = 'RNVoipPushNotificationManager.voipRegistration()';
+  if (!contents.includes(voipSetupMethod)) {
+    contents = insertContentsInsideSwiftFunctionBlock(
+      contents,
+      functionSelector,
+      '  ' /* indentation */ + voipSetupMethod,
+      { position: 'head' },
+    );
+  }
+  return contents;
+}
+
+function addDidFinishLaunchingWithOptionsRingingObjc(
+  contents: string,
+  ringingPushNotifications: RingingPushNotifications,
+) {
+  const functionSelector = 'application:didFinishLaunchingWithOptions:';
   // call the setup RNCallKeep
   const supportsVideoString = ringingPushNotifications.disableVideoIos
     ? '@NO'
@@ -126,9 +290,9 @@ function addDidFinishLaunchingWithOptionsRinging(
   if (!contents.includes('[RNCallKeep setup:@')) {
     contents = insertContentsInsideObjcFunctionBlock(
       contents,
-      DID_FINISH_LAUNCHING_WITH_OPTIONS,
+      functionSelector,
       setupCallKeep,
-      { position: 'head' }
+      { position: 'head' },
     );
   }
   // call the setup of voip push notification
@@ -136,24 +300,56 @@ function addDidFinishLaunchingWithOptionsRinging(
   if (!contents.includes(voipSetupMethod)) {
     contents = insertContentsInsideObjcFunctionBlock(
       contents,
-      DID_FINISH_LAUNCHING_WITH_OPTIONS,
+      functionSelector,
       voipSetupMethod,
-      { position: 'head' }
+      { position: 'head' },
     );
   }
   return contents;
 }
 
-function addDidUpdatePushCredentials(contents: string) {
+function addDidUpdatePushCredentialsSwift(contents: string) {
+  const updatedPushCredentialsMethod =
+    'RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)';
+
+  if (!contents.includes(updatedPushCredentialsMethod)) {
+    const functionSelector = 'pushRegistry(_:didUpdate:for:)';
+    const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
+    if (!codeblock) {
+      return insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+    public func pushRegistry(
+      _ registry: PKPushRegistry,
+      didUpdate credentials: PKPushCredentials,
+      for type: PKPushType
+    ) {
+      ${updatedPushCredentialsMethod}
+    }
+            `,
+        { position: 'tail' },
+      );
+    } else {
+      return insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        updatedPushCredentialsMethod,
+        { position: 'tail' },
+      );
+    }
+  }
+  return contents;
+}
+
+function addDidUpdatePushCredentialsObjc(contents: string) {
   const updatedPushCredentialsMethod =
     '[RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];';
   if (!contents.includes(updatedPushCredentialsMethod)) {
-    const codeblock = findObjcFunctionCodeBlock(
-      contents,
-      DID_UPDATE_PUSH_CREDENTIALS
-    );
+    const functionSelector = 'pushRegistry:didUpdatePushCredentials:forType:';
+    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
-      return addNewLinesToAppDelegate(contents, [
+      return addNewLinesToAppDelegateObjc(contents, [
         '- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {',
         '  ' /* indentation */ + updatedPushCredentialsMethod,
         '}',
@@ -161,25 +357,76 @@ function addDidUpdatePushCredentials(contents: string) {
     } else {
       return insertContentsInsideObjcFunctionBlock(
         contents,
-        DID_UPDATE_PUSH_CREDENTIALS,
+        functionSelector,
         updatedPushCredentialsMethod,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }
   return contents;
 }
 
-function addAudioSessionMethods(contents: string) {
+function addAudioSessionMethodsSwift(contents: string) {
+  const audioSessionDidActivateMethod =
+    'RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance())';
+  if (!contents.includes(audioSessionDidActivateMethod)) {
+    const functionSelector = 'provider(_:didActivate:)';
+    if (!contents.includes('didActivateAudioSession')) {
+      contents = insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+  func provider(_ provider: CXProvider, didActivateAudioSession audioSession: AVAudioSession) {
+    ${audioSessionDidActivateMethod}
+  }
+    `,
+        { position: 'tail' },
+      );
+    } else {
+      contents = insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        audioSessionDidActivateMethod,
+        { position: 'tail' },
+      );
+    }
+  }
+  const audioSessionDidDeactivateMethod =
+    'RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance())';
+
+  if (!contents.includes(audioSessionDidDeactivateMethod)) {
+    const functionSelector = 'provider(_:didDeactivate:)';
+    if (!contents.includes('didDeactivateAudioSession')) {
+      contents = insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+  func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {
+    ${audioSessionDidDeactivateMethod}
+  }
+    `,
+        { position: 'tail' },
+      );
+    } else {
+      contents = insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        audioSessionDidDeactivateMethod,
+        { position: 'tail' },
+      );
+    }
+  }
+  return contents;
+}
+
+function addAudioSessionMethodsObjc(contents: string) {
   const audioSessionDidActivateMethod =
     '[[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];';
   if (!contents.includes(audioSessionDidActivateMethod)) {
-    const codeblock = findObjcFunctionCodeBlock(
-      contents,
-      DID_ACTIVATE_AUDIO_SESSION
-    );
+    const functionSelector = 'provider:didActivateAudioSession:audioSession:';
+    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
-      contents = addNewLinesToAppDelegate(contents, [
+      contents = addNewLinesToAppDelegateObjc(contents, [
         '- (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {',
         '  ' /* indentation */ + audioSessionDidActivateMethod,
         '}',
@@ -187,9 +434,9 @@ function addAudioSessionMethods(contents: string) {
     } else {
       contents = insertContentsInsideObjcFunctionBlock(
         contents,
-        DID_ACTIVATE_AUDIO_SESSION,
+        functionSelector,
         audioSessionDidActivateMethod,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }
@@ -197,12 +444,10 @@ function addAudioSessionMethods(contents: string) {
     '[[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];';
 
   if (!contents.includes(audioSessionDidDeactivateMethod)) {
-    const codeblock = findObjcFunctionCodeBlock(
-      contents,
-      DID_DEACTIVATE_AUDIO_SESSION
-    );
+    const functionSelector = 'provider:didDeactivateAudioSession:audioSession:';
+    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
-      contents = addNewLinesToAppDelegate(contents, [
+      contents = addNewLinesToAppDelegateObjc(contents, [
         '- (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {',
         '  ' /* indentation */ + audioSessionDidDeactivateMethod,
         '}',
@@ -210,29 +455,94 @@ function addAudioSessionMethods(contents: string) {
     } else {
       contents = insertContentsInsideObjcFunctionBlock(
         contents,
-        DID_DEACTIVATE_AUDIO_SESSION,
+        functionSelector,
         audioSessionDidDeactivateMethod,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }
   return contents;
 }
 
-function addDidReceiveIncomingPushCallback(contents: string) {
+function addDidReceiveIncomingPushCallbackSwift(contents: string) {
   const onIncomingPush = `
-  // send event to JS
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+    guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
+          let createdCallerName = stream["created_by_display_name"] as? String,
+          let cid = stream["call_cid"] as? String else {
+      completion()
+      return
+    }
+    
+    let uuid = UUID().uuidString
+    
+    StreamVideoReactNative.registerIncomingCall(cid, uuid: uuid)
+    
+    RNVoipPushNotificationManager.addCompletionHandler(uuid, completionHandler: completion)
+    
+    RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue)
+    
+    RNCallKeep.reportNewIncomingCall(uuid,
+                                     handle: createdCallerName,
+                                     handleType: "generic",
+                                     hasVideo: true,
+                                     localizedCallerName: createdCallerName,
+                                     supportsHolding: true,
+                                     supportsDTMF: true,
+                                     supportsGrouping: true,
+                                     supportsUngrouping: true,
+                                     fromPushKit: true,
+                                     payload: stream,
+                                     withCompletionHandler: nil)`;
+  if (
+    !contents.includes('RNVoipPushNotificationManager.didReceiveIncomingPush')
+  ) {
+    const functionSelector =
+      'pushRegistry(_:didReceiveIncomingPushWith:for:completion:)';
+    const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
+    if (!codeblock) {
+      return insertContentsInsideSwiftClassBlock(
+        contents,
+        'class AppDelegate',
+        `
+  public func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType,
+    completion: @escaping () -> Void
+  ) {
+    ${onIncomingPush}
+  }
+        `,
+        { position: 'tail' },
+      );
+    } else {
+      return insertContentsInsideSwiftFunctionBlock(
+        contents,
+        functionSelector,
+        onIncomingPush,
+        { position: 'tail' },
+      );
+    }
+  }
+  return contents;
+}
 
-  // process the payload
+function addDidReceiveIncomingPushCallbackObjc(contents: string) {
+  const onIncomingPush = `
+  // process the payload and store it in the native module's cache
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
 
+  // store the call cid and uuid in the native module's cache
   [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
 
+  // set the completion handler - this one is called by the JS SDK
   [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+
+  // send event to JS - the JS SDK will handle the rest and call the 'completionHandler'
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
 
   // display the incoming call notification
   [RNCallKeep reportNewIncomingCall: uuid
@@ -250,15 +560,14 @@ function addDidReceiveIncomingPushCallback(contents: string) {
 `;
   if (
     !contents.includes(
-      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload'
+      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload',
     )
   ) {
-    const codeblock = findObjcFunctionCodeBlock(
-      contents,
-      DID_RECEIVE_INCOMING_PUSH
-    );
+    const functionSelector =
+      'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
+    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
-      return addNewLinesToAppDelegate(contents, [
+      return addNewLinesToAppDelegateObjc(contents, [
         '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {',
         ...onIncomingPush.trim().split('\n'),
         '}',
@@ -266,9 +575,9 @@ function addDidReceiveIncomingPushCallback(contents: string) {
     } else {
       return insertContentsInsideObjcFunctionBlock(
         contents,
-        DID_RECEIVE_INCOMING_PUSH,
+        functionSelector,
         onIncomingPush,
-        { position: 'tail' }
+        { position: 'tail' },
       );
     }
   }

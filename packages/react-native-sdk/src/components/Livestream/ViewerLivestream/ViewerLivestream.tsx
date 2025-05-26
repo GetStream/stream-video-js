@@ -1,12 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
-
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
-import {
-  ViewerLivestreamTopView as DefaultViewerLivestreamTopView,
-  type ViewerLivestreamTopViewProps,
-} from '../LivestreamTopView/ViewerLivestreamTopView';
+import { type ViewerLivestreamTopViewProps } from '../LivestreamTopView/ViewerLivestreamTopView';
 import {
   ViewerLivestreamControls as DefaultViewerLivestreamControls,
   type ViewerLivestreamControlsProps,
@@ -16,12 +12,14 @@ import {
   LivestreamLayout as DefaultLivestreamLayout,
   type LivestreamLayoutProps,
 } from '../LivestreamLayout';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
 } from '../../Participant';
-import { hasVideo } from '@stream-io/video-client';
+import { CallingState, hasVideo } from '@stream-io/video-client';
+import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
+import { ViewerLobby } from './ViewerLobby';
 
 /**
  * Props for the ViewerLivestream component.
@@ -45,13 +43,21 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
      * Component to customize the FloatingParticipantView when screen is shared.
      */
     FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
+     * Determines when the viewer joins the call.
+     *
+     * `"asap"` behavior means joining the call as soon as it is possible
+     * (either the `join_ahead_time_seconds` setting allows it, or the user
+     * has a the capability to join backstage).
+     */
+    joinBehavior?: 'asap' | 'live';
   };
 
 /**
  * The ViewerLivestream component renders the UI for the Viewer's live stream.
  */
 export const ViewerLivestream = ({
-  ViewerLivestreamTopView = DefaultViewerLivestreamTopView,
+  ViewerLivestreamTopView,
   ViewerLivestreamControls = DefaultViewerLivestreamControls,
   LivestreamLayout = DefaultLivestreamLayout,
   FloatingParticipantView = DefaultFloatingParticipantView,
@@ -60,12 +66,24 @@ export const ViewerLivestream = ({
   DurationBadge,
   ViewerLeaveStreamButton,
   onLeaveStreamHandler,
+  joinBehavior,
 }: ViewerLivestreamProps) => {
   const styles = useStyles();
+  const call = useCall();
   const {
     theme: { viewerLivestream },
   } = useTheme();
-  const { useHasOngoingScreenShare, useParticipants } = useCallStateHooks();
+  const {
+    useHasOngoingScreenShare,
+    useParticipants,
+    useCallCallingState,
+    useCallEndedAt,
+    useIsCallLive,
+    useOwnCapabilities,
+  } = useCallStateHooks();
+  const canJoinLive = useIsCallLive();
+  const callingState = useCallCallingState();
+  const endedAt = useCallEndedAt();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const [currentSpeaker] = useParticipants();
   const floatingParticipant =
@@ -73,6 +91,11 @@ export const ViewerLivestream = ({
     currentSpeaker &&
     hasVideo(currentSpeaker) &&
     currentSpeaker;
+  const [hasLeft, setHasLeft] = useState(false);
+
+  const canJoinEarly = useCanJoinEarly();
+  const canJoinBackstage =
+    useOwnCapabilities()?.includes('join-backstage') ?? false;
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
@@ -83,6 +106,12 @@ export const ViewerLivestream = ({
     return () => InCallManager.stop();
   }, []);
 
+  useEffect(() => {
+    if (callingState === CallingState.LEFT) {
+      setHasLeft(true);
+    }
+  }, [callingState]);
+
   const topViewProps: ViewerLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
@@ -91,6 +120,41 @@ export const ViewerLivestream = ({
       setTopViewHeight(event.nativeEvent.layout.height);
     },
   };
+
+  useEffect(() => {
+    const handleJoinCall = async () => {
+      try {
+        await call?.join();
+      } catch (error) {
+        console.error('Failed to join call', error);
+      }
+    };
+
+    const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
+    const join = joinBehavior ?? 'asap';
+    const canJoin =
+      (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
+
+    if (call && callingState === CallingState.IDLE && canJoin && !hasLeft) {
+      handleJoinCall();
+    }
+  }, [
+    canJoinLive,
+    call,
+    canJoinBackstage,
+    canJoinEarly,
+    joinBehavior,
+    callingState,
+    hasLeft,
+  ]);
+
+  if (endedAt != null) {
+    return <CallEndedView />;
+  }
+
+  if (!canJoinLive || callingState !== CallingState.JOINED) {
+    return <ViewerLobby isLive={canJoinLive} />;
+  }
 
   return (
     <View style={[styles.container, viewerLivestream.container]}>
@@ -124,6 +188,39 @@ export const ViewerLivestream = ({
   );
 };
 
+const useCanJoinEarly = () => {
+  const { useCallStartsAt, useCallSettings } = useCallStateHooks();
+  const startsAt = useCallStartsAt();
+  const settings = useCallSettings();
+  const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+  const [canJoinEarly, setCanJoinEarly] = useState(() =>
+    checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
+  );
+
+  useEffect(() => {
+    if (!canJoinEarly) {
+      const handle = setInterval(() => {
+        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+      }, 1000);
+
+      return () => clearInterval(handle);
+    }
+  }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
+
+  return canJoinEarly;
+};
+
+const checkCanJoinEarly = (
+  startsAt: Date | undefined,
+  joinAheadTimeSeconds: number | undefined,
+) => {
+  if (!startsAt) {
+    return false;
+  }
+
+  return Date.now() >= +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
+};
+
 const useStyles = () => {
   const { theme } = useTheme();
   return useMemo(
@@ -138,6 +235,6 @@ const useStyles = () => {
           backgroundColor: theme.colors.sheetPrimary,
         },
       }),
-    [theme]
+    [theme],
   );
 };

@@ -5,18 +5,20 @@ import type {
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
-import { PeerType } from '../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
-import { withCancellation, withoutConcurrency } from '../helpers/concurrency';
+import { withoutConcurrency } from '../helpers/concurrency';
+import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
-  onUnrecoverableError?: () => void;
+  onUnrecoverableError?: (reason: string) => void;
   logTag: string;
+  enableTracing: boolean;
 };
 
 /**
@@ -31,12 +33,17 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected onUnrecoverableError?: () => void;
+  protected onUnrecoverableError?: (reason: string) => void;
   protected isIceRestarting = false;
   private isDisposed = false;
 
+  protected trackIdToTrackType = new Map<string, TrackType>();
+
+  readonly tracer?: Tracer;
+  readonly stats: StatsTracer;
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
+  protected readonly lock = Math.random().toString(36).slice(2);
 
   /**
    * Constructs a new `BasePeerConnection` instance.
@@ -50,6 +57,7 @@ export abstract class BasePeerConnection {
       dispatcher,
       onUnrecoverableError,
       logTag,
+      enableTracing,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -70,6 +78,20 @@ export abstract class BasePeerConnection {
     );
     this.pc.addEventListener('icegatheringstatechange', this.onIceGatherChange);
     this.pc.addEventListener('signalingstatechange', this.onSignalingChange);
+    this.pc.addEventListener(
+      'connectionstatechange',
+      this.onConnectionStateChange,
+    );
+    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    if (enableTracing) {
+      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
+      this.tracer = new Tracer(tag);
+      this.tracer.trace('create', {
+        url: sfuClient.edgeName,
+        ...connectionConfig,
+      });
+      traceRTCPeerConnection(this.pc, this.tracer.trace);
+    }
   }
 
   /**
@@ -80,12 +102,13 @@ export abstract class BasePeerConnection {
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
+    this.tracer?.dispose();
   }
 
   /**
    * Detaches the event handlers from the `RTCPeerConnection`.
    */
-  protected detachEventHandlers() {
+  detachEventHandlers() {
     this.pc.removeEventListener('icecandidate', this.onIceCandidate);
     this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
     this.pc.removeEventListener('signalingstatechange', this.onSignalingChange);
@@ -93,8 +116,6 @@ export abstract class BasePeerConnection {
       'iceconnectionstatechange',
       this.onIceConnectionStateChange,
     );
-    // cancel any ongoing ICE restart process
-    withCancellation('onIceConnectionStateChange', () => Promise.resolve());
     this.pc.removeEventListener(
       'icegatheringstatechange',
       this.onIceGatherChange,
@@ -118,7 +139,8 @@ export abstract class BasePeerConnection {
   ): void => {
     this.subscriptions.push(
       this.dispatcher.on(event, (e) => {
-        withoutConcurrency(`pc.${event}`, async () => fn(e)).catch((err) => {
+        const lockKey = `pc.${this.lock}.${event}`;
+        withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
           this.logger('warn', `Error handling ${event}`, err);
         });
@@ -166,6 +188,13 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Maps the given track ID to the corresponding track type.
+   */
+  getTrackType = (trackId: string): TrackType | undefined => {
+    return this.trackIdToTrackType.get(trackId);
+  };
+
+  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */
@@ -176,7 +205,7 @@ export abstract class BasePeerConnection {
       return;
     }
 
-    const iceCandidate = this.toJSON(candidate);
+    const iceCandidate = this.asJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
       .catch((err) => {
@@ -188,7 +217,7 @@ export abstract class BasePeerConnection {
   /**
    * Converts the ICE candidate to a JSON string.
    */
-  private toJSON = (candidate: RTCIceCandidate): string => {
+  private asJSON = (candidate: RTCIceCandidate): string => {
     if (!candidate.usernameFragment) {
       // react-native-webrtc doesn't include usernameFragment in the candidate
       const segments = candidate.candidate.split(' ');
@@ -197,6 +226,23 @@ export abstract class BasePeerConnection {
       return JSON.stringify({ ...candidate, usernameFragment });
     }
     return JSON.stringify(candidate.toJSON());
+  };
+
+  /**
+   * Handles the ConnectionStateChange event.
+   */
+  private onConnectionStateChange = async () => {
+    const state = this.pc.connectionState;
+    this.logger('debug', `Connection state changed`, state);
+    if (!this.tracer) return;
+    if (state === 'connected' || state === 'failed') {
+      try {
+        const stats = await this.stats.get();
+        this.tracer.trace('getstats', stats.delta);
+      } catch (err) {
+        this.tracer.trace('getstatsOnFailure', (err as Error).toString());
+      }
+    }
   };
 
   /**
@@ -212,12 +258,14 @@ export abstract class BasePeerConnection {
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
-    if (state === 'failed' || state === 'disconnected') {
+    if (state === 'failed') {
+      this.onUnrecoverableError?.('ICE connection failed');
+    } else if (state === 'disconnected') {
       this.logger('debug', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
-        if (this.isDisposed) return;
-        this.logger('error', `ICE restart failed`, e);
-        this.onUnrecoverableError?.();
+        const reason = `ICE restart failed`;
+        this.logger('error', reason, e);
+        this.onUnrecoverableError?.(`${reason}: ${e}`);
       });
     }
   };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   DefaultParticipantViewUI,
@@ -25,12 +25,23 @@ export const DebugParticipantViewUI = () => {
   const call = useCall();
   const {
     participant: { sessionId, userId },
+    participantViewElement,
   } = useParticipantViewContext();
 
   const isDemoEnvironment = useIsDemoEnvironment();
   const participantContextMenuActions = isDemoEnvironment
     ? CustomParticipantActionsContextMenu
     : ParticipantActionsContextMenu;
+
+  const enterFullScreen = useCallback(() => {
+    if (!participantViewElement) return;
+    if (typeof participantViewElement.requestFullscreen === 'undefined') return;
+
+    if (!document.fullscreenElement) {
+      return participantViewElement.requestFullscreen().catch(console.error);
+    }
+    document.exitFullscreen().catch(console.error);
+  }, [participantViewElement]);
 
   const isDebug = useIsDebugMode();
   if (!isDebug) {
@@ -40,6 +51,7 @@ export const DebugParticipantViewUI = () => {
           'rd__debug__participant-view',
           isDemoEnvironment && 'rd__debug__participant-view--hide-elements',
         )}
+        onDoubleClick={enterFullScreen}
       >
         <DefaultParticipantViewUI
           ParticipantActionsContextMenu={participantContextMenuActions}
@@ -226,13 +238,14 @@ const CustomParticipantActionsContextMenu = () => {
           </GenericMenuButtonItem>
         )}
       </Restricted>
-      {participantViewElement && (
-        <GenericMenuButtonItem onClick={toggleFullscreenMode}>
-          {t('{{ direction }} fullscreen', {
-            direction: fullscreenModeOn ? t('Leave') : t('Enter'),
-          })}
-        </GenericMenuButtonItem>
-      )}
+      {participantViewElement &&
+        typeof participantViewElement.requestFullscreen !== 'undefined' && (
+          <GenericMenuButtonItem onClick={toggleFullscreenMode}>
+            {t('{{ direction }} fullscreen', {
+              direction: fullscreenModeOn ? t('Leave') : t('Enter'),
+            })}
+          </GenericMenuButtonItem>
+        )}
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
           {t('{{ direction }} picture-in-picture', {

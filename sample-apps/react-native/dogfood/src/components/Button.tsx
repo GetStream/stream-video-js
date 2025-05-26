@@ -9,11 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { BUTTON_HEIGHT } from '../constants';
-import {
-  Theme,
-  defaultTheme,
-  useTheme,
-} from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 type ButtonPropTypes = Omit<PressableProps, 'style'> & {
   title: string;
@@ -46,13 +42,7 @@ export const Button = ({
 };
 
 const useStyles = () => {
-  let appTheme: Theme;
-  try {
-    /* eslint-disable react-hooks/rules-of-hooks */
-    appTheme = useTheme()?.theme;
-  } catch (e) {
-    appTheme = defaultTheme;
-  }
+  const { theme: appTheme } = useTheme();
 
   return useMemo(
     () =>

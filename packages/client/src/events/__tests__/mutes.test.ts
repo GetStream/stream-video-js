@@ -14,7 +14,7 @@ describe('mutes', () => {
     let call: Call;
 
     beforeEach(() => {
-      // @ts-expect-error
+      // @ts-expect-error incomplete data
       call = new Call({
         type: 'test',
         id: 'test',
@@ -29,10 +29,10 @@ describe('mutes', () => {
       vi.spyOn(call.microphone, 'disable').mockResolvedValue(undefined);
       vi.spyOn(call.screenShare, 'disable').mockResolvedValue(undefined);
 
-      // @ts-ignore
+      // @ts-expect-error partial data
       call.on = (event: string, h) => {
         if (event === 'trackUnpublished') {
-          // @ts-ignore
+          // @ts-expect-error partial data
           handler = h;
         }
       };
@@ -54,6 +54,7 @@ describe('mutes', () => {
     });
 
     it('should automatically mute only when cause is moderation', () => {
+      // @ts-expect-error incorrect types
       handler!({
         cause: TrackUnpublishReason.PERMISSION_REVOKED,
         type: TrackType.VIDEO,
@@ -64,6 +65,7 @@ describe('mutes', () => {
     });
 
     it('should handle remote soft video mute', () => {
+      // @ts-expect-error incorrect types
       handler!({
         cause: TrackUnpublishReason.MODERATION,
         type: TrackType.VIDEO,
@@ -74,6 +76,7 @@ describe('mutes', () => {
     });
 
     it('should handle remote soft audio mute', () => {
+      // @ts-expect-error incorrect types
       handler!({
         cause: TrackUnpublishReason.MODERATION,
         type: TrackType.AUDIO,
@@ -84,6 +87,7 @@ describe('mutes', () => {
     });
 
     it('should handle remote soft screenshare mute', () => {
+      // @ts-expect-error incorrect types
       handler!({
         cause: TrackUnpublishReason.MODERATION,
         type: TrackType.SCREEN_SHARE,

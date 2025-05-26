@@ -53,8 +53,9 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
   return dispatcher.on('error', (e) => {
     if (e.error && e.error.code !== ErrorCode.LIVE_ENDED) return;
 
+    call.state.setBackstage(true);
     if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)) {
-      call.leave({ reason: 'live ended' }).catch((err) => {
+      call.leave({ message: 'live ended' }).catch((err) => {
         call.logger('error', 'Failed to leave call after live ended', err);
       });
     }

@@ -8,8 +8,8 @@ import type { TokenOrProvider, UserWithId } from './types';
  * Handles all the operations around user token.
  */
 export class TokenManager {
-  private loadTokenPromise: Promise<string> | null;
-  private type: 'static' | 'provider';
+  private loadTokenPromise: Promise<string> | null = null;
+  private type: 'static' | 'provider' = 'static';
   private readonly secret?: string;
   private token?: string;
   private tokenProvider?: TokenOrProvider;
@@ -17,9 +17,7 @@ export class TokenManager {
   private isAnonymous?: boolean;
 
   constructor(secret?: string) {
-    this.loadTokenPromise = null;
     this.secret = secret;
-    this.type = 'static';
   }
 
   /**
@@ -74,11 +72,7 @@ export class TokenManager {
       throw new Error('User token can not be empty');
     }
 
-    if (
-      tokenOrProvider &&
-      typeof tokenOrProvider !== 'string' &&
-      !isFunction(tokenOrProvider)
-    ) {
+    if (typeof tokenOrProvider !== 'string' && !isFunction(tokenOrProvider)) {
       throw new Error('User token should either be a string or a function');
     }
 

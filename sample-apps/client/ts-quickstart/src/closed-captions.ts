@@ -15,7 +15,11 @@ export class ClosedCaptionManager {
         : 'Turn on closed captions';
 
     button.addEventListener('click', async () => {
-      this.status === 'on' ? this.hideCaptions() : this.showCaptions();
+      if (this.status === 'on') {
+        this.hideCaptions();
+      } else {
+        this.showCaptions();
+      }
       button.textContent =
         this.status === 'on'
           ? 'Turn off closed captions'

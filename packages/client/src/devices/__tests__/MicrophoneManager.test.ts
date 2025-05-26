@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import { NoiseCancellationStub } from './NoiseCancellationStub';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { sleep } from '../../coordinator/connection/utils';
@@ -24,6 +24,7 @@ import {
   SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
 import { PermissionsContext } from '../../permissions';
+import { Tracer } from '../../stats';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -53,22 +54,6 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-class NoiseCancellationStub implements INoiseCancellation {
-  private listeners: { [event: string]: Array<(arg: boolean) => void> } = {};
-
-  isSupported = () => true;
-  init = () => Promise.resolve(undefined);
-  enable = () => this.listeners['change']?.forEach((l) => l(true));
-  disable = () => this.listeners['change']?.forEach((l) => l(false));
-  dispose = () => Promise.resolve(undefined);
-  toFilter = () => (ms: MediaStream) => ({ output: ms });
-  on = (event, callback) => {
-    (this.listeners[event] ??= []).push(callback);
-    return () => {};
-  };
-  off = () => {};
-}
-
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;
   let call: Call;
@@ -92,9 +77,10 @@ describe('MicrophoneManager', () => {
   it('get stream', async () => {
     await manager.enable();
 
-    expect(getAudioStream).toHaveBeenCalledWith({
-      deviceId: undefined,
-    });
+    expect(getAudioStream).toHaveBeenCalledWith(
+      { deviceId: undefined },
+      expect.any(Tracer),
+    );
   });
 
   it('should get device id from stream', async () => {
@@ -152,11 +138,12 @@ describe('MicrophoneManager', () => {
   describe('Speaking While Muted', () => {
     it(`should start sound detection if mic is disabled`, async () => {
       await manager.enable();
-      // @ts-expect-error
-      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      // @ts-expect-error private api
+      const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       await manager.disable();
 
-      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+      expect(fn).toHaveBeenCalled();
     });
 
     it(`should stop sound detection if mic is enabled`, async () => {
@@ -171,7 +158,7 @@ describe('MicrophoneManager', () => {
     it('should update speaking while muted state', async () => {
       const mock = createSoundDetector as Mock;
       let handler: SoundStateChangeHandler;
-      let prevMockImplementation = mock.getMockImplementation();
+      const prevMockImplementation = mock.getMockImplementation();
       mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
         handler = h;
       });
@@ -197,11 +184,12 @@ describe('MicrophoneManager', () => {
       await manager.enable();
       await manager.disable();
 
-      // @ts-expect-error
-      vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+      // @ts-expect-error private api
+      const fn = vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([]);
 
-      expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+      expect(fn).toHaveBeenCalled();
     });
 
     // --- this ---
@@ -211,11 +199,12 @@ describe('MicrophoneManager', () => {
 
       manager['call'].state.setOwnCapabilities([]);
 
-      // @ts-expect-error
-      vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+      // @ts-expect-error private api
+      const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
       manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-      expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+      await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
+      expect(fn).toHaveBeenCalled();
     });
 
     it(`disables speaking while muted notifications`, async () => {

@@ -1,7 +1,7 @@
 import {
+  getLogger,
   OwnCapability,
   type PermissionRequestEvent,
-  getLogger,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
@@ -12,7 +12,7 @@ export const usePermissionRequest = () => {
 
   const { useHasPermissions } = useCallStateHooks();
   const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
 
   const messageForPermission = (userName: string, permission: string) => {
@@ -44,7 +44,7 @@ export const usePermissionRequest = () => {
         }
       };
     },
-    [call]
+    [call],
   );
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export const usePermissionRequest = () => {
               text: 'Allow',
               onPress: handleUpdatePermission(event, true),
             },
-          ]
+          ],
         );
       });
     });

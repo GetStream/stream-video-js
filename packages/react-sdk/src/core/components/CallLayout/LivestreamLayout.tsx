@@ -75,7 +75,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
 
   usePaginatedLayoutSortPreset(call);
 
-  const Overlay = (
+  const overlay = (
     <ParticipantOverlay
       showParticipantCount={props.showParticipantCount}
       showDuration={props.showDuration}
@@ -85,7 +85,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
   );
 
   const { floatingParticipantProps, muted } = props;
-  const FloatingParticipantOverlay = hasOngoingScreenShare && (
+  const floatingParticipantOverlay = hasOngoingScreenShare && (
     <ParticipantOverlay
       // these elements aren't needed for the video feed
       showParticipantCount={
@@ -104,7 +104,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
         <ParticipantView
           className="str-video__livestream-layout__screen-share"
           participant={presenter}
-          ParticipantViewUI={Overlay}
+          ParticipantViewUI={overlay}
           trackType="screenShareTrack"
           muteAudio // audio is rendered by ParticipantsAudio
         />
@@ -121,7 +121,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
               ),
           )}
           participant={currentSpeaker}
-          ParticipantViewUI={FloatingParticipantOverlay || Overlay}
+          ParticipantViewUI={floatingParticipantOverlay || overlay}
           mirror={
             props.mirrorLocalParticipantVideo !== false ? undefined : false
           }
@@ -131,6 +131,50 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
     </div>
   );
 };
+
+LivestreamLayout.displayName = 'LivestreamLayout';
+
+/**
+ * The props for the {@link LivestreamLayout} component.
+ */
+export type BackstageLayoutProps = {
+  /**
+   * Whether to show the counter for participants that joined before
+   * the livestream went live. Defaults to `true`.
+   */
+  showEarlyParticipantCount?: boolean;
+};
+
+export const BackstageLayout = (props: BackstageLayoutProps) => {
+  const { showEarlyParticipantCount = true } = props;
+  const { useParticipantCount, useCallStartsAt } = useCallStateHooks();
+  const participantCount = useParticipantCount();
+  const startsAt = useCallStartsAt();
+  const { t } = useI18n();
+
+  return (
+    <div className="str-video__livestream-layout__wrapper">
+      <div className="str-video__livestream-layout__backstage">
+        {startsAt && (
+          <span className="str-video__livestream-layout__starts-at">
+            {startsAt.getTime() < Date.now()
+              ? t('Livestream starts soon')
+              : t('Livestream starts at {{ startsAt }}', { startsAt })}
+          </span>
+        )}
+        {showEarlyParticipantCount && (
+          <span className="str-video__livestream-layout__early-viewers-count">
+            {t('{{ count }} participants joined early', {
+              count: participantCount,
+            })}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+BackstageLayout.displayName = 'BackstageLayout';
 
 const ParticipantOverlay = (props: {
   enableFullScreen?: boolean;
@@ -188,8 +232,6 @@ const ParticipantOverlay = (props: {
     </div>
   );
 };
-
-LivestreamLayout.displayName = 'LivestreamLayout';
 
 const useUpdateCallDuration = () => {
   const { useIsCallLive, useCallSession } = useCallStateHooks();

@@ -1,18 +1,18 @@
-import React, { useRef, useReducer, useEffect } from 'react';
+import React, { useEffect, useReducer, useRef } from 'react';
 import {
   Animated,
+  Easing,
   type LayoutRectangle,
   PanResponder,
-  Easing,
-  View,
   StyleSheet,
+  View,
 } from 'react-native';
 import {
-  type FloatingViewProps,
-  getSnapAlignments,
-  FloatingViewAlignment,
-  getClosestSnapAlignment,
   floatingChildViewContainerStyle,
+  FloatingViewAlignment,
+  type FloatingViewProps,
+  getClosestSnapAlignment,
+  getSnapAlignments,
 } from './common';
 import { getLogger } from '@stream-io/video-client';
 
@@ -34,7 +34,7 @@ const AnimatedFloatingView = ({
   // we need to force update the component when the rectangle is available
   // we cannot just rely on the rectangle because it is not available on the first render
   // and we need snapAlignments to be in a Ref so that it can be used in the panResponder's creation Ref
-  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   // the offsets for the translate bounds of the floating view
   // stored in ref, because it is used in the panResponder (which has to be a ref)
@@ -86,7 +86,7 @@ const AnimatedFloatingView = ({
         ],
         {
           useNativeDriver: false, // pan responder move event doesn't support nativeDriver
-        }
+        },
       ),
       onPanResponderGrant: () => {
         // start of a drag value is always (0,0) and offset is the last (translateX, translateY)
@@ -111,14 +111,14 @@ const AnimatedFloatingView = ({
           easing: Easing.inOut(Easing.quad),
         }).start();
       },
-    })
+    }),
   ).current;
 
   useEffect(() => {
     const logger = getLogger(['AnimatedFloatingView']);
     logger(
       'info',
-      'react-native-reanimated and/or react-native-gesture-handler libraries are not installed. Please install them to get a more performant draggable local video component'
+      'react-native-reanimated and/or react-native-gesture-handler libraries are not installed. Please install them to get a more performant draggable local video component',
     );
   }, []);
 

@@ -112,4 +112,24 @@
       }
     }
   }
+
+  .str-video__livestream-layout__backstage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .str-video__livestream-layout__starts-at {
+      padding: 4px 8px;
+    }
+
+    .str-video__livestream-layout__early-viewers-count {
+      &::before {
+        content: var(--str-video__icon--livestream-viewers);
+        margin-right: 3px;
+        vertical-align: middle;
+      }
+
+      padding: 4px 8px;
+    }
+  }
 }

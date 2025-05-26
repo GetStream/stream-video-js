@@ -55,7 +55,7 @@ export const TranscriptionSettings = () => {
   useEffect(() => {
     if (!call) return;
     const language = transcriptionLanguage
-      ? // @ts-expect-error
+      ? // @ts-expect-error - TS doesn't know about the enum values
         TranscriptionSettingsRequestLanguageEnum[
           transcriptionLanguage.toUpperCase()
         ]

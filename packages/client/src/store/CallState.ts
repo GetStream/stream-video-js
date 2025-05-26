@@ -413,6 +413,7 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'call.frame_recording_ready': undefined,
       'call.permission_request': undefined,
       'call.recording_ready': undefined,
       'call.rtmp_broadcast_failed': undefined,
@@ -444,6 +445,15 @@ export class CallState {
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
         this.setCurrentValue(this.endedBySubject, e.user);
+      },
+      'call.frame_recording_failed': (e) => {
+        this.updateFromCallResponse(e.call);
+      },
+      'call.frame_recording_started': (e) => {
+        this.updateFromCallResponse(e.call);
+      },
+      'call.frame_recording_stopped': (e) => {
+        this.updateFromCallResponse(e.call);
       },
       'call.hls_broadcasting_failed': this.updateFromHLSBroadcastingFailed,
       'call.hls_broadcasting_started': (e) => {
@@ -732,6 +742,14 @@ export class CallState {
   get backstage() {
     return this.getCurrentValue(this.backstage$);
   }
+
+  /**
+   * Sets the backstage state.
+   * @param backstage the backstage state.
+   */
+  setBackstage = (backstage: Patch<boolean>) => {
+    return this.setCurrentValue(this.backstageSubject, backstage);
+  };
 
   /**
    * Will provide the list of blocked user IDs.
@@ -1116,7 +1134,7 @@ export class CallState {
    * @param call the call response from the server.
    */
   updateFromCallResponse = (call: CallResponse) => {
-    this.setCurrentValue(this.backstageSubject, call.backstage);
+    this.setBackstage(call.backstage);
     this.setCurrentValue(this.blockedUserIdsSubject, call.blocked_user_ids);
     this.setCurrentValue(this.createdAtSubject, new Date(call.created_at));
     this.setCurrentValue(this.updatedAtSubject, new Date(call.updated_at));

@@ -8,6 +8,7 @@ const createCallSlackHookAPI = async (
 ) => {
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream Pronto Bot';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
   const queryParams = new URLSearchParams(args as Record<string, string>);
 
@@ -79,7 +80,7 @@ const createCallSlackHookAPI = async (
     });
   } catch (e) {
     console.error(e);
-    // @ts-ignore
+    // @ts-expect-error error handling
     return res.status(200).json(notifyError(e.message));
   }
 };

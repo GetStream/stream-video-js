@@ -3,6 +3,7 @@ import {
   CallContent,
   CallingState,
   Lobby,
+  NoiseCancellationProvider,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
@@ -24,8 +25,7 @@ export const MeetingUI = () => {
         call.leave();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [call]);
 
   if (callingState === CallingState.IDLE) {
     return <Lobby />;
@@ -34,7 +34,12 @@ export const MeetingUI = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <CallContent CallControls={CallControlsComponent} />
+      <NoiseCancellationProvider>
+        <CallContent
+          CallControls={CallControlsComponent}
+          iOSPiPIncludeLocalParticipantVideo={true}
+        />
+      </NoiseCancellationProvider>
     </SafeAreaView>
   );
 };

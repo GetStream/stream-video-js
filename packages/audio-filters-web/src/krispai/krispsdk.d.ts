@@ -1,15 +1,18 @@
-/*   KRISP TECHNOLOGIES, INC
-  __________________
+/* KRISP TECHNOLOGIES, INC
+__________________
 
-  [2018] - [2023] Krisp Technologies, Inc
-  All Rights Reserved.
+[2018] - [2024] Krisp Technologies, Inc.
+All Rights Reserved.
 
-  NOTICE: By accessing this programming code, you acknowledge that you have read, understood, and agreed to the User Agreement available at
-  https://krisp.ai/terms-of-use.
-  Please note that ALL information contained herein is and remains the property of Krisp Technologies, Inc., and its affiliates or assigns, if any. The intellectual property
-  contained herein is proprietary to Krisp Technologies, Inc. and may be covered by pending and granted U.S. and Foreign Patents, and is further protected by
-  copyright, trademark and/or other forms of intellectual property protection.
-  Dissemination of this information or reproduction of this material IS STRICTLY FORBIDDEN.
+NOTICE: Access to and use of the Software are expressly conditioned upon compliance with the terms and conditions set forth in the Technology License Agreement or Software Evaluation Agreement executed between Krisp Technologies, Inc. and Your Company. In the absence of such an executed agreement, you are not authorized and have no right to access or use the Software, and any such unauthorized use is strictly prohibited.
+ */
+/* KRISP TECHNOLOGIES, INC
+__________________
+
+[2018] - [2024] Krisp Technologies, Inc.
+All Rights Reserved.
+
+NOTICE: Access to and use of the Software are expressly conditioned upon compliance with the terms and conditions set forth in the Technology License Agreement or Software Evaluation Agreement executed between Krisp Technologies, Inc. and Your Company. In the absence of such an executed agreement, you are not authorized and have no right to access or use the Software, and any such unauthorized use is strictly prohibited.
  */
 declare class AudioFilterNode
   extends AudioWorkletNode
@@ -19,15 +22,17 @@ declare class AudioFilterNode
   private _isReady;
   private enabled;
   private vad_enabled;
-  private ndb_enabled;
   private nc_enabled;
+  private ar_enabled;
   private wasmParams;
-  private secondsCounterInterval;
+  private secondsCounterIntervalRef;
+  private sessionStatsCounterIntervalRef;
+  private sessionStatsIntervalMS;
   private worker;
   private get debugLogs();
   constructor(
     audioContext: BaseAudioContext,
-    params: ISDKCreateNoiseFilterParams,
+    params: ISDKCreateFilterParams,
     onReady?: EventListener,
     onDispose?: EventListener,
   );
@@ -42,14 +47,17 @@ declare class AudioFilterNode
   enableVAD(): void;
   disableVAD(): void;
   isVadEnabled(): boolean;
-  enableNDB(): void;
-  disableNDB(): void;
-  isNdbEnabled(): boolean;
   enableNC(): void;
+  enableAR(): void;
+  getSessionStats(): void;
+  getPerFrameStats(): void;
   disableNC(): void;
+  disableAR(): void;
   isNcEnabled(): boolean;
   toggle(): void;
   dispose(): void;
+  setNoiseSuppressionLevel(level: number): void;
+  private startSessionStatsCounter;
   private startSecondsCounter;
 }
 declare class BVC {
@@ -68,12 +76,23 @@ declare class KrispSDK implements IKrispSDK {
   BVC: BVC;
   private params;
   private state;
+  private eventBus;
   private get debugLogs();
   static isSupported(): boolean;
   constructor(options: ISDKPartialOptions);
   init(): Promise<void>;
+  on<K extends keyof IKrispListeners>(
+    eventName: K,
+    callback: IKrispListeners[K],
+  ): void;
+  private dispatchModelLoadEvent;
   createNoiseFilter(
     props: AudioContext | ICreateNoiseFilterProps,
+    onReady?: EventListener,
+    onDispose?: EventListener,
+  ): Promise<AudioFilterNode>;
+  createAccentReductionFilter(
+    props: AudioContext | ICreateAccentReductionFilterProps,
     onReady?: EventListener,
     onDispose?: EventListener,
   ): Promise<AudioFilterNode>;
@@ -107,6 +126,14 @@ declare class SharedRingBuffer {
   private _getAvailableWrite;
   private _getAvailableRead;
 }
+declare const AudioWorkletNode: {
+  new (
+    context: BaseAudioContext,
+    name: string,
+    options?: AudioWorkletNodeOptions | undefined,
+  ): AudioWorkletNode;
+  prototype: AudioWorkletNode;
+};
 export declare const enum EventMessages {
   INIT_WASM_PROCESSOR = 'INIT_WASM_PROCESSOR',
   INPUT_AUDIO_DATA = 'INPUT_AUDIO_DATA',
@@ -118,23 +145,36 @@ export declare const enum EventMessages {
   DISABLE_NC = 'DISABLE_NC',
   ENABLE_VAD = 'ENABLE_VAD',
   DISABLE_VAD = 'DISABLE_VAD',
-  ENABLE_NDB = 'ENABLE_NDB',
-  DISABLE_NDB = 'DISABLE_NDB',
   DISPOSE = 'DISPOSE',
   SUSPEND = 'SUSPEND',
   RESUME = 'RESUME',
   WASM_PROCESSOR_INITIALIZED = 'WASM_PROCESSOR_INITIALIZED',
   SET_AUDIO_PROCESSOR_READY = 'SET_AUDIO_PROCESSOR_READY',
   SET_LOGGING_PORT = 'SET_LOGGING_PORT',
+  ERROR = 'ERROR',
+  ENABLE_SESSION_STATS = 'ENABLE_SESSION_STATS',
+  ENABLE_PER_FRAME_STATS = 'ENABLE_PER_FRAME_STATS',
+  SET_NOISE_SUPPRESSION_LEVEL = 'SET_NOISE_SUPPRESSION_LEVEL',
+  ENABLE_AR = 'ENABLE_AR',
+  DISABLE_AR = 'DISABLE_AR',
+}
+export declare const enum KrispEvents {
+  ON_MODEL_LOADED = 'on_model_loaded',
 }
 export declare const enum ModelNames {
+  MODEL_INBOUND_8K = 'model_inbound_8',
+  MODEL_INBOUND_16K = 'model_inbound_16',
   MODEL_RT = 'modelRT',
   MODEL_BVC = 'modelBVC',
   MODEL_VAD = 'modelVAD',
-  MODEL_NDB = 'modelNDB',
   MODEL_8K = 'model8',
-  MODEL_16K = 'model16',
-  MODEL_32K = 'model32',
+  MODEL_NC = 'modelNC',
+  MODEL_AR = 'modelAR',
+}
+export declare const enum WorkerErrorTypes {
+  MODEL_URL_FETCH_ERROR = 'MODEL_URL_FETCH_ERROR',
+  MODEL_LOAD_ERROR = 'MODEL_LOAD_ERROR',
+  SAMPLING_RATE_NOT_SUPPORTED = 'SAMPLING_RATE_NOT_SUPPORTED',
 }
 export declare type EventMessagesTypes =
   | MessageDataItem<EventMessages.INIT_WASM_PROCESSOR, IWasmParams>
@@ -150,29 +190,49 @@ export declare type EventMessagesTypes =
   | MessageDataItem<EventMessages.TOGGLE, boolean | undefined>
   | MessageDataItem<EventMessages.ENABLE_NC, boolean | undefined>
   | MessageDataItem<EventMessages.DISABLE_NC, boolean | undefined>
+  | MessageDataItem<EventMessages.SUSPEND, undefined>
   | MessageDataItem<EventMessages.ENABLE_VAD, boolean | undefined>
   | MessageDataItem<EventMessages.DISABLE_VAD, boolean | undefined>
-  | MessageDataItem<EventMessages.ENABLE_NDB, boolean | undefined>
-  | MessageDataItem<EventMessages.DISABLE_NDB, boolean | undefined>
-  | MessageDataItem<EventMessages.SUSPEND, undefined>
   | MessageDataItem<EventMessages.RESUME, undefined>
   | MessageDataItem<EventMessages.DISPOSE, undefined>
   | MessageDataItem<EventMessages.WASM_PROCESSOR_INITIALIZED, boolean>
   | MessageDataItem<EventMessages.SET_AUDIO_PROCESSOR_READY, boolean>
-  | MessageDataItem<EventMessages.SET_LOGGING_PORT, undefined>;
+  | MessageDataItem<EventMessages.SET_LOGGING_PORT, undefined>
+  | MessageDataItem<
+      EventMessages.ERROR,
+      {
+        errorCode: WorkerErrorTypes;
+        errorMessage: string;
+      }
+    >
+  | MessageDataItem<EventMessages.ENABLE_SESSION_STATS, boolean>
+  | MessageDataItem<EventMessages.ENABLE_PER_FRAME_STATS, boolean>
+  | MessageDataItem<EventMessages.SET_NOISE_SUPPRESSION_LEVEL, number>
+  | MessageDataItem<EventMessages.ENABLE_AR, boolean>
+  | MessageDataItem<EventMessages.DISABLE_AR, boolean>;
 export declare type ISDKPartialOptions = {
   params: Partial<{
     models: PartialRecord<ModelNames, IURLOptions | string>;
     inboundModels: PartialRecord<ModelNames, IURLOptions | string>;
     useSharedArrayBuffer: boolean;
     logProcessStats: boolean;
+    logProcessStatsFramesCount?: number;
+    sessionStatsIntervalMS?: number;
+    perFrameStatsCountInterval?: number;
+    enableSessionStats?: boolean;
+    enablePerFrameStats?: boolean;
+    frameDurationMS?: number;
     useBVC: boolean;
+    useAR?: boolean;
+    useRawModelPath?: boolean;
     bvc: {
       allowedDevices: string;
       allowedDevicesExt?: string;
     };
     debugLogs: boolean;
     bufferOverflowMS: number;
+    bufferDropMS?: number;
+    noiseSuppressionLevel?: number;
   }>;
 };
 export declare type ISampleRate =
@@ -196,44 +256,47 @@ export interface IAudioFilterNode extends AudioNode {
   disable(): void;
   toggle(): void;
 }
+export interface ICreateAccentReductionFilterProps {
+  audioContext: AudioContext;
+  stream: MediaStream;
+  useAR?: boolean;
+  enableOnceReady?: boolean;
+}
 export interface ICreateNoiseFilterProps {
   audioContext: AudioContext;
   stream: MediaStream;
   isInbound?: boolean;
+  useAR?: boolean;
   forceAllowBVC?: boolean;
   enableOnceReady?: boolean;
   useVAD?: boolean;
   vad?: {
     threshold: number;
   };
-  useNDB?: boolean;
-  ndb?: {
-    active_duration: number;
-    inactive_duration: number;
-  };
+}
+export interface IKrispListeners {
+  [KrispEvents.ON_MODEL_LOADED]: (
+    models: PartialRecord<ModelNames, string>,
+  ) => void;
 }
 export interface IKrispSDK {
   init(): void;
   dispose(): void;
-  createNoiseFilter(
+  createNoiseFilter?(
     audioContext: AudioContext | ICreateNoiseFilterProps,
     onReady?: EventListener,
     onDispose?: EventListener,
   ): Promise<AudioFilterNode>;
+  createAccentReductionFilter?(
+    audioContext: AudioContext | ICreateAccentReductionFilterProps,
+    onReady?: EventListener,
+    onDispose?: EventListener,
+  ): Promise<AudioFilterNode>;
 }
-export interface ISDKCreateNoiseFilterParams extends ISDKOptionsParams {
+export interface ISDKCreateFilterParams extends ISDKOptionsParams {
   allowBVC: boolean;
   isInbound: boolean;
   enableOnceReady: boolean;
-  useVAD?: boolean;
-  vad?: {
-    threshold: number;
-  };
-  useNDB?: boolean;
-  ndb?: {
-    active_duration: number;
-    inactive_duration: number;
-  };
 }
 export interface ISDKOptionsParams {
   models: PartialRecord<ModelNames, string>;
@@ -242,13 +305,23 @@ export interface ISDKOptionsParams {
   preloadInboundModels: PartialRecord<ModelNames, string>;
   useSharedArrayBuffer: boolean;
   logProcessStats: boolean;
+  logProcessStatsFramesCount?: number;
+  sessionStatsIntervalMS?: number;
+  perFrameStatsCountInterval?: number;
+  enableSessionStats?: boolean;
+  enablePerFrameStats?: boolean;
+  frameDurationMS?: number;
   useBVC: boolean;
+  useAR?: boolean;
+  useRawModelPath?: boolean;
   bvc?: {
     allowedDevices?: string;
     allowedDevicesExt?: string;
   };
   debugLogs: boolean;
   bufferOverflowMS: number;
+  bufferDropMS?: number;
+  noiseSuppressionLevel?: number;
 }
 export interface ISDKSharedOptions extends ISDKOptionsParams {
   sampleRate: ISampleRate | number;
@@ -256,14 +329,10 @@ export interface ISDKSharedOptions extends ISDKOptionsParams {
   modelPath: string;
   allowBVC: boolean;
   isInbound: boolean;
+  useAR?: boolean;
   useVAD?: boolean;
   vad?: {
     threshold: number;
-  };
-  useNDB?: boolean;
-  ndb?: {
-    active_duration: number;
-    inactive_duration: number;
   };
   sharedBuffers:
     | {

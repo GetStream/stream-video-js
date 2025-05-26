@@ -18,7 +18,13 @@ export const MobileAppBanner = (props: {
         )}`,
         active: true,
       },
-      { label: 'React Native', url: '#', active: false },
+      {
+        label: 'Try React Native',
+        url: `https://play.google.com/store/apps/details?id=io.getstream.rnvideosample&referrer=${encodeURIComponent(
+          `call_id=${callId}`,
+        )}`,
+        active: true,
+      },
       { label: 'Flutter', url: '#', active: false },
     ],
     ios: [
@@ -27,7 +33,11 @@ export const MobileAppBanner = (props: {
         url: 'https://apps.apple.com/us/app/stream-video-calls/id1644313060',
         active: true,
       },
-      // { label: 'React Native', url: '#', active: false },
+      {
+        label: 'Try React Native',
+        url: 'https://apps.apple.com/us/app/stream-video-calls-rn/id6443437501',
+        active: true,
+      },
       // { label: 'Flutter', url: '#', active: false },
     ],
   };

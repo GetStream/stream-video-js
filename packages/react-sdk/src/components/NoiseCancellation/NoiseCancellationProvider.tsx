@@ -3,6 +3,7 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -34,11 +35,18 @@ export type NoiseCancellationAPI = {
    */
   isEnabled: boolean;
   /**
-   * Allows you to temporary enable or disable the Noise Cancellation filters.
+   * Allows you to temporarily enable or disable the Noise Cancellation filters.
    *
    * @param enabled a boolean or a setter.
    */
   setEnabled: (enabled: boolean | ((value: boolean) => boolean)) => void;
+
+  /**
+   * Sets the noise suppression level (0-100).
+   *
+   * @param level 0 for no suppression, 100 for maximum suppression.
+   */
+  setSuppressionLevel: (level: number) => void;
 };
 
 const NoiseCancellationContext = createContext<NoiseCancellationAPI | null>(
@@ -76,20 +84,14 @@ export const NoiseCancellationProvider = (
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
-  const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<
-    boolean | undefined
-  >(undefined);
-
+  const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<boolean>();
   useEffect(() => {
     const result = noiseCancellation.isSupported();
-
     if (typeof result === 'boolean') {
       setIsSupportedByBrowser(result);
     } else {
       result
-        .then((_isSupportedByBrowser) =>
-          setIsSupportedByBrowser(_isSupportedByBrowser),
-        )
+        .then((s) => setIsSupportedByBrowser(s))
         .catch((err) =>
           console.error(
             `Can't determine if noise cancellation is supported`,
@@ -103,14 +105,15 @@ export const NoiseCancellationProvider = (
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;
 
   const [isEnabled, setIsEnabled] = useState(false);
-  const deinit = useRef<Promise<void>>();
+  const deinit = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call || !isSupported) return;
+    noiseCancellation.isEnabled().then((e) => setIsEnabled(e));
     const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));
     const init = (deinit.current || Promise.resolve())
-      .then(() => noiseCancellation.init())
+      .then(() => noiseCancellation.init({ tracer: call.tracer }))
       .then(() => call.microphone.enableNoiseCancellation(noiseCancellation))
-      .catch((err) => console.error(`Can't initialize noise suppression`, err));
+      .catch((e) => console.error(`Can't initialize noise cancellation`, e));
 
     return () => {
       deinit.current = init
@@ -120,25 +123,31 @@ export const NoiseCancellationProvider = (
     };
   }, [call, isSupported, noiseCancellation]);
 
+  const contextValue = useMemo<NoiseCancellationAPI>(
+    () => ({
+      isSupported,
+      isEnabled,
+      setSuppressionLevel: (level) => {
+        if (!noiseCancellation) return;
+        noiseCancellation.setSuppressionLevel(level);
+      },
+      setEnabled: (enabledOrSetter) => {
+        if (!noiseCancellation) return;
+        const enable =
+          typeof enabledOrSetter === 'function'
+            ? enabledOrSetter(isEnabled)
+            : enabledOrSetter;
+        if (enable) {
+          noiseCancellation.enable();
+        } else {
+          noiseCancellation.disable();
+        }
+      },
+    }),
+    [isEnabled, isSupported, noiseCancellation],
+  );
   return (
-    <NoiseCancellationContext.Provider
-      value={{
-        isSupported,
-        isEnabled,
-        setEnabled: (enabledOrSetter) => {
-          if (!noiseCancellation) return;
-          const enable =
-            typeof enabledOrSetter === 'function'
-              ? enabledOrSetter(isEnabled)
-              : enabledOrSetter;
-          if (enable) {
-            noiseCancellation.enable();
-          } else {
-            noiseCancellation.disable();
-          }
-        },
-      }}
-    >
+    <NoiseCancellationContext.Provider value={contextValue}>
       {children}
     </NoiseCancellationContext.Provider>
   );

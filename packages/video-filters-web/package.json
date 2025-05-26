@@ -1,7 +1,6 @@
 {
   "name": "@stream-io/video-filters-web",
-  "version": "0.1.7",
-  "packageManager": "yarn@3.5.0",
+  "version": "0.2.1",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
@@ -33,9 +32,9 @@
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@types/emscripten": "^1.39.10",
-    "rimraf": "^5.0.7",
-    "rollup": "^4.34.7",
-    "typescript": "^5.5.2"
+    "@types/emscripten": "^1.40.1",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.40.2",
+    "typescript": "^5.8.3"
   }
 }

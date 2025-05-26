@@ -1,6 +1,6 @@
 import {
-  LiveIndicator,
   FollowerCount,
+  LiveIndicator,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -11,8 +11,8 @@ import React, {
 } from 'react';
 import {
   BottomSheetModal,
-  BottomSheetView,
   BottomSheetModalProvider,
+  BottomSheetView,
   useBottomSheetInternal,
 } from '@gorhom/bottom-sheet';
 import {
@@ -20,8 +20,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appTheme } from '../../theme';
@@ -30,11 +30,14 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Channel, MessageInput, MessageList } from 'stream-chat-react-native';
+import {
+  Channel,
+  MessageInput,
+  MessageList,
+  useChatContext,
+} from 'stream-chat-react-native';
 import { Channel as ChannelType } from 'stream-chat';
-import { StreamChatGenerics } from '../../../types';
 import { Cross } from '../../assets/Cross';
-import { useChatContext } from 'stream-chat-react-native';
 import { FlatList as GestureHandlerFlatlist } from 'react-native-gesture-handler';
 
 /**
@@ -202,8 +205,10 @@ const BottomSheetChatWrapper = React.forwardRef<
   );
 });
 
+BottomSheetChatWrapper.displayName = 'BottomSheetChatWrapper';
+
 type LivestreamChatProps = {
-  channel: ChannelType<StreamChatGenerics>;
+  channel: ChannelType;
   focusOutsideMessageInput: () => void;
 };
 

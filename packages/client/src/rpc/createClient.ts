@@ -11,6 +11,8 @@ import {
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 import { Logger, LogLevel } from '../coordinator/connection/types';
+import type { Trace } from '../stats';
+import type { SfuResponseWithError } from './retryable';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -48,17 +50,50 @@ export const withRequestLogger = (
       input: object,
       options: RpcOptions,
     ): UnaryCall => {
-      let invocation: UnaryCall | undefined;
-      try {
-        invocation = next(method, input, options);
-      } finally {
-        logger(level, `Invoked SFU RPC method ${method.name}`, {
-          request: invocation?.request,
-          headers: invocation?.requestHeaders,
-          response: invocation?.response,
-        });
-      }
+      const invocation = next(method, input, options);
+      logger(level, `Invoked SFU RPC method ${method.name}`, {
+        request: invocation.request,
+        headers: invocation.requestHeaders,
+        response: invocation.response,
+      });
+
       return invocation;
+    },
+  };
+};
+
+export const withRequestTracer = (trace: Trace): RpcInterceptor => {
+  type RpcMethodNames = {
+    [K in keyof SignalServerClient as Capitalize<K>]: boolean;
+  };
+
+  const traceError = (name: string, input: object, err: unknown) =>
+    trace(`${name}OnFailure`, [err, input]);
+
+  const exclusions: Record<string, boolean | undefined> = {
+    SendStats: true,
+  } satisfies Partial<RpcMethodNames>;
+  return {
+    interceptUnary(
+      next: NextUnaryFn,
+      method: MethodInfo,
+      input: object,
+      options: RpcOptions,
+    ): UnaryCall {
+      if (exclusions[method.name as keyof RpcMethodNames]) {
+        return next(method, input, options);
+      }
+
+      trace(method.name, input);
+      const unaryCall = next(method, input, options);
+      unaryCall.then(
+        (invocation) => {
+          const err = (invocation.response as SfuResponseWithError)?.error;
+          if (err) traceError(method.name, input, err);
+        },
+        (err) => traceError(method.name, input, err),
+      );
+      return unaryCall;
     },
   };
 };

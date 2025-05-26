@@ -95,7 +95,7 @@ export const RecordCallConfirmationButton = ({
 
   const title = isAwaitingResponse
     ? t('Waiting for recording to start...')
-    : caption ?? t('Record call');
+    : (caption ?? t('Record call'));
 
   return (
     <Restricted

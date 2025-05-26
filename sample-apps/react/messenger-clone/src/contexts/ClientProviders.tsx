@@ -2,7 +2,6 @@ import { PropsWithChildren, useEffect, useState } from 'react';
 import { Chat, useCreateChatClient } from 'stream-chat-react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
-import type { StreamChatType } from '../types/chat';
 import type { User } from '../types/user';
 
 export const ClientProviders = ({
@@ -10,7 +9,7 @@ export const ClientProviders = ({
   children,
 }: PropsWithChildren<{ user: User }>) => {
   const { apiKey, token, tokenProvider } = useUserContext();
-  const chatClient = useCreateChatClient<StreamChatType>({
+  const chatClient = useCreateChatClient({
     apiKey,
     tokenOrProvider: token || tokenProvider,
     userData: user,
@@ -32,7 +31,7 @@ export const ClientProviders = ({
         .catch((error) => console.error(`Couldn't disconnect user`, error));
       setVideoClient(undefined);
     };
-  }, [user]);
+  }, [apiKey, token, tokenProvider, user]);
 
   if (!chatClient || !videoClient) return null;
 

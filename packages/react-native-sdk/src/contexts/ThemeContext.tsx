@@ -13,10 +13,15 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
-export type ThemeProviderInputValue = {
+export type StreamThemeInputValue = {
   mergedStyle?: Theme;
   style?: DeepPartial<Theme>;
 };
+
+/**
+ * @deprecated Use StreamThemeInputValue instead.
+ */
+export type ThemeProviderInputValue = StreamThemeInputValue;
 
 export type MergedThemesParams = {
   style?: DeepPartial<Theme>;
@@ -45,11 +50,11 @@ export const mergeThemes = (params: MergedThemesParams) => {
 const DEFAULT_BASE_CONTEXT_VALUE = {};
 
 export const ThemeContext = createContext<Theme>(
-  DEFAULT_BASE_CONTEXT_VALUE as Theme
+  DEFAULT_BASE_CONTEXT_VALUE as Theme,
 );
 
-export const ThemeProvider: React.FC<
-  PropsWithChildren<ThemeProviderInputValue & Partial<ThemeContextValue>>
+export const StreamTheme: React.FC<
+  PropsWithChildren<StreamThemeInputValue & Partial<ThemeContextValue>>
 > = (props) => {
   const { children, mergedStyle, style, theme } = props;
 
@@ -68,12 +73,17 @@ export const ThemeProvider: React.FC<
   );
 };
 
+/**
+ * @deprecated Use StreamTheme instead of ThemeProvider.
+ */
+export const ThemeProvider = StreamTheme;
+
 export const useTheme = () => {
   const theme = useContext(ThemeContext);
 
   if (theme === DEFAULT_BASE_CONTEXT_VALUE) {
     throw new Error(
-      'The useThemeContext hook was called outside the ThemeContext Provider. Make sure you have configured OverlayProvider component correctly - https://getstream.io/chat/docs/sdk/reactnative/basics/hello_stream_chat/#overlay-provider'
+      'The useThemeContext hook was called outside the ThemeContext Provider. Make sure you have configured OverlayProvider component correctly - https://getstream.io/chat/docs/sdk/reactnative/basics/hello_stream_chat/#overlay-provider',
     );
   }
   return { theme };

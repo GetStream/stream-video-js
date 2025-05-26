@@ -68,7 +68,7 @@ export const LivestreamLayout = ({
         setObjectFit(isWidthWide ? 'contain' : 'cover');
       }
     },
-    []
+    [],
   );
 
   const landScapeStyles: ViewStyle = {
@@ -80,7 +80,7 @@ export const LivestreamLayout = ({
       style={[
         styles.container,
         landScapeStyles,
-        { backgroundColor: colors.sheetTertiary },
+        { backgroundColor: colors.sheetPrimary },
         livestreamLayout.container,
       ]}
     >
