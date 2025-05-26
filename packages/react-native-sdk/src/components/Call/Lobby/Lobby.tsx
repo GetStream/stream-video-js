@@ -15,7 +15,6 @@ import {
   type JoinCallButtonProps,
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
-
 import {
   LobbyFooter as DefaultLobbyFooter,
   type LobbyFooterProps,
