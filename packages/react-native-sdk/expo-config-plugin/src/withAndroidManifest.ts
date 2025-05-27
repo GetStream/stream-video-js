@@ -79,12 +79,6 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
       mainActivity.$['android:configChanges'] = mergedConfigChanges.join('|');
       mainActivity.$['android:supportsPictureInPicture'] = 'true';
     }
-
-    if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
-      const mainActivity = getMainActivityOrThrow(androidManifest);
-      mainActivity.$['android:showWhenLocked'] = 'true';
-      mainActivity.$['android:turnScreenOn'] = 'true';
-    }
     config.modResults = androidManifest;
     return config;
   });

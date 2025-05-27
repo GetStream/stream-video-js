@@ -43,21 +43,12 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const props: ConfigProps = {
       androidPictureInPicture: true,
       enableScreenshare: true,
+      ringingPushNotifications: {
+        showWhenLockedAndroid: true,
+      },
     };
 
     const updatedConfig = withMainActivity(config, props) as CustomExpoConfig;
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.onPictureInPictureModeChanged/,
-    );
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/,
-    );
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /options.enableMediaProjectionService = true/,
-    );
 
     const props2: ConfigProps = {
       androidPictureInPicture: false,
@@ -78,13 +69,20 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       props2,
     ) as CustomExpoConfig;
 
-    expect(updatedConfig2.modResults.contents).not.toMatch(
-      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/,
+    expect(updatedConfig.modResults.contents).toMatch(
+      /StreamVideoReactNative.onPictureInPictureModeChanged/,
     );
 
-    expect(updatedConfig2.modResults.contents).not.toMatch(
+    const commonAssertions = [
+      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/,
       /options.enableMediaProjectionService = true/,
-    );
+      /StreamVideoReactNative.setupCallActivity/,
+    ];
+
+    commonAssertions.forEach((regex) => {
+      expect(updatedConfig.modResults.contents).toMatch(regex);
+      expect(updatedConfig2.modResults.contents).not.toMatch(regex);
+    });
   });
 
   it('should throw error for malformed manifest and unsupported language', () => {
