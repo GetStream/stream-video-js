@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.14.2...@stream-io/video-react-native-sdk-1.15.0) (2025-05-27)
+
+### Features
+
+- **android:** Accept incoming call without device unlock ([#1806](https://github.com/GetStream/stream-video-js/issues/1806)) ([6b8ee36](https://github.com/GetStream/stream-video-js/commit/6b8ee36323c0c352742e23bf845eed47c581e6ab))
+
 ## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.14.1...@stream-io/video-react-native-sdk-1.14.2) (2025-05-22)
 
 ### Dependency Updates
