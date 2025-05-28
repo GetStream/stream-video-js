@@ -486,10 +486,10 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
                                      handleType: "generic",
                                      hasVideo: true,
                                      localizedCallerName: createdCallerName,
-                                     supportsHolding: true,
-                                     supportsDTMF: true,
-                                     supportsGrouping: true,
-                                     supportsUngrouping: true,
+                                     supportsHolding: false,
+                                     supportsDTMF: false,
+                                     supportsGrouping: false,
+                                     supportsUngrouping: false,
                                      fromPushKit: true,
                                      payload: stream,
                                      withCompletionHandler: nil)`;
@@ -550,10 +550,10 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
                          handleType: @"generic"
                            hasVideo: YES
                 localizedCallerName: createdCallerName
-                    supportsHolding: YES
-                       supportsDTMF: YES
-                   supportsGrouping: YES
-                 supportsUngrouping: YES
+                    supportsHolding: NO
+                       supportsDTMF: NO
+                   supportsGrouping: NO
+                 supportsUngrouping: NO
                         fromPushKit: YES
                             payload: stream
               withCompletionHandler: nil];
