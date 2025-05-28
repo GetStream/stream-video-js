@@ -15,7 +15,6 @@ type ViewerLiveStreamScreenProps = NativeStackScreenProps<
 
 export const ViewLiveStreamWrapper = ({
   route,
-  navigation,
   children,
 }: PropsWithChildren<ViewerLiveStreamScreenProps>) => {
   // The `StreamVideo` wrapper for this client is defined in `App.tsx` of the app.
@@ -36,7 +35,6 @@ export const ViewLiveStreamWrapper = ({
 };
 
 export const ViewLiveStreamChildren = ({
-  navigation,
   route,
 }: ViewerLiveStreamScreenProps) => {
   const {

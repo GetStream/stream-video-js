@@ -4,7 +4,6 @@ import {
   StreamVideoProvider,
 } from '@stream-io/video-react-bindings';
 import React, { type PropsWithChildren, useEffect } from 'react';
-import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
@@ -61,12 +60,10 @@ export const StreamVideo = (
       i18nInstance={i18nInstance}
     >
       <StreamTheme style={style}>
-        <StreamVideoStoreProvider>
-          <ScreenshotIosContextProvider>
-            <PushRegister />
-            {children}
-          </ScreenshotIosContextProvider>
-        </StreamVideoStoreProvider>
+        <ScreenshotIosContextProvider>
+          <PushRegister />
+          {children}
+        </ScreenshotIosContextProvider>
       </StreamTheme>
     </StreamVideoProvider>
   );

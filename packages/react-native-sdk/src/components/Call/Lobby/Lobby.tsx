@@ -15,12 +15,10 @@ import {
   type JoinCallButtonProps,
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 import {
   LobbyFooter as DefaultLobbyFooter,
   type LobbyFooterProps,
 } from './LobbyFooter';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the Lobby Component.
@@ -70,9 +68,6 @@ export const Lobby = ({
   const { isMute: cameraIsMuted, mediaStream } = useCameraState();
   const { t } = useI18n();
   const localVideoStream = mediaStream as unknown as MediaStream | undefined;
-
-  useApplyDefaultMediaStreamSettings();
-  useCallMediaStreamCleanup();
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
