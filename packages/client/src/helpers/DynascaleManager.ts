@@ -523,6 +523,8 @@ export class DynascaleManager {
     );
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
+    let gainNode: GainNode | undefined = undefined;
+
     const updateMediaStreamSubscription = participant$
       .pipe(
         distinctUntilKeyChanged(
@@ -540,13 +542,17 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
-          if (audioElement.srcObject) {
+          if (source) {
             const audioContext = this.getOrCreateAudioContext();
             if (audioContext && source) {
+              audioElement.muted = true;
               sourceNode?.disconnect();
               sourceNode = audioContext.createMediaStreamSource(source);
-              sourceNode.connect(audioContext.destination);
+              gainNode ??= audioContext.createGain();
+              sourceNode.connect(gainNode).connect(audioContext.destination);
+              this.resumeAudioContext();
             } else {
+              audioElement.muted = false;
               audioElement.play().catch((e) => {
                 this.logger('warn', `Failed to play audio stream`, e);
               });
@@ -582,7 +588,9 @@ export class DynascaleManager {
       this.speaker.state.volume$,
       participant$.pipe(distinctUntilKeyChanged('audioVolume')),
     ]).subscribe(([volume, p]) => {
-      audioElement.volume = p.audioVolume ?? volume;
+      const participantVolume = p.audioVolume ?? volume;
+      audioElement.volume = participantVolume;
+      if (gainNode) gainNode.gain.value = participantVolume;
     });
 
     audioElement.autoplay = true;
@@ -608,15 +616,19 @@ export class DynascaleManager {
     const context = new AudioContext();
     if (context.state === 'suspended') {
       const resume = () => {
-        if (context.state === 'suspended') {
-          context.resume().catch((err) => {
-            this.logger('warn', `Failed to resume audio context`, err);
-          });
-          document.removeEventListener('click', resume);
-        }
+        this.resumeAudioContext();
+        document.removeEventListener('click', resume);
       };
       document.addEventListener('click', resume);
     }
     return (this.audioContext = context);
+  };
+
+  private resumeAudioContext = async () => {
+    if (this.audioContext?.state === 'suspended') {
+      return this.audioContext.resume().catch((err) => {
+        this.logger('warn', `Failed to resume audio context`, err);
+      });
+    }
   };
 }
