@@ -7,6 +7,9 @@ const StreamCallContext = createContext<Call | undefined>(undefined);
  * The props for the StreamCallProvider component.
  */
 export interface StreamCallProviderProps {
+  /**
+   * The call instance to provide to the component tree.
+   */
   call?: Call;
 }
 

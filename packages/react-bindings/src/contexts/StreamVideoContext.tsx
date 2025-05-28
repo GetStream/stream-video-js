@@ -10,18 +10,18 @@ const StreamVideoContext = createContext<StreamVideoClient | undefined>(
 );
 
 /**
- * Exclude types from documentation site, but we should still add doc comments
- * @internal
+ * The props for the StreamVideoProvider component.
  */
 export type StreamVideoProps = StreamI18nProviderProps & {
+  /**
+   * The client instance to provide to the component tree.
+   */
   client: StreamVideoClient;
 };
 
 /**
  * StreamVideo is a provider component which should be used to wrap the entire application.
  * It provides the client object to all children components and initializes the i18n instance.
- *  @param PropsWithChildren<StreamVideoProps>
- *  @category Client State
  */
 export const StreamVideoProvider = ({
   children,
@@ -44,10 +44,7 @@ export const StreamVideoProvider = ({
 };
 
 /**
- *
- * @returns
- *
- * @category Client State
+ * Hook to access the nearest StreamVideo client instance.
  */
 export const useStreamVideoClient = () => {
   return useContext(StreamVideoContext);

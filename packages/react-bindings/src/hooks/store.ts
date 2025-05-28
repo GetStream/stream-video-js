@@ -18,8 +18,6 @@ export const useStore = () => {
  * Utility hook which provides a list of all notifications about created calls.
  * In the ring call settings, these calls can be outgoing (I have called somebody)
  * or incoming (somebody has called me).
- *
- * @category Client State
  */
 export const useCalls = () => {
   const { calls$ } = useStore();
@@ -28,8 +26,6 @@ export const useCalls = () => {
 
 /**
  * Returns the current connected user.
- *
- * @category Client State
  */
 export const useConnectedUser = () => {
   const { connectedUser$ } = useStore();

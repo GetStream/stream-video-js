@@ -7,7 +7,5 @@ export * from './callUtilHooks';
 
 /**
  * A hook-alike function that exposes all call state hooks.
- *
- * @category Call State
  */
 export const useCallStateHooks = () => CallStateHooks;
