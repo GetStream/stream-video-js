@@ -606,6 +606,7 @@ export class Call {
       );
       this.sfuClient = undefined;
       this.dynascaleManager.setSfuClient(undefined);
+      await this.dynascaleManager.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
       this.state.setParticipants([]);
@@ -844,6 +845,7 @@ export class Call {
     this.state.setCallingState(CallingState.JOINING);
 
     maxJoinRetries = Math.max(maxJoinRetries, 1);
+    // TODO ask for a new SFU when rejoining
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);

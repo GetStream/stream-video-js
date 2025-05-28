@@ -70,6 +70,7 @@ export class DynascaleManager {
   private logger = getLogger(['DynascaleManager']);
   private callState: CallState;
   private speaker: SpeakerManager;
+  private audioContext: AudioContext | undefined;
   private sfuClient: StreamSfuClient | undefined;
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
 
@@ -117,6 +118,20 @@ export class DynascaleManager {
     this.callState = callState;
     this.speaker = speaker;
   }
+
+  /**
+   * Disposes the allocated resources and closes the audio context if it was created.
+   */
+  dispose = async () => {
+    if (this.pendingSubscriptionsUpdate) {
+      clearTimeout(this.pendingSubscriptionsUpdate);
+    }
+    const context = this.getOrCreateAudioContext();
+    if (context && context.state !== 'closed') {
+      await context.close();
+      this.audioContext = undefined;
+    }
+  };
 
   setSfuClient(sfuClient: StreamSfuClient | undefined) {
     this.sfuClient = sfuClient;
@@ -507,6 +522,7 @@ export class DynascaleManager {
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
+    let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     const updateMediaStreamSubscription = participant$
       .pipe(
         distinctUntilKeyChanged(
@@ -525,9 +541,16 @@ export class DynascaleManager {
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
           if (audioElement.srcObject) {
-            audioElement.play().catch((e) => {
-              this.logger('warn', `Failed to play stream`, e);
-            });
+            const audioContext = this.getOrCreateAudioContext();
+            if (audioContext && source) {
+              sourceNode?.disconnect();
+              sourceNode = audioContext.createMediaStreamSource(source);
+              sourceNode.connect(audioContext.destination);
+            } else {
+              audioElement.play().catch((e) => {
+                this.logger('warn', `Failed to play audio stream`, e);
+              });
+            }
 
             // audio output device shall be set after the audio element is played
             // otherwise, the browser will not pick it up, and will always
@@ -543,8 +566,15 @@ export class DynascaleManager {
     const sinkIdSubscription = !('setSinkId' in audioElement)
       ? null
       : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
-          if (deviceId) {
-            audioElement.setSinkId(deviceId);
+          if (!deviceId) return;
+          audioElement.setSinkId(deviceId);
+
+          const audioContext = this.getOrCreateAudioContext();
+          if (audioContext && 'setSinkId' in audioContext) {
+            // @ts-expect-error setSinkId is not available in all browsers
+            audioContext.setSinkId(deviceId).catch((e) => {
+              this.logger('warn', `Can't to set AudioContext output device`, e);
+            });
           }
         });
 
@@ -561,6 +591,32 @@ export class DynascaleManager {
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
+      sourceNode?.disconnect();
     };
+  };
+
+  private getOrCreateAudioContext = (): AudioContext | undefined => {
+    if (this.audioContext || !isSafari()) return this.audioContext;
+
+    // Safari has a special quirk that prevents playing audio until the user
+    // interacts with the page or focuses on the tab where the call happens.
+    // This is a workaround for the issue where:
+    // - A and B are in a call
+    // - A switches to another tab
+    // - B mutes their microphone and unmutes it
+    // - A does not hear B's unmuted audio until they focus the tab
+    const context = new AudioContext();
+    if (context.state === 'suspended') {
+      const resume = () => {
+        if (context.state === 'suspended') {
+          context.resume().catch((err) => {
+            this.logger('warn', `Failed to resume audio context`, err);
+          });
+          document.removeEventListener('click', resume);
+        }
+      };
+      document.addEventListener('click', resume);
+    }
+    return (this.audioContext = context);
   };
 }
