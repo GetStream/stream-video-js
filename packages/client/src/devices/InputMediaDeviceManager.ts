@@ -235,10 +235,23 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    await withCancellation(this.statusChangeConcurrencyTag, async () => {
+    await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
       if (this.enabled) {
-        await this.muteStream();
-        await this.unmuteStream();
+        try {
+          await this.muteStream();
+          this.state.setStatus('disabled');
+
+          if (signal.aborted) {
+            return;
+          }
+
+          await this.unmuteStream();
+          this.state.setStatus('enabled');
+        } finally {
+          if (!signal.aborted) {
+            this.state.setPendingStatus(this.state.status);
+          }
+        }
       }
     });
   }
