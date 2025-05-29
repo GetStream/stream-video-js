@@ -1,7 +1,6 @@
 import {
   AudioTrackType,
   DebounceType,
-  StreamVideoParticipant,
   VideoTrackType,
   VisibilityState,
 } from '../types';
@@ -128,6 +127,7 @@ export class DynascaleManager {
     }
     const context = this.getOrCreateAudioContext();
     if (context && context.state !== 'closed') {
+      document.removeEventListener('click', this.resumeAudioContext);
       await context.close();
       this.audioContext = undefined;
     }
@@ -334,12 +334,7 @@ export class DynascaleManager {
     };
 
     const participant$ = this.callState.participants$.pipe(
-      map(
-        (participants) =>
-          participants.find(
-            (participant) => participant.sessionId === sessionId,
-          ) as StreamVideoParticipant,
-      ),
+      map((ps) => ps.find((p) => p.sessionId === sessionId)),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),
@@ -511,12 +506,7 @@ export class DynascaleManager {
     if (!participant || participant.isLocalParticipant) return;
 
     const participant$ = this.callState.participants$.pipe(
-      map(
-        (participants) =>
-          participants.find(
-            (p) => p.sessionId === sessionId,
-          ) as StreamVideoParticipant,
-      ),
+      map((ps) => ps.find((p) => p.sessionId === sessionId)),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),
@@ -542,29 +532,36 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
-          if (source) {
-            const audioContext = this.getOrCreateAudioContext();
-            if (audioContext && source) {
-              audioElement.muted = true;
-              sourceNode?.disconnect();
-              sourceNode = audioContext.createMediaStreamSource(source);
-              gainNode ??= audioContext.createGain();
-              sourceNode.connect(gainNode).connect(audioContext.destination);
-              this.resumeAudioContext();
-            } else {
-              audioElement.muted = false;
-              audioElement.play().catch((e) => {
-                this.logger('warn', `Failed to play audio stream`, e);
-              });
-            }
+          if (!source) return;
 
-            // audio output device shall be set after the audio element is played
-            // otherwise, the browser will not pick it up, and will always
-            // play audio through the system's default device
-            const { selectedDevice } = this.speaker.state;
-            if (selectedDevice && 'setSinkId' in audioElement) {
-              audioElement.setSinkId(selectedDevice);
-            }
+          // Safari has a special quirk that prevents playing audio until the user
+          // interacts with the page or focuses on the tab where the call happens.
+          // This is a workaround for the issue where:
+          // - A and B are in a call
+          // - A switches to another tab
+          // - B mutes their microphone and unmutes it
+          // - A does not hear B's unmuted audio until they focus the tab
+          const audioContext = this.getOrCreateAudioContext();
+          if (audioContext) {
+            // we will play audio through the audio context in Safari
+            audioElement.muted = true;
+            sourceNode?.disconnect();
+            gainNode?.disconnect();
+            sourceNode = audioContext.createMediaStreamSource(source);
+            gainNode = audioContext.createGain();
+            sourceNode.connect(gainNode).connect(audioContext.destination);
+            this.resumeAudioContext();
+          } else {
+            // we will play audio directly through the audio element in other browsers
+            audioElement.muted = false;
+            audioElement.play().catch((e) => {
+              this.logger('warn', `Failed to play audio stream`, e);
+            });
+          }
+
+          const { selectedDevice } = this.speaker.state;
+          if (selectedDevice && 'setSinkId' in audioElement) {
+            audioElement.setSinkId(selectedDevice);
           }
         });
       });
@@ -600,35 +597,27 @@ export class DynascaleManager {
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
       sourceNode?.disconnect();
+      gainNode?.disconnect();
     };
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {
     if (this.audioContext || !isSafari()) return this.audioContext;
-
-    // Safari has a special quirk that prevents playing audio until the user
-    // interacts with the page or focuses on the tab where the call happens.
-    // This is a workaround for the issue where:
-    // - A and B are in a call
-    // - A switches to another tab
-    // - B mutes their microphone and unmutes it
-    // - A does not hear B's unmuted audio until they focus the tab
     const context = new AudioContext();
     if (context.state === 'suspended') {
-      const resume = () => {
-        this.resumeAudioContext();
-        document.removeEventListener('click', resume);
-      };
-      document.addEventListener('click', resume);
+      document.addEventListener('click', this.resumeAudioContext);
     }
     return (this.audioContext = context);
   };
 
-  private resumeAudioContext = async () => {
+  private resumeAudioContext = () => {
     if (this.audioContext?.state === 'suspended') {
-      return this.audioContext.resume().catch((err) => {
-        this.logger('warn', `Failed to resume audio context`, err);
-      });
+      this.audioContext
+        .resume()
+        .catch((err) => this.logger('warn', `Can't resume audio context`, err))
+        .then(() => {
+          document.removeEventListener('click', this.resumeAudioContext);
+        });
     }
   };
 }
