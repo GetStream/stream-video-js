@@ -54,7 +54,7 @@ export interface INoiseCancellation {
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
-  resume: () => Promise<void>;
+  resume: () => void;
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
@@ -277,10 +277,10 @@ export class NoiseCancellation implements INoiseCancellation {
     return { output: destination.stream };
   };
 
-  resume = async () => {
+  resume = () => {
     // resume if still suspended
     if (this.audioContext?.state === 'suspended') {
-      return this.audioContext.resume().catch((err) => {
+      this.audioContext.resume().catch((err) => {
         console.warn(
           'Failed to resume the audio context. Noise Cancellation may not work correctly',
           err,
