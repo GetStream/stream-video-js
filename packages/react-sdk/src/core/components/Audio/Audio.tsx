@@ -31,8 +31,10 @@ export const Audio = ({
 
   useEffect(() => {
     if (!call || !audioElement) return;
+    console.log('>>> Audio effect setup', sessionId);
     const cleanup = call.bindAudioElement(audioElement, sessionId, trackType);
     return () => {
+      console.log('>>> Audio effect cleanup', sessionId);
       cleanup?.();
     };
   }, [call, sessionId, audioElement, trackType]);

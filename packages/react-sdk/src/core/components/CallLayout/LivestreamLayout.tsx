@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   useCall,
   useCallStateHooks,
@@ -8,7 +8,10 @@ import {
 import { hasScreenShare } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
-import { usePaginatedLayoutSortPreset } from './hooks';
+import {
+  usePaginatedLayoutSortPreset,
+  useRawRemoteParticipants,
+} from './hooks';
 
 /**
  * The props for the {@link LivestreamLayout} component.
@@ -62,16 +65,11 @@ export type LivestreamLayoutProps = {
 };
 
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
-  const { useParticipants, useRawParticipants, useHasOngoingScreenShare } =
-    useCallStateHooks();
+  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const participants = useParticipants();
   const [currentSpeaker] = participants;
-  const rawParicipants = useRawParticipants();
-  const remoteParticipants = useMemo(
-    () => rawParicipants.filter((p) => !p.isLocalParticipant),
-    [rawParicipants],
-  );
+  const remoteParticipants = useRawRemoteParticipants();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const presenter = hasOngoingScreenShare
     ? participants.find(hasScreenShare)

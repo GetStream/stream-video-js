@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import clsx from 'clsx';
 
@@ -16,6 +16,7 @@ import {
   ParticipantPredicate,
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
+  useRawRemoteParticipants,
 } from './hooks';
 
 const GROUP_SIZE = 16;
@@ -137,12 +138,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   ] = useState<HTMLDivElement | null>(null);
 
   const call = useCall();
-  const { useRawParticipants } = useCallStateHooks();
-  const rawParicipants = useRawParticipants();
-  const remoteParticipants = useMemo(
-    () => rawParicipants.filter((p) => !p.isLocalParticipant),
-    [rawParicipants],
-  );
+  const remoteParticipants = useRawRemoteParticipants();
   const participants = useFilteredParticipants({
     excludeLocalParticipant,
     filterParticipants,

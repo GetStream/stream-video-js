@@ -502,6 +502,7 @@ export class DynascaleManager {
     sessionId: string,
     trackType: AudioTrackType,
   ) => {
+    console.log('>>> Bound participant audio', sessionId);
     const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
 
@@ -532,7 +533,7 @@ export class DynascaleManager {
     };
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
-    let gainNode: GainNode | undefined = undefined;
+    const gainNode: GainNode | undefined = undefined;
 
     const updateMediaStreamSubscription = participant$
       .pipe(
@@ -549,38 +550,37 @@ export class DynascaleManager {
             : p.audioStream;
         if (audioElement.srcObject === source) return;
 
-        setTimeout(() => {
-          audioElement.srcObject = source ?? null;
-          if (!source) return;
+        audioElement.srcObject = source ?? null;
+        if (!source) return;
 
-          // Safari has a special quirk that prevents playing audio until the user
-          // interacts with the page or focuses on the tab where the call happens.
-          // This is a workaround for the issue where:
-          // - A and B are in a call
-          // - A switches to another tab
-          // - B mutes their microphone and unmutes it
-          // - A does not hear B's unmuted audio until they focus the tab
-          const audioContext = this.getOrCreateAudioContext();
-          if (audioContext) {
-            // we will play audio through the audio context in Safari
-            audioElement.muted = true;
-            sourceNode?.disconnect();
-            sourceNode = audioContext.createMediaStreamSource(source);
-            gainNode ??= audioContext.createGain();
-            gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
-            sourceNode.connect(gainNode).connect(audioContext.destination);
-            this.resumeAudioContext();
-          } else {
-            // we will play audio directly through the audio element in other browsers
-            audioElement.muted = false;
-            audioElement.play().catch((e) => {
-              this.logger('warn', `Failed to play audio stream`, e);
-            });
-          }
+        // Safari has a special quirk that prevents playing audio until the user
+        // interacts with the page or focuses on the tab where the call happens.
+        // This is a workaround for the issue where:
+        // - A and B are in a call
+        // - A switches to another tab
+        // - B mutes their microphone and unmutes it
+        // - A does not hear B's unmuted audio until they focus the tab
+        const audioContext = this.getOrCreateAudioContext();
+        if (audioContext) {
+          // we will play audio through the audio context in Safari
+          audioElement.muted = true;
+          sourceNode?.disconnect();
+          sourceNode = audioContext.createMediaStreamSource(source);
+          // gainNode ??= audioContext.createGain();
+          // gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
+          // sourceNode.connect(gainNode).connect(audioContext.destination);
+          sourceNode.connect(audioContext.destination);
+          this.resumeAudioContext();
+        } else {
+          // we will play audio directly through the audio element in other browsers
+          audioElement.muted = false;
+          audioElement.play().catch((e) => {
+            this.logger('warn', `Failed to play audio stream`, e);
+          });
+        }
 
-          const { selectedDevice } = this.speaker.state;
-          if (selectedDevice) updateSinkId(selectedDevice, audioContext);
-        });
+        const { selectedDevice } = this.speaker.state;
+        if (selectedDevice) updateSinkId(selectedDevice, audioContext);
       });
 
     const sinkIdSubscription = !('setSinkId' in audioElement)
@@ -596,7 +596,7 @@ export class DynascaleManager {
     ]).subscribe(([volume, p]) => {
       const participantVolume = p.audioVolume ?? volume;
       audioElement.volume = participantVolume;
-      if (gainNode) gainNode.gain.value = participantVolume;
+      // if (gainNode) gainNode.gain.value = participantVolume;
     });
 
     audioElement.autoplay = true;
@@ -606,7 +606,8 @@ export class DynascaleManager {
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
       sourceNode?.disconnect();
-      gainNode?.disconnect();
+      // gainNode?.disconnect();
+      console.log('>>> Unbound participant audio', sessionId);
     };
   };
 
