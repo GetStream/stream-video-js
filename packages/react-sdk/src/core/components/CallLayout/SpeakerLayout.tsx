@@ -17,6 +17,7 @@ import {
   ParticipantFilter,
   ParticipantPredicate,
   useFilteredParticipants,
+  useRawRemoteParticipants,
   useSpeakerLayoutSortPreset,
 } from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
@@ -110,9 +111,9 @@ export const SpeakerLayout = ({
   muted,
 }: SpeakerLayoutProps) => {
   const call = useCall();
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
+  const { useParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
-  const remoteParticipants = useRemoteParticipants();
+  const remoteParticipants = useRawRemoteParticipants();
   const [participantInSpotlight, ...otherParticipants] =
     useFilteredParticipants({ excludeLocalParticipant, filterParticipants });
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =

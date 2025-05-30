@@ -109,6 +109,15 @@ export const useSpeakerLayoutSortPreset = (
   }, [call, isOneOnOneCall]);
 };
 
+export const useRawRemoteParticipants = () => {
+  const { useRawParticipants } = useCallStateHooks();
+  const rawParicipants = useRawParticipants();
+  return useMemo(
+    () => rawParicipants.filter((p) => !p.isLocalParticipant),
+    [rawParicipants],
+  );
+};
+
 const resetSortPreset = (call: Call) => {
   // reset the sorting to the default for the call type
   const callConfig = CallTypes.get(call.type);

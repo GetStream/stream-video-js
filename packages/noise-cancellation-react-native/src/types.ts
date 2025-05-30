@@ -6,6 +6,7 @@ export interface INoiseCancellation {
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
+  resume: () => void;
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;

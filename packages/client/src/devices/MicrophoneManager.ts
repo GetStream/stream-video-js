@@ -177,6 +177,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       await this.disableNoiseCancellation().catch((err) => {
         this.logger('warn', 'Failed to disable noise cancellation', err);
       });
+      throw e;
     }
   }
 

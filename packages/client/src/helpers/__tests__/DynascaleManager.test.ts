@@ -4,7 +4,16 @@
 
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  Mock,
+  vi,
+} from 'vitest';
 import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -89,18 +98,43 @@ describe('DynascaleManager', () => {
     let videoElement: globalThis.HTMLVideoElement;
 
     beforeEach(() => {
+      // Mock global isSafari to false for testing
+      globalThis._isSafari = false;
+      vi.mock(import('../browsers'), async (importOriginal) => {
+        const module = await importOriginal();
+        return {
+          ...module,
+          isSafari: () => globalThis._isSafari ?? false,
+        };
+      });
+
       videoElement = document.createElement('video');
+
+      // circumvent happy-dom's extensive validation rules
+      Object.defineProperties(videoElement, {
+        srcObject: { writable: true },
+        clientWidth: { writable: true },
+        clientHeight: { writable: true },
+      });
+
       // @ts-expect-error private property
       videoElement.clientWidth = 100;
       // @ts-expect-error private property
       videoElement.clientHeight = 100;
     });
 
+    afterAll(() => {
+      delete globalThis._isSafari;
+      vi.resetModules();
+    });
+
     it('audio: should bind audio element', () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
+      // circumvent happy-dom's MediaStream validation
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
       const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
-      audioElement.setSinkId = vi.fn();
+      audioElement.setSinkId = vi.fn().mockResolvedValue({});
 
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
@@ -153,9 +187,100 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('audio: Safari should use AudioContext for audio playback', () => {
+      globalThis._isSafari = true;
+
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      // circumvent happy-dom's MediaStream validation
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+      audioElement.setSinkId = vi.fn().mockResolvedValue({});
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id-local', {
+        userId: 'user-id-local',
+        sessionId: 'session-id-local',
+        isLocalParticipant: true,
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+      expect(audioElement.autoplay).toBe(true);
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', { audioStream: mediaStream });
+
+      vi.runAllTimers();
+
+      expect(play).not.toHaveBeenCalled();
+      expect(audioElement.srcObject).toBe(mediaStream);
+      expect(audioElement.volume).toBe(1);
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
+      expect(audioElement.muted).toBe(true);
+
+      // @ts-expect-error private property
+      const audioContext = dynascaleManager.audioContext;
+      expect(audioContext).toBeDefined();
+      expect(audioContext.resume).toHaveBeenCalled();
+      expect(audioContext.state).toBe('running');
+      expect(audioContext.createMediaStreamSource).toHaveBeenCalledWith(
+        mediaStream,
+      );
+      expect(audioContext.createGain).toHaveBeenCalled();
+      expect(audioContext.resume).toHaveBeenCalled();
+
+      const sourceNode = (
+        audioContext.createMediaStreamSource as Mock<
+          AudioContext['createMediaStreamSource']
+        >
+      ).mock.results[0].value;
+
+      const gainNode = (
+        audioContext.createGain as Mock<AudioContext['createGain']>
+      ).mock.results[0].value;
+
+      expect(sourceNode.connect).toHaveBeenCalledWith(gainNode);
+      expect(gainNode.connect).toHaveBeenCalledWith(audioContext.destination);
+
+      call.speaker.select('different-device-id');
+      expect(audioElement.setSinkId).toHaveBeenCalledWith(
+        'different-device-id',
+      );
+      // @ts-expect-error sinkId isn't available in the TS definition
+      expect(audioContext.sinkId).toBe('different-device-id');
+
+      call.speaker.setVolume(0.5);
+      expect(audioElement.volume).toBe(0.5);
+      expect(gainNode.gain.value).toBe(0.5);
+
+      call.speaker.setParticipantVolume('session-id', 0.7);
+      expect(audioElement.volume).toBe(0.7);
+      expect(gainNode.gain.value).toBe(0.7);
+
+      call.speaker.setParticipantVolume('session-id', undefined);
+      expect(audioElement.volume).toBe(0.5);
+      expect(gainNode.gain.value).toBe(0.5);
+
+      cleanup?.();
+    });
+
     it('audio: should bind screenShare audio element', () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
+      // circumvent happy-dom's MediaStream validation
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
       const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
 
       // @ts-expect-error incomplete data
@@ -249,6 +374,55 @@ describe('DynascaleManager', () => {
         call.state,
         'updateParticipantTracks',
       );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+
+      expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
+        'session-id': {
+          dimension: {
+            width: videoElement.clientWidth,
+            height: videoElement.clientHeight,
+          },
+        },
+      });
+
+      expect(videoElement.srcObject).toBe(mediaStream);
+
+      expect(cleanup).toBeDefined();
+      cleanup?.();
+
+      expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {
+        'session-id': { dimension: undefined },
+      });
+    });
+
+    it('video: Safari should force play video when track becomes available', () => {
+      globalThis._isSafari = true;
+
+      vi.useFakeTimers();
+      const updateSubscription = vi.spyOn(
+        call.state,
+        'updateParticipantTracks',
+      );
       const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
 
       // @ts-expect-error incomplete data
@@ -280,9 +454,11 @@ describe('DynascaleManager', () => {
           },
         },
       });
-      expect(play).toHaveBeenCalled();
+
+      expect(play).toHaveBeenCalledOnce();
       expect(videoElement.srcObject).toBe(mediaStream);
 
+      expect(cleanup).toBeDefined();
       cleanup?.();
 
       expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {

@@ -20,7 +20,7 @@ export const customSentryLogger =
 
     const { enableVerboseLogging = false } = opts;
     if (
-      enableVerboseLogging &&
+      !enableVerboseLogging &&
       message.startsWith('[Dispatcher]') &&
       /audioLevelChanged|dominantSpeakerChanged/.test(message)
     ) {
