@@ -512,6 +512,25 @@ export class DynascaleManager {
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
+    const updateSinkId = (
+      deviceId: string,
+      audioContext: AudioContext | undefined,
+    ) => {
+      if (deviceId == null) return; // allow ''
+      if ('setSinkId' in audioElement) {
+        audioElement.setSinkId(deviceId).catch((e) => {
+          this.logger('warn', `Can't to set AudioElement sinkId`, e);
+        });
+      }
+
+      if (audioContext && 'setSinkId' in audioContext) {
+        // @ts-expect-error setSinkId is not available in all browsers
+        audioContext.setSinkId(deviceId).catch((e) => {
+          this.logger('warn', `Can't to set AudioContext sinkId`, e);
+        });
+      }
+    };
+
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
 
@@ -546,9 +565,9 @@ export class DynascaleManager {
             // we will play audio through the audio context in Safari
             audioElement.muted = true;
             sourceNode?.disconnect();
-            gainNode?.disconnect();
             sourceNode = audioContext.createMediaStreamSource(source);
-            gainNode = audioContext.createGain();
+            gainNode ??= audioContext.createGain();
+            gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
             sourceNode.connect(gainNode).connect(audioContext.destination);
             this.resumeAudioContext();
           } else {
@@ -560,25 +579,15 @@ export class DynascaleManager {
           }
 
           const { selectedDevice } = this.speaker.state;
-          if (selectedDevice && 'setSinkId' in audioElement) {
-            audioElement.setSinkId(selectedDevice);
-          }
+          if (selectedDevice) updateSinkId(selectedDevice, audioContext);
         });
       });
 
     const sinkIdSubscription = !('setSinkId' in audioElement)
       ? null
       : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
-          if (!deviceId) return;
-          audioElement.setSinkId(deviceId);
-
           const audioContext = this.getOrCreateAudioContext();
-          if (audioContext && 'setSinkId' in audioContext) {
-            // @ts-expect-error setSinkId is not available in all browsers
-            audioContext.setSinkId(deviceId).catch((e) => {
-              this.logger('warn', `Can't to set AudioContext output device`, e);
-            });
-          }
+          updateSinkId(deviceId, audioContext);
         });
 
     const volumeSubscription = combineLatest([

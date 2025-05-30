@@ -89,3 +89,35 @@ const RTCRtpSenderMock = vi.fn((): Partial<typeof RTCRtpSender> => {
   };
 });
 vi.stubGlobal('RTCRtpSender', RTCRtpSenderMock);
+
+const AudioContextMock = vi.fn((): Partial<AudioContext> => {
+  return {
+    state: 'suspended',
+    sinkId: '',
+    // @ts-expect-error - incomplete data
+    destination: {},
+    createMediaStreamSource: vi.fn(() => {
+      return {
+        connect: vi.fn((v) => v),
+        disconnect: vi.fn(),
+      } as unknown as MediaStreamAudioSourceNode;
+    }),
+    createGain: vi.fn(() => {
+      return {
+        connect: vi.fn((v) => v),
+        disconnect: vi.fn(),
+        gain: { value: 1 },
+      } as unknown as GainNode;
+    }),
+    close: vi.fn(async function () {
+      this.state = 'closed';
+    }),
+    resume: vi.fn(async function () {
+      this.state = 'running';
+    }),
+    setSinkId: vi.fn(async function (sinkId: string) {
+      this.sinkId = sinkId;
+    }),
+  };
+});
+vi.stubGlobal('AudioContext', AudioContextMock);
