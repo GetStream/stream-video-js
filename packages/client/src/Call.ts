@@ -1322,7 +1322,7 @@ export class Call {
       return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving || sfuClient.isClosing) return;
-    this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch((err) => {
+    this.reconnect(WebsocketReconnectStrategy.FAST, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
   };
