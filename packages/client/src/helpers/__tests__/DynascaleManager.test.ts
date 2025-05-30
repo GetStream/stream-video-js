@@ -415,6 +415,57 @@ describe('DynascaleManager', () => {
       });
     });
 
+    it('video: Safari should force play video when track becomes available', () => {
+      globalThis._isSafari = true;
+
+      vi.useFakeTimers();
+      const updateSubscription = vi.spyOn(
+        call.state,
+        'updateParticipantTracks',
+      );
+      const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+
+      expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
+        'session-id': {
+          dimension: {
+            width: videoElement.clientWidth,
+            height: videoElement.clientHeight,
+          },
+        },
+      });
+
+      expect(play).toHaveBeenCalledOnce();
+      expect(videoElement.srcObject).toBe(mediaStream);
+
+      expect(cleanup).toBeDefined();
+      cleanup?.();
+
+      expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {
+        'session-id': { dimension: undefined },
+      });
+    });
+
     it('video: should update subscription when element becomes visible', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
