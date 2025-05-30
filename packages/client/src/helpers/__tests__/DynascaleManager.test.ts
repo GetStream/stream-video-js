@@ -124,6 +124,7 @@ describe('DynascaleManager', () => {
     });
 
     afterAll(() => {
+      delete globalThis._isSafari;
       vi.resetModules();
     });
 
