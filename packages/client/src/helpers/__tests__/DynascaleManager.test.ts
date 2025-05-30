@@ -168,7 +168,7 @@ describe('DynascaleManager', () => {
       expect(play).toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(mediaStream);
       expect(audioElement.volume).toBe(1);
-      expect(audioElement.setSinkId).toHaveBeenCalled();
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
 
       call.speaker.select('different-device-id');
       expect(audioElement.setSinkId).toHaveBeenCalledWith(
@@ -227,7 +227,7 @@ describe('DynascaleManager', () => {
       expect(play).not.toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(mediaStream);
       expect(audioElement.volume).toBe(1);
-      expect(audioElement.setSinkId).toHaveBeenCalled();
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
       expect(audioElement.muted).toBe(true);
 
       // @ts-expect-error private property

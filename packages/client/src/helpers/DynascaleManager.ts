@@ -516,7 +516,7 @@ export class DynascaleManager {
       deviceId: string,
       audioContext: AudioContext | undefined,
     ) => {
-      if (deviceId == null) return; // allow ''
+      if (!deviceId) return;
       if ('setSinkId' in audioElement) {
         audioElement.setSinkId(deviceId).catch((e) => {
           this.logger('warn', `Can't to set AudioElement sinkId`, e);
