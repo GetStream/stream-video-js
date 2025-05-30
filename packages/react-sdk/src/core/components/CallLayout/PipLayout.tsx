@@ -3,7 +3,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ParticipantsAudio } from '../Audio';
 import {
@@ -121,8 +121,12 @@ const Pip = (props: PipLayoutProps) => {
 Pip.displayName = 'PipLayout.Pip';
 
 const Host = () => {
-  const { useRemoteParticipants } = useCallStateHooks();
-  const remoteParticipants = useRemoteParticipants();
+  const { useRawParticipants } = useCallStateHooks();
+  const rawParicipants = useRawParticipants();
+  const remoteParticipants = useMemo(
+    () => rawParicipants.filter((p) => !p.isLocalParticipant),
+    [rawParicipants],
+  );
   return <ParticipantsAudio participants={remoteParticipants} />;
 };
 

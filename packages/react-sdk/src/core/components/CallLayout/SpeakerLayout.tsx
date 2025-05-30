@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -110,9 +110,13 @@ export const SpeakerLayout = ({
   muted,
 }: SpeakerLayoutProps) => {
   const call = useCall();
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
+  const { useParticipants, useRawParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
-  const remoteParticipants = useRemoteParticipants();
+  const rawParicipants = useRawParticipants();
+  const remoteParticipants = useMemo(
+    () => rawParicipants.filter((p) => !p.isLocalParticipant),
+    [rawParicipants],
+  );
   const [participantInSpotlight, ...otherParticipants] =
     useFilteredParticipants({ excludeLocalParticipant, filterParticipants });
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =

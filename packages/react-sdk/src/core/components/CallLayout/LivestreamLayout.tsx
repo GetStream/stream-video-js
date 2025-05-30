@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   useCall,
   useCallStateHooks,
@@ -62,12 +62,16 @@ export type LivestreamLayoutProps = {
 };
 
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
-  const { useParticipants, useRemoteParticipants, useHasOngoingScreenShare } =
+  const { useParticipants, useRawParticipants, useHasOngoingScreenShare } =
     useCallStateHooks();
   const call = useCall();
   const participants = useParticipants();
   const [currentSpeaker] = participants;
-  const remoteParticipants = useRemoteParticipants();
+  const rawParicipants = useRawParticipants();
+  const remoteParticipants = useMemo(
+    () => rawParicipants.filter((p) => !p.isLocalParticipant),
+    [rawParicipants],
+  );
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const presenter = hasOngoingScreenShare
     ? participants.find(hasScreenShare)

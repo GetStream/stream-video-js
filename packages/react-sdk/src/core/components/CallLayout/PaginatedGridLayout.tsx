@@ -137,8 +137,12 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
   ] = useState<HTMLDivElement | null>(null);
 
   const call = useCall();
-  const { useRemoteParticipants } = useCallStateHooks();
-  const remoteParticipants = useRemoteParticipants();
+  const { useRawParticipants } = useCallStateHooks();
+  const rawParicipants = useRawParticipants();
+  const remoteParticipants = useMemo(
+    () => rawParicipants.filter((p) => !p.isLocalParticipant),
+    [rawParicipants],
+  );
   const participants = useFilteredParticipants({
     excludeLocalParticipant,
     filterParticipants,
