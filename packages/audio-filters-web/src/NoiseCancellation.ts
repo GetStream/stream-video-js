@@ -54,6 +54,7 @@ export interface INoiseCancellation {
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
+  resume: () => void;
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
@@ -168,15 +169,7 @@ export class NoiseCancellation implements INoiseCancellation {
     // AudioContext requires user interaction to start:
     // https://developer.chrome.com/blog/autoplay/#webaudio
     const resume = () => {
-      // resume if still suspended
-      if (this.audioContext?.state === 'suspended') {
-        this.audioContext.resume().catch((err) => {
-          console.warn(
-            'Failed to resume the audio context. Noise Cancellation may not work correctly',
-            err,
-          );
-        });
-      }
+      this.resume();
       document.removeEventListener('click', resume);
     };
 
@@ -277,7 +270,23 @@ export class NoiseCancellation implements INoiseCancellation {
     const destination = this.audioContext.createMediaStreamDestination();
 
     source.connect(this.filterNode).connect(destination);
+    // When filter is started, user's microphone media stream is active.
+    // That means that most probably we can resume audio context without
+    // any autoplay policy limitations.
+    this.resume();
     return { output: destination.stream };
+  };
+
+  resume = () => {
+    // resume if still suspended
+    if (this.audioContext?.state === 'suspended') {
+      this.audioContext.resume().catch((err) => {
+        console.warn(
+          'Failed to resume the audio context. Noise Cancellation may not work correctly',
+          err,
+        );
+      });
+    }
   };
 
   /**
