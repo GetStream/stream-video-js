@@ -605,6 +605,7 @@ export class DynascaleManager {
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
+      audioElement.srcObject = null;
       sourceNode?.disconnect();
       gainNode?.disconnect();
     };
