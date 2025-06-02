@@ -634,6 +634,13 @@ export class CallState {
   }
 
   /**
+   * The stable list of participants in the current call, unsorted.
+   */
+  get rawParticipants() {
+    return this.getCurrentValue(this.rawParticipants$);
+  }
+
+  /**
    * Sets the list of participants in the current call.
    *
    * @internal
