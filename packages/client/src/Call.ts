@@ -845,7 +845,6 @@ export class Call {
     this.state.setCallingState(CallingState.JOINING);
 
     maxJoinRetries = Math.max(maxJoinRetries, 1);
-    // TODO ask for a new SFU when rejoining
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
