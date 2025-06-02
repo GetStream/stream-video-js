@@ -35,7 +35,14 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
       );
     }
     if (props?.enableScreenshare) {
-      config.modResults.contents = addInsideOnCreate(
+      config.modResults.contents = addInsideOnCreateScreenshare(
+        config.modResults.contents,
+        isMainActivityJava,
+      );
+    }
+
+    if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
+      config.modResults.contents = addInsideOnCreateLockscreen(
         config.modResults.contents,
         isMainActivityJava,
       );
@@ -136,7 +143,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
   return contents;
 }
 
-function addInsideOnCreate(contents: string, isJava: boolean) {
+function addInsideOnCreateScreenshare(contents: string, isJava: boolean) {
   const addScreenShareServiceEnablerBlock = isJava
     ? `WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
     options.enableMediaProjectionService = true;
@@ -154,4 +161,17 @@ function addInsideOnCreate(contents: string, isJava: boolean) {
   return contents;
 }
 
+function addInsideOnCreateLockscreen(contents: string, isJava: boolean) {
+  const addLockscreenServiceEnablerBlock = isJava
+    ? `StreamVideoReactNative.setupCallActivity(this);`
+    : `StreamVideoReactNative.setupCallActivity(this)`;
+  if (!contents.includes('StreamVideoReactNative.setupCallActivity')) {
+    contents = appendContentsInsideDeclarationBlock(
+      contents,
+      'onCreate',
+      addLockscreenServiceEnablerBlock,
+    );
+  }
+  return contents;
+}
 export default withStreamVideoReactNativeSDKMainActivity;
