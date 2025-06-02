@@ -1,10 +1,8 @@
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useEffect, useState } from 'react';
 
+import { hasScreenShare } from '@stream-io/video-client';
+import { Icon } from '../../../components';
 import { ParticipantsAudio } from '../Audio';
 import {
   DefaultParticipantViewUI,
@@ -16,9 +14,8 @@ import {
   ParticipantPredicate,
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
+  useRawRemoteParticipants,
 } from './hooks';
-import { hasScreenShare } from '@stream-io/video-client';
-import { Icon } from '../../../components';
 
 export type PipLayoutProps = {
   /**
@@ -121,8 +118,7 @@ const Pip = (props: PipLayoutProps) => {
 Pip.displayName = 'PipLayout.Pip';
 
 const Host = () => {
-  const { useRemoteParticipants } = useCallStateHooks();
-  const remoteParticipants = useRemoteParticipants();
+  const remoteParticipants = useRawRemoteParticipants();
   return <ParticipantsAudio participants={remoteParticipants} />;
 };
 

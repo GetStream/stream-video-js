@@ -280,6 +280,18 @@ export const useParticipants = ({
 };
 
 /**
+ * A hook which provides a list of all participants that have joined an active call.
+ * Unlike `useParticipants`, it returns a more stable reference that is not affected
+ * by participant sort settings.
+ *
+ * @category Call State
+ */
+export const useRawParticipants = () => {
+  const { rawParticipants$ } = useCallState();
+  return useObservableValue(rawParticipants$);
+};
+
+/**
  * A hook which provides a StreamVideoLocalParticipant object.
  * It signals that I have joined a call.
  *
