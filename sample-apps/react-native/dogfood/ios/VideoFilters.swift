@@ -104,4 +104,8 @@ open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
         }
         return frame
     }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
