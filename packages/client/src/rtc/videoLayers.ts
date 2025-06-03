@@ -187,16 +187,18 @@ const withSimulcastConstraints = (
 
   const size = Math.max(settings.width || 0, settings.height || 0);
   if (size <= 320) {
-    // provide only one layer 320x240 (q), the one with the highest quality
+    // provide only one layer 320x240 (f), the one with the highest quality
     layers = optimalVideoLayers.filter((layer) => layer.rid === 'f');
   } else if (size <= 640) {
-    // provide two layers, 160x120 (q) and 640x480 (h)
-    layers = optimalVideoLayers.filter((layer) => layer.rid !== 'h');
+    // provide two layers, 320x240 (h) and 640x480 (f)
+    layers = optimalVideoLayers.filter((layer) => layer.rid !== 'q');
   } else {
     // provide three layers for sizes > 640x480
     layers = optimalVideoLayers;
   }
 
+  // we might have removed some layers, so we need to reassign the rid
+  // to match the expected order of [q, h, f] for simulcast
   const ridMapping = ['q', 'h', 'f'];
   return layers.map<OptimalVideoLayer>((layer, index, arr) => ({
     ...layer,

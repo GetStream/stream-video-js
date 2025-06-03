@@ -62,6 +62,9 @@ export class NoiseCancellation implements INoiseCancellation {
   // no-op in React Native
   setSuppressionLevel = () => {};
 
+  // no-op in React Native
+  resume = () => {};
+
   isEnabled = async () => {
     return isEnabled();
   };
