@@ -148,6 +148,8 @@ const useCanJoinEearly = () => {
       return () => clearInterval(handle);
     }
   }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
+
+  return canJoinEarly;
 };
 
 const checkCanJoinEarly = (
