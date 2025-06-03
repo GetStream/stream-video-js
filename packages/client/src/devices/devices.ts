@@ -182,7 +182,7 @@ const getStream = async (
         const target = constraints.video as MediaTrackConstraints;
         if (width !== target.width || height !== target.height) {
           tracer?.trace(
-            `${tag}Error`,
+            `${tag}Warn`,
             `Requested resolution ${target.width}x${target.height} but got ${width}x${height}`,
           );
         }
