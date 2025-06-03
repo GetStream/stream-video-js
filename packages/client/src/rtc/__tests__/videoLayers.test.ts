@@ -112,7 +112,10 @@ describe('videoLayers', () => {
       videoDimension: { width, height },
     });
     expect(layers.length).toBe(1);
-    expect(layers[0].rid).toBe('q');
+    const [q] = layers;
+    expect(q.rid).toBe('q');
+    expect(q.width).toBe(320);
+    expect(q.height).toBe(240);
   });
 
   it('should announce two simulcast layers for resolutions less than 640px wide', () => {
@@ -128,8 +131,13 @@ describe('videoLayers', () => {
       videoDimension: { width, height },
     });
     expect(layers.length).toBe(2);
-    expect(layers[0].rid).toBe('q');
-    expect(layers[1].rid).toBe('h');
+    const [q, h] = layers;
+    expect(q.rid).toBe('q');
+    expect(q.width).toBe(320);
+    expect(q.height).toBe(240);
+    expect(h.rid).toBe('h');
+    expect(h.width).toBe(640);
+    expect(h.height).toBe(480);
   });
 
   it('should announce three simulcast layers for resolutions greater than 640px wide', () => {
@@ -145,9 +153,16 @@ describe('videoLayers', () => {
       videoDimension: { width, height },
     });
     expect(layers.length).toBe(3);
-    expect(layers[0].rid).toBe('q');
-    expect(layers[1].rid).toBe('h');
-    expect(layers[2].rid).toBe('f');
+    const [q, h, f] = layers;
+    expect(q.rid).toBe('q');
+    expect(q.width).toBe(320);
+    expect(q.height).toBe(180);
+    expect(h.rid).toBe('h');
+    expect(h.width).toBe(640);
+    expect(h.height).toBe(360);
+    expect(f.rid).toBe('f');
+    expect(f.width).toBe(1280);
+    expect(f.height).toBe(720);
   });
 
   it('should announce only one layer for SVC codecs', () => {
