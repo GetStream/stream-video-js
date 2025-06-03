@@ -606,6 +606,7 @@ export class Call {
       );
       this.sfuClient = undefined;
       this.dynascaleManager.setSfuClient(undefined);
+      await this.dynascaleManager.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
       this.state.setParticipants([]);

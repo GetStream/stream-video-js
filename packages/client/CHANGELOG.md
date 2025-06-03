@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.2...@stream-io/video-client-1.23.3) (2025-06-02)
+
+- remove TODO ([9cfea4b](https://github.com/GetStream/stream-video-js/commit/9cfea4b54284cdd680a6d666436dedc5fd8956c3))
+
+### Bug Fixes
+
+- inconsistent device state if applySettingsToStream fails ([#1808](https://github.com/GetStream/stream-video-js/issues/1808)) ([73d66c2](https://github.com/GetStream/stream-video-js/commit/73d66c2eaa7eca52b9d41b39f8f9fd0a0ce240ef))
+- test ([e0b93aa](https://github.com/GetStream/stream-video-js/commit/e0b93aaa13f22f0db30b61e6230aff40ba8fd92a))
+- use AudioContext for Safari ([#1810](https://github.com/GetStream/stream-video-js/issues/1810)) ([63542f4](https://github.com/GetStream/stream-video-js/commit/63542f419efa475c7acf50f053621ace74a1eff4))
+
 ## [1.23.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.1...@stream-io/video-client-1.23.2) (2025-05-22)
 
 ### Bug Fixes

@@ -149,7 +149,14 @@ export class CallState {
   anonymousParticipantCount$: Observable<number>;
 
   /**
-   * All participants of the current call (this includes the current user and other participants as well).
+   * All participants of the current call (this includes the current user and other participants as well),
+   * unsorted. This observable only updates when participants join or leave the call.
+   */
+  rawParticipants$: Observable<StreamVideoParticipant[]>;
+
+  /**
+   * All participants of the current call (this includes the current user and other participants as well),
+   * sorted according to the current `sortByParticipantsBy` setting
    */
   participants$: Observable<StreamVideoParticipant[]>;
 
@@ -323,6 +330,10 @@ export class CallState {
    *
    */
   constructor() {
+    this.rawParticipants$ = this.participantsSubject
+      .asObservable()
+      .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
     this.participants$ = this.participantsSubject.asObservable().pipe(
       // maintain stable-sort by mutating the participants stored
       // in the original subject
@@ -620,6 +631,13 @@ export class CallState {
    */
   get participants() {
     return this.getCurrentValue(this.participants$);
+  }
+
+  /**
+   * The stable list of participants in the current call, unsorted.
+   */
+  get rawParticipants() {
+    return this.getCurrentValue(this.rawParticipants$);
   }
 
   /**
