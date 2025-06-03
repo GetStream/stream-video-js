@@ -108,7 +108,7 @@ const useLivestreamCall = (props: {
   const call = useCall();
   const { useIsCallLive, useOwnCapabilities } = useCallStateHooks();
   const canJoinLive = useIsCallLive();
-  const canJoinEarly = useCanJoinEearly();
+  const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
     useOwnCapabilities()?.includes('join-backstage') ?? false;
   const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
@@ -130,7 +130,7 @@ const useLivestreamCall = (props: {
   return call;
 };
 
-const useCanJoinEearly = () => {
+const useCanJoinEarly = () => {
   const { useCallStartsAt, useCallSettings } = useCallStateHooks();
   const startsAt = useCallStartsAt();
   const settings = useCallSettings();
