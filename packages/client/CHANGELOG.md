@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.3...@stream-io/video-client-1.23.4) (2025-06-03)
+
+### Bug Fixes
+
+- attach original token provider error as cause to loadToken rejection ([#1812](https://github.com/GetStream/stream-video-js/issues/1812)) ([15f817c](https://github.com/GetStream/stream-video-js/commit/15f817c2548a8edba8ca1004e133277d67cbeb4f))
+- improved video quality on low capture resolution ([#1814](https://github.com/GetStream/stream-video-js/issues/1814)) ([ebcfdf7](https://github.com/GetStream/stream-video-js/commit/ebcfdf7f7e8146fcaf18a8bee81086f5a23f5df3))
+
 ## [1.23.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.2...@stream-io/video-client-1.23.3) (2025-06-02)
 
 - remove TODO ([9cfea4b](https://github.com/GetStream/stream-video-js/commit/9cfea4b54284cdd680a6d666436dedc5fd8956c3))
