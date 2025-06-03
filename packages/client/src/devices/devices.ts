@@ -175,6 +175,20 @@ const getStream = async (
       // every successful getUserMedia call.
       navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
     }
+    if (constraints.video) {
+      const [videoTrack] = stream.getVideoTracks();
+      if (videoTrack) {
+        const { width, height } = videoTrack.getSettings();
+        const target = constraints.video as MediaTrackConstraints;
+        if (width !== target.width || height !== target.height) {
+          tracer?.trace(
+            `${tag}Error`,
+            `Requested resolution ${target.width}x${target.height} but got ${width}x${height}`,
+          );
+        }
+      }
+    }
+
     return stream;
   } catch (error) {
     tracer?.trace(`${tag}OnFailure`, (error as Error).name);

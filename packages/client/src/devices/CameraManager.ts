@@ -122,8 +122,14 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
 
-    const { target_resolution, camera_facing, camera_default_on } = settings;
-    await this.selectTargetResolution(target_resolution);
+    const { target_resolution: r, camera_facing, camera_default_on } = settings;
+    // normalize target resolution to landscape format.
+    // on mobile devices, the device itself adjusts the resolution to portrait or landscape
+    // depending on the orientation of the device. using portrait resolution
+    // will result in falling back to the default resolution (640x480).
+    const w = r.width > r.height ? r.width : r.height;
+    const h = r.width > r.height ? r.height : r.width;
+    await this.selectTargetResolution({ width: w, height: h });
 
     // Set camera direction if it's not yet set
     if (!this.state.direction && !this.state.selectedDevice) {
