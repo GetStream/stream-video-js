@@ -135,14 +135,14 @@ const useCanJoinEarly = () => {
   const startsAt = useCallStartsAt();
   const settings = useCallSettings();
   const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
-  const [canJoinEarly, setCanJoinEearly] = useState(() =>
+  const [canJoinEarly, setCanJoinEarly] = useState(() =>
     checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
   );
 
   useEffect(() => {
     if (!canJoinEarly) {
       const handle = setInterval(() => {
-        setCanJoinEearly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
       }, 1000);
 
       return () => clearInterval(handle);
