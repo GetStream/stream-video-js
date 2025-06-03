@@ -120,7 +120,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           },
         );
         if (props?.addNoiseCancellation) {
-          config.modResults.contents = addObjcImports(
+          config.modResults.contents = addSwiftImports(
             config.modResults.contents,
             ['stream_io_noise_cancellation_react_native'],
           );
