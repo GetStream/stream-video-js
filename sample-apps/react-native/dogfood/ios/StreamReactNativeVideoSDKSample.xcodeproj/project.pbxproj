@@ -26,7 +26,6 @@
 		DD74B7662AD8479E0042DB4B /* SocketConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7652AD8479E0042DB4B /* SocketConnection.swift */; };
 		DD74B7682AD847F10042DB4B /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */; };
 		DDAF46312D763D11002F0E56 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAF46302D763D09002F0E56 /* AppDelegate.swift */; };
-		DDBC0EC62DE09D9000A8060B /* BlurVideoFrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBC0EC52DE09D9000A8060B /* BlurVideoFrameProcessor.swift */; };
 		DDF2353B2C1875B700BCA10E /* VideoFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF2353A2C1875B700BCA10E /* VideoFilters.swift */; };
 		FB02964D8E8D0BD3E978ED93 /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D90F9D1BB7A4691B017081F7 /* Pods_StreamReactNativeVideoSDKSample.framework */; };
 /* End PBXBuildFile section */
@@ -90,7 +89,6 @@
 		DD74B7652AD8479E0042DB4B /* SocketConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketConnection.swift; sourceTree = "<group>"; };
 		DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
 		DDAF46302D763D09002F0E56 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		DDBC0EC52DE09D9000A8060B /* BlurVideoFrameProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurVideoFrameProcessor.swift; sourceTree = "<group>"; };
 		DDF2353A2C1875B700BCA10E /* VideoFilters.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoFilters.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -135,7 +133,6 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				DDF2353A2C1875B700BCA10E /* VideoFilters.swift */,
-				DDBC0EC52DE09D9000A8060B /* BlurVideoFrameProcessor.swift */,
 				DD36F8FC2C182FFD00836A94 /* VideoEffectsModule.swift */,
 				DD36F8FB2C182FFC00836A94 /* StreamReactNativeVideoSDKSample-Bridging-Header.h */,
 				DD36F8FE2C18311200836A94 /* VideoEffectsModule.mm */,
@@ -431,7 +428,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD36F8FF2C18311200836A94 /* VideoEffectsModule.mm in Sources */,
-				DDBC0EC62DE09D9000A8060B /* BlurVideoFrameProcessor.swift in Sources */,
 				DD36F9012C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift in Sources */,
 				DDF2353B2C1875B700BCA10E /* VideoFilters.swift in Sources */,
 				DDAF46312D763D11002F0E56 /* AppDelegate.swift in Sources */,

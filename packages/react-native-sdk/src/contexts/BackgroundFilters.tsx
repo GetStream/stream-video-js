@@ -68,6 +68,12 @@ export type BackgroundFiltersAPI = {
    */
   applyBackgroundBlurFilter: (blurIntensity: BlurIntensity) => void;
   /**
+   * Applies a video blur filter to the video.
+   *
+   * @param blurIntensity the level of blur to apply to the video.
+   */
+  applyVideoBlurFilter: (blurIntensity: BlurIntensity) => void;
+  /**
    * Disables all filters applied to the video.
    */
   disableAllFilters: () => void;
@@ -111,8 +117,10 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
     );
   }
   const call = useCall();
-  const isBlurRegisteredRef = useRef(false);
+  const isBackgroundBlurRegisteredRef = useRef(false);
+  const isVideoBlurRegisteredRef = useRef(false);
   const registeredImageFiltersSetRef = useRef(new Set<string>());
+
   const [currentBackgroundFilter, setCurrentBackgroundFilter] =
     useState<CurrentBackgroundFilter>();
 
@@ -121,15 +129,40 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       if (!isSupported) {
         return;
       }
-      if (!isBlurRegisteredRef.current) {
+      if (!isBackgroundBlurRegisteredRef.current) {
         await videoFiltersModule?.registerBackgroundBlurVideoFilters();
-        isBlurRegisteredRef.current = true;
+        isBackgroundBlurRegisteredRef.current = true;
       }
       let filterName = 'BackgroundBlurMedium';
       if (blurIntensity === 'heavy') {
         filterName = 'BackgroundBlurHeavy';
       } else if (blurIntensity === 'light') {
         filterName = 'BackgroundBlurLight';
+      }
+      (call?.camera.state.mediaStream as MediaStream | undefined)
+        ?.getVideoTracks()
+        .forEach((track) => {
+          track._setVideoEffect(filterName);
+        });
+      setCurrentBackgroundFilter({ blur: blurIntensity });
+    },
+    [call],
+  );
+
+  const applyVideoBlurFilter = useCallback(
+    async (blurIntensity: BlurIntensity) => {
+      if (!isSupported) {
+        return;
+      }
+      if (!isVideoBlurRegisteredRef.current) {
+        await videoFiltersModule?.registerBlurVideoFilters();
+        isVideoBlurRegisteredRef.current = true;
+      }
+      let filterName = 'BlurMedium';
+      if (blurIntensity === 'heavy') {
+        filterName = 'BlurHeavy';
+      } else if (blurIntensity === 'light') {
+        filterName = 'BlurLight';
       }
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
@@ -182,11 +215,13 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       isSupported,
       applyBackgroundImageFilter,
       applyBackgroundBlurFilter,
+      applyVideoBlurFilter,
       disableAllFilters,
     }),
     [
       applyBackgroundBlurFilter,
       applyBackgroundImageFilter,
+      applyVideoBlurFilter,
       currentBackgroundFilter,
       disableAllFilters,
     ],

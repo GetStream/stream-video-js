@@ -7,6 +7,7 @@ import {
   useCallStateHooks,
   useToggleCallRecording,
   NoiseCancellationProvider,
+  useBackgroundFilters,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
@@ -25,7 +26,6 @@ import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
 import { ClosedCaptions } from './ClosedCaptions';
-import { useCustomVideoFilters } from './VideoEffects/CustomFilters';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -50,7 +50,7 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
-  const { applyBlurFilter, disableCustomFilter } = useCustomVideoFilters();
+  const { applyVideoBlurFilter, disableAllFilters } = useBackgroundFilters();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -76,9 +76,9 @@ export const ActiveCall = ({
     // @ts-expect-error type issue due to experimental call events
     const unsub = call?.on('call_moderation.blur', (event) => {
       console.log('call_moderation.blur', event);
-      applyBlurFilter();
+      applyVideoBlurFilter('heavy');
       setTimeout(() => {
-        disableCustomFilter();
+        disableAllFilters();
       }, 10000);
       Toast.show({
         type: 'error',
@@ -90,9 +90,9 @@ export const ActiveCall = ({
     });
     return () => {
       unsub?.();
-      disableCustomFilter();
+      disableAllFilters();
     };
-  }, [call, applyBlurFilter, disableCustomFilter]);
+  }, [call, applyVideoBlurFilter, disableAllFilters]);
 
   useEffect(() => {
     return call?.on('call.ended', (event) => {

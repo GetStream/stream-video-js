@@ -10,7 +10,6 @@ class VideoEffectsModule: NSObject {
   @objc(registerVideoFilters:withRejecter:)
   func registerVideoFilters(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
     ProcessorProvider.addProcessor(GrayScaleVideoFrameProcessor(), forName: "grayscale")
-    ProcessorProvider.addProcessor(BlurVideoFrameProcessor(), forName: "blur")
     resolve(true)
   }
   

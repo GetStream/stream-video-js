@@ -6,7 +6,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.oney.WebRTCModule.videoEffects.ProcessorProvider
 import io.getstream.rnvideosample.videofilters.GrayScaleVideoFilterFactory
-import io.getstream.rnvideosample.videofilters.BlurVideoFilterFactory
 
 class VideoEffectsModule (reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
@@ -16,7 +15,6 @@ class VideoEffectsModule (reactContext: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun registerVideoFilters(promise: Promise) {
         ProcessorProvider.addProcessor("grayscale", GrayScaleVideoFilterFactory())
-        ProcessorProvider.addProcessor("blur", BlurVideoFilterFactory())
         promise.resolve(true)
     }
 
