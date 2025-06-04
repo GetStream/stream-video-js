@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.4...@stream-io/video-client-1.23.5) (2025-06-04)
+
+### Bug Fixes
+
+- **react-native:** skip browser permission for react native ([#1818](https://github.com/GetStream/stream-video-js/issues/1818)) ([b18f418](https://github.com/GetStream/stream-video-js/commit/b18f418698e12b9804efb43e712ba813b0dbb056))
+
 ## [1.23.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.3...@stream-io/video-client-1.23.4) (2025-06-03)
 
 ### Bug Fixes
