@@ -1,6 +1,7 @@
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import {
   JoinCallResponse,
+  logToConsole,
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -57,6 +58,18 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         tokenProvider,
         options: {
           logLevel: 'debug',
+          logger: (level, message, ...args) => {
+            if (
+              message.startsWith('[Dispatcher]') &&
+              /audioLevelChanged|dominantSpeakerChanged/.test(message)
+            ) {
+              // reduce noise from audioLevelChanged and dominantSpeakerChanged events
+              return;
+            }
+
+            // Call the SDK's default log method
+            logToConsole(level, message, ...args);
+          },
           transformResponse: useLocalSfu
             ? getCustomSfuResponseTransformers(localIpAddress)
             : undefined,
