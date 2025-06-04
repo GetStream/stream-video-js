@@ -10,7 +10,11 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
     'android.permission.BLUETOOTH_ADMIN',
     'android.permission.WAKE_LOCK',
   ];
-  if (props?.ringingPushNotifications || props?.enableScreenshare) {
+  if (
+    props?.androidKeepCallAlive ||
+    props?.ringingPushNotifications ||
+    props?.enableScreenshare
+  ) {
     permissions.push(
       'android.permission.POST_NOTIFICATIONS',
       'android.permission.FOREGROUND_SERVICE',
@@ -21,7 +25,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
       );
     }
   }
-  if (props?.androidKeepCallAlive) {
+  if (props?.androidKeepCallAlive || props?.ringingPushNotifications) {
     permissions.push(
       'android.permission.FOREGROUND_SERVICE_CAMERA',
       'android.permission.FOREGROUND_SERVICE_MICROPHONE',

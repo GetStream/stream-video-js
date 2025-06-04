@@ -17,6 +17,7 @@ class MainActivity : ReactActivity() {
         options.enableMediaProjectionService = true
         // for react-navigation
         super.onCreate(null)
+        StreamVideoReactNative.setupCallActivity(this)
     }
 
     /**

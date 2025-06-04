@@ -42,6 +42,7 @@ config.watchFolders = [
   path.join(workspaceRoot, 'packages/react-bindings'),
   path.join(workspaceRoot, 'packages/react-native-sdk'),
   path.join(workspaceRoot, 'packages/noise-cancellation-react-native'),
+  path.join(workspaceRoot, 'packages/video-filters-react-native'),
 ];
 
 // using rnx-kit symlinks resolver to solve https://github.com/react-native-webrtc/react-native-webrtc/issues/1503

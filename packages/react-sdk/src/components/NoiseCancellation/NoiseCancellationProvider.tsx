@@ -111,7 +111,7 @@ export const NoiseCancellationProvider = (
     noiseCancellation.isEnabled().then((e) => setIsEnabled(e));
     const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));
     const init = (deinit.current || Promise.resolve())
-      .then(() => noiseCancellation.init())
+      .then(() => noiseCancellation.init({ tracer: call.tracer }))
       .then(() => call.microphone.enableNoiseCancellation(noiseCancellation))
       .catch((e) => console.error(`Can't initialize noise cancellation`, e));
 

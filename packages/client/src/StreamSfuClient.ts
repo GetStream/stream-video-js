@@ -237,6 +237,8 @@ export class StreamSfuClient {
     const eventsToTrace: Partial<Record<SfuEventKinds, boolean>> = {
       callEnded: true,
       changePublishQuality: true,
+      changePublishOptions: true,
+      connectionQualityChanged: true,
       error: true,
       goAway: true,
     };
