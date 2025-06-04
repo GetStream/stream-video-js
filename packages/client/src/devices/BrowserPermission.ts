@@ -24,7 +24,11 @@ export class BrowserPermission {
 
     this.ready = (async () => {
       const assumeGranted = () => {
-        this.setState('prompt');
+        if (isReactNative()) {
+          this.setState('granted');
+        } else {
+          this.setState('prompt');
+        }
       };
 
       if (!canQueryPermissions()) {
