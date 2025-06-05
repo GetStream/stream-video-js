@@ -48,7 +48,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
         leaveCall();
       }
     };
-  }, []);
+  }, [call]);
 
   const returnToHomeHandler = () => {
     navigation.navigate('JoinMeetingScreen');

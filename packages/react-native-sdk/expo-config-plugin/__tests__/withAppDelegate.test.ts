@@ -193,17 +193,17 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     // Check Swift imports
     expect(updatedConfig.modResults.contents).toMatch(
-      /import stream_io_noise_cancellation_react_native/,
+      /^import stream_io_noise_cancellation_react_native/m,
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /NoiseCancellationManager.getInstance/,
     );
     expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
-    expect(updatedConfig.modResults.contents).toMatch(/import WebRTC/);
-    expect(updatedConfig.modResults.contents).toMatch(/import RNCallKeep/);
-    expect(updatedConfig.modResults.contents).toMatch(/import PushKit/);
+    expect(updatedConfig.modResults.contents).toMatch(/^import WebRTC/m);
+    expect(updatedConfig.modResults.contents).toMatch(/^import RNCallKeep/m);
+    expect(updatedConfig.modResults.contents).toMatch(/^import PushKit/m);
     expect(updatedConfig.modResults.contents).toMatch(
-      /import RNVoipPushNotification/,
+      /^import RNVoipPushNotification/m,
     );
     // Check Swift implementation
     expect(updatedConfig.modResults.contents).toMatch(

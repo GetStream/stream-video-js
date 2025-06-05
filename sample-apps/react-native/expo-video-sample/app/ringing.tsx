@@ -42,7 +42,7 @@ const CallLeaveOnUnmount = ({ call }: { call: Call }) => {
         call.leave();
       }
     };
-  }, []);
+  }, [call]);
   return null;
 };
 

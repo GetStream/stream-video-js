@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.3...@stream-io/video-react-sdk-1.18.4) (2025-06-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.5`
+- `@stream-io/video-react-bindings` updated to version `1.6.8`
+
+### Bug Fixes
+
+- early join in LivestreamPlayer ([#1817](https://github.com/GetStream/stream-video-js/issues/1817)) ([f80e867](https://github.com/GetStream/stream-video-js/commit/f80e867a27cfca75bc3e5e244b3b08a3d894de18))
+- prevent usePersistedDevicePreferences from overriding manually set status ([#1815](https://github.com/GetStream/stream-video-js/issues/1815)) ([fce2d56](https://github.com/GetStream/stream-video-js/commit/fce2d563678bfd7ef065aa150571889b84b360e8))
+
 ## [1.18.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.2...@stream-io/video-react-sdk-1.18.3) (2025-06-03)
 
 ### Dependency Updates
