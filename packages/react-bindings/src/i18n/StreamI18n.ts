@@ -1,12 +1,16 @@
 import i18next from 'i18next';
 import {
   TranslationLanguage,
-  TranslationSheet,
   TranslationsMap,
+  TranslationsRegistry,
   TranslatorFunction,
 } from './types';
 
-const DEFAULT_NAMESPACE = 'stream-video';
+const mapToRegistry = (translationsMap: TranslationsMap, namespace: string) =>
+  Object.entries(translationsMap).reduce((acc, [lng, translations]) => {
+    acc[lng] = { [namespace]: translations };
+    return acc;
+  }, {} as TranslationsRegistry);
 
 export const defaultTranslationFunction = (key: string) => key;
 
@@ -31,26 +35,20 @@ export class StreamI18n {
     debug = false,
     currentLanguage = 'en',
     fallbackLanguage,
-    translationsOverrides,
+    translationsOverrides = { en: {} },
   }: StreamI18nConstructor = {}) {
+    const ns = 'stream-video';
     this.i18nInstance = i18next.createInstance({
       debug,
-      defaultNS: DEFAULT_NAMESPACE,
+      defaultNS: ns,
       fallbackLng: fallbackLanguage,
       interpolation: { escapeValue: false },
       keySeparator: false,
       lng: currentLanguage,
       nsSeparator: false,
       parseMissingKeyHandler: (key) => key,
+      resources: mapToRegistry(translationsOverrides, ns),
     });
-
-    if (translationsOverrides) {
-      this.i18nInstance.on('initialized', () => {
-        Object.entries(translationsOverrides).forEach(([lng, translations]) => {
-          this.registerTranslationsForLanguage({ lng, translations });
-        });
-      });
-    }
   }
 
   get currentLanguage() {
@@ -63,6 +61,7 @@ export class StreamI18n {
 
   init = async () => {
     this.t = await this.i18nInstance.init();
+    return this.t;
   };
 
   changeLanguage = async (language?: TranslationLanguage) => {
@@ -73,21 +72,5 @@ export class StreamI18n {
         ? window.navigator.language
         : undefined;
     await this.i18nInstance.changeLanguage(language || browserLanguage);
-  };
-
-  registerTranslationsForLanguage = ({
-    lng,
-    translations,
-  }: {
-    lng: TranslationLanguage;
-    translations: TranslationSheet;
-  }) => {
-    this.i18nInstance.addResourceBundle(
-      lng,
-      DEFAULT_NAMESPACE,
-      translations,
-      true,
-      true,
-    );
   };
 }

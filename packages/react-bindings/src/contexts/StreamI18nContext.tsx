@@ -59,16 +59,13 @@ const useCreateI18n = ({
       }),
     [fallbackLanguage, i18nInstance, language, translationsOverrides],
   );
-  const [t, setTranslationFn] = useState<StreamI18n['t']>();
+  const [t, setTranslationFn] = useState<StreamI18n['t']>(() => i18n.t);
   useEffect(() => {
     if (i18n.isInitialized) return;
-    i18n
-      .init()
-      .then(() => setTranslationFn(() => i18n.t))
-      .then(() => i18n.changeLanguage(language));
-  }, [i18n, language]);
+    i18n.init().then(setTranslationFn);
+  }, [i18n]);
 
-  return { i18n, t: t || defaultTranslationFunction };
+  return { i18n, t };
 };
 
 /**
