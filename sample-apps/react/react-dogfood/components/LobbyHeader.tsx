@@ -3,7 +3,7 @@ import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 import { LanguageMenu } from './Settings/LanguageMenu';
-import { useLanguage } from '../hooks/useLanguage';
+import { useSettings } from '../context/SettingsContext';
 import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
@@ -20,14 +20,16 @@ export const HomeButton = () => (
 );
 
 export const UserMenu = () => {
-  const { setLanguage } = useLanguage();
+  const {
+    settings: { language, setLanguage },
+  } = useSettings();
   const isProntoEnvironment = useIsProntoEnvironment();
   return (
     <div className="rd__user-session__menu">
       <ul className="rd__user-session__menu-list">
         {isProntoEnvironment && (
           <li className="rd__user-session__menu-item">
-            <LanguageMenu setLanguage={setLanguage} />
+            <LanguageMenu language={language} setLanguage={setLanguage!} />
           </li>
         )}
         <li className="rd__user-session__menu-item">
