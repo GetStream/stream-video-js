@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   useCall,
   CallContent,
@@ -51,6 +57,7 @@ export const ActiveCall = ({
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
   const { applyVideoBlurFilter, disableAllFilters } = useBackgroundFilters();
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -77,8 +84,12 @@ export const ActiveCall = ({
     const unsub = call?.on('call_moderation.blur', (event) => {
       console.log('call_moderation.blur', event);
       applyVideoBlurFilter('heavy');
-      setTimeout(() => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+      blurTimeoutRef.current = setTimeout(() => {
         disableAllFilters();
+        blurTimeoutRef.current = null;
       }, 10000);
       Toast.show({
         type: 'error',
@@ -90,6 +101,10 @@ export const ActiveCall = ({
     });
     return () => {
       unsub?.();
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
       disableAllFilters();
     };
   }, [call, applyVideoBlurFilter, disableAllFilters]);
