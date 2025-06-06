@@ -30,8 +30,6 @@ private class FaceBoxDetectorFilter : BitmapVideoFilter() {
         .build()
         )
 
-//    private val faceMeshDetector = FaceMeshDetection.getClient(options)
-
     // Properties to cache the last state
     private var lastBitmapWidth: Int = -1
     private var lastBitmapHeight: Int = -1
