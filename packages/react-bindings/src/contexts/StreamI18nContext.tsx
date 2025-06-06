@@ -49,7 +49,7 @@ const useCreateI18n = ({
   fallbackLanguage,
   translationsOverrides,
 }: CreateI18nParams) => {
-  const i18n = useMemo(
+  const [i18n] = useState(
     () =>
       i18nInstance ||
       new StreamI18n({
@@ -57,13 +57,15 @@ const useCreateI18n = ({
         fallbackLanguage,
         translationsOverrides,
       }),
-    [fallbackLanguage, i18nInstance, language, translationsOverrides],
   );
   const [t, setTranslationFn] = useState<StreamI18n['t']>(() => i18n.t);
   useEffect(() => {
-    if (i18n.isInitialized) return;
-    i18n.init().then(() => setTranslationFn(() => i18n.t));
-  }, [i18n]);
+    if (!i18n.isInitialized) {
+      i18n.init().then(() => setTranslationFn(() => i18n.t));
+    } else if (i18n.currentLanguage !== language) {
+      i18n.changeLanguage(language).then(() => setTranslationFn(() => i18n.t));
+    }
+  }, [i18n, language]);
 
   return useMemo(() => ({ i18n, t }), [i18n, t]);
 };

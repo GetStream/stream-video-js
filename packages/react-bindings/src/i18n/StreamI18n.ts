@@ -65,12 +65,7 @@ export class StreamI18n {
   };
 
   changeLanguage = async (language?: TranslationLanguage) => {
-    // i18next detects the language, if none provided, but it is better
-    // to show this detection here explicitly
-    const browserLanguage =
-      typeof window !== 'undefined' && window.navigator
-        ? window.navigator.language
-        : undefined;
-    await this.i18nInstance.changeLanguage(language || browserLanguage);
+    this.t = await this.i18nInstance.changeLanguage(language);
+    return this.t;
   };
 }
