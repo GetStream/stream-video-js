@@ -35,9 +35,9 @@ export const StreamI18nProvider = ({
   children,
   ...createI18nParams
 }: PropsWithChildren<StreamI18nProviderProps>) => {
-  const { i18n, t } = useCreateI18n(createI18nParams);
+  const api = useCreateI18n(createI18nParams);
   return (
-    <StreamI18nContext.Provider value={{ t, i18n }}>
+    <StreamI18nContext.Provider value={api}>
       {children}
     </StreamI18nContext.Provider>
   );
@@ -62,10 +62,10 @@ const useCreateI18n = ({
   const [t, setTranslationFn] = useState<StreamI18n['t']>(() => i18n.t);
   useEffect(() => {
     if (i18n.isInitialized) return;
-    i18n.init().then(setTranslationFn);
+    i18n.init().then(() => setTranslationFn(() => i18n.t));
   }, [i18n]);
 
-  return { i18n, t };
+  return useMemo(() => ({ i18n, t }), [i18n, t]);
 };
 
 /**

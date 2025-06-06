@@ -46,7 +46,7 @@ export class StreamI18n {
       keySeparator: false,
       lng: currentLanguage,
       nsSeparator: false,
-      parseMissingKeyHandler: (key) => key,
+      parseMissingKeyHandler: defaultTranslationFunction,
       resources: mapToRegistry(translationsOverrides, ns),
     });
   }
