@@ -2294,7 +2294,7 @@ PODS:
   - stream-react-native-webrtc (125.3.0):
     - React-Core
     - StreamWebRTC (~> 125.6422.070)
-  - stream-video-react-native (1.16.0):
+  - stream-video-react-native (1.16.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2723,7 +2723,7 @@ SPEC CHECKSUMS:
   stream-io-noise-cancellation-react-native: e919a0f10d96ec0c4078fbd1cc7a463478ef6b9d
   stream-io-video-filters-react-native: 9481459f6c7125265a3cbd5a57081fe9504cdf8e
   stream-react-native-webrtc: c74dfe839c010fc4282c3906d39fe8e85cb57864
-  stream-video-react-native: 376f2cfa048f785bf4a68cb23ebc83de4e53aebe
+  stream-video-react-native: 8e21d02309e20b34d6869d9efd4f786a61c9d033
   StreamVideoNoiseCancellation: c936093dfb72540f1205cd5caec1cf31e27f40ce
   StreamWebRTC: a50ebd8beba4def8f4e378b4895824c3520f9889
   VisionCamera: 7aaae584148bbc250e81b5662e45a7f25c18be2e
