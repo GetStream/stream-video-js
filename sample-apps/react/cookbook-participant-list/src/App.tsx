@@ -21,22 +21,31 @@ const theme = createTheme({
 // https://vitejs.dev/guide/env-and-mode.html#env-files
 //
 // You can use any other method to store your API key and token.
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const token = import.meta.env.VITE_STREAM_TOKEN as string;
-const userId = import.meta.env.VITE_USER_ID as string;
+const userId = 'video-cookbook-' + Math.random().toString(16).substring(2);
+const apiKey = 'mmhfdzb5evj2';
+const tokenProvider = async () => {
+  const provider = new URL('https://pronto.getstream.io/api/auth/create-token');
+  provider.searchParams.set('api_key', apiKey);
+  provider.searchParams.set('user_id', userId);
+  const { token } = await fetch(provider).then((res) => res.json());
+  return token as string;
+};
+
+const client = new StreamVideoClient({
+  apiKey,
+  user: { id: userId },
+  tokenProvider,
+});
 
 const App = () => {
   const [callId, setCallId] = useState<string>();
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient({ apiKey, user: { id: userId }, token }),
-  );
   const [call, setCall] = useState<Call | undefined>(undefined);
 
   useEffect(() => {
     if (!callId) return;
     window.location.hash = `call_id=${callId}`;
     setCall(client.call('default', callId));
-  }, [callId, client]);
+  }, [callId]);
 
   useEffect(() => {
     if (!call) {

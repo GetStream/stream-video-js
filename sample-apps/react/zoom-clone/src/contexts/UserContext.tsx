@@ -15,8 +15,11 @@ import {
 import type { StreamChat } from 'stream-chat';
 import type { User } from '../types/';
 
-const tokenProviderURL: string = import.meta.env.VITE_TOKEN_PROVIDER_URL;
-const envApiKey = import.meta.env.VITE_STREAM_API_KEY;
+const envApiKey =
+  (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'mmhfdzb5evj2';
+const tokenProviderURL =
+  (import.meta.env.VITE_TOKEN_PROVIDER_URL as string | undefined) ||
+  'https://pronto.getstream.io/api/auth/create-token';
 
 type UserContextValue = {
   apiKey: string;

@@ -12,10 +12,11 @@ import { noop } from '../utils/noop';
 import type { User } from '../types';
 import { getSelectedUser, storeUser } from '../utils/user';
 
-const envApiKey = import.meta.env.VITE_STREAM_API_KEY as string | undefined;
-const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL as
-  | string
-  | undefined;
+const envApiKey =
+  (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'mmhfdzb5evj2';
+const tokenProviderURL =
+  (import.meta.env.VITE_TOKEN_PROVIDER_URL as string | undefined) ||
+  'https://pronto.getstream.io/api/auth/create-token';
 
 export interface UserState {
   authInProgress: boolean;
