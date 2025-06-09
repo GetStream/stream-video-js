@@ -1,26 +1,16 @@
 import i18next from 'i18next';
 import {
   TranslationLanguage,
-  TranslationSheet,
   TranslationsMap,
   TranslationsRegistry,
   TranslatorFunction,
 } from './types';
-
-const DEFAULT_NAMESPACE = 'stream-video';
-const DEFAULT_CONFIG = {
-  debug: false,
-  currentLanguage: 'en',
-  fallbackLanguage: false,
-} as const;
 
 const mapToRegistry = (translationsMap: TranslationsMap, namespace: string) =>
   Object.entries(translationsMap).reduce((acc, [lng, translations]) => {
     acc[lng] = { [namespace]: translations };
     return acc;
   }, {} as TranslationsRegistry);
-
-const DEFAULT_TRANSLATIONS_REGISTRY = mapToRegistry({}, DEFAULT_NAMESPACE);
 
 export const defaultTranslationFunction = (key: string) => key;
 
@@ -40,40 +30,28 @@ export class StreamI18n {
   i18nInstance;
   /** Translator function that converts the provided string into its equivalent in the current language. */
   t: TranslatorFunction = defaultTranslationFunction;
-  /** Simple logger function */
-  constructor(options: StreamI18nConstructor = {}) {
-    const {
-      debug = DEFAULT_CONFIG.debug,
-      currentLanguage = DEFAULT_CONFIG.currentLanguage,
-      fallbackLanguage = DEFAULT_CONFIG.fallbackLanguage,
-      translationsOverrides,
-    } = options;
 
+  constructor({
+    debug = false,
+    currentLanguage = 'en',
+    fallbackLanguage,
+    translationsOverrides = { en: {} },
+  }: StreamI18nConstructor = {}) {
+    const ns = 'stream-video';
     this.i18nInstance = i18next.createInstance({
       debug,
-      defaultNS: DEFAULT_NAMESPACE,
+      defaultNS: ns,
       fallbackLng: fallbackLanguage,
       interpolation: { escapeValue: false },
       keySeparator: false,
       lng: currentLanguage,
       nsSeparator: false,
-      parseMissingKeyHandler: (key) => {
-        return key;
-      },
-      resources: DEFAULT_TRANSLATIONS_REGISTRY,
+      parseMissingKeyHandler: defaultTranslationFunction,
+      resources: mapToRegistry(translationsOverrides, ns),
     });
-
-    if (translationsOverrides) {
-      this.i18nInstance.on('initialized', () => {
-        Object.entries(translationsOverrides).forEach(([lng, translations]) => {
-          this.registerTranslationsForLanguage({ lng, translations });
-        });
-      });
-    }
   }
 
   get currentLanguage() {
-    this._checkIsInitialized();
     return this.i18nInstance.language;
   }
 
@@ -82,52 +60,12 @@ export class StreamI18n {
   }
 
   init = async () => {
-    try {
-      this.t = await this.i18nInstance.init();
-    } catch (e) {
-      console.error(`Failed to initialize translations: ${JSON.stringify(e)}`);
-    }
-    return this;
+    this.t = await this.i18nInstance.init();
+    return this.t;
   };
 
-  changeLanguage = async (
-    language?: TranslationLanguage,
-    onChange?: (language: TranslationLanguage) => void,
-  ) => {
-    if (!this._checkIsInitialized()) return;
-    // i18next detects the language, if none provided, but it is better
-    // to show this detection here explicitly
-    const browserLanguage =
-      typeof window !== 'undefined' && window.navigator
-        ? window.navigator.language
-        : undefined;
-    await this.i18nInstance.changeLanguage(language || browserLanguage);
-    onChange?.(this.currentLanguage);
-  };
-
-  registerTranslationsForLanguage = ({
-    lng,
-    translations,
-  }: {
-    lng: TranslationLanguage;
-    translations: TranslationSheet;
-  }) => {
-    if (!this._checkIsInitialized()) return;
-    this.i18nInstance.addResourceBundle(
-      lng,
-      DEFAULT_NAMESPACE,
-      translations,
-      true,
-      true,
-    );
-  };
-
-  private _checkIsInitialized = () => {
-    if (!this.i18nInstance.isInitialized) {
-      console.warn(
-        'I18n instance is not initialized. Call yourStreamI18nInstance.init().',
-      );
-    }
-    return this.i18nInstance.isInitialized;
+  changeLanguage = async (language?: TranslationLanguage) => {
+    this.t = await this.i18nInstance.changeLanguage(language);
+    return this.t;
   };
 }

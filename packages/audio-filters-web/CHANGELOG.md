@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.1...@stream-io/audio-filters-web-0.4.2) (2025-06-02)
+
+### Bug Fixes
+
+- use AudioContext for Safari ([#1810](https://github.com/GetStream/stream-video-js/issues/1810)) ([63542f4](https://github.com/GetStream/stream-video-js/commit/63542f419efa475c7acf50f053621ace74a1eff4))
+
 ## [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.0...@stream-io/audio-filters-web-0.4.1) (2025-05-26)
 
 ### Bug Fixes

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, InputDeviceStatus } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type LocalDevicePreference = {
@@ -25,7 +25,7 @@ type DeviceState<K extends DeviceKey> = {
 };
 
 interface DeviceManagerLike {
-  state: { selectedDevice: string | undefined };
+  state: { selectedDevice: string | undefined; status?: InputDeviceStatus };
   select: (deviceId: string) => Promise<void> | void;
   enable?: () => Promise<void>;
   disable?: () => Promise<void>;
@@ -86,22 +86,20 @@ export const usePersistedDevicePreferences = (
             state as DeviceState<'camera' | 'microphone' | 'speaker'>
           )[deviceKey];
 
-          if (!manager.state.selectedDevice) {
-            const applyPromise = preference
-              ? applyLocalDevicePreference(
-                  manager,
-                  [preference].flat(),
-                  state.devices,
-                )
-              : applyMutedState(manager, defaultMuted);
+          const applyPromise = preference
+            ? applyLocalDevicePreference(
+                manager,
+                [preference].flat(),
+                state.devices,
+              )
+            : applyMutedState(manager, defaultMuted);
 
-            await applyPromise.catch((err) => {
-              console.warn(
-                `Failed to apply ${deviceKey} device preferences`,
-                err,
-              );
-            });
-          }
+          await applyPromise.catch((err) => {
+            console.warn(
+              `Failed to apply ${deviceKey} device preferences`,
+              err,
+            );
+          });
         }
       })().finally(() =>
         setApplyingState((state) => (state === 'applying' ? 'applied' : state)),
@@ -344,7 +342,10 @@ const applyLocalDevicePreference = async (
       devices.find((d) => d.label === p.selectedDeviceLabel);
 
     if (device) {
-      await manager.select(device.deviceId);
+      if (!manager.state.selectedDevice) {
+        await manager.select(device.deviceId);
+      }
+
       muted = p.muted;
       break;
     }
@@ -356,7 +357,9 @@ const applyLocalDevicePreference = async (
 };
 
 const applyMutedState = async (manager: DeviceManagerLike, muted: boolean) => {
-  await manager[muted ? 'disable' : 'enable']?.();
+  if (!manager.state.status) {
+    await manager[muted ? 'disable' : 'enable']?.();
+  }
 };
 
 const getSelectedDevicePreference = (

@@ -9,8 +9,6 @@ import {
   OutgoingCallControls as DefaultOutgoingCallControls,
   type OutgoingCallControlsProps,
 } from '../CallControls';
-import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
-import { useApplyDefaultMediaStreamSettings } from '../../../hooks/useApplyDefaultMediaStreamSettings';
 
 /**
  * Props for the OutgoingCall Component.
@@ -39,9 +37,6 @@ export const OutgoingCall = ({
     theme: { colors, typefaces, outgoingCall },
   } = useTheme();
   const { t } = useI18n();
-
-  useApplyDefaultMediaStreamSettings();
-  useCallMediaStreamCleanup();
 
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',

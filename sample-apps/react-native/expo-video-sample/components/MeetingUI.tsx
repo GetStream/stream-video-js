@@ -4,6 +4,7 @@ import {
   CallingState,
   Lobby,
   NoiseCancellationProvider,
+  BackgroundFiltersProvider,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
@@ -35,10 +36,12 @@ export const MeetingUI = () => {
   return (
     <SafeAreaView style={styles.container}>
       <NoiseCancellationProvider>
-        <CallContent
-          CallControls={CallControlsComponent}
-          iOSPiPIncludeLocalParticipantVideo={true}
-        />
+        <BackgroundFiltersProvider>
+          <CallContent
+            CallControls={CallControlsComponent}
+            iOSPiPIncludeLocalParticipantVideo={true}
+          />
+        </BackgroundFiltersProvider>
       </NoiseCancellationProvider>
     </SafeAreaView>
   );

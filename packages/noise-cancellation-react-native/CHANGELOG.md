@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.1.0...@stream-io/noise-cancellation-react-native-0.1.1) (2025-06-02)
+
+### Bug Fixes
+
+- use AudioContext for Safari ([#1810](https://github.com/GetStream/stream-video-js/issues/1810)) ([63542f4](https://github.com/GetStream/stream-video-js/commit/63542f419efa475c7acf50f053621ace74a1eff4))
+
 ## 0.1.0 (2025-05-20)
 
 ### Features

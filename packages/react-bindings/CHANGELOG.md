@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.7...@stream-io/video-react-bindings-1.6.8) (2025-06-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.5`
+
+## [1.6.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.6...@stream-io/video-react-bindings-1.6.7) (2025-06-03)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.4`
+
+## [1.6.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.5...@stream-io/video-react-bindings-1.6.6) (2025-06-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.3`
+
+### Bug Fixes
+
+- use AudioContext for Safari ([#1810](https://github.com/GetStream/stream-video-js/issues/1810)) ([63542f4](https://github.com/GetStream/stream-video-js/commit/63542f419efa475c7acf50f053621ace74a1eff4))
+
 ## [1.6.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.4...@stream-io/video-react-bindings-1.6.5) (2025-05-22)
 
 ### Dependency Updates

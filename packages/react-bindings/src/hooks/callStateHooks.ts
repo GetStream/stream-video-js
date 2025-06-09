@@ -27,8 +27,6 @@ const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
 
 /**
  * Utility hook, which provides the current call's state.
- *
- * @category Call State
  */
 export const useCallState = () => {
   const call = useCall();
@@ -46,8 +44,6 @@ export const useCallState = () => {
 
 /**
  * Utility hook which provides information whether the current call is being recorded. It will return `true` if the call is being recorded.
- *
- * @category Call State
  */
 export const useIsCallRecordingInProgress = (): boolean => {
   const { recording$ } = useCallState();
@@ -56,8 +52,6 @@ export const useIsCallRecordingInProgress = (): boolean => {
 
 /**
  * Utility hook which provides information whether the current call is broadcasting.
- *
- * @category Call State
  */
 export const useIsCallHLSBroadcastingInProgress = (): boolean => {
   const { egress$ } = useCallState();
@@ -68,8 +62,6 @@ export const useIsCallHLSBroadcastingInProgress = (): boolean => {
 
 /**
  * Utility hook which provides information whether the current call is live.
- *
- * @category Call State
  */
 export const useIsCallLive = (): boolean => {
   const { backstage$ } = useCallState();
@@ -184,8 +176,6 @@ export const useCallEndedBy = (): UserResponse | undefined => {
 /**
  * Utility hook which provides a boolean indicating whether there is
  * a participant in the current call which shares their screen.
- *
- * @category Call State
  */
 export const useHasOngoingScreenShare = (): boolean => {
   const { hasOngoingScreenShare$ } = useCallState();
@@ -201,8 +191,6 @@ export const useHasOngoingScreenShare = (): boolean => {
  *
  * Consumers of this observable can implement their own batching logic
  * in case they want to show historical stats data.
- *
- * @category Call State
  */
 export const useCallStatsReport = (): CallStatsReport | undefined => {
   const { callStatsReport$ } = useCallState();
@@ -211,8 +199,6 @@ export const useCallStatsReport = (): CallStatsReport | undefined => {
 
 /**
  * Utility hook which provides the dominant speaker of the current call.
- *
- * @category Call State
  */
 export const useDominantSpeaker = (): StreamVideoParticipant | undefined => {
   const { dominantSpeaker$ } = useCallState();
@@ -221,8 +207,6 @@ export const useDominantSpeaker = (): StreamVideoParticipant | undefined => {
 
 /**
  * Utility hook which provides a list of call members.
- *
- * @category Call State
  */
 export const useCallMembers = (): MemberResponse[] => {
   const { members$ } = useCallState();
@@ -231,8 +215,6 @@ export const useCallMembers = (): MemberResponse[] => {
 
 /**
  * Utility hook providing the current calling state of the call. For example, `RINGING` or `JOINED`.
- *
- * @category Call State
  */
 export const useCallCallingState = () => {
   const { callingState$ } = useCallState();
@@ -242,8 +224,6 @@ export const useCallCallingState = () => {
 /**
  * Utility hook providing the actual start time of the current session.
  * Useful for calculating the call duration.
- *
- * @category Call State
  */
 export const useCallStartedAt = () => {
   const { startedAt$ } = useCallState();
@@ -252,8 +232,6 @@ export const useCallStartedAt = () => {
 
 /**
  * A hook which provides a list of all participants that have joined an active call.
- *
- * @category Call State
  *
  * @param options.sortBy - A comparator function to sort the participants by.
  * Make sure to memoize output of the `combineComparators` function
@@ -280,10 +258,20 @@ export const useParticipants = ({
 };
 
 /**
- * A hook which provides a StreamVideoLocalParticipant object.
- * It signals that I have joined a call.
+ * A hook which provides a list of all participants that have joined an active call.
+ * Unlike `useParticipants`, it returns a more stable reference that is not affected
+ * by participant sort settings.
  *
  * @category Call State
+ */
+export const useRawParticipants = () => {
+  const { rawParticipants$ } = useCallState();
+  return useObservableValue(rawParticipants$);
+};
+
+/**
+ * A hook which provides a StreamVideoLocalParticipant object.
+ * It signals that I have joined a call.
  */
 export const useLocalParticipant = () => {
   const { localParticipant$ } = useCallState();
@@ -292,8 +280,6 @@ export const useLocalParticipant = () => {
 
 /**
  * A hook which provides a list of all other participants than me that have joined an active call.
- *
- * @category Call State
  */
 export const useRemoteParticipants = () => {
   const { remoteParticipants$ } = useCallState();
@@ -303,8 +289,6 @@ export const useRemoteParticipants = () => {
 /**
  * Returns the approximate participant count of the active call.
  * This includes the anonymous users as well, and it is computed on the server.
- *
- * @category Call State
  */
 export const useParticipantCount = () => {
   const { participantCount$ } = useCallState();
@@ -314,8 +298,6 @@ export const useParticipantCount = () => {
 /**
  * Returns the approximate anonymous participant count of the active call.
  * The regular participants are not included in this count. It is computed on the server.
- *
- * @category Call State
  */
 export const useAnonymousParticipantCount = () => {
   const { anonymousParticipantCount$ } = useCallState();
@@ -350,9 +332,6 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
 
 /**
  * Returns the camera state of the current call.
- *
- * @category Camera Manager State
- *
  */
 export const useCameraState = () => {
   const call = useCall();
@@ -387,8 +366,6 @@ export const useCameraState = () => {
 
 /**
  * Returns the microphone state of the current call.
- *
- * @category Microphone Manager State
  */
 export const useMicrophoneState = () => {
   const call = useCall();
