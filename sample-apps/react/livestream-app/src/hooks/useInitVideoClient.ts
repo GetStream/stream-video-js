@@ -5,8 +5,11 @@ import { getURLCredentials } from '../utils/getURLCredentials';
 import { useParams } from 'react-router-dom';
 import { DEFAULT_CALL_TYPE } from '../utils/constants';
 
-const envApiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const tokenProviderUrl = import.meta.env.VITE_TOKEN_PROVIDER_URL as string;
+const envApiKey =
+  (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'mmhfdzb5evj2';
+const tokenProviderUrl =
+  (import.meta.env.VITE_TOKEN_PROVIDER_URL as string | undefined) ||
+  'https://pronto.getstream.io/api/auth/create-token';
 
 type VideoClientProviderProps = {
   isAnon?: boolean;
