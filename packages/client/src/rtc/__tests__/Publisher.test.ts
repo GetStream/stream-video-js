@@ -8,7 +8,6 @@ import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
   PeerType,
   PublishOption,
-  SdkType,
   TrackInfo,
   TrackType,
 } from '../../gen/video/sfu/models/models';
@@ -16,6 +15,7 @@ import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 import { TransceiverCache } from '../TransceiverCache';
+import { promiseWithResolvers } from '../../helpers/promise';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -63,18 +63,6 @@ describe('Publisher', () => {
       state,
       logTag: 'test',
       enableTracing: false,
-      clientDetails: {
-        sdk: {
-          type: SdkType.PLAIN_JAVASCRIPT,
-          major: '1',
-          minor: '0',
-          patch: '0',
-        },
-        device: {
-          name: 'test-device',
-          version: '1.0.0',
-        },
-      },
       publishOptions: [
         {
           id: 1,
@@ -242,20 +230,78 @@ describe('Publisher', () => {
       expect(publisher['negotiate']).not.toHaveBeenCalled();
     });
 
+    it('should initiate new negiotiation when ICE restart is requested', async () => {
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.restartIce();
+      expect(publisher['negotiate']).toHaveBeenCalled();
+    });
+
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      publisher['onUnrecoverableError'] = vi.fn();
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'failed';
       publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should perform rejoin when ICE restart fails after connection state changes to 'failed'`, async () => {
+      const { promise: lock, resolve } = promiseWithResolvers<void>();
+      publisher['onUnrecoverableError'] = vi
+        .fn()
+        .mockImplementation(() => resolve());
+      vi.spyOn(publisher, 'restartIce').mockRejectedValue('ICE restart failed');
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+
+      await lock;
+      expect(publisher.restartIce).toHaveBeenCalled();
       expect(publisher['onUnrecoverableError']).toHaveBeenCalled();
     });
 
-    it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+    it(`should schedule ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'disconnected';
       publisher['onIceConnectionStateChange']();
+
+      vi.runOnlyPendingTimers();
       expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should perform rejoin when scheduled ICE restart fails`, async () => {
+      vi.spyOn(publisher, 'restartIce').mockRejectedValue('ICE restart failed');
+      const { promise: lock, resolve } = promiseWithResolvers<void>();
+      publisher['onUnrecoverableError'] = vi
+        .fn()
+        .mockImplementation(() => resolve());
+      vi.useFakeTimers();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+
+      vi.runOnlyPendingTimers();
+
+      await lock;
+      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['onUnrecoverableError']).toHaveBeenCalled();
+    });
+
+    it(`should schedule ICE restart but cancel it if connection recovers in the meantime`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+
+      vi.runOnlyPendingTimers();
+      expect(publisher.restartIce).not.toHaveBeenCalled();
     });
   });
 

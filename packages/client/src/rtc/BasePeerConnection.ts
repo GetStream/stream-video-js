@@ -19,6 +19,7 @@ export type BasePeerConnectionOpts = {
   onUnrecoverableError?: (reason: string) => void;
   logTag: string;
   enableTracing: boolean;
+  iceRestartDelay?: number;
 };
 
 /**
@@ -34,6 +35,8 @@ export abstract class BasePeerConnection {
   protected sfuClient: StreamSfuClient;
 
   protected onUnrecoverableError?: (reason: string) => void;
+  private readonly iceRestartDelay: number;
+  private iceRestartTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
   private isDisposed = false;
 
@@ -58,12 +61,14 @@ export abstract class BasePeerConnection {
       onUnrecoverableError,
       logTag,
       enableTracing,
+      iceRestartDelay = 2500,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
     this.sfuClient = sfuClient;
     this.state = state;
     this.dispatcher = dispatcher;
+    this.iceRestartDelay = iceRestartDelay;
     this.onUnrecoverableError = onUnrecoverableError;
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
@@ -98,6 +103,8 @@ export abstract class BasePeerConnection {
    * Disposes the `RTCPeerConnection` instance.
    */
   dispose() {
+    clearTimeout(this.iceRestartTimeout);
+    this.iceRestartTimeout = undefined;
     this.onUnrecoverableError = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
@@ -252,21 +259,36 @@ export abstract class BasePeerConnection {
     const state = this.pc.iceConnectionState;
     this.logger('debug', `ICE connection state changed`, state);
 
-    if (this.state.callingState === CallingState.OFFLINE) return;
-    if (this.state.callingState === CallingState.RECONNECTING) return;
+    const { callingState } = this.state;
+    if (callingState === CallingState.OFFLINE) return;
+    if (callingState === CallingState.RECONNECTING) return;
 
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
-    if (state === 'failed') {
-      this.onUnrecoverableError?.('ICE connection failed');
-    } else if (state === 'disconnected') {
-      this.logger('debug', `Attempting to restart ICE`);
+    const tryRestartIce = () => {
       this.restartIce().catch((e) => {
-        const reason = `ICE restart failed`;
+        const reason = 'restartICE() failed, initiating reconnect';
         this.logger('error', reason, e);
-        this.onUnrecoverableError?.(`${reason}: ${e}`);
+        this.onUnrecoverableError?.(reason);
       });
+    };
+
+    if (state === 'failed') {
+      // in the `failed` state, we try to restart ICE immediately
+      this.logger('warn', 'restartICE() due to failed ICE connection');
+      tryRestartIce();
+    } else if (state === 'disconnected') {
+      // in the ` disconnected ` state, we schedule a restartICE() after a delay
+      // as the browser might recover the connection in the meantime
+      this.logger('warn', 'disconnected connection, scheduling restartICE()');
+      this.iceRestartTimeout = setTimeout(() => {
+        const currentState = this.pc.iceConnectionState;
+        if (currentState === 'disconnected' || currentState === 'failed') {
+          return tryRestartIce();
+        }
+        this.logger('info', 'connection recovered, canceled restartICE()');
+      }, this.iceRestartDelay);
     }
   };
 
@@ -275,12 +297,10 @@ export abstract class BasePeerConnection {
    */
   private onIceCandidateError = (e: Event) => {
     const errorMessage =
-      e instanceof RTCPeerConnectionIceErrorEvent &&
-      `${e.errorCode}: ${e.errorText}`;
-    const iceState = this.pc.iceConnectionState;
-    const logLevel =
-      iceState === 'connected' || iceState === 'checking' ? 'debug' : 'warn';
-    this.logger(logLevel, `ICE Candidate error`, errorMessage);
+      e instanceof RTCPeerConnectionIceErrorEvent
+        ? `${e.errorCode}: ${e.errorText}`
+        : e;
+    this.logger('debug', 'ICE Candidate error', errorMessage);
   };
 
   /**
