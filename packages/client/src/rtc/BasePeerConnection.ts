@@ -202,6 +202,22 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Checks if the `RTCPeerConnection` is healthy.
+   * It checks the ICE connection state and the peer connection state.
+   * If either state is `failed`, `disconnected`, or `closed`,
+   * it returns `false`, otherwise it returns `true`.
+   */
+  isHealthy = () => {
+    const failedStates = new Set<
+      RTCIceConnectionState | RTCPeerConnectionState
+    >(['failed', 'disconnected', 'closed']);
+
+    const iceState = this.pc.iceConnectionState;
+    const connectionState = this.pc.connectionState;
+    return !failedStates.has(iceState) && !failedStates.has(connectionState);
+  };
+
+  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */

@@ -1351,12 +1351,14 @@ export class Call {
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
 
+      let attempt = 0;
       do {
-        if (
+        const reconnectingTime = Date.now() - reconnectStartTime;
+        const shouldGiveUpReconnecting =
           this.disconnectionTimeoutSeconds > 0 &&
-          (Date.now() - reconnectStartTime) / 1000 >
-            this.disconnectionTimeoutSeconds
-        ) {
+          reconnectingTime / 1000 > this.disconnectionTimeoutSeconds;
+
+        if (shouldGiveUpReconnecting) {
           this.logger(
             'warn',
             '[Reconnect] Stopping reconnection attempts after reaching disconnection timeout',
@@ -1426,7 +1428,25 @@ export class Call {
             error,
           );
           await sleep(500);
-          this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
+
+          const shouldMigrate =
+            this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
+          const mustPerformRejoin =
+            Date.now() - reconnectStartTime > this.fastReconnectDeadlineSeconds;
+
+          // don't immediately switch to the REJOIN strategy, but instead attempt
+          // to reconnect with the FAST strategy for a few times before switching.
+          // in some cases, we immediately switch to the REJOIN strategy.
+          const shouldRejoin =
+            mustPerformRejoin || // if we are past the fast reconnect deadline
+            shouldMigrate || // if we are migrating
+            attempt++ >= 3 || // after 3 failed attempts
+            !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
+            !(this.subscriber?.isHealthy() ?? true); // if the subscriber is not healthy
+
+          this.reconnectStrategy = shouldRejoin
+            ? WebsocketReconnectStrategy.REJOIN
+            : WebsocketReconnectStrategy.FAST;
         }
       } while (
         this.state.callingState !== CallingState.JOINED &&
