@@ -107,6 +107,7 @@ export const ChatUI = ({
         <MessageList messageActions={ALLOWED_MESSAGE_ACTIONS} />
         <MessageInput
           focus
+          maxRows={5}
           additionalTextareaProps={{ placeholder: 'Send a message' }}
         />
       </Window>
