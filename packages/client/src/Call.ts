@@ -976,7 +976,7 @@ export class Call {
       } catch (error) {
         this.logger('warn', 'Join SFU request failed', error);
         sfuClient.close(
-          StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+          StreamSfuClient.JOIN_FAILED,
           'Join request failed, connection considered unhealthy',
         );
         // restore the previous call state if the join-flow fails
@@ -1321,7 +1321,7 @@ export class Call {
     )
       return;
     // normal close, no need to reconnect
-    if (sfuClient.isLeaving || sfuClient.isClosing) return;
+    if (sfuClient.isLeaving || sfuClient.isClosingClean) return;
     this.reconnect(WebsocketReconnectStrategy.FAST, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
@@ -1371,7 +1371,8 @@ export class Call {
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
           this.reconnectAttempts++;
         }
-        const current = WebsocketReconnectStrategy[this.reconnectStrategy];
+        const currentStrategy =
+          WebsocketReconnectStrategy[this.reconnectStrategy];
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
@@ -1384,7 +1385,10 @@ export class Call {
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
-              this.logger('debug', `[Reconnect] No-op strategy ${current}`);
+              this.logger(
+                'debug',
+                `[Reconnect] No-op strategy ${currentStrategy}`,
+              );
               break;
             case WebsocketReconnectStrategy.FAST:
               await this.reconnectFast();
@@ -1406,7 +1410,7 @@ export class Call {
         } catch (error) {
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger(
-              'trace',
+              'debug',
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
             );
             break;
@@ -1422,17 +1426,14 @@ export class Call {
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
             return;
           }
-          this.logger(
-            'warn',
-            `[Reconnect] ${current} (${this.reconnectAttempts}) failed. Attempting with REJOIN`,
-            error,
-          );
+
           await sleep(500);
 
           const shouldMigrate =
             this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
           const mustPerformRejoin =
-            Date.now() - reconnectStartTime > this.fastReconnectDeadlineSeconds;
+            (Date.now() - reconnectStartTime) / 1000 >
+            this.fastReconnectDeadlineSeconds;
 
           // don't immediately switch to the REJOIN strategy, but instead attempt
           // to reconnect with the FAST strategy for a few times before switching.
@@ -1444,9 +1445,16 @@ export class Call {
             !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
             !(this.subscriber?.isHealthy() ?? true); // if the subscriber is not healthy
 
-          this.reconnectStrategy = shouldRejoin
+          const nextStrategy = shouldRejoin
             ? WebsocketReconnectStrategy.REJOIN
             : WebsocketReconnectStrategy.FAST;
+          this.reconnectStrategy = nextStrategy;
+
+          this.logger(
+            'info',
+            `[Reconnect] ${currentStrategy} (${this.reconnectAttempts}) failed. Attempting with ${WebsocketReconnectStrategy[nextStrategy]}`,
+            error,
+          );
         }
       } while (
         this.state.callingState !== CallingState.JOINED &&
