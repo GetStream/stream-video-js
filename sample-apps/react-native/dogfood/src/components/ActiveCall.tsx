@@ -57,7 +57,7 @@ export const ActiveCall = ({
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
   const { applyVideoBlurFilter, disableAllFilters } = useBackgroundFilters();
-  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -69,9 +69,7 @@ export const ActiveCall = ({
       Toast.show({
         position: 'bottom',
         type: 'error',
-        // FIXME: OL: harm_type is not defined in the event type and doesn't exist on the backend
-        // @ts-expect-error type issue due to experimental call events;
-        text1: `Call Moderation Warning | Harm Type: ${event.harm_type}`,
+        text1: `Call Moderation Warning`,
         text2: `Message: ${event.message}`,
         bottomOffset: 150,
       });
@@ -79,30 +77,20 @@ export const ActiveCall = ({
   }, [call]);
 
   useEffect(() => {
-    const unsub = call?.on('call.moderation_blur', (event) => {
-      console.log('call.moderation_blur', event);
+    const unsub = call?.on('call.moderation_blur', () => {
       applyVideoBlurFilter('heavy');
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
+      clearTimeout(blurTimeoutRef.current);
+
       blurTimeoutRef.current = setTimeout(() => {
         disableAllFilters();
-        blurTimeoutRef.current = null;
+        blurTimeoutRef.current = undefined;
       }, 10000);
-      Toast.show({
-        type: 'error',
-        text1: `Call Moderation Blur`,
-        // FIXME: OL: harm_type is not defined in the event type and doesn't exist on the backend
-        // @ts-expect-error type issue due to experimental call events
-        text2: `Harm Type: ${event.harm_type}`,
-        bottomOffset: 150,
-      });
     });
     return () => {
       unsub?.();
       if (blurTimeoutRef.current) {
         clearTimeout(blurTimeoutRef.current);
-        blurTimeoutRef.current = null;
+        blurTimeoutRef.current = undefined;
       }
       disableAllFilters();
     };
