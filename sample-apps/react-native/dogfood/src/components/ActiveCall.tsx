@@ -1,19 +1,19 @@
 import React, {
   useCallback,
   useEffect,
-  useState,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import {
-  useCall,
   CallContent,
-  useTheme,
-  useIsInPiPMode,
-  useCallStateHooks,
-  useToggleCallRecording,
   NoiseCancellationProvider,
   useBackgroundFilters,
+  useCall,
+  useCallStateHooks,
+  useIsInPiPMode,
+  useTheme,
+  useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
@@ -64,15 +64,14 @@ export const ActiveCall = ({
   }, []);
 
   useEffect(() => {
-    // @ts-expect-error type issue due to experimental call events
-    return call?.on('call_moderation.warning', (event) => {
-      console.log('call_moderation.warning', event);
+    return call?.on('call.moderation_warning', (event) => {
+      console.log('call.moderation_warning', event);
       Toast.show({
         position: 'bottom',
         type: 'error',
-        // @ts-expect-error type issue due to experimental call events
+        // FIXME: OL: harm_type is not defined in the event type and doesn't exist on the backend
+        // @ts-expect-error type issue due to experimental call events;
         text1: `Call Moderation Warning | Harm Type: ${event.harm_type}`,
-        // @ts-expect-error type issue due to experimental call events
         text2: `Message: ${event.message}`,
         bottomOffset: 150,
       });
@@ -80,9 +79,8 @@ export const ActiveCall = ({
   }, [call]);
 
   useEffect(() => {
-    // @ts-expect-error type issue due to experimental call events
-    const unsub = call?.on('call_moderation.blur', (event) => {
-      console.log('call_moderation.blur', event);
+    const unsub = call?.on('call.moderation_blur', (event) => {
+      console.log('call.moderation_blur', event);
       applyVideoBlurFilter('heavy');
       if (blurTimeoutRef.current) {
         clearTimeout(blurTimeoutRef.current);
@@ -94,6 +92,7 @@ export const ActiveCall = ({
       Toast.show({
         type: 'error',
         text1: `Call Moderation Blur`,
+        // FIXME: OL: harm_type is not defined in the event type and doesn't exist on the backend
         // @ts-expect-error type issue due to experimental call events
         text2: `Harm Type: ${event.harm_type}`,
         bottomOffset: 150,
@@ -111,7 +110,6 @@ export const ActiveCall = ({
 
   useEffect(() => {
     return call?.on('call.ended', (event) => {
-      // @ts-expect-error type issue due to experimental call events
       if (event.reason === 'PolicyViolationModeration') {
         Alert.alert(
           'Call Terminated',

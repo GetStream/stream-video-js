@@ -92,7 +92,6 @@ import type {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-  VideoDimension,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
@@ -113,6 +112,7 @@ import {
   PublishOption,
   SubscribeOption,
   TrackType,
+  VideoDimension,
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
 import {
