@@ -45,6 +45,9 @@ export type ParticipantsStatsReport = {
 };
 
 export type CallStatsReport = {
+  /**
+   * The data center where the current participant is connected to.
+   */
   datacenter: string;
   /**
    * Aggregated stats for the publisher, which is the local participant.
