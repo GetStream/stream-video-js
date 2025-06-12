@@ -231,6 +231,7 @@ export class Call {
 
   private clientPublishOptions?: ClientPublishOptions;
   private currentPublishOptions?: PublishOption[];
+  private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -1229,12 +1230,15 @@ export class Call {
     }
 
     this.statsReporter?.stop();
-    this.statsReporter = createStatsReporter({
-      subscriber: this.subscriber,
-      publisher: this.publisher,
-      state: this.state,
-      datacenter: sfuClient.edgeName,
-    });
+    if (this.statsReportingIntervalInMs > 0) {
+      this.statsReporter = createStatsReporter({
+        subscriber: this.subscriber,
+        publisher: this.publisher,
+        state: this.state,
+        datacenter: sfuClient.edgeName,
+        pollingIntervalInMs: this.statsReportingIntervalInMs,
+      });
+    }
 
     this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
@@ -1834,6 +1838,15 @@ export class Call {
    */
   stopReportingStatsFor = (sessionId: string) => {
     return this.statsReporter?.stopReportingStatsFor(sessionId);
+  };
+
+  /**
+   * Sets the frequency of the call stats reporting.
+   *
+   * @param intervalInMs the interval in milliseconds to report the stats.
+   */
+  setStatsReportingIntervalInMs = (intervalInMs: number) => {
+    this.statsReportingIntervalInMs = intervalInMs;
   };
 
   /**
