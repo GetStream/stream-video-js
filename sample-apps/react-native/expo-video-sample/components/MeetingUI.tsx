@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProgressLoader } from './AuthProgressLoader';
 import { StyleSheet } from 'react-native';
 import { CallControlsComponent } from './CallControlsComponent';
+import { useCustomVideoFilters } from './hooks/useCustomVideoFilters';
 
 export const MeetingUI = () => {
   const { useCallCallingState } = useCallStateHooks();
@@ -37,6 +38,7 @@ export const MeetingUI = () => {
     <SafeAreaView style={styles.container}>
       <NoiseCancellationProvider>
         <BackgroundFiltersProvider>
+          <FaceBoxDetector />
           <CallContent
             CallControls={CallControlsComponent}
             iOSPiPIncludeLocalParticipantVideo={true}
@@ -45,6 +47,22 @@ export const MeetingUI = () => {
       </NoiseCancellationProvider>
     </SafeAreaView>
   );
+};
+
+const FaceBoxDetector = () => {
+  const { applyFaceBoxDetectorFilter, disableCustomFilter } =
+    useCustomVideoFilters();
+
+  // on mount, apply the face box detector filter
+  // on unmount, disable the filter
+  useEffect(() => {
+    applyFaceBoxDetectorFilter();
+    return () => {
+      disableCustomFilter();
+    };
+  }, [applyFaceBoxDetectorFilter, disableCustomFilter]);
+
+  return null;
 };
 
 const styles = StyleSheet.create({
