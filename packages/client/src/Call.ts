@@ -558,10 +558,15 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
+    if (this.state.callingState === CallingState.LEFT) {
+      throw new Error('Cannot leave call that has already been left.');
+    }
+
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
+
       if (callingState === CallingState.LEFT) {
-        throw new Error('Cannot leave call that has already been left.');
+        return;
       }
 
       if (callingState === CallingState.JOINING) {
