@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.5...@stream-io/video-client-1.24.0) (2025-06-12)
+
+### Features
+
+- moderation support ([#1822](https://github.com/GetStream/stream-video-js/issues/1822)) ([3948fae](https://github.com/GetStream/stream-video-js/commit/3948faeb2fa7ace8dd9c1df990f6e41e73fc0a26))
+
+### Bug Fixes
+
+- configurable call stats reporting interval ([#1824](https://github.com/GetStream/stream-video-js/issues/1824)) ([74f72c0](https://github.com/GetStream/stream-video-js/commit/74f72c024d0cb34ae3e0fee4bd8f061fb51e4479))
+- don't compute call stats report if no one subscribed to it ([#1825](https://github.com/GetStream/stream-video-js/issues/1825)) ([fb6a8c9](https://github.com/GetStream/stream-video-js/commit/fb6a8c9e19c80be313d73fadb68810e7f7c1f071))
+
 ## [1.23.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.4...@stream-io/video-client-1.23.5) (2025-06-04)
 
 ### Bug Fixes
