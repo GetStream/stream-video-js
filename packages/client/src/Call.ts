@@ -716,7 +716,6 @@ export class Call {
     this.state.setOwnCapabilities(response.own_capabilities);
 
     if (params?.ring) {
-      // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
 
@@ -747,7 +746,6 @@ export class Call {
     this.state.setOwnCapabilities(response.own_capabilities);
 
     if (data?.ring) {
-      // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
 
