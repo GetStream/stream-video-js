@@ -5,9 +5,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.oney.WebRTCModule.videoEffects.ProcessorProvider
-import com.streamio.videofiltersreactnative.factories.BackgroundBlurFactory
-import com.streamio.videofiltersreactnative.factories.BlurIntensity
-import com.streamio.videofiltersreactnative.factories.VirtualBackgroundFactory
+import com.streamio.videofiltersreactnative.factories.*
 
 class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -50,6 +48,14 @@ class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
     promise.resolve(true)
   }
 
+  @ReactMethod
+  fun registerBlurVideoFilters(promise: Promise) {
+    ProcessorProvider.addProcessor("BlurLight", VideoBlurFactory(VideoBlurIntensity.LIGHT))
+    ProcessorProvider.addProcessor("BlurMedium", VideoBlurFactory(VideoBlurIntensity.MEDIUM))
+    ProcessorProvider.addProcessor("BlurHeavy", VideoBlurFactory(VideoBlurIntensity.HEAVY))
+    promise.resolve(true)
+  }
+  
   companion object {
     const val NAME = "VideoFiltersReactNative"
   }

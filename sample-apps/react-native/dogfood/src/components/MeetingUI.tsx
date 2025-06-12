@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
+  BackgroundFiltersProvider,
   CallingState,
   useCall,
   useCallStateHooks,
@@ -128,12 +129,14 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   } else {
     return (
       <LayoutProvider>
-        <ActiveCall
-          onCallEnded={onCallEnded}
-          onHangupCallHandler={onHangupCallHandler}
-          onChatOpenHandler={onChatOpenHandler}
-          unreadCountIndicator={unreadCountIndicator}
-        />
+        <BackgroundFiltersProvider>
+          <ActiveCall
+            onCallEnded={onCallEnded}
+            onHangupCallHandler={onHangupCallHandler}
+            onChatOpenHandler={onChatOpenHandler}
+            unreadCountIndicator={unreadCountIndicator}
+          />
+        </BackgroundFiltersProvider>
       </LayoutProvider>
     );
   }
