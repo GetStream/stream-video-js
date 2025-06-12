@@ -1150,7 +1150,7 @@ export class Call {
     }
     if (this.publisher) {
       this.publisher.setSfuClient(nextSfuClient);
-      if (includePublisher) {
+      if (includePublisher && this.publisher.getPublishedTracks().length > 0) {
         await this.publisher.restartIce();
       }
     }
