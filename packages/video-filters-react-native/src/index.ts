@@ -48,3 +48,11 @@ export async function registerVirtualBackgroundFilter(
   await VideoFiltersReactNative.registerVirtualBackgroundFilter(imageUri);
   return imageUri;
 }
+
+/**
+ * Registers the blur video filters.
+ * The name of the blur filters are 'BlurLight', 'BlurMedium' and 'BlurHeavy'.
+ */
+export async function registerBlurVideoFilters(): Promise<boolean> {
+  return await VideoFiltersReactNative.registerBlurVideoFilters();
+}

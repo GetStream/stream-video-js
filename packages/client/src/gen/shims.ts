@@ -1,5 +1,3 @@
-import { VideoDimension } from './coordinator';
-
 export interface AggregatedStats {
   publisher_aggregate_stats?: PublisherAggregateStats;
   turn?: TURNAggregatedStats;
@@ -187,6 +185,6 @@ export interface UserStats {
 }
 
 export interface VideoQuality {
-  resolution?: VideoDimension;
+  resolution?: { width: number; height: number };
   usage_type?: string;
 }

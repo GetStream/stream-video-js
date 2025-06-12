@@ -41,6 +41,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "4.10.0",
     "react-native-svg": "^15.11.2",
+    "react-native-toast-message": "^2.3.0",
     "react-native-video": "^6.13.0",
     "react-native-vision-camera": "^4.6.4",
     "react-native-voip-push-notification": "~3.3.3",
