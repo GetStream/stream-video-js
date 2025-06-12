@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.17.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.16.1...@stream-io/video-react-native-sdk-1.17.0) (2025-06-12)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.1.1`
+- `@stream-io/video-filters-react-native` updated to version `0.5.0`
+- `@stream-io/video-client` updated to version `1.24.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.0`
+
+- update webrtc version ([162a8d2](https://github.com/GetStream/stream-video-js/commit/162a8d24216a28659759ea16fe48630cadb1536f))
+
+### Features
+
+- add audio only ringing notification support for iOS ([#1821](https://github.com/GetStream/stream-video-js/issues/1821)) ([067081d](https://github.com/GetStream/stream-video-js/commit/067081da0032fb965b0401905b2413d3a0290f0e))
+- moderation support ([#1822](https://github.com/GetStream/stream-video-js/issues/1822)) ([3948fae](https://github.com/GetStream/stream-video-js/commit/3948faeb2fa7ace8dd9c1df990f6e41e73fc0a26))
+
 ## [1.16.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.16.0...@stream-io/video-react-native-sdk-1.16.1) (2025-06-04)
 
 ### Dependency Updates
