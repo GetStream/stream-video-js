@@ -1444,9 +1444,11 @@ export class Call {
           const shouldRejoin =
             mustPerformRejoin || // if we are past the fast reconnect deadline
             shouldMigrate || // if we are migrating
-            attempt++ >= 3 || // after 3 failed attempts
+            attempt >= 3 || // after 3 failed attempts
             !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
             !(this.subscriber?.isHealthy() ?? true); // if the subscriber is not healthy
+
+          attempt++;
 
           const nextStrategy = shouldRejoin
             ? WebsocketReconnectStrategy.REJOIN

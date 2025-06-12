@@ -298,6 +298,7 @@ export abstract class BasePeerConnection {
       // in the ` disconnected ` state, we schedule a restartICE() after a delay
       // as the browser might recover the connection in the meantime
       this.logger('warn', 'disconnected connection, scheduling restartICE()');
+      clearTimeout(this.iceRestartTimeout);
       this.iceRestartTimeout = setTimeout(() => {
         const currentState = this.pc.iceConnectionState;
         if (currentState === 'disconnected' || currentState === 'failed') {

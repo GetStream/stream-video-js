@@ -230,7 +230,7 @@ describe('Publisher', () => {
       expect(publisher['negotiate']).not.toHaveBeenCalled();
     });
 
-    it('should initiate new negiotiation when ICE restart is requested', async () => {
+    it('should initiate new negotiation when ICE restart is requested', async () => {
       // @ts-expect-error private method
       vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
