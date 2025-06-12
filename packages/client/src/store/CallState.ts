@@ -711,6 +711,14 @@ export class CallState {
   }
 
   /**
+   * Returns whether the call stats report is being observed or not.
+   * @internal
+   */
+  get isCallStatsReportObserved() {
+    return this.callStatsReportSubject.observed;
+  }
+
+  /**
    * Sets the call stats report.
    *
    * @internal

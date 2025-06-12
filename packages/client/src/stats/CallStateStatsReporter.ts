@@ -179,21 +179,22 @@ export const createStatsReporter = ({
     });
   };
 
-  let timeoutId: NodeJS.Timeout | undefined;
+  let intervalId: NodeJS.Timeout | undefined;
   if (pollingIntervalInMs > 0) {
     const loop = async () => {
+      // bail out of the loop as we don't want to collect stats
+      // (they are expensive) if no one is listening to them
+      if (!state.isCallStatsReportObserved) return;
       await run().catch((e) => {
         logger('debug', 'Failed to collect stats', e);
       });
-      timeoutId = setTimeout(loop, pollingIntervalInMs);
     };
+    intervalId = setInterval(loop, pollingIntervalInMs);
     void loop();
   }
 
   const stop = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
+    clearInterval(intervalId);
   };
 
   return {
