@@ -425,11 +425,14 @@ export class CallState {
     this.eventHandlers = {
       // these events are not updating the call state:
       'call.frame_recording_ready': undefined,
+      'call.moderation_blur': undefined,
+      'call.moderation_warning': undefined,
       'call.permission_request': undefined,
       'call.recording_ready': undefined,
       'call.rtmp_broadcast_failed': undefined,
       'call.rtmp_broadcast_started': undefined,
       'call.rtmp_broadcast_stopped': undefined,
+      'call.stats_report_ready': undefined,
       'call.transcription_ready': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
@@ -708,6 +711,14 @@ export class CallState {
    */
   get callStatsReport() {
     return this.getCurrentValue(this.callStatsReport$);
+  }
+
+  /**
+   * Returns whether the call stats report is being observed or not.
+   * @internal
+   */
+  get isCallStatsReportObserved() {
+    return this.callStatsReportSubject.observed;
   }
 
   /**

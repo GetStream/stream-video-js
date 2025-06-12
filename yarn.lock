@@ -6661,7 +6661,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^1.3.17"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.36"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:^125.3.0"
+    "@stream-io/react-native-webrtc": "npm:^125.3.1"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.1.3"
@@ -6757,7 +6757,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/noise-cancellation-react-native@workspace:packages/noise-cancellation-react-native"
   dependencies:
-    "@stream-io/react-native-webrtc": "npm:^125.3.0"
+    "@stream-io/react-native-webrtc": "npm:^125.3.1"
     react-native: "npm:^0.79.2"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
@@ -6768,16 +6768,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/react-native-webrtc@npm:125.3.0, @stream-io/react-native-webrtc@npm:^125.3.0":
-  version: 125.3.0
-  resolution: "@stream-io/react-native-webrtc@npm:125.3.0"
+"@stream-io/react-native-webrtc@npm:125.3.1, @stream-io/react-native-webrtc@npm:^125.3.1":
+  version: 125.3.1
+  resolution: "@stream-io/react-native-webrtc@npm:125.3.1"
   dependencies:
     base64-js: "npm:1.5.1"
     debug: "npm:4.3.4"
     event-target-shim: "npm:6.0.2"
   peerDependencies:
     react-native: ">=0.73.0"
-  checksum: 10/d545cbc398d4231cb70081dbe78c452997f6bb9b3542ed86d7e3a85cd89876fabf79c9e222836ee4f0dd3bf8b0d72b155e78e6e4fcea0601b2fe03f521e575ce
+  checksum: 10/5a198cb6a8bde97527965472d19c6f37014317ccbe8a5632cbea9998f0638d615a696fde7e1ae790440703e07bf7da54e78ba9dbb37203ead8393b6642f624d7
   languageName: node
   linkType: hard
 
@@ -6853,7 +6853,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
-    "@stream-io/react-native-webrtc": "npm:^125.3.0"
+    "@stream-io/react-native-webrtc": "npm:^125.3.1"
     react-native: "npm:0.79.2"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
@@ -6992,7 +6992,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^1.3.3"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.22"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:125.3.0"
+    "@stream-io/react-native-webrtc": "npm:125.3.1"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.1.3"
@@ -7015,6 +7015,7 @@ __metadata:
     react-native-safe-area-context: "npm:5.4.0"
     react-native-screens: "npm:4.10.0"
     react-native-svg: "npm:^15.11.2"
+    react-native-toast-message: "npm:^2.3.0"
     react-native-video: "npm:^6.13.0"
     react-native-vision-camera: "npm:^4.6.4"
     react-native-voip-push-notification: "npm:~3.3.3"
@@ -7044,7 +7045,7 @@ __metadata:
     "@react-navigation/native": "npm:^7.0.14"
     "@rnx-kit/metro-config": "npm:^1.3.17"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.36"
-    "@stream-io/react-native-webrtc": "npm:^125.3.0"
+    "@stream-io/react-native-webrtc": "npm:^125.3.1"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.1.3"
     expo: "npm:^53.0.8"
@@ -7092,7 +7093,7 @@ __metadata:
     "@react-native-firebase/messaging": "npm:^22.1.0"
     "@react-native/babel-preset": "npm:^0.79.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:^125.3.0"
+    "@stream-io/react-native-webrtc": "npm:^125.3.1"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"
@@ -20172,6 +20173,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/bab86df8fdd4f500ad3f242558726693b0409b5e9b2a97cb3e9b5c1dfdcef01fe73fd36f01926ef20b19f99928b6ab1fb9e942bbeb1308aab27aa0d6c4877a5e
+  languageName: node
+  linkType: hard
+
+"react-native-toast-message@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "react-native-toast-message@npm:2.3.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/50c2d13299dd08f3a08d99e761e6e61732fd089ac77a154885abbc4d90f83a950cdc2c3f8d5a6c88f53330fe25f2e97ad0e102e57d07180a0d9185bec1be7daf
   languageName: node
   linkType: hard
 

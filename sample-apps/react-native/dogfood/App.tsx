@@ -42,6 +42,7 @@ import {
   StreamTheme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
+import Toast from 'react-native-toast-message';
 import { appTheme } from './src/theme';
 
 // only enable warning and error logs from webrtc library
@@ -174,6 +175,7 @@ const StackNavigator = () => {
         <RingingWatcher />
         <ChatWrapper>
           <Stack.Navigator>{mode}</Stack.Navigator>
+          <Toast />
         </ChatWrapper>
       </VideoWrapper>
     </GestureHandlerRootView>

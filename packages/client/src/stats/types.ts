@@ -45,12 +45,37 @@ export type ParticipantsStatsReport = {
 };
 
 export type CallStatsReport = {
+  /**
+   * The data center where the current participant is connected to.
+   */
   datacenter: string;
+  /**
+   * Aggregated stats for the publisher, which is the local participant.
+   */
   publisherStats: AggregatedStatsReport;
+  /**
+   * Raw stats for the publisher, which is the local participant.
+   * Holds the raw RTCStatsReport object provided by the WebRTC API.
+   */
   publisherRawStats?: RTCStatsReport;
+  /**
+   * Aggregated stats for the subscribers, which are all remote participants.
+   */
   subscriberStats: AggregatedStatsReport;
+  /**
+   * Raw stats for the subscribers, which are all remote participants.
+   * Holds the raw RTCStatsReport object provided by the WebRTC API.
+   */
   subscriberRawStats?: RTCStatsReport;
+  /**
+   * Optional stats for individual participants.
+   * Gets populated when an integrator asks for this through
+   * `call.startReportingStatsFor(sessionId)` API.
+   */
   participants: ParticipantsStatsReport;
+  /**
+   * Timestamp of the stats report.
+   */
   timestamp: number;
 };
 

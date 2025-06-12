@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.8...@stream-io/video-react-bindings-1.7.0) (2025-06-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.24.0`
+
+### Features
+
+- update i18next to its latest version ([#1807](https://github.com/GetStream/stream-video-js/issues/1807)) ([c524877](https://github.com/GetStream/stream-video-js/commit/c5248777c83b2a032423b59f6505cf4b2a09a9b9))
+
 ## [1.6.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.7...@stream-io/video-react-bindings-1.6.8) (2025-06-04)
 
 ### Dependency Updates
