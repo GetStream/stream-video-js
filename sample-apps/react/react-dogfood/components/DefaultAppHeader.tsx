@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { HomeButton, UserInfo } from './LobbyHeader';
 
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
+import { RingingCallNotification } from './Ringing/RingingCallNotification';
 
 export const DefaultAppHeader = (props: { transparent?: boolean }) => {
   const { transparent } = props;
@@ -37,6 +38,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
           {t('Documentation')}
         </a>
       </div>
+      <RingingCallNotification />
     </div>
   );
 };
