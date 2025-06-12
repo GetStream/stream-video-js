@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from 'next';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
   BackgroundFiltersProvider,
   Call,
@@ -10,19 +10,16 @@ import {
   User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import { GetServerSidePropsContext } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useEffect, useRef, useState } from 'react';
 import { MeetingUI } from '../../../components';
 import { type UserMode } from '../../../components/Lobby';
+import { useAppEnvironment } from '../../../context/AppEnvironmentContext';
+import { getClient } from '../../../helpers/client';
 import { createToken } from '../../../helpers/jwt';
-import { useEffect, useRef, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
-import { customSentryLogger } from '../../../helpers/logger';
-import {
-  defaultRequestTransformers,
-  defaultResponseTransformers,
-} from '../../../helpers/axiosApiTransformers';
 
 type GuestCallRoomProps = {
   user: UserResponse;
@@ -35,6 +32,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export default function GuestCallRoom(props: GuestCallRoomProps) {
   const { apiKey, user, token, gleapApiKey } = props;
+  const environment = useAppEnvironment();
 
   const router = useRouter();
   const callId = router.query['guestCallId'] as string;
@@ -49,17 +47,10 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         ? { type: 'anonymous' }
         : { id: guestUserId, name: guestUserId, type: 'guest' };
     const tokenToUse = mode === 'anon' ? token : undefined;
-    const _client = new StreamVideoClient({
-      apiKey,
-      user: userToConnect,
-      token: tokenToUse,
-      options: {
-        logLevel: 'debug',
-        logger: customSentryLogger(),
-        transformRequest: defaultRequestTransformers,
-        transformResponse: defaultResponseTransformers,
-      },
-    });
+    const _client = getClient(
+      { apiKey, user: userToConnect, userToken: tokenToUse },
+      environment,
+    );
     setClient(_client);
 
     window.client = _client;
@@ -70,11 +61,11 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
     };
-  }, [apiKey, guestUserId, mode, token]);
+  }, [apiKey, environment, guestUserId, mode, token]);
 
   const [call, setCall] = useState<Call>();
   useEffect(() => {
-    const _call = client?.call(callType, callId);
+    const _call = client?.call(callType, callId, { reuseInstance: true });
     setCall(_call);
 
     window.call = _call;

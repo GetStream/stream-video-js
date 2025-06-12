@@ -1,4 +1,7 @@
-import { signIn, useSession } from 'next-auth/react';
+import clsx from 'clsx';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { GetServerSideProps } from 'next/types';
 import {
   ChangeEventHandler,
   KeyboardEventHandler,
@@ -7,45 +10,63 @@ import {
   useRef,
   useState,
 } from 'react';
-import { GetServerSideProps } from 'next/types';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import clsx from 'clsx';
 
-import { Icon, StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
+import {
+  Icon,
+  StreamVideo,
+  StreamVideoClient,
+  useI18n,
+} from '@stream-io/video-react-sdk';
 
-import { meetingId } from '../lib/idGenerators';
-import translations from '../translations';
-import { useSettings } from '../context/SettingsContext';
 import { DefaultAppHeader } from '../components/DefaultAppHeader';
-import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
+import {
+  useAppEnvironment,
+  useIsDemoEnvironment,
+} from '../context/AppEnvironmentContext';
+import { useSettings } from '../context/SettingsContext';
+import { getClient } from '../helpers/client';
+import {
+  getServerSideCredentialsProps,
+  ServerSideCredentialsProps,
+} from '../lib/getServerSideCredentialsProps';
+import { meetingId } from '../lib/idGenerators';
+import { appTranslations as translations } from '../translations';
 
-export default function Home() {
-  const { data: session, status } = useSession();
+export default function Home({
+  apiKey,
+  user,
+  userToken,
+}: ServerSideCredentialsProps) {
   const {
     settings: { language, fallbackLanguage },
   } = useSettings();
+  const [client, setClient] = useState<StreamVideoClient>();
+  const environment = useAppEnvironment();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      signIn().catch((err) => {
-        console.error('Sign in error', err);
-      });
-    }
-  }, [status]);
+    const _client = getClient({ apiKey, user, userToken }, environment);
+    setClient(_client);
+    window.client = _client;
 
-  if (!session) {
+    return () => {
+      setClient(undefined);
+      window.client = undefined;
+    };
+  }, [apiKey, environment, user, userToken]);
+
+  if (!client) {
     return null;
   }
 
   return (
-    <StreamI18nProvider
+    <StreamVideo
+      client={client}
       translationsOverrides={translations}
       language={language}
       fallbackLanguage={fallbackLanguage}
     >
       <HomeContent />
-    </StreamI18nProvider>
+    </StreamVideo>
   );
 }
 
@@ -154,7 +175,5 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
-  return {
-    props: {},
-  };
+  return await getServerSideCredentialsProps(ctx);
 };
