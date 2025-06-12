@@ -1,19 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TranslationLanguage } from '@stream-io/video-react-sdk';
 
 const LANGUAGE_SETTINGS_KEY = '@pronto/lng-settings';
 
 export const useLanguage = () => {
-  const [language, _setLanguage] = useState<string | undefined>();
-
-  const setLanguage = useCallback((lng: TranslationLanguage) => {
-    _setLanguage(lng);
-    storeLanguage(lng);
-  }, []);
+  const [language, setLanguage] = useState<string>(
+    () =>
+      getStoredLanguage() ||
+      (typeof window !== 'undefined' ? window.navigator.language : 'en'),
+  );
 
   useEffect(() => {
-    setLanguage(getStoredLanguage() || window.navigator.language);
-  }, [setLanguage]);
+    storeLanguage(language);
+  }, [language]);
 
   return {
     language,

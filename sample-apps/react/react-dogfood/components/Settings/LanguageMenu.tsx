@@ -13,10 +13,14 @@ const LANGUAGES: Record<TranslationLanguage, string> = {
 };
 
 export type LanguageMenuProps = {
+  language?: TranslationLanguage;
   setLanguage: (lng: string) => void;
 };
 
-export const LanguageMenu = ({ setLanguage }: LanguageMenuProps) => {
+export const LanguageMenu = ({
+  language = 'en',
+  setLanguage,
+}: LanguageMenuProps) => {
   const handleSelect = useCallback(
     (index: number) => {
       const selected = Object.keys(LANGUAGES)[index];
@@ -25,14 +29,16 @@ export const LanguageMenu = ({ setLanguage }: LanguageMenuProps) => {
     [setLanguage],
   );
 
+  const languages = Object.entries(LANGUAGES);
+  const index = languages.findIndex(([lngCode]) => lngCode === language);
   return (
     <DropDownSelect
       icon="language"
-      defaultSelectedIndex={0}
-      defaultSelectedLabel="English"
+      defaultSelectedIndex={index}
+      defaultSelectedLabel={LANGUAGES[language]}
       handleSelect={handleSelect}
     >
-      {Object.entries(LANGUAGES).map(([lngCode, languageName]) => (
+      {languages.map(([lngCode, languageName]) => (
         <DropDownSelectOption
           key={lngCode}
           label={languageName}

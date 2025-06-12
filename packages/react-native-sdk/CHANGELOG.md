@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.16.0...@stream-io/video-react-native-sdk-1.16.1) (2025-06-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.23.5`
+- `@stream-io/video-react-bindings` updated to version `1.6.8`
+
+### Bug Fixes
+
+- expo noise cancellation swift import + sample video filters ([#1816](https://github.com/GetStream/stream-video-js/issues/1816)) ([7524fc0](https://github.com/GetStream/stream-video-js/commit/7524fc05b8de85b943d5f3ca460b984725b550b9))
+
 ## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.15.1...@stream-io/video-react-native-sdk-1.16.0) (2025-06-03)
 
 ### Dependency Updates

@@ -13,6 +13,7 @@ const defaultState: Settings = {
 export type Settings = {
   language?: string;
   fallbackLanguage?: string;
+  setLanguage?: (value: string) => void;
   deviceSelectionPreference: DeviceSelectionPreference;
   setDeviceSelectionPreference: (value: DeviceSelectionPreference) => void;
 };
@@ -26,13 +27,14 @@ const SettingsContext = createContext<SettingsContextValue>({
 });
 
 export const SettingsProvider = ({ children }: PropsWithChildren) => {
-  const { language, fallbackLanguage } = useLanguage();
+  const { language, setLanguage, fallbackLanguage } = useLanguage();
   const { deviceSelectionPreference, setDeviceSelectionPreference } =
     useDeviceSelectionPreference();
 
   const settings: Settings = {
     language,
     fallbackLanguage,
+    setLanguage,
     deviceSelectionPreference,
     setDeviceSelectionPreference,
   };
