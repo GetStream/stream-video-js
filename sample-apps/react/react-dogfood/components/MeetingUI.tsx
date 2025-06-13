@@ -24,7 +24,6 @@ import { Feedback } from './Feedback/Feedback';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { useSettings } from '../context/SettingsContext';
 import { DEVICE_PREFERENCE_KEY } from '../hooks/useDeviceSelectionPreference';
-import { RingingCallNotification } from './Ringing/RingingCallNotification';
 
 const contents = {
   'error-join': {

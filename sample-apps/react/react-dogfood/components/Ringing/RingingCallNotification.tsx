@@ -30,13 +30,21 @@ function RingingCallUI() {
   const { t } = useI18n();
   const router = useRouter();
   const call = useCall();
-  const { useCallMembers } = useCallStateHooks();
+  const { useCallMembers, useCallSession } = useCallStateHooks();
+  const session = useCallSession();
   const connectedUser = useConnectedUser();
   const otherMembers = useCallMembers().filter(
     (m) =>
       m.user_id !== call?.state.createdBy?.id &&
       m.user_id !== connectedUser?.id,
   );
+  const ringing =
+    call &&
+    session &&
+    connectedUser &&
+    !session.accepted_by[connectedUser.id] &&
+    !session.missed_by[connectedUser.id] &&
+    !session.rejected_by[connectedUser.id];
 
   const handleAccept = () => {
     if (call) {
@@ -52,7 +60,7 @@ function RingingCallUI() {
     }
   };
 
-  if (!call) {
+  if (!ringing) {
     return null;
   }
 
@@ -63,7 +71,7 @@ function RingingCallUI() {
         placement="bottom"
         message={
           <div className="rd__dialer-ringing-call-notification">
-            <div>
+            <div className="rd__dialer-ringing-call-notification-text">
               {t('{{ userName }} is ringing you', {
                 userName: call.state.createdBy?.name ?? 'Anonymous',
               })}

@@ -100,6 +100,11 @@ export const DialerPage = ({
           replaceCurrent,
           ...pastedUserIds,
         );
+        nextUserIds.splice(
+          nextUserIds.findLastIndex((uid) => uid !== '') + 1,
+          Number.POSITIVE_INFINITY,
+          '',
+        );
         return nextUserIds;
       });
     }
@@ -179,10 +184,12 @@ export const DialerPage = ({
             <div key={index} className="rd__dialer-ringee">
               <input
                 className="rd__input rd__dialer-input"
+                name={`user-id-${index}`}
                 type="text"
                 placeholder="User ID"
                 value={userId}
                 data-index={index}
+                data-1p-ignore
                 disabled={!!ringingCall}
                 onChange={(e) => handleUserIdChange(e, index)}
                 onPaste={(e) => handleUserIdPaste(e, index)}

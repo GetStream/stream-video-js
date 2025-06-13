@@ -54,7 +54,7 @@ export function DialingCallNotification(props: {
         placement="bottom"
         message={
           <div className="rd__dialer-ringing-call-notification">
-            <div>
+            <div className="rd__dialer-ringing-call-notification-text">
               {t('Ringing {{ count }} members', { count: otherMembers.length })}
             </div>
             <CancelCallButton onClick={handleReject} />

@@ -169,7 +169,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                   noiseCancellation={noiseCancellation}
                 >
                   <RingingCallNotification />
-                  <MeetingUI chatClient={chatClient} />
+                  <MeetingUI key={call.cid} chatClient={chatClient} />
                 </NoiseCancellationProvider>
               )}
             </BackgroundFiltersProvider>

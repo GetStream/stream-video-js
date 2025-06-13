@@ -36,7 +36,18 @@
 
 .rd__dialer-ringing-call {
   position: fixed;
+  z-index: 3;
   left: 20px;
   right: 20px;
-  top: 64px;
+  top: 40px;
+}
+
+.rd__dialer-ringing-call-notification {
+  display: flex;
+  align-items: center;
+  gap: var(--str-video__spacing-sm);
+}
+
+.rd__dialer-ringing-call-notification-text {
+  margin-right: var(--str-video__spacing-md);
 }
