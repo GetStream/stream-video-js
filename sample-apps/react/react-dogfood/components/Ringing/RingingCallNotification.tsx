@@ -67,7 +67,7 @@ function RingingCallUI() {
   useEffect(() => {
     if (ringing) {
       const beepPromise = (beepPromiseRef.current ?? Promise.resolve())
-        .then(() => beep('/beeps/ring.mp3'))
+        .then(() => beep('/beeps/ring.mp3', { loop: true }))
         .catch((e: any) => {
           console.error(e);
           return () => {};
