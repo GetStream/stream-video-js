@@ -161,7 +161,7 @@ const HomeContent = () => {
             <Link
               href={`/ring`}
               className="rd__home-ring rd__link rd__link--faux-button"
-              data-testid="ring-button"
+              data-testid="goto-ring-button"
             >
               <Icon className="rd__link__icon" icon="dialpad" />
             </Link>

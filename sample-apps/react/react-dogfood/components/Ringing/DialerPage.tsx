@@ -190,6 +190,7 @@ export const DialerPage = ({
                 value={userId}
                 data-index={index}
                 data-1p-ignore
+                data-testid={`callee-user-id-${index}-input`}
                 disabled={!!ringingCall}
                 onChange={(e) => handleUserIdChange(e, index)}
                 onPaste={(e) => handleUserIdPaste(e, index)}
@@ -200,6 +201,7 @@ export const DialerPage = ({
                   className="rd__button"
                   type="button"
                   aria-label="Delete user"
+                  data-testid={`callee-user-id-${index}-delete`}
                   onClick={() => handleDeleteUserId(index)}
                 >
                   &times;
@@ -211,6 +213,7 @@ export const DialerPage = ({
             type="submit"
             className="rd__button rd__button--primary"
             disabled={!!ringingCall}
+            data-testid="ring-button"
           >
             {t('Ring')}
           </button>
