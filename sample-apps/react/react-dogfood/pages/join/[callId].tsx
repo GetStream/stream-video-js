@@ -26,6 +26,7 @@ import {
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import appTranslations from '../../translations';
+import { RingingCallNotification } from '../../components/Ringing/RingingCallNotification';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -167,6 +168,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 <NoiseCancellationProvider
                   noiseCancellation={noiseCancellation}
                 >
+                  <RingingCallNotification />
                   <MeetingUI chatClient={chatClient} />
                 </NoiseCancellationProvider>
               )}

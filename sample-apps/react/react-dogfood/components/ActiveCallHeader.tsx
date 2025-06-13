@@ -17,7 +17,6 @@ import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 import { LayoutSelectorProps } from './LayoutSelector';
 
 import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
-import { RingingCallNotification } from './Ringing/RingingCallNotification';
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -116,7 +115,6 @@ export const ActiveCallHeader = ({
         <div className="rd__call-header__leave">
           <CancelCallConfirmButton onLeave={onLeave} />
         </div>
-        <RingingCallNotification />
       </div>
       <div className="rd__call-header__notifications">
         {(() => {

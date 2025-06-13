@@ -31,6 +31,7 @@ import {
 } from '../lib/getServerSideCredentialsProps';
 import { meetingId } from '../lib/idGenerators';
 import { appTranslations as translations } from '../translations';
+import { RingingCallNotification } from '../components/Ringing/RingingCallNotification';
 
 export default function Home({
   apiKey,
@@ -99,6 +100,7 @@ const HomeContent = () => {
   return (
     <>
       <DefaultAppHeader />
+      <RingingCallNotification />
       <div className="rd__home">
         <div className="rd__home-content">
           <img
@@ -147,14 +149,23 @@ const HomeContent = () => {
             <Icon className="rd__link__icon" icon="camera-add" />
             {t('Start new call')}
           </Link>
-          <Link
-            href={`/join/${meetingId()}?type=restricted`}
-            className="rd__home-new rd__link rd__link--faux-button"
-            data-testid="create-and-join-restricted-meeting-button"
-          >
-            <Icon className="rd__link__icon" icon="camera-add" />
-            {t('Start new restricted call')}
-          </Link>
+          <div className="rd__home-button-group">
+            <Link
+              href={`/join/${meetingId()}?type=restricted`}
+              className="rd__home-new rd__link rd__link--faux-button"
+              data-testid="create-and-join-restricted-meeting-button"
+            >
+              <Icon className="rd__link__icon" icon="camera-add" />
+              {t('Start new restricted call')}
+            </Link>{' '}
+            <Link
+              href={`/ring`}
+              className="rd__home-ring rd__link rd__link--faux-button"
+              data-testid="ring-button"
+            >
+              <Icon className="rd__link__icon" icon="dialpad" />
+            </Link>
+          </div>
         </div>
       </div>
     </>

@@ -1,32 +1,29 @@
 import {
   Call,
-  CallingState,
-  CancelCallButton,
   Notification,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCall,
-  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
+import { useRouter } from 'next/router';
 import {
   ChangeEvent,
+  ClipboardEvent,
   FormEvent,
   KeyboardEvent,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from 'react';
-import { useSettings } from '../../context/SettingsContext';
-import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
-import { DefaultAppHeader } from '../DefaultAppHeader';
-import { useRouter } from 'next/router';
-import { meetingId } from '../../lib/idGenerators';
-import { getClient } from '../../helpers/client';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import { useSettings } from '../../context/SettingsContext';
+import { getClient } from '../../helpers/client';
+import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
+import { meetingId } from '../../lib/idGenerators';
 import appTranslations from '../../translations';
+import { DefaultAppHeader } from '../DefaultAppHeader';
+import { DialingCallNotification } from './DialingCallNotification';
 
 export const DialerPage = ({
   apiKey,
@@ -43,6 +40,7 @@ export const DialerPage = ({
   const [userIds, setUserIds] = useState(['']);
   const [ringingCall, setRingingCall] = useState<Call | undefined>(undefined);
   const environment = useAppEnvironment();
+  const { t } = useI18n();
 
   useEffect(() => {
     const _client = getClient({ apiKey, user, userToken }, environment);
@@ -86,6 +84,26 @@ export const DialerPage = ({
     },
     [],
   );
+
+  const handleUserIdPaste = (
+    e: ClipboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    const pastedUserIds = e.clipboardData.getData('text').split(/\s*,\s*/);
+    if (pastedUserIds.length > 1) {
+      e.preventDefault();
+      const replaceCurrent = e.currentTarget.value ? 0 : 1;
+      setUserIds((prevUserIds) => {
+        const nextUserIds = [...prevUserIds];
+        nextUserIds.splice(
+          index + 1 - replaceCurrent,
+          replaceCurrent,
+          ...pastedUserIds,
+        );
+        return nextUserIds;
+      });
+    }
+  };
 
   const handleDeleteUserId = useCallback((index: number) => {
     setUserIds((prevUserIds) => prevUserIds.filter((_, i) => i !== index));
@@ -150,16 +168,12 @@ export const DialerPage = ({
       fallbackLanguage={fallbackLanguage}
     >
       <DefaultAppHeader />
+      {ringingCall && (
+        <StreamCall call={ringingCall}>
+          <DialingCallNotification onJoin={handleJoin} onLeave={handleLeave} />
+        </StreamCall>
+      )}
       <div className="rd__dialer-page">
-        {ringingCall && (
-          <StreamCall call={ringingCall}>
-            <DialingCallNotification
-              onJoin={handleJoin}
-              onLeave={handleLeave}
-            />
-          </StreamCall>
-        )}
-
         <form className="rd__dialer-form" onSubmit={handleRing}>
           {userIds.map((userId, index) => (
             <div key={index} className="rd__dialer-ringee">
@@ -171,6 +185,7 @@ export const DialerPage = ({
                 data-index={index}
                 disabled={!!ringingCall}
                 onChange={(e) => handleUserIdChange(e, index)}
+                onPaste={(e) => handleUserIdPaste(e, index)}
                 onKeyDown={(e) => handleUserIdKeyDown(e, index)}
               />
               {(index !== userIds.length - 1 || userId !== '') && (
@@ -190,7 +205,7 @@ export const DialerPage = ({
             className="rd__button rd__button--primary"
             disabled={!!ringingCall}
           >
-            Ring
+            {t('Ring')}
           </button>
           <div className="rd__dialer-notifications">
             <Notification
@@ -207,60 +222,3 @@ export const DialerPage = ({
     </StreamVideo>
   );
 };
-
-interface DialingCallNotificationProps {
-  onJoin: () => void;
-  onLeave: () => void;
-}
-
-function DialingCallNotification(props: {
-  onJoin: () => void;
-  onLeave: () => void;
-}) {
-  const { t } = useI18n();
-  const call = useCall();
-  const { useCallCallingState, useCallMembers } = useCallStateHooks();
-  const callingState = useCallCallingState();
-  const otherMembers = useCallMembers().filter(
-    (m) => m.user_id !== call?.state.createdBy?.id,
-  );
-  const callbackRefs = useRef<DialingCallNotificationProps>(null);
-  callbackRefs.current = props;
-
-  useEffect(() => {
-    if (callingState === CallingState.JOINED) {
-      callbackRefs.current?.onJoin();
-    } else if (callingState === CallingState.LEFT) {
-      callbackRefs.current?.onLeave();
-    }
-  }, [callingState]);
-
-  const handleReject = () => {
-    if (call) {
-      call.leave({ reject: true, reason: 'cancel' }).catch((err) => {
-        console.error('Failed to cancel rining call', err);
-      });
-    }
-  };
-
-  if (!call) {
-    return null;
-  }
-
-  return (
-    <div className="rd__dialer-ringing-call">
-      <Notification
-        isVisible
-        placement="bottom"
-        message={
-          <div className="rd__dialer-ringing-call-notification">
-            <div>
-              {t('Ringing {{ count }} members', { count: otherMembers.length })}
-            </div>
-            <CancelCallButton onClick={handleReject} />
-          </div>
-        }
-      />
-    </div>
-  );
-}
