@@ -10,6 +10,8 @@ import {
   useI18n,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
+import { useEffect, useRef } from 'react';
+import { beep } from '../../lib/beeper';
 
 export function RingingCallNotification() {
   const calls = useCalls();
@@ -59,6 +61,23 @@ function RingingCallUI() {
       });
     }
   };
+
+  const beepPromiseRef = useRef<Promise<void>>(null);
+
+  useEffect(() => {
+    if (ringing) {
+      const beepPromise = (beepPromiseRef.current ?? Promise.resolve())
+        .then(() => beep('/beeps/ring.mp3'))
+        .catch((e: any) => {
+          console.error(e);
+          return () => {};
+        });
+
+      return () => {
+        beepPromiseRef.current = beepPromise.then((stop) => stop());
+      };
+    }
+  }, [ringing]);
 
   if (!ringing) {
     return null;
