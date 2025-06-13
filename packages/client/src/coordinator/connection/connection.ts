@@ -15,6 +15,7 @@ import type {
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { getTimers } from '../../timers';
+import { APIErrorCodes } from './errors';
 
 /**
  * StableWSConnection - A WS connection that reconnects upon failure.
@@ -637,7 +638,7 @@ export class StableWSConnection {
       statusCode = error.StatusCode;
     }
 
-    const msg = `WS failed with code: ${code} and reason: ${message}`;
+    const msg = `WS failed with code: ${code}: ${APIErrorCodes[code] || code} and reason: ${message}`;
     this._log(msg, { event }, 'warn');
     const error = new Error(msg) as Error & {
       code?: number;
