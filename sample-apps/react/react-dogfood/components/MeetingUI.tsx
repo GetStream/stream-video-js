@@ -83,7 +83,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
             ? parseInt(maxSimulcastLayers, 10)
             : undefined,
         });
-        await call.join({ create: true });
+        if (call.state.callingState !== CallingState.JOINED) {
+          await call.join({ create: true });
+        }
         setShow('active-call');
       } catch (e) {
         console.error(e);

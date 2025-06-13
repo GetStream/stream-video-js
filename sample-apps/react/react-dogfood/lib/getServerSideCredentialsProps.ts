@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from 'next';
+import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../pages/api/auth/[...nextauth]';
 import { createToken, decodeToken } from '../helpers/jwt';
@@ -19,13 +19,14 @@ type QueryParams = {
 
 export const getServerSideCredentialsProps = async (
   context: GetServerSidePropsContext,
-) => {
+): Promise<GetServerSidePropsResult<ServerSideCredentialsProps>> => {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     const url = context.req.url;
     return {
       redirect: {
         destination: `/auth/signin?callbackUrl=${url}`,
+        permanent: false,
       },
     };
   }
@@ -61,6 +62,6 @@ export const getServerSideCredentialsProps = async (
         image: session.user?.image || null,
       },
       gleapApiKey,
-    } satisfies ServerSideCredentialsProps,
+    },
   };
 };

@@ -361,13 +361,23 @@ export class StreamVideoClient {
    * @param type the type of the call.
    * @param id the id of the call.
    */
-  call = (type: string, id: string) => {
-    return new Call({
-      streamClient: this.streamClient,
-      id: id,
-      type: type,
-      clientStore: this.writeableStateStore,
-    });
+  call = (
+    type: string,
+    id: string,
+    options: { reuseInstance?: boolean } = {},
+  ) => {
+    const call = options.reuseInstance
+      ? this.writeableStateStore.findCall(type, id)
+      : undefined;
+    return (
+      call ??
+      new Call({
+        streamClient: this.streamClient,
+        id: id,
+        type: type,
+        clientStore: this.writeableStateStore,
+      })
+    );
   };
 
   /**

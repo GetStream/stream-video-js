@@ -58,6 +58,21 @@
     width: 100%;
     margin-top: var(--str-video__spacing-md);
   }
+
+  &-button-group {
+    display: flex;
+    align-items: center;
+    gap: var(--str-video__spacing-md);
+    width: 100%;
+  }
+
+  &-ring {
+    width: 48px !important;
+
+    .rd__link__icon {
+      margin: 0;
+    }
+  }
 }
 
 @include respond-above(sm) {

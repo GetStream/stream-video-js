@@ -1,6 +1,3 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import Head from 'next/head';
 import {
   Call,
   CallControls,
@@ -14,32 +11,24 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useAppEnvironment } from '../../../context/AppEnvironmentContext';
+import { getClient } from '../../../helpers/client';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../../lib/getServerSideCredentialsProps';
-import {
-  defaultRequestTransformers,
-  defaultResponseTransformers,
-} from '../../../helpers/axiosApiTransformers';
 
 export default function BareCallRoom(props: ServerSideCredentialsProps) {
   const { apiKey, userToken, user } = props;
   const [client, setClient] = useState<StreamVideoClient>();
   const [call, setCall] = useState<Call>();
+  const environment = useAppEnvironment();
 
   useEffect(() => {
-    const _client = new StreamVideoClient({
-      apiKey,
-      user,
-      token: userToken,
-      options: {
-        baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
-        logLevel: 'debug',
-        transformRequest: defaultRequestTransformers,
-        transformResponse: defaultResponseTransformers,
-      },
-    });
+    const _client = getClient({ apiKey, user, userToken }, environment);
     setClient(_client);
     window.client = _client;
 
@@ -51,7 +40,7 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
 
       window.client = undefined;
     };
-  }, [apiKey, user, userToken]);
+  }, [apiKey, user, userToken, environment]);
 
   const router = useRouter();
   const callId = router.query['callId'] as string;

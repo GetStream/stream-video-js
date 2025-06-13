@@ -559,10 +559,15 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
+    if (this.state.callingState === CallingState.LEFT) {
+      throw new Error('Cannot leave call that has already been left.');
+    }
+
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
+
       if (callingState === CallingState.LEFT) {
-        throw new Error('Cannot leave call that has already been left.');
+        return;
       }
 
       if (callingState === CallingState.JOINING) {
@@ -712,7 +717,6 @@ export class Call {
     this.state.setOwnCapabilities(response.own_capabilities);
 
     if (params?.ring) {
-      // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
 
@@ -743,7 +747,6 @@ export class Call {
     this.state.setOwnCapabilities(response.own_capabilities);
 
     if (data?.ring) {
-      // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
 

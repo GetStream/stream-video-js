@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/router';
-import Head from 'next/head';
+import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
   BackgroundFiltersProvider,
   Call,
@@ -12,28 +10,23 @@ import {
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
-import { useCreateStreamChatClient } from '../../hooks';
 import { MeetingUI } from '../../components';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import { useSettings } from '../../context/SettingsContext';
+import { TourProvider } from '../../context/TourContext';
+import { createTokenProvider, getClient } from '../../helpers/client';
+import { useCreateStreamChatClient } from '../../hooks';
+import { useGleap } from '../../hooks/useGleap';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
-import { useGleap } from '../../hooks/useGleap';
-import { useSettings } from '../../context/SettingsContext';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
-import { TourProvider } from '../../context/TourContext';
 import appTranslations from '../../translations';
-import { customSentryLogger } from '../../helpers/logger';
-import {
-  defaultRequestTransformers,
-  defaultResponseTransformers,
-} from '../../helpers/axiosApiTransformers';
-import type {
-  CreateJwtTokenRequest,
-  CreateJwtTokenResponse,
-} from '../api/auth/create-token';
+import { RingingCallNotification } from '../../components/Ringing/RingingCallNotification';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -45,68 +38,26 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  // support for connecting to any application using an API key and user token
-  const apiKeyOverride = !!router.query['api_key'];
   const { apiKey, userToken, user, gleapApiKey } = props;
 
   const environment = useAppEnvironment();
-  const fetchAuthDetails = useCallback(
-    async (init?: RequestInit) => {
-      if (apiKeyOverride) {
-        return {
-          apiKey,
-          token: userToken,
-          userId: user.id || '!anon',
-        } satisfies CreateJwtTokenResponse;
-      }
-
-      const params = {
-        user_id: user.id || '!anon',
-        environment,
-        exp: String(4 * 60 * 60), // 4 hours
-      } satisfies CreateJwtTokenRequest;
-      return fetch(
-        `${basePath}/api/auth/create-token?${new URLSearchParams(params)}`,
-        init,
-      ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
-    },
-    [apiKey, apiKeyOverride, environment, user.id, userToken],
-  );
-
-  const tokenProvider = useCallback(
-    () => fetchAuthDetails().then((auth) => auth.token),
-    [fetchAuthDetails],
-  );
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
-    const _client = new StreamVideoClient({
-      apiKey,
-      user,
-      token: userToken,
-      tokenProvider,
-      options: {
-        baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
-        logLevel: 'debug',
-        logger: customSentryLogger(),
-        transformRequest: defaultRequestTransformers,
-        transformResponse: defaultResponseTransformers,
-      },
-    });
+    const _client = getClient({ apiKey, user, userToken }, environment);
     setClient(_client);
-
     window.client = _client;
 
     return () => {
-      _client
-        .disconnectUser()
-        .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
-
       window.client = undefined;
     };
-  }, [apiKey, tokenProvider, user, userToken]);
+  }, [apiKey, environment, user, userToken]);
 
+  const tokenProvider = useMemo(
+    () => createTokenProvider(user.id, environment),
+    [environment, user.id],
+  );
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: tokenProvider,
@@ -120,7 +71,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const [call, setCall] = useState<Call>();
   useEffect(() => {
     if (!client) return;
-    const _call = client.call(callType, callId);
+    const _call = client.call(callType, callId, { reuseInstance: true });
     setCall(_call);
 
     window.call = _call;
@@ -217,7 +168,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 <NoiseCancellationProvider
                   noiseCancellation={noiseCancellation}
                 >
-                  <MeetingUI chatClient={chatClient} />
+                  <RingingCallNotification />
+                  <MeetingUI key={call.cid} chatClient={chatClient} />
                 </NoiseCancellationProvider>
               )}
             </BackgroundFiltersProvider>

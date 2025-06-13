@@ -1,0 +1,53 @@
+.rd__dialer-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  padding: var(--str-video__spacing-lg);
+}
+
+.rd__dialer-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.rd__dialer-ringee {
+  display: flex;
+  align-items: center;
+  gap: var(--str-video__spacing-xs);
+  margin-bottom: var(--str-video__spacing-sm);
+
+  .rd__input {
+    flex-grow: 1;
+  }
+
+  .rd__button {
+    width: 40px;
+    margin-right: -46px;
+  }
+}
+
+.rd__dialer-notifications {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 400px;
+}
+
+.rd__dialer-ringing-call {
+  position: fixed;
+  z-index: 3;
+  left: 20px;
+  right: 20px;
+  top: 40px;
+}
+
+.rd__dialer-ringing-call-notification {
+  display: flex;
+  align-items: center;
+  gap: var(--str-video__spacing-sm);
+}
+
+.rd__dialer-ringing-call-notification-text {
+  margin-right: var(--str-video__spacing-md);
+}
