@@ -189,11 +189,11 @@ export class Publisher extends BasePeerConnection {
   /**
    * Returns true if the given track type is currently being published to the SFU.
    *
-   * @param trackType the track type to check.
+   * @param trackType the track type to check. If omitted, checks if any track is being published.
    */
-  isPublishing = (trackType: TrackType): boolean => {
+  isPublishing = (trackType?: TrackType): boolean => {
     for (const item of this.transceiverCache.items()) {
-      if (item.publishOption.trackType !== trackType) continue;
+      if (trackType && item.publishOption.trackType !== trackType) continue;
 
       const track = item.transceiver.sender.track;
       if (!track) continue;

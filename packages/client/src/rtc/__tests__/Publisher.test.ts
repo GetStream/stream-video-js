@@ -767,6 +767,7 @@ describe('Publisher', () => {
     it('isPublishing should return true if there are active tracks', () => {
       expect(publisher.isPublishing(TrackType.VIDEO)).toBe(true);
       expect(publisher.isPublishing(TrackType.SCREEN_SHARE_AUDIO)).toBe(false);
+      expect(publisher.isPublishing()).toBe(true);
     });
 
     it('getTrackType should return the track type', () => {
