@@ -178,11 +178,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     </TouchableOpacity>
   );
 
-  const filtersRow = (
-    <BackgroundFiltersProvider>
-      <VideoFilters onSelectFilter={onClose} />
-    </BackgroundFiltersProvider>
-  );
+  const filtersRow = <VideoFilters onSelectFilter={onClose} />;
 
   const otherButtons = (
     <FlatList

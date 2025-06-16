@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.5...@stream-io/video-client-1.24.0) (2025-06-12)
+
+### Features
+
+- moderation support ([#1822](https://github.com/GetStream/stream-video-js/issues/1822)) ([3948fae](https://github.com/GetStream/stream-video-js/commit/3948faeb2fa7ace8dd9c1df990f6e41e73fc0a26))
+
+### Bug Fixes
+
+- configurable call stats reporting interval ([#1824](https://github.com/GetStream/stream-video-js/issues/1824)) ([74f72c0](https://github.com/GetStream/stream-video-js/commit/74f72c024d0cb34ae3e0fee4bd8f061fb51e4479))
+- don't compute call stats report if no one subscribed to it ([#1825](https://github.com/GetStream/stream-video-js/issues/1825)) ([fb6a8c9](https://github.com/GetStream/stream-video-js/commit/fb6a8c9e19c80be313d73fadb68810e7f7c1f071))
+
+## [1.23.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.4...@stream-io/video-client-1.23.5) (2025-06-04)
+
+### Bug Fixes
+
+- **react-native:** skip browser permission for react native ([#1818](https://github.com/GetStream/stream-video-js/issues/1818)) ([b18f418](https://github.com/GetStream/stream-video-js/commit/b18f418698e12b9804efb43e712ba813b0dbb056))
+
+## [1.23.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.3...@stream-io/video-client-1.23.4) (2025-06-03)
+
+### Bug Fixes
+
+- attach original token provider error as cause to loadToken rejection ([#1812](https://github.com/GetStream/stream-video-js/issues/1812)) ([15f817c](https://github.com/GetStream/stream-video-js/commit/15f817c2548a8edba8ca1004e133277d67cbeb4f))
+- improved video quality on low capture resolution ([#1814](https://github.com/GetStream/stream-video-js/issues/1814)) ([ebcfdf7](https://github.com/GetStream/stream-video-js/commit/ebcfdf7f7e8146fcaf18a8bee81086f5a23f5df3))
+
+## [1.23.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.2...@stream-io/video-client-1.23.3) (2025-06-02)
+
+- remove TODO ([9cfea4b](https://github.com/GetStream/stream-video-js/commit/9cfea4b54284cdd680a6d666436dedc5fd8956c3))
+
+### Bug Fixes
+
+- inconsistent device state if applySettingsToStream fails ([#1808](https://github.com/GetStream/stream-video-js/issues/1808)) ([73d66c2](https://github.com/GetStream/stream-video-js/commit/73d66c2eaa7eca52b9d41b39f8f9fd0a0ce240ef))
+- test ([e0b93aa](https://github.com/GetStream/stream-video-js/commit/e0b93aaa13f22f0db30b61e6230aff40ba8fd92a))
+- use AudioContext for Safari ([#1810](https://github.com/GetStream/stream-video-js/issues/1810)) ([63542f4](https://github.com/GetStream/stream-video-js/commit/63542f419efa475c7acf50f053621ace74a1eff4))
+
 ## [1.23.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.23.1...@stream-io/video-client-1.23.2) (2025-05-22)
 
 ### Bug Fixes

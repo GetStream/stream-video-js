@@ -8,11 +8,14 @@ import {
   CallControlProps,
   CallControlsButton,
   useNoiseCancellation,
+  useBackgroundFilters,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Hearing from '../assets/Hearing';
+import AutoAwesome from '../assets/AutoAwesome';
+import { useCustomVideoFilters } from './hooks/useCustomVideoFilters';
 
 const NoiseCancellationButton = () => {
   const {
@@ -34,6 +37,26 @@ const NoiseCancellationButton = () => {
     </CallControlsButton>
   );
 };
+
+const BackgroundFiltersButton = () => {
+  const { applyGrayScaleFilter, disableCustomFilter, currentCustomFilter } =
+    useCustomVideoFilters();
+
+  return (
+    <CallControlsButton
+      onPress={() =>
+        currentCustomFilter === 'GrayScale'
+          ? disableCustomFilter()
+          : applyGrayScaleFilter()
+      }
+    >
+      <View style={styles.iconWrapper}>
+        <AutoAwesome color="#fff" />
+      </View>
+    </CallControlsButton>
+  );
+};
+
 export const CallControlsComponent = ({ landscape }: CallControlProps) => {
   const { bottom } = useSafeAreaInsets();
   const landscapeStyles: ViewStyle = {
@@ -52,6 +75,7 @@ export const CallControlsComponent = ({ landscape }: CallControlProps) => {
       <ToggleCameraFaceButton />
       <HangUpCallButton />
       <NoiseCancellationButton />
+      <BackgroundFiltersButton />
     </View>
   );
 };

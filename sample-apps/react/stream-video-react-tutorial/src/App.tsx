@@ -17,10 +17,15 @@ import './style.css';
 
 // For demo credentials, check out our video calling tutorial:
 // https://getstream.io/video/sdk/react/tutorial/video-calling/
-const apiKey = 'REPLACE_WITH_API_KEY';
-const token = 'REPLACE_WITH_TOKEN';
-const userId = 'REPLACE_WITH_USER_ID';
-const callId = 'REPLACE_WITH_CALL_ID';
+const userId = 'video-tutorial-' + Math.random().toString(16).substring(2);
+const apiKey = 'mmhfdzb5evj2';
+const tokenProvider = async () => {
+  const provider = new URL('https://pronto.getstream.io/api/auth/create-token');
+  provider.searchParams.set('api_key', apiKey);
+  provider.searchParams.set('user_id', userId);
+  const { token } = await fetch(provider).then((res) => res.json());
+  return token as string;
+};
 
 const user: User = {
   id: userId,
@@ -29,12 +34,15 @@ const user: User = {
 };
 
 // initialize the StreamVideoClient
-const client = new StreamVideoClient({ apiKey, user, token });
+const client = new StreamVideoClient({ apiKey, user, tokenProvider });
 
 export default function App() {
   const [call, setCall] = useState<Call>();
   useEffect(() => {
-    const myCall = client.call('default', callId);
+    const myCall = client.call(
+      'default',
+      `video-tutorial-${Math.random().toString(16).substring(2)}`,
+    );
     myCall.join({ create: true }).catch((err) => {
       console.error(`Failed to join the call`, err);
     });

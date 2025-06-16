@@ -8,7 +8,10 @@ import {
 import { hasScreenShare } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
-import { usePaginatedLayoutSortPreset } from './hooks';
+import {
+  usePaginatedLayoutSortPreset,
+  useRawRemoteParticipants,
+} from './hooks';
 
 /**
  * The props for the {@link LivestreamLayout} component.
@@ -62,12 +65,11 @@ export type LivestreamLayoutProps = {
 };
 
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
-  const { useParticipants, useRemoteParticipants, useHasOngoingScreenShare } =
-    useCallStateHooks();
+  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const participants = useParticipants();
   const [currentSpeaker] = participants;
-  const remoteParticipants = useRemoteParticipants();
+  const remoteParticipants = useRawRemoteParticipants();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const presenter = hasOngoingScreenShare
     ? participants.find(hasScreenShare)

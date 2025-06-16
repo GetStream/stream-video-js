@@ -77,6 +77,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
     
     let uuid = UUID().uuidString
+    let videoIncluded = stream["video"] as? String
+    let hasVideo = videoIncluded == "false" ? false : true
     
     StreamVideoReactNative.registerIncomingCall(cid, uuid: uuid)
     
@@ -89,12 +91,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     RNCallKeep.reportNewIncomingCall(uuid,
                                      handle: createdCallerName,
                                      handleType: "generic",
-                                     hasVideo: true,
+                                     hasVideo: hasVideo,
                                      localizedCallerName: createdCallerName,
-                                     supportsHolding: true,
-                                     supportsDTMF: true,
-                                     supportsGrouping: true,
-                                     supportsUngrouping: true,
+                                     supportsHolding: false,
+                                     supportsDTMF: false,
+                                     supportsGrouping: false,
+                                     supportsUngrouping: false,
                                      fromPushKit: true,
                                      payload: stream,
                                      withCompletionHandler: nil) // Completion handler is already handled above

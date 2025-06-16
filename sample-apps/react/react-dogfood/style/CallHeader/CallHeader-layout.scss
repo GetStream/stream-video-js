@@ -171,6 +171,7 @@
   &__menu {
     border-radius: var(--str-video__border-radius-lg);
     background-color: var(--str-video__base-color7);
+    padding: var(--str-video__spacing-md);
 
     &-list {
       list-style-type: none;

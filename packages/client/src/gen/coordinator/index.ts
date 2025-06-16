@@ -628,6 +628,12 @@ export interface CallEndedEvent {
    */
   created_at: string;
   /**
+   * The reason why the call ended, if available
+   * @type {string}
+   * @memberof CallEndedEvent
+   */
+  reason?: string;
+  /**
    * The type of event: "call.ended" in this case
    * @type {string}
    * @memberof CallEndedEvent
@@ -1151,6 +1157,86 @@ export interface CallMissedEvent {
    * @memberof CallMissedEvent
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallModerationBlurEvent
+ */
+export interface CallModerationBlurEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationBlurEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationBlurEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallModerationBlurEvent
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationBlurEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationBlurEvent
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallModerationWarningEvent
+ */
+export interface CallModerationWarningEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationWarningEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationWarningEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallModerationWarningEvent
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationWarningEvent
+   */
+  message: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationWarningEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallModerationWarningEvent
+   */
+  user_id: string;
 }
 /**
  * This event is sent to all call members to notify they are getting called
@@ -2338,6 +2424,37 @@ export interface CallStateResponseFields {
   own_capabilities: Array<OwnCapability>;
 }
 /**
+ * This event is sent when the insights report is ready
+ * @export
+ * @interface CallStatsReportReadyEvent
+ */
+export interface CallStatsReportReadyEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportReadyEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsReportReadyEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallStatsReportReadyEvent
+   */
+  session_id: string;
+  /**
+   * The type of event, "call.report_ready" in this case
+   * @type {string}
+   * @memberof CallStatsReportReadyEvent
+   */
+  type: string;
+}
+/**
  *
  * @export
  * @interface CallStatsReportSummaryResponse
@@ -2415,6 +2532,12 @@ export interface CallTranscription {
    * @type {string}
    * @memberof CallTranscription
    */
+  session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTranscription
+   */
   start_time: string;
   /**
    *
@@ -2447,6 +2570,12 @@ export interface CallTranscriptionFailedEvent {
    * @memberof CallTranscriptionFailedEvent
    */
   egress_id: string;
+  /**
+   * The error message detailing why transcription failed.
+   * @type {string}
+   * @memberof CallTranscriptionFailedEvent
+   */
+  error?: string;
   /**
    * The type of event: "call.transcription_failed" in this case
    * @type {string}
@@ -3550,6 +3679,43 @@ export interface GeofenceSettingsResponse {
   names: Array<string>;
 }
 /**
+ * Basic response information
+ * @export
+ * @interface GetCallReportResponse
+ */
+export interface GetCallReportResponse {
+  /**
+   *
+   * @type {ChatActivityStatsResponse}
+   * @memberof GetCallReportResponse
+   */
+  chat_activity?: ChatActivityStatsResponse;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {ReportResponse}
+   * @memberof GetCallReportResponse
+   */
+  report: ReportResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallReportResponse
+   */
+  session_id: string;
+  /**
+   *
+   * @type {Array<VideoReactionsResponse>}
+   * @memberof GetCallReportResponse
+   */
+  video_reactions?: Array<VideoReactionsResponse>;
+}
+/**
  *
  * @export
  * @interface GetCallResponse
@@ -3585,37 +3751,6 @@ export interface GetCallResponse {
    * @memberof GetCallResponse
    */
   own_capabilities: Array<OwnCapability>;
-}
-/**
- * Basic response information
- * @export
- * @interface GetCallReportResponse
- */
-export interface GetCallReportResponse {
-  /**
-   *
-   * @type {ChatActivityStatsResponse}
-   * @memberof GetCallReportResponse
-   */
-  chat_activity?: ChatActivityStatsResponse;
-  /**
-   * Duration of the request in milliseconds
-   * @type {string}
-   * @memberof GetCallReportResponse
-   */
-  duration: string;
-  /**
-   *
-   * @type {ReportResponse}
-   * @memberof GetCallReportResponse
-   */
-  report: ReportResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof GetCallReportResponse
-   */
-  session_id: string;
 }
 /**
  * Basic response information
@@ -3746,12 +3881,6 @@ export interface GoLiveRequest {
    * @memberof GoLiveRequest
    */
   start_recording?: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof GoLiveRequest
-   */
-  start_rtmp_broadcasts?: boolean;
   /**
    *
    * @type {boolean}
@@ -4176,31 +4305,6 @@ export interface ListTranscriptionsResponse {
    * @memberof ListTranscriptionsResponse
    */
   transcriptions: Array<CallTranscription>;
-}
-/**
- *
- * @export
- * @interface Location
- */
-export interface Location {
-  /**
-   *
-   * @type {string}
-   * @memberof Location
-   */
-  continent_code: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Location
-   */
-  country_iso_code: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Location
-   */
-  subdivision_iso_code: string;
 }
 /**
  * MemberRequest is the payload for adding a member to a call.
@@ -4999,6 +5103,68 @@ export interface QueryCallMembersResponse {
 /**
  *
  * @export
+ * @interface QueryCallParticipantsRequest
+ */
+export interface QueryCallParticipantsRequest {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryCallParticipantsRequest
+   */
+  filter_conditions?: { [key: string]: any };
+}
+/**
+ *
+ * @export
+ * @interface QueryCallParticipantsResponse
+ */
+export interface QueryCallParticipantsResponse {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof QueryCallParticipantsResponse
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallParticipantsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof QueryCallParticipantsResponse
+   */
+  members: Array<MemberResponse>;
+  /**
+   *
+   * @type {MemberResponse}
+   * @memberof QueryCallParticipantsResponse
+   */
+  membership?: MemberResponse;
+  /**
+   *
+   * @type {Array<OwnCapability>}
+   * @memberof QueryCallParticipantsResponse
+   */
+  own_capabilities: Array<OwnCapability>;
+  /**
+   * List of call participants
+   * @type {Array<CallParticipantResponse>}
+   * @memberof QueryCallParticipantsResponse
+   */
+  participants: Array<CallParticipantResponse>;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallParticipantsResponse
+   */
+  total_participants: number;
+}
+/**
+ *
+ * @export
  * @interface QueryCallStatsRequest
  */
 export interface QueryCallStatsRequest {
@@ -5137,31 +5303,6 @@ export interface QueryCallsResponse {
    * @memberof QueryCallsResponse
    */
   prev?: string;
-}
-/**
- *
- * @export
- * @interface ReportResponse
- */
-export interface ReportResponse {
-  /**
-   *
-   * @type {CallReportResponse}
-   * @memberof ReportResponse
-   */
-  call: CallReportResponse;
-  /**
-   *
-   * @type {ParticipantReportResponse}
-   * @memberof ReportResponse
-   */
-  participants: ParticipantReportResponse;
-  /**
-   *
-   * @type {UserRatingReportResponse}
-   * @memberof ReportResponse
-   */
-  user_ratings: UserRatingReportResponse;
 }
 /**
  * RTMPBroadcastRequest is the payload for starting an RTMP broadcast.
@@ -5468,6 +5609,31 @@ export interface ReportByHistogramBucket {
    * @memberof ReportByHistogramBucket
    */
   upper_bound?: Bound;
+}
+/**
+ *
+ * @export
+ * @interface ReportResponse
+ */
+export interface ReportResponse {
+  /**
+   *
+   * @type {CallReportResponse}
+   * @memberof ReportResponse
+   */
+  call: CallReportResponse;
+  /**
+   *
+   * @type {ParticipantReportResponse}
+   * @memberof ReportResponse
+   */
+  participants: ParticipantReportResponse;
+  /**
+   *
+   * @type {UserRatingReportResponse}
+   * @memberof ReportResponse
+   */
+  user_ratings: UserRatingReportResponse;
 }
 /**
  *
@@ -5797,8 +5963,54 @@ export interface StartClosedCaptionsRequest {
    * @type {string}
    * @memberof StartClosedCaptionsRequest
    */
-  language?: string;
+  language?: StartClosedCaptionsRequestLanguageEnum;
 }
+
+/**
+ * @export
+ */
+export const StartClosedCaptionsRequestLanguageEnum = {
+  AUTO: 'auto',
+  EN: 'en',
+  FR: 'fr',
+  ES: 'es',
+  DE: 'de',
+  IT: 'it',
+  NL: 'nl',
+  PT: 'pt',
+  PL: 'pl',
+  CA: 'ca',
+  CS: 'cs',
+  DA: 'da',
+  EL: 'el',
+  FI: 'fi',
+  ID: 'id',
+  JA: 'ja',
+  RU: 'ru',
+  SV: 'sv',
+  TA: 'ta',
+  TH: 'th',
+  TR: 'tr',
+  HU: 'hu',
+  RO: 'ro',
+  ZH: 'zh',
+  AR: 'ar',
+  TL: 'tl',
+  HE: 'he',
+  HI: 'hi',
+  HR: 'hr',
+  KO: 'ko',
+  MS: 'ms',
+  NO: 'no',
+  UK: 'uk',
+  BG: 'bg',
+  ET: 'et',
+  SL: 'sl',
+  SK: 'sk',
+} as const;
+export type StartClosedCaptionsRequestLanguageEnum =
+  (typeof StartClosedCaptionsRequestLanguageEnum)[keyof typeof StartClosedCaptionsRequestLanguageEnum];
+
 /**
  *
  * @export
@@ -5926,7 +6138,7 @@ export interface StartTranscriptionRequest {
    * @type {string}
    * @memberof StartTranscriptionRequest
    */
-  language?: string;
+  language?: StartTranscriptionRequestLanguageEnum;
   /**
    * Store transcriptions in this external storage
    * @type {string}
@@ -5934,6 +6146,52 @@ export interface StartTranscriptionRequest {
    */
   transcription_external_storage?: string;
 }
+
+/**
+ * @export
+ */
+export const StartTranscriptionRequestLanguageEnum = {
+  AUTO: 'auto',
+  EN: 'en',
+  FR: 'fr',
+  ES: 'es',
+  DE: 'de',
+  IT: 'it',
+  NL: 'nl',
+  PT: 'pt',
+  PL: 'pl',
+  CA: 'ca',
+  CS: 'cs',
+  DA: 'da',
+  EL: 'el',
+  FI: 'fi',
+  ID: 'id',
+  JA: 'ja',
+  RU: 'ru',
+  SV: 'sv',
+  TA: 'ta',
+  TH: 'th',
+  TR: 'tr',
+  HU: 'hu',
+  RO: 'ro',
+  ZH: 'zh',
+  AR: 'ar',
+  TL: 'tl',
+  HE: 'he',
+  HI: 'hi',
+  HR: 'hr',
+  KO: 'ko',
+  MS: 'ms',
+  NO: 'no',
+  UK: 'uk',
+  BG: 'bg',
+  ET: 'et',
+  SL: 'sl',
+  SK: 'sk',
+} as const;
+export type StartTranscriptionRequestLanguageEnum =
+  (typeof StartTranscriptionRequestLanguageEnum)[keyof typeof StartTranscriptionRequestLanguageEnum];
+
 /**
  *
  * @export
@@ -6321,6 +6579,10 @@ export const TranscriptionSettingsRequestLanguageEnum = {
   MS: 'ms',
   NO: 'no',
   UK: 'uk',
+  BG: 'bg',
+  ET: 'et',
+  SL: 'sl',
+  SK: 'sk',
 } as const;
 export type TranscriptionSettingsRequestLanguageEnum =
   (typeof TranscriptionSettingsRequestLanguageEnum)[keyof typeof TranscriptionSettingsRequestLanguageEnum];
@@ -6410,6 +6672,10 @@ export const TranscriptionSettingsResponseLanguageEnum = {
   MS: 'ms',
   NO: 'no',
   UK: 'uk',
+  BG: 'bg',
+  ET: 'et',
+  SL: 'sl',
+  SK: 'sk',
 } as const;
 export type TranscriptionSettingsResponseLanguageEnum =
   (typeof TranscriptionSettingsResponseLanguageEnum)[keyof typeof TranscriptionSettingsResponseLanguageEnum];
@@ -7034,25 +7300,6 @@ export interface UserUpdatedEvent {
   user: UserResponsePrivacyFields;
 }
 /**
- *
- * @export
- * @interface VideoDimension
- */
-export interface VideoDimension {
-  /**
-   *
-   * @type {number}
-   * @memberof VideoDimension
-   */
-  height: number;
-  /**
-   *
-   * @type {number}
-   * @memberof VideoDimension
-   */
-  width: number;
-}
-/**
  * @type VideoEvent
  * The discriminator object for all websocket events, it maps events' payload to the final type
  * @export
@@ -7086,6 +7333,8 @@ export type VideoEvent =
       type: 'call.member_updated_permission';
     } & CallMemberUpdatedPermissionEvent)
   | ({ type: 'call.missed' } & CallMissedEvent)
+  | ({ type: 'call.moderation_blur' } & CallModerationBlurEvent)
+  | ({ type: 'call.moderation_warning' } & CallModerationWarningEvent)
   | ({ type: 'call.notification' } & CallNotificationEvent)
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
@@ -7110,6 +7359,7 @@ export type VideoEvent =
       type: 'call.session_participant_left';
     } & CallSessionParticipantLeftEvent)
   | ({ type: 'call.session_started' } & CallSessionStartedEvent)
+  | ({ type: 'call.stats_report_ready' } & CallStatsReportReadyEvent)
   | ({ type: 'call.transcription_failed' } & CallTranscriptionFailedEvent)
   | ({ type: 'call.transcription_ready' } & CallTranscriptionReadyEvent)
   | ({ type: 'call.transcription_started' } & CallTranscriptionStartedEvent)
@@ -7125,21 +7375,34 @@ export type VideoEvent =
 /**
  *
  * @export
- * @interface VideoQuality
+ * @interface VideoReactionOverTimeResponse
  */
-export interface VideoQuality {
+export interface VideoReactionOverTimeResponse {
   /**
    *
-   * @type {VideoDimension}
-   * @memberof VideoQuality
+   * @type {Array<CountByMinuteResponse>}
+   * @memberof VideoReactionOverTimeResponse
    */
-  resolution?: VideoDimension;
+  by_minute?: Array<CountByMinuteResponse>;
+}
+/**
+ *
+ * @export
+ * @interface VideoReactionsResponse
+ */
+export interface VideoReactionsResponse {
+  /**
+   *
+   * @type {VideoReactionOverTimeResponse}
+   * @memberof VideoReactionsResponse
+   */
+  count_over_time?: VideoReactionOverTimeResponse;
   /**
    *
    * @type {string}
-   * @memberof VideoQuality
+   * @memberof VideoReactionsResponse
    */
-  usage_type?: string;
+  reaction: string;
 }
 /**
  *

@@ -1,14 +1,27 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  useCall,
   CallContent,
-  useTheme,
-  useIsInPiPMode,
-  useCallStateHooks,
-  useToggleCallRecording,
   NoiseCancellationProvider,
+  useBackgroundFilters,
+  useCall,
+  useCallStateHooks,
+  useIsInPiPMode,
+  useTheme,
+  useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
@@ -17,6 +30,7 @@ import { TopControls } from './CallControlls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
+import Toast from 'react-native-toast-message';
 import { ClosedCaptions } from './ClosedCaptions';
 
 type ActiveCallProps = {
@@ -42,13 +56,54 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
+  const { applyVideoBlurFilter, disableAllFilters } = useBackgroundFilters();
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
   }, []);
 
   useEffect(() => {
-    return call?.on('call.ended', () => {
+    return call?.on('call.moderation_warning', (event) => {
+      console.log('call.moderation_warning', event);
+      Toast.show({
+        position: 'bottom',
+        type: 'error',
+        text1: `Call Moderation Warning`,
+        text2: `Message: ${event.message}`,
+        bottomOffset: 150,
+      });
+    });
+  }, [call]);
+
+  useEffect(() => {
+    const unsub = call?.on('call.moderation_blur', () => {
+      applyVideoBlurFilter('heavy');
+      clearTimeout(blurTimeoutRef.current);
+
+      blurTimeoutRef.current = setTimeout(() => {
+        disableAllFilters();
+        blurTimeoutRef.current = undefined;
+      }, 10000);
+    });
+    return () => {
+      unsub?.();
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = undefined;
+      }
+      disableAllFilters();
+    };
+  }, [call, applyVideoBlurFilter, disableAllFilters]);
+
+  useEffect(() => {
+    return call?.on('call.ended', (event) => {
+      if (event.reason === 'PolicyViolationModeration') {
+        Alert.alert(
+          'Call Terminated',
+          'The video call was terminated due to a policy violation detected during moderation',
+        );
+      }
       onCallEnded();
     });
   }, [call, onCallEnded]);

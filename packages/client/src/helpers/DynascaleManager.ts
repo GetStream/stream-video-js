@@ -1,7 +1,6 @@
 import {
   AudioTrackType,
   DebounceType,
-  StreamVideoParticipant,
   VideoTrackType,
   VisibilityState,
 } from '../types';
@@ -70,6 +69,7 @@ export class DynascaleManager {
   private logger = getLogger(['DynascaleManager']);
   private callState: CallState;
   private speaker: SpeakerManager;
+  private audioContext: AudioContext | undefined;
   private sfuClient: StreamSfuClient | undefined;
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
 
@@ -117,6 +117,21 @@ export class DynascaleManager {
     this.callState = callState;
     this.speaker = speaker;
   }
+
+  /**
+   * Disposes the allocated resources and closes the audio context if it was created.
+   */
+  dispose = async () => {
+    if (this.pendingSubscriptionsUpdate) {
+      clearTimeout(this.pendingSubscriptionsUpdate);
+    }
+    const context = this.getOrCreateAudioContext();
+    if (context && context.state !== 'closed') {
+      document.removeEventListener('click', this.resumeAudioContext);
+      await context.close();
+      this.audioContext = undefined;
+    }
+  };
 
   setSfuClient(sfuClient: StreamSfuClient | undefined) {
     this.sfuClient = sfuClient;
@@ -319,12 +334,7 @@ export class DynascaleManager {
     };
 
     const participant$ = this.callState.participants$.pipe(
-      map(
-        (participants) =>
-          participants.find(
-            (participant) => participant.sessionId === sessionId,
-          ) as StreamVideoParticipant,
-      ),
+      map((ps) => ps.find((p) => p.sessionId === sessionId)),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),
@@ -496,16 +506,33 @@ export class DynascaleManager {
     if (!participant || participant.isLocalParticipant) return;
 
     const participant$ = this.callState.participants$.pipe(
-      map(
-        (participants) =>
-          participants.find(
-            (p) => p.sessionId === sessionId,
-          ) as StreamVideoParticipant,
-      ),
+      map((ps) => ps.find((p) => p.sessionId === sessionId)),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
+
+    const updateSinkId = (
+      deviceId: string,
+      audioContext: AudioContext | undefined,
+    ) => {
+      if (!deviceId) return;
+      if ('setSinkId' in audioElement) {
+        audioElement.setSinkId(deviceId).catch((e) => {
+          this.logger('warn', `Can't to set AudioElement sinkId`, e);
+        });
+      }
+
+      if (audioContext && 'setSinkId' in audioContext) {
+        // @ts-expect-error setSinkId is not available in all browsers
+        audioContext.setSinkId(deviceId).catch((e) => {
+          this.logger('warn', `Can't to set AudioContext sinkId`, e);
+        });
+      }
+    };
+
+    let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
+    let gainNode: GainNode | undefined = undefined;
 
     const updateMediaStreamSubscription = participant$
       .pipe(
@@ -524,35 +551,52 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
-          if (audioElement.srcObject) {
-            audioElement.play().catch((e) => {
-              this.logger('warn', `Failed to play stream`, e);
-            });
+          if (!source) return;
 
-            // audio output device shall be set after the audio element is played
-            // otherwise, the browser will not pick it up, and will always
-            // play audio through the system's default device
-            const { selectedDevice } = this.speaker.state;
-            if (selectedDevice && 'setSinkId' in audioElement) {
-              audioElement.setSinkId(selectedDevice);
-            }
+          // Safari has a special quirk that prevents playing audio until the user
+          // interacts with the page or focuses on the tab where the call happens.
+          // This is a workaround for the issue where:
+          // - A and B are in a call
+          // - A switches to another tab
+          // - B mutes their microphone and unmutes it
+          // - A does not hear B's unmuted audio until they focus the tab
+          const audioContext = this.getOrCreateAudioContext();
+          if (audioContext) {
+            // we will play audio through the audio context in Safari
+            audioElement.muted = true;
+            sourceNode?.disconnect();
+            sourceNode = audioContext.createMediaStreamSource(source);
+            gainNode ??= audioContext.createGain();
+            gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
+            sourceNode.connect(gainNode).connect(audioContext.destination);
+            this.resumeAudioContext();
+          } else {
+            // we will play audio directly through the audio element in other browsers
+            audioElement.muted = false;
+            audioElement.play().catch((e) => {
+              this.logger('warn', `Failed to play audio stream`, e);
+            });
           }
+
+          const { selectedDevice } = this.speaker.state;
+          if (selectedDevice) updateSinkId(selectedDevice, audioContext);
         });
       });
 
     const sinkIdSubscription = !('setSinkId' in audioElement)
       ? null
       : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
-          if (deviceId) {
-            audioElement.setSinkId(deviceId);
-          }
+          const audioContext = this.getOrCreateAudioContext();
+          updateSinkId(deviceId, audioContext);
         });
 
     const volumeSubscription = combineLatest([
       this.speaker.state.volume$,
       participant$.pipe(distinctUntilKeyChanged('audioVolume')),
     ]).subscribe(([volume, p]) => {
-      audioElement.volume = p.audioVolume ?? volume;
+      const participantVolume = p.audioVolume ?? volume;
+      audioElement.volume = participantVolume;
+      if (gainNode) gainNode.gain.value = participantVolume;
     });
 
     audioElement.autoplay = true;
@@ -561,6 +605,29 @@ export class DynascaleManager {
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
+      audioElement.srcObject = null;
+      sourceNode?.disconnect();
+      gainNode?.disconnect();
     };
+  };
+
+  private getOrCreateAudioContext = (): AudioContext | undefined => {
+    if (this.audioContext || !isSafari()) return this.audioContext;
+    const context = new AudioContext();
+    if (context.state === 'suspended') {
+      document.addEventListener('click', this.resumeAudioContext);
+    }
+    return (this.audioContext = context);
+  };
+
+  private resumeAudioContext = () => {
+    if (this.audioContext?.state === 'suspended') {
+      this.audioContext
+        .resume()
+        .catch((err) => this.logger('warn', `Can't resume audio context`, err))
+        .then(() => {
+          document.removeEventListener('click', this.resumeAudioContext);
+        });
+    }
   };
 }

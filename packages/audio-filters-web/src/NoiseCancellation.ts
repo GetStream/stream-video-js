@@ -10,6 +10,7 @@ import type {
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
+import type { Tracer } from './tracer';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -47,12 +48,13 @@ export type NoiseCancellationOptions = {
  */
 export interface INoiseCancellation {
   isSupported: () => boolean | Promise<boolean>;
-  init: () => Promise<void>;
+  init: (options?: { tracer?: Tracer }) => Promise<void>;
   isEnabled: () => Promise<boolean>;
   canAutoEnable?: () => Promise<boolean>;
   enable: () => void;
   disable: () => void;
   dispose: () => Promise<void>;
+  resume: () => void;
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
@@ -84,6 +86,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private filterNode?: IAudioFilterNode;
   private audioContext?: AudioContext;
   private restoreTimeoutId?: number;
+  private tracer?: Tracer;
 
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
@@ -125,7 +128,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * Will throw in case the noise cancellation is not supported on this platform
    * or if the SDK is already initialized.
    */
-  init = async () => {
+  init = async (options: { tracer?: Tracer } = {}) => {
     if (!(await this.isSupported())) {
       throw new Error('NoiseCancellation is not supported on this platform');
     }
@@ -146,21 +149,27 @@ export class NoiseCancellation implements INoiseCancellation {
     });
     await sdk.init();
     this.sdk = sdk;
+    this.tracer = options.tracer;
 
-    this.audioContext = new AudioContext();
+    const audioContext = new AudioContext();
+    this.audioContext = audioContext;
+
+    this.tracer?.trace(
+      'noiseCancellation.audioContextState',
+      audioContext.state,
+    );
+
+    this.audioContext.addEventListener('statechange', () => {
+      this.tracer?.trace(
+        'noiseCancellation.audioContextState',
+        audioContext.state,
+      );
+    });
 
     // AudioContext requires user interaction to start:
     // https://developer.chrome.com/blog/autoplay/#webaudio
     const resume = () => {
-      // resume if still suspended
-      if (this.audioContext?.state === 'suspended') {
-        this.audioContext.resume().catch((err) => {
-          console.warn(
-            'Failed to resume the audio context. Noise Cancellation may not work correctly',
-            err,
-          );
-        });
-      }
+      this.resume();
       document.removeEventListener('click', resume);
     };
 
@@ -261,7 +270,23 @@ export class NoiseCancellation implements INoiseCancellation {
     const destination = this.audioContext.createMediaStreamDestination();
 
     source.connect(this.filterNode).connect(destination);
+    // When filter is started, user's microphone media stream is active.
+    // That means that most probably we can resume audio context without
+    // any autoplay policy limitations.
+    this.resume();
     return { output: destination.stream };
+  };
+
+  resume = () => {
+    // resume if still suspended
+    if (this.audioContext?.state === 'suspended') {
+      this.audioContext.resume().catch((err) => {
+        console.warn(
+          'Failed to resume the audio context. Noise Cancellation may not work correctly',
+          err,
+        );
+      });
+    }
   };
 
   /**

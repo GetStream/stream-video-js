@@ -182,9 +182,13 @@ export const createStatsReporter = ({
   let timeoutId: NodeJS.Timeout | undefined;
   if (pollingIntervalInMs > 0) {
     const loop = async () => {
-      await run().catch((e) => {
-        logger('debug', 'Failed to collect stats', e);
-      });
+      // bail out of the loop as we don't want to collect stats
+      // (they are expensive) if no one is listening to them
+      if (state.isCallStatsReportObserved) {
+        await run().catch((e) => {
+          logger('debug', 'Failed to collect stats', e);
+        });
+      }
       timeoutId = setTimeout(loop, pollingIntervalInMs);
     };
     void loop();

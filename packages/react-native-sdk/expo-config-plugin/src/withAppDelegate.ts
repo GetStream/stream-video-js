@@ -120,7 +120,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           },
         );
         if (props?.addNoiseCancellation) {
-          config.modResults.contents = addObjcImports(
+          config.modResults.contents = addSwiftImports(
             config.modResults.contents,
             ['stream_io_noise_cancellation_react_native'],
           );
@@ -474,6 +474,8 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
     }
     
     let uuid = UUID().uuidString
+    let videoIncluded = stream["video"] as? String
+    let hasVideo = videoIncluded == "false" ? false : true
     
     StreamVideoReactNative.registerIncomingCall(cid, uuid: uuid)
     
@@ -484,12 +486,12 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
     RNCallKeep.reportNewIncomingCall(uuid,
                                      handle: createdCallerName,
                                      handleType: "generic",
-                                     hasVideo: true,
+                                     hasVideo: hasVideo,
                                      localizedCallerName: createdCallerName,
-                                     supportsHolding: true,
-                                     supportsDTMF: true,
-                                     supportsGrouping: true,
-                                     supportsUngrouping: true,
+                                     supportsHolding: false,
+                                     supportsDTMF: false,
+                                     supportsGrouping: false,
+                                     supportsUngrouping: false,
                                      fromPushKit: true,
                                      payload: stream,
                                      withCompletionHandler: nil)`;
@@ -534,6 +536,9 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
+  
+  NSString *videoIncluded = stream[@"video"];
+  BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
 
   // store the call cid and uuid in the native module's cache
   [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
@@ -548,12 +553,12 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   [RNCallKeep reportNewIncomingCall: uuid
                              handle: createdCallerName
                          handleType: @"generic"
-                           hasVideo: YES
+                           hasVideo: hasVideo
                 localizedCallerName: createdCallerName
-                    supportsHolding: YES
-                       supportsDTMF: YES
-                   supportsGrouping: YES
-                 supportsUngrouping: YES
+                    supportsHolding: NO
+                       supportsDTMF: NO
+                   supportsGrouping: NO
+                 supportsUngrouping: NO
                         fromPushKit: YES
                             payload: stream
               withCompletionHandler: nil];

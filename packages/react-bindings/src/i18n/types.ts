@@ -1,10 +1,8 @@
-export type TranslationLanguage = 'en' | string;
-
-export type Namespace = string;
+export type TranslationLanguage = 'en' | (string & {});
 
 export type TranslationSheet = Record<string, string>;
 
-export type TranslationsForLanguage = Record<Namespace, TranslationSheet>;
+export type TranslationsForLanguage = Record<string, TranslationSheet>;
 
 export type TranslationsMap = Record<TranslationLanguage, TranslationSheet>;
 
