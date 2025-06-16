@@ -48,7 +48,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           {displayTitle}{' '}
           {live && (
             <span className="str-chat__header-livestream-left--livelabel">
-              {t<string>('live')}
+              {t('live')}
             </span>
           )}
         </p>
@@ -66,7 +66,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
               ,{' '}
             </>
           )}
-          {t<string>('{{ watcherCount }} online', {
+          {t('{{ watcherCount }} online', {
             watcherCount: watcher_count,
           })}
         </p>
