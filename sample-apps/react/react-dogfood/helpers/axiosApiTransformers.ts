@@ -57,6 +57,7 @@ const generalLocationOverrideTransformer: AxiosRequestTransformer =
 
     const params = new URLSearchParams(window.location.search);
     const forceRandomLocation = params.get('random_location');
+    const locationOverride = params.get('location');
     const randomize =
       forceRandomLocation === 'true'
         ? true
@@ -64,7 +65,7 @@ const generalLocationOverrideTransformer: AxiosRequestTransformer =
           ? false
           : process.env.NEXT_PUBLIC_ENABLE_LOCATION_RANDOMIZATION === 'true';
 
-    if (!randomize) return data;
+    if (!locationOverride && !randomize) return data;
 
     // prettier-ignore
     const iataCodes = [
@@ -90,6 +91,7 @@ const generalLocationOverrideTransformer: AxiosRequestTransformer =
     ];
 
     const randomLocation =
+      locationOverride ||
       iataCodes[Math.floor(Math.random() * iataCodes.length)];
 
     console.log(`Overriding location: ${data.location} with ${randomLocation}`);
