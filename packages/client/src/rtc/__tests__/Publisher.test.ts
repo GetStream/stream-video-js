@@ -1,16 +1,21 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { anyString } from 'vitest-mock-extended';
+import { NegotiationError } from '../NegotiationError';
 import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
+  ErrorCode,
   PeerType,
   PublishOption,
   TrackInfo,
   TrackType,
+  WebsocketReconnectStrategy,
 } from '../../gen/video/sfu/models/models';
+import { SetPublisherResponse } from '../../gen/video/sfu/signal_rpc/signal';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -62,7 +67,7 @@ describe('Publisher', () => {
       dispatcher,
       state,
       logTag: 'test',
-      enableTracing: true,
+      enableTracing: false,
       publishOptions: [
         {
           id: 1,
@@ -247,10 +252,10 @@ describe('Publisher', () => {
     });
 
     it(`should perform rejoin when ICE restart fails after connection state changes to 'failed'`, async () => {
-      const { promise: lock, resolve } = promiseWithResolvers<void>();
-      publisher['onUnrecoverableError'] = vi
+      const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
+      publisher['onReconnectionNeeded'] = vi
         .fn()
-        .mockImplementation(() => resolve());
+        .mockImplementation(() => unlock());
       vi.spyOn(publisher, 'restartIce').mockRejectedValue('ICE restart failed');
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'failed';
@@ -258,7 +263,96 @@ describe('Publisher', () => {
 
       await lock;
       expect(publisher.restartIce).toHaveBeenCalled();
-      expect(publisher['onUnrecoverableError']).toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalled();
+    });
+
+    it(`should perform fast reconnect when ICE restart fails with SIGNAL_LOST error`, async () => {
+      const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
+      publisher['onReconnectionNeeded'] = vi
+        .fn()
+        .mockImplementation(() => unlock());
+      publisher.getAnnouncedTracks = vi
+        .fn()
+        .mockReturnValue([
+          { trackId: '123', trackType: TrackType.VIDEO, mid: '0' },
+        ]);
+
+      // @ts-expect-error private api
+      vi.spyOn(publisher, 'negotiate');
+      vi.spyOn(publisher, 'restartIce');
+
+      const pc = publisher['pc'];
+
+      sfuClient.setPublisher = vi.fn().mockImplementation(() => {
+        // @ts-expect-error private api
+        pc.signalingState = 'have-local-offer';
+        return {
+          response: {
+            error: {
+              code: ErrorCode.PARTICIPANT_SIGNAL_LOST,
+              message: 'Signal lost',
+              shouldRetry: true,
+            },
+          } as SetPublisherResponse,
+        };
+      });
+
+      // @ts-expect-error private api
+      pc.iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+
+      await lock;
+      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['negotiate']).toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.FAST,
+        anyString(),
+      );
+
+      expect(pc.setLocalDescription).toHaveBeenCalledTimes(2);
+      expect(pc.setLocalDescription).toHaveBeenLastCalledWith({
+        type: 'rollback',
+      });
+      expect(pc.setRemoteDescription).not.toHaveBeenCalled();
+    });
+
+    it(`should perform REJOIN reconnect when ICE restart fails with any other error code`, async () => {
+      const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
+      publisher['onReconnectionNeeded'] = vi
+        .fn()
+        .mockImplementation(() => unlock());
+      publisher.getAnnouncedTracks = vi
+        .fn()
+        .mockReturnValue([
+          { trackId: '123', trackType: TrackType.VIDEO, mid: '0' },
+        ]);
+
+      // @ts-expect-error private api
+      vi.spyOn(publisher, 'negotiate');
+      vi.spyOn(publisher, 'restartIce');
+
+      sfuClient.setPublisher = vi.fn().mockResolvedValue({
+        response: {
+          error: {
+            code: ErrorCode.PARTICIPANT_NOT_FOUND,
+            message: 'participant not found',
+            shouldRetry: true,
+          },
+        } as SetPublisherResponse,
+      });
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+
+      await lock;
+      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['negotiate']).toHaveBeenCalled();
+      await expect(publisher.restartIce).rejects.toThrowError(NegotiationError);
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        anyString(),
+      );
     });
 
     it(`should schedule ICE restart when connection state changes to 'disconnected'`, () => {
@@ -275,7 +369,7 @@ describe('Publisher', () => {
     it(`should perform rejoin when scheduled ICE restart fails`, async () => {
       vi.spyOn(publisher, 'restartIce').mockRejectedValue('ICE restart failed');
       const { promise: lock, resolve } = promiseWithResolvers<void>();
-      publisher['onUnrecoverableError'] = vi
+      publisher['onReconnectionNeeded'] = vi
         .fn()
         .mockImplementation(() => resolve());
       vi.useFakeTimers();
@@ -287,7 +381,7 @@ describe('Publisher', () => {
 
       await lock;
       expect(publisher.restartIce).toHaveBeenCalled();
-      expect(publisher['onUnrecoverableError']).toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalled();
     });
 
     it(`should schedule ICE restart but cancel it if connection recovers in the meantime`, () => {

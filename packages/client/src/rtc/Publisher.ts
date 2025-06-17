@@ -2,6 +2,7 @@ import {
   BasePeerConnection,
   BasePeerConnectionOpts,
 } from './BasePeerConnection';
+import { NegotiationError } from './NegotiationError';
 import { TransceiverCache } from './TransceiverCache';
 import {
   PeerType,
@@ -44,11 +45,7 @@ export class Publisher extends BasePeerConnection {
 
     this.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
-      this.restartIce().catch((err) => {
-        const reason = `ICE restart failed`;
-        this.logger('warn', reason, err);
-        this.onUnrecoverableError?.(`${reason}: ${err}`);
-      });
+      this.tryRestartIce();
     });
 
     this.on('changePublishQuality', async (event) => {
@@ -338,10 +335,16 @@ export class Publisher extends BasePeerConnection {
 
         const { sdp = '' } = offer;
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
-        if (response.error) throw new Error(response.error.message);
+        if (response.error) throw new NegotiationError(response.error);
 
         const { sdp: answerSdp } = response;
         await this.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+      } catch (err) {
+        // negotiation failed, rollback to the previous state
+        if (this.pc.signalingState === 'have-local-offer') {
+          await this.pc.setLocalDescription({ type: 'rollback' });
+        }
+        throw err;
       } finally {
         this.isIceRestarting = false;
       }

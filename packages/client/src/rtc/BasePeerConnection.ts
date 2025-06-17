@@ -5,18 +5,29 @@ import type {
 } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
-import { PeerType, TrackType } from '../gen/video/sfu/models/models';
+import {
+  ErrorCode,
+  PeerType,
+  TrackType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
+import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
+
+export type OnReconnectionNeeded = (
+  kind: WebsocketReconnectStrategy,
+  reason: string,
+) => void;
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
-  onUnrecoverableError?: (reason: string) => void;
+  onReconnectionNeeded?: OnReconnectionNeeded;
   logTag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;
@@ -34,7 +45,7 @@ export abstract class BasePeerConnection {
   protected readonly dispatcher: Dispatcher;
   protected sfuClient: StreamSfuClient;
 
-  protected onUnrecoverableError?: (reason: string) => void;
+  private onReconnectionNeeded?: OnReconnectionNeeded;
   private readonly iceRestartDelay: number;
   private iceRestartTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
@@ -44,6 +55,7 @@ export abstract class BasePeerConnection {
 
   readonly tracer?: Tracer;
   readonly stats: StatsTracer;
+
   private readonly subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
   protected readonly lock = Math.random().toString(36).slice(2);
@@ -58,7 +70,7 @@ export abstract class BasePeerConnection {
       connectionConfig,
       state,
       dispatcher,
-      onUnrecoverableError,
+      onReconnectionNeeded,
       logTag,
       enableTracing,
       iceRestartDelay = 2500,
@@ -69,24 +81,12 @@ export abstract class BasePeerConnection {
     this.state = state;
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
-    this.onUnrecoverableError = onUnrecoverableError;
+    this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       logTag,
     ]);
-    this.pc = new RTCPeerConnection(connectionConfig);
-    this.pc.addEventListener('icecandidate', this.onIceCandidate);
-    this.pc.addEventListener('icecandidateerror', this.onIceCandidateError);
-    this.pc.addEventListener(
-      'iceconnectionstatechange',
-      this.onIceConnectionStateChange,
-    );
-    this.pc.addEventListener('icegatheringstatechange', this.onIceGatherChange);
-    this.pc.addEventListener('signalingstatechange', this.onSignalingChange);
-    this.pc.addEventListener(
-      'connectionstatechange',
-      this.onConnectionStateChange,
-    );
+    this.pc = this.createPeerConnection(connectionConfig);
     this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
     if (enableTracing) {
       const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
@@ -99,13 +99,27 @@ export abstract class BasePeerConnection {
     }
   }
 
+  private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
+    const pc = new RTCPeerConnection(connectionConfig);
+    pc.addEventListener('icecandidate', this.onIceCandidate);
+    pc.addEventListener('icecandidateerror', this.onIceCandidateError);
+    pc.addEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    pc.addEventListener('icegatheringstatechange', this.onIceGatherChange);
+    pc.addEventListener('signalingstatechange', this.onSignalingChange);
+    pc.addEventListener('connectionstatechange', this.onConnectionStateChange);
+    return pc;
+  };
+
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
   dispose() {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
-    this.onUnrecoverableError = undefined;
+    this.onReconnectionNeeded = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
@@ -116,17 +130,15 @@ export abstract class BasePeerConnection {
    * Detaches the event handlers from the `RTCPeerConnection`.
    */
   detachEventHandlers() {
-    this.pc.removeEventListener('icecandidate', this.onIceCandidate);
-    this.pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
-    this.pc.removeEventListener('signalingstatechange', this.onSignalingChange);
-    this.pc.removeEventListener(
+    const pc = this.pc;
+    pc.removeEventListener('icecandidate', this.onIceCandidate);
+    pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+    pc.removeEventListener('signalingstatechange', this.onSignalingChange);
+    pc.removeEventListener(
       'iceconnectionstatechange',
       this.onIceConnectionStateChange,
     );
-    this.pc.removeEventListener(
-      'icegatheringstatechange',
-      this.onIceGatherChange,
-    );
+    pc.removeEventListener('icegatheringstatechange', this.onIceGatherChange);
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
   }
@@ -135,6 +147,24 @@ export abstract class BasePeerConnection {
    * Performs an ICE restart on the `RTCPeerConnection`.
    */
   protected abstract restartIce(): Promise<void>;
+
+  /**
+   * Attempts to restart ICE on the `RTCPeerConnection`.
+   * This method intentionally doesn't await the `restartIce()` method,
+   * allowing it to run in the background and handle any errors that may occur.
+   */
+  protected tryRestartIce = () => {
+    this.restartIce().catch((e) => {
+      const reason = 'restartICE() failed, initiating reconnect';
+      this.logger('error', reason, e);
+      const strategy =
+        e instanceof NegotiationError &&
+        e.error.code === ErrorCode.PARTICIPANT_SIGNAL_LOST
+          ? WebsocketReconnectStrategy.FAST
+          : WebsocketReconnectStrategy.REJOIN;
+      this.onReconnectionNeeded?.(strategy, reason);
+    });
+  };
 
   /**
    * Handles events synchronously.
@@ -282,19 +312,11 @@ export abstract class BasePeerConnection {
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
-    const tryRestartIce = () => {
-      this.restartIce().catch((e) => {
-        const reason = 'restartICE() failed, initiating reconnect';
-        this.logger('error', reason, e);
-        this.onUnrecoverableError?.(reason);
-      });
-    };
-
     switch (state) {
       case 'failed':
         // in the `failed` state, we try to restart ICE immediately
         this.logger('info', 'restartICE due to failed ICE connection');
-        tryRestartIce();
+        this.tryRestartIce();
         break;
 
       case 'disconnected':
@@ -305,7 +327,7 @@ export abstract class BasePeerConnection {
         this.iceRestartTimeout = setTimeout(() => {
           const currentState = this.pc.iceConnectionState;
           if (currentState === 'disconnected' || currentState === 'failed') {
-            tryRestartIce();
+            this.tryRestartIce();
           }
         }, this.iceRestartDelay);
         break;

@@ -1187,16 +1187,11 @@ export class Call {
       connectionConfig,
       logTag: String(this.sfuClientTag),
       enableTracing,
-      onUnrecoverableError: (reason) => {
-        this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
-          (err) => {
-            this.logger(
-              'warn',
-              `[Reconnect] Error reconnecting after a subscriber error: ${reason}`,
-              err,
-            );
-          },
-        );
+      onReconnectionNeeded: (kind, reason) => {
+        this.reconnect(kind, reason).catch((err) => {
+          const message = `[Reconnect] Error reconnecting after a subscriber error: ${reason}`;
+          this.logger('warn', message, err);
+        });
       },
     });
 
@@ -1215,16 +1210,11 @@ export class Call {
         publishOptions,
         logTag: String(this.sfuClientTag),
         enableTracing,
-        onUnrecoverableError: (reason) => {
-          this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
-            (err) => {
-              this.logger(
-                'warn',
-                `[Reconnect] Error reconnecting after a publisher error: ${reason}`,
-                err,
-              );
-            },
-          );
+        onReconnectionNeeded: (kind, reason) => {
+          this.reconnect(kind, reason).catch((err) => {
+            const message = `[Reconnect] Error reconnecting after a publisher error: ${reason}`;
+            this.logger('warn', message, err);
+          });
         },
       });
     }

@@ -2,6 +2,7 @@ import {
   BasePeerConnection,
   BasePeerConnectionOpts,
 } from './BasePeerConnection';
+import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
@@ -54,11 +55,12 @@ export class Subscriber extends BasePeerConnection {
       return;
     }
     const previousIsIceRestarting = this.isIceRestarting;
+    this.isIceRestarting = true;
     try {
-      this.isIceRestarting = true;
-      await this.sfuClient.iceRestart({
+      const { response } = await this.sfuClient.iceRestart({
         peerType: PeerType.SUBSCRIBER,
       });
+      if (response.error) throw new NegotiationError(response.error);
     } catch (e) {
       // restore the previous state, as our intent for restarting ICE failed
       this.isIceRestarting = previousIsIceRestarting;
