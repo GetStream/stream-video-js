@@ -290,22 +290,34 @@ export abstract class BasePeerConnection {
       });
     };
 
-    if (state === 'failed') {
-      // in the `failed` state, we try to restart ICE immediately
-      this.logger('warn', 'restartICE() due to failed ICE connection');
-      tryRestartIce();
-    } else if (state === 'disconnected') {
-      // in the ` disconnected ` state, we schedule a restartICE() after a delay
-      // as the browser might recover the connection in the meantime
-      this.logger('warn', 'disconnected connection, scheduling restartICE()');
-      clearTimeout(this.iceRestartTimeout);
-      this.iceRestartTimeout = setTimeout(() => {
-        const currentState = this.pc.iceConnectionState;
-        if (currentState === 'disconnected' || currentState === 'failed') {
-          return tryRestartIce();
+    switch (state) {
+      case 'failed':
+        // in the `failed` state, we try to restart ICE immediately
+        this.logger('info', 'restartICE due to failed ICE connection');
+        tryRestartIce();
+        break;
+
+      case 'disconnected':
+        // in the `disconnected` state, we schedule a restartICE() after a delay
+        // as the browser might recover the connection in the meantime
+        this.logger('info', 'disconnected connection, scheduling restartICE');
+        clearTimeout(this.iceRestartTimeout);
+        this.iceRestartTimeout = setTimeout(() => {
+          const currentState = this.pc.iceConnectionState;
+          if (currentState === 'disconnected' || currentState === 'failed') {
+            tryRestartIce();
+          }
+        }, this.iceRestartDelay);
+        break;
+
+      case 'connected':
+        // in the `connected` state, we clear the ice restart timeout if it exists
+        if (this.iceRestartTimeout) {
+          this.logger('info', 'connected connection, canceling restartICE');
+          clearTimeout(this.iceRestartTimeout);
+          this.iceRestartTimeout = undefined;
         }
-        this.logger('info', 'connection recovered, canceled restartICE()');
-      }, this.iceRestartDelay);
+        break;
     }
   };
 

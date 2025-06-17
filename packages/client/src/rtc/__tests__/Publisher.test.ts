@@ -47,7 +47,7 @@ describe('Publisher', () => {
         ice_servers: [],
       },
       logTag: 'test',
-      enableTracing: false,
+      enableTracing: true,
     });
 
     // @ts-expect-error readonly field
@@ -62,7 +62,7 @@ describe('Publisher', () => {
       dispatcher,
       state,
       logTag: 'test',
-      enableTracing: false,
+      enableTracing: true,
       publishOptions: [
         {
           id: 1,
@@ -299,9 +299,11 @@ describe('Publisher', () => {
 
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
 
       vi.runOnlyPendingTimers();
       expect(publisher.restartIce).not.toHaveBeenCalled();
+      expect(publisher['iceRestartTimeout']).toBeUndefined();
     });
   });
 

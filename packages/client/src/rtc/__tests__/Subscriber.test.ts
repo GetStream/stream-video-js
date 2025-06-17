@@ -39,7 +39,7 @@ describe('Subscriber', () => {
         token: 'token',
         ice_servers: [],
       },
-      enableTracing: false,
+      enableTracing: true,
     });
     // @ts-expect-error readonly field
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
@@ -50,7 +50,7 @@ describe('Subscriber', () => {
       state,
       connectionConfig: { iceServers: [] },
       logTag: 'test',
-      enableTracing: false,
+      enableTracing: true,
     });
   });
 
