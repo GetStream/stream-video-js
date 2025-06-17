@@ -65,7 +65,7 @@ const generalLocationOverrideTransformer: AxiosRequestTransformer =
           ? false
           : process.env.NEXT_PUBLIC_ENABLE_LOCATION_RANDOMIZATION === 'true';
 
-    if (!randomize || !locationOverride) return data;
+    if (!locationOverride && !randomize) return data;
 
     // prettier-ignore
     const iataCodes = [
