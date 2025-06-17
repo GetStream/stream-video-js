@@ -97,6 +97,7 @@ describe('internal events', () => {
       permissionsContext: { hasPermission: () => true },
       leave: vi.fn().mockResolvedValue(undefined),
       logger: vi.fn(),
+      state: new CallState(),
     } as unknown as Call;
 
     watchLiveEnded(dispatcher, call);
