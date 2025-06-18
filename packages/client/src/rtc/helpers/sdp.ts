@@ -36,13 +36,6 @@ export const extractMid = (
  * @param answerSdp the answer SDP to be modified.
  */
 export const enableStereo = (offerSdp: string, answerSdp: string): string => {
-  const offeredStereoMids = getOfferedStereoMids(offerSdp);
-  // No stereo offered, return original answer
-  if (offeredStereoMids.size === 0) return answerSdp;
-  return applyStereoToAnswer(answerSdp, offeredStereoMids);
-};
-
-const getOfferedStereoMids = (offerSdp: string): Set<string> => {
   const offeredStereoMids = new Set<string>();
   const parsedOfferSdp = parse(offerSdp);
   for (const media of parsedOfferSdp.media) {
@@ -57,13 +50,10 @@ const getOfferedStereoMids = (offerSdp: string): Set<string> => {
       }
     }
   }
-  return offeredStereoMids;
-};
 
-const applyStereoToAnswer = (
-  answerSdp: string,
-  offeredStereoMids: Set<string>,
-): string => {
+  // No stereo offered, return the original answerSdp
+  if (offeredStereoMids.size === 0) return answerSdp;
+
   const parsedAnswerSdp = parse(answerSdp);
   for (const media of parsedAnswerSdp.media) {
     if (media.type !== 'audio' || !offeredStereoMids.has(media.mid!)) continue;
