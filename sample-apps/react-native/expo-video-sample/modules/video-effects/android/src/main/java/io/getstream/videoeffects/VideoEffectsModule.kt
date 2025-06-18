@@ -2,8 +2,8 @@ package io.getstream.videoeffects
 
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.net.URL
 import io.getstream.videoeffects.videofilters.GrayScaleVideoFilterFactory
+import io.getstream.videoeffects.videofilters.FaceBoxDetectorFilterFactory
 import com.oney.WebRTCModule.videoEffects.ProcessorProvider
 
 class VideoEffectsModule : Module() {
@@ -18,7 +18,8 @@ class VideoEffectsModule : Module() {
 
     // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
     Function("registerVideoFilters") {
-      ProcessorProvider.addProcessor("grayscale", GrayScaleVideoFilterFactory())
+        ProcessorProvider.addProcessor("grayscale", GrayScaleVideoFilterFactory())
+        ProcessorProvider.addProcessor("faceboxdetector", FaceBoxDetectorFilterFactory())
     }
 
   }

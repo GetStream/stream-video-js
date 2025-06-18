@@ -11,11 +11,11 @@ import VideoEffectsModule from '../../modules/video-effects';
 
 const isSupported = Platform.OS === 'android' || Platform.OS === 'ios';
 
-type CustomFilters = 'GrayScale';
+type CustomFilters = 'GrayScale' | 'FaceBoxDetector';
 
 export const useCustomVideoFilters = () => {
   const call = useCall();
-  const isGrayScaleRegisteredRef = useRef(false);
+  const isFiltersRegisteredRef = useRef(false);
   const { disableAllFilters } = useBackgroundFilters();
   const [currentCustomFilter, setCustomFilter] = useState<CustomFilters>();
 
@@ -23,9 +23,9 @@ export const useCustomVideoFilters = () => {
     if (!isSupported) {
       return;
     }
-    if (!isGrayScaleRegisteredRef.current) {
+    if (!isFiltersRegisteredRef.current) {
       VideoEffectsModule.registerVideoFilters();
-      isGrayScaleRegisteredRef.current = true;
+      isFiltersRegisteredRef.current = true;
     }
     disableAllFilters();
     (call?.camera.state.mediaStream as MediaStream | undefined)
@@ -36,6 +36,23 @@ export const useCustomVideoFilters = () => {
     setCustomFilter('GrayScale');
   }, [call, disableAllFilters]);
 
+  const applyFaceBoxDetectorFilter = useCallback(async () => {
+    if (!isSupported) {
+      return;
+    }
+    if (!isFiltersRegisteredRef.current) {
+      VideoEffectsModule.registerVideoFilters();
+      isFiltersRegisteredRef.current = true;
+    }
+    disableAllFilters();
+    (call?.camera.state.mediaStream as MediaStream | undefined)
+      ?.getVideoTracks()
+      .forEach((track) => {
+        track._setVideoEffect('faceboxdetector');
+      });
+    setCustomFilter('FaceBoxDetector');
+  }, [call, disableAllFilters]);
+
   const disableCustomFilter = useCallback(() => {
     disableAllFilters();
     setCustomFilter(undefined);
@@ -44,6 +61,7 @@ export const useCustomVideoFilters = () => {
   return {
     currentCustomFilter,
     applyGrayScaleFilter,
+    applyFaceBoxDetectorFilter,
     disableCustomFilter,
   };
 };

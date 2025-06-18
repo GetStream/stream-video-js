@@ -12,6 +12,7 @@ public class VideoEffectsModule: Module {
 
     Function("registerVideoFilters") {
       ProcessorProvider.addProcessor(GrayScaleVideoFrameProcessor(), forName: "grayscale")
+      ProcessorProvider.addProcessor(FaceBoxDetectorVideoFrameProcessor(), forName: "faceboxdetector")
     }
   }
 }
