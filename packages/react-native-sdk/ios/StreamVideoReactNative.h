@@ -1,11 +1,23 @@
 #import <React/RCTEventEmitter.h>
 
-@interface StreamVideoReactNative : RCTEventEmitter <RCTBridgeModule>
+NS_ASSUME_NONNULL_BEGIN
+
+@interface StreamVideoReactNative : RCTEventEmitter
+
+/// @deprecated This method is no longer required and will be removed in a future version.
++ (void)setup DEPRECATED_MSG_ATTRIBUTE("No need to use setup() anymore");
+
+/**
+ * @brief Registers an incoming call with the system.
+ * This is used to display the native incoming call UI on iOS.
+ *
+ * @param cid The Call ID of the incoming call.
+ * @param uuid The UUID of the incoming call, which should be used for CallKit.
+ */
++ (void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid;
 
 - (void)screenShareEventReceived:(NSString *)event;
 
-+ (void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid;
-
-+ (void)setup DEPRECATED_MSG_ATTRIBUTE("No need to use setup() anymore");
-
 @end
+
+NS_ASSUME_NONNULL_END
