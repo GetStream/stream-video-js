@@ -9,8 +9,9 @@ import { useEffect, useState } from 'react';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 import { useSettings } from '../../context/SettingsContext';
-import { customSentryLogger } from '../../helpers/logger';
 import { DefaultAppHeader } from '../DefaultAppHeader';
+import { getClient } from '../../helpers/client';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 
 export const CallRecordingsPage = ({
   apiKey,
@@ -24,14 +25,10 @@ export const CallRecordingsPage = ({
   const [error, setError] = useState<Error | undefined>();
   const [loading, setLoading] = useState(false);
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
+  const environment = useAppEnvironment();
 
   useEffect(() => {
-    const _client = new StreamVideoClient({
-      apiKey,
-      user,
-      token: userToken,
-      options: { logLevel: 'info', logger: customSentryLogger() },
-    });
+    const _client = getClient({ apiKey, user, userToken }, environment);
     setVideoClient(_client);
 
     window.client = _client;
@@ -42,7 +39,7 @@ export const CallRecordingsPage = ({
         .catch((e) => console.error(`Couldn't disconnect user`, e));
       setVideoClient(undefined);
     };
-  }, [apiKey, user, userToken]);
+  }, [apiKey, environment, user, userToken]);
 
   if (!videoClient) {
     return null;
