@@ -1318,7 +1318,12 @@ export class Call {
       return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving || sfuClient.isClosingClean) return;
-    this.reconnect(WebsocketReconnectStrategy.FAST, reason).catch((err) => {
+
+    const strategy =
+      this.publisher?.isHealthy() && this.subscriber?.isHealthy()
+        ? WebsocketReconnectStrategy.FAST
+        : WebsocketReconnectStrategy.REJOIN;
+    this.reconnect(strategy, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
   };
