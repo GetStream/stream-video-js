@@ -287,8 +287,7 @@ export abstract class BasePeerConnection {
   private onConnectionStateChange = async () => {
     const state = this.pc.connectionState;
     this.logger('debug', `Connection state changed`, state);
-    if (!this.tracer) return;
-    if (state === 'connected' || state === 'failed') {
+    if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
         const stats = await this.stats.get();
         this.tracer.trace('getstats', stats.delta);
@@ -296,6 +295,17 @@ export abstract class BasePeerConnection {
         this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }
     }
+
+    // we can't recover from a failed connection state (contrary to ICE)
+    if (state === 'failed') {
+      this.onReconnectionNeeded?.(
+        WebsocketReconnectStrategy.REJOIN,
+        'Connection failed',
+      );
+      return;
+    }
+
+    this.handleConnectionStateUpdate(state);
   };
 
   /**
@@ -304,7 +314,12 @@ export abstract class BasePeerConnection {
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
     this.logger('debug', `ICE connection state changed`, state);
+    this.handleConnectionStateUpdate(state);
+  };
 
+  private handleConnectionStateUpdate = (
+    state: RTCIceConnectionState | RTCPeerConnectionState,
+  ) => {
     const { callingState } = this.state;
     if (callingState === CallingState.OFFLINE) return;
     if (callingState === CallingState.RECONNECTING) return;
@@ -315,7 +330,7 @@ export abstract class BasePeerConnection {
     switch (state) {
       case 'failed':
         // in the `failed` state, we try to restart ICE immediately
-        this.logger('info', 'restartICE due to failed ICE connection');
+        this.logger('info', 'restartICE due to failed connection');
         this.tryRestartIce();
         break;
 
