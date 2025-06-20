@@ -215,6 +215,18 @@ export type ScreenShareSettings = {
    * Defaults to 3000000 (3Mbps).
    */
   maxBitrate?: number;
+
+  /**
+   * The content hint to use when publishing the screen share.
+   * This can be used to optimize the video quality for different types of content.
+   *
+   * Defaults to '' (no hint, browser's default behavior).
+   * Use 'motion' for video content, 'detail' for presentations or documents, and 'text' for text-heavy content.
+   *
+   * Please read the documentation for more information on content hints:
+   * - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/contentHint
+   */
+  contentHint?: '' | 'motion' | 'detail' | 'text';
 };
 
 export type CallLeaveOptions = {

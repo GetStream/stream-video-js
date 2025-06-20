@@ -70,13 +70,23 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return of([]); // there are no devices to be listed for Screen Share
   }
 
-  protected getStream(
+  protected async getStream(
     constraints: DisplayMediaStreamOptions,
   ): Promise<MediaStream> {
     if (!this.state.audioEnabled) {
       constraints.audio = false;
     }
-    return getScreenShareStream(constraints, this.call.tracer);
+    const stream = await getScreenShareStream(constraints, this.call.tracer);
+    const [track] = stream.getVideoTracks();
+    const { contentHint } = this.state.settings || {};
+    if (typeof contentHint !== 'undefined' && track && 'contentHint' in track) {
+      this.call.tracer.trace(
+        'navigator.mediaDevices.getDisplayMedia.contentHint',
+        contentHint,
+      );
+      track.contentHint = contentHint;
+    }
+    return stream;
   }
 
   protected async stopPublishStream(): Promise<void> {
