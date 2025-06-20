@@ -324,21 +324,32 @@ export const getScreenShareStream = async (
 ) => {
   const tag = `navigator.mediaDevices.getDisplayMedia.${getDisplayMediaExecId++}.`;
   try {
-    tracer?.trace(tag, options);
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: {
-        channelCount: {
-          ideal: 2,
-        },
-        echoCancellation: false,
-        autoGainControl: false,
-        noiseSuppression: false,
-      },
+    const constraints: DisplayMediaStreamOptions = {
       // @ts-expect-error - not present in types yet
       systemAudio: 'include',
       ...options,
-    });
+      video:
+        typeof options?.video === 'boolean'
+          ? options.video // must be 'true'
+          : {
+              width: { max: 2560 },
+              height: { max: 1440 },
+              frameRate: { ideal: 30 },
+              ...options?.video,
+            },
+      audio:
+        typeof options?.audio === 'boolean'
+          ? options.audio
+          : {
+              channelCount: { ideal: 2 },
+              echoCancellation: false,
+              autoGainControl: false,
+              noiseSuppression: false,
+              ...options?.audio,
+            },
+    };
+    tracer?.trace(tag, constraints);
+    const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
     tracer?.trace(`${tag}OnSuccess`, dumpStream(stream));
     return stream;
   } catch (e) {
