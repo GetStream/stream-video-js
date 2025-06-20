@@ -120,16 +120,20 @@ export class StreamSfuClient {
   isLeaving = false;
 
   /**
-   * Flag to indicate if the client is in the process of closing the connection.
+   * Flag to indicate if the client is in the process of clean closing the connection.
+   * When set to `true`, the client will not attempt to reconnect
+   * and will close the WebSocket connection gracefully.
+   * Otherwise, it will close the connection with an error code and
+   * trigger a reconnection attempt.
    */
-  isClosing = false;
+  isClosingClean = false;
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
   private migrateAwayTimeout?: NodeJS.Timeout;
-  private pingIntervalInMs = 10 * 1000;
-  private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
+  private readonly pingIntervalInMs = 5 * 1000;
+  private readonly unhealthyTimeoutInMs = 15 * 1000;
   private lastMessageTimestamp?: Date;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
@@ -174,7 +178,11 @@ export class StreamSfuClient {
    * Here, we don't use 1000 (normal closure) because we don't want the
    * SFU to clean up the resources associated with the current participant.
    */
-  static DISPOSE_OLD_SOCKET = 4002;
+  static DISPOSE_OLD_SOCKET = 4100;
+  /**
+   * The close code used when the client fails to join the call (on the SFU).
+   */
+  static JOIN_FAILED = 4101;
 
   /**
    * Constructs a new SFU client.
@@ -271,7 +279,9 @@ export class StreamSfuClient {
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
             // before emitting 'open'. However, strager things have happened, and we don't
             // want to leave signalReady in pending state.
-            reject(new Error('SFU WS closed unexpectedly'));
+            reject(
+              new Error(`SFU WS closed or connection can't be established`),
+            );
           });
         }),
 
@@ -308,7 +318,7 @@ export class StreamSfuClient {
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
-    this.isClosing = true;
+    this.isClosingClean = code !== StreamSfuClient.ERROR_CONNECTION_UNHEALTHY;
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
