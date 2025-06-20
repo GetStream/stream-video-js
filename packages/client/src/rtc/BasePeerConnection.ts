@@ -240,7 +240,7 @@ export abstract class BasePeerConnection {
   isHealthy = () => {
     const failedStates = new Set<
       RTCIceConnectionState | RTCPeerConnectionState
-    >(['failed', 'disconnected', 'closed']);
+    >(['failed', 'closed']);
 
     const iceState = this.pc.iceConnectionState;
     const connectionState = this.pc.connectionState;
