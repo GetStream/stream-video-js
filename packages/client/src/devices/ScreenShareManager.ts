@@ -79,7 +79,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     const stream = await getScreenShareStream(constraints, this.call.tracer);
     const [track] = stream.getVideoTracks();
     const { contentHint } = this.state.settings || {};
-    if (contentHint && track && 'contentHint' in track) {
+    if (typeof contentHint !== 'undefined' && track && 'contentHint' in track) {
       this.call.tracer.trace(
         'navigator.mediaDevices.getDisplayMedia.contentHint',
         contentHint,
