@@ -6,11 +6,13 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
 import { SfuEvent, SubscriberOffer } from '../../gen/video/sfu/event/events';
+import { ICERestartResponse } from '../../gen/video/sfu/signal_rpc/signal';
 import {
+  ErrorCode,
   PeerType,
-  SdkType,
   TrackType,
 } from '../../gen/video/sfu/models/models';
+import { NegotiationError } from '../NegotiationError';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -43,7 +45,7 @@ describe('Subscriber', () => {
         token: 'token',
         ice_servers: [],
       },
-      enableTracing: false,
+      enableTracing: true,
     });
     // @ts-expect-error readonly field
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
@@ -54,15 +56,7 @@ describe('Subscriber', () => {
       state,
       connectionConfig: { iceServers: [] },
       logTag: 'test',
-      enableTracing: false,
-      clientDetails: {
-        sdk: {
-          type: SdkType.PLAIN_JAVASCRIPT,
-          major: '1',
-          minor: '0',
-          patch: '1',
-        },
-      },
+      enableTracing: true,
     });
   });
 
@@ -92,7 +86,7 @@ describe('Subscriber', () => {
     });
 
     it('should ask the SFU for ICE restart', async () => {
-      sfuClient.iceRestart = vi.fn();
+      sfuClient.iceRestart = vi.fn().mockResolvedValue({ response: {} });
       // @ts-expect-error - private field
       subscriber['pc'].connectionState = 'connected';
 
@@ -103,19 +97,42 @@ describe('Subscriber', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
-      subscriber['onUnrecoverableError'] = vi.fn();
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
       // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'failed';
       subscriber['onIceConnectionStateChange']();
-      expect(subscriber['onUnrecoverableError']).toHaveBeenCalled();
+      expect(subscriber['restartIce']).toHaveBeenCalled();
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
       // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'disconnected';
       subscriber['onIceConnectionStateChange']();
+      vi.runOnlyPendingTimers();
       expect(subscriber.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should throw NegotiationError when SFU returns an error`, async () => {
+      sfuClient.iceRestart = vi.fn().mockResolvedValue({
+        response: {
+          error: {
+            code: ErrorCode.PARTICIPANT_SIGNAL_LOST,
+            message: 'Signal lost',
+          },
+        } as ICERestartResponse,
+      });
+
+      // @ts-expect-error - private field
+      subscriber['pc'].connectionState = 'connected';
+
+      await expect(subscriber.restartIce()).rejects.toThrowError(
+        NegotiationError,
+      );
+      expect(sfuClient.iceRestart).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+      });
     });
   });
 
