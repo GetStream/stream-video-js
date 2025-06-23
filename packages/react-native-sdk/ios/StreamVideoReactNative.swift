@@ -147,11 +147,9 @@ class StreamVideoReactNative: RCTEventEmitter {
     
     @objc
     func showAudioRoutePicker() {
-        DispatchQueue.main.async {
-            self.audioUtils.showAudioRoutePicker()
-        }
+        self.audioUtils.showAudioRoutePicker()
     }
-    
+
     @objc(getIncomingCallUUid:resolver:rejecter:)
     func getIncomingCallUUid(cid: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         StreamVideoReactNative.dictionaryQueue.sync {
