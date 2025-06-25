@@ -12,12 +12,11 @@ import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.oney.WebRTCModule.WebRTCModule
-import com.oney.WebRTCModule.WebRTCView
+import com.streamvideo.reactnative.audio.AudioDeviceListener
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
@@ -25,7 +24,6 @@ import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
@@ -41,6 +39,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
+    private val audioDeviceListener = AudioDeviceListener(reactContext)
+
     override fun initialize() {
         super.initialize()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -50,7 +50,14 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
         val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         reactApplicationContext.registerReceiver(powerReceiver, filter)
+
+        val devices = audioDeviceListener.getCurrentDeviceEndpoints()
+
+        devices.forEach {
+            Log.d(NAME, "$it")
+        }
     }
+
 
     @ReactMethod
     fun getDefaultRingtoneUrl(promise: Promise) {
@@ -99,6 +106,15 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("UNUSED_PARAMETER")
     @ReactMethod
     fun removeListeners(count: Int) {
+    }
+
+    // This method was removed upstream in react-native 0.74+, replaced with invalidate
+    // We will leave this stub here for older react-native versions compatibility
+    // ...but it will just delegate to the new invalidate method
+    @Deprecated("Deprecated in Java")
+    @Suppress("removal")
+    override fun onCatalystInstanceDestroy() {
+        invalidate()
     }
 
     override fun invalidate() {
