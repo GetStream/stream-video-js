@@ -42,7 +42,7 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   /**
    * @internal
    */
-  setMediaStream(
+  override setMediaStream(
     stream: MediaStream | undefined,
     rootStream: MediaStream | undefined,
   ): void {
