@@ -20,7 +20,7 @@
   }
 
   &__icon {
-    margin-right: var(--str-video__spacing-xs);
+    margin-inline-end: var(--str-video__spacing-xs);
     background-color: var(--str-video__text-color1);
   }
 
@@ -58,8 +58,8 @@
 
     .str-video__menu-toggle-button {
       padding: 0;
-      margin-left: -30px;
-      margin-right: 8px;
+      margin-inline-start: -30px;
+      margin-inline-end: 8px;
     }
 
     .str-video__loading-indicator__icon {
@@ -71,7 +71,7 @@
   }
 
   &.str-video__composite-button--menu .str-video__composite-button__button {
-    padding-right: 2.5rem;
+    padding-inline-end: 2.5rem;
   }
 }
 
