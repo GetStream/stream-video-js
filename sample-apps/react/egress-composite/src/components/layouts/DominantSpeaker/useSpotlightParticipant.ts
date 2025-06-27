@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   hasVideo,
+  isPinned,
   StreamVideoParticipant,
   useFilteredParticipants,
 } from '@stream-io/video-react-sdk';
@@ -35,6 +36,7 @@ export const useSpotlightParticipant = () => {
       };
     } else {
       const spotlightSpeaker =
+        participants.find((p) => isPinned(p)) ||
         participants.find((p) => p.isDominantSpeaker) ||
         participants.find((p) => hasVideo(p)) ||
         participants[0];
