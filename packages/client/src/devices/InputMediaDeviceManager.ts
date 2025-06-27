@@ -35,6 +35,7 @@ export abstract class InputMediaDeviceManager<
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: Function[] = [];
+  private areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
@@ -47,6 +48,16 @@ export abstract class InputMediaDeviceManager<
     this.state = state;
     this.trackType = trackType;
     this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+    this.setup();
+  }
+
+  setup() {
+    if (this.areSubscriptionsSetUp) {
+      return;
+    }
+
+    this.areSubscriptionsSetUp = true;
+
     if (
       deviceIds$ &&
       !isReactNative() &&
@@ -232,6 +243,8 @@ export abstract class InputMediaDeviceManager<
    */
   dispose = () => {
     this.subscriptions.forEach((s) => s());
+    this.subscriptions = [];
+    this.areSubscriptionsSetUp = false;
   };
 
   protected async applySettingsToStream() {

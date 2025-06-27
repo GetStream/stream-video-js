@@ -7,11 +7,22 @@ import { deviceIds$, getAudioOutputDevices } from './devices';
 export class SpeakerManager {
   readonly state: SpeakerState;
   private subscriptions: Subscription[] = [];
+  private areSubscriptionsSetUp = false;
   private readonly call: Call;
 
   constructor(call: Call) {
     this.call = call;
     this.state = new SpeakerState(call.tracer);
+    this.setup();
+  }
+
+  setup() {
+    if (this.areSubscriptionsSetUp) {
+      return;
+    }
+
+    this.areSubscriptionsSetUp = true;
+
     if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
         combineLatest([deviceIds$!, this.state.selectedDevice$]).subscribe(
@@ -71,6 +82,8 @@ export class SpeakerManager {
    */
   dispose = () => {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.subscriptions = [];
+    this.areSubscriptionsSetUp = false;
   };
 
   /**

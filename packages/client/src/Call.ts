@@ -345,6 +345,11 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
+      this.camera.setup();
+      this.microphone.setup();
+      this.screenShare.setup();
+      this.speaker.setup();
+
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
       }
@@ -631,6 +636,7 @@ export class Call {
       this.microphone.dispose();
       this.screenShare.dispose();
       this.speaker.dispose();
+      this.deviceSettingsAppliedOnce = false;
 
       const stopOnLeavePromises: Promise<void>[] = [];
       if (this.camera.stopOnLeave) {
