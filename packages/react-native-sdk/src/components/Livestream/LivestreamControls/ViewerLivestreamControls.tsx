@@ -18,7 +18,6 @@ import {
   LiveIndicator,
 } from '../LivestreamTopView';
 import { IconWrapper, Maximize } from '../../../icons';
-import InCallManager from 'react-native-incall-manager';
 import {
   VolumeOff,
   VolumeOn,
@@ -105,7 +104,6 @@ export const ViewerLivestreamControls = ({
 
   const toggleAudio = () => {
     setIsMuted(!isMuted);
-    InCallManager.setForceSpeakerphoneOn(isMuted);
   };
 
   const togglePlayPause = () => {
