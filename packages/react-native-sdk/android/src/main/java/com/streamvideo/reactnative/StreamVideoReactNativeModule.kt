@@ -16,7 +16,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.oney.WebRTCModule.WebRTCModule
-import com.streamvideo.reactnative.audio.AudioDeviceListener
+import com.streamvideo.reactnative.callmanager.InCallManagerModule
+import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
@@ -32,6 +33,7 @@ import java.io.ByteArrayOutputStream
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
+        var inCallManagerModule: InCallManagerModule = InCallManagerModule(reactContext)
 
     override fun getName(): String {
         return NAME
@@ -39,7 +41,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
-    private val audioDeviceListener = AudioDeviceListener(reactContext)
+    private val audioDeviceManager = AudioDeviceManager(reactContext)
 
     override fun initialize() {
         super.initialize()
@@ -51,7 +53,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         reactApplicationContext.registerReceiver(powerReceiver, filter)
 
-        val devices = audioDeviceListener.getCurrentDeviceEndpoints()
+        val devices = audioDeviceManager.getCurrentDeviceEndpoints()
 
         devices.forEach {
             Log.d(NAME, "$it")
@@ -111,7 +113,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     // This method was removed upstream in react-native 0.74+, replaced with invalidate
     // We will leave this stub here for older react-native versions compatibility
     // ...but it will just delegate to the new invalidate method
-    @Deprecated("Deprecated in Java")
+    @Deprecated("Deprecated in Java", ReplaceWith("invalidate()"))
     @Suppress("removal")
     override fun onCatalystInstanceDestroy() {
         invalidate()

@@ -20,16 +20,27 @@ import android.content.Context
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
+import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil.Companion.getAvailableAudioDevices
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.audio.utils.LazyMutable
 import android.util.Log
+import androidx.annotation.DoNotInline
+import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.ReactApplicationContext
+import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
+import com.streamvideo.reactnative.callmanager.AppRTCBluetoothManager
+
+interface OnAudioDeviceChangedListener {
+    fun onAudioDevicesChanged(): Unit
+}
 
 
-internal class AudioDeviceListener(
+internal class AudioDeviceManager(
     private val mReactContext: ReactApplicationContext,
+    private val mOnAudioDeviceChangedListener: OnAudioDeviceChangedListener
 ) : AutoCloseable, AudioDeviceCallback() {
 
     private var mCurrentDeviceEndpoints: MutableList<AudioDeviceEndpoint> by LazyMutable {
@@ -49,14 +60,115 @@ internal class AudioDeviceListener(
     }
 
     // earpiece, speaker, unknown, wired_headset
-    private val mNonBluetoothEndpoints: HashMap<Int, AudioDeviceEndpoint> = HashMap()
+    private val mNonBluetoothEndpoints: HashMap<@EndpointType Int, AudioDeviceEndpoint> = HashMap()
     // all bt endpoints
     private val mBluetoothEndpoints: HashMap<String, AudioDeviceEndpoint> = HashMap()
 
     private val mAudioManager = mReactContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
+    fun setSpeakerphoneOn(enable: Boolean, appRTCBluetoothManager: AppRTCBluetoothManager) {
+        if (enable) {
+            switchDeviceEndpointType(AudioDeviceEndpoint.TYPE_SPEAKER, appRTCBluetoothManager)
+        } else {
+            mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            if (Build.VERSION.SDK_INT >= 31) {
+                AudioManager31PlusImpl.setSpeakerphoneOn(false, mAudioManager, mCurrentDeviceEndpoints)
+            } else {
+                AudioManager23PlusImpl.setSpeakerphoneOn(false, mAudioManager)
+            }
+        }
+    }
+
+    fun switchDeviceEndpointType(@EndpointType deviceType: Int, appRTCBluetoothManager: AppRTCBluetoothManager) {
+        mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+        when (deviceType) {
+            AudioDeviceEndpoint.TYPE_BLUETOOTH -> {
+                appRTCBluetoothManager.startScoAudio()
+                if (Build.VERSION.SDK_INT < 31) {
+                    AudioManager23PlusImpl.setSpeakerphoneOn(false, mAudioManager)
+                }
+            }
+            AudioDeviceEndpoint.TYPE_WIRED_HEADSET, AudioDeviceEndpoint.TYPE_EARPIECE -> {
+                // NOTE: If wired headset is present, earpiece is always omitted even if chosen
+                appRTCBluetoothManager.stopScoAudio()
+                if (Build.VERSION.SDK_INT >= 31) {
+                    mCurrentDeviceEndpoints.firstOrNull {
+                        it.isWiredHeadsetType() || it.isEarpieceType()
+                    }?.let {
+                        mAudioManager.setCommunicationDevice(it.deviceInfo)
+                    }
+                } else {
+                    AudioManager23PlusImpl.setSpeakerphoneOn(false, mAudioManager)
+                }
+            }
+            AudioDeviceEndpoint.TYPE_SPEAKER -> {
+                appRTCBluetoothManager.stopScoAudio()
+                if (Build.VERSION.SDK_INT >= 31) {
+                    AudioManager31PlusImpl.setSpeakerphoneOn(true, mAudioManager, mCurrentDeviceEndpoints)
+                } else {
+                    AudioManager23PlusImpl.setSpeakerphoneOn(true, mAudioManager)
+                }
+            }
+            AudioDeviceEndpoint.TYPE_UNKNOWN -> {
+                Log.e(TAG, "switchDeviceEndpointType(): unknown device type requested")
+            }
+
+        }
+    }
+
+    fun switchDeviceFromDeviceName(deviceName: String, appRTCBluetoothManager: AppRTCBluetoothManager): @EndpointType Int {
+        if (mBluetoothEndpoints.containsKey(deviceName)) {
+            switchDeviceEndpointType(AudioDeviceEndpoint.TYPE_BLUETOOTH, appRTCBluetoothManager)
+            return AudioDeviceEndpoint.TYPE_BLUETOOTH
+        } else {
+            val endpointType = AudioDeviceEndpointUtils.endpointStringToType(deviceName)
+            switchDeviceEndpointType(endpointType, appRTCBluetoothManager)
+            return endpointType
+        }
+    }
+
+    fun onCallManagerStop() {
+        if (Build.VERSION.SDK_INT >= 31) {
+            mAudioManager.clearCommunicationDevice()
+        } else {
+            AudioManager23PlusImpl.setSpeakerphoneOn(false, mAudioManager)
+        }
+    }
+
+    fun hasWiredHeadset(): Boolean {
+        return mNonBluetoothEndpoints.containsKey(AudioDeviceEndpoint.TYPE_WIRED_HEADSET)
+    }
+
     override fun close() {
         mAudioManager.unregisterAudioDeviceCallback(this)
+    }
+
+    @RequiresApi(31)
+    private object AudioManager31PlusImpl {
+        @JvmStatic
+        @DoNotInline
+        fun setSpeakerphoneOn(enable: Boolean, audioManager: AudioManager, availableDevices: List<AudioDeviceEndpoint>){
+            if (AudioManagerUtil.isSpeakerphoneOn(audioManager) != enable) {
+                if (enable) {
+                    availableDevices.firstOrNull {
+                        it.isSpeakerType()
+                    }?.let {
+                        audioManager.setCommunicationDevice(it.deviceInfo)
+                    }
+                } else {
+                    audioManager.clearCommunicationDevice()
+                }
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private object AudioManager23PlusImpl {
+        @JvmStatic
+        @DoNotInline
+        fun setSpeakerphoneOn(enable: Boolean, audioManager: AudioManager) {
+            audioManager.isSpeakerphoneOn = enable
+        }
     }
 
     override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
@@ -104,7 +216,7 @@ internal class AudioDeviceListener(
     }
 
     private fun updateEvent() {
-        // TODO, inform RN by event listener
+        mOnAudioDeviceChangedListener.onAudioDevicesChanged()
     }
 
     private fun maybeAddCallEndpoint(endpoint: AudioDeviceEndpoint): Int {
@@ -141,6 +253,6 @@ internal class AudioDeviceListener(
     }
 
     companion object {
-        private val TAG: String = AudioDeviceListener::class.java.simpleName.toString()
+        private val TAG: String = AudioDeviceManager::class.java.simpleName.toString()
     }
 }

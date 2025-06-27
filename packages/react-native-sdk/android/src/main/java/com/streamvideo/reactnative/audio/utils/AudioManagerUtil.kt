@@ -21,6 +21,7 @@ import android.media.AudioManager
 import android.os.Build
 import androidx.annotation.DoNotInline
 import androidx.annotation.RequiresApi
+import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 
 
 internal class AudioManagerUtil {
@@ -32,6 +33,14 @@ internal class AudioManagerUtil {
                 AudioManager23PlusImpl.getDevices(audioManager)
             }
         }
+
+        fun isSpeakerphoneOn(audioManager: AudioManager): Boolean {
+            return if (Build.VERSION.SDK_INT >= 31) {
+                AudioManager31PlusImpl.isSpeakerphoneOn(audioManager)
+            } else {
+                AudioManager23PlusImpl.isSpeakerphoneOn(audioManager)
+            }
+        }
     }
 
     @RequiresApi(31)
@@ -41,13 +50,27 @@ internal class AudioManagerUtil {
         fun getDevices(audioManager: AudioManager): List<AudioDeviceInfo> {
             return audioManager.availableCommunicationDevices
         }
+
+        @JvmStatic
+        @DoNotInline
+        fun isSpeakerphoneOn(audioManager: AudioManager): Boolean {
+            val endpoint = AudioDeviceEndpointUtils.remapAudioDeviceTypeToCallEndpointType(audioManager.communicationDevice?.type ?: AudioDeviceInfo.TYPE_UNKNOWN)
+            return endpoint == AudioDeviceEndpoint.TYPE_SPEAKER
+        }
     }
 
+    @Suppress("DEPRECATION")
     object AudioManager23PlusImpl {
         @JvmStatic
         @DoNotInline
         fun getDevices(audioManager: AudioManager): List<AudioDeviceInfo> {
             return audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).toList()
+        }
+
+        @JvmStatic
+        @DoNotInline
+        fun isSpeakerphoneOn(audioManager: AudioManager): Boolean {
+            return audioManager.isSpeakerphoneOn
         }
     }
 }

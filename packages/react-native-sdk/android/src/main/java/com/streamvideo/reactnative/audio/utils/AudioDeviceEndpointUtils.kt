@@ -25,9 +25,16 @@ internal class AudioDeviceEndpointUtils {
 
     companion object {
         const val BLUETOOTH_DEVICE_DEFAULT_NAME = "Bluetooth Device"
+        const val EARPIECE = "EARPIECE"
+        const val SPEAKER = "SPEAKER"
+        const val WIRED_HEADSET = "WIRED_HEADSET"
+        const val UNKNOWN = "UNKNOWN"
+
         private val TAG: String = AudioDeviceEndpointUtils::class.java.simpleName.toString()
 
-
+        /** Gets the endpoints from AudioDeviceInfos.
+         * IMPORTANT: eliminates Earpiece if Headset is found
+         * */
         fun getEndpointsFromAudioDeviceInfo(
             adiArr: List<AudioDeviceInfo>?,
         ): List<AudioDeviceEndpoint> {
@@ -65,31 +72,31 @@ internal class AudioDeviceEndpointUtils {
         private fun getEndpointFromAudioDeviceInfo(
             adi: AudioDeviceInfo,
         ): AudioDeviceEndpoint {
-            val endpointName = remapAudioDeviceNameToEndpointName(adi)
+            val endpointDeviceName = remapAudioDeviceNameToEndpointDeviceName(adi)
             val endpointType = remapAudioDeviceTypeToCallEndpointType(adi.type)
             val newEndpoint =
                 AudioDeviceEndpoint(
-                    endpointName,
+                    endpointDeviceName,
                     endpointType,
                     adi,
                 )
             return newEndpoint
         }
 
-        private fun remapAudioDeviceNameToEndpointName(
+        internal fun remapAudioDeviceNameToEndpointDeviceName(
             audioDeviceInfo: AudioDeviceInfo,
         ): String {
             return when (audioDeviceInfo.type) {
                 AudioDeviceInfo.TYPE_BUILTIN_EARPIECE ->
-                    "EARPIECE"
+                    EARPIECE
                 AudioDeviceInfo.TYPE_BUILTIN_SPEAKER ->
-                    "SPEAKER"
+                    SPEAKER
                 AudioDeviceInfo.TYPE_WIRED_HEADSET,
                 AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
                 AudioDeviceInfo.TYPE_USB_DEVICE,
                 AudioDeviceInfo.TYPE_USB_ACCESSORY,
                 AudioDeviceInfo.TYPE_USB_HEADSET ->
-                    "WIRED_HEADSET"
+                    WIRED_HEADSET
                 else -> audioDeviceInfo.productName.toString()
             }
         }
@@ -162,13 +169,25 @@ internal class AudioDeviceEndpointUtils {
             return type == AudioDeviceEndpoint.TYPE_BLUETOOTH
         }
 
-        fun endpointTypeToString(endpointType: Int): String {
+        fun endpointTypeToString(@EndpointType endpointType: Int): String {
             return when (endpointType) {
-                AudioDeviceEndpoint.TYPE_EARPIECE -> "EARPIECE"
+                AudioDeviceEndpoint.TYPE_EARPIECE -> EARPIECE
                 AudioDeviceEndpoint.TYPE_BLUETOOTH -> BLUETOOTH_DEVICE_DEFAULT_NAME
-                AudioDeviceEndpoint.TYPE_WIRED_HEADSET -> "WIRED_HEADSET"
-                AudioDeviceEndpoint.TYPE_SPEAKER -> "SPEAKER"
+                AudioDeviceEndpoint.TYPE_WIRED_HEADSET -> WIRED_HEADSET
+                AudioDeviceEndpoint.TYPE_SPEAKER -> SPEAKER
+                AudioDeviceEndpoint.TYPE_UNKNOWN -> UNKNOWN
                 else -> "UNKNOWN ($endpointType)"
+            }
+        }
+
+        fun endpointStringToType(endpointName: String): Int {
+            return when (endpointName) {
+                EARPIECE -> AudioDeviceEndpoint.TYPE_EARPIECE
+                BLUETOOTH_DEVICE_DEFAULT_NAME -> AudioDeviceEndpoint.TYPE_BLUETOOTH
+                "BLUETOOTH" -> AudioDeviceEndpoint.TYPE_BLUETOOTH
+                WIRED_HEADSET -> AudioDeviceEndpoint.TYPE_WIRED_HEADSET
+                SPEAKER -> AudioDeviceEndpoint.TYPE_SPEAKER
+                else -> AudioDeviceEndpoint.TYPE_UNKNOWN
             }
         }
     }

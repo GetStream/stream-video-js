@@ -22,7 +22,12 @@ import androidx.annotation.RestrictTo
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import java.util.Objects
 
-
+/**
+ * Represents a single audio device endpoint.
+ * @param name The name of the device. Bluetooth devices have their proper names, everything else their endpoint name. See [AudioDeviceEndpointUtils.remapAudioDeviceNameToEndpointDeviceName]
+ * @param type The type of endpoint.
+ * @param deviceInfo The [AudioDeviceInfo] associated with the endpoint.
+ */
 public class AudioDeviceEndpoint(
     public val name: String,
     @EndpointType public val type: Int,
@@ -105,6 +110,18 @@ public class AudioDeviceEndpoint(
 
     internal fun isBluetoothType(): Boolean {
         return type == TYPE_BLUETOOTH
+    }
+
+    internal fun isSpeakerType(): Boolean {
+        return type == TYPE_SPEAKER
+    }
+
+    internal fun isWiredHeadsetType(): Boolean {
+        return type == TYPE_WIRED_HEADSET
+    }
+
+    internal fun isEarpieceType(): Boolean {
+        return type == TYPE_EARPIECE
     }
 
     private fun getTypeRank(): Int {
