@@ -3,8 +3,13 @@ import {
   InputMediaDeviceManagerState,
   TrackDisableMode,
 } from './InputMediaDeviceManagerState';
-import { getAudioBrowserPermission } from './devices';
+import {
+  getAudioBrowserPermission,
+  getAudioDevices,
+  resolveDeviceId,
+} from './devices';
 import { RxUtils } from '../store';
+import { getCurrentValue } from '../store/rxUtils';
 
 export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
@@ -42,6 +47,10 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
 
   protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
     const [track] = stream.getAudioTracks();
-    return track?.getSettings().deviceId;
+    const unresolvedDeviceId = track?.getSettings().deviceId;
+    return resolveDeviceId(
+      unresolvedDeviceId,
+      getCurrentValue(getAudioDevices()),
+    );
   }
 }

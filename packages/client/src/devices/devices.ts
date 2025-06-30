@@ -386,3 +386,24 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
     stream.release();
   }
 };
+
+/**
+ * Resolves `default` device id into the real device id. Some browsers (notably,
+ * Chromium-based) report device with id `default` among audio input and output
+ * devices. Since not every browser does that, we never want `default` id to be
+ * used within our SDK. This function tries to find the real id for the `default`
+ * device.
+ */
+export function resolveDeviceId(
+  deviceId: string | undefined,
+  devices: MediaDeviceInfo[],
+): string | undefined {
+  if (deviceId !== 'default') return deviceId;
+  const defaultDeviceInfo = devices.find((d) => d.deviceId === deviceId);
+  if (!defaultDeviceInfo) return deviceId;
+  const groupId = defaultDeviceInfo.groupId;
+  const candidates = devices.filter(
+    (d) => d.deviceId !== 'default' && d.groupId === groupId,
+  );
+  return candidates.length === 1 ? candidates[0].deviceId : deviceId;
+}
