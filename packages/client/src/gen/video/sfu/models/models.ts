@@ -820,6 +820,10 @@ export enum ErrorCode {
    */
   CALL_NOT_FOUND = 300,
   /**
+   * @generated from protobuf enum value: ERROR_CODE_CALL_PARTICIPANT_LIMIT_REACHED = 301;
+   */
+  CALL_PARTICIPANT_LIMIT_REACHED = 301,
+  /**
    * @generated from protobuf enum value: ERROR_CODE_REQUEST_VALIDATION_FAILED = 400;
    */
   REQUEST_VALIDATION_FAILED = 400,

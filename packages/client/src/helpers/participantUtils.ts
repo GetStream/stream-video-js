@@ -1,4 +1,4 @@
-import { StreamVideoParticipant } from '../types';
+import { StreamVideoParticipant, VideoTrackType } from '../types';
 import { TrackType } from '../gen/video/sfu/models/models';
 
 /**
@@ -40,3 +40,25 @@ export const hasScreenShareAudio = (p: StreamVideoParticipant): boolean =>
  */
 export const isPinned = (p: StreamVideoParticipant): boolean =>
   !!p.pin && (p.pin.isLocalPin || p.pin.pinnedAt > 0);
+
+/**
+ * Check if a participant has a paused track of the specified type.
+ *
+ * @param p the participant to check.
+ * @param videoTrackType the type of video track to check for ('videoTrack' or 'screenShareTrack').
+ */
+export const hasPausedTrack = (
+  p: StreamVideoParticipant,
+  videoTrackType: VideoTrackType,
+): boolean => {
+  if (!p.pausedTracks) return false;
+  const trackType =
+    videoTrackType === 'videoTrack'
+      ? TrackType.VIDEO
+      : videoTrackType === 'screenShareTrack'
+        ? TrackType.SCREEN_SHARE
+        : undefined;
+
+  if (!trackType) return false;
+  return p.pausedTracks.includes(trackType);
+};

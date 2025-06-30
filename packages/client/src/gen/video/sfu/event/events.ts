@@ -256,6 +256,15 @@ export interface SfuEvent {
         changePublishOptions: ChangePublishOptions;
       }
     | {
+        oneofKind: 'inboundStateNotification';
+        /**
+         * InboundStateNotification
+         *
+         * @generated from protobuf field: stream.video.sfu.event.InboundStateNotification inbound_state_notification = 28;
+         */
+        inboundStateNotification: InboundStateNotification;
+      }
+    | {
         oneofKind: undefined;
       };
 }
@@ -875,6 +884,36 @@ export interface CallEnded {
    */
   reason: CallEndedReason;
 }
+/**
+ * @generated from protobuf message stream.video.sfu.event.InboundStateNotification
+ */
+export interface InboundStateNotification {
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.event.InboundVideoState inbound_video_states = 1;
+   */
+  inboundVideoStates: InboundVideoState[];
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.InboundVideoState
+ */
+export interface InboundVideoState {
+  /**
+   * @generated from protobuf field: string user_id = 1;
+   */
+  userId: string;
+  /**
+   * @generated from protobuf field: string session_id = 2;
+   */
+  sessionId: string;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 3;
+   */
+  trackType: TrackType;
+  /**
+   * @generated from protobuf field: bool paused = 4;
+   */
+  paused: boolean;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class SfuEvent$Type extends MessageType<SfuEvent> {
   constructor() {
@@ -1032,6 +1071,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         kind: 'message',
         oneof: 'eventPayload',
         T: () => ChangePublishOptions,
+      },
+      {
+        no: 28,
+        name: 'inbound_state_notification',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => InboundStateNotification,
       },
     ]);
   }
@@ -1787,3 +1833,45 @@ class CallEnded$Type extends MessageType<CallEnded> {
  * @generated MessageType for protobuf message stream.video.sfu.event.CallEnded
  */
 export const CallEnded = new CallEnded$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InboundStateNotification$Type extends MessageType<InboundStateNotification> {
+  constructor() {
+    super('stream.video.sfu.event.InboundStateNotification', [
+      {
+        no: 1,
+        name: 'inbound_video_states',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => InboundVideoState,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.InboundStateNotification
+ */
+export const InboundStateNotification = new InboundStateNotification$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InboundVideoState$Type extends MessageType<InboundVideoState> {
+  constructor() {
+    super('stream.video.sfu.event.InboundVideoState', [
+      { no: 1, name: 'user_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'track_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
+      },
+      { no: 4, name: 'paused', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.InboundVideoState
+ */
+export const InboundVideoState = new InboundVideoState$Type();

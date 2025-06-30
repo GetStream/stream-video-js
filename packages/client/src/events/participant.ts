@@ -110,6 +110,7 @@ export const watchTrackUnpublished = (state: CallState) => {
     } else {
       state.updateParticipant(sessionId, (p) => ({
         publishedTracks: p.publishedTracks.filter((t) => t !== type),
+        pausedTracks: p.pausedTracks?.filter((t) => t !== type),
       }));
     }
   };

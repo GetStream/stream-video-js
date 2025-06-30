@@ -78,6 +78,12 @@ $scope-name: 'str-video__participant-view';
         -webkit-mask-image: var(--str-video__icon--camera-off);
       }
 
+      .str-video__participant-details__name--track-paused {
+        @include icon();
+        mask-image: var(--str-video__icon--low-bandwidth);
+        -webkit-mask-image: var(--str-video__icon--low-bandwidth);
+      }
+
       .str-video__participant-details__name--pinned {
         cursor: pointer;
         @include icon();
