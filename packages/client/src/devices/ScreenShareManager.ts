@@ -13,9 +13,12 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 > {
   constructor(call: Call) {
     super(call, new ScreenShareState(), TrackType.SCREEN_SHARE);
+  }
 
+  override setup(): void {
+    super.setup();
     this.subscriptions.push(
-      createSubscription(call.state.settings$, (settings) => {
+      createSubscription(this.call.state.settings$, (settings) => {
         const maybeTargetResolution = settings?.screensharing.target_resolution;
 
         if (maybeTargetResolution) {
@@ -89,7 +92,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return stream;
   }
 
-  protected async stopPublishStream(): Promise<void> {
+  protected override async stopPublishStream(): Promise<void> {
     return this.call.stopPublish(
       TrackType.SCREEN_SHARE,
       TrackType.SCREEN_SHARE_AUDIO,
@@ -99,7 +102,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
   /**
    * Overrides the default `select` method to throw an error.
    */
-  async select(): Promise<void> {
+  override async select(): Promise<void> {
     throw new Error('Not supported');
   }
 }
