@@ -13,6 +13,7 @@ import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
+import { getCurrentValue } from '../store/rxUtils';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -396,14 +397,16 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
  */
 export function resolveDeviceId(
   deviceId: string | undefined,
-  devices: MediaDeviceInfo[],
+  kind: MediaDeviceKind,
 ): string | undefined {
   if (deviceId !== 'default') return deviceId;
+  const devices = deviceIds$ && getCurrentValue(deviceIds$);
+  if (!devices) return deviceId;
   const defaultDeviceInfo = devices.find((d) => d.deviceId === deviceId);
   if (!defaultDeviceInfo) return deviceId;
   const groupId = defaultDeviceInfo.groupId;
   const candidates = devices.filter(
-    (d) => d.deviceId !== 'default' && d.groupId === groupId,
+    (d) => d.kind === kind && d.deviceId !== 'default' && d.groupId === groupId,
   );
   return candidates.length === 1 ? candidates[0].deviceId : deviceId;
 }
