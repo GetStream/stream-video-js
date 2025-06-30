@@ -13,6 +13,7 @@ import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
+import { getCurrentValue } from '../store/rxUtils';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -386,3 +387,26 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
     stream.release();
   }
 };
+
+/**
+ * Resolves `default` device id into the real device id. Some browsers (notably,
+ * Chromium-based) report device with id `default` among audio input and output
+ * devices. Since not every browser does that, we never want `default` id to be
+ * used within our SDK. This function tries to find the real id for the `default`
+ * device.
+ */
+export function resolveDeviceId(
+  deviceId: string | undefined,
+  kind: MediaDeviceKind,
+): string | undefined {
+  if (deviceId !== 'default') return deviceId;
+  const devices = deviceIds$ && getCurrentValue(deviceIds$);
+  if (!devices) return deviceId;
+  const defaultDeviceInfo = devices.find((d) => d.deviceId === deviceId);
+  if (!defaultDeviceInfo) return deviceId;
+  const groupId = defaultDeviceInfo.groupId;
+  const candidates = devices.filter(
+    (d) => d.kind === kind && d.deviceId !== 'default' && d.groupId === groupId,
+  );
+  return candidates.length === 1 ? candidates[0].deviceId : deviceId;
+}
