@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.0...@stream-io/video-client-1.25.1) (2025-06-30)
+
+### Bug Fixes
+
+- correctly setup and dispose device managers ([#1836](https://github.com/GetStream/stream-video-js/issues/1836)) ([92fbe6c](https://github.com/GetStream/stream-video-js/commit/92fbe6c1da3bf06847244f430652bdc9433533bf))
+
 ## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.24.0...@stream-io/video-client-1.25.0) (2025-06-20)
 
 - upgrade stream deps and improve API error code logging ([#1827](https://github.com/GetStream/stream-video-js/issues/1827)) ([8c30fef](https://github.com/GetStream/stream-video-js/commit/8c30fef80d78055f5adeae02f7347c1c3fe49b72)), closes [#1826](https://github.com/GetStream/stream-video-js/issues/1826)
