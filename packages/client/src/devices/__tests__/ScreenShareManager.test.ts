@@ -16,6 +16,7 @@ vi.mock('../devices.ts', () => {
     getScreenShareStream: vi.fn(() => Promise.resolve(mockScreenShareStream())),
     checkIfAudioOutputChangeSupported: vi.fn(() => Promise.resolve(true)),
     deviceIds$: () => mockDeviceIds$(),
+    resolveDeviceId: (deviceId) => deviceId,
   };
 });
 

@@ -33,6 +33,7 @@ vi.mock('../devices.ts', () => {
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
     deviceIds$: {},
+    resolveDeviceId: (deviceId) => deviceId,
   };
 });
 
