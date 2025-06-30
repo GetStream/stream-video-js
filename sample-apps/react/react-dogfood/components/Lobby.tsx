@@ -129,8 +129,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                       }
                     />
                     <div className="rd__lobby-media-toggle">
-                      <ToggleAudioPreviewButton />
-                      {/* @ts-expect-error disable Menu */}
+                      <ToggleAudioPreviewButton Menu={null} />
                       <ToggleVideoPreviewButton Menu={null} />
                     </div>
                   </div>
