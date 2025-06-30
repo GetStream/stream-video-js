@@ -33,7 +33,6 @@ import java.io.ByteArrayOutputStream
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
-        var inCallManagerModule: InCallManagerModule = InCallManagerModule(reactContext)
 
     override fun getName(): String {
         return NAME
@@ -41,7 +40,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
-    private val audioDeviceManager = AudioDeviceManager(reactContext)
 
     override fun initialize() {
         super.initialize()
@@ -52,12 +50,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
         val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         reactApplicationContext.registerReceiver(powerReceiver, filter)
-
-        val devices = audioDeviceManager.getCurrentDeviceEndpoints()
-
-        devices.forEach {
-            Log.d(NAME, "$it")
-        }
     }
 
 
