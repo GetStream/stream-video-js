@@ -25,10 +25,10 @@ internal class AudioDeviceEndpointUtils {
 
     companion object {
         const val BLUETOOTH_DEVICE_DEFAULT_NAME = "Bluetooth Device"
-        const val EARPIECE = "EARPIECE"
-        const val SPEAKER = "SPEAKER"
-        const val WIRED_HEADSET = "WIRED_HEADSET"
-        const val UNKNOWN = "UNKNOWN"
+        const val EARPIECE = "Earpiece"
+        const val SPEAKER = "Speaker"
+        const val WIRED_HEADSET = "Wired Headset"
+        const val UNKNOWN = "Unknown"
 
         private val TAG: String = AudioDeviceEndpointUtils::class.java.simpleName.toString()
 
@@ -175,18 +175,16 @@ internal class AudioDeviceEndpointUtils {
                 AudioDeviceEndpoint.TYPE_BLUETOOTH -> BLUETOOTH_DEVICE_DEFAULT_NAME
                 AudioDeviceEndpoint.TYPE_WIRED_HEADSET -> WIRED_HEADSET
                 AudioDeviceEndpoint.TYPE_SPEAKER -> SPEAKER
-                AudioDeviceEndpoint.TYPE_UNKNOWN -> UNKNOWN
-                else -> "UNKNOWN ($endpointType)"
+                else -> UNKNOWN
             }
         }
 
         fun endpointStringToType(endpointName: String): Int {
             return when (endpointName) {
                 EARPIECE -> AudioDeviceEndpoint.TYPE_EARPIECE
-                BLUETOOTH_DEVICE_DEFAULT_NAME -> AudioDeviceEndpoint.TYPE_BLUETOOTH
-                "BLUETOOTH" -> AudioDeviceEndpoint.TYPE_BLUETOOTH
                 WIRED_HEADSET -> AudioDeviceEndpoint.TYPE_WIRED_HEADSET
                 SPEAKER -> AudioDeviceEndpoint.TYPE_SPEAKER
+                BLUETOOTH_DEVICE_DEFAULT_NAME -> AudioDeviceEndpoint.TYPE_BLUETOOTH
                 else -> AudioDeviceEndpoint.TYPE_UNKNOWN
             }
         }

@@ -33,6 +33,7 @@ import Screenshot from '../../assets/Screenshot';
 import Hearing from '../../assets/Hearing';
 import { AudioOutput } from '../../assets/AudioOutput';
 import { View, Alert, StyleSheet } from 'react-native';
+import { AndroidAudioRoutePickerDrawer } from '../AndroidAudioRoutePickerDrawer';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -62,6 +63,10 @@ export const MoreActionsButton = ({
     setEnabled: setNoiseCancellationEnabled,
   } = useNoiseCancellation();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [
+    isAndroidAudioRoutePickerDrawerVisible,
+    setIsAndroidAudioRoutePickerDrawerVisible,
+  ] = useState(false);
   const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [screenshotModalVisible, setScreenshotModalVisible] = useState(false);
@@ -125,6 +130,10 @@ export const MoreActionsButton = ({
   const showAudioRoutePicker = async () => {
     if (Platform.OS === 'ios') {
       NativeModules.StreamVideoReactNative.showAudioRoutePicker();
+    } else {
+      setIsDrawerVisible(false);
+      // androidAudioRoutePickerRef.current?.open();
+      setIsAndroidAudioRoutePickerDrawerVisible(true);
     }
   };
 
@@ -299,6 +308,12 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
+      <AndroidAudioRoutePickerDrawer
+        isVisible={isAndroidAudioRoutePickerDrawerVisible}
+        onClose={() => {
+          setIsAndroidAudioRoutePickerDrawerVisible(false);
+        }}
+      />
       <BottomControlsDrawer
         isVisible={isDrawerVisible}
         onClose={() => {

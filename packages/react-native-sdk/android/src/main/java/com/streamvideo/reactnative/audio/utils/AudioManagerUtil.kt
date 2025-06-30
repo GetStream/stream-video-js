@@ -19,13 +19,20 @@ package com.streamvideo.reactnative.audio.utils
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.DoNotInline
 import androidx.annotation.RequiresApi
+import com.streamvideo.reactnative.audio.EndpointMaps
+import com.streamvideo.reactnative.callmanager.AppRTCBluetoothManager
+import com.streamvideo.reactnative.callmanager.InCallManagerModule
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
+import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
 
 
 internal class AudioManagerUtil {
     companion object {
+        private val TAG: String = InCallManagerModule.TAG + ":" + AudioManagerUtil::class.java.simpleName.toString()
+
         fun getAvailableAudioDevices(audioManager: AudioManager): List<AudioDeviceInfo> {
             return if (Build.VERSION.SDK_INT >= 31) {
                 AudioManager31PlusImpl.getDevices(audioManager)
@@ -39,6 +46,29 @@ internal class AudioManagerUtil {
                 AudioManager31PlusImpl.isSpeakerphoneOn(audioManager)
             } else {
                 AudioManager23PlusImpl.isSpeakerphoneOn(audioManager)
+            }
+        }
+
+        fun setSpeakerphoneOn(enable: Boolean, audioManager: AudioManager, speakerDeviceOrNull: AudioDeviceEndpoint?) {
+            if (Build.VERSION.SDK_INT >= 31) {
+                AudioManager31PlusImpl.setSpeakerphoneOn(enable, audioManager, speakerDeviceOrNull)
+            } else {
+                AudioManager23PlusImpl.setSpeakerphoneOn(enable, audioManager)
+            }
+        }
+
+        /**
+         * Switch the device endpoint type.
+         * @return true if the device endpoint type is successfully switched.
+         */
+        fun switchDeviceEndpointType(@EndpointType deviceType: Int,
+                                     endpointMaps: EndpointMaps,
+                                     audioManager: AudioManager,
+                                     appRTCBluetoothManager: AppRTCBluetoothManager): AudioDeviceEndpoint? {
+            return if (Build.VERSION.SDK_INT >= 31) {
+                AudioManager31PlusImpl.switchDeviceEndpointType(deviceType, endpointMaps, audioManager, appRTCBluetoothManager)
+            } else {
+                AudioManager23PlusImpl.switchDeviceEndpointType(deviceType, endpointMaps, audioManager, appRTCBluetoothManager)
             }
         }
     }
@@ -57,6 +87,64 @@ internal class AudioManagerUtil {
             val endpoint = AudioDeviceEndpointUtils.remapAudioDeviceTypeToCallEndpointType(audioManager.communicationDevice?.type ?: AudioDeviceInfo.TYPE_UNKNOWN)
             return endpoint == AudioDeviceEndpoint.TYPE_SPEAKER
         }
+
+        @JvmStatic
+        @DoNotInline
+        fun setSpeakerphoneOn(enable: Boolean, audioManager: AudioManager, speakerDeviceOrNull: AudioDeviceEndpoint?){
+            if (AudioManagerUtil.isSpeakerphoneOn(audioManager) != enable) {
+                if (enable) {
+                    speakerDeviceOrNull?.let {
+                        audioManager.setCommunicationDevice(it.deviceInfo)
+                    }
+                } else {
+                    audioManager.clearCommunicationDevice()
+                }
+            }
+        }
+
+        @JvmStatic
+        @DoNotInline
+        fun switchDeviceEndpointType(@EndpointType deviceType: Int,
+                                     endpointMaps: EndpointMaps,
+                                     audioManager: AudioManager,
+                                     appRTCBluetoothManager: AppRTCBluetoothManager): AudioDeviceEndpoint? {
+            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            when (deviceType) {
+                AudioDeviceEndpoint.TYPE_BLUETOOTH -> {
+                    val didSwitch = appRTCBluetoothManager.startScoAudio()
+                    if (didSwitch) {
+                        return endpointMaps.bluetoothEndpoints[appRTCBluetoothManager.getDeviceName()]
+                    }
+                    return null
+                }
+                AudioDeviceEndpoint.TYPE_WIRED_HEADSET, AudioDeviceEndpoint.TYPE_EARPIECE -> {
+                    endpointMaps.nonBluetoothEndpoints.values.firstOrNull {
+                        it.type == deviceType
+                    }?.let {
+                        audioManager.setCommunicationDevice(it.deviceInfo)
+                        appRTCBluetoothManager.updateDevice()
+                        return endpointMaps.nonBluetoothEndpoints[deviceType]
+                    }
+                    return null
+                }
+                AudioDeviceEndpoint.TYPE_SPEAKER -> {
+                    val speakerDevice = endpointMaps.nonBluetoothEndpoints[AudioDeviceEndpoint.TYPE_SPEAKER]
+                    speakerDevice?.let {
+                        setSpeakerphoneOn(
+                            true,
+                            audioManager,
+                            speakerDevice)
+                        appRTCBluetoothManager.updateDevice()
+                        return speakerDevice
+                    }
+                    return null
+                }
+                else -> {
+                    Log.e(TAG, "switchDeviceEndpointType(): unknown device type requested")
+                    return null
+                }
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -71,6 +159,48 @@ internal class AudioManagerUtil {
         @DoNotInline
         fun isSpeakerphoneOn(audioManager: AudioManager): Boolean {
             return audioManager.isSpeakerphoneOn
+        }
+
+        @JvmStatic
+        @DoNotInline
+        fun setSpeakerphoneOn(enable: Boolean, audioManager: AudioManager) {
+            audioManager.isSpeakerphoneOn = enable
+        }
+
+        @JvmStatic
+        @DoNotInline
+        fun switchDeviceEndpointType(@EndpointType deviceType: Int,
+                                     endpointMaps: EndpointMaps,
+                                     audioManager: AudioManager,
+                                     appRTCBluetoothManager: AppRTCBluetoothManager): AudioDeviceEndpoint? {
+            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            when (deviceType) {
+                AudioDeviceEndpoint.TYPE_BLUETOOTH -> {
+                    setSpeakerphoneOn(false, audioManager)
+                    val didSwitch = appRTCBluetoothManager.startScoAudio()
+                    if (didSwitch) {
+                        // TODO: SCO connection may fail after timeout, how to catch that on older platforms?
+                        return endpointMaps.bluetoothEndpoints[appRTCBluetoothManager.getDeviceName()]
+                    }
+                    return null
+                }
+                AudioDeviceEndpoint.TYPE_WIRED_HEADSET, AudioDeviceEndpoint.TYPE_EARPIECE -> {
+                    // NOTE: If wired headset is present,
+                    // earpiece is always omitted even if chosen
+                    appRTCBluetoothManager.stopScoAudio()
+                    setSpeakerphoneOn(false, audioManager)
+                    return endpointMaps.nonBluetoothEndpoints[deviceType]
+                }
+                AudioDeviceEndpoint.TYPE_SPEAKER -> {
+                    appRTCBluetoothManager.stopScoAudio()
+                    setSpeakerphoneOn(true, audioManager)
+                    return endpointMaps.nonBluetoothEndpoints[AudioDeviceEndpoint.TYPE_SPEAKER]
+                }
+                else -> {
+                    Log.e(TAG, "switchDeviceEndpointType(): unknown device type requested")
+                    return null
+                }
+            }
         }
     }
 }

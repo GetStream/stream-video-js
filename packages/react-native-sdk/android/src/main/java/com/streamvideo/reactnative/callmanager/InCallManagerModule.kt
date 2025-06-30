@@ -24,7 +24,6 @@ import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.media.AudioManager.ACTION_HEADSET_PLUG
 import android.media.AudioManager.OnAudioFocusChangeListener
 import android.media.MediaPlayer
 import android.media.ToneGenerator
@@ -59,6 +58,8 @@ import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
 import java.io.File
 import java.util.Random
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class InCallManagerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext),
@@ -157,8 +158,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     // a wired headset "wins" over speaker phone. It is also possible for a
     // user to explicitly select a device (and overrid any predefined scheme).
     // See |userSelectedAudioDevice| for details.
-    @EndpointType
-    private var selectedAudioDevice: Int? = null
+    private var selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
 
     // Contains the user-selected audio device which overrides the predefined
     // selection scheme.
@@ -179,12 +179,15 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     private val audioDeviceManager = AudioDeviceManager(reactContext, object : OnAudioDeviceChangedListener {
         override fun onAudioDevicesChanged() {
-            updateAudioDeviceState()
+            Log.d(TAG, "onAudioDevicesChanged()")
+            if (audioManagerActivated) {
+                updateAudioDeviceState()
+            }
         }
     })
 
     internal interface MyPlayerInterface {
-        val isPlaying: Boolean
+        fun isPlaying(): Boolean
         fun startPlay(data: Map<String, Any>)
         fun stopPlay()
     }
@@ -211,12 +214,11 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             this
         )
 
-        UiThreadUtil.runOnUiThread {
-            bluetoothManager = AppRTCBluetoothManager(
-                reactContext,
-                this
-            )
-        }
+        bluetoothManager = AppRTCBluetoothManager(
+            reactContext,
+            this
+        )
+        
 
         Log.d(TAG, "InCallManager initialized")
     }
@@ -325,7 +327,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     fun onProximitySensorChangedState(isNear: Boolean) {
-        if (selectedAudioDevice == AudioDeviceEndpoint.TYPE_EARPIECE) {
+        if (selectedAudioDeviceEndpoint?.type == AudioDeviceEndpoint.TYPE_EARPIECE) {
             if (isNear) {
                 turnScreenOff()
             } else {
@@ -421,17 +423,17 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         media = _media
         if (!audioManagerActivated) {
             audioManagerActivated = true
-
+            audioDeviceManager.start()
             Log.d(TAG, "start audioRouteManager")
             wakeLockUtils.acquirePartialWakeLock()
-            if (mRingtone != null && mRingtone!!.isPlaying) {
+            if (mRingtone != null && mRingtone!!.isPlaying()) {
                 Log.d(TAG, "stop ringtone")
                 stopRingtone() // --- use brandnew instance
             }
             storeOriginalAudioSetup()
             requestAudioFocus()
             startEvents()
-            UiThreadUtil.runOnUiThread {
+            runInAudioThread {
                 bluetoothManager!!.start()
             }
             // TODO: even if not acquired focus, we can still play sounds. but need figure out which is better.
@@ -442,7 +444,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             defaultAudioDevice =
                 if (media == "video" || !hasEarpiece()) AudioDeviceEndpoint.TYPE_SPEAKER else AudioDeviceEndpoint.TYPE_EARPIECE
             userSelectedAudioDevice = null
-            selectedAudioDevice = null
+            selectedAudioDeviceEndpoint = null
             // TODO: add quirk workarounds from Jetpack telecom
             updateAudioDeviceState()
 
@@ -468,9 +470,9 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 Log.d(TAG, "stop() InCallManager")
                 stopBusytone()
                 stopEvents()
-                audioDeviceManager.onCallManagerStop()
+                audioDeviceManager.stop()
                 setMicrophoneMute(false)
-                UiThreadUtil.runOnUiThread {
+                runInAudioThread {
                     bluetoothManager!!.stop()
                 }
                 restoreOriginalAudioSetup()
@@ -759,7 +761,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             )
 
             if (mRingback != null) {
-                if (mRingback!!.isPlaying) {
+                if (mRingback!!.isPlaying()) {
                     Log.d(TAG, "startRingback(): is already playing")
                     return
                 }
@@ -828,7 +830,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 "startBusytone(): UriType=$busytoneUriType"
             )
             if (mBusytone != null) {
-                if (mBusytone!!.isPlaying) {
+                if (mBusytone!!.isPlaying()) {
                     Log.d(TAG, "startBusytone(): is already playing")
                     return false
                 }
@@ -895,7 +897,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                         "startRingtone(): UriType=$ringtoneUriType"
                     )
                     if (mRingtone != null) {
-                        if (mRingtone!!.isPlaying) {
+                        if (mRingtone!!.isPlaying()) {
                             Log.d(TAG, "startRingtone(): is already playing")
                             return
                         } else {
@@ -1255,14 +1257,17 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         MyPlayerInterface {
 
         private var toneType = 0
-        override var isPlaying: Boolean = false
-            private set
+        private var playing = false
 
         var customWaitTimeMs: Int = ToneGeneratorConsts.maxWaitTimeMs
         var caller: String? = null
 
         fun setCustomWaitTime(ms: Int) {
             customWaitTimeMs = ms
+        }
+
+        override fun isPlaying(): Boolean {
+            return playing
         }
 
         override fun startPlay(data: Map<String, Any>) {
@@ -1273,10 +1278,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
         override fun stopPlay() {
             synchronized(this) {
-                if (isPlaying) {
+                if (playing) {
                     (this as Object).notify()
                 }
-                isPlaying = false
+                playing = false
             }
         }
 
@@ -1358,8 +1363,8 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
             if (tg != null) {
                 synchronized(this) {
-                    if (!isPlaying) {
-                        isPlaying = true
+                    if (!playing) {
+                        playing = true
 
                         // --- make sure audio routing, or it will be wired when switch suddenly
                         if (caller == "mBusytone") {
@@ -1382,7 +1387,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                         }
                         tg.stopTone()
                     }
-                    isPlaying = false
+                    playing = false
                     tg.release()
                 }
             }
@@ -1398,8 +1403,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     private inner class myMediaPlayer : MediaPlayer(), MyPlayerInterface {
-        override val isPlaying: Boolean
-            get() = super.isPlaying()
+
+        override fun isPlaying(): Boolean {
+            return super.isPlaying()
+        }
 
         override fun stopPlay() {
             stop()
@@ -1433,16 +1440,22 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     // ===== Internal Classes End =====
     @ReactMethod
-    fun chooseAudioDevice(endpointDeviceName: String, promise: Promise) {
-        Log.d(
-            TAG,
-            "RNInCallManager.chooseAudioRoute(): user choose endpointDeviceName = $endpointDeviceName"
-        )
-        val chosenEndpoint = audioDeviceManager.switchDeviceFromDeviceName(endpointDeviceName, bluetoothManager!!)
-        userSelectedAudioDevice = chosenEndpoint
-        selectedAudioDevice = chosenEndpoint
-        updateAudioDeviceState()
-        promise.resolve(audioDeviceStatusMap)
+    fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
+        runInAudioThread {
+            val chosenEndpoint = audioDeviceManager.switchDeviceFromDeviceName(endpointDeviceName, bluetoothManager!!)
+            Log.d(TAG, "chooseAudioRoute(): chosenEndpoint = $chosenEndpoint requested-endpointDeviceName = $endpointDeviceName")
+            if (chosenEndpoint != null) {
+                userSelectedAudioDevice = chosenEndpoint.type
+                selectedAudioDeviceEndpoint = chosenEndpoint
+                updateAudioDeviceState()
+                sendEvent("onAudioDeviceChanged", audioDeviceStatusMap())
+            }
+        }
+    }
+
+    @ReactMethod
+    fun getAudioDeviceStatus(promise: Promise) {
+        promise.resolve(audioDeviceStatusMap())
     }
 
     private fun pause() {
@@ -1538,12 +1551,12 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
      * Updates list of possible audio devices and make new device selection.
      */
     fun updateAudioDeviceState() {
-        UiThreadUtil.runOnUiThread {
-            val audioDevices = audioDeviceManager.getCurrentDeviceEndpoints()
+        runInAudioThread {
+            val audioDevices = this.audioDeviceManager.getCurrentDeviceEndpoints()
             Log.d(
                 TAG, ("updateAudioDeviceState() Device status: "
                         + "available=" + audioDevices + ", "
-                        + "selected=" + endpointTypeDebug(selectedAudioDevice) + ", "
+                        + "selected=" + selectedAudioDeviceEndpoint + ", "
                         + "user selected=" + endpointTypeDebug(userSelectedAudioDevice))
             )
 
@@ -1561,10 +1574,12 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             }
             var deviceSwitched = false
             val userSelectedAudioDevice = this.userSelectedAudioDevice
-            var selectedAudioDevice = this.selectedAudioDevice
             if (userSelectedAudioDevice !== null && userSelectedAudioDevice != AudioDeviceEndpoint.TYPE_UNKNOWN) {
                 newAudioDevice = userSelectedAudioDevice
             }
+            Log.d(
+                TAG, ("Decided newAudioDevice: ${endpointTypeDebug(newAudioDevice)}")
+            )
             /** To be called when BT SCO connection fails
              * Will do the following:
              * 1 - revert user selection if needed
@@ -1572,16 +1587,17 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
              * 3 - change the bt manager to device state from sco connection state
              * */
             fun revertBTSelection() {
+                val selectedAudioDeviceEndpoint = this.selectedAudioDeviceEndpoint
                 // BT connection, so revert user selection if needed
                 if (userSelectedAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH) {
                     this.userSelectedAudioDevice = null
                 }
                 // prev selection was not BT, but new was BT
                 // new can now be WiredHeadset or default if there was no selection before
-                if (selectedAudioDevice != null
-                    && selectedAudioDevice != AudioDeviceEndpoint.TYPE_UNKNOWN
-                    && selectedAudioDevice != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
-                    newAudioDevice = selectedAudioDevice!!
+                if (selectedAudioDeviceEndpoint != null
+                    && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_UNKNOWN
+                    && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
+                    newAudioDevice = selectedAudioDeviceEndpoint.type
                 } else {
                     newAudioDevice = defaultAudioDevice
                     audioDevices.firstOrNull {
@@ -1592,11 +1608,15 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 }
                 // change the bt manager to device state from sco connection state
                 bluetoothManager!!.updateDevice()
+                Log.d(
+                    TAG, ("revertBTSelection newAudioDevice: ${endpointTypeDebug(newAudioDevice)}")
+                )
             }
-            if (selectedAudioDevice == null || newAudioDevice != selectedAudioDevice) {
+            var selectedAudioDeviceEndpoint = this.selectedAudioDeviceEndpoint
+            if (selectedAudioDeviceEndpoint == null || newAudioDevice != selectedAudioDeviceEndpoint.type) {
                 // --- stop bluetooth if prev selection was bluetooth
                 if (
-                    selectedAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH &&
+                    selectedAudioDeviceEndpoint?.type == AudioDeviceEndpoint.TYPE_BLUETOOTH &&
                     (
                             bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTED
                                     || bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTING
@@ -1607,16 +1627,17 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 }
 
                 // --- start bluetooth if new is BT and we have a headset
-                if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH && bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.HEADSET_AVAILABLE) {
-                    // Attempt to start Bluetooth SCO audio (takes a few second to start).
+                if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH
+                    && bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.HEADSET_AVAILABLE) {
+                    // Attempt to start Bluetooth SCO audio (takes a few second to start on older platforms).
                     if (!bluetoothManager!!.startScoAudio()) {
                         revertBTSelection()
                     }
 
                     // already selected BT device
                     if (bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTED) {
-                        selectedAudioDevice = AudioDeviceEndpoint.TYPE_BLUETOOTH
-                        this.selectedAudioDevice = selectedAudioDevice
+                        selectedAudioDeviceEndpoint = audioDeviceManager.getEndpointFromName(bluetoothManager!!.getDeviceName()!!)
+                        this.selectedAudioDeviceEndpoint = selectedAudioDeviceEndpoint
                         deviceSwitched = true
                     } else if (
                         // still connecting (happens on older Android platforms)
@@ -1625,7 +1646,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                         // on older Android platforms
                         // it will call this update function again, once connected or disconnected
                         // so we can skip executing further
-                        return@runOnUiThread
+                        return@runInAudioThread
                     }
                 }
 
@@ -1637,13 +1658,13 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                  * Here we see if it was disconnected then we revert to non-bluetooth selection
                  * */
                 if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH
-                    && selectedAudioDevice != AudioDeviceEndpoint.TYPE_BLUETOOTH
+                    && selectedAudioDeviceEndpoint?.type != AudioDeviceEndpoint.TYPE_BLUETOOTH
                     && bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_DISCONNECTING
                 ) {
                     revertBTSelection()
                 }
 
-                if (newAudioDevice != selectedAudioDevice) {
+                if (newAudioDevice != selectedAudioDeviceEndpoint?.type) {
                     // BT sco would be already connected at this point, so no need to switch again
                     if (newAudioDevice != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
                         audioDeviceManager.switchDeviceEndpointType(newAudioDevice, bluetoothManager!!)
@@ -1652,12 +1673,13 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 }
 
                 if (deviceSwitched) {
+                    this.selectedAudioDeviceEndpoint = audioDeviceManager.getEndpointFromType(newAudioDevice)
                     Log.d(
                         TAG, ("New device status: "
                                 + "available=" + audioDevices + ", "
-                                + "selected=" + newAudioDevice)
+                                + "selected=" + this.selectedAudioDeviceEndpoint)
                     )
-                    sendEvent("onAudioDeviceChanged", audioDeviceStatusMap)
+                    sendEvent("onAudioDeviceChanged", audioDeviceStatusMap())
                 }
                 Log.d(
                     TAG,
@@ -1672,8 +1694,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    private val audioDeviceStatusMap: WritableMap
-        get() {
+    private fun audioDeviceStatusMap(): WritableMap {
             val data = Arguments.createMap()
             var audioDevicesJson = "["
             for (s in audioDeviceManager.getCurrentDeviceEndpoints()) {
@@ -1686,20 +1707,25 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             }
             audioDevicesJson += "]"
 
-            data.putString("availableAudioDeviceList", audioDevicesJson)
+            data.putString("availableAudioDeviceEndpointNamesList", audioDevicesJson)
             data.putString(
-                "selectedAudioDevice",
-                endpointTypeDebug(selectedAudioDevice)
+                "selectedAudioDeviceEndpointType",
+                endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type)
             )
-
+            data.putString("selectedAudioDeviceName", this.selectedAudioDeviceEndpoint?.name)
             return data
         }
 
     companion object {
-        private const val TAG = "InCallManager"
+        const val TAG = "InCallManager"
         private const val SPEAKERPHONE_AUTO = "auto"
         private const val SPEAKERPHONE_TRUE = "true"
         private const val SPEAKERPHONE_FALSE = "false"
+        private val audioThreadExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+
+        fun runInAudioThread(runnable: Runnable) {
+            audioThreadExecutor.execute(runnable)
+        }
 
         object ToneGeneratorConsts {
             val maxWaitTimeMs = 3600000 // 1 hour fairly enough
