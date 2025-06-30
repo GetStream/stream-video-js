@@ -4,8 +4,8 @@ import {
   ComponentProps,
   ComponentType,
   forwardRef,
-  JSX,
   PropsWithChildren,
+  ReactElement,
 } from 'react';
 import { Placement } from '@floating-ui/react';
 
@@ -15,7 +15,7 @@ import { isComponentType } from '../../utilities';
 export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
   PropsWithChildren<{
     active?: boolean;
-    Menu?: ComponentType | JSX.Element;
+    Menu?: ComponentType | ReactElement | null;
     caption?: string;
     className?: string;
     menuPlacement?: Placement;
