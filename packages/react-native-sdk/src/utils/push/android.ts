@@ -279,7 +279,7 @@ export const firebaseDataHandler = async (
       incomingCallChannel.sound = await getAndroidDefaultRingtoneUrl();
     }
     await notifee.createChannel(incomingCallChannel);
-    const { getTitle, getBody, getAccept, getDecline } =
+    const { getTitle, getBody, getAcceptButtonTitle, getDeclineButtonTitle } =
       incomingCallNotificationTextGetters;
     const createdUserName = data.created_by_display_name as string;
 
@@ -312,13 +312,13 @@ export const firebaseDataHandler = async (
         },
         actions: [
           {
-            title: getDecline(),
+            title: getDeclineButtonTitle?.() ?? 'Decline',
             pressAction: {
               id: DECLINE_CALL_ACTION_ID,
             },
           },
           {
-            title: getAccept(),
+            title: getAcceptButtonTitle?.() ?? 'Accept',
             pressAction: {
               id: ACCEPT_CALL_ACTION_ID,
               launchActivity: 'default', // open the app when the notification is pressed

@@ -35,8 +35,6 @@ export function setPushConfig() {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
         getBody: () => 'Tap to open the call',
-        getAccept: () => 'Accept',
-        getDecline: () => 'Decline',
       },
       callNotificationTextGetters: {
         getTitle(type, createdUserName) {

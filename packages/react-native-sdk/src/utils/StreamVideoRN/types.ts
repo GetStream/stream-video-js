@@ -72,15 +72,15 @@ export type StreamVideoConfig = {
        * {
        *  getTitle: (createdUserName: string) => `Incoming call from ${createdUserName}`,
        *  getBody: (createdUserName: string) => `Tap to answer the call`
-       *  getAccept: () => `Accept`,
-       *  getDecline: () => `Decline`,
+       *  getAcceptButtonTitle?: () => `Accept`,
+       *  getDeclineButtonTitle?: () => `Decline`,
        * }
        */
       incomingCallNotificationTextGetters?: {
         getTitle: (createdUserName: string) => string;
         getBody: (createdUserName: string) => string;
-        getAccept: () => string;
-        getDecline: () => string;
+        getAcceptButtonTitle?: () => string;
+        getDeclineButtonTitle?: () => string;
       };
       /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
