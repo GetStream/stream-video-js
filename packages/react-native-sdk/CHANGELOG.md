@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.17.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.2...@stream-io/video-react-native-sdk-1.17.3) (2025-07-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.2`
+- `@stream-io/video-react-bindings` updated to version `1.7.3`
+
+### Bug Fixes
+
+- **react-native:** customise android notification buttons ([#1842](https://github.com/GetStream/stream-video-js/issues/1842)) ([40e098d](https://github.com/GetStream/stream-video-js/commit/40e098d8a82a5ccf2076da69299bf18877dcbeec))
+
 ## [1.17.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.1...@stream-io/video-react-native-sdk-1.17.2) (2025-06-30)
 
 ### Dependency Updates
