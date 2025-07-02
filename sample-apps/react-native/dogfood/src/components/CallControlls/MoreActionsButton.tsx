@@ -131,10 +131,9 @@ export const MoreActionsButton = ({
     if (Platform.OS === 'ios') {
       NativeModules.StreamVideoReactNative.showAudioRoutePicker();
     } else {
-      setIsDrawerVisible(false);
-      // androidAudioRoutePickerRef.current?.open();
       setIsAndroidAudioRoutePickerDrawerVisible(true);
     }
+    setIsDrawerVisible(false);
   };
 
   const getScreenshotOfDominantSpeaker = async () => {

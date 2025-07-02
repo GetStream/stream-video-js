@@ -40,7 +40,7 @@ import org.webrtc.ThreadUtils
 
 public class AppRTCBluetoothManager(
     private val mReactContext: ReactApplicationContext,
-    private val apprtcAudioManager: InCallManagerModule
+    private val apprtcAudioManager: InCallManagerModule,
 ) {
     // Bluetooth connection state.
     public enum class State {
@@ -141,14 +141,6 @@ public class AppRTCBluetoothManager(
                     TAG,
                     "App lacks BLUETOOTH permission"
                 )
-                return false
-            }
-
-            // Get a handle to the default local Bluetooth adapter.
-            val bluetoothManager = mReactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            val bluetoothAdapter = bluetoothManager.adapter
-            if (bluetoothAdapter == null) {
-                Log.w(TAG, "Device does not support Bluetooth")
                 return false
             }
 
@@ -337,7 +329,7 @@ public class AppRTCBluetoothManager(
     @Suppress("DEPRECATION")
     inner class BluetoothManager23PlusImpl : BluetoothManagerPlatform() {
         private var scoConnectionAttempts: Int = 0
-        private var bluetoothAdapter: BluetoothAdapter? = null
+        private var mBluetoothAdapter: BluetoothAdapter? = null
         private var bluetoothHeadset: BluetoothHeadset? = null
         private var bluetoothDevice: BluetoothDevice? = null
         private val handler = Handler(Looper.getMainLooper())
@@ -492,7 +484,7 @@ public class AppRTCBluetoothManager(
                 Log.e(TAG, "BT SCO connection fails - no more attempts")
                 return false
             }
-            if (bluetoothState != State.HEADSET_AVAILABLE) {
+            if (bluetoothState == State.HEADSET_UNAVAILABLE) {
                 Log.e(TAG, "BT SCO connection fails - no headset available")
                 return false
             }
@@ -528,6 +520,13 @@ public class AppRTCBluetoothManager(
             // devices which are in state STATE_CONNECTED. The BluetoothDevice class
             // is just a thin wrapper for a Bluetooth hardware address.
             val devices = getFinalConnectedDevices()
+            for (device in devices) {
+                Log.d(
+                    TAG, ("Connected bluetooth headset: "
+                            + "name=" + device.name + ", "
+                            + "state=" + stateToString(
+                        currBtHeadset.getConnectionState(device))));
+            }
             if (devices.isEmpty()) {
                 bluetoothDevice = null
                 bluetoothState = State.HEADSET_UNAVAILABLE
@@ -567,8 +566,9 @@ public class AppRTCBluetoothManager(
             if (!super.start()) {
                 return false
             }
-            val bluetoothManager = mReactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            bluetoothAdapter = bluetoothManager.adapter
+            val bluetoothManager: BluetoothManager =
+                mReactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            mBluetoothAdapter = bluetoothManager.adapter
             bluetoothHeadset = null
             bluetoothDevice = null
             scoConnectionAttempts = 0
@@ -602,7 +602,7 @@ public class AppRTCBluetoothManager(
             Log.d(
                 TAG, "HEADSET profile state: "
                         + stateToString(
-                    bluetoothAdapter?.getProfileConnectionState(
+                    mBluetoothAdapter?.getProfileConnectionState(
                         BluetoothProfile.HEADSET
                     ) ?: -1
                 )
@@ -620,7 +620,7 @@ public class AppRTCBluetoothManager(
             if (!super.stop()) {
                 return false
             }
-            if (bluetoothAdapter == null) {
+            if (mBluetoothAdapter == null) {
                 return false
             }
             // Stop BT SCO connection with remote device if needed.
@@ -713,10 +713,13 @@ public class AppRTCBluetoothManager(
             val connectedDevices = bluetoothHeadset?.connectedDevices ?: emptyList()
             val finalDevices: MutableList<BluetoothDevice> = ArrayList()
 
+            Log.d(TAG, "getFinalConnectedDevices: connectedDevices=$connectedDevices")
+
             for (device in connectedDevices) {
                 val majorClass = device.bluetoothClass.majorDeviceClass
 
                 if (majorClass == BluetoothClass.Device.Major.AUDIO_VIDEO) {
+                    Log.d(TAG, "getFinalConnectedDevices: device=${device.name}")
                     finalDevices.add(device)
                 }
             }
@@ -726,7 +729,12 @@ public class AppRTCBluetoothManager(
         private fun getBluetoothProfileProxy(
             context: Context?, listener: BluetoothProfile.ServiceListener?
         ): Boolean {
-            return bluetoothAdapter?.getProfileProxy(context, listener, BluetoothProfile.HEADSET) ?: false
+            try {
+                return mBluetoothAdapter?.getProfileProxy(context, listener, BluetoothProfile.HEADSET) ?: false
+            } catch (e: Exception) {
+                Log.e(TAG, "gBPP: hit exception while getting bluetooth profile", e)
+                return false
+            }
         }
 
         /** Starts timer which times out after BLUETOOTH_SCO_TIMEOUT_MS milliseconds.  */

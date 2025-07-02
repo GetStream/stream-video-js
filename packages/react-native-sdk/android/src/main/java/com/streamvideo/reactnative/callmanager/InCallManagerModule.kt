@@ -136,6 +136,8 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     private var mRingtoneCountDownHandler: Handler? = null
     private var media = "audio"
 
+    private var cachedAvailableEndpointNamesSet = setOf<String>()
+
     /** AudioManager state.  */
     enum class AudioManagerState {
         UNINITIALIZED,
@@ -171,7 +173,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     private val useSpeakerphone = SPEAKERPHONE_AUTO
 
     // Handles all tasks related to Bluetooth headset devices.
-    private var bluetoothManager: AppRTCBluetoothManager? = null
+    private val bluetoothManager: AppRTCBluetoothManager = AppRTCBluetoothManager(
+        reactContext,
+        this,
+    )
 
     private val proximityManager: InCallProximityManager
 
@@ -213,12 +218,6 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             reactContext,
             this
         )
-
-        bluetoothManager = AppRTCBluetoothManager(
-            reactContext,
-            this
-        )
-        
 
         Log.d(TAG, "InCallManager initialized")
     }
@@ -297,8 +296,8 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             }
             setMicrophoneMute(origIsMicrophoneMute)
             audioManager.mode = origAudioMode
-            if (currentActivity != null) {
-                currentActivity!!.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+            currentActivity?.apply {
+                volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             }
             isOrigAudioSetupStored = false
         }
@@ -1552,7 +1551,14 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
      */
     fun updateAudioDeviceState() {
         runInAudioThread {
-            val audioDevices = this.audioDeviceManager.getCurrentDeviceEndpoints()
+            val audioDevices = this.audioDeviceManager.getCurrentDeviceEndpoints(bluetoothManager)
+            val audioDeviceNamesSet = audioDevices.map { it.name }.toSet()
+            val devicesChanged = if (cachedAvailableEndpointNamesSet.size != audioDevices.size) {
+                true
+            } else {
+                cachedAvailableEndpointNamesSet != audioDeviceNamesSet
+            }
+            cachedAvailableEndpointNamesSet = audioDeviceNamesSet
             Log.d(
                 TAG, ("updateAudioDeviceState() Device status: "
                         + "available=" + audioDevices + ", "
@@ -1674,6 +1680,8 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
                 if (deviceSwitched) {
                     this.selectedAudioDeviceEndpoint = audioDeviceManager.getEndpointFromType(newAudioDevice)
+                }
+                if (deviceSwitched || devicesChanged) {
                     Log.d(
                         TAG, ("New device status: "
                                 + "available=" + audioDevices + ", "
@@ -1697,7 +1705,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     private fun audioDeviceStatusMap(): WritableMap {
             val data = Arguments.createMap()
             var audioDevicesJson = "["
-            for (s in audioDeviceManager.getCurrentDeviceEndpoints()) {
+            for (s in audioDeviceManager.getCurrentDeviceEndpoints(bluetoothManager)) {
                 audioDevicesJson += "\"" + s.name + "\","
             }
 

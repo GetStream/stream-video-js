@@ -192,8 +192,20 @@ internal class AudioDeviceManager(
         }
     }
 
-    fun getCurrentDeviceEndpoints(): List<AudioDeviceEndpoint> {
-        return (mEndpointMaps.bluetoothEndpoints.values + mEndpointMaps.nonBluetoothEndpoints.values).sorted()
+    fun getCurrentDeviceEndpoints(appRTCBluetoothManager: AppRTCBluetoothManager): List<AudioDeviceEndpoint> {
+        if (Build.VERSION.SDK_INT >= 31) {
+            return (mEndpointMaps.bluetoothEndpoints.values + mEndpointMaps.nonBluetoothEndpoints.values).sorted()
+        } else {
+            val btEndpoint = mEndpointMaps.bluetoothEndpoints[appRTCBluetoothManager.getDeviceName()]
+            if (btEndpoint != null) {
+                val list = mutableListOf(btEndpoint)
+                list.addAll(mEndpointMaps.nonBluetoothEndpoints.values)
+                return list.sorted()
+            } else {
+                return mEndpointMaps.nonBluetoothEndpoints.values.sorted()
+            }
+
+        }
     }
 
     private fun updateEvent() {
