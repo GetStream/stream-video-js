@@ -1,13 +1,15 @@
+@use 'sass:meta';
 @layer default-chat-sdk {
-  @import 'stream-chat-react/dist/scss/v2/index.scss';
+  @import 'stream-chat-react/css/v2/index.css';
 }
 
-@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
+@import '@stream-io/video-react-sdk/dist/css/styles.css'
+  layer(default-video-sdk);
 
-@import "layout";
-@import "./Avatar.scss";
-@import "./CallPanel.scss";
-@import "./ChannelPreview.scss";
-@import "./QuickDial.scss";
-@import "./Sidebar.scss";
-@import "./UserList.scss";
+@include meta.load-css('layout');
+@include meta.load-css('Avatar.scss');
+@include meta.load-css('CallPanel.scss');
+@include meta.load-css('ChannelPreview.scss');
+@include meta.load-css('QuickDial.scss');
+@include meta.load-css('Sidebar.scss');
+@include meta.load-css('UserList.scss');
