@@ -7,7 +7,7 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-package com.streamvideo.reactnative.callmanager;
+package com.streamvideo.reactnative.callmanager
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -32,18 +32,16 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.ReactApplicationContext
-import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.callmanager.InCallManagerModule.Companion.runInAudioThread
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
-import org.webrtc.ThreadUtils
 
-public class AppRTCBluetoothManager(
+class AppRTCBluetoothManager(
     private val mReactContext: ReactApplicationContext,
     private val apprtcAudioManager: InCallManagerModule,
 ) {
     // Bluetooth connection state.
-    public enum class State {
+    enum class State {
         // Bluetooth is not available; no adapter or Bluetooth is off.
         UNINITIALIZED,
 
@@ -124,13 +122,9 @@ public class AppRTCBluetoothManager(
         /** Stop audio flowing through BT communication device. */
         open fun stopScoAudio(): Boolean {
             Log.d(
-                TAG, ("stopScoAudio: BT state=" + bluetoothState + ", "
-                        + "SCO is on: " + isScoOn())
+                TAG, ("stopScoAudio: BT state=" + bluetoothState + ", " + "SCO is on: " + isScoOn())
             )
-            if (bluetoothState != State.SCO_CONNECTING && bluetoothState != State.SCO_CONNECTED) {
-                return false
-            }
-            return true
+            return !(bluetoothState != State.SCO_CONNECTING && bluetoothState != State.SCO_CONNECTED)
         }
 
         /** Start the listeners */
@@ -138,8 +132,7 @@ public class AppRTCBluetoothManager(
             Log.d(TAG, "start")
             if (!hasPermission()) {
                 Log.w(
-                    TAG,
-                    "App lacks BLUETOOTH permission"
+                    TAG, "App lacks BLUETOOTH permission"
                 )
                 return false
             }
@@ -156,14 +149,10 @@ public class AppRTCBluetoothManager(
         /* Stop the listeners */
         open fun stop(): Boolean {
             Log.d(
-                TAG,
-                "stop: BT state=$bluetoothState"
+                TAG, "stop: BT state=$bluetoothState"
             )
             // Close down remaining BT resources.
-            if (bluetoothState == State.UNINITIALIZED) {
-                return false
-            }
-            return true
+            return bluetoothState != State.UNINITIALIZED
         }
     }
 
@@ -173,13 +162,15 @@ public class AppRTCBluetoothManager(
         private var bluetoothAudioDevice: AudioDeviceInfo? = null
 
         /** Get the connected BT device if present, otherwise null.
-            Note: this doesn't mean that the device is streaming the audio now. It is only connected.
-        */
+        Note: this doesn't mean that the device is streaming the audio now. It is only connected.
+         */
         private fun getAvailableBtDevice(): AudioDeviceInfo? {
-            val devices =
-                mAudioManager.availableCommunicationDevices
+            val devices = mAudioManager.availableCommunicationDevices
             for (device in devices) {
-                val isBtDevice = AudioDeviceEndpoint.TYPE_BLUETOOTH == AudioDeviceEndpointUtils.remapAudioDeviceTypeToCallEndpointType(device.type)
+                val isBtDevice =
+                    AudioDeviceEndpoint.TYPE_BLUETOOTH == AudioDeviceEndpointUtils.remapAudioDeviceTypeToCallEndpointType(
+                        device.type
+                    )
                 if (isBtDevice) {
                     return device
                 }
@@ -187,36 +178,37 @@ public class AppRTCBluetoothManager(
             return null
         }
 
-        private var bluetoothAudioDeviceCallback: AudioDeviceCallback = object : AudioDeviceCallback() {
+        private var bluetoothAudioDeviceCallback: AudioDeviceCallback =
+            object : AudioDeviceCallback() {
 
-            override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
-                if (addedDevices != null) {
-                    runInAudioThread {
-                        updateDeviceList()
+                override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
+                    if (addedDevices != null) {
+                        runInAudioThread {
+                            updateDeviceList()
+                        }
+                    }
+                }
+
+                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
+                    if (removedDevices != null) {
+                        runInAudioThread {
+                            updateDeviceList()
+                        }
+                    }
+                }
+
+                fun updateDeviceList() {
+                    val currentBtDevice = bluetoothAudioDevice
+                    val newBtDevice: AudioDeviceInfo? = getAvailableBtDevice()
+                    if (currentBtDevice != null && newBtDevice == null) {
+                        bluetoothState = State.HEADSET_UNAVAILABLE
+                    } else if (currentBtDevice == null && newBtDevice != null) {
+                        bluetoothState = State.HEADSET_AVAILABLE
+                    } else if (currentBtDevice != null && newBtDevice != null && currentBtDevice.id != newBtDevice.id) {
+                        updateDevice()
                     }
                 }
             }
-
-            override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
-                if (removedDevices != null) {
-                    runInAudioThread {
-                        updateDeviceList()
-                    }
-                }
-            }
-
-            fun updateDeviceList() {
-                val currentBtDevice = bluetoothAudioDevice
-                val newBtDevice: AudioDeviceInfo? = getAvailableBtDevice()
-                if (currentBtDevice != null && newBtDevice == null) {
-                    bluetoothState = State.HEADSET_UNAVAILABLE
-                } else if (currentBtDevice == null && newBtDevice != null) {
-                    bluetoothState = State.HEADSET_AVAILABLE
-                } else if (currentBtDevice != null && newBtDevice != null && currentBtDevice.id != newBtDevice.id) {
-                    updateDevice()
-                }
-            }
-        }
 
         override fun hasPermission(): Boolean {
             return mReactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
@@ -228,10 +220,10 @@ public class AppRTCBluetoothManager(
             }
             mAudioManager.registerAudioDeviceCallback(bluetoothAudioDeviceCallback, null)
             bluetoothAudioDevice = getAvailableBtDevice()
-            bluetoothState = if (bluetoothAudioDevice != null) State.HEADSET_AVAILABLE else State.HEADSET_UNAVAILABLE
+            bluetoothState =
+                if (bluetoothAudioDevice != null) State.HEADSET_AVAILABLE else State.HEADSET_UNAVAILABLE
             Log.d(
-                TAG,
-                "start done: BT state=$bluetoothState"
+                TAG, "start done: BT state=$bluetoothState"
             )
             return true
         }
@@ -245,8 +237,7 @@ public class AppRTCBluetoothManager(
             mAudioManager.unregisterAudioDeviceCallback(bluetoothAudioDeviceCallback)
             bluetoothState = State.UNINITIALIZED
             Log.d(
-                TAG,
-                "stop done: BT state=$bluetoothState"
+                TAG, "stop done: BT state=$bluetoothState"
             )
             return true
         }
@@ -254,7 +245,10 @@ public class AppRTCBluetoothManager(
         override fun isScoOn(): Boolean {
             val communicationDevice: AudioDeviceInfo? = mAudioManager.communicationDevice
             if (communicationDevice !== null) {
-                val isOn = AudioDeviceEndpoint.TYPE_BLUETOOTH == AudioDeviceEndpointUtils.remapAudioDeviceTypeToCallEndpointType(communicationDevice.type)
+                val isOn =
+                    AudioDeviceEndpoint.TYPE_BLUETOOTH == AudioDeviceEndpointUtils.remapAudioDeviceTypeToCallEndpointType(
+                        communicationDevice.type
+                    )
                 if (isOn) {
                     bluetoothAudioDevice = communicationDevice
                     return true
@@ -279,8 +273,7 @@ public class AppRTCBluetoothManager(
             }
             bluetoothState = State.HEADSET_UNAVAILABLE
             Log.e(
-                TAG,
-                "Cannot find any bluetooth SCO device to set as communication device"
+                TAG, "Cannot find any bluetooth SCO device to set as communication device"
             )
             return false
         }
@@ -299,15 +292,13 @@ public class AppRTCBluetoothManager(
             if (currentBtDevice != null) {
                 bluetoothState = State.HEADSET_AVAILABLE
                 Log.d(
-                    TAG, ("Connected bluetooth headset: "
-                            + "name=" + currentBtDevice.productName)
+                    TAG, ("Connected bluetooth headset: " + "name=" + currentBtDevice.productName)
                 )
             } else {
                 bluetoothState = State.HEADSET_UNAVAILABLE
             }
             Log.d(
-                TAG,
-                "updateDevice done: BT state=$bluetoothState"
+                TAG, "updateDevice done: BT state=$bluetoothState"
             )
         }
 
@@ -336,45 +327,42 @@ public class AppRTCBluetoothManager(
 
         private val bluetoothTimeoutRunnable = Runnable { bluetoothTimeout() }
 
-        private val bluetoothServiceListener: BluetoothProfile.ServiceListener = object :
-            BluetoothProfile.ServiceListener {
-            override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
-                if (profile != BluetoothProfile.HEADSET || bluetoothState == State.UNINITIALIZED) {
-                    return
+        private val bluetoothServiceListener: BluetoothProfile.ServiceListener =
+            object : BluetoothProfile.ServiceListener {
+                override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
+                    if (profile != BluetoothProfile.HEADSET || bluetoothState == State.UNINITIALIZED) {
+                        return
+                    }
+                    Log.d(
+                        TAG, "BluetoothServiceListener.onServiceConnected: BT state=$bluetoothState"
+                    )
+                    // Android only supports one connected Bluetooth Headset at a time.
+                    bluetoothHeadset = proxy as BluetoothHeadset
+                    updateAudioDeviceState()
+                    Log.d(
+                        TAG, "onServiceConnected done: BT state=$bluetoothState"
+                    )
                 }
-                Log.d(
-                    TAG,
-                    "BluetoothServiceListener.onServiceConnected: BT state=$bluetoothState"
-                )
-                // Android only supports one connected Bluetooth Headset at a time.
-                bluetoothHeadset = proxy as BluetoothHeadset
-                updateAudioDeviceState()
-                Log.d(
-                    TAG,
-                    "onServiceConnected done: BT state=$bluetoothState"
-                )
-            }
 
-            override fun onServiceDisconnected(profile: Int) {
-                if (profile != BluetoothProfile.HEADSET || bluetoothState == State.UNINITIALIZED) {
-                    return
+                override fun onServiceDisconnected(profile: Int) {
+                    if (profile != BluetoothProfile.HEADSET || bluetoothState == State.UNINITIALIZED) {
+                        return
+                    }
+                    Log.d(
+                        TAG,
+                        "BluetoothServiceListener.onServiceDisconnected: BT state=$bluetoothState"
+                    )
+                    stopScoAudio()
+                    bluetoothHeadset = null
+                    bluetoothDevice = null
+                    bluetoothState = State.HEADSET_UNAVAILABLE
+                    updateAudioDeviceState()
+                    Log.d(
+                        TAG, "onServiceDisconnected done: BT state=$bluetoothState"
+                    )
                 }
-                Log.d(
-                    TAG,
-                    "BluetoothServiceListener.onServiceDisconnected: BT state=$bluetoothState"
-                )
-                stopScoAudio()
-                bluetoothHeadset = null
-                bluetoothDevice = null
-                bluetoothState = State.HEADSET_UNAVAILABLE
-                updateAudioDeviceState()
-                Log.d(
-                    TAG,
-                    "onServiceDisconnected done: BT state=$bluetoothState"
-                )
-            }
 
-        }
+            }
 
         private val bluetoothHeadsetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent) {
@@ -387,17 +375,14 @@ public class AppRTCBluetoothManager(
                 // audio to BT over SCO. Typically received when user turns on a BT
                 // headset while audio is active using another audio device.
                 if (action == BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED) {
-                    val state =
-                        intent.getIntExtra(
-                            BluetoothHeadset.EXTRA_STATE,
-                            BluetoothHeadset.STATE_DISCONNECTED
-                        )
+                    val state = intent.getIntExtra(
+                        BluetoothHeadset.EXTRA_STATE, BluetoothHeadset.STATE_DISCONNECTED
+                    )
                     Log.d(
-                        TAG, ("BluetoothHeadsetBroadcastReceiver.onReceive: "
-                                + "a=ACTION_CONNECTION_STATE_CHANGED, "
-                                + "s=" + stateToString(state) + ", "
-                                + "sb=" + isInitialStickyBroadcast + ", "
-                                + "BT state: " + bluetoothState)
+                        TAG,
+                        ("BluetoothHeadsetBroadcastReceiver.onReceive: " + "a=ACTION_CONNECTION_STATE_CHANGED, " + "s=" + stateToString(
+                            state
+                        ) + ", " + "sb=" + isInitialStickyBroadcast + ", " + "BT state: " + bluetoothState)
                     )
                     if (state == BluetoothHeadset.STATE_CONNECTED) {
                         scoConnectionAttempts = 0
@@ -418,42 +403,36 @@ public class AppRTCBluetoothManager(
                         BluetoothHeadset.EXTRA_STATE, BluetoothHeadset.STATE_AUDIO_DISCONNECTED
                     )
                     Log.d(
-                        TAG, ("BluetoothHeadsetBroadcastReceiver.onReceive: "
-                                + "a=ACTION_AUDIO_STATE_CHANGED, "
-                                + "s=" + stateToString(state) + ", "
-                                + "sb=" + isInitialStickyBroadcast + ", "
-                                + "BT state: " + bluetoothState)
+                        TAG,
+                        ("BluetoothHeadsetBroadcastReceiver.onReceive: " + "a=ACTION_AUDIO_STATE_CHANGED, " + "s=" + stateToString(
+                            state
+                        ) + ", " + "sb=" + isInitialStickyBroadcast + ", " + "BT state: " + bluetoothState)
                     )
                     if (state == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
                         cancelTimer()
                         if (bluetoothState == State.SCO_CONNECTING) {
                             Log.d(
-                                TAG,
-                                "+++ Bluetooth audio SCO is now connected"
+                                TAG, "+++ Bluetooth audio SCO is now connected"
                             )
                             bluetoothState = State.SCO_CONNECTED
                             scoConnectionAttempts = 0
                             updateAudioDeviceState()
                         } else {
                             Log.w(
-                                TAG,
-                                "Unexpected state BluetoothHeadset.STATE_AUDIO_CONNECTED"
+                                TAG, "Unexpected state BluetoothHeadset.STATE_AUDIO_CONNECTED"
                             )
                         }
                     } else if (state == BluetoothHeadset.STATE_AUDIO_CONNECTING) {
                         Log.d(
-                            TAG,
-                            "+++ Bluetooth audio SCO is now connecting..."
+                            TAG, "+++ Bluetooth audio SCO is now connecting..."
                         )
                     } else if (state == BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                         Log.d(
-                            TAG,
-                            "+++ Bluetooth audio SCO is now disconnected"
+                            TAG, "+++ Bluetooth audio SCO is now disconnected"
                         )
                         if (isInitialStickyBroadcast) {
                             Log.d(
-                                TAG,
-                                "Ignore STATE_AUDIO_DISCONNECTED initial sticky broadcast."
+                                TAG, "Ignore STATE_AUDIO_DISCONNECTED initial sticky broadcast."
                             )
                             return
                         }
@@ -461,8 +440,7 @@ public class AppRTCBluetoothManager(
                     }
                 }
                 Log.d(
-                    TAG,
-                    "onReceive done: BT state=$bluetoothState"
+                    TAG, "onReceive done: BT state=$bluetoothState"
                 )
             }
 
@@ -476,9 +454,8 @@ public class AppRTCBluetoothManager(
 
         override fun startScoAudio(): Boolean {
             Log.d(
-                TAG, ("startSco: BT state=" + bluetoothState + ", "
-                        + "attempts: " + scoConnectionAttempts + ", "
-                        + "SCO is on: " + isScoOn())
+                TAG,
+                ("startSco: BT state=" + bluetoothState + ", " + "attempts: " + scoConnectionAttempts + ", " + "SCO is on: " + isScoOn())
             )
             if (scoConnectionAttempts >= MAX_SCO_CONNECTION_ATTEMPTS) {
                 Log.e(TAG, "BT SCO connection fails - no more attempts")
@@ -494,8 +471,7 @@ public class AppRTCBluetoothManager(
             // intent ACTION_SCO_AUDIO_STATE_UPDATED and wait for the state to be SCO_AUDIO_STATE_CONNECTED.
             // Start BT SCO channel and wait for ACTION_AUDIO_STATE_CHANGED.
             Log.d(
-                TAG,
-                "Starting Bluetooth SCO and waits for ACTION_AUDIO_STATE_CHANGED..."
+                TAG, "Starting Bluetooth SCO and waits for ACTION_AUDIO_STATE_CHANGED..."
             )
             bluetoothState = State.SCO_CONNECTING
             startTimer()
@@ -504,8 +480,7 @@ public class AppRTCBluetoothManager(
             scoConnectionAttempts++
             Log.d(
                 TAG,
-                ("startScoAudio done: BT state=" + bluetoothState + ", "
-                        + "SCO is on: " + isScoOn())
+                ("startScoAudio done: BT state=" + bluetoothState + ", " + "SCO is on: " + isScoOn())
             )
             return true
         }
@@ -522,10 +497,11 @@ public class AppRTCBluetoothManager(
             val devices = getFinalConnectedDevices()
             for (device in devices) {
                 Log.d(
-                    TAG, ("Connected bluetooth headset: "
-                            + "name=" + device.name + ", "
-                            + "state=" + stateToString(
-                        currBtHeadset.getConnectionState(device))));
+                    TAG,
+                    ("Connected bluetooth headset: " + "name=" + device.name + ", " + "state=" + stateToString(
+                        currBtHeadset.getConnectionState(device)
+                    ))
+                )
             }
             if (devices.isEmpty()) {
                 bluetoothDevice = null
@@ -537,22 +513,19 @@ public class AppRTCBluetoothManager(
                 bluetoothDevice = firstBtDevice
                 bluetoothState = State.HEADSET_AVAILABLE
                 Log.d(
-                    TAG, ("Connected bluetooth headset: "
-                            + "name=" + firstBtDevice.name + ", "
-                            + "state=" + stateToString(
+                    TAG,
+                    ("Connected bluetooth headset: " + "name=" + firstBtDevice.name + ", " + "state=" + stateToString(
                         currBtHeadset.getConnectionState(
                             bluetoothDevice
                         )
-                    )
-                            + ", SCO audio=" + currBtHeadset.isAudioConnected(
+                    ) + ", SCO audio=" + currBtHeadset.isAudioConnected(
                         bluetoothDevice
                     ))
                 )
             }
 
             Log.d(
-                TAG,
-                "updateDevice done: BT state=$bluetoothState"
+                TAG, "updateDevice done: BT state=$bluetoothState"
             )
         }
 
@@ -580,8 +553,7 @@ public class AppRTCBluetoothManager(
                 )
             ) {
                 Log.e(
-                    TAG,
-                    "BluetoothAdapter.getProfileProxy(HEADSET) failed"
+                    TAG, "BluetoothAdapter.getProfileProxy(HEADSET) failed"
                 )
                 return false
             }
@@ -600,8 +572,7 @@ public class AppRTCBluetoothManager(
             )
             bluetoothState = State.HEADSET_UNAVAILABLE
             Log.d(
-                TAG, "HEADSET profile state: "
-                        + stateToString(
+                TAG, "HEADSET profile state: " + stateToString(
                     mBluetoothAdapter?.getProfileConnectionState(
                         BluetoothProfile.HEADSET
                     ) ?: -1
@@ -610,8 +581,7 @@ public class AppRTCBluetoothManager(
 
             Log.d(TAG, "Bluetooth proxy for headset profile has started")
             Log.d(
-                TAG,
-                "start done: BT state=$bluetoothState"
+                TAG, "start done: BT state=$bluetoothState"
             )
             return true
         }
@@ -627,6 +597,10 @@ public class AppRTCBluetoothManager(
             stopScoAudio()
             try {
                 mReactContext.unregisterReceiver(bluetoothHeadsetReceiver)
+                bluetoothHeadset?.also {
+                    mBluetoothAdapter!!.closeProfileProxy(BluetoothProfile.HEADSET, it)
+                }
+
             } catch (exception: Exception) {
                 // The receiver was not registered.
                 // There is nothing to do in that case.
@@ -646,8 +620,8 @@ public class AppRTCBluetoothManager(
 
             bluetoothState = State.SCO_DISCONNECTING
             Log.d(
-                TAG, ("stopScoAudio done: BT state=" + bluetoothState + ", "
-                        + "SCO is on: " + isScoOn())
+                TAG,
+                ("stopScoAudio done: BT state=" + bluetoothState + ", " + "SCO is on: " + isScoOn())
             )
             return true
         }
@@ -665,9 +639,7 @@ public class AppRTCBluetoothManager(
 
             Log.d(
                 TAG,
-                ("bluetoothTimeout: BT state=" + bluetoothState + ", "
-                        + "attempts: " + scoConnectionAttempts + ", "
-                        + "SCO is on: " + isScoOn())
+                ("bluetoothTimeout: BT state=" + bluetoothState + ", " + "attempts: " + scoConnectionAttempts + ", " + "SCO is on: " + isScoOn())
             )
             if (bluetoothState != State.SCO_CONNECTING) {
                 return
@@ -680,14 +652,12 @@ public class AppRTCBluetoothManager(
                 val currBtDevice = bluetoothDevice!!
                 if (btHeadset.isAudioConnected(currBtDevice)) {
                     Log.d(
-                        TAG,
-                        "SCO connected with " + currBtDevice.name
+                        TAG, "SCO connected with " + currBtDevice.name
                     )
                     scoConnected = true
                 } else {
                     Log.d(
-                        TAG,
-                        "SCO is not connected with " + currBtDevice.name
+                        TAG, "SCO is not connected with " + currBtDevice.name
                     )
                 }
 
@@ -703,8 +673,7 @@ public class AppRTCBluetoothManager(
             }
             updateAudioDeviceState()
             Log.d(
-                TAG,
-                "bluetoothTimeout done: BT state=$bluetoothState"
+                TAG, "bluetoothTimeout done: BT state=$bluetoothState"
             )
         }
 
@@ -730,7 +699,11 @@ public class AppRTCBluetoothManager(
             context: Context?, listener: BluetoothProfile.ServiceListener?
         ): Boolean {
             try {
-                return mBluetoothAdapter?.getProfileProxy(context, listener, BluetoothProfile.HEADSET) ?: false
+                return mBluetoothAdapter?.getProfileProxy(
+                    context,
+                    listener,
+                    BluetoothProfile.HEADSET
+                ) ?: false
             } catch (e: Exception) {
                 Log.e(TAG, "gBPP: hit exception while getting bluetooth profile", e)
                 return false
@@ -741,8 +714,7 @@ public class AppRTCBluetoothManager(
         private fun startTimer() {
             Log.d(TAG, "startTimer")
             handler.postDelayed(
-                bluetoothTimeoutRunnable,
-                BLUETOOTH_SCO_TIMEOUT_MS.toLong()
+                bluetoothTimeoutRunnable, BLUETOOTH_SCO_TIMEOUT_MS.toLong()
             )
         }
 
@@ -754,7 +726,8 @@ public class AppRTCBluetoothManager(
     }
 
     companion object {
-        private val TAG: String = InCallManagerModule.TAG + ":" + AppRTCBluetoothManager::class.java.simpleName.toString()
+        private val TAG: String =
+            InCallManagerModule.TAG + ":" + AppRTCBluetoothManager::class.java.simpleName.toString()
 
         // Timeout interval for starting or stopping audio to a Bluetooth SCO device.
         private const val BLUETOOTH_SCO_TIMEOUT_MS: Int = 6000

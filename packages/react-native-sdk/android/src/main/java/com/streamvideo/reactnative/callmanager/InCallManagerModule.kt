@@ -62,8 +62,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class InCallManagerModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext),
-    LifecycleEventListener, OnAudioFocusChangeListener {
+    ReactContextBaseJavaModule(reactContext), LifecycleEventListener, OnAudioFocusChangeListener {
 
     // --- Screen Manager
     private val mPowerManager: PowerManager
@@ -140,9 +139,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     /** AudioManager state.  */
     enum class AudioManagerState {
-        UNINITIALIZED,
-        PREINITIALIZED,
-        RUNNING,
+        UNINITIALIZED, PREINITIALIZED, RUNNING,
     }
 
     private val savedAudioMode = AudioManager.MODE_INVALID
@@ -182,14 +179,15 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     private val wakeLockUtils: InCallWakeLockUtils
 
-    private val audioDeviceManager = AudioDeviceManager(reactContext, object : OnAudioDeviceChangedListener {
-        override fun onAudioDevicesChanged() {
-            Log.d(TAG, "onAudioDevicesChanged()")
-            if (audioManagerActivated) {
-                updateAudioDeviceState()
+    private val audioDeviceManager =
+        AudioDeviceManager(reactContext, object : OnAudioDeviceChangedListener {
+            override fun onAudioDevicesChanged() {
+                Log.d(TAG, "onAudioDevicesChanged()")
+                if (audioManagerActivated) {
+                    updateAudioDeviceState()
+                }
             }
-        }
-    })
+        })
 
     internal interface MyPlayerInterface {
         fun isPlaying(): Boolean
@@ -215,8 +213,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         audioUriMap["bundleBusytoneUri"] = bundleBusytoneUri
         wakeLockUtils = InCallWakeLockUtils(reactContext)
         proximityManager = InCallProximityManager.create(
-            reactContext,
-            this
+            reactContext, this
         )
 
         Log.d(TAG, "InCallManager initialized")
@@ -292,7 +289,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         Log.d(TAG, "restoreOriginalAudioSetup()")
         if (isOrigAudioSetupStored) {
             if (origIsSpeakerPhoneOn) {
-                audioDeviceManager.setSpeakerphoneOn(true, bluetoothManager!!)
+                audioDeviceManager.setSpeakerphoneOn(true, bluetoothManager)
             }
             setMicrophoneMute(origIsMicrophoneMute)
             audioManager.mode = origAudioMode
@@ -387,8 +384,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
 
         Log.d(
-            TAG,
-            "onAudioFocusChange(): $focusChange - $focusChangeStr"
+            TAG, "onAudioFocusChange(): $focusChange - $focusChangeStr"
         )
 
         val data = Arguments.createMap()
@@ -401,11 +397,9 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         try {
             val reactContext: ReactContext? = reactApplicationContext
             if (reactContext != null && reactContext.hasActiveReactInstance()) {
-                reactContext
-                    .getJSModule(
+                reactContext.getJSModule(
                         DeviceEventManagerModule.RCTDeviceEventEmitter::class.java
-                    )
-                    .emit(eventName, params)
+                    ).emit(eventName, params)
             } else {
                 Log.e(TAG, "sendEvent(): reactContext is null or not having CatalystInstance yet.")
             }
@@ -433,7 +427,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             requestAudioFocus()
             startEvents()
             runInAudioThread {
-                bluetoothManager!!.start()
+                bluetoothManager.start()
             }
             // TODO: even if not acquired focus, we can still play sounds. but need figure out which is better.
             //getCurrentActivity().setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
@@ -472,7 +466,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 audioDeviceManager.stop()
                 setMicrophoneMute(false)
                 runInAudioThread {
-                    bluetoothManager!!.stop()
+                    bluetoothManager.stop()
                 }
                 restoreOriginalAudioSetup()
                 abandonAudioFocus()
@@ -503,13 +497,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     private fun requestAudioFocus(): String {
-        val requestAudioFocusResStr = if (Build.VERSION.SDK_INT >= 26)
-            requestAudioFocusV26()
-        else
-            requestAudioFocusOld()
+        val requestAudioFocusResStr = if (Build.VERSION.SDK_INT >= 26) requestAudioFocusV26()
+        else requestAudioFocusOld()
         Log.d(
-            TAG,
-            "requestAudioFocus(): res = $requestAudioFocusResStr"
+            TAG, "requestAudioFocus(): res = $requestAudioFocusResStr"
         )
         return requestAudioFocusResStr
     }
@@ -521,19 +512,15 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
 
         if (mAudioAttributes == null) {
-            mAudioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build()
+            mAudioAttributes =
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
         }
 
         if (mAudioFocusRequest == null) {
             mAudioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                .setAudioAttributes(mAudioAttributes!!)
-                .setAcceptsDelayedFocusGain(false)
-                .setWillPauseWhenDucked(false)
-                .setOnAudioFocusChangeListener(this)
-                .build()
+                .setAudioAttributes(mAudioAttributes!!).setAcceptsDelayedFocusGain(false)
+                .setWillPauseWhenDucked(false).setOnAudioFocusChangeListener(this).build()
         }
 
         val requestAudioFocusRes = audioManager.requestAudioFocus(mAudioFocusRequest!!)
@@ -563,9 +550,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
 
         val requestAudioFocusRes = audioManager.requestAudioFocus(
-            this,
-            AudioManager.STREAM_VOICE_CALL,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+            this, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
         )
 
         val requestAudioFocusResStr: String
@@ -590,13 +575,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     private fun abandonAudioFocus(): String {
-        val abandonAudioFocusResStr = if (Build.VERSION.SDK_INT >= 26)
-            abandonAudioFocusV26()
-        else
-            abandonAudioFocusOld()
+        val abandonAudioFocusResStr = if (Build.VERSION.SDK_INT >= 26) abandonAudioFocusV26()
+        else abandonAudioFocusOld()
         Log.d(
-            TAG,
-            "abandonAudioFocus(): res = $abandonAudioFocusResStr"
+            TAG, "abandonAudioFocus(): res = $abandonAudioFocusResStr"
         )
         return abandonAudioFocusResStr
     }
@@ -662,8 +644,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         var isInteractive = "unknow" // --- API 20 ( before since API 7 is: isScreenOn())
         var screenState = "unknow" // --- API 20
         isDeviceIdleMode = String.format("%s", mPowerManager.isDeviceIdleMode)
-        isIgnoringBatteryOptimizations =
-            String.format("%s", mPowerManager.isIgnoringBatteryOptimizations(reactApplicationContext.packageName))
+        isIgnoringBatteryOptimizations = String.format(
+            "%s",
+            mPowerManager.isIgnoringBatteryOptimizations(reactApplicationContext.packageName)
+        )
         isPowerSaveMode = String.format("%s", mPowerManager.isPowerSaveMode)
         isInteractive = String.format("%s", mPowerManager.isInteractive)
         val display = mWindowManager.defaultDisplay
@@ -675,8 +659,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             else -> {}
         }
         Log.d(
-            TAG,
-            String.format(
+            TAG, String.format(
                 "debugScreenPowerState(): screenState='%s', isInteractive='%s', isPowerSaveMode='%s', isDeviceIdleMode='%s', isIgnoringBatteryOptimizations='%s'",
                 screenState,
                 isInteractive,
@@ -733,7 +716,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun setForceSpeakerphoneOn(enable: Boolean) {
         Log.d(TAG, "setForceSpeakerphoneOn(): $enable")
-        audioDeviceManager.setSpeakerphoneOn(enable, bluetoothManager!!)
+        audioDeviceManager.setSpeakerphoneOn(enable, bluetoothManager)
     }
 
     @ReactMethod
@@ -755,8 +738,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
         try {
             Log.d(
-                TAG,
-                "startRingback(): UriType=$ringbackUriType"
+                TAG, "startRingback(): UriType=$ringbackUriType"
             )
 
             if (mRingback != null) {
@@ -825,8 +807,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
         try {
             Log.d(
-                TAG,
-                "startBusytone(): UriType=$busytoneUriType"
+                TAG, "startBusytone(): UriType=$busytoneUriType"
             )
             if (mBusytone != null) {
                 if (mBusytone!!.isPlaying()) {
@@ -892,8 +873,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                     Looper.prepare()
 
                     Log.d(
-                        TAG,
-                        "startRingtone(): UriType=$ringtoneUriType"
+                        TAG, "startRingtone(): UriType=$ringtoneUriType"
                     )
                     if (mRingtone != null) {
                         if (mRingtone!!.isPlaying()) {
@@ -948,8 +928,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                         handler.postDelayed({
                             try {
                                 Log.d(
-                                    TAG,
-                                    String.format(
+                                    TAG, String.format(
                                         "mRingtoneCountDownHandler.stopRingtone() timeout after %d seconds",
                                         seconds
                                     )
@@ -957,8 +936,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                                 stopRingtone()
                             } catch (e: Exception) {
                                 Log.d(
-                                    TAG,
-                                    "mRingtoneCountDownHandler.stopRingtone() failed."
+                                    TAG, "mRingtoneCountDownHandler.stopRingtone() failed."
                                 )
                             }
                         }, (seconds * 1000).toLong())
@@ -1000,16 +978,12 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     private fun setMediaPlayerEvents(mp: MediaPlayer, name: String) {
-        mp.setOnErrorListener { mp, what, extra ->
+        mp.setOnErrorListener { _, what, extra ->
 
             //http://developer.android.com/reference/android/media/MediaPlayer.OnErrorListener.html
             Log.d(
-                TAG,
-                String.format(
-                    "MediaPlayer %s onError(). what: %d, extra: %d",
-                    name,
-                    what,
-                    extra
+                TAG, String.format(
+                    "MediaPlayer %s onError(). what: %d, extra: %d", name, what, extra
                 )
             )
             //return True if the method handled the error
@@ -1017,16 +991,12 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             true
         }
 
-        mp.setOnInfoListener { mp, what, extra ->
+        mp.setOnInfoListener { _, what, extra ->
 
             //http://developer.android.com/reference/android/media/MediaPlayer.OnInfoListener.html
             Log.d(
-                TAG,
-                String.format(
-                    "MediaPlayer %s onInfo(). what: %d, extra: %d",
-                    name,
-                    what,
-                    extra
+                TAG, String.format(
+                    "MediaPlayer %s onInfo(). what: %d, extra: %d", name, what, extra
                 )
             )
             //return True if the method handled the info
@@ -1034,10 +1004,9 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             true
         }
 
-        mp.setOnPreparedListener { mp ->
+        mp.setOnPreparedListener { _ ->
             Log.d(
-                TAG,
-                String.format(
+                TAG, String.format(
                     "MediaPlayer %s onPrepared(), start play, isSpeakerPhoneOn %b",
                     name,
                     audioManager.isSpeakerphoneOn
@@ -1056,13 +1025,11 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
         mp.setOnCompletionListener {
             Log.d(
-                TAG,
-                String.format("MediaPlayer %s onCompletion()", name)
+                TAG, String.format("MediaPlayer %s onCompletion()", name)
             )
             if (name == "mBusytone") {
                 Log.d(
-                    TAG,
-                    "MyMediaPlayer(): invoke stop()"
+                    TAG, "MyMediaPlayer(): invoke stop()"
                 )
                 stop()
             }
@@ -1074,21 +1041,15 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getAudioUriJS(audioType: String, fileType: String, promise: Promise) {
         var result: Uri? = null
-        if (audioType == "ringback") {
-            result = getRingbackUri(fileType)
-        } else if (audioType == "busytone") {
-            result = getBusytoneUri(fileType)
-        } else if (audioType == "ringtone") {
-            result = getRingtoneUri(fileType)
+        when (audioType) {
+            "ringback" -> result = getRingbackUri(fileType)
+            "busytone" -> result = getBusytoneUri(fileType)
+            "ringtone" -> result = getRingtoneUri(fileType)
         }
         try {
-            if (result != null) {
-                promise.resolve(result.toString())
-            } else {
-                promise.reject("failed")
-            }
+            if (result != null) promise.resolve(result.toString()) else promise.reject("NOT-FOUND", "failed")
         } catch (e: Exception) {
-            promise.reject("failed")
+            promise.reject("NOT-FOUND", "failed")
         }
     }
 
@@ -1179,14 +1140,15 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         val type = _type
         if (type == "_BUNDLE_") {
             if (audioUriMap[uriBundle] == null) {
-                var res = reactApplicationContext.resources.getIdentifier(fileBundle, "raw", reactApplicationContext.packageName)
+                var res = reactApplicationContext.resources.getIdentifier(
+                    fileBundle,
+                    "raw",
+                    reactApplicationContext.packageName
+                )
                 if (res <= 0) {
                     Log.d(
-                        TAG,
-                        String.format(
-                            "getAudioUri() %s.%s not found in bundle.",
-                            fileBundle,
-                            fileBundleExt
+                        TAG, String.format(
+                            "getAudioUri() %s.%s not found in bundle.", fileBundle, fileBundleExt
                         )
                     )
                     audioUriMap[uriBundle] = null
@@ -1198,15 +1160,13 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                     //bundleRingtoneUri = Uri.parse("android.resource://" + reactContext.getPackageName() + "/" + R.raw.incallmanager_ringtone);
                     //bundleRingtoneUri = Uri.parse("android.resource://" + reactContext.getPackageName() + "/raw/incallmanager_ringtone");
                     Log.d(
-                        TAG,
-                        "getAudioUri() using: $type"
+                        TAG, "getAudioUri() using: $type"
                     )
                     return audioUriMap[uriBundle]
                 }
             } else {
                 Log.d(
-                    TAG,
-                    "getAudioUri() using: $type"
+                    TAG, "getAudioUri() using: $type"
                 )
                 return audioUriMap[uriBundle]
             }
@@ -1220,8 +1180,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             return getDefaultUserUri(uriDefault)
         } else {
             Log.d(
-                TAG,
-                "getAudioUri() using internal: $target"
+                TAG, "getAudioUri() using internal: $target"
             )
             audioUriMap[uriDefault] = _uri
             return _uri
@@ -1270,7 +1229,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
 
         override fun startPlay(data: Map<String, Any>) {
-            val name = data?.get("name") as String?
+            val name = data.get("name") as String?
             caller = name
             start()
         }
@@ -1332,16 +1291,14 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 else -> {
                     // --- use ToneGenerator internal type.
                     Log.d(
-                        TAG,
-                        "myToneGenerator: use internal tone type: $toneCategory"
+                        TAG, "myToneGenerator: use internal tone type: $toneCategory"
                     )
                     toneType = toneCategory
                     toneWaitTimeMs = customWaitTimeMs
                 }
             }
             Log.d(
-                TAG,
-                String.format(
+                TAG, String.format(
                     "myToneGenerator: toneCategory: %d ,toneType: %d, toneWaitTimeMs: %d",
                     toneCategory,
                     toneType,
@@ -1354,8 +1311,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 tg = ToneGenerator(AudioManager.STREAM_VOICE_CALL, ToneGeneratorConsts.toneVolume)
             } catch (e: RuntimeException) {
                 Log.d(
-                    TAG,
-                    "myToneGenerator: Exception caught while creating ToneGenerator: $e"
+                    TAG, "myToneGenerator: Exception caught while creating ToneGenerator: $e"
                 )
                 tg = null
             }
@@ -1380,8 +1336,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                             (this as Object).wait((toneWaitTimeMs + ToneGeneratorConsts.loadBufferWaitTimeMs).toLong())
                         } catch (e: InterruptedException) {
                             Log.d(
-                                TAG,
-                                "myToneGenerator stopped. toneType: $toneType"
+                                TAG, "myToneGenerator stopped. toneType: $toneType"
                             )
                         }
                         tg.stopTone()
@@ -1391,8 +1346,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 }
             }
             Log.d(
-                TAG,
-                "MyToneGenerator(): play finished. caller=$caller"
+                TAG, "MyToneGenerator(): play finished. caller=$caller"
             )
             if (caller == "mBusytone") {
                 Log.d(TAG, "MyToneGenerator(): invoke stop()")
@@ -1423,10 +1377,8 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 // --- the `minSdkVersion` is 21 since RN 64,
                 // --- if you want to suuport api < 21, comment out `setAudioAttributes` and use `setAudioStreamType((Integer) data.get("audioStream"))` instead
                 setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage((data["audioUsage"] as Int?)!!)
-                        .setContentType((data["audioContentType"] as Int?)!!)
-                        .build()
+                    AudioAttributes.Builder().setUsage((data["audioUsage"] as Int?)!!)
+                        .setContentType((data["audioContentType"] as Int?)!!).build()
                 )
 
                 // -- will start at onPrepared() event
@@ -1441,8 +1393,14 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
         runInAudioThread {
-            val chosenEndpoint = audioDeviceManager.switchDeviceFromDeviceName(endpointDeviceName, bluetoothManager!!)
-            Log.d(TAG, "chooseAudioRoute(): chosenEndpoint = $chosenEndpoint requested-endpointDeviceName = $endpointDeviceName")
+            val chosenEndpoint = audioDeviceManager.switchDeviceFromDeviceName(
+                endpointDeviceName,
+                bluetoothManager
+            )
+            Log.d(
+                TAG,
+                "chooseAudioRoute(): chosenEndpoint = $chosenEndpoint requested-endpointDeviceName = $endpointDeviceName"
+            )
             if (chosenEndpoint != null) {
                 userSelectedAudioDevice = chosenEndpoint.type
                 selectedAudioDeviceEndpoint = chosenEndpoint
@@ -1560,16 +1518,16 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             }
             cachedAvailableEndpointNamesSet = audioDeviceNamesSet
             Log.d(
-                TAG, ("updateAudioDeviceState() Device status: "
-                        + "available=" + audioDevices + ", "
-                        + "selected=" + selectedAudioDeviceEndpoint + ", "
-                        + "user selected=" + endpointTypeDebug(userSelectedAudioDevice))
+                TAG,
+                ("updateAudioDeviceState() Device status: " + "available=" + audioDevices + ", " + "selected=" + selectedAudioDeviceEndpoint + ", " + "user selected=" + endpointTypeDebug(
+                    userSelectedAudioDevice
+                ))
             )
 
             // Double-check if any Bluetooth headset is connected once again (useful for older android platforms)
             // TODO: we can possibly remove this, to be tested on older platforms
-            if (bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.HEADSET_AVAILABLE || bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.HEADSET_UNAVAILABLE) {
-                bluetoothManager!!.updateDevice()
+            if (bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.HEADSET_AVAILABLE || bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.HEADSET_UNAVAILABLE) {
+                bluetoothManager.updateDevice()
             }
             /** sets newAudioDevice initially to this order: WH -> BT -> default(speaker or earpiece) */
             var newAudioDevice = defaultAudioDevice
@@ -1600,9 +1558,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                 }
                 // prev selection was not BT, but new was BT
                 // new can now be WiredHeadset or default if there was no selection before
-                if (selectedAudioDeviceEndpoint != null
-                    && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_UNKNOWN
-                    && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
+                if (selectedAudioDeviceEndpoint != null && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_UNKNOWN && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
                     newAudioDevice = selectedAudioDeviceEndpoint.type
                 } else {
                     newAudioDevice = defaultAudioDevice
@@ -1613,42 +1569,36 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                     }
                 }
                 // change the bt manager to device state from sco connection state
-                bluetoothManager!!.updateDevice()
+                bluetoothManager.updateDevice()
                 Log.d(
                     TAG, ("revertBTSelection newAudioDevice: ${endpointTypeDebug(newAudioDevice)}")
                 )
             }
+
             var selectedAudioDeviceEndpoint = this.selectedAudioDeviceEndpoint
             if (selectedAudioDeviceEndpoint == null || newAudioDevice != selectedAudioDeviceEndpoint.type) {
                 // --- stop bluetooth if prev selection was bluetooth
-                if (
-                    selectedAudioDeviceEndpoint?.type == AudioDeviceEndpoint.TYPE_BLUETOOTH &&
-                    (
-                            bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTED
-                                    || bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTING
-                            )
-                    ) {
-                    bluetoothManager!!.stopScoAudio()
-                    bluetoothManager!!.updateDevice()
+                if (selectedAudioDeviceEndpoint?.type == AudioDeviceEndpoint.TYPE_BLUETOOTH && (bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTED || bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTING)) {
+                    bluetoothManager.stopScoAudio()
+                    bluetoothManager.updateDevice()
                 }
 
                 // --- start bluetooth if new is BT and we have a headset
-                if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH
-                    && bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.HEADSET_AVAILABLE) {
+                if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH && bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.HEADSET_AVAILABLE) {
                     // Attempt to start Bluetooth SCO audio (takes a few second to start on older platforms).
-                    if (!bluetoothManager!!.startScoAudio()) {
+                    if (!bluetoothManager.startScoAudio()) {
                         revertBTSelection()
                     }
 
                     // already selected BT device
-                    if (bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTED) {
-                        selectedAudioDeviceEndpoint = audioDeviceManager.getEndpointFromName(bluetoothManager!!.getDeviceName()!!)
+                    if (bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTED) {
+                        selectedAudioDeviceEndpoint =
+                            audioDeviceManager.getEndpointFromName(bluetoothManager.getDeviceName()!!)
                         this.selectedAudioDeviceEndpoint = selectedAudioDeviceEndpoint
                         deviceSwitched = true
                     } else if (
-                        // still connecting (happens on older Android platforms)
-                        bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTING
-                    ) {
+                    // still connecting (happens on older Android platforms)
+                        bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.SCO_CONNECTING) {
                         // on older Android platforms
                         // it will call this update function again, once connected or disconnected
                         // so we can skip executing further
@@ -1663,66 +1613,64 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
                  * 2 - SCO_DISCONNECTING
                  * Here we see if it was disconnected then we revert to non-bluetooth selection
                  * */
-                if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH
-                    && selectedAudioDeviceEndpoint?.type != AudioDeviceEndpoint.TYPE_BLUETOOTH
-                    && bluetoothManager!!.bluetoothState == AppRTCBluetoothManager.State.SCO_DISCONNECTING
-                ) {
+                if (newAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH && selectedAudioDeviceEndpoint?.type != AudioDeviceEndpoint.TYPE_BLUETOOTH && bluetoothManager.bluetoothState == AppRTCBluetoothManager.State.SCO_DISCONNECTING) {
                     revertBTSelection()
                 }
 
                 if (newAudioDevice != selectedAudioDeviceEndpoint?.type) {
                     // BT sco would be already connected at this point, so no need to switch again
                     if (newAudioDevice != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
-                        audioDeviceManager.switchDeviceEndpointType(newAudioDevice, bluetoothManager!!)
+                        audioDeviceManager.switchDeviceEndpointType(
+                            newAudioDevice,
+                            bluetoothManager
+                        )
                     }
                     deviceSwitched = true
                 }
 
                 if (deviceSwitched) {
-                    this.selectedAudioDeviceEndpoint = audioDeviceManager.getEndpointFromType(newAudioDevice)
+                    this.selectedAudioDeviceEndpoint =
+                        audioDeviceManager.getEndpointFromType(newAudioDevice)
                 }
                 if (deviceSwitched || devicesChanged) {
                     Log.d(
-                        TAG, ("New device status: "
-                                + "available=" + audioDevices + ", "
-                                + "selected=" + this.selectedAudioDeviceEndpoint)
+                        TAG,
+                        ("New device status: " + "available=" + audioDevices + ", " + "selected=" + this.selectedAudioDeviceEndpoint)
                     )
                     sendEvent("onAudioDeviceChanged", audioDeviceStatusMap())
                 }
                 Log.d(
-                    TAG,
-                    "--- updateAudioDeviceState done"
+                    TAG, "--- updateAudioDeviceState done"
                 )
             } else {
                 Log.d(
-                    TAG,
-                    "--- updateAudioDeviceState: no change"
+                    TAG, "--- updateAudioDeviceState: no change"
                 )
             }
         }
     }
 
     private fun audioDeviceStatusMap(): WritableMap {
-            val data = Arguments.createMap()
-            var audioDevicesJson = "["
-            for (s in audioDeviceManager.getCurrentDeviceEndpoints(bluetoothManager)) {
-                audioDevicesJson += "\"" + s.name + "\","
-            }
-
-            // --- strip the last `,`
-            if (audioDevicesJson.length > 1) {
-                audioDevicesJson = audioDevicesJson.substring(0, audioDevicesJson.length - 1)
-            }
-            audioDevicesJson += "]"
-
-            data.putString("availableAudioDeviceEndpointNamesList", audioDevicesJson)
-            data.putString(
-                "selectedAudioDeviceEndpointType",
-                endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type)
-            )
-            data.putString("selectedAudioDeviceName", this.selectedAudioDeviceEndpoint?.name)
-            return data
+        val data = Arguments.createMap()
+        var audioDevicesJson = "["
+        for (s in audioDeviceManager.getCurrentDeviceEndpoints(bluetoothManager)) {
+            audioDevicesJson += "\"" + s.name + "\","
         }
+
+        // --- strip the last `,`
+        if (audioDevicesJson.length > 1) {
+            audioDevicesJson = audioDevicesJson.substring(0, audioDevicesJson.length - 1)
+        }
+        audioDevicesJson += "]"
+
+        data.putString("availableAudioDeviceEndpointNamesList", audioDevicesJson)
+        data.putString(
+            "selectedAudioDeviceEndpointType",
+            endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type)
+        )
+        data.putString("selectedAudioDeviceName", this.selectedAudioDeviceEndpoint?.name)
+        return data
+    }
 
     companion object {
         const val TAG = "InCallManager"
@@ -1757,7 +1705,9 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         }
 
         private fun endpointTypeDebug(@EndpointType endpointType: Int?): String {
-            if (endpointType == null) { return  "NULL" }
+            if (endpointType == null) {
+                return "NULL"
+            }
             return AudioDeviceEndpointUtils.endpointTypeToString(endpointType)
         }
     }
