@@ -151,7 +151,7 @@ export const ParticipantDetails = ({
           )}
           {indicatorsVisible && isTrackPaused && (
             <span
-              title={t('Track paused due to insufficient bandwidth')}
+              title={t('Video paused due to insufficient bandwidth')}
               className="str-video__participant-details__name--track-paused"
             />
           )}
