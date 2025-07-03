@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  BadNetwork,
   MicOff,
   PinVertical,
   ScreenShareIndicator,
@@ -10,7 +11,7 @@ import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { type ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
-import { hasAudio, hasVideo } from '@stream-io/video-client';
+import { hasAudio, hasPausedTrack, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 import SpeechIndicator from './SpeechIndicator';
 
@@ -54,6 +55,7 @@ export const ParticipantLabel = ({
   const isPinningEnabled = pin?.isLocalPin;
   const isAudioMuted = !hasAudio(participant);
   const isVideoMuted = !hasVideo(participant);
+  const isTrackPaused = trackType && hasPausedTrack(participant, trackType);
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);
@@ -124,6 +126,13 @@ export const ParticipantLabel = ({
             <VideoSlash color={colors.iconPrimary} size={iconSizes.sm} />
           </View>
         )}
+        {isTrackPaused && (
+          <View
+            style={[styles.trackPausedIconContainer, videoMutedIconContainer]}
+          >
+            <BadNetwork color={colors.iconPrimary} size={iconSizes.sm} />
+          </View>
+        )}
         {isPinningEnabled && (
           <Pressable
             style={[styles.pinIconContainer, pinIconContainer]}
@@ -179,6 +188,10 @@ const useStyles = () => {
           justifyContent: 'center',
         },
         videoMutedIconContainer: {
+          marginLeft: theme.variants.spacingSizes.xs,
+          justifyContent: 'center',
+        },
+        trackPausedIconContainer: {
           marginLeft: theme.variants.spacingSizes.xs,
           justifyContent: 'center',
         },

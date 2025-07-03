@@ -12,3 +12,19 @@ export const pushToIfMissing = <T>(arr: T[], ...values: T[]): T[] => {
   }
   return arr;
 };
+
+/**
+ * Removes values from an array if they are present.
+ *
+ * @param arr the array to remove from.
+ * @param values the values to remove.
+ */
+export const removeFromIfPresent = <T>(arr: T[], ...values: T[]): T[] => {
+  for (const v of values) {
+    const index = arr.indexOf(v);
+    if (index !== -1) {
+      arr.splice(index, 1);
+    }
+  }
+  return arr;
+};

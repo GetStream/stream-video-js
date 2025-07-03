@@ -136,6 +136,7 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
+import { sdkCapabilities } from './capabilities';
 import { getLogger } from './logger';
 import {
   CameraManager,
@@ -971,6 +972,7 @@ export class Call {
             reconnectDetails,
             preferredPublishOptions,
             preferredSubscribeOptions,
+            capabilities: sdkCapabilities,
           });
 
         this.currentPublishOptions = publishOptions;
