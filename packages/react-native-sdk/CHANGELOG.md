@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.17.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.3...@stream-io/video-react-native-sdk-1.17.4) (2025-07-03)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.3`
+- `@stream-io/video-react-bindings` updated to version `1.7.4`
+
+### Bug Fixes
+
+- add loopSound for incoming call notifications ([9e02a3d](https://github.com/GetStream/stream-video-js/commit/9e02a3dd4de5af8a446b8b34450a3fa13b878aa2))
+- do not have a default for objectfit ([#1843](https://github.com/GetStream/stream-video-js/issues/1843)) ([1586e07](https://github.com/GetStream/stream-video-js/commit/1586e070691fddb7eb04ae713228e3fe6ac093e4))
+
 ## [1.17.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.2...@stream-io/video-react-native-sdk-1.17.3) (2025-07-02)
 
 ### Dependency Updates
