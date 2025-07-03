@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.1...@stream-io/video-client-1.25.2) (2025-07-02)
+
+### Bug Fixes
+
+- resolve `default` device id into real id ([#1839](https://github.com/GetStream/stream-video-js/issues/1839)) ([1a1037f](https://github.com/GetStream/stream-video-js/commit/1a1037f21ef2926c7da78b6461499f37742935e9))
+
 ## [1.25.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.0...@stream-io/video-client-1.25.1) (2025-06-30)
 
 ### Bug Fixes
