@@ -1084,6 +1084,23 @@ export enum AppleThermalState {
    */
   CRITICAL = 4,
 }
+/**
+ * ClientCapability defines a feature that client supports
+ *
+ * @generated from protobuf enum stream.video.sfu.models.ClientCapability
+ */
+export enum ClientCapability {
+  /**
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * Enables SFU pausing inbound video
+   *
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_SUBSCRIBER_VIDEO_PAUSE = 1;
+   */
+  SUBSCRIBER_VIDEO_PAUSE = 1,
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
   constructor() {

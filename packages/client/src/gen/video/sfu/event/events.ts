@@ -6,6 +6,7 @@ import {
   CallEndedReason,
   CallGrants,
   CallState,
+  ClientCapability,
   ClientDetails,
   Codec,
   ConnectionQuality,
@@ -517,6 +518,10 @@ export interface JoinRequest {
    * @generated from protobuf field: repeated stream.video.sfu.models.SubscribeOption preferred_subscribe_options = 10;
    */
   preferredSubscribeOptions: SubscribeOption[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.ClientCapability capabilities = 11;
+   */
+  capabilities: ClientCapability[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ReconnectDetails
@@ -1387,6 +1392,17 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         kind: 'message',
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: () => SubscribeOption,
+      },
+      {
+        no: 11,
+        name: 'capabilities',
+        kind: 'enum',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => [
+          'stream.video.sfu.models.ClientCapability',
+          ClientCapability,
+          'CLIENT_CAPABILITY_',
+        ],
       },
     ]);
   }
