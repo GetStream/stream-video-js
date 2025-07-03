@@ -2,6 +2,11 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.2...@stream-io/video-client-1.25.3) (2025-07-03)
+
+- bump the default test timeout ([bea27db](https://github.com/GetStream/stream-video-js/commit/bea27db1922a6f2a0899375d1a4cade1eb1291b5))
+- increase axios timeout ([d9cc4ac](https://github.com/GetStream/stream-video-js/commit/d9cc4ac69f58d12d97af0c714df564349c17c9b5))
+
 ## [1.25.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.1...@stream-io/video-client-1.25.2) (2025-07-02)
 
 ### Bug Fixes
