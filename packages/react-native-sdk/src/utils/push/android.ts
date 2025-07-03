@@ -306,6 +306,7 @@ export const firebaseDataHandler = async (
         ongoing: true,
         sound: incomingCallChannel.sound,
         vibrationPattern: incomingCallChannel.vibrationPattern,
+        loopSound: true,
         pressAction: {
           id: 'default',
           launchActivity: 'default', // open the app when the notification is pressed
