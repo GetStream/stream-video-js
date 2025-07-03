@@ -140,9 +140,9 @@ describe('internal events', () => {
     state.setSortParticipantsBy(noopComparator());
     state.setParticipants([
       // @ts-expect-error incomplete data
-      { sessionId: 'session-1', pausedTracks: [] },
+      { sessionId: 'session-1' },
       // @ts-expect-error incomplete data
-      { sessionId: 'session-2', pausedTracks: [] },
+      { sessionId: 'session-2' },
     ]);
 
     const update = watchInboundStateNotification(state);
