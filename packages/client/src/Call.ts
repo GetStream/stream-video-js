@@ -719,7 +719,7 @@ export class Call {
     await this.setup();
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
-      params,
+      { ...params, member_ids: params?.member_ids?.join(',') },
     );
 
     this.state.updateFromCallResponse(response.call);
