@@ -2123,6 +2123,12 @@ export interface CallSessionResponse {
    * @type {string}
    * @memberof CallSessionResponse
    */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
   ended_at?: string;
   /**
    *
