@@ -345,6 +345,11 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
+      this.camera.setup();
+      this.microphone.setup();
+      this.screenShare.setup();
+      this.speaker.setup();
+
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
       }
@@ -559,10 +564,15 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
+    if (this.state.callingState === CallingState.LEFT) {
+      throw new Error('Cannot leave call that has already been left.');
+    }
+
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
+
       if (callingState === CallingState.LEFT) {
-        throw new Error('Cannot leave call that has already been left.');
+        return;
       }
 
       if (callingState === CallingState.JOINING) {
@@ -626,6 +636,7 @@ export class Call {
       this.microphone.dispose();
       this.screenShare.dispose();
       this.speaker.dispose();
+      this.deviceSettingsAppliedOnce = false;
 
       const stopOnLeavePromises: Promise<void>[] = [];
       if (this.camera.stopOnLeave) {
@@ -716,7 +727,6 @@ export class Call {
     this.state.setOwnCapabilities(response.own_capabilities);
 
     if (params?.ring) {
-      // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
 
@@ -747,7 +757,6 @@ export class Call {
     this.state.setOwnCapabilities(response.own_capabilities);
 
     if (data?.ring) {
-      // the call response can indicate where the call is still ringing or not
       this.ringingSubject.next(true);
     }
 
@@ -984,7 +993,7 @@ export class Call {
       } catch (error) {
         this.logger('warn', 'Join SFU request failed', error);
         sfuClient.close(
-          StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+          StreamSfuClient.JOIN_FAILED,
           'Join request failed, connection considered unhealthy',
         );
         // restore the previous call state if the join-flow fails
@@ -1158,7 +1167,7 @@ export class Call {
     }
     if (this.publisher) {
       this.publisher.setSfuClient(nextSfuClient);
-      if (includePublisher) {
+      if (includePublisher && this.publisher.isPublishing()) {
         await this.publisher.restartIce();
       }
     }
@@ -1195,16 +1204,11 @@ export class Call {
       connectionConfig,
       logTag: String(this.sfuClientTag),
       enableTracing,
-      onUnrecoverableError: (reason) => {
-        this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
-          (err) => {
-            this.logger(
-              'warn',
-              `[Reconnect] Error reconnecting after a subscriber error: ${reason}`,
-              err,
-            );
-          },
-        );
+      onReconnectionNeeded: (kind, reason) => {
+        this.reconnect(kind, reason).catch((err) => {
+          const message = `[Reconnect] Error reconnecting after a subscriber error: ${reason}`;
+          this.logger('warn', message, err);
+        });
       },
     });
 
@@ -1223,16 +1227,11 @@ export class Call {
         publishOptions,
         logTag: String(this.sfuClientTag),
         enableTracing,
-        onUnrecoverableError: (reason) => {
-          this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch(
-            (err) => {
-              this.logger(
-                'warn',
-                `[Reconnect] Error reconnecting after a publisher error: ${reason}`,
-                err,
-              );
-            },
-          );
+        onReconnectionNeeded: (kind, reason) => {
+          this.reconnect(kind, reason).catch((err) => {
+            const message = `[Reconnect] Error reconnecting after a publisher error: ${reason}`;
+            this.logger('warn', message, err);
+          });
         },
       });
     }
@@ -1332,8 +1331,13 @@ export class Call {
     )
       return;
     // normal close, no need to reconnect
-    if (sfuClient.isLeaving || sfuClient.isClosing) return;
-    this.reconnect(WebsocketReconnectStrategy.REJOIN, reason).catch((err) => {
+    if (sfuClient.isLeaving || sfuClient.isClosingClean) return;
+
+    const strategy =
+      this.publisher?.isHealthy() && this.subscriber?.isHealthy()
+        ? WebsocketReconnectStrategy.FAST
+        : WebsocketReconnectStrategy.REJOIN;
+    this.reconnect(strategy, reason).catch((err) => {
       this.logger('warn', '[Reconnect] Error reconnecting', err);
     });
   };
@@ -1362,12 +1366,14 @@ export class Call {
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
 
+      let attempt = 0;
       do {
-        if (
+        const reconnectingTime = Date.now() - reconnectStartTime;
+        const shouldGiveUpReconnecting =
           this.disconnectionTimeoutSeconds > 0 &&
-          (Date.now() - reconnectStartTime) / 1000 >
-            this.disconnectionTimeoutSeconds
-        ) {
+          reconnectingTime / 1000 > this.disconnectionTimeoutSeconds;
+
+        if (shouldGiveUpReconnecting) {
           this.logger(
             'warn',
             '[Reconnect] Stopping reconnection attempts after reaching disconnection timeout',
@@ -1380,7 +1386,8 @@ export class Call {
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
           this.reconnectAttempts++;
         }
-        const current = WebsocketReconnectStrategy[this.reconnectStrategy];
+        const currentStrategy =
+          WebsocketReconnectStrategy[this.reconnectStrategy];
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
@@ -1393,7 +1400,10 @@ export class Call {
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
-              this.logger('debug', `[Reconnect] No-op strategy ${current}`);
+              this.logger(
+                'debug',
+                `[Reconnect] No-op strategy ${currentStrategy}`,
+              );
               break;
             case WebsocketReconnectStrategy.FAST:
               await this.reconnectFast();
@@ -1415,7 +1425,7 @@ export class Call {
         } catch (error) {
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger(
-              'trace',
+              'debug',
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
             );
             break;
@@ -1431,13 +1441,37 @@ export class Call {
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
             return;
           }
+
+          await sleep(500);
+
+          const wasMigrating =
+            this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
+          const mustPerformRejoin =
+            (Date.now() - reconnectStartTime) / 1000 >
+            this.fastReconnectDeadlineSeconds;
+
+          // don't immediately switch to the REJOIN strategy, but instead attempt
+          // to reconnect with the FAST strategy for a few times before switching.
+          // in some cases, we immediately switch to the REJOIN strategy.
+          const shouldRejoin =
+            mustPerformRejoin || // if we are past the fast reconnect deadline
+            wasMigrating || // if we were migrating, but the migration failed
+            attempt >= 3 || // after 3 failed attempts
+            !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
+            !(this.subscriber?.isHealthy() ?? true); // if the subscriber is not healthy
+
+          attempt++;
+
+          const nextStrategy = shouldRejoin
+            ? WebsocketReconnectStrategy.REJOIN
+            : WebsocketReconnectStrategy.FAST;
+          this.reconnectStrategy = nextStrategy;
+
           this.logger(
-            'warn',
-            `[Reconnect] ${current} (${this.reconnectAttempts}) failed. Attempting with REJOIN`,
+            'info',
+            `[Reconnect] ${currentStrategy} (${this.reconnectAttempts}) failed. Attempting with ${WebsocketReconnectStrategy[nextStrategy]}`,
             error,
           );
-          await sleep(500);
-          this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
         }
       } while (
         this.state.callingState !== CallingState.JOINED &&

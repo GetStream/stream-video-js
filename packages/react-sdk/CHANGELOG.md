@@ -2,6 +2,39 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.8...@stream-io/video-react-sdk-1.18.9) (2025-07-03)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.3`
+- `@stream-io/video-react-bindings` updated to version `1.7.4`
+
+## [1.18.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.7...@stream-io/video-react-sdk-1.18.8) (2025-07-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.2`
+- `@stream-io/video-react-bindings` updated to version `1.7.3`
+
+## [1.18.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.6...@stream-io/video-react-sdk-1.18.7) (2025-06-30)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.2.1`
+- `@stream-io/video-client` updated to version `1.25.1`
+- `@stream-io/video-react-bindings` updated to version `1.7.2`
+
+### Bug Fixes
+
+- default menu for ToggleAudioPreviewButton ([#1838](https://github.com/GetStream/stream-video-js/issues/1838)) ([0d719ea](https://github.com/GetStream/stream-video-js/commit/0d719ea0035a159add47eb592bda056b8113be1f))
+
+## [1.18.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.5...@stream-io/video-react-sdk-1.18.6) (2025-06-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.1`
+
 ## [1.18.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.4...@stream-io/video-react-sdk-1.18.5) (2025-06-12)
 
 ### Dependency Updates

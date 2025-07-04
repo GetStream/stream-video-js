@@ -13,9 +13,12 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 > {
   constructor(call: Call) {
     super(call, new ScreenShareState(), TrackType.SCREEN_SHARE);
+  }
 
+  override setup(): void {
+    super.setup();
     this.subscriptions.push(
-      createSubscription(call.state.settings$, (settings) => {
+      createSubscription(this.call.state.settings$, (settings) => {
         const maybeTargetResolution = settings?.screensharing.target_resolution;
 
         if (maybeTargetResolution) {
@@ -70,16 +73,26 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return of([]); // there are no devices to be listed for Screen Share
   }
 
-  protected getStream(
+  protected async getStream(
     constraints: DisplayMediaStreamOptions,
   ): Promise<MediaStream> {
     if (!this.state.audioEnabled) {
       constraints.audio = false;
     }
-    return getScreenShareStream(constraints, this.call.tracer);
+    const stream = await getScreenShareStream(constraints, this.call.tracer);
+    const [track] = stream.getVideoTracks();
+    const { contentHint } = this.state.settings || {};
+    if (typeof contentHint !== 'undefined' && track && 'contentHint' in track) {
+      this.call.tracer.trace(
+        'navigator.mediaDevices.getDisplayMedia.contentHint',
+        contentHint,
+      );
+      track.contentHint = contentHint;
+    }
+    return stream;
   }
 
-  protected async stopPublishStream(): Promise<void> {
+  protected override async stopPublishStream(): Promise<void> {
     return this.call.stopPublish(
       TrackType.SCREEN_SHARE,
       TrackType.SCREEN_SHARE_AUDIO,
@@ -89,7 +102,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
   /**
    * Overrides the default `select` method to throw an error.
    */
-  async select(): Promise<void> {
+  override async select(): Promise<void> {
     throw new Error('Not supported');
   }
 }

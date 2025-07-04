@@ -105,7 +105,7 @@ export const ParticipantView = ({
   VideoRenderer = DefaultVideoRenderer,
   ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
-  objectFit = 'cover',
+  objectFit,
   videoZOrder = 0,
   supportedReactions,
 }: ParticipantViewProps) => {

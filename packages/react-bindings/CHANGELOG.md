@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.7.3...@stream-io/video-react-bindings-1.7.4) (2025-07-03)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.3`
+
+## [1.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.7.2...@stream-io/video-react-bindings-1.7.3) (2025-07-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.2`
+
+## [1.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.7.1...@stream-io/video-react-bindings-1.7.2) (2025-06-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.1`
+
+## [1.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.7.0...@stream-io/video-react-bindings-1.7.1) (2025-06-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.25.0`
+
 ## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.6.8...@stream-io/video-react-bindings-1.7.0) (2025-06-12)
 
 ### Dependency Updates

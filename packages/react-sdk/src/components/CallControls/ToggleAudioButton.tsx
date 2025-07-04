@@ -27,7 +27,13 @@ export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
-  const { caption, onMenuToggle, ...restCompositeButtonProps } = props;
+  const {
+    caption,
+    Menu = DeviceSelectorAudioInput,
+    menuPlacement = 'top',
+    onMenuToggle,
+    ...restCompositeButtonProps
+  } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const {
@@ -64,6 +70,8 @@ export const ToggleAudioPreviewButton = (
             : 'preview-audio-mute-button'
         }
         onClick={handleClick}
+        Menu={Menu}
+        menuPlacement={menuPlacement}
         {...restCompositeButtonProps}
         onMenuToggle={(shown) => {
           setTooltipDisabled(shown);
