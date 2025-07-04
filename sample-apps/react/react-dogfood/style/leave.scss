@@ -1,3 +1,5 @@
+@use 'breakpoints';
+
 .rd__leave {
   display: flex;
   flex-direction: column;
@@ -21,7 +23,7 @@
   }
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__leave-content {
     max-width: 35vw;
   }

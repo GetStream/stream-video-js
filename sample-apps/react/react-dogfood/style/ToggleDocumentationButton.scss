@@ -1,3 +1,5 @@
+@use 'breakpoints';
+
 .rd__documentation-button__menu {
   display: flex;
   padding: var(--str-video__spacing-lg);
@@ -26,7 +28,7 @@
   }
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__call-header__title {
     display: flex;
   }

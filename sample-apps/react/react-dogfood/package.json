@@ -49,7 +49,7 @@
     "@types/starwars-names": "^1.6.2",
     "@types/yargs": "^17.0.33",
     "rimraf": "^6.0.1",
-    "sass": "^1.69.5",
+    "sass": "^1.89.2",
     "source-map-loader": "^5.0.0"
   }
 }

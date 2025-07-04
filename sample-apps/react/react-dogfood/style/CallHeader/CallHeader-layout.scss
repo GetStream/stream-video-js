@@ -1,3 +1,5 @@
+@use '../breakpoints';
+
 .rd__call-header {
   display: flex;
   align-items: center;
@@ -201,7 +203,7 @@
   }
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__call-header--active {
     .rd__call-header__settings {
       display: none;

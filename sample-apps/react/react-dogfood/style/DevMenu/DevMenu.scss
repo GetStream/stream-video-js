@@ -1,3 +1,5 @@
+@use '../breakpoints';
+
 .rd__dev-menu {
   display: flex;
   flex-direction: column;
@@ -19,13 +21,13 @@
   }
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__dev-menu {
     width: 40vw;
   }
 }
 
-@include respond-above(md) {
+@include breakpoints.respond-above(md) {
   .rd__dev-menu {
     width: 20vw;
   }

@@ -1,3 +1,5 @@
+@use 'breakpoints';
+
 .rd__layout {
   display: flex;
   height: calc(100vh - 140px);
@@ -80,7 +82,7 @@
   width: 100%;
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__sidebar {
     position: relative;
     width: 0;
@@ -125,7 +127,7 @@
   box-shadow: 0px 0px 16px 4px #005fff;
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__sidebar {
     z-index: 1;
   }

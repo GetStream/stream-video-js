@@ -1,3 +1,5 @@
+@use 'breakpoints';
+
 .rd {
   &__tabmodal-container {
     display: flex;
@@ -187,7 +189,7 @@
   }
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd {
     &__tabmodal-container {
       width: 65vw;
@@ -229,7 +231,7 @@
   }
 }
 
-@include respond-above(lg) {
+@include breakpoints.respond-above(lg) {
   .rd {
     &__tabmodal-container {
       width: 55vw;
@@ -237,7 +239,7 @@
   }
 }
 
-@include respond-above(xlg) {
+@include breakpoints.respond-above(xlg) {
   .rd {
     &__tabmodal-container {
       width: 45vw;

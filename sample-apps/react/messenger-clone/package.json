@@ -21,7 +21,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router-dom": "^6.30.0",
-    "sass": "^1.69.5",
+    "sass": "^1.89.2",
     "stream-chat": "^9.6.1",
     "stream-chat-react": "^13.1.0"
   },
