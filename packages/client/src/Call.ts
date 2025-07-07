@@ -1358,6 +1358,16 @@ export class Call {
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
 
+      const markAsReconnectingFailed = async () => {
+        try {
+          // attempt to fetch the call data from the server, as the call
+          // state might have changed while we were reconnecting or were offline
+          await this.get();
+        } finally {
+          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+        }
+      };
+
       let attempt = 0;
       do {
         const reconnectingTime = Date.now() - reconnectStartTime;
@@ -1370,7 +1380,7 @@ export class Call {
             'warn',
             '[Reconnect] Stopping reconnection attempts after reaching disconnection timeout',
           );
-          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          await markAsReconnectingFailed();
           return;
         }
 
@@ -1430,7 +1440,7 @@ export class Call {
               `[Reconnect] Can't reconnect due to coordinator unrecoverable error`,
               error,
             );
-            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+            await markAsReconnectingFailed();
             return;
           }
 
@@ -1483,6 +1493,7 @@ export class Call {
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
+    await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
       (Date.now() - reconnectStartTime) / 1000,
