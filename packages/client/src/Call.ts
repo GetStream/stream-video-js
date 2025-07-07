@@ -1493,6 +1493,7 @@ export class Call {
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
+    await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
       (Date.now() - reconnectStartTime) / 1000,
