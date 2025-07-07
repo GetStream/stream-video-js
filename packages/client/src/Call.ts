@@ -1360,8 +1360,8 @@ export class Call {
 
       const markAsReconnectingFailed = async () => {
         try {
-          // if the error is unrecoverable, we should attempt to fetch
-          // the call data from the server, as the call state might have changed
+          // attempt to fetch the call data from the server, as the call
+          // state might have changed while we were reconnecting or were offline
           await this.get();
         } finally {
           this.state.setCallingState(CallingState.RECONNECTING_FAILED);
