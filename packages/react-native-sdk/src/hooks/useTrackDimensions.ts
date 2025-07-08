@@ -10,48 +10,25 @@ import { useEffect, useState } from 'react';
  * Note: the `tracktype` is used only for local participants.
  * `tracktype` should be 'videoTrack' for video track and 'screenShareTrack' for screen share track.
  */
-export function useTrackDimensions(
-  participant: StreamVideoParticipant,
-  trackType: VideoTrackType,
-) {
+export function useTrackDimensions(participant: StreamVideoParticipant) {
   const [trackDimensions, setTrackDimensions] = useState({
     width: 0,
     height: 0,
   });
   const call = useCall();
-  const { isLocalParticipant, sessionId, videoStream, screenShareStream } =
-    participant;
+  const { sessionId } = participant;
 
-  // for local participant we can get from track.getSettings()
-  useEffect(() => {
-    if (call && isLocalParticipant) {
-      const stream =
-        trackType === 'screenShareTrack' ? screenShareStream : videoStream;
-      if (!stream) return;
-      const [track] = stream.getVideoTracks();
-      if (!track) return;
-      const { width = 0, height = 0 } = track.getSettings();
-      setTrackDimensions((prev) => {
-        if (prev.width !== width || prev.height !== height) {
-          return { width, height };
-        }
-        return prev;
-      });
-    }
-  }, [call, isLocalParticipant, screenShareStream, trackType, videoStream]);
-
-  // start reporting stats for the remote participant
   useEffect(() => {
     if (!call) return;
-    if (isLocalParticipant) return;
     call.startReportingStatsFor(sessionId);
     return () => {
       call.stopReportingStatsFor(sessionId);
     };
-  }, [call, sessionId, isLocalParticipant]);
+  }, [call, sessionId]);
 
   // for remote participants track.getSettings() is not supported it returns an empty object
-  // so we need to rely on call stats to get the dimensions
+  // and for local participants we can get from track.getSettings() but it reports the wrong dimensions as it sends the constraints
+  // so we need to rely on call stats for all participants to get the dimensions
   useEffect(() => {
     if (!call) return;
     const sub = call.state.callStatsReport$.subscribe((report) => {
