@@ -56,6 +56,7 @@ import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
 import com.streamvideo.reactnative.callmanager.utils.InCallWakeLockUtils
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
+import com.streamvideo.reactnative.util.WebRtcAudioUtils
 import java.io.File
 import java.util.Random
 import java.util.concurrent.ExecutorService
@@ -431,6 +432,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             }
             // TODO: even if not acquired focus, we can still play sounds. but need figure out which is better.
             //getCurrentActivity().setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
+            currentActivity?.apply { volumeControlStream = AudioManager.STREAM_VOICE_CALL }
             audioManager.mode = defaultAudioMode
             setMicrophoneMute(false)
             forceSpeakerOn = 0
@@ -544,6 +546,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
         return requestAudioFocusResStr
     }
 
+    @Suppress("DEPRECATION")
     private fun requestAudioFocusOld(): String {
         if (isAudioFocused) {
             return ""
@@ -725,6 +728,12 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             Log.d(TAG, "setMicrophoneMute(): $enable")
             audioManager.isMicrophoneMute = enable
         }
+    }
+
+    @ReactMethod
+    fun logAudioState() {
+        Log.d(TAG, "volumeControlStream: " + reactApplicationContext.currentActivity?.volumeControlStream)
+        WebRtcAudioUtils.logAudioState(TAG, reactApplicationContext, audioManager)
     }
 
     /**

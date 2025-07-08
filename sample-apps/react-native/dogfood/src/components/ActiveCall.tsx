@@ -80,8 +80,14 @@ export const ActiveCall = ({
   useEffect(() => {
     InCallManager.start('video');
     InCallManager.getAudioDeviceStatus();
+
+    const timeout = setTimeout(() => {
+      InCallManager.logAudioState();
+    }, 10000);
+
     return () => {
       InCallManager.stop();
+      clearTimeout(timeout);
     };
   }, []);
 

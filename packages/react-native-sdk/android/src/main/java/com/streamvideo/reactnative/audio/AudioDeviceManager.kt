@@ -31,7 +31,6 @@ import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
 import com.streamvideo.reactnative.callmanager.AppRTCBluetoothManager
 import com.streamvideo.reactnative.callmanager.InCallManagerModule
 import com.streamvideo.reactnative.callmanager.InCallManagerModule.Companion.runInAudioThread
-import org.webrtc.ThreadUtils
 
 interface OnAudioDeviceChangedListener {
     fun onAudioDevicesChanged()
@@ -93,7 +92,7 @@ internal class AudioDeviceManager(
         if (enable) {
             switchDeviceEndpointType(AudioDeviceEndpoint.TYPE_SPEAKER, appRTCBluetoothManager)
         } else {
-            mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+//            mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
             if (Build.VERSION.SDK_INT >= 31) {
                 AudioManagerUtil.AudioManager31PlusImpl.setSpeakerphoneOn(false, mAudioManager, mEndpointMaps.nonBluetoothEndpoints[AudioDeviceEndpoint.TYPE_SPEAKER])
             } else {
@@ -112,7 +111,7 @@ internal class AudioDeviceManager(
         val btDevice = mEndpointMaps.bluetoothEndpoints[deviceName]
         if (btDevice != null) {
             if (Build.VERSION.SDK_INT >= 31) {
-                mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+//                mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
                 mAudioManager.setCommunicationDevice(btDevice.deviceInfo)
                 appRTCBluetoothManager.updateDevice()
                 return btDevice
@@ -245,6 +244,22 @@ internal class AudioDeviceManager(
             }
         }
         return 0
+    }
+
+    fun muteAudioOutput() {
+        mAudioManager.adjustStreamVolume(
+            AudioManager.STREAM_VOICE_CALL,
+            AudioManager.ADJUST_MUTE,
+            AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE // Optional: prevents sound/vibration on mute
+        );
+    }
+
+    fun unmuteAudioOutput() {
+        mAudioManager.adjustStreamVolume(
+            AudioManager.STREAM_VOICE_CALL,
+            AudioManager.ADJUST_UNMUTE,
+            AudioManager.FLAG_SHOW_UI
+        );
     }
 
     companion object {

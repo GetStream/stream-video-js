@@ -91,10 +91,19 @@ async function getAudioDeviceStatus() {
   return audioDeviceStatus;
 }
 
+/**
+ * Log the current audio state.
+ * Meant for debugging purposes.
+ */
+function logAudioState() {
+  InCallManagerNativeModule.logAudioState();
+}
+
 export const InCallManager = {
   start,
   stop,
   getAudioDeviceStatus,
   chooseAudioDeviceEndpoint,
   addAudioDeviceStatusChangeListener,
+  logAudioState,
 };
