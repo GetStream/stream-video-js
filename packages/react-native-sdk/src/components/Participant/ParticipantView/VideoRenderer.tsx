@@ -72,7 +72,8 @@ export const VideoRenderer = ({
     deregister: deregisterIosScreenshot,
   } = useScreenshotIosContext();
 
-  const videoDimensions = useTrackDimensions(participant, trackType);
+  const videoDimensions = useTrackDimensions(participant);
+
   const isVideoDimensionsValid =
     videoDimensions.width > 0 && videoDimensions.height > 0;
 
