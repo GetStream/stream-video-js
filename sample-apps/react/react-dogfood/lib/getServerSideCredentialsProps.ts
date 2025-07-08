@@ -25,7 +25,7 @@ export const getServerSideCredentialsProps = async (
     const url = context.req.url;
     return {
       redirect: {
-        destination: `/auth/signin?callbackUrl=${url}`,
+        destination: `/auth/signin?callbackUrl=${encodeURIComponent(url || '')}`,
         permanent: false,
       },
     };
