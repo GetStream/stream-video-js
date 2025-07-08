@@ -293,7 +293,7 @@ export const VideoRenderer = ({
     >
       {canShowVideo &&
       videoStreamToRender &&
-      (objectFit ? true : isVideoDimensionsValid) ? (
+      (objectFit || isVideoDimensionsValid) ? (
         <RTCView
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
