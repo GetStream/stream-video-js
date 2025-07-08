@@ -344,9 +344,9 @@ export class StreamSfuClient {
   };
 
   leaveAndClose = async (reason: string) => {
-    await this.joinTask;
     try {
       this.isLeaving = true;
+      await this.joinTask;
       await this.notifyLeave(reason);
     } catch (err) {
       this.logger('debug', 'Error notifying SFU about leaving call', err);
