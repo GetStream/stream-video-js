@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   type SoundDetectorState,
   RNSpeechDetector,
@@ -15,12 +15,13 @@ export function useSpeechDetection() {
     isSoundDetected: false,
     audioLevel: 0,
   });
+  const deinit = useRef<Promise<void>>(undefined);
 
   useEffect(() => {
     const speechDetector = new RNSpeechDetector();
     let unsubscribe: (() => void) | undefined;
 
-    const initSpeechDetector = async () => {
+    const init = async () => {
       try {
         unsubscribe = await speechDetector.start(
           (state: SoundDetectorState) => {
@@ -33,12 +34,12 @@ export function useSpeechDetection() {
       }
     };
 
-    initSpeechDetector();
-
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      deinit.current = init().then(() => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      });
     };
   }, []);
 
