@@ -1,7 +1,4 @@
-import {
-  type StreamVideoParticipant,
-  type VideoTrackType,
-} from '@stream-io/video-client';
+import { type StreamVideoParticipant } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 import { useEffect, useState } from 'react';
 

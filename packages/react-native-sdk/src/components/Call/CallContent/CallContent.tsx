@@ -221,8 +221,8 @@ export const CallContent = ({
                 }
                 onPressHandler={handleFloatingViewParticipantSwitch}
                 supportedReactions={supportedReactions}
-                {...participantViewProps}
                 objectFit="cover"
+                {...participantViewProps}
               />
             )}
           </View>
