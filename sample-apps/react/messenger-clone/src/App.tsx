@@ -4,12 +4,14 @@ import {
   redirect,
   RouterProvider,
 } from 'react-router-dom';
+import { AppShell } from './components/AppShell';
 import { UserList } from './components/UserList';
 import { UserContextProvider } from './contexts/UserContext';
 import { getSelectedUser } from './utils/user';
 
+import 'stream-chat-react/dist/css/v2/index.css';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './styles/index.scss';
-import { AppShell } from './components/AppShell';
 
 const Root = () => <Outlet />;
 
