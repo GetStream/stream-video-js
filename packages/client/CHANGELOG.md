@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.4...@stream-io/video-client-1.25.5) (2025-07-08)
+
+### Bug Fixes
+
+- relax SFU leaveAndClose constraints ([#1848](https://github.com/GetStream/stream-video-js/issues/1848)) ([dbf8bb0](https://github.com/GetStream/stream-video-js/commit/dbf8bb0c6f9f5358f21db3e78bd40ce01ad9bf6d)), closes [#1846](https://github.com/GetStream/stream-video-js/issues/1846)
+
+## [1.25.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.3...@stream-io/video-client-1.25.4) (2025-07-07)
+
+### Bug Fixes
+
+- sync call state after a failed reconnect ([#1846](https://github.com/GetStream/stream-video-js/issues/1846)) ([905e5c2](https://github.com/GetStream/stream-video-js/commit/905e5c2011d3267e83b3f2a861a4175de4111cfa))
+
 ## [1.25.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.2...@stream-io/video-client-1.25.3) (2025-07-03)
 
 - bump the default test timeout ([bea27db](https://github.com/GetStream/stream-video-js/commit/bea27db1922a6f2a0899375d1a4cade1eb1291b5))
