@@ -18,15 +18,17 @@ export function useSpeechDetection() {
 
   useEffect(() => {
     const speechDetector = new RNSpeechDetector();
-    let cleanup: (() => void) | undefined;
+    let unsubscribe: (() => void) | undefined;
 
     const initSpeechDetector = async () => {
       try {
-        cleanup = await speechDetector.start((state: SoundDetectorState) => {
-          setAudioState(state);
-        });
+        unsubscribe = await speechDetector.start(
+          (state: SoundDetectorState) => {
+            setAudioState(state);
+          },
+        );
       } catch (error) {
-        const logger = getLogger(['useAudioLevels']);
+        const logger = getLogger(['useSpeechDetection']);
         logger('error', 'Failed to initialize speech detector', error);
       }
     };
@@ -34,8 +36,8 @@ export function useSpeechDetection() {
     initSpeechDetector();
 
     return () => {
-      if (cleanup) {
-        cleanup();
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
   }, []);
