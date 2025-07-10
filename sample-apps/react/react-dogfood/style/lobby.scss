@@ -1,3 +1,5 @@
+@use 'breakpoints';
+
 .rd__lobby {
   position: absolute;
   z-index: 1;
@@ -185,7 +187,7 @@
 .rd__lobby__no-permission {
   text-align: center;
 }
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__lobby-content {
     max-width: 40vw;
 
@@ -222,14 +224,14 @@
   margin: 0;
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__lobby__camera-button.rd__button,
   .rd__lobby__mic-button.rd__button {
     display: flex;
   }
 }
 
-@include respond-above(md) {
+@include breakpoints.respond-above(md) {
   .rd__lobby-content {
     max-width: 25vw;
   }

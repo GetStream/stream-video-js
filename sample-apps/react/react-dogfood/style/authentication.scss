@@ -1,3 +1,5 @@
+@use 'breakpoints';
+
 .rd__auth {
   display: flex;
   flex-direction: column;
@@ -57,13 +59,13 @@
   }
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .rd__auth-content {
     max-width: 50vw;
   }
 }
 
-@include respond-above(md) {
+@include breakpoints.respond-above(md) {
   .rd__auth-content {
     max-width: 25vw;
   }
