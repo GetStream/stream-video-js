@@ -11,12 +11,18 @@ export class RNSpeechDetector {
   /**
    * Starts the speech detection.
    */
-  public async start(onSoundDetectedStateChanged: SoundStateChangeHandler) {
+  public async start(
+    onSoundDetectedStateChanged: SoundStateChangeHandler,
+    mediaStream?: MediaStream | undefined,
+  ) {
     try {
       this.cleanupAudioStream();
-      const audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+      const audioStream = mediaStream
+        ? mediaStream
+        : await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+
       this.audioStream = audioStream;
 
       this.pc1.addEventListener('icecandidate', async (e) => {
