@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
-    "sass": "^1.69.5"
+    "sass": "^1.89.2"
   }
 }
