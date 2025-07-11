@@ -7,9 +7,10 @@ export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});
   private pc2 = new RTCPeerConnection({});
   private audioStream: MediaStream | undefined;
+  private externalAudioStream: MediaStream | undefined;
 
-  constructor(audioStream?: MediaStream) {
-    this.audioStream = audioStream;
+  constructor(externalAudioStream?: MediaStream) {
+    this.externalAudioStream = externalAudioStream;
   }
 
   /**
@@ -17,14 +18,15 @@ export class RNSpeechDetector {
    */
   public async start(onSoundDetectedStateChanged: SoundStateChangeHandler) {
     try {
-      if (!this.audioStream) {
-        this.cleanupAudioStream();
-        this.audioStream = await navigator.mediaDevices.getUserMedia({
+      let audioStream: MediaStream;
+      if (this.externalAudioStream != null) {
+        audioStream = this.externalAudioStream;
+      } else {
+        audioStream = await navigator.mediaDevices.getUserMedia({
           audio: true,
         });
+        this.audioStream = audioStream;
       }
-
-      const audioStream = this.audioStream;
 
       this.pc1.addEventListener('icecandidate', async (e) => {
         await this.pc2.addIceCandidate(
@@ -72,9 +74,13 @@ export class RNSpeechDetector {
    * Stops the speech detection and releases all allocated resources.
    */
   private stop() {
-    this.pc1.close();
-    this.pc2.close();
-    this.cleanupAudioStream();
+    if (this.externalAudioStream != null) {
+      this.externalAudioStream = undefined;
+    } else {
+      this.pc1.close();
+      this.pc2.close();
+      this.cleanupAudioStream();
+    }
   }
 
   /**

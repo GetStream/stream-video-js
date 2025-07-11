@@ -19,14 +19,13 @@ export function useSpeechDetection() {
   const { isEnabled, mediaStream } = useMicrophoneState();
 
   useEffect(() => {
+    if (!isEnabled) return;
+
     const detector = new RNSpeechDetector(mediaStream);
     const start = detector.start((state: SoundDetectorState) => {
-      if (isEnabled) {
-        setAudioState(state);
-      } else {
-        setAudioState({ isSoundDetected: false, audioLevel: 0 });
-      }
+      setAudioState(state);
     });
+
     return () => {
       start.then((stop) => stop());
     };
