@@ -38,7 +38,7 @@ export function DialingCallNotification(props: {
   const handleReject = () => {
     if (call) {
       call.leave({ reject: true, reason: 'cancel' }).catch((err) => {
-        console.error('Failed to cancel rining call', err);
+        console.error('Failed to cancel ringing call', err);
       });
     }
   };

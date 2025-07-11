@@ -1,3 +1,5 @@
+@use '../breakpoints';
+
 .rd__more-menu {
   display: flex;
   list-style: none;
@@ -23,7 +25,7 @@
   color: var(--str-video__text-color1);
 }
 
-@include respond-above(sm) {
+@include breakpoints.respond-above(sm) {
   .str-video__more-option--screen-share {
     display: none;
   }

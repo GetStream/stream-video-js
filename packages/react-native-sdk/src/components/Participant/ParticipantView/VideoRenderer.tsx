@@ -73,7 +73,8 @@ export const VideoRenderer = ({
     deregister: deregisterIosScreenshot,
   } = useScreenshotIosContext();
 
-  const videoDimensions = useTrackDimensions(participant, trackType);
+  const videoDimensions = useTrackDimensions(participant);
+
   const {
     isLocalParticipant,
     sessionId,
