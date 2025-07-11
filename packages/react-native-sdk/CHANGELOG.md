@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.6...@stream-io/video-react-native-sdk-1.18.0) (2025-07-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.26.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.7`
+
+### Features
+
+- **react-native:** speech detection ([#1850](https://github.com/GetStream/stream-video-js/issues/1850)) ([3f53e95](https://github.com/GetStream/stream-video-js/commit/3f53e95fdf0e739c809648211c52542d86df183f))
+
+### Bug Fixes
+
+- keep objectfit as cover for floating video view ([#1849](https://github.com/GetStream/stream-video-js/issues/1849)) ([a99de4c](https://github.com/GetStream/stream-video-js/commit/a99de4c3b2231fa840e003515735620f6c009f7e))
+
 ## [1.17.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.5...@stream-io/video-react-native-sdk-1.17.6) (2025-07-08)
 
 ### Dependency Updates
