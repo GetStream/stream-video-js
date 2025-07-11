@@ -10,34 +10,20 @@ const secret = process.env.STREAM_SECRET!;
 
 const serverClient = new StreamClient(apiKey, secret);
 
-const tokenProvider = (userId: string) => {
-  return async () => {
-    return new Promise<string>((resolve) => {
-      setTimeout(() => {
-        const token = serverClient.createToken(
-          userId,
-          undefined,
-          Math.round(Date.now() / 1000 - 10),
-        );
-        resolve(token);
-      }, 100);
-    });
-  };
-};
-
 describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
-  const user = {
-    id: 'sara',
-  };
 
   beforeAll(() => {
+    const user = { id: 'sara' };
     client = new StreamVideoClient(apiKey, {
       // tests run in node, so we have to fake being in browser env
       browser: true,
       timeout: 15000,
     });
-    client.connectUser(user, tokenProvider(user.id));
+    client.connectUser(
+      user,
+      serverClient.generateUserToken({ user_id: user.id }),
+    );
   });
 
   it('query calls', { retry: 3, timeout: 20000 }, async () => {

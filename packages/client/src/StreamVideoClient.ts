@@ -207,13 +207,6 @@ export class StreamVideoClient {
     this.eventHandlersToUnregister.push(
       this.on('call.ring', async (event) => {
         const { call, members } = event;
-        if (this.state.connectedUser?.id === call.created_by.id) {
-          this.logger(
-            'debug',
-            'Received `call.ring` sent by the current user so ignoring the event',
-          );
-          return;
-        }
         // if `call.created` was received before `call.ring`.
         // the client already has the call instance and we just need to update the state
         const theCall = this.writeableStateStore.findCall(call.type, call.id);
@@ -360,6 +353,7 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call.
+   * @param options additional options for the call.
    */
   call = (
     type: string,
