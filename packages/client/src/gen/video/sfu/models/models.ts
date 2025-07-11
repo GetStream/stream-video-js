@@ -820,6 +820,10 @@ export enum ErrorCode {
    */
   CALL_NOT_FOUND = 300,
   /**
+   * @generated from protobuf enum value: ERROR_CODE_CALL_PARTICIPANT_LIMIT_REACHED = 301;
+   */
+  CALL_PARTICIPANT_LIMIT_REACHED = 301,
+  /**
    * @generated from protobuf enum value: ERROR_CODE_REQUEST_VALIDATION_FAILED = 400;
    */
   REQUEST_VALIDATION_FAILED = 400,
@@ -1079,6 +1083,23 @@ export enum AppleThermalState {
    * @generated from protobuf enum value: APPLE_THERMAL_STATE_CRITICAL = 4;
    */
   CRITICAL = 4,
+}
+/**
+ * ClientCapability defines a feature that client supports
+ *
+ * @generated from protobuf enum stream.video.sfu.models.ClientCapability
+ */
+export enum ClientCapability {
+  /**
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * Enables SFU pausing inbound video
+   *
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_SUBSCRIBER_VIDEO_PAUSE = 1;
+   */
+  SUBSCRIBER_VIDEO_PAUSE = 1,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {

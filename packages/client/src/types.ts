@@ -1,5 +1,6 @@
 import type {
   Participant,
+  TrackType,
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
@@ -68,6 +69,16 @@ export interface StreamVideoParticipant extends Participant {
    * Set it to `undefined` to unsubscribe from this participant's screen share.
    */
   screenShareDimension?: VideoDimension;
+
+  /**
+   * A list of tracks that are currently paused by our servers.
+   * Typically, a server-side pause happens when the local participant doesn't
+   * have enough bandwidth to receive all tracks. In this case, the server
+   * will pause some tracks to optimize the bandwidth usage.
+   * Once the bandwidth is restored, the server will resume the paused tracks.
+   * This is useful to avoid any unwanted video and audio artifacts.
+   */
+  pausedTracks?: TrackType[];
 
   /**
    * True if the participant is the local participant.

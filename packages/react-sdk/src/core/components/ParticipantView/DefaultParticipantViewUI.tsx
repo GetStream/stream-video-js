@@ -2,6 +2,7 @@ import { ComponentType, forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import {
   hasAudio,
+  hasPausedTrack,
   hasScreenShare,
   hasVideo,
   SfuModels,
@@ -50,7 +51,9 @@ export const DefaultScreenShareOverlay = () => {
   const { t } = useI18n();
 
   const stopScreenShare = () => {
-    call?.screenShare.disable();
+    call?.screenShare.disable().catch((err) => {
+      console.error('Failed to stop screen sharing:', err);
+    });
   };
 
   return (
@@ -61,6 +64,7 @@ export const DefaultScreenShareOverlay = () => {
       </span>
       <button
         onClick={stopScreenShare}
+        type="button"
         className="str-video__screen-share-overlay__button"
       >
         <Icon icon="close" /> {t('Stop Screen Sharing')}
@@ -111,7 +115,7 @@ export const DefaultParticipantViewUI = ({
 export const ParticipantDetails = ({
   indicatorsVisible = true,
 }: Pick<DefaultParticipantViewUIProps, 'indicatorsVisible'>) => {
-  const { participant } = useParticipantViewContext();
+  const { participant, trackType } = useParticipantViewContext();
   const {
     isLocalParticipant,
     connectionQuality,
@@ -130,6 +134,8 @@ export const ParticipantDetails = ({
   const hasAudioTrack = hasAudio(participant);
   const hasVideoTrack = hasVideo(participant);
   const canUnpin = !!pin && pin.isLocalPin;
+  const isTrackPaused =
+    trackType !== 'none' ? hasPausedTrack(participant, trackType) : false;
 
   return (
     <>
@@ -142,6 +148,12 @@ export const ParticipantDetails = ({
           )}
           {indicatorsVisible && !hasVideoTrack && (
             <span className="str-video__participant-details__name--video-muted" />
+          )}
+          {indicatorsVisible && isTrackPaused && (
+            <span
+              title={t('Video paused due to insufficient bandwidth')}
+              className="str-video__participant-details__name--track-paused"
+            />
           )}
           {indicatorsVisible && canUnpin && (
             // TODO: remove this monstrosity once we have a proper design

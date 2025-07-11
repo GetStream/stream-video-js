@@ -3,7 +3,11 @@ import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
-import type { PinsChanged } from '../gen/video/sfu/event/events';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
+import type {
+  InboundStateNotification,
+  PinsChanged,
+} from '../gen/video/sfu/event/events';
 import {
   ErrorCode,
   WebsocketReconnectStrategy,
@@ -87,5 +91,28 @@ export const watchPinsUpdated = (state: CallState) => {
   return function onPinsUpdated(e: PinsChanged) {
     const { pins } = e;
     state.setServerSidePins(pins);
+  };
+};
+
+/**
+ * Watches for inbound state notifications and updates the paused tracks
+ *
+ * @param state the call state to update.
+ */
+export const watchInboundStateNotification = (state: CallState) => {
+  return function onInboundStateNotification(e: InboundStateNotification) {
+    const { inboundVideoStates } = e;
+    const current = state.getParticipantLookupBySessionId();
+    const patches: StreamVideoParticipantPatches = {};
+    for (const { sessionId, trackType, paused } of inboundVideoStates) {
+      const pausedTracks = [...(current[sessionId]?.pausedTracks ?? [])];
+      if (paused) {
+        pushToIfMissing(pausedTracks, trackType);
+      } else {
+        removeFromIfPresent(pausedTracks, trackType);
+      }
+      patches[sessionId] = { pausedTracks };
+    }
+    state.updateParticipants(patches);
   };
 };
