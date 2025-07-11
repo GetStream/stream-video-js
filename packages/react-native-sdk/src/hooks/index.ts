@@ -8,3 +8,4 @@ export * from './useAutoEnterPiPEffect';
 export * from './useScreenShareButton';
 export * from './useTrackDimensions';
 export * from './useScreenshot';
+export * from './useSpeechDetection';
