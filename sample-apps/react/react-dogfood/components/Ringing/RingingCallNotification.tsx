@@ -50,14 +50,20 @@ function RingingCallUI() {
 
   const handleAccept = () => {
     if (call) {
-      router.push(`/join/${call.id}?skip_lobby=true`);
+      const params = new URLSearchParams(
+        router.query as Record<string, string>,
+      );
+      params.delete('callId');
+      params.set('type', call.type);
+      params.set('skip_lobby', 'true');
+      router.push(`/join/${call.id}?${params.toString()}`);
     }
   };
 
   const handleReject = () => {
     if (call) {
       call.leave({ reject: true, reason: 'decline' }).catch((err) => {
-        console.error('Failed to decline rining call', err);
+        console.error('Failed to decline ringing call', err);
       });
     }
   };
