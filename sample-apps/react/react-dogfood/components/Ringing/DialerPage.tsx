@@ -151,7 +151,11 @@ export const DialerPage = ({
 
   const handleJoin = () => {
     if (ringingCall) {
-      router.push(`/join/${ringingCall.id}?skip_lobby=true`);
+      const params = new URLSearchParams(
+        router.query as Record<string, string>,
+      );
+      params.set('skip_lobby', 'true');
+      router.push(`/join/${ringingCall.id}?${params.toString()}`);
     }
   };
 
