@@ -74,11 +74,12 @@ export class RNSpeechDetector {
    * Stops the speech detection and releases all allocated resources.
    */
   private stop() {
+    this.pc1.close();
+    this.pc2.close();
+
     if (this.externalAudioStream != null) {
       this.externalAudioStream = undefined;
     } else {
-      this.pc1.close();
-      this.pc2.close();
       this.cleanupAudioStream();
     }
   }
