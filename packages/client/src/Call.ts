@@ -940,7 +940,8 @@ export class Call {
     const sfuClient =
       performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
-            logTag: String(++this.sfuClientTag),
+            tag: String(this.sfuClientTag++),
+            cid: this.cid,
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             streamClient: this.streamClient,
@@ -1210,7 +1211,7 @@ export class Call {
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
-      logTag: String(this.sfuClientTag),
+      tag: sfuClient.tag,
       enableTracing,
       onReconnectionNeeded: (kind, reason) => {
         this.reconnect(kind, reason).catch((err) => {
@@ -1233,7 +1234,7 @@ export class Call {
         state: this.state,
         connectionConfig,
         publishOptions,
-        logTag: String(this.sfuClientTag),
+        tag: sfuClient.tag,
         enableTracing,
         onReconnectionNeeded: (kind, reason) => {
           this.reconnect(kind, reason).catch((err) => {

@@ -52,6 +52,11 @@ export type StreamSfuClientConstructor = {
   credentials: Credentials;
 
   /**
+   * The `cid` (call ID) to use for the connection.
+   */
+  cid: string;
+
+  /**
    * `sessionId` to use for the connection.
    */
   sessionId?: string;
@@ -59,7 +64,7 @@ export type StreamSfuClientConstructor = {
   /**
    * A log tag to use for logging. Useful for debugging multiple instances.
    */
-  logTag: string;
+  tag: string;
 
   /**
    * The timeout in milliseconds for waiting for the `joinResponse`.
@@ -81,6 +86,14 @@ export type StreamSfuClientConstructor = {
    * Flag to enable tracing.
    */
   enableTracing: boolean;
+};
+
+type SfuWebSocketParams = {
+  attempt: string; // the reconnect attempt, start with 0
+  user_id: string;
+  api_key: string;
+  user_session_id: string;
+  cid: string;
 };
 
 /**
@@ -140,7 +153,7 @@ export class StreamSfuClient {
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: ((reason: string) => void) | undefined;
   private readonly logger: Logger;
-  private readonly logTag: string;
+  readonly tag: string;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout: number;
@@ -191,7 +204,8 @@ export class StreamSfuClient {
     dispatcher,
     credentials,
     sessionId,
-    logTag,
+    cid,
+    tag,
     joinResponseTimeout = 5000,
     onSignalClose,
     streamClient,
@@ -204,10 +218,10 @@ export class StreamSfuClient {
     const { server, token } = credentials;
     this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
-    this.logTag = logTag;
-    this.logger = getLogger(['SfuClient', logTag]);
+    this.tag = tag;
+    this.logger = getLogger(['SfuClient', tag]);
     this.tracer = enableTracing
-      ? new Tracer(`${logTag}-${this.edgeName}`)
+      ? new Tracer(`${tag}-${this.edgeName}`)
       : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
@@ -238,10 +252,16 @@ export class StreamSfuClient {
       }
     });
 
-    this.createWebSocket();
+    this.createWebSocket({
+      attempt: tag,
+      user_id: streamClient.user?.id || '',
+      api_key: streamClient.key,
+      user_session_id: this.sessionId,
+      cid,
+    });
   }
 
-  private createWebSocket = () => {
+  private createWebSocket = (params: SfuWebSocketParams) => {
     const eventsToTrace: Partial<Record<SfuEventKinds, boolean>> = {
       callEnded: true,
       changePublishQuality: true,
@@ -251,8 +271,8 @@ export class StreamSfuClient {
       goAway: true,
     };
     this.signalWs = createWebSocketSignalChannel({
-      logTag: this.logTag,
-      endpoint: `${this.credentials.server.ws_endpoint}?tag=${this.logTag}`,
+      tag: this.tag,
+      endpoint: `${this.credentials.server.ws_endpoint}?${new URLSearchParams(params).toString()}`,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
@@ -260,7 +280,7 @@ export class StreamSfuClient {
         if (eventsToTrace[eventKind]) {
           this.tracer?.trace(eventKind, message);
         }
-        this.dispatcher.dispatch(message, this.logTag);
+        this.dispatcher.dispatch(message, this.tag);
       },
     });
 
@@ -443,9 +463,7 @@ export class StreamSfuClient {
     this.migrateAwayTimeout = setTimeout(() => {
       unsubscribe();
       task.reject(
-        new Error(
-          `Migration (${this.logTag}) failed to complete in ${timeout}ms`,
-        ),
+        new Error(`Migration (${this.tag}) failed to complete in ${timeout}ms`),
       );
     }, timeout);
 

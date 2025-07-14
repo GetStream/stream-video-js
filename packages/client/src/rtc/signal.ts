@@ -5,10 +5,10 @@ import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
   onMessage: <K extends SfuEventKinds>(message: DispatchableMessage<K>) => void;
-  logTag: string;
+  tag: string;
 }) => {
-  const { endpoint, onMessage, logTag } = opts;
-  const logger = getLogger(['SfuClientWS', logTag]);
+  const { endpoint, onMessage, tag } = opts;
+  const logger = getLogger(['SfuClientWS', tag]);
   logger('debug', 'Creating signaling WS channel:', endpoint);
   const ws = new WebSocket(endpoint);
   ws.binaryType = 'arraybuffer'; // do we need this?
