@@ -854,6 +854,11 @@ export class Call {
 
     this.state.setCallingState(CallingState.JOINING);
 
+    // we will count the number of join failures per SFU.
+    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+    // field to force the coordinator to provide us another SFU
+    const sfuJoinFailures = new Map<string, number>();
+    const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
@@ -861,6 +866,13 @@ export class Call {
         return await this.doJoin(data);
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+
+        const sfuId = this.credentials?.server.edge_name || '';
+        sfuJoinFailures.set(sfuId, (sfuJoinFailures.get(sfuId) || 0) + 1);
+        if ((sfuJoinFailures.get(sfuId) || 0) >= 2) {
+          joinData.migrating_from = sfuId;
+        }
+
         if (attempt === maxJoinRetries - 1) {
           // restore the previous call state if the join-flow fails
           this.state.setCallingState(callingState);
@@ -870,6 +882,9 @@ export class Call {
 
       await sleep(retryInterval(attempt));
     }
+
+    // remove the migrating_from field from the join data
+    delete joinData.migrating_from;
   };
 
   /**
@@ -878,7 +893,7 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  doJoin = async (data?: JoinCallData): Promise<void> => {
+  private doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
 
