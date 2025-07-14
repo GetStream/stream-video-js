@@ -258,9 +258,9 @@ describe('Participant events', () => {
         },
       ]);
 
-      const handler = watchTrackUnpublished(state);
+      const trackUnpublish = watchTrackUnpublished(state);
       // @ts-expect-error incomplete data
-      handler({ sessionId: 'session-id', type: TrackType.VIDEO });
+      trackUnpublish({ sessionId: 'session-id', type: TrackType.VIDEO });
       expect(state.findParticipantBySessionId('session-id')).toEqual({
         sessionId: 'session-id',
         publishedTracks: [TrackType.SCREEN_SHARE],
@@ -268,7 +268,44 @@ describe('Participant events', () => {
       });
 
       // @ts-expect-error incomplete data
-      handler({ sessionId: 'session-id', type: TrackType.SCREEN_SHARE });
+      trackUnpublish({ sessionId: 'session-id', type: TrackType.SCREEN_SHARE });
+      expect(state.findParticipantBySessionId('session-id')).toEqual({
+        sessionId: 'session-id',
+        publishedTracks: [],
+        pausedTracks: [],
+      });
+    });
+
+    it('resets the paused track list if the track is unpublished on full participant update', () => {
+      const state = new CallState();
+      state.setParticipants([
+        // @ts-expect-error setup one participant
+        {
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
+          pausedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
+        },
+      ]);
+
+      const trackUnpublished = watchTrackUnpublished(state);
+      trackUnpublished({
+        sessionId: 'session-id',
+        type: TrackType.VIDEO,
+        // @ts-expect-error incomplete data
+        participant: { publishedTracks: [TrackType.SCREEN_SHARE] },
+      });
+      expect(state.findParticipantBySessionId('session-id')).toEqual({
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.SCREEN_SHARE],
+        pausedTracks: [TrackType.SCREEN_SHARE],
+      });
+
+      trackUnpublished({
+        sessionId: 'session-id',
+        type: TrackType.SCREEN_SHARE,
+        // @ts-expect-error incomplete data
+        participant: { publishedTracks: [] },
+      });
       expect(state.findParticipantBySessionId('session-id')).toEqual({
         sessionId: 'session-id',
         publishedTracks: [],
