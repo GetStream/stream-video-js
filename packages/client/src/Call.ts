@@ -863,7 +863,8 @@ export class Call {
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
-        return await this.doJoin(data);
+        await this.doJoin(data);
+        break;
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
 
