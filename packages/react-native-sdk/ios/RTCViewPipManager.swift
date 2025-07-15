@@ -34,8 +34,9 @@ class RTCViewPipManager: RCTViewManager {
     @objc func onCallClosed(_ reactTag: NSNumber) {
         self.bridge!.uiManager.addUIBlock { (_: RCTUIManager?, viewRegistry: [NSNumber: UIView]?) in
             guard let pipView = viewRegistry?[reactTag] as? RTCViewPip else {
-                NSLog("PiP - onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip. Disposing the cached view.")
+                NSLog("PiP - onCallClosed can't be called, Invalid view returned from registry, expecting RTCViewPip. Disposing the cached view.")
                 self._view?.onCallClosed()
+                self._view = nil
                 return
             }
             DispatchQueue.main.async {
