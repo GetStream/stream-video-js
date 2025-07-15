@@ -864,13 +864,15 @@ export class Call {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
         await this.doJoin(data);
+        delete joinData.migrating_from;
         break;
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
 
         const sfuId = this.credentials?.server.edge_name || '';
-        sfuJoinFailures.set(sfuId, (sfuJoinFailures.get(sfuId) || 0) + 1);
-        if ((sfuJoinFailures.get(sfuId) || 0) >= 2) {
+        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+        sfuJoinFailures.set(sfuId, failures);
+        if (failures >= 2) {
           joinData.migrating_from = sfuId;
         }
 
@@ -883,9 +885,6 @@ export class Call {
 
       await sleep(retryInterval(attempt));
     }
-
-    // remove the migrating_from field from the join data
-    delete joinData.migrating_from;
   };
 
   /**
