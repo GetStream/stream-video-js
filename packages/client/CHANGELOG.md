@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.26.0...@stream-io/video-client-1.26.1) (2025-07-17)
+
+### Bug Fixes
+
+- force `play-and-record` audioSession on Safari ([#1855](https://github.com/GetStream/stream-video-js/issues/1855)) ([a3552a3](https://github.com/GetStream/stream-video-js/commit/a3552a3be606ac99120b6c4ce6187eaa920a02ef))
+
 ## [1.26.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.5...@stream-io/video-client-1.26.0) (2025-07-11)
 
 ### Features
