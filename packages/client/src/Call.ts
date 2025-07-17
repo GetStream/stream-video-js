@@ -107,6 +107,7 @@ import {
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
+  ClientCapability,
   ClientDetails,
   Codec,
   PublishOption,
@@ -136,7 +137,6 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
-import { sdkCapabilities } from './capabilities';
 import { getLogger } from './logger';
 import {
   CameraManager,
@@ -271,6 +271,13 @@ export class Call {
 
   private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, () => void>();
+
+  /**
+   * A list of capabilities that the client supports and are enabled.
+   */
+  private clientCapabilities = new Set<ClientCapability>([
+    ClientCapability.SUBSCRIBER_VIDEO_PAUSE,
+  ]);
 
   /**
    * Constructs a new `Call` instance.
@@ -972,7 +979,7 @@ export class Call {
             reconnectDetails,
             preferredPublishOptions,
             preferredSubscribeOptions,
-            capabilities: sdkCapabilities,
+            capabilities: Array.from(this.clientCapabilities),
           });
 
         this.currentPublishOptions = publishOptions;
@@ -2731,5 +2738,23 @@ export class Call {
    */
   setDisconnectionTimeout = (timeoutSeconds: number) => {
     this.disconnectionTimeoutSeconds = timeoutSeconds;
+  };
+
+  /**
+   * Enables the provided client capabilities.
+   */
+  enableClientCapabilities = (...capabilities: ClientCapability[]) => {
+    for (const capability of capabilities) {
+      this.clientCapabilities.add(capability);
+    }
+  };
+
+  /**
+   * Disables the provided client capabilities.
+   */
+  disableClientCapabilities = (...capabilities: ClientCapability[]) => {
+    for (const capability of capabilities) {
+      this.clientCapabilities.delete(capability);
+    }
   };
 }
