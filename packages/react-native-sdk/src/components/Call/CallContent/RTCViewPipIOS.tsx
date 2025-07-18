@@ -9,14 +9,15 @@ import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useMemo } from 'react';
 import { findNodeHandle } from 'react-native';
 import { onNativeCallClosed, RTCViewPipNative } from './RTCViewPipNative';
-import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
+import { useDebouncedValue } from '../../../utils/hooks';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
 };
 
-const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
+export const RTCViewPipIOS = React.memo((props: Props) => {
+  const { includeLocalParticipantVideo } = props;
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
@@ -61,16 +62,14 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
         'debug',
         `onCallClosed due to call.ended event`,
       );
-      unsubFunc?.();
       onCallClosed();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
-      if (state === CallingState.LEFT || state === CallingState.IDLE) {
+      if (state === CallingState.LEFT) {
         getLogger(['RTCViewPipIOS'])(
           'debug',
           `onCallClosed due to callingState: ${state}`,
         );
-        subscription?.unsubscribe();
         onCallClosed();
       }
     });
@@ -101,5 +100,3 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
 });
 
 RTCViewPipIOS.displayName = 'RTCViewPipIOS';
-
-export default RTCViewPipIOS;
