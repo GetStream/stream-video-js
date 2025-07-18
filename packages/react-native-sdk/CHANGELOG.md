@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.18.1...@stream-io/video-react-native-sdk-1.19.0) (2025-07-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.27.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.9`
+
+### Features
+
+- Inbound Video Pause ([#1841](https://github.com/GetStream/stream-video-js/issues/1841)) ([5c7eb3a](https://github.com/GetStream/stream-video-js/commit/5c7eb3ac8b0fcfd663226d537279c8a941dedc21))
+
+### Bug Fixes
+
+- stop picture-in-picture after call ends or goes to backstage ([#1854](https://github.com/GetStream/stream-video-js/issues/1854)) ([91390d8](https://github.com/GetStream/stream-video-js/commit/91390d83e056af3f1855f36ccd5f3eed9fed6d4d))
+
 ## [1.18.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.18.0...@stream-io/video-react-native-sdk-1.18.1) (2025-07-17)
 
 ### Dependency Updates
