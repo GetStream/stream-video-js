@@ -9,6 +9,7 @@ import {
   watchCallRejected,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
+  watchInboundStateNotification,
   watchLiveEnded,
   watchParticipantCountChanged,
   watchParticipantJoined,
@@ -60,6 +61,7 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
 
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
     call.on('pinsUpdated', watchPinsUpdated(state)),
+    call.on('inboundStateNotification', watchInboundStateNotification(state)),
 
     handleRemoteSoftMute(call),
   ];

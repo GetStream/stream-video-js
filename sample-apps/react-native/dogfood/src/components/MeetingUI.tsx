@@ -60,8 +60,10 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   };
 
   const onJoinCallHandler = useCallback(async () => {
+    if (!call) return;
     try {
-      await call?.join({ create: true });
+      // call.updatePublishOptions({ preferredCodec: 'h264' });
+      await call.join({ create: true });
       appStoreSetState({ chatLabelNoted: false });
       setShow('active-call');
     } catch (error) {
