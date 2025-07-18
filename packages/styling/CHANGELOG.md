@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.3.0...@stream-io/video-styling-1.4.0) (2025-07-18)
+
+### Features
+
+- Inbound Video Pause ([#1841](https://github.com/GetStream/stream-video-js/issues/1841)) ([5c7eb3a](https://github.com/GetStream/stream-video-js/commit/5c7eb3ac8b0fcfd663226d537279c8a941dedc21))
+
 ## [1.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.2.1...@stream-io/video-styling-1.3.0) (2025-07-11)
 
 ### Features
