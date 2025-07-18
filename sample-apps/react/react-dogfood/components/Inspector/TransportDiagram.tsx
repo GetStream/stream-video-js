@@ -11,7 +11,7 @@ export function TransportDiagram(props: {
   if (!pc) {
     return (
       <TransportDiagramPlaceholder>
-        No RTC connection. Enable camera or microphone
+        No RTC connection. (Camera and microphone disabled?)
       </TransportDiagramPlaceholder>
     );
   }
@@ -78,7 +78,10 @@ export function TransportDiagram(props: {
 
 function TransportDiagramPlaceholder(props: PropsWithChildren) {
   return (
-    <div className="rd__transport-diagram rd__transport-diagram_placeholder">
+    <div
+      className="rd__transport-diagram rd__transport-diagram_placeholder"
+      data-copyable
+    >
       {props.children}
     </div>
   );
