@@ -43,6 +43,7 @@ const sfuEventKinds: Record<SfuEventKinds, undefined> = {
   participantUpdated: undefined,
   participantMigrationComplete: undefined,
   changePublishOptions: undefined,
+  inboundStateNotification: undefined,
 };
 
 export const isSfuEvent = (

@@ -269,6 +269,7 @@ export class StreamSfuClient {
       connectionQualityChanged: true,
       error: true,
       goAway: true,
+      inboundStateNotification: true,
     };
     this.signalWs = createWebSocketSignalChannel({
       tag: this.tag,

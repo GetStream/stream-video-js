@@ -965,20 +965,23 @@ export class CallState {
    *
    * @param sessionId the session ID of the participant to update.
    * @param participant the participant to update or add.
+   * @param patch an optional patch to apply to the participant.
    */
   updateOrAddParticipant = (
     sessionId: string,
     participant: StreamVideoParticipant,
+    patch?:
+      | StreamVideoParticipantPatch
+      | ((p: StreamVideoParticipant) => StreamVideoParticipantPatch),
   ) => {
     return this.setParticipants((participants) => {
       let add = true;
       const nextParticipants = participants.map((p) => {
         if (p.sessionId === sessionId) {
           add = false;
-          return {
-            ...p,
-            ...participant,
-          };
+          const updated: StreamVideoParticipant = { ...p, ...participant };
+          const thePatch = typeof patch === 'function' ? patch(updated) : patch;
+          return Object.assign(updated, thePatch);
         }
         return p;
       });

@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import {
+  hasPausedTrack,
   hasScreenShare,
   hasVideo,
   StreamVideoParticipant,
@@ -171,7 +172,11 @@ export const Video = ({
     trackType === 'none' ||
     viewportVisibilityState?.[trackType] === VisibilityState.INVISIBLE;
 
-  const hasNoVideoOrInvisible = !enabled || !isPublishingTrack || isInvisible;
+  const hasNoVideoOrInvisible =
+    !enabled ||
+    !isPublishingTrack ||
+    isInvisible ||
+    hasPausedTrack(participant, trackType);
   const mirrorVideo =
     mirror === undefined
       ? isLocalParticipant && trackType === 'videoTrack'
