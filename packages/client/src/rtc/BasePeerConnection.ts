@@ -28,7 +28,7 @@ export type BasePeerConnectionOpts = {
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
-  logTag: string;
+  tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;
 };
@@ -71,7 +71,7 @@ export abstract class BasePeerConnection {
       state,
       dispatcher,
       onReconnectionNeeded,
-      logTag,
+      tag,
       enableTracing,
       iceRestartDelay = 2500,
     }: BasePeerConnectionOpts,
@@ -84,13 +84,14 @@ export abstract class BasePeerConnection {
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
-      logTag,
+      tag,
     ]);
     this.pc = this.createPeerConnection(connectionConfig);
     this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
     if (enableTracing) {
-      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
-      this.tracer = new Tracer(tag);
+      this.tracer = new Tracer(
+        `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,
+      );
       this.tracer.trace('create', {
         url: sfuClient.edgeName,
         ...connectionConfig,

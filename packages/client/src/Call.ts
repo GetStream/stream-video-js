@@ -862,13 +862,28 @@ export class Call {
 
     this.state.setCallingState(CallingState.JOINING);
 
+    // we will count the number of join failures per SFU.
+    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+    // field to force the coordinator to provide us another SFU
+    const sfuJoinFailures = new Map<string, number>();
+    const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
-        return await this.doJoin(data);
+        await this.doJoin(data);
+        delete joinData.migrating_from;
+        break;
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+
+        const sfuId = this.credentials?.server.edge_name || '';
+        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+        sfuJoinFailures.set(sfuId, failures);
+        if (failures >= 2) {
+          joinData.migrating_from = sfuId;
+        }
+
         if (attempt === maxJoinRetries - 1) {
           // restore the previous call state if the join-flow fails
           this.state.setCallingState(callingState);
@@ -886,7 +901,7 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  doJoin = async (data?: JoinCallData): Promise<void> => {
+  private doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
 
@@ -932,7 +947,8 @@ export class Call {
     const sfuClient =
       performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
-            logTag: String(++this.sfuClientTag),
+            tag: String(this.sfuClientTag++),
+            cid: this.cid,
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             streamClient: this.streamClient,
@@ -1203,7 +1219,7 @@ export class Call {
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
-      logTag: String(this.sfuClientTag),
+      tag: sfuClient.tag,
       enableTracing,
       onReconnectionNeeded: (kind, reason) => {
         this.reconnect(kind, reason).catch((err) => {
@@ -1226,7 +1242,7 @@ export class Call {
         state: this.state,
         connectionConfig,
         publishOptions,
-        logTag: String(this.sfuClientTag),
+        tag: sfuClient.tag,
         enableTracing,
         onReconnectionNeeded: (kind, reason) => {
           this.reconnect(kind, reason).catch((err) => {

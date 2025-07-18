@@ -42,6 +42,7 @@ describe('Publisher', () => {
       dispatcher,
       sessionId: 'session-id-test',
       streamClient: new StreamClient('abc'),
+      cid: 'test:123',
       credentials: {
         server: {
           url: 'https://getstream.io/',
@@ -51,7 +52,7 @@ describe('Publisher', () => {
         token: 'token',
         ice_servers: [],
       },
-      logTag: 'test',
+      tag: 'test',
       enableTracing: true,
     });
 
@@ -66,7 +67,7 @@ describe('Publisher', () => {
       sfuClient,
       dispatcher,
       state,
-      logTag: 'test',
+      tag: 'test',
       enableTracing: false,
       publishOptions: [
         {
