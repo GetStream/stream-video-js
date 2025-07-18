@@ -13,6 +13,8 @@ import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
+import InCallManager from 'react-native-incall-manager';
+import { Alert } from 'react-native';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -75,6 +77,23 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
             : undefined,
         },
       });
+
+      _videoClient.on('call.rejected', (event) => {
+        const rejectedCall = _videoClient?.call('default', event.call_cid);
+        rejectedCall?.getOrCreate();
+
+        if (
+          rejectedCall &&
+          rejectedCall.isCreatedByMe &&
+          event.reason === 'busy'
+        ) {
+          // Play busy tone
+          InCallManager.stop({ busytone: '_DTMF_' });
+
+          Alert.alert('Call rejected because user is busy.');
+        }
+      });
+
       setVideoClient(_videoClient);
     };
     if (user.id) {

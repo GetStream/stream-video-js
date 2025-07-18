@@ -30,6 +30,12 @@ export type StreamVideoConfig = {
        * @example "production-apn-video" or "staging-apn-video" based on the environment
        */
       pushProviderName?: string;
+
+      /**
+       * Whether to reject the call when the user is busy.
+       * @default false
+       */
+      shouldRejectCallWhenBusy?: boolean;
     };
     android: {
       /**
@@ -109,6 +115,12 @@ export type StreamVideoConfig = {
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
+
+      /**
+       * Whether to reject the call when the user is busy.
+       * @default false
+       */
+      shouldRejectCallWhenBusy?: boolean;
     };
     /**
      * This function is used to create a custom video client.
