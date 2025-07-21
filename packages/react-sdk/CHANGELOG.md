@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.13...@stream-io/video-react-sdk-1.19.0) (2025-07-18)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.4.0`
+- `@stream-io/video-client` updated to version `1.27.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.9`
+
+### Features
+
+- Inbound Video Pause ([#1841](https://github.com/GetStream/stream-video-js/issues/1841)) ([5c7eb3a](https://github.com/GetStream/stream-video-js/commit/5c7eb3ac8b0fcfd663226d537279c8a941dedc21))
+
+## [1.18.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.12...@stream-io/video-react-sdk-1.18.13) (2025-07-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.26.1`
+- `@stream-io/video-react-bindings` updated to version `1.7.8`
+
 ## [1.18.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.18.11...@stream-io/video-react-sdk-1.18.12) (2025-07-11)
 
 ### Dependency Updates

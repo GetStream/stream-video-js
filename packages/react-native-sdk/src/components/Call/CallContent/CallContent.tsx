@@ -32,7 +32,7 @@ import {
   ScreenShareOverlay as DefaultScreenShareOverlay,
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
-import RTCViewPipIOS from './RTCViewPipIOS';
+import { RTCViewPipIOS } from './RTCViewPipIOS';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;

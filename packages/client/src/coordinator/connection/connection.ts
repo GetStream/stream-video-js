@@ -471,7 +471,6 @@ export class StableWSConnection {
   onmessage = (wsID: number, event: MessageEvent) => {
     if (this.wsID !== wsID) return;
 
-    this._log('onmessage() - onmessage callback', { event, wsID });
     const data =
       typeof event.data === 'string'
         ? (JSON.parse(event.data) as StreamVideoEvent)
