@@ -78,18 +78,22 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         },
       });
 
-      _videoClient.on('call.rejected', (event) => {
-        const rejectedCall = _videoClient?.call('default', event.call_cid);
-        rejectedCall?.getOrCreate();
+      _videoClient.on('call.rejected', async (event) => {
+        // Workaround needed for the busy tone:
+        // This is because the call was rejected without even starting,
+        // before calling the stop method with busy tone we need to start the call first.
+        InCallManager.start({ media: 'audio' });
 
-        if (
-          rejectedCall &&
-          rejectedCall.isCreatedByMe &&
-          event.reason === 'busy'
-        ) {
-          // Play busy tone
+        const callCid = event.call_cid;
+        const callId = callCid.split(':')[1];
+        const rejectedCall = _videoClient?.call('default', callId);
+        await rejectedCall?.getOrCreate();
+
+        const isCalleeBusy =
+          rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
+
+        if (isCalleeBusy) {
           InCallManager.stop({ busytone: '_DTMF_' });
-
           Alert.alert('Call rejected because user is busy.');
         }
       });
