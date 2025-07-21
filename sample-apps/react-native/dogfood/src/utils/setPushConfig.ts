@@ -17,9 +17,11 @@ export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',
+      shouldRejectCallWhenBusy: false,
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      shouldRejectCallWhenBusy: false,
       callChannel: {
         id: 'stream_call_notifications',
         name: 'Call notifications',
