@@ -3,8 +3,9 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { AcceptCallButton } from './AcceptCallButton';
 import { RejectCallButton } from './RejectCallButton';
-import { useCalls } from '@stream-io/video-react-bindings';
+import { useCall, useCalls } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../../../utils';
+import { CallingState, getLogger } from '@stream-io/video-client';
 
 /**
  * Props for the IncomingCallControls Component.
@@ -37,11 +38,24 @@ export const IncomingCallControls = ({
     (Platform.OS === 'android' &&
       pushConfig?.android?.shouldRejectCallWhenBusy);
 
+  const call = useCall();
   const calls = useCalls();
-  const ringingCalls = calls.filter((c) => c.ringing);
-  const alreadyInAnotherRingingCall = ringingCalls.length > 1;
+  const ringingCallsInProgress = calls.filter(
+    (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+  );
+  const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
   const isCalleeBusy = alreadyInAnotherRingingCall && shouldRejectCallWhenBusy;
   const rejectReason = isCalleeBusy ? 'busy' : 'decline';
+
+  if (isCalleeBusy) {
+    try {
+      call?.leave({ reject: true, reason: rejectReason });
+    } catch (error) {
+      const logger = getLogger(['IncomingCallControls']);
+      logger('error', 'Error rejecting Call when busy', error);
+    }
+    return null;
+  }
 
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>

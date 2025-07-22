@@ -86,7 +86,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
 
         const callCid = event.call_cid;
         const callId = callCid.split(':')[1];
-        const rejectedCall = _videoClient?.call('default', callId);
+        const rejectedCall = _videoClient?.call(event.call.type, callId);
         await rejectedCall?.getOrCreate();
 
         const isCalleeBusy =
