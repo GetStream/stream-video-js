@@ -180,7 +180,10 @@ export class NoiseCancellation implements INoiseCancellation {
     const { promise: ready, resolve: filterReady } = promiseWithResolvers();
     const filterNode = await sdk.createNoiseFilter(
       this.audioContext,
-      () => filterReady(),
+      () => {
+        this.tracer?.trace('noiseCancellation.started', 'true');
+        filterReady();
+      },
       () => document.removeEventListener('click', resume),
     );
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
@@ -340,10 +343,12 @@ export class NoiseCancellation implements INoiseCancellation {
     // in the types but exists in the implementation
     e: Event & { data?: { overflowCount: number } },
   ) => {
+    const count = (e && e.data && e.data.overflowCount) ?? 0;
+    this.tracer?.trace('noiseCancellation.bufferOverflowCount', String(count));
+
     window.clearTimeout(this.restoreTimeoutId);
     this.disable();
 
-    const count = (e && e.data && e.data.overflowCount) ?? 0;
     if (count < this.restoreAttempts) {
       this.restoreTimeoutId = window.setTimeout(() => {
         this.enable();
