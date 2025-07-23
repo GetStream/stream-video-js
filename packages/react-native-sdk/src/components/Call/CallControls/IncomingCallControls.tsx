@@ -61,7 +61,7 @@ export const IncomingCallControls = ({
       <RejectCallButton
         onPressHandler={onRejectCallHandler}
         size={buttonSizes.md}
-        rejectReason={'decline'}
+        rejectReason="decline"
       />
       <AcceptCallButton onPressHandler={onAcceptCallHandler} />
     </View>
