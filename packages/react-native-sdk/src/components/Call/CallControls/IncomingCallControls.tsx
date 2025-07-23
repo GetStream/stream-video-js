@@ -42,14 +42,13 @@ export const IncomingCallControls = ({
   const calls = useCalls();
 
   useEffect(() => {
+    if (!shouldRejectCallWhenBusy) return;
     const ringingCallsInProgress = calls.filter(
       (c) => c.ringing && c.state.callingState === CallingState.JOINED,
     );
     const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
-    const isCalleeBusy =
-      alreadyInAnotherRingingCall && shouldRejectCallWhenBusy;
 
-    if (isCalleeBusy) {
+    if (alreadyInAnotherRingingCall) {
       call?.leave({ reject: true, reason: 'busy' }).catch((err) => {
         const logger = getLogger(['IncomingCallControls']);
         logger('error', 'Error rejecting Call when busy', err);
