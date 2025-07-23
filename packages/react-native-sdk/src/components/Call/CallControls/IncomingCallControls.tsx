@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { AcceptCallButton } from './AcceptCallButton';
@@ -40,29 +40,29 @@ export const IncomingCallControls = ({
 
   const call = useCall();
   const calls = useCalls();
-  const ringingCallsInProgress = calls.filter(
-    (c) => c.ringing && c.state.callingState === CallingState.JOINED,
-  );
-  const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
-  const isCalleeBusy = alreadyInAnotherRingingCall && shouldRejectCallWhenBusy;
-  const rejectReason = isCalleeBusy ? 'busy' : 'decline';
 
-  if (isCalleeBusy) {
-    try {
-      call?.leave({ reject: true, reason: rejectReason });
-    } catch (error) {
-      const logger = getLogger(['IncomingCallControls']);
-      logger('error', 'Error rejecting Call when busy', error);
+  useEffect(() => {
+    const ringingCallsInProgress = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+    );
+    const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
+    const isCalleeBusy =
+      alreadyInAnotherRingingCall && shouldRejectCallWhenBusy;
+
+    if (isCalleeBusy) {
+      call?.leave({ reject: true, reason: 'busy' }).catch((err) => {
+        const logger = getLogger(['IncomingCallControls']);
+        logger('error', 'Error rejecting Call when busy', err);
+      });
     }
-    return null;
-  }
+  }, [calls, call, shouldRejectCallWhenBusy]);
 
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
       <RejectCallButton
         onPressHandler={onRejectCallHandler}
         size={buttonSizes.md}
-        rejectReason={rejectReason}
+        rejectReason={'decline'}
       />
       <AcceptCallButton onPressHandler={onAcceptCallHandler} />
     </View>
