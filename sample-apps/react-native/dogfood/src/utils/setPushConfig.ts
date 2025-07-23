@@ -21,7 +21,7 @@ export function setPushConfig() {
         taskToRun: (call: Call) =>
           new Promise(() => {
             console.log(
-              'jumping to foreground service foreground service with call-cid',
+              'jumping to foreground service with call-cid',
               call.cid,
             );
           }),
