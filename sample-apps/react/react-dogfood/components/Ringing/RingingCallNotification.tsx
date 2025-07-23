@@ -1,8 +1,6 @@
 import {
   AcceptCallButton,
-  CallingState,
   CancelCallButton,
-  getLogger,
   Notification,
   StreamCall,
   useCall,
@@ -34,7 +32,6 @@ function RingingCallUI() {
   const { t } = useI18n();
   const router = useRouter();
   const call = useCall();
-  const calls = useCalls();
   const { useCallMembers, useCallSession } = useCallStateHooks();
   const session = useCallSession();
   const connectedUser = useConnectedUser();
@@ -87,27 +84,6 @@ function RingingCallUI() {
       };
     }
   }, [ringing]);
-
-  const joinedRingingCalls = calls.filter(
-    (c) => c.ringing && c.state.callingState === CallingState.JOINED,
-  );
-  const alreadyInAnotherRingingCall = joinedRingingCalls.length > 0;
-  const isCalleeBusy = alreadyInAnotherRingingCall;
-  const rejectReason = isCalleeBusy ? 'busy' : 'decline';
-
-  const ringingCallToReject = calls.filter(
-    (c) => c.ringing && c.state.callingState === CallingState.RINGING,
-  );
-
-  if (isCalleeBusy && ringingCallToReject?.length === 1) {
-    try {
-      ringingCallToReject[0]?.leave({ reject: true, reason: rejectReason });
-    } catch (error) {
-      const logger = getLogger(['RingingCallUI']);
-      logger('error', 'Error rejecting Call when busy', error);
-    }
-    return null;
-  }
 
   if (!ringing) {
     return null;

@@ -32,7 +32,6 @@ import {
 import { meetingId } from '../lib/idGenerators';
 import { appTranslations as translations } from '../translations';
 import { RingingCallNotification } from '../components/Ringing/RingingCallNotification';
-import { beep } from '../lib/beeper';
 
 export default function Home({
   apiKey,
@@ -49,21 +48,6 @@ export default function Home({
     const _client = getClient({ apiKey, user, userToken }, environment);
     setClient(_client);
     window.client = _client;
-
-    _client.on('call.rejected', async (event) => {
-      const callCid = event.call_cid;
-      const callId = callCid.split(':')[1];
-      const rejectedCall = _client?.call(event.call.type, callId);
-      await rejectedCall?.getOrCreate();
-
-      const isCalleeBusy =
-        rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
-
-      if (isCalleeBusy) {
-        beep('/beeps/busy.mp3');
-        alert('Call rejected because user is busy.');
-      }
-    });
 
     return () => {
       setClient(undefined);
