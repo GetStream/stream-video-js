@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.19.0...@stream-io/video-react-native-sdk-1.19.1) (2025-07-23)
+
+### Bug Fixes
+
+- automatically exit android pip mode if call is left ([#1863](https://github.com/GetStream/stream-video-js/issues/1863)) ([51850f4](https://github.com/GetStream/stream-video-js/commit/51850f49bc67595a4cacb766863894483712fc75))
+- ios pip blank local track issue ([47d8119](https://github.com/GetStream/stream-video-js/commit/47d811928f9f155b4d9f9cb23042a7556fd8414a))
+
 ## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.18.1...@stream-io/video-react-native-sdk-1.19.0) (2025-07-18)
 
 ### Dependency Updates
