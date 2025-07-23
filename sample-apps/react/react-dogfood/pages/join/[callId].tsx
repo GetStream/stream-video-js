@@ -22,7 +22,7 @@ import { createTokenProvider, getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
-  getServerSideCredentialsProps,
+  getServerSideCredentialsPropsWithOptions,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import appTranslations from '../../translations';
@@ -69,6 +69,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   const [call, setCall] = useState<Call>();
+  const [callError, setCallError] = useState<string | null>(null);
   useEffect(() => {
     if (!client) return;
     const _call = client.call(callType, callId, { reuseInstance: true });
@@ -97,6 +98,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
     call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
+      setCallError(
+        err instanceof Error ? err.message : 'Could not get or create call',
+      );
     });
   }, [call, callType, user.id]);
 
@@ -136,6 +140,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   if (!client || !call) return null;
+
+  if (callError) {
+    return <>Error: {callError}</>;
+  }
 
   return (
     <>
@@ -182,4 +190,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
 export default CallRoom;
 
-export const getServerSideProps = getServerSideCredentialsProps;
+export const getServerSideProps = getServerSideCredentialsPropsWithOptions({
+  signInAutomatically: true,
+});

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import names from 'starwars-names';
 import { meetingId } from '../../../lib/idGenerators';
 import { createToken } from '../../../helpers/jwt';
+import { getRandomName } from '../../../lib/names';
 
 export type AppConfig = {
   apiKey?: string;
@@ -68,12 +68,12 @@ export default async function createSampleAppCall(
     });
   }
 
-  const userName = names.random();
+  const userName = getRandomName();
   const userId = toUserId(userName);
-  const token = createToken(userId, appConfig.apiKey, appConfig.secret);
+  const token = await createToken(userId, appConfig.apiKey, appConfig.secret);
   const buddyUserName = getBuddyUserName(userName);
   const buddyUserId = toUserId(buddyUserName);
-  const buddyToken = createToken(
+  const buddyToken = await createToken(
     buddyUserId,
     appConfig.apiKey,
     appConfig.secret,
@@ -112,7 +112,7 @@ const toUserId = (userName: string): string =>
 const getBuddyUserName = (userName: string): string => {
   let buddy: string;
   do {
-    buddy = names.random();
+    buddy = getRandomName();
   } while (buddy === userName);
 
   return buddy;

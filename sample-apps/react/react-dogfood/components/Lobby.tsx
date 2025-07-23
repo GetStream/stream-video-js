@@ -33,11 +33,12 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { getRandomName } from '../lib/names';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 
 export type LobbyProps = {
-  onJoin: () => void;
+  onJoin: (displayName?: string) => void;
   mode?: UserMode;
 };
 
@@ -54,6 +55,9 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const callSession = useCallSession();
   const members = useCallMembers();
   const currentUser = useConnectedUser();
+  const [displayName, setDisplayName] = useState(
+    currentUser?.name ?? getRandomName(),
+  );
 
   const { t } = useI18n();
   const edges = useEdges();
@@ -140,7 +144,10 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                     </div>
 
                     <div className="rd__lobby-settings">
-                      <ToggleParticipantsPreviewButton onJoin={onJoin} />
+                      <ToggleParticipantsPreviewButton
+                        displayName={displayName}
+                        onJoin={onJoin}
+                      />
                       <ToggleEffectsButton inMeeting={false} />
                       <ToggleSettingsTabModal
                         layoutProps={{
@@ -157,22 +164,35 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
               </>
             )}
 
-            <div className="rd__lobby-edge-network">
-              <Image
-                src={`${
-                  process.env.NEXT_PUBLIC_BASE_PATH || ''
-                }/lock-person.svg`}
-                alt="Stream logo"
-                priority={false}
-                width={36}
-                height={24}
+            {isDemoEnvironment && (
+              <div className="rd__lobby-edge-network">
+                <Image
+                  src={`${
+                    process.env.NEXT_PUBLIC_BASE_PATH || ''
+                  }/lock-person.svg`}
+                  alt="Stream logo"
+                  priority={false}
+                  width={36}
+                  height={24}
+                />
+                <p className="rd__lobby-edge-network__description">
+                  You are about to {hasOtherParticipants ? 'join' : 'start '} a
+                  private test call via Stream. Once you{' '}
+                  {hasOtherParticipants ? 'join' : 'start '} the call, you can
+                  invite other participants.
+                </p>
+              </div>
+            )}
+
+            <div>
+              <span>Your display name:</span>
+              <input
+                className="rd__input"
+                type="text"
+                value={displayName}
+                maxLength={25}
+                onChange={(e) => setDisplayName(e.currentTarget.value)}
               />
-              <p className="rd__lobby-edge-network__description">
-                You are about to {hasOtherParticipants ? 'join' : 'start '} a
-                private test call via Stream. Once you{' '}
-                {hasOtherParticipants ? 'join' : 'start '} the call, you can
-                invite other participants.
-              </p>
             </div>
 
             {call && call.type === 'restricted' && !isCurrentUserCallMember ? (
@@ -200,7 +220,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                 type="button"
                 data-testid="join-call-button"
-                onClick={onJoin}
+                onClick={() => onJoin(displayName)}
               >
                 <Icon className="rd__button__icon" icon="login" />
                 {hasOtherParticipants ? t('Join') : t('Start call')}

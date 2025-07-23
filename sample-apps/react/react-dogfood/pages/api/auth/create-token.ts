@@ -94,7 +94,7 @@ const createJwtToken = async (
     }
   }
 
-  const token = createToken(
+  const token = await createToken(
     userId,
     apiKey,
     secretKey,

@@ -1,3 +1,4 @@
+import { useConnectedUser } from '@stream-io/video-react-sdk';
 import { createContext, PropsWithChildren, useContext } from 'react';
 
 export type AppEnvironment = 'pronto' | 'demo' | string;
@@ -41,3 +42,21 @@ export const useIsProntoEnvironment = () => useAppEnvironment() === 'pronto';
  * Returns true if the current app environment is 'demo'.
  */
 export const useIsDemoEnvironment = () => useAppEnvironment() === 'demo';
+
+/**
+ * Returns true if the current app has restricted permissions for regular users.
+ */
+export const useIsRestrictedEnvironment = () => {
+  const user = useConnectedUserSafe();
+  return (
+    useAppEnvironment() === 'pronto-sales' && (!user || user.role === 'user')
+  );
+};
+
+const useConnectedUserSafe = () => {
+  try {
+    return useConnectedUser();
+  } catch {
+    return undefined;
+  }
+};

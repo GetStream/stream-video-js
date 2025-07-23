@@ -29,7 +29,10 @@ import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
 import { useLanguage } from '../../hooks/useLanguage';
-import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  useIsProntoEnvironment,
+  useIsRestrictedEnvironment,
+} from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
 
