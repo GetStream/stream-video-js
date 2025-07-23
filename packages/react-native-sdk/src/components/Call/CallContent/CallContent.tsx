@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  NativeModules,
+  type ViewStyle,
+  Platform,
+} from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import {
   CallParticipantsGrid,
@@ -12,8 +18,12 @@ import {
   CallControls as DefaultCallControls,
   type HangUpCallButtonProps,
 } from '../CallControls';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { type StreamReaction } from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  CallingState,
+  getLogger,
+  type StreamReaction,
+} from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -121,6 +131,7 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
+  const call = useCall();
   const {
     useHasOngoingScreenShare,
     useRemoteParticipants,
@@ -137,6 +148,31 @@ export const CallContent = ({
   const isInPiPMode = useIsInPiPMode();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+
+  useEffect(() => {
+    if (isInPiPMode && Platform.OS === 'android') {
+      const unsubFunc = call?.on('call.ended', () => {
+        getLogger(['CallContent'])(
+          'debug',
+          `exiting PiP mode due to call.ended`,
+        );
+        NativeModules.StreamVideoReactNative.exitPipMode();
+      });
+      const subscription = call?.state.callingState$.subscribe((state) => {
+        if (state === CallingState.LEFT) {
+          getLogger(['CallContent'])(
+            'debug',
+            `exiting PiP mode due to callingState: LEFT`,
+          );
+          NativeModules.StreamVideoReactNative.exitPipMode();
+        }
+      });
+      return () => {
+        unsubFunc?.();
+        subscription?.unsubscribe();
+      };
+    }
+  }, [isInPiPMode, call]);
 
   const showFloatingView =
     !showSpotlightLayout &&
