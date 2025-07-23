@@ -1,6 +1,3 @@
-import { useRouter } from 'next/router';
-import { JSX, useCallback, useEffect, useState } from 'react';
-import Gleap from 'gleap';
 import {
   CallingState,
   defaultSortPreset,
@@ -11,19 +8,25 @@ import {
   useCallStateHooks,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
-
-import { Lobby, UserMode } from './Lobby';
+import Gleap from 'gleap';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
+
+import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
+import { useSettings } from '../context/SettingsContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
   useWakeLock,
 } from '../hooks';
-import { ActiveCall } from './ActiveCall';
-import { Feedback } from './Feedback/Feedback';
-import { DefaultAppHeader } from './DefaultAppHeader';
-import { useSettings } from '../context/SettingsContext';
 import { DEVICE_PREFERENCE_KEY } from '../hooks/useDeviceSelectionPreference';
+import { ActiveCall } from './ActiveCall';
+import { DefaultAppHeader } from './DefaultAppHeader';
+import { Feedback } from './Feedback/Feedback';
+import { Lobby, UserMode } from './Lobby';
+import { setClientDisplayName } from '../helpers/client';
 
 const contents = {
   'error-join': {
@@ -50,6 +53,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const {
     settings: { deviceSelectionPreference },
   } = useSettings();
+  const isRestricted = useIsRestrictedEnvironment();
 
   const videoCodecOverride = (router.query['video_encoder'] ||
     router.query['video_codec']) as PreferredCodec | undefined;
@@ -66,8 +70,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     | undefined;
 
   const onJoin = useCallback(
-    async ({ fastJoin = false } = {}) => {
-      if (!fastJoin) setShow('loading');
+    async (options: { fastJoin?: boolean; displayName?: string } = {}) => {
+      if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
         const preferredBitrate = bitrateOverride
@@ -84,7 +88,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
             : undefined,
         });
         if (call.state.callingState !== CallingState.JOINED) {
-          await call.join({ create: true });
+          if (options.displayName) {
+            await chatClient?.upsertUser({
+              id: chatClient.user?.id ?? '',
+              name: options.displayName,
+            });
+          }
+          await call.join({ create: !isRestricted });
         }
         setShow('active-call');
       } catch (e) {
@@ -94,6 +104,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       }
     },
     [
+      chatClient,
       bitrateOverride,
       call,
       fmtpOverride,
@@ -101,6 +112,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       videoCodecOverride,
       videoDecoderFmtpOverride,
       videoDecoderOverride,
+      isRestricted,
     ],
   );
 
@@ -174,7 +186,9 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       />
     );
   } else if (show === 'lobby') {
-    childrenToRender = <Lobby onJoin={onJoin} mode={mode} />;
+    childrenToRender = (
+      <Lobby onJoin={(displayName) => onJoin({ displayName })} mode={mode} />
+    );
   } else if (show === 'loading') {
     childrenToRender = <LoadingScreen />;
   } else if (show === 'left') {
@@ -202,7 +216,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         activeCall={call}
         chatClient={chatClient}
         onLeave={onLeave}
-        onJoin={onJoin}
+        onJoin={() => onJoin()}
       />
     );
   }

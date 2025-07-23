@@ -1,41 +1,26 @@
-import type { NextAuthOptions } from 'next-auth';
+import type { NextAuthOptions, Profile } from 'next-auth';
 import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
-import {
-  CredentialInput,
-  CredentialsConfig,
-  Provider,
-} from 'next-auth/providers';
-import names from 'starwars-names';
-
-type StreamDemoAccountCredentials = {
-  name: CredentialInput;
-};
+import { CredentialsConfig, Provider } from 'next-auth/providers';
+import { getUserIdFromEmail } from '../../../lib/names';
+import { userId } from '../../../lib/idGenerators';
 
 /**
  * A custom provider that allows users to sign in with Stream Demo Account.
  */
-const StreamDemoAccountProvider: CredentialsConfig<StreamDemoAccountCredentials> =
-  {
-    id: 'stream-demo-login',
-    name: 'Stream Demo account',
-    type: 'credentials',
-    credentials: {
-      name: {},
-    },
-    authorize: async (credentials) => {
-      const name = credentials?.name || names.random();
-      const id = name.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace(/ /g, '_');
-      return {
-        id,
-        name,
-      };
-    },
-  };
+const StreamDemoAccountProvider: CredentialsConfig = {
+  id: 'stream-demo-login',
+  name: 'Stream Demo account',
+  type: 'credentials',
+  credentials: {},
+  authorize: async () => {
+    return { id: userId(), stream: false };
+  },
+};
 
 const environment = (process.env.NEXT_PUBLIC_APP_ENVIRONMENT as string) || null;
 const isProntoEnvironment =
-  environment === 'pronto' || environment === 'pronto-next';
+  environment === 'pronto' || environment === 'pronto-sales' || true;
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -51,11 +36,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ account, profile }) {
       if (isProntoEnvironment && account?.provider === 'google' && profile) {
-        const googleProfile = profile as GoogleProfile;
-        const { email_verified, email } = googleProfile;
-        // Only allow Stream employees to sign in "pronto" environment
-        const isStreamEmployee = email.endsWith('@getstream.io');
-        return email_verified && isStreamEmployee;
+        return isVerifiedStreamEmployee('google', profile);
       }
       return account?.provider === StreamDemoAccountProvider.id;
     },
@@ -73,10 +54,37 @@ export const authOptions: NextAuthOptions = {
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
+    async jwt({ token, account, profile }) {
+      if (account && profile) {
+        token.stream = isVerifiedStreamEmployee(account.provider, profile);
+      }
+      return token;
+    },
+    async session({ token, session }) {
+      if (session.user) {
+        session.user.stream = token.stream;
+        session.user.streamUserId = token.stream
+          ? getUserIdFromEmail(token.email!)
+          : token.sub!;
+      }
+      return session;
+    },
   },
   pages: {
     signIn: `${basePath}/auth/signin`,
   },
+};
+
+const isVerifiedStreamEmployee = (
+  provider: string,
+  profile: Profile,
+): boolean => {
+  if (provider !== 'google' || !profile) return false;
+  const googleProfile = profile as GoogleProfile;
+  return (
+    googleProfile.email_verified &&
+    googleProfile.email.endsWith('@getstream.io')
+  );
 };
 
 export default NextAuth(authOptions);

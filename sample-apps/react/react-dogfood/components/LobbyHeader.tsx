@@ -38,7 +38,7 @@ export const UserMenu = () => {
             onClick={() => {
               const url = new URL(window.location.href);
               url.pathname = process.env.NEXT_PUBLIC_BASE_PATH || '';
-              signOut({ callbackUrl: url.toString() }).catch((err) => {
+              signOut({ callbackUrl: '/auth/signin' }).catch((err) => {
                 console.error('Sign out error', err);
               });
             }}
