@@ -14,6 +14,20 @@ import { Platform } from 'react-native';
 import { setFirebaseListeners } from './setFirebaseListeners';
 
 export function setPushConfig() {
+  StreamVideoRN.updateConfig({
+    foregroundService: {
+      android: {
+        taskToRun: (call) =>
+          new Promise(() => {
+            console.log(
+              'jumping to foreground service foreground service with call-cid',
+              call.cid,
+            );
+          }),
+      },
+    },
+  });
+
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',

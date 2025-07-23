@@ -7,13 +7,16 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import { CallingState, getLogger } from '@stream-io/video-client';
+import { Call, CallingState, getLogger } from '@stream-io/video-client';
 import {
   getKeepCallAliveForegroundServiceTypes,
   getNotifeeLibNoThrowForKeepCallAlive,
 } from '../utils/push/libs/notifee';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
+const callToPassToForegroundService: { current: Call | undefined } = {
+  current: undefined,
+};
 
 function setForegroundService() {
   if (Platform.OS === 'ios' || !notifeeLib) return;
@@ -28,22 +31,29 @@ function setForegroundService() {
         return;
       }
       notifeeLib.default.registerForegroundService(() => {
-        return new Promise(() => {
+        const task = new Promise((resolve) => {
           const logger = getLogger(['setForegroundService method']);
           logger('info', 'Foreground service running for call in progress');
+          // any task to run from SDK in the foreground service must be added
+          resolve(true);
         });
+        const videoConfig = StreamVideoRN.getConfig();
+        const foregroundServiceConfig = videoConfig.foregroundService;
+        const { taskToRun } = foregroundServiceConfig.android;
+        const call = callToPassToForegroundService.current;
+        if (!call) {
+          const logger = getLogger(['setForegroundService method']);
+          logger('warn', 'No call to pass to foreground service');
+          return task.then(() => new Promise(() => {}));
+        }
+        callToPassToForegroundService.current = undefined;
+        return task.then(() => taskToRun(call));
       });
     },
   );
 }
 
 async function startForegroundService(call_cid: string) {
-  const videoConfig = StreamVideoRN.getConfig();
-  const foregroundServiceConfig = videoConfig.foregroundService;
-  const { title, body } = foregroundServiceConfig.android.notificationTexts;
-
-  // check for notification permission and then start the foreground service
-  if (!notifeeLib) return;
   const isCallAliveConfigured =
     await NativeModules.StreamVideoReactNative.isCallAliveConfigured();
   if (!isCallAliveConfigured) {
@@ -54,6 +64,8 @@ async function startForegroundService(call_cid: string) {
     );
     return;
   }
+  // check for notification permission and then start the foreground service
+  if (!notifeeLib) return;
   const settings = await notifeeLib.default.getNotificationSettings();
   if (
     settings.authorizationStatus !== notifeeLib.AuthorizationStatus.AUTHORIZED
@@ -65,6 +77,9 @@ async function startForegroundService(call_cid: string) {
     );
     return;
   }
+  const videoConfig = StreamVideoRN.getConfig();
+  const foregroundServiceConfig = videoConfig.foregroundService;
+  const notificationTexts = foregroundServiceConfig.android.notificationTexts;
   const channelId = foregroundServiceConfig.android.channel.id;
   await notifeeLib.default.createChannel(
     foregroundServiceConfig.android.channel,
@@ -76,8 +91,8 @@ async function startForegroundService(call_cid: string) {
   requestAnimationFrame(() => {
     notifeeLib.default.displayNotification({
       id: call_cid,
-      title,
-      body,
+      title: notificationTexts.title,
+      body: notificationTexts.body,
       android: {
         channelId,
         smallIcon: videoConfig.push?.android.smallIcon,
@@ -107,6 +122,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   const foregroundServiceStartedRef = useRef(false);
 
   const call = useCall();
+  callToPassToForegroundService.current = call;
   const activeCallCid = call?.cid;
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -141,6 +157,7 @@ export const useAndroidKeepCallAliveEffect = () => {
           (notification) => notification.id === activeCallCid,
         );
         if (activeCallNotification) {
+          callToPassToForegroundService.current = undefined;
           // this means that we have a incoming call notification shown as foreground service and we must stop it
           notifee.stopForegroundService();
           notifee.cancelDisplayedNotification(activeCallCid);
@@ -179,6 +196,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       callingState === CallingState.LEFT
     ) {
       if (foregroundServiceStartedRef.current) {
+        callToPassToForegroundService.current = undefined;
         // stop foreground service when the call is not active
         notifeeLib.default.stopForegroundService();
         foregroundServiceStartedRef.current = false;
@@ -190,6 +208,7 @@ export const useAndroidKeepCallAliveEffect = () => {
               (notification) => notification.id === activeCallCid,
             );
             if (activeCallNotification) {
+              callToPassToForegroundService.current = undefined;
               // this means that we have a incoming call notification shown as foreground service and we must stop it
               notifeeLib.default.stopForegroundService();
             }
@@ -204,6 +223,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       // stop foreground service when this effect is unmounted
       if (foregroundServiceStartedRef.current) {
         if (!notifeeLib) return;
+        callToPassToForegroundService.current = undefined;
         notifeeLib.default.stopForegroundService();
         foregroundServiceStartedRef.current = false;
       }
