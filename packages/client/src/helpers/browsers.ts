@@ -41,6 +41,8 @@ export const isSupportedBrowser = async (): Promise<boolean> => {
     (name.includes('chrome') && version >= 91) ||
     (name.includes('edge') && version >= 91) ||
     (name.includes('firefox') && version >= 89) ||
-    (name.includes('safari') && version >= 15)
+    (name.includes('safari') && version >= 15) ||
+    (name.includes('webkit') && version >= 605) || // WebView on iOS
+    (name.includes('webview') && version >= 115) // WebView on Android
   );
 };
