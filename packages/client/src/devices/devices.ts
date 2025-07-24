@@ -110,7 +110,7 @@ export const getVideoBrowserPermission = lazy(
     }),
 );
 
-const getDeviceChangeObserver = lazy((tracer?: Tracer) => {
+const getDeviceChangeObserver = lazy((tracer: Tracer | undefined) => {
   // 'addEventListener' is not available in React Native, returning
   // an observable that will never fire
   if (!navigator.mediaDevices.addEventListener) return from([]);
@@ -129,7 +129,7 @@ const getDeviceChangeObserver = lazy((tracer?: Tracer) => {
  */
 export const getAudioDevices = lazy((tracer?: Tracer) => {
   return merge(
-    getDeviceChangeObserver(),
+    getDeviceChangeObserver(tracer),
     getAudioBrowserPermission().asObservable(),
   ).pipe(
     startWith(undefined),
@@ -148,7 +148,7 @@ export const getAudioDevices = lazy((tracer?: Tracer) => {
  */
 export const getVideoDevices = lazy((tracer?: Tracer) => {
   return merge(
-    getDeviceChangeObserver(),
+    getDeviceChangeObserver(tracer),
     getVideoBrowserPermission().asObservable(),
   ).pipe(
     startWith(undefined),
@@ -167,7 +167,7 @@ export const getVideoDevices = lazy((tracer?: Tracer) => {
  */
 export const getAudioOutputDevices = lazy((tracer?: Tracer) => {
   return merge(
-    getDeviceChangeObserver(),
+    getDeviceChangeObserver(tracer),
     getAudioBrowserPermission().asObservable(),
   ).pipe(
     startWith(undefined),
