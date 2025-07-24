@@ -25,8 +25,6 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   screenShareTrack: VisibilityState.UNKNOWN,
 } as const;
 
-console.log('VideoRenderer');
-
 /**
  * Props for the VideoRenderer component.
  */
