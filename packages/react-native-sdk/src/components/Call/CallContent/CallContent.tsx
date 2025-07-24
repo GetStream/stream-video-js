@@ -6,7 +6,6 @@ import {
   type ViewStyle,
   Platform,
 } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
 import {
   CallParticipantsGrid,
   type CallParticipantsGridProps,
@@ -184,15 +183,6 @@ export const CallContent = ({
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
     remoteParticipants.length === 1;
-
-  /**
-   * This hook is used to handle IncallManager specs of the application.
-   */
-  useEffect(() => {
-    InCallManager.start({ media: incallManagerModeRef.current });
-
-    return () => InCallManager.stop();
-  }, []);
 
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteParticipants.length !== 1) {

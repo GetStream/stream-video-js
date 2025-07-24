@@ -3202,9 +3202,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gorhom/bottom-sheet@npm:4.6.4":
-  version: 4.6.4
-  resolution: "@gorhom/bottom-sheet@npm:4.6.4"
+"@gorhom/bottom-sheet@npm:5.1.6":
+  version: 5.1.6
+  resolution: "@gorhom/bottom-sheet@npm:5.1.6"
   dependencies:
     "@gorhom/portal": "npm:1.0.14"
     invariant: "npm:^2.2.4"
@@ -3213,14 +3213,14 @@ __metadata:
     "@types/react-native": "*"
     react: "*"
     react-native: "*"
-    react-native-gesture-handler: ">=1.10.1"
-    react-native-reanimated: ">=2.2.0"
+    react-native-gesture-handler: ">=2.16.1"
+    react-native-reanimated: ">=3.16.0"
   peerDependenciesMeta:
     "@types/react":
       optional: true
     "@types/react-native":
       optional: true
-  checksum: 10/a437c5490c13c69100a7b605039a51064847b82202a985ec09acd7c6e6c39e735380c5e612b212c6466d95e3e3817e3ef50f54d18d489fcb2f1294370b4b5616
+  checksum: 10/321d85abac24cfab5ce6c77623381c73d95a09d8b1d95c0e7e968540af5c9d1bd3369b669459df483a962f65a363ea929940f006a1b4f3acf8f4b31500c4863f
   languageName: node
   linkType: hard
 
@@ -6838,7 +6838,6 @@ __metadata:
     react-native: "npm:^0.79.2"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.25.0"
-    react-native-incall-manager: "npm:^4.2.1"
     react-native-reanimated: "npm:~3.17.5"
     react-native-safe-area-context: "npm:5.4.0"
     react-native-screens: "npm:~4.10.0"
@@ -7131,7 +7130,7 @@ __metadata:
     "@babel/core": "npm:^7.27.1"
     "@babel/preset-env": "npm:^7.27.2"
     "@babel/runtime": "npm:^7.27.1"
-    "@gorhom/bottom-sheet": "npm:4.6.4"
+    "@gorhom/bottom-sheet": "npm:5.1.6"
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-clipboard/clipboard": "npm:^1.16.2"
     "@react-native-community/cli": "npm:18.0.0"
@@ -7166,7 +7165,6 @@ __metadata:
     react-native-gesture-handler: "npm:^2.25.0"
     react-native-haptic-feedback: "npm:^2.3.3"
     react-native-image-picker: "npm:^7.2.3"
-    react-native-incall-manager: "npm:4.2.1"
     react-native-mmkv: "npm:3.2.0"
     react-native-permissions: "npm:^5.4.0"
     react-native-reanimated: "npm:~3.17.5"
@@ -7225,7 +7223,6 @@ __metadata:
     react-native: "npm:0.79.2"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.25.0"
-    react-native-incall-manager: "npm:^4.2.1"
     react-native-reanimated: "npm:~3.17.5"
     react-native-safe-area-context: "npm:5.4.0"
     react-native-screens: "npm:~4.10.0"
@@ -7276,7 +7273,6 @@ __metadata:
     react-native-builder-bob: "npm:~0.23"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.25.0"
-    react-native-incall-manager: "npm:^4.2.1"
     react-native-reanimated: "npm:~3.17.5"
     react-native-svg: "npm:15.11.2"
     react-native-url-polyfill: "npm:1.3.0"
@@ -7302,7 +7298,6 @@ __metadata:
     react-native: ">=0.67.0"
     react-native-callkeep: ">=4.3.11"
     react-native-gesture-handler: ">=2.8.0"
-    react-native-incall-manager: ">=4.2.0"
     react-native-reanimated: ">=2.7.0"
     react-native-svg: ">=13.6.0"
     react-native-voip-push-notification: ">=3.3.1"
@@ -20236,15 +20231,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/62c6cc3c88edb29f2b17b4cdaa098b32efd23a5faf4380171c2ccfb1706c732a50553f2ce447e1df1ea48197dde3af42dd67584c60e2c4577ee1b7769152475d
-  languageName: node
-  linkType: hard
-
-"react-native-incall-manager@npm:4.2.1, react-native-incall-manager@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "react-native-incall-manager@npm:4.2.1"
-  peerDependencies:
-    react-native: ">=0.40.0"
-  checksum: 10/fdcfb9fc5c3b9b8e15d7f9b0834618ef0b6b024b15f42c5f41f3ed7c09a21b72b73c3b5d6dd05d5ff18402856ee8726c7a173acd2df86bfe4c43afa7a2111197
   languageName: node
   linkType: hard
 
