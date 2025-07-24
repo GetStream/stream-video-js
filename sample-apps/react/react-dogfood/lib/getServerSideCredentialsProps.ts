@@ -67,7 +67,6 @@ export const getServerSideCredentialsPropsWithOptions =
     // Chat does not allow for Id's to include special characters
     const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
 
-    console.log(apiKey);
     const token =
       query.token ||
       (await createToken(
@@ -79,6 +78,7 @@ export const getServerSideCredentialsPropsWithOptions =
               role: 'stream',
               name: session.user?.name,
               image: session.user?.image,
+              email: session.user?.email,
             }
           : undefined,
       ));
