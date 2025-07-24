@@ -195,6 +195,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         this.logger('warn', 'Failed to unregister noise cancellation', err);
       });
 
+    this.call.tracer.trace('noiseCancellation.disabled', true);
     await this.call.notifyNoiseCancellationStopped();
   }
 

@@ -72,11 +72,9 @@ export const AppStateListener = () => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       const logger = getLogger(['AppStateListener']);
       if (appState.current.match(/background/) && nextAppState === 'active') {
-        if (
-          call?.camera?.state.status === 'enabled' &&
-          Platform.OS === 'android'
-        ) {
-          // when device is locked and resumed, the status isnt made disabled but stays enabled
+        if (call?.camera?.state.status === 'enabled') {
+          // Android: when device is locked and resumed, the status isnt made disabled but stays enabled
+          // iOS PiP: when local track was replaced by remote track, the local track shown is blank
           // as a workaround we stop the track and enable again if its already in enabled state
           call?.camera?.disable(true).then(() => {
             call?.camera?.enable();
