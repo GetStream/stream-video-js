@@ -2,6 +2,7 @@ import { StreamClient } from '@stream-io/node-sdk';
 import { NextApiRequest, NextApiResponse } from 'next';
 import getRawBody from 'raw-body';
 import { uploadCallRecording } from '../../helpers/gong';
+import { saveParticipantAsCallMember } from '../../helpers/participants';
 
 export const config = {
   api: {
@@ -53,6 +54,8 @@ const handleWebhook = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (event.type === 'call.recording_ready') {
       processor = uploadCallRecording;
+    } else if (event.type === 'call.session_participant_joined') {
+      processor = saveParticipantAsCallMember;
     }
 
     processor?.(client, event).catch((processorErr) => {
