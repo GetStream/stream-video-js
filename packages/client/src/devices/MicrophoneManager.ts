@@ -33,7 +33,10 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
   constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
     super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
+  }
 
+  override setup(): void {
+    super.setup();
     this.subscriptions.push(
       createSafeAsyncSubscription(
         combineLatest([
@@ -192,6 +195,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         this.logger('warn', 'Failed to unregister noise cancellation', err);
       });
 
+    this.call.tracer.trace('noiseCancellation.disabled', true);
     await this.call.notifyNoiseCancellationStopped();
   }
 

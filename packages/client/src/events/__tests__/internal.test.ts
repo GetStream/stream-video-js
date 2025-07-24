@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { Call } from '../../Call';
 import { Dispatcher } from '../../rtc';
 import { CallState } from '../../store';
+import { noopComparator } from '../../sorting';
 import {
   watchConnectionQualityChanged,
+  watchInboundStateNotification,
   watchLiveEnded,
   watchParticipantCountChanged,
   watchPinsUpdated,
@@ -11,6 +13,7 @@ import {
 import {
   ConnectionQuality,
   ErrorCode,
+  TrackType,
 } from '../../gen/video/sfu/models/models';
 
 describe('internal events', () => {
@@ -97,6 +100,7 @@ describe('internal events', () => {
       permissionsContext: { hasPermission: () => true },
       leave: vi.fn().mockResolvedValue(undefined),
       logger: vi.fn(),
+      state: new CallState(),
     } as unknown as Call;
 
     watchLiveEnded(dispatcher, call);
@@ -129,5 +133,80 @@ describe('internal events', () => {
       },
       { userId: 'u2', sessionId: 'session-2', pin: undefined },
     ]);
+  });
+
+  it('handles InboundStateNotification', () => {
+    const state = new CallState();
+    state.setSortParticipantsBy(noopComparator());
+    state.setParticipants([
+      // @ts-expect-error incomplete data
+      { sessionId: 'session-1' },
+      // @ts-expect-error incomplete data
+      { sessionId: 'session-2' },
+    ]);
+
+    const update = watchInboundStateNotification(state);
+    update({
+      inboundVideoStates: [
+        {
+          userId: '1',
+          sessionId: 'session-1',
+          trackType: TrackType.VIDEO,
+          paused: true,
+        },
+        {
+          userId: '2',
+          sessionId: 'session-2',
+          trackType: TrackType.VIDEO,
+          paused: false,
+        },
+      ],
+    });
+    expect(
+      state.findParticipantBySessionId('session-1')?.pausedTracks,
+    ).toContain(TrackType.VIDEO);
+    expect(
+      state.findParticipantBySessionId('session-2')?.pausedTracks,
+    ).not.toContain(TrackType.VIDEO);
+
+    update({
+      inboundVideoStates: [
+        {
+          userId: '2',
+          sessionId: 'session-2',
+          trackType: TrackType.VIDEO,
+          paused: true,
+        },
+      ],
+    });
+    expect(
+      state.findParticipantBySessionId('session-1')?.pausedTracks,
+    ).toContain(TrackType.VIDEO);
+    expect(
+      state.findParticipantBySessionId('session-2')?.pausedTracks,
+    ).toContain(TrackType.VIDEO);
+
+    update({
+      inboundVideoStates: [
+        {
+          userId: '1',
+          sessionId: 'session-1',
+          trackType: TrackType.VIDEO,
+          paused: false,
+        },
+        {
+          userId: '2',
+          sessionId: 'session-2',
+          trackType: TrackType.VIDEO,
+          paused: false,
+        },
+      ],
+    });
+    expect(
+      state.findParticipantBySessionId('session-1')?.pausedTracks,
+    ).not.toContain(TrackType.VIDEO);
+    expect(
+      state.findParticipantBySessionId('session-2')?.pausedTracks,
+    ).not.toContain(TrackType.VIDEO);
   });
 });

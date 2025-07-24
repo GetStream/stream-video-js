@@ -29,7 +29,7 @@ let client: StreamVideoClient;
 beforeEach(async () => {
   client = new StreamVideoClient({
     apiKey,
-    options: { browser: true },
+    options: { browser: true, timeout: 15000 },
     tokenProvider,
     user: { id: 'jane' },
   });

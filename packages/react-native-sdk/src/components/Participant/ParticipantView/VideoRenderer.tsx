@@ -5,6 +5,7 @@ import { RTCView } from '@stream-io/react-native-webrtc';
 import type { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,
+  hasPausedTrack,
   hasScreenShare,
   hasVideo,
   SfuModels,
@@ -72,7 +73,8 @@ export const VideoRenderer = ({
     deregister: deregisterIosScreenshot,
   } = useScreenshotIosContext();
 
-  const videoDimensions = useTrackDimensions(participant, trackType);
+  const videoDimensions = useTrackDimensions(participant);
+
   const {
     isLocalParticipant,
     sessionId,
@@ -95,9 +97,10 @@ export const VideoRenderer = ({
     !!videoStreamToRender &&
     isVisible &&
     isPublishingVideoTrack &&
+    !hasPausedTrack(participant, trackType) &&
     isParticipantVideoEnabled(participant.sessionId);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       Platform.OS === 'ios' &&
       registerIosScreenshot &&

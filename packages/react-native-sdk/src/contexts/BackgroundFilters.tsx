@@ -139,6 +139,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       } else if (blurIntensity === 'light') {
         filterName = 'BackgroundBlurLight';
       }
+      call?.tracer.trace('backgroundFilters.apply', filterName);
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -164,6 +165,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       } else if (blurIntensity === 'light') {
         filterName = 'BlurLight';
       }
+      call?.tracer.trace('backgroundFilters.apply', filterName);
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -187,6 +189,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         registeredImageFiltersSetRef.current.add(imageUri);
       }
       const filterName = `VirtualBackground-${imageUri}`;
+      call?.tracer.trace('backgroundFilters.apply', filterName);
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -201,6 +204,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
     if (!isSupported) {
       return;
     }
+    call?.tracer.trace('backgroundFilters.disableAll', null);
     (call?.camera.state.mediaStream as MediaStream | undefined)
       ?.getVideoTracks()
       .forEach((track) => {

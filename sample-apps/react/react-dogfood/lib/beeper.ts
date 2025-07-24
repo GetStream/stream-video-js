@@ -1,9 +1,12 @@
-const audioCache = new Map<string, () => Promise<void>>();
+const audioCache = new Map<string, () => Promise<() => void>>();
 
 /**
  * Plays an audio file from the provided url
  */
-export async function beep(url: string) {
+export async function beep(
+  url: string,
+  options: { loop?: boolean } = {},
+): Promise<() => void> {
   let play = audioCache.get(url);
 
   if (!play) {
@@ -16,11 +19,16 @@ export async function beep(url: string) {
 
     play = async () => {
       const audio = await canPlayPromise;
+      audio.loop = options.loop ?? false;
       await audio.play();
+      return () => {
+        audio.pause();
+        audio.currentTime = 0;
+      };
     };
 
     audioCache.set(url, play);
   }
 
-  await play();
+  return await play();
 }

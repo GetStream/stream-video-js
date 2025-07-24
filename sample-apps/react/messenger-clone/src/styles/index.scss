@@ -1,13 +1,7 @@
-@layer default-chat-sdk {
-  @import 'stream-chat-react/dist/scss/v2/index.scss';
-}
-
-@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
-
-@import "layout";
-@import "./Avatar.scss";
-@import "./CallPanel.scss";
-@import "./ChannelPreview.scss";
-@import "./QuickDial.scss";
-@import "./Sidebar.scss";
-@import "./UserList.scss";
+@use 'layout';
+@use 'Avatar.scss';
+@use 'CallPanel.scss';
+@use 'ChannelPreview.scss';
+@use 'QuickDial.scss';
+@use 'Sidebar.scss';
+@use 'UserList.scss';

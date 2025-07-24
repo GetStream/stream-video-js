@@ -61,36 +61,42 @@ $scope-name: 'str-video__participant-view';
         $icon-size: 1rem;
         width: $icon-size;
         height: $icon-size;
-        mask-size: $icon-size;
         -webkit-mask-size: $icon-size;
+        mask-size: $icon-size;
         background-color: var(--str-video__text-color1);
       }
 
       .str-video__participant-details__name--audio-muted {
         @include icon();
-        mask-image: var(--str-video__icon--mic-off);
         -webkit-mask-image: var(--str-video__icon--mic-off);
+        mask-image: var(--str-video__icon--mic-off);
       }
 
       .str-video__participant-details__name--video-muted {
         @include icon();
-        mask-image: var(--str-video__icon--camera-off);
         -webkit-mask-image: var(--str-video__icon--camera-off);
+        mask-image: var(--str-video__icon--camera-off);
+      }
+
+      .str-video__participant-details__name--track-paused {
+        @include icon();
+        mask-image: var(--str-video__icon--low-bandwidth);
+        -webkit-mask-image: var(--str-video__icon--low-bandwidth);
       }
 
       .str-video__participant-details__name--pinned {
         cursor: pointer;
         @include icon();
         width: 0.8rem;
-        -webkit-mask-size: 0.8rem;
         height: 1rem;
+        -webkit-mask-size: 0.8rem;
         mask-size: 0.8rem;
-        mask-repeat: no-repeat;
         -webkit-mask-repeat: no-repeat;
-        mask-position: center;
+        mask-repeat: no-repeat;
         -webkit-mask-position: center;
-        mask-image: var(--str-video__icon--pin);
+        mask-position: center;
         -webkit-mask-image: var(--str-video__icon--pin);
+        mask-image: var(--str-video__icon--pin);
       }
 
       .str-video__participant-details__name--network-stats {

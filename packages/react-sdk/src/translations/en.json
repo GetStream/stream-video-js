@@ -88,6 +88,7 @@
 
   "Dominant Speaker": "Dominant Speaker",
   "Poor connection quality": "Poor connection quality. Please check your internet connection.",
+  "Video paused due to insufficient bandwidth": "Video paused due to insufficient bandwidth",
 
   "Participants": "Participants",
   "Anonymous": ", and ({{ count }}) anonymous",

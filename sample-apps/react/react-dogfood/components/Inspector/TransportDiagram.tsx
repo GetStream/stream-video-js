@@ -1,5 +1,6 @@
 import { useCall } from '@stream-io/video-react-sdk';
 import { ValuePoller } from './ValuePoller';
+import { PropsWithChildren } from 'react';
 
 export function TransportDiagram(props: {
   direction: 'publisher' | 'subscriber';
@@ -8,7 +9,11 @@ export function TransportDiagram(props: {
   const pc: RTCPeerConnection | undefined = (call?.[props.direction] as any).pc;
 
   if (!pc) {
-    return <TransportDiagramPlaceholder />;
+    return (
+      <TransportDiagramPlaceholder>
+        No RTC connection. (Camera and microphone disabled?)
+      </TransportDiagramPlaceholder>
+    );
   }
 
   return (
@@ -18,7 +23,11 @@ export function TransportDiagram(props: {
         const pair = await fetchPeerConnectionCandidatePair(pc);
 
         if (!pair) {
-          return <TransportDiagramPlaceholder />;
+          return (
+            <TransportDiagramPlaceholder>
+              No healthy candidate pair
+            </TransportDiagramPlaceholder>
+          );
         }
 
         return (
@@ -67,10 +76,13 @@ export function TransportDiagram(props: {
   );
 }
 
-function TransportDiagramPlaceholder() {
+function TransportDiagramPlaceholder(props: PropsWithChildren) {
   return (
-    <div className="rd__transport-diagram rd__transport-diagram_placeholder">
-      No RTC connection. Enable camera or microphone
+    <div
+      className="rd__transport-diagram rd__transport-diagram_placeholder"
+      data-copyable
+    >
+      {props.children}
     </div>
   );
 }

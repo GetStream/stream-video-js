@@ -52,6 +52,11 @@ export type StreamSfuClientConstructor = {
   credentials: Credentials;
 
   /**
+   * The `cid` (call ID) to use for the connection.
+   */
+  cid: string;
+
+  /**
    * `sessionId` to use for the connection.
    */
   sessionId?: string;
@@ -59,7 +64,7 @@ export type StreamSfuClientConstructor = {
   /**
    * A log tag to use for logging. Useful for debugging multiple instances.
    */
-  logTag: string;
+  tag: string;
 
   /**
    * The timeout in milliseconds for waiting for the `joinResponse`.
@@ -81,6 +86,14 @@ export type StreamSfuClientConstructor = {
    * Flag to enable tracing.
    */
   enableTracing: boolean;
+};
+
+type SfuWebSocketParams = {
+  attempt: string; // the reconnect attempt, start with 0
+  user_id: string;
+  api_key: string;
+  user_session_id: string;
+  cid: string;
 };
 
 /**
@@ -120,23 +133,27 @@ export class StreamSfuClient {
   isLeaving = false;
 
   /**
-   * Flag to indicate if the client is in the process of closing the connection.
+   * Flag to indicate if the client is in the process of clean closing the connection.
+   * When set to `true`, the client will not attempt to reconnect
+   * and will close the WebSocket connection gracefully.
+   * Otherwise, it will close the connection with an error code and
+   * trigger a reconnection attempt.
    */
-  isClosing = false;
+  isClosingClean = false;
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
   private migrateAwayTimeout?: NodeJS.Timeout;
-  private pingIntervalInMs = 10 * 1000;
-  private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
+  private readonly pingIntervalInMs = 5 * 1000;
+  private readonly unhealthyTimeoutInMs = 15 * 1000;
   private lastMessageTimestamp?: Date;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: ((reason: string) => void) | undefined;
   private readonly logger: Logger;
-  private readonly logTag: string;
+  readonly tag: string;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout: number;
@@ -174,7 +191,11 @@ export class StreamSfuClient {
    * Here, we don't use 1000 (normal closure) because we don't want the
    * SFU to clean up the resources associated with the current participant.
    */
-  static DISPOSE_OLD_SOCKET = 4002;
+  static DISPOSE_OLD_SOCKET = 4100;
+  /**
+   * The close code used when the client fails to join the call (on the SFU).
+   */
+  static JOIN_FAILED = 4101;
 
   /**
    * Constructs a new SFU client.
@@ -183,7 +204,8 @@ export class StreamSfuClient {
     dispatcher,
     credentials,
     sessionId,
-    logTag,
+    cid,
+    tag,
     joinResponseTimeout = 5000,
     onSignalClose,
     streamClient,
@@ -196,10 +218,10 @@ export class StreamSfuClient {
     const { server, token } = credentials;
     this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
-    this.logTag = logTag;
-    this.logger = getLogger(['SfuClient', logTag]);
+    this.tag = tag;
+    this.logger = getLogger(['SfuClient', tag]);
     this.tracer = enableTracing
-      ? new Tracer(`${logTag}-${this.edgeName}`)
+      ? new Tracer(`${tag}-${this.edgeName}`)
       : undefined;
     this.rpc = createSignalClient({
       baseUrl: server.url,
@@ -230,10 +252,16 @@ export class StreamSfuClient {
       }
     });
 
-    this.createWebSocket();
+    this.createWebSocket({
+      attempt: tag,
+      user_id: streamClient.user?.id || '',
+      api_key: streamClient.key,
+      user_session_id: this.sessionId,
+      cid,
+    });
   }
 
-  private createWebSocket = () => {
+  private createWebSocket = (params: SfuWebSocketParams) => {
     const eventsToTrace: Partial<Record<SfuEventKinds, boolean>> = {
       callEnded: true,
       changePublishQuality: true,
@@ -241,10 +269,11 @@ export class StreamSfuClient {
       connectionQualityChanged: true,
       error: true,
       goAway: true,
+      inboundStateNotification: true,
     };
     this.signalWs = createWebSocketSignalChannel({
-      logTag: this.logTag,
-      endpoint: `${this.credentials.server.ws_endpoint}?tag=${this.logTag}`,
+      tag: this.tag,
+      endpoint: `${this.credentials.server.ws_endpoint}?${new URLSearchParams(params).toString()}`,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
@@ -252,7 +281,7 @@ export class StreamSfuClient {
         if (eventsToTrace[eventKind]) {
           this.tracer?.trace(eventKind, message);
         }
-        this.dispatcher.dispatch(message, this.logTag);
+        this.dispatcher.dispatch(message, this.tag);
       },
     });
 
@@ -271,7 +300,9 @@ export class StreamSfuClient {
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
             // before emitting 'open'. However, strager things have happened, and we don't
             // want to leave signalReady in pending state.
-            reject(new Error('SFU WS closed unexpectedly'));
+            reject(
+              new Error(`SFU WS closed or connection can't be established`),
+            );
           });
         }),
 
@@ -308,7 +339,7 @@ export class StreamSfuClient {
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
-    this.isClosing = true;
+    this.isClosingClean = code !== StreamSfuClient.ERROR_CONNECTION_UNHEALTHY;
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
@@ -334,9 +365,9 @@ export class StreamSfuClient {
   };
 
   leaveAndClose = async (reason: string) => {
-    await this.joinTask;
     try {
       this.isLeaving = true;
+      await this.joinTask;
       await this.notifyLeave(reason);
     } catch (err) {
       this.logger('debug', 'Error notifying SFU about leaving call', err);
@@ -433,9 +464,7 @@ export class StreamSfuClient {
     this.migrateAwayTimeout = setTimeout(() => {
       unsubscribe();
       task.reject(
-        new Error(
-          `Migration (${this.logTag}) failed to complete in ${timeout}ms`,
-        ),
+        new Error(`Migration (${this.tag}) failed to complete in ${timeout}ms`),
       );
     }, timeout);
 

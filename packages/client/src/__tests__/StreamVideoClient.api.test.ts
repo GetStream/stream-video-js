@@ -35,6 +35,7 @@ describe('StreamVideoClient - coordinator API', () => {
     client = new StreamVideoClient(apiKey, {
       // tests run in node, so we have to fake being in browser env
       browser: true,
+      timeout: 15000,
     });
     client.connectUser(user, tokenProvider(user.id));
   });

@@ -35,6 +35,7 @@ export abstract class InputMediaDeviceManager<
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: Function[] = [];
+  private areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
@@ -47,6 +48,16 @@ export abstract class InputMediaDeviceManager<
     this.state = state;
     this.trackType = trackType;
     this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+    this.setup();
+  }
+
+  setup() {
+    if (this.areSubscriptionsSetUp) {
+      return;
+    }
+
+    this.areSubscriptionsSetUp = true;
+
     if (
       deviceIds$ &&
       !isReactNative() &&
@@ -187,6 +198,10 @@ export abstract class InputMediaDeviceManager<
           entry.stop?.();
           this.filters = this.filters.filter((f) => f !== entry);
           await this.applySettingsToStream();
+          this.call.tracer.trace(
+            `unregisterFilter.${TrackType[this.trackType]}`,
+            null,
+          );
         }),
     };
   }
@@ -208,9 +223,7 @@ export abstract class InputMediaDeviceManager<
    */
   async select(deviceId: string | undefined) {
     if (isReactNative()) {
-      throw new Error(
-        'This method is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for reference.',
-      );
+      throw new Error('This method is not supported in React Native.');
     }
     const prevDeviceId = this.state.selectedDevice;
     if (deviceId === prevDeviceId) {
@@ -232,6 +245,8 @@ export abstract class InputMediaDeviceManager<
    */
   dispose = () => {
     this.subscriptions.forEach((s) => s());
+    this.subscriptions = [];
+    this.areSubscriptionsSetUp = false;
   };
 
   protected async applySettingsToStream() {

@@ -2,9 +2,11 @@ import {
   BasePeerConnection,
   BasePeerConnectionOpts,
 } from './BasePeerConnection';
+import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { enableStereo } from './helpers/sdp';
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -54,11 +56,12 @@ export class Subscriber extends BasePeerConnection {
       return;
     }
     const previousIsIceRestarting = this.isIceRestarting;
+    this.isIceRestarting = true;
     try {
-      this.isIceRestarting = true;
-      await this.sfuClient.iceRestart({
+      const { response } = await this.sfuClient.iceRestart({
         peerType: PeerType.SUBSCRIBER,
       });
+      if (response.error) throw new NegotiationError(response.error);
     } catch (e) {
       // restore the previous state, as our intent for restarting ICE failed
       this.isIceRestarting = previousIsIceRestarting;
@@ -154,6 +157,9 @@ export class Subscriber extends BasePeerConnection {
     this.addTrickledIceCandidates();
 
     const answer = await this.pc.createAnswer();
+    if (answer.sdp) {
+      answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
+    }
     await this.pc.setLocalDescription(answer);
 
     await this.sfuClient.sendAnswer({
