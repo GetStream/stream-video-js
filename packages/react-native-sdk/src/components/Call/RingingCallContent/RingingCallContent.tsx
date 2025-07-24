@@ -1,7 +1,12 @@
-import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { CallingState, getLogger } from '@stream-io/video-client';
+import {
+  useCall,
+  useCalls,
+  useCallStateHooks,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
+import { Alert, StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -23,6 +28,8 @@ import {
   type CallPreparingIndicatorProps,
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
+import { StreamVideoRN } from '../../../utils';
+import InCallManager from 'react-native-incall-manager';
 
 /**
  * Props for the RingingCallContent component
@@ -70,10 +77,58 @@ const RingingCallPanel = ({
   onBackPress,
 }: RingingCallContentProps) => {
   const call = useCall();
+  const calls = useCalls();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const client = useStreamVideoClient();
+
+  client?.on('call.rejected', async (event) => {
+    // Workaround needed for the busy tone:
+    // This is because the call was rejected without even starting,
+    // before calling the stop method with busy tone we need to start the call first.
+    InCallManager.start({ media: 'audio' });
+
+    const callCid = event.call_cid;
+    const callId = callCid.split(':')[1];
+    const rejectedCall = client?.call(event.call.type, callId);
+    await rejectedCall?.getOrCreate();
+
+    const isCalleeBusy =
+      rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
+
+    if (isCalleeBusy) {
+      InCallManager.stop({ busytone: '_DTMF_' });
+      Alert.alert('Call rejected because user is busy.');
+    }
+  });
+
+  const pushConfig = StreamVideoRN.getConfig().push;
+  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
+
+  if (shouldRejectCallWhenBusy) {
+    const ringingCallsInProgress = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+    );
+    const callsForRejection = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.RINGING,
+    );
+    const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
+
+    if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
+      callsForRejection.forEach((c) => {
+        c.leave({ reject: true, reason: 'busy' }).catch((err) => {
+          const logger = getLogger(['RingingCallPanel']);
+          logger('error', 'Error rejecting Call when busy', err);
+        });
+      });
+
+      return (
+        CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />
+      );
+    }
+  }
 
   switch (callingState) {
     case CallingState.RINGING:

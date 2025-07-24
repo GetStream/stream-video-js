@@ -13,8 +13,6 @@ import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
-import InCallManager from 'react-native-incall-manager';
-import { Alert } from 'react-native';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -76,26 +74,6 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
             ? getCustomSfuResponseTransformers(localIpAddress)
             : undefined,
         },
-      });
-
-      _videoClient.on('call.rejected', async (event) => {
-        // Workaround needed for the busy tone:
-        // This is because the call was rejected without even starting,
-        // before calling the stop method with busy tone we need to start the call first.
-        InCallManager.start({ media: 'audio' });
-
-        const callCid = event.call_cid;
-        const callId = callCid.split(':')[1];
-        const rejectedCall = _videoClient?.call(event.call.type, callId);
-        await rejectedCall?.getOrCreate();
-
-        const isCalleeBusy =
-          rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
-
-        if (isCalleeBusy) {
-          InCallManager.stop({ busytone: '_DTMF_' });
-          Alert.alert('Call rejected because user is busy.');
-        }
       });
 
       setVideoClient(_videoClient);
