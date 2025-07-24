@@ -56,7 +56,7 @@ export class SpeakerManager {
         'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
       );
     }
-    return getAudioOutputDevices();
+    return getAudioOutputDevices(this.call.tracer);
   }
 
   /**
