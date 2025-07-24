@@ -17,11 +17,9 @@ export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',
-      shouldRejectCallWhenBusy: false,
     },
     android: {
       pushProviderName: 'rn-fcm-video',
-      shouldRejectCallWhenBusy: false,
       callChannel: {
         id: 'stream_call_notifications',
         name: 'Call notifications',
@@ -57,6 +55,7 @@ export function setPushConfig() {
         },
       },
     },
+    shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');

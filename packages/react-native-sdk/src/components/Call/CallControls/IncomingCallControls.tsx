@@ -33,10 +33,7 @@ export const IncomingCallControls = ({
   } = useTheme();
 
   const pushConfig = StreamVideoRN.getConfig().push;
-  const shouldRejectCallWhenBusy =
-    (Platform.OS === 'ios' && pushConfig?.ios?.shouldRejectCallWhenBusy) ||
-    (Platform.OS === 'android' &&
-      pushConfig?.android?.shouldRejectCallWhenBusy);
+  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
 
   const call = useCall();
   const calls = useCalls();
