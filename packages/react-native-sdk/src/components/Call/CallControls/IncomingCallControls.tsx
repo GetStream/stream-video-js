@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { AcceptCallButton } from './AcceptCallButton';
 import { RejectCallButton } from './RejectCallButton';
