@@ -75,6 +75,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
             : undefined,
         },
       });
+
       setVideoClient(_videoClient);
     };
     if (user.id) {

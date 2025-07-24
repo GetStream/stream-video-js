@@ -28,6 +28,7 @@ export const IncomingCallControls = ({
       variants: { buttonSizes },
     },
   } = useTheme();
+
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
       <RejectCallButton
