@@ -21,6 +21,7 @@ export const createToken = async (
     role,
     name,
     image,
+    email,
     ...rest
   } = params;
 
@@ -31,6 +32,7 @@ export const createToken = async (
         name: typeof name === 'string' ? name : undefined,
         image: typeof image === 'string' ? image : undefined,
         role,
+        custom: { email },
       },
     ]);
   }
