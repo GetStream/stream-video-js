@@ -303,10 +303,10 @@ const TraceStats = () => {
       disabled={!call}
       onClick={() => {
         const appId = process.env.NEXT_PUBLIC_STREAM_APP_ID || '';
-        if (!appId) return window.open('http://localhost:8081/', '_blank');
+        if (!appId) return window.open('http://rtcstats.gtstrm.com/', '_blank');
         const path = `app/${appId}/${call.cid}/${call.state.session?.id}/`;
         window.open(
-          `http://localhost:8081/?path=${encodeURIComponent(path)}`,
+          `http://rtcstats.gtstrm.com/?path=${encodeURIComponent(path)}`,
           '_blank',
         );
       }}

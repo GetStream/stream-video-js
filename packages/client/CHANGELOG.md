@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.26.1...@stream-io/video-client-1.27.0) (2025-07-18)
+
+### Features
+
+- Inbound Video Pause ([#1841](https://github.com/GetStream/stream-video-js/issues/1841)) ([5c7eb3a](https://github.com/GetStream/stream-video-js/commit/5c7eb3ac8b0fcfd663226d537279c8a941dedc21))
+
+### Bug Fixes
+
+- more graceful handling of SFU join failures ([#1853](https://github.com/GetStream/stream-video-js/issues/1853)) ([f38a4b5](https://github.com/GetStream/stream-video-js/commit/f38a4b5eef62210b08424640040a88065b680707))
+
+## [1.26.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.26.0...@stream-io/video-client-1.26.1) (2025-07-17)
+
+### Bug Fixes
+
+- force `play-and-record` audioSession on Safari ([#1855](https://github.com/GetStream/stream-video-js/issues/1855)) ([a3552a3](https://github.com/GetStream/stream-video-js/commit/a3552a3be606ac99120b6c4ce6187eaa920a02ef))
+
+## [1.26.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.5...@stream-io/video-client-1.26.0) (2025-07-11)
+
+### Features
+
+- **react-native:** speech detection ([#1850](https://github.com/GetStream/stream-video-js/issues/1850)) ([3f53e95](https://github.com/GetStream/stream-video-js/commit/3f53e95fdf0e739c809648211c52542d86df183f))
+
 ## [1.25.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.25.4...@stream-io/video-client-1.25.5) (2025-07-08)
 
 ### Bug Fixes

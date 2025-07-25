@@ -198,6 +198,10 @@ export abstract class InputMediaDeviceManager<
           entry.stop?.();
           this.filters = this.filters.filter((f) => f !== entry);
           await this.applySettingsToStream();
+          this.call.tracer.trace(
+            `unregisterFilter.${TrackType[this.trackType]}`,
+            null,
+          );
         }),
     };
   }
@@ -219,9 +223,7 @@ export abstract class InputMediaDeviceManager<
    */
   async select(deviceId: string | undefined) {
     if (isReactNative()) {
-      throw new Error(
-        'This method is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for reference.',
-      );
+      throw new Error('This method is not supported in React Native.');
     }
     const prevDeviceId = this.state.selectedDevice;
     if (deviceId === prevDeviceId) {

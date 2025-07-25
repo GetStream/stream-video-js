@@ -88,6 +88,24 @@ object PiPHelper {
         return reactApplicationContext.currentActivity?.isInPictureInPictureMode
     }
 
+    fun exitPipMode(reactApplicationContext: ReactApplicationContext): Boolean {
+        return try {
+            reactApplicationContext.currentActivity?.let { activity ->
+                if (activity.isInPictureInPictureMode) {
+                    // Move the task to back to exit PiP mode and return to normal app view
+                    activity.moveTaskToBack(false)
+                    true
+                } else {
+                    // Not in PiP mode, so nothing to do
+                    false
+                }
+            } ?: false
+        } catch (e: Exception) {
+            Log.e(NAME, "Failed to exit Picture-in-Picture mode", e)
+            false
+        }
+    }
+
     private fun getPiPParams(activity: Activity): PictureInPictureParams.Builder {
         val currentOrientation = activity.resources.configuration.orientation
         val aspect =

@@ -471,7 +471,6 @@ export class StableWSConnection {
   onmessage = (wsID: number, event: MessageEvent) => {
     if (this.wsID !== wsID) return;
 
-    this._log('onmessage() - onmessage callback', { event, wsID });
     const data =
       typeof event.data === 'string'
         ? (JSON.parse(event.data) as StreamVideoEvent)
@@ -581,7 +580,6 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-    this.rejectConnectionOpen?.(new Error(`WebSocket error: ${event}`));
     this._log(`onerror() - WS connection resulted into error`, { event });
 
     this._reconnect();

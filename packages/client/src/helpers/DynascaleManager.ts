@@ -617,6 +617,12 @@ export class DynascaleManager {
     if (context.state === 'suspended') {
       document.addEventListener('click', this.resumeAudioContext);
     }
+    // @ts-expect-error audioSession is available in Safari only
+    const audioSession = navigator.audioSession;
+    if (audioSession) {
+      // https://github.com/w3c/audio-session/blob/main/explainer.md
+      audioSession.type = 'play-and-record';
+    }
     return (this.audioContext = context);
   };
 

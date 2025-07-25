@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import {
   CallingState,
@@ -17,28 +17,39 @@ const eventEmitter = NativeModules?.StreamVideoReactNative
 export const DeviceStats = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const call = useCall();
 
   useEffect(() => {
-    if (callingState !== CallingState.JOINED) {
-      return;
-    }
+    if (!call || callingState !== CallingState.JOINED) return;
 
     NativeModules?.StreamVideoReactNative.isLowPowerModeEnabled().then(
-      (initialPowerMode: boolean) => setPowerState(initialPowerMode),
+      (initialPowerMode: boolean) => {
+        setPowerState(initialPowerMode);
+        call.tracer.trace('device.lowPowerMode', initialPowerMode);
+      },
     );
 
     const powerModeSubscription = eventEmitter?.addListener(
       'isLowPowerModeEnabled',
-      (isLowPowerMode: boolean) => setPowerState(isLowPowerMode),
+      (isLowPowerMode: boolean) => {
+        setPowerState(isLowPowerMode);
+        call.tracer.trace('device.lowPowerMode', isLowPowerMode);
+      },
     );
 
     NativeModules?.StreamVideoReactNative.currentThermalState().then(
-      (initialState: string) => setThermalState(initialState),
+      (initialState: string) => {
+        setThermalState(initialState);
+        call.tracer.trace('device.thermalState', initialState);
+      },
     );
 
     const thermalStateSubscription = eventEmitter?.addListener(
       'thermalStateDidChange',
-      (thermalState: string) => setThermalState(thermalState),
+      (thermalState: string) => {
+        setThermalState(thermalState);
+        call.tracer.trace('device.thermalStateChanged', thermalState);
+      },
     );
 
     // on android we need to explicitly start and stop the thermal status updates
@@ -53,7 +64,7 @@ export const DeviceStats = () => {
         NativeModules?.StreamVideoReactNative.stopThermalStatusUpdates();
       }
     };
-  }, [callingState]);
+  }, [call, callingState]);
 
   return null;
 };

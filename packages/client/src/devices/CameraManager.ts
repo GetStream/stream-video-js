@@ -149,7 +149,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
-    return getVideoDevices();
+    return getVideoDevices(this.call.tracer);
   }
 
   protected getStream(

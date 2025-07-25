@@ -2,6 +2,50 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.19.0...@stream-io/video-react-native-sdk-1.19.1) (2025-07-23)
+
+### Bug Fixes
+
+- automatically exit android pip mode if call is left ([#1863](https://github.com/GetStream/stream-video-js/issues/1863)) ([51850f4](https://github.com/GetStream/stream-video-js/commit/51850f49bc67595a4cacb766863894483712fc75))
+- ios pip blank local track issue ([47d8119](https://github.com/GetStream/stream-video-js/commit/47d811928f9f155b4d9f9cb23042a7556fd8414a))
+
+## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.18.1...@stream-io/video-react-native-sdk-1.19.0) (2025-07-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.27.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.9`
+
+### Features
+
+- Inbound Video Pause ([#1841](https://github.com/GetStream/stream-video-js/issues/1841)) ([5c7eb3a](https://github.com/GetStream/stream-video-js/commit/5c7eb3ac8b0fcfd663226d537279c8a941dedc21))
+
+### Bug Fixes
+
+- stop picture-in-picture after call ends or goes to backstage ([#1854](https://github.com/GetStream/stream-video-js/issues/1854)) ([91390d8](https://github.com/GetStream/stream-video-js/commit/91390d83e056af3f1855f36ccd5f3eed9fed6d4d))
+
+## [1.18.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.18.0...@stream-io/video-react-native-sdk-1.18.1) (2025-07-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.26.1`
+- `@stream-io/video-react-bindings` updated to version `1.7.8`
+
+## [1.18.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.6...@stream-io/video-react-native-sdk-1.18.0) (2025-07-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.26.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.7`
+
+### Features
+
+- **react-native:** speech detection ([#1850](https://github.com/GetStream/stream-video-js/issues/1850)) ([3f53e95](https://github.com/GetStream/stream-video-js/commit/3f53e95fdf0e739c809648211c52542d86df183f))
+
+### Bug Fixes
+
+- keep objectfit as cover for floating video view ([#1849](https://github.com/GetStream/stream-video-js/issues/1849)) ([a99de4c](https://github.com/GetStream/stream-video-js/commit/a99de4c3b2231fa840e003515735620f6c009f7e))
+
 ## [1.17.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.17.5...@stream-io/video-react-native-sdk-1.17.6) (2025-07-08)
 
 ### Dependency Updates
