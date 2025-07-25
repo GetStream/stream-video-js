@@ -53,8 +53,17 @@ describe('ParticipantView', () => {
       image: undefined,
       publishedTracks: [SfuModels.TrackType.SCREEN_SHARE],
       screenShareStream: {
-        // @ts-expect-error due to dom event type not being compatible with RN
         toURL: () => 'test-url',
+        // @ts-expect-error due to dom event type not being compatible with RN
+        getVideoTracks: jest.fn(() => [
+          {
+            id: '123',
+            getSettings: () => ({
+              width: 100,
+              height: 100,
+            }),
+          },
+        ]),
       },
     });
     render(
