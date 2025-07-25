@@ -246,7 +246,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
-    return getAudioDevices();
+    return getAudioDevices(this.call.tracer);
   }
 
   protected getStream(
