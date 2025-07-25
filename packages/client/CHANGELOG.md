@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.0...@stream-io/video-client-1.27.1) (2025-07-25)
+
+### Bug Fixes
+
+- improved audio and video filter tracing ([#1862](https://github.com/GetStream/stream-video-js/issues/1862)) ([701ea4b](https://github.com/GetStream/stream-video-js/commit/701ea4b3266f68072c1325b70221fdefd77137ec))
+- synchronize updateMuteState; use correct fallback dimensions ([#1867](https://github.com/GetStream/stream-video-js/issues/1867)) ([154cdda](https://github.com/GetStream/stream-video-js/commit/154cddaa4462ee03af5fdf4929ad9f4e3d4b5070))
+- trace available devices and thermal state changes ([#1866](https://github.com/GetStream/stream-video-js/issues/1866)) ([d8312b5](https://github.com/GetStream/stream-video-js/commit/d8312b5c109b14baa28ee764202d387499d0fd52))
+
 ## [1.27.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.26.1...@stream-io/video-client-1.27.0) (2025-07-18)
 
 ### Features
