@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.1.1...@stream-io/noise-cancellation-react-native-0.2.0) (2025-07-25)
+
+### Features
+
+- do not detect video dimensions through rtc stats ([#1852](https://github.com/GetStream/stream-video-js/issues/1852)) ([280e008](https://github.com/GetStream/stream-video-js/commit/280e0087d646188e71dec6e4d4e5e8b93878904d))
+
 ## [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.1.0...@stream-io/noise-cancellation-react-native-0.1.1) (2025-06-02)
 
 ### Bug Fixes
