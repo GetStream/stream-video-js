@@ -143,13 +143,18 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
   // @ts-expect-error - userAgentData is not yet in the TS types
   const userAgentDataApi = navigator.userAgentData;
   let userAgentData:
-    | { platform?: string; platformVersion?: string }
+    | {
+        platform?: string;
+        platformVersion?: string;
+        fullVersionList?: Array<{ brand: string; version: string }>;
+      }
     | undefined;
   if (userAgentDataApi && userAgentDataApi.getHighEntropyValues) {
     try {
       userAgentData = await userAgentDataApi.getHighEntropyValues([
         'platform',
         'platformVersion',
+        'fullVersionList',
       ]);
     } catch {
       // Ignore the error
@@ -158,11 +163,15 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
 
   const userAgent = new UAParser(navigator.userAgent);
   const { browser, os, device, cpu } = userAgent.getResult();
+  const browserName = browser.name || navigator.userAgent;
+  const browserVersion =
+    userAgentData?.fullVersionList?.find((v) => v.brand.includes(browserName))
+      ?.version ?? browser.version;
   return {
     sdk: sdkInfo,
     browser: {
-      name: browser.name || navigator.userAgent,
-      version: browser.version || '',
+      name: browserName,
+      version: browserVersion || '',
     },
     os: {
       name: userAgentData?.platform || os.name || '',
