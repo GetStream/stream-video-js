@@ -1884,10 +1884,13 @@ export class Call {
    * @internal
    */
   notifyTrackMuteState = async (muted: boolean, ...trackTypes: TrackType[]) => {
-    if (!this.sfuClient) return;
-    await this.sfuClient.updateMuteStates(
-      trackTypes.map((trackType) => ({ trackType, muted })),
-    );
+    const key = `muteState.${this.cid}.${trackTypes.join('-')}`;
+    await withoutConcurrency(key, async () => {
+      if (!this.sfuClient) return;
+      await this.sfuClient.updateMuteStates(
+        trackTypes.map((trackType) => ({ trackType, muted })),
+      );
+    });
   };
 
   /**
