@@ -46,7 +46,7 @@ data class EndpointMaps(
 internal class AudioDeviceManager(
     private val mReactContext: ReactApplicationContext,
     private val mOnAudioDeviceChangedListener: OnAudioDeviceChangedListener
-) : AutoCloseable, AudioDeviceCallback() {
+) : AutoCloseable, AudioDeviceCallback(), AudioManager.OnAudioFocusChangeListener {
 
     private val mEndpointMaps by lazy {
         val initialAudioDevices = getAvailableAudioDevices(mAudioManager)
@@ -247,6 +247,7 @@ internal class AudioDeviceManager(
     }
 
     fun muteAudioOutput() {
+        // TODO: only to be used when in communication mode
         mAudioManager.adjustStreamVolume(
             AudioManager.STREAM_VOICE_CALL,
             AudioManager.ADJUST_MUTE,
@@ -264,5 +265,9 @@ internal class AudioDeviceManager(
 
     companion object {
         private val TAG: String = InCallManagerModule.TAG + ":" + AudioDeviceManager::class.java.simpleName.toString()
+    }
+
+    override fun onAudioFocusChange(focusChange: Int) {
+        TODO("Not yet implemented")
     }
 }
