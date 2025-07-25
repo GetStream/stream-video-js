@@ -7,6 +7,7 @@ import {
   merge,
   shareReplay,
   startWith,
+  tap,
 } from 'rxjs';
 import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
@@ -21,8 +22,13 @@ import { getCurrentValue } from '../store/rxUtils';
  *
  * @param permission a BrowserPermission instance.
  * @param kind the kind of devices to enumerate.
+ * @param tracer the tracer to use for tracing the device enumeration.
  */
-const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
+const getDevices = (
+  permission: BrowserPermission,
+  kind: MediaDeviceKind,
+  tracer: Tracer | undefined,
+) => {
   return from(
     (async () => {
       let devices = await navigator.mediaDevices.enumerateDevices();
@@ -34,6 +40,11 @@ const getDevices = (permission: BrowserPermission, kind: MediaDeviceKind) => {
       if (shouldPromptForBrowserPermission && (await permission.prompt())) {
         devices = await navigator.mediaDevices.enumerateDevices();
       }
+      tracer?.traceOnce(
+        'device-enumeration',
+        'navigator.mediaDevices.enumerateDevices',
+        devices,
+      );
       return devices.filter(
         (device) =>
           device.kind === kind &&
@@ -99,11 +110,12 @@ export const getVideoBrowserPermission = lazy(
     }),
 );
 
-const getDeviceChangeObserver = lazy(() => {
+const getDeviceChangeObserver = lazy((tracer: Tracer | undefined) => {
   // 'addEventListener' is not available in React Native, returning
   // an observable that will never fire
   if (!navigator.mediaDevices.addEventListener) return from([]);
   return fromEvent(navigator.mediaDevices, 'devicechange').pipe(
+    tap(() => tracer?.resetTrace('device-enumeration')),
     map(() => undefined),
     debounceTime(500),
   );
@@ -115,13 +127,15 @@ const getDeviceChangeObserver = lazy(() => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getAudioDevices = lazy(() => {
+export const getAudioDevices = lazy((tracer?: Tracer) => {
   return merge(
-    getDeviceChangeObserver(),
+    getDeviceChangeObserver(tracer),
     getAudioBrowserPermission().asObservable(),
   ).pipe(
     startWith(undefined),
-    concatMap(() => getDevices(getAudioBrowserPermission(), 'audioinput')),
+    concatMap(() =>
+      getDevices(getAudioBrowserPermission(), 'audioinput', tracer),
+    ),
     shareReplay(1),
   );
 });
@@ -132,13 +146,15 @@ export const getAudioDevices = lazy(() => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getVideoDevices = lazy(() => {
+export const getVideoDevices = lazy((tracer?: Tracer) => {
   return merge(
-    getDeviceChangeObserver(),
+    getDeviceChangeObserver(tracer),
     getVideoBrowserPermission().asObservable(),
   ).pipe(
     startWith(undefined),
-    concatMap(() => getDevices(getVideoBrowserPermission(), 'videoinput')),
+    concatMap(() =>
+      getDevices(getVideoBrowserPermission(), 'videoinput', tracer),
+    ),
     shareReplay(1),
   );
 });
@@ -149,13 +165,15 @@ export const getVideoDevices = lazy(() => {
  * if devices are added/removed the list is updated, and if the permission is revoked,
  * the observable errors.
  */
-export const getAudioOutputDevices = lazy(() => {
+export const getAudioOutputDevices = lazy((tracer?: Tracer) => {
   return merge(
-    getDeviceChangeObserver(),
+    getDeviceChangeObserver(tracer),
     getAudioBrowserPermission().asObservable(),
   ).pipe(
     startWith(undefined),
-    concatMap(() => getDevices(getAudioBrowserPermission(), 'audiooutput')),
+    concatMap(() =>
+      getDevices(getAudioBrowserPermission(), 'audiooutput', tracer),
+    ),
     shareReplay(1),
   );
 });
