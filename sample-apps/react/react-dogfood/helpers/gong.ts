@@ -34,9 +34,11 @@ export async function uploadCallRecording(
   const res = await fetch(`${process.env.GONG_BASE_URL}/v2/calls`, {
     method: 'POST',
     body: JSON.stringify({
+      title: 'Pronto Sales Call',
       clientUniqueId: recordingId,
       actualStart: startTime,
       primaryUser,
+      downloadMediaUrl: event.call_recording.url,
       parties: call.members.map((member) =>
         member === primaryMember
           ? {
@@ -54,7 +56,18 @@ export async function uploadCallRecording(
     },
   });
 
-  console.log(await res.json());
+  if (res.status !== 200) {
+    console.error(
+      `Could not upload recording for call ${event.call_cid}`,
+      await res.json(),
+    );
+    return;
+  }
+
+  console.log(
+    `Uploaded recording for call ${event.call_cid}`,
+    await res.json(),
+  );
 }
 
 const lookupUserByEmail = (() => {
