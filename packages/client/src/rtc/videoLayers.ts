@@ -84,17 +84,17 @@ export const computeVideoLayers = (
 ): OptimalVideoLayer[] | undefined => {
   if (isAudioTrackType(publishOption.trackType)) return;
   const optimalVideoLayers: OptimalVideoLayer[] = [];
-  const settings = videoTrack.getSettings();
-  const { width = 0, height = 0 } = settings;
   const {
     bitrate,
     codec,
-    fps,
+    fps = 30,
     maxSpatialLayers = 3,
     maxTemporalLayers = 3,
     videoDimension = { width: 1280, height: 720 },
     useSingleLayer,
   } = publishOption;
+  const { width = videoDimension.width, height = videoDimension.height } =
+    videoTrack.getSettings();
   const maxBitrate = getComputedMaxBitrate(
     videoDimension,
     width,
@@ -137,7 +137,12 @@ export const computeVideoLayers = (
 
   // for simplicity, we start with all layers enabled, then this function
   // will clear/reassign the layers that are not needed
-  return withSimulcastConstraints(settings, optimalVideoLayers, useSingleLayer);
+  return withSimulcastConstraints(
+    width,
+    height,
+    optimalVideoLayers,
+    useSingleLayer,
+  );
 };
 
 /**
@@ -179,13 +184,14 @@ export const getComputedMaxBitrate = (
  * https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/media/engine/simulcast.cc#90
  */
 const withSimulcastConstraints = (
-  settings: MediaTrackSettings,
+  width: number,
+  height: number,
   optimalVideoLayers: OptimalVideoLayer[],
   useSingleLayer: boolean,
 ) => {
   let layers: OptimalVideoLayer[];
 
-  const size = Math.max(settings.width || 0, settings.height || 0);
+  const size = Math.max(width, height);
   if (size <= 320) {
     // provide only one layer 320x240 (f), the one with the highest quality
     layers = optimalVideoLayers.filter((layer) => layer.rid === 'f');

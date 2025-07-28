@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.19.1...@stream-io/video-react-native-sdk-1.20.0) (2025-07-25)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.2.0`
+- `@stream-io/video-filters-react-native` updated to version `0.6.0`
+- `@stream-io/video-client` updated to version `1.27.1`
+- `@stream-io/video-react-bindings` updated to version `1.7.10`
+
+- bump webrtc version ([#1865](https://github.com/GetStream/stream-video-js/issues/1865)) ([18fd609](https://github.com/GetStream/stream-video-js/commit/18fd60945ef74eb23c089dc0b5adb2373b700602))
+
+### Features
+
+- add ability to run a custom promise option for android keep call alive service ([#1864](https://github.com/GetStream/stream-video-js/issues/1864)) ([81fdd0b](https://github.com/GetStream/stream-video-js/commit/81fdd0b381a0e6aae4b5e5063c9b6c10b3c4d3bf))
+- do not detect video dimensions through rtc stats ([#1852](https://github.com/GetStream/stream-video-js/issues/1852)) ([280e008](https://github.com/GetStream/stream-video-js/commit/280e0087d646188e71dec6e4d4e5e8b93878904d))
+
+### Bug Fixes
+
+- improved audio and video filter tracing ([#1862](https://github.com/GetStream/stream-video-js/issues/1862)) ([701ea4b](https://github.com/GetStream/stream-video-js/commit/701ea4b3266f68072c1325b70221fdefd77137ec))
+- trace available devices and thermal state changes ([#1866](https://github.com/GetStream/stream-video-js/issues/1866)) ([d8312b5](https://github.com/GetStream/stream-video-js/commit/d8312b5c109b14baa28ee764202d387499d0fd52))
+
 ## [1.19.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.19.0...@stream-io/video-react-native-sdk-1.19.1) (2025-07-23)
 
 ### Bug Fixes

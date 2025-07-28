@@ -35,6 +35,9 @@ class MainActivity : ReactActivity() {
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        if (isFinishing) {
+            return
+        }
         if (lifecycle.currentState == Lifecycle.State.CREATED) {
             // when user clicks on Close button of PIP
             finishAndRemoveTask()

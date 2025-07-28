@@ -74,24 +74,22 @@ describe('videoLayers', () => {
   });
 
   it('should use predefined bitrate values when track dimensions cant be determined', () => {
-    const width = 0;
-    const height = 0;
     const bitrate = 3000000;
     const track = new MediaStreamTrack();
-    vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
+    vi.spyOn(track, 'getSettings').mockReturnValue({});
     const layers = computeVideoLayers(track, {
       bitrate,
       // @ts-expect-error - incomplete data
       codec: { name: 'vp8' },
       fps: 30,
-      videoDimension: { width, height },
+      videoDimension: { width: 320, height: 180 },
     });
     expect(layers).toEqual([
       {
         active: true,
         rid: 'q',
-        width: 0,
-        height: 0,
+        width: 320,
+        height: 180,
         maxBitrate: bitrate,
         scaleResolutionDownBy: 1,
         maxFramerate: 30,
