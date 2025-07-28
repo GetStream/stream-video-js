@@ -33,7 +33,6 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
-import { getRandomName } from '../lib/names';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 
@@ -55,9 +54,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const callSession = useCallSession();
   const members = useCallMembers();
   const currentUser = useConnectedUser();
-  const [displayName, setDisplayName] = useState(
-    currentUser?.name ?? getRandomName(),
-  );
+  const [displayName, setDisplayName] = useState(currentUser?.name ?? '');
 
   const { t } = useI18n();
   const edges = useEdges();
@@ -219,6 +216,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 <button
                   className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                   type="button"
+                  disabled={displayName.length === 0}
                   data-testid="join-call-button"
                   onClick={() => onJoin(displayName)}
                 >

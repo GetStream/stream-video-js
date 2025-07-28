@@ -25,6 +25,7 @@ import { ActiveCall } from './ActiveCall';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
 import { Lobby, UserMode } from './Lobby';
+import { getRandomName, sanitizeUserId } from '../lib/names';
 
 const contents = {
   'error-join': {
@@ -86,11 +87,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
             : undefined,
         });
         if (call.state.callingState !== CallingState.JOINED) {
-          if (options.displayName) {
-            await chatClient?.upsertUser({
-              id: chatClient.user?.id ?? '',
-              name: options.displayName,
-            });
+          if (typeof options.displayName === 'string') {
+            const name = options.displayName || getRandomName();
+            const id = chatClient?.user?.id ?? sanitizeUserId(name);
+            await chatClient?.upsertUser({ id, name });
           }
           await call.join({ create: !isRestricted });
         }
