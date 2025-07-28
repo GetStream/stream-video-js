@@ -1,4 +1,4 @@
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { CallingState, getLogger, RxUtils } from '@stream-io/video-client';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
 import {
@@ -53,6 +53,51 @@ export const onVoipNotificationReceived = async (
     );
     return;
   }
+
+  const shouldRejectWhenBusy = pushConfig.shouldRejectCallWhenBusy;
+
+  if (client && shouldRejectWhenBusy) {
+    try {
+      const calls = client.state.calls;
+      const ringingCallsInProgress = calls.filter(
+        (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+      );
+
+      if (ringingCallsInProgress.length > 0) {
+        logger(
+          'debug',
+          `User is already in a call. Silently rejecting incoming call: ${call_cid}`,
+        );
+
+        const callFromPush = await client.onRingingCall(call_cid);
+        await callFromPush.leave({ reject: true, reason: 'busy' });
+
+        let uuid = '';
+        try {
+          uuid =
+            await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
+              call_cid,
+            );
+          if (uuid) {
+            const voipPushNotification = getVoipPushNotificationLib();
+            voipPushNotification.onVoipNotificationCompleted(uuid);
+          }
+        } catch (error) {
+          logger(
+            'error',
+            'Error in getting call uuid from native module',
+            error,
+          );
+        }
+
+        return;
+      }
+    } catch (err) {
+      logger('error', 'Error checking if user is already in a call', err);
+    }
+  }
+
+  // Continue with the existing code for displaying notification
   const callFromPush = await client.onRingingCall(call_cid);
   let uuid = '';
   try {

@@ -1,8 +1,7 @@
 import React from 'react';
-import { CallingState, getLogger } from '@stream-io/video-client';
+import { CallingState } from '@stream-io/video-client';
 import {
   useCall,
-  useCalls,
   useCallStateHooks,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -28,7 +27,6 @@ import {
   type CallPreparingIndicatorProps,
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
-import { StreamVideoRN } from '../../../utils';
 import InCallManager from 'react-native-incall-manager';
 
 /**
@@ -77,7 +75,6 @@ const RingingCallPanel = ({
   onBackPress,
 }: RingingCallContentProps) => {
   const call = useCall();
-  const calls = useCalls();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
   const { useCallCallingState } = useCallStateHooks();
@@ -103,32 +100,6 @@ const RingingCallPanel = ({
       Alert.alert('Call rejected because user is busy.');
     }
   });
-
-  const pushConfig = StreamVideoRN.getConfig().push;
-  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
-
-  if (shouldRejectCallWhenBusy) {
-    const ringingCallsInProgress = calls.filter(
-      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
-    );
-    const callsForRejection = calls.filter(
-      (c) => c.ringing && c.state.callingState === CallingState.RINGING,
-    );
-    const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
-
-    if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
-      callsForRejection.forEach((c) => {
-        c.leave({ reject: true, reason: 'busy' }).catch((err) => {
-          const logger = getLogger(['RingingCallPanel']);
-          logger('error', 'Error rejecting Call when busy', err);
-        });
-      });
-
-      return (
-        CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />
-      );
-    }
-  }
 
   switch (callingState) {
     case CallingState.RINGING:
