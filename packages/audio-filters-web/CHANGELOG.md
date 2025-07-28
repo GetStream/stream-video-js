@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.2...@stream-io/audio-filters-web-0.4.3) (2025-07-25)
+
+### Bug Fixes
+
+- improved audio and video filter tracing ([#1862](https://github.com/GetStream/stream-video-js/issues/1862)) ([701ea4b](https://github.com/GetStream/stream-video-js/commit/701ea4b3266f68072c1325b70221fdefd77137ec))
+
 ## [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.1...@stream-io/audio-filters-web-0.4.2) (2025-06-02)
 
 ### Bug Fixes
