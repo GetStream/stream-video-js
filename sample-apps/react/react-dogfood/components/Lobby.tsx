@@ -144,10 +144,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                     </div>
 
                     <div className="rd__lobby-settings">
-                      <ToggleParticipantsPreviewButton
-                        displayName={displayName}
-                        onJoin={onJoin}
-                      />
+                      <ToggleParticipantsPreviewButton onJoin={onJoin} />
                       <ToggleEffectsButton inMeeting={false} />
                       <ToggleSettingsTabModal
                         layoutProps={{
@@ -184,48 +181,52 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
               </div>
             )}
 
-            <div>
-              <span>Your display name:</span>
+            <div className="rd__display-name">
+              <div className="rd__display-name-label">
+                {t('Choose display name')}
+              </div>
               <input
-                className="rd__input"
+                className="rd__display-name-input rd__input"
                 type="text"
                 value={displayName}
                 maxLength={25}
                 onChange={(e) => setDisplayName(e.currentTarget.value)}
               />
-            </div>
 
-            {call && call.type === 'restricted' && !isCurrentUserCallMember ? (
-              <button
-                className={clsx(
-                  'rd__button rd__button--primary rd__button--large rd__lobby-join',
-                  isRequestToJoinCallSent && 'rd__button--disabled',
-                )}
-                type="button"
-                data-testid="request-join-call-button"
-                disabled={isRequestToJoinCallSent}
-                onClick={async () => {
-                  // TODO OL: replace with a call action
-                  await call?.sendCustomEvent({
-                    type: 'pronto.request-to-join-call',
-                  });
-                  setIsRequestToJoinCallSent(true);
-                }}
-              >
-                <Icon className="rd__button__icon" icon="login" />
-                Request to join
-              </button>
-            ) : (
-              <button
-                className="rd__button rd__button--primary rd__button--large rd__lobby-join"
-                type="button"
-                data-testid="join-call-button"
-                onClick={() => onJoin(displayName)}
-              >
-                <Icon className="rd__button__icon" icon="login" />
-                {hasOtherParticipants ? t('Join') : t('Start call')}
-              </button>
-            )}
+              {call &&
+              call.type === 'restricted' &&
+              !isCurrentUserCallMember ? (
+                <button
+                  className={clsx(
+                    'rd__button rd__button--primary rd__button--large rd__lobby-join',
+                    isRequestToJoinCallSent && 'rd__button--disabled',
+                  )}
+                  type="button"
+                  data-testid="request-join-call-button"
+                  disabled={isRequestToJoinCallSent}
+                  onClick={async () => {
+                    // TODO OL: replace with a call action
+                    await call?.sendCustomEvent({
+                      type: 'pronto.request-to-join-call',
+                    });
+                    setIsRequestToJoinCallSent(true);
+                  }}
+                >
+                  <Icon className="rd__button__icon" icon="login" />
+                  Request to join
+                </button>
+              ) : (
+                <button
+                  className="rd__button rd__button--primary rd__button--large rd__lobby-join"
+                  type="button"
+                  data-testid="join-call-button"
+                  onClick={() => onJoin(displayName)}
+                >
+                  <Icon className="rd__button__icon" icon="login" />
+                  {hasOtherParticipants ? t('Join') : t('Start call')}
+                </button>
+              )}
+            </div>
 
             {isProntoEnvironment && (
               <div className="rd__lobby__user-modes">

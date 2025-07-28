@@ -9,7 +9,6 @@ import {
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
@@ -26,7 +25,6 @@ import { ActiveCall } from './ActiveCall';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
 import { Lobby, UserMode } from './Lobby';
-import { setClientDisplayName } from '../helpers/client';
 
 const contents = {
   'error-join': {

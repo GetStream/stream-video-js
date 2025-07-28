@@ -51,6 +51,7 @@ import { UnreadCountBadge } from './UnreadCountBadge';
 import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
+  useIsRestrictedEnvironment,
 } from '../context/AppEnvironmentContext';
 import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
 
@@ -96,6 +97,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   const isDemoEnvironment = useIsDemoEnvironment();
   const isPronto = useIsProntoEnvironment();
+  const isRestricted = useIsRestrictedEnvironment();
 
   const [showInvitePopup, setShowInvitePopup] = useState(
     isDemoEnvironment && !isTourActive,
@@ -274,11 +276,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ToggleEffectsButton />
             </div>
             <div className="str-video__call-controls__desktop">
-              <ToggleNoiseCancellationButton />
+              {!isRestricted && <ToggleNoiseCancellationButton />}
             </div>
-            <div className="str-video__call-controls__desktop">
-              <ToggleClosedCaptionsButton />
-            </div>
+            {
+              <div className="str-video__call-controls__desktop">
+                <ToggleClosedCaptionsButton />
+              </div>
+            }
             <div className="str-video__call-controls__desktop">
               <ReactionsButton />
             </div>

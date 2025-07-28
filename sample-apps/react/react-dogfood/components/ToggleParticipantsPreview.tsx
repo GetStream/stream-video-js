@@ -12,11 +12,10 @@ import {
 } from '@stream-io/video-react-sdk';
 
 export type Props = {
-  displayName: string;
   onJoin: () => void;
 };
 
-const ParticipantsPreview = ({ displayName, onJoin }: Props) => {
+const ParticipantsPreview = ({ onJoin }: Props) => {
   const { useCallSession, useCallThumbnail } = useCallStateHooks();
   const session = useCallSession();
   const { t } = useI18n();
@@ -44,7 +43,7 @@ const ParticipantsPreview = ({ displayName, onJoin }: Props) => {
         onClick={onJoin}
       >
         <Icon className="rd__button__icon" icon="login" />
-        {t('Join the others as', { displayName })}
+        {t('Join the others')}
       </button>
     </div>
   );

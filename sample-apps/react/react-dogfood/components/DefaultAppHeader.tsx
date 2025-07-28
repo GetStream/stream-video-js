@@ -2,12 +2,10 @@ import clsx from 'clsx';
 import { HomeButton, UserInfo } from './LobbyHeader';
 
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
-import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
 
 export const DefaultAppHeader = (props: { transparent?: boolean }) => {
   const { transparent } = props;
   const { t } = useI18n();
-  const isRestricted = useIsRestrictedEnvironment();
   return (
     <div
       className={clsx(
@@ -17,7 +15,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
     >
       <div className="rd__call-header__title-group">
         <HomeButton />
-        {!isRestricted && <UserInfo />}
+        <UserInfo />
       </div>
       <div className="rd__call-header__documentation">
         <a

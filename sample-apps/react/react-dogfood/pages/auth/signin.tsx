@@ -1,9 +1,9 @@
-import { Icon, useI18n } from '@stream-io/video-react-sdk';
+import { Icon, LoadingIndicator, useI18n } from '@stream-io/video-react-sdk';
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   useIsDemoEnvironment,
   useIsRestrictedEnvironment,
@@ -11,6 +11,7 @@ import {
 import { getRandomName } from '../../lib/names';
 
 import { authOptions } from '../api/auth/[...nextauth]';
+import clsx from 'clsx';
 
 type ProntoProvider = {
   id: string;
@@ -45,7 +46,13 @@ export default function SignIn({
   }, [signInAutomatically, callbackUrl]);
 
   if (signInAutomatically) {
-    return <>Signing you in...</>;
+    return (
+      <div className="str-video__call">
+        <div className="str-video__call__loading-screen">
+          <LoadingIndicator text="Signing you in..." />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -73,8 +80,14 @@ export default function SignIn({
               );
             }
             return (
-              <li key={provider.id} className="rd__auth-item">
-                {isRestricted && <>For Stream employees:</>}
+              <li
+                key={provider.id}
+                className={clsx(
+                  'rd__auth-item',
+                  isRestricted && 'rd__auth-item--secondary',
+                )}
+              >
+                <div className="rd__auth-item-label">For Stream employees</div>
                 <button
                   className="rd__button rd__auth-provider"
                   onClick={() => signIn(provider.id, { callbackUrl })}
@@ -84,7 +97,7 @@ export default function SignIn({
                     className="rd__button__icon rd__auth-provider__icon"
                     icon="provider-google"
                   />
-                  <span>{t(`Continue with ${provider.name}`)}</span>
+                  <span>{t(`Sign in with ${provider.name}`)}</span>
                 </button>
               </li>
             );
@@ -118,19 +131,8 @@ const GuestLoginItem = (props: {
   }, [fromQR, logIn]);
   return (
     <li className="rd__auth-item rd__auth-item--guest-login">
-      {/* <div className="rd__auth-item--guest_name_wrapper">
-        <span>Your name:</span>
-        <input
-          className="rd__input"
-          type="text"
-          value={name}
-          maxLength={25}
-          onChange={(e) => setName(e.target.value)}
-          onKeyUp={(e) => e.key === 'Enter' && logIn()}
-        />
-      </div> */}
       <button
-        className="rd__button rd__button--primary rd__auth-provider"
+        className="rd__button rd__button--primary rd__button--large rd__auth-provider"
         onClick={logIn}
         data-testid="guest-sign-in-button"
       >
