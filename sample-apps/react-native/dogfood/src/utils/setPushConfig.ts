@@ -4,6 +4,7 @@ import {
   oniOSNotifeeEvent,
   StreamVideoClient,
   StreamVideoRN,
+  type Call,
 } from '@stream-io/video-react-native-sdk';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { staticNavigate } from './staticNavigationUtils';
@@ -14,6 +15,20 @@ import { Platform } from 'react-native';
 import { setFirebaseListeners } from './setFirebaseListeners';
 
 export function setPushConfig() {
+  StreamVideoRN.updateConfig({
+    foregroundService: {
+      android: {
+        taskToRun: (call: Call) =>
+          new Promise(() => {
+            console.log(
+              'jumping to foreground service with call-cid',
+              call.cid,
+            );
+          }),
+      },
+    },
+  });
+
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',

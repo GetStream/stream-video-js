@@ -6,6 +6,41 @@ import newNotificationCallbacks, {
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 
+// Utility type for deep partial
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+// Helper function for deep merging
+function deepMerge<T extends Record<string, any>>(
+  target: T,
+  source: DeepPartial<T>,
+): T {
+  const result = { ...target };
+
+  for (const key in source) {
+    if (source[key] !== undefined) {
+      if (
+        typeof source[key] === 'object' &&
+        source[key] !== null &&
+        !Array.isArray(source[key]) &&
+        typeof target[key] === 'object' &&
+        target[key] !== null &&
+        !Array.isArray(target[key])
+      ) {
+        result[key] = deepMerge(
+          target[key],
+          source[key] as DeepPartial<T[typeof key]>,
+        );
+      } else {
+        result[key] = source[key] as T[typeof key];
+      }
+    }
+  }
+
+  return result;
+}
+
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
     android: {
@@ -20,6 +55,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
         title: 'Call in progress',
         body: 'Tap to return to the call',
       },
+      taskToRun: () => new Promise(() => {}),
     },
   },
 };
@@ -30,13 +66,12 @@ export class StreamVideoRN {
   /**
    * Update the global config for StreamVideoRN except for push config.
    * To set push config use `StreamVideoRN.setPushConfig` instead.
-   * This function accepts a partial config object that will be merged with the default config.
+   * This function accepts a partial config object that will be deeply merged with the default config.
    */
-  static updateConfig(updateConfig: Partial<Omit<StreamVideoConfig, 'push'>>) {
-    this.config = {
-      ...this.config,
-      ...updateConfig,
-    };
+  static updateConfig(
+    updateConfig: DeepPartial<Omit<StreamVideoConfig, 'push'>>,
+  ) {
+    this.config = deepMerge(this.config, updateConfig);
   }
 
   static updateAndroidIncomingCallChannel(

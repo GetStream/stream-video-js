@@ -19,6 +19,7 @@ export type RTCStatsDataType =
   | null
   | undefined;
 
+export type TraceKey = 'device-enumeration' | (string & {});
 export type Trace = (tag: string, data: RTCStatsDataType) => void;
 
 export type TraceRecord = [

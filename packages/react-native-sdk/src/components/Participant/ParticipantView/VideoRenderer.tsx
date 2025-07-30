@@ -73,7 +73,10 @@ export const VideoRenderer = ({
     deregister: deregisterIosScreenshot,
   } = useScreenshotIosContext();
 
-  const videoDimensions = useTrackDimensions(participant);
+  const videoDimensions = useTrackDimensions(participant, trackType);
+
+  const isVideoDimensionsValid =
+    videoDimensions.width > 0 && videoDimensions.height > 0;
 
   const {
     isLocalParticipant,
@@ -291,7 +294,9 @@ export const VideoRenderer = ({
       onLayout={onLayout}
       style={[styles.container, videoRenderer.container]}
     >
-      {canShowVideo && videoStreamToRender ? (
+      {canShowVideo &&
+      videoStreamToRender &&
+      (objectFit || isVideoDimensionsValid) ? (
         <RTCView
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}

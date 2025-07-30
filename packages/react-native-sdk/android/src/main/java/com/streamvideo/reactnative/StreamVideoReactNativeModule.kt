@@ -116,6 +116,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun exitPipMode(promise: Promise) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val success = PiPHelper.exitPipMode(reactApplicationContext)
+            promise.resolve(success)
+        } else {
+            promise.resolve(false)
+        }
+    }
+
+    @ReactMethod
     fun startThermalStatusUpdates(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

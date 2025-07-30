@@ -580,7 +580,6 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-    this.rejectConnectionOpen?.(new Error(`WebSocket error: ${event}`));
     this._log(`onerror() - WS connection resulted into error`, { event });
 
     this._reconnect();
