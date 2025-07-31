@@ -11,7 +11,7 @@ export async function uploadCallRecording(
   client: StreamClient,
   event: CallRecordingReadyEvent,
 ) {
-  const startTime = event.call_recording.start_time.toISOString();
+  const startTime = new Date(event.call_recording.start_time).toISOString();
   const recordingId = `${event.call_recording.session_id}-${startTime}`;
   const [callType, callId] = event.call_cid.split(':');
   const call = await client.video.getCall({ type: callType, id: callId });

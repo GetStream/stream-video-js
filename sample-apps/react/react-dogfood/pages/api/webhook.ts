@@ -10,7 +10,7 @@ export const config = {
   },
 };
 
-const handleWebhook = async (req: NextApiRequest, res: NextApiResponse) => {
+const handleWebhook = (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).send('not allowed');
@@ -58,10 +58,13 @@ const handleWebhook = async (req: NextApiRequest, res: NextApiResponse) => {
       processor = saveParticipantAsCallMember;
     }
 
-    processor?.(client, event).catch((processorErr) => {
-      console.error('Processing webhook failed', processorErr);
-    });
-    res.status(200).send('ok');
+    processor?.(client, event)
+      .catch((processorErr) => {
+        console.error('Processing webhook failed', processorErr);
+      })
+      .then(() => {
+        res.status(200).send('ok');
+      });
   });
 };
 
