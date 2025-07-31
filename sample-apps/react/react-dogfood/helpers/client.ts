@@ -17,7 +17,12 @@ let client: StreamVideoClient | undefined;
  * call, and ignored for subsequent calls.
  */
 export const getClient = (
-  creds: { apiKey: string; user?: User; userToken?: string },
+  creds: {
+    apiKey: string;
+    user?: User;
+    userToken?: string;
+    coordinatorUrl?: string;
+  },
   environment: AppEnvironment,
 ) => {
   if (!client) {
@@ -27,7 +32,7 @@ export const getClient = (
       token: creds.userToken,
       tokenProvider: createTokenProvider(creds.user?.id, environment),
       options: {
-        baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
+        baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
         logLevel: 'debug',
         logger: customSentryLogger(),
         transformRequest: defaultRequestTransformers,

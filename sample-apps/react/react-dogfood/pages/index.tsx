@@ -44,8 +44,17 @@ export default function Home({
   const [client, setClient] = useState<StreamVideoClient>();
   const environment = useAppEnvironment();
 
+  const router = useRouter();
+  const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
+  const coordinatorUrl = useLocalCoordinator
+    ? 'http://localhost:3030/video'
+    : (router.query['coordinator_url'] as string | undefined);
+
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     setClient(_client);
     window.client = _client;
 
@@ -53,7 +62,7 @@ export default function Home({
       setClient(undefined);
       window.client = undefined;
     };
-  }, [apiKey, environment, user, userToken]);
+  }, [apiKey, coordinatorUrl, environment, user, userToken]);
 
   if (!client) {
     return null;
