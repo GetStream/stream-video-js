@@ -18,23 +18,35 @@ type AudioDeviceStatusUnparsed = {
   selectedAudioDeviceName: string;
 };
 
+export type AudioRole = 'communicator' | 'listener';
+
+/**
+ * Sets the audio role for the call. This should be done before calling **start()**.
+ *
+ * @param audioRole The audio role to set. It can be one of the following:
+ * - `'communicator'`: (Default) For use cases like video or voice calls.
+ * It prioritizes low latency and allows manual audio device switching.
+ * Audio routing is controlled by the SDK.
+ * - `'listener'`: For use cases like livestream viewing.
+ * It prioritizes high-quality stereo audio streaming.
+ * Audio routing is controlled by the OS and manual switching is not supported.
+ */
+function setAudioRole(audioRole: AudioRole) {
+  InCallManagerNativeModule.setAudioRole(audioRole);
+}
+
 /**
  * Start the in call manager.
- * @param callAudioMode - The callAudioMode to start the in call manager with.
- *
- * **"video"** - The call will start with speaker as audio output route unless bluetooth or wired headset is connected.
- *
- * **"audio"** - The call will start with earpiece as audio output route unless bluetooth or wired headset is connected.
  */
-function start(callAudioMode: 'video' | 'audio') {
-  InCallManagerNativeModule.start(callAudioMode, '');
+function start() {
+  InCallManagerNativeModule.start();
 }
 
 /**
  * Stop the in call manager.
  */
 function stop() {
-  InCallManagerNativeModule.stop('');
+  InCallManagerNativeModule.stop();
 }
 
 /**
@@ -48,7 +60,6 @@ function addAudioDeviceStatusChangeListener(
   const subscription = InCallManagerEventEmitter.addListener(
     'onAudioDeviceChanged',
     (audioDeviceStatus: AudioDeviceStatusUnparsed) => {
-      console.log('audioDeviceStatusChange');
       onChange(parseAudioDeviceStatus(audioDeviceStatus));
     },
   );
@@ -68,7 +79,6 @@ function chooseAudioDeviceEndpoint(endpointName: string) {
 function parseAudioDeviceStatus(
   audioDeviceStatusUnparsed: AudioDeviceStatusUnparsed,
 ) {
-  console.log('audioDeviceStatusUnparsed', audioDeviceStatusUnparsed);
   const audioDeviceStatus: AudioDeviceStatus = {
     availableAudioDeviceEndpointNamesList: JSON.parse(
       audioDeviceStatusUnparsed.availableAudioDeviceEndpointNamesList,
@@ -92,6 +102,20 @@ async function getAudioDeviceStatus() {
 }
 
 /**
+ * Mutes the audio output of the device.
+ */
+function muteAudioOutput() {
+  InCallManagerNativeModule.muteAudioOutput();
+}
+
+/**
+ * Unmutes the audio output of the device.
+ */
+function unmuteAudioOutput() {
+  InCallManagerNativeModule.unmuteAudioOutput();
+}
+
+/**
  * Log the current audio state.
  * Meant for debugging purposes.
  */
@@ -106,4 +130,7 @@ export const InCallManager = {
   chooseAudioDeviceEndpoint,
   addAudioDeviceStatusChangeListener,
   logAudioState,
+  setAudioRole,
+  muteAudioOutput,
+  unmuteAudioOutput,
 };

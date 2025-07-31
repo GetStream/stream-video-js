@@ -1,11 +1,12 @@
 package com.streamvideo.reactnative.audio.utils
 
+import android.app.Activity
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
 
-enum class StreamAudioMode {
+enum class CallAudioRole {
     Listener, Communicator
 }
 
@@ -42,21 +43,11 @@ class AudioFocusUtil(
     )
      */
 
-    fun requestFocus(mode: StreamAudioMode) {
-        /*
-                 Activity currentActivity = getCurrentActivity();
-        if (currentActivity != null) {
-            if (mode == DEFAULT) {
-                currentActivity.setVolumeControlStream(AudioManager.USE_DEFAULT_STREAM_TYPE);
-            } else {
-                currentActivity.setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
-            }
-        }
-         */
+    fun requestFocus(mode: CallAudioRole) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val playbackAttributes = AudioAttributes.Builder()
-                .setUsage(if (mode == StreamAudioMode.Communicator) AudioAttributes.USAGE_VOICE_COMMUNICATION else AudioAttributes.USAGE_MEDIA)
-                .setContentType(if (mode == StreamAudioMode.Communicator) AudioAttributes.CONTENT_TYPE_SPEECH else AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(if (mode == CallAudioRole.Communicator) AudioAttributes.USAGE_VOICE_COMMUNICATION else AudioAttributes.USAGE_MEDIA)
+                .setContentType(if (mode == CallAudioRole.Communicator) AudioAttributes.CONTENT_TYPE_SPEECH else AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
             request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
                 .setAudioAttributes(playbackAttributes).setAcceptsDelayedFocusGain(true)
@@ -65,7 +56,7 @@ class AudioFocusUtil(
         } else {
             audioManager.requestAudioFocus(
                 audioFocusChangeListener,
-                if (mode == StreamAudioMode.Communicator) AudioManager.STREAM_VOICE_CALL else AudioManager.STREAM_MUSIC,
+                if (mode == CallAudioRole.Communicator) AudioManager.STREAM_VOICE_CALL else AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
             )
         }

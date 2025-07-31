@@ -9,6 +9,7 @@
  */
 package com.streamvideo.reactnative.util
 
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioDeviceInfo
@@ -17,6 +18,7 @@ import android.media.AudioManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.util.Log
+import com.facebook.react.bridge.ReactContext
 
 /** Utilities for implementations of `AudioDeviceModule`, mostly for logging.  */
 object WebRtcAudioUtils {
@@ -53,9 +55,13 @@ object WebRtcAudioUtils {
      * detected to log under what conditions the error occurred. Hopefully it will provide clues to
      * what might be the root cause.
      */
-    fun logAudioState(tag: String, context: Context, audioManager: AudioManager) {
+    fun logAudioState(tag: String, reactContext: ReactContext) {
+        reactContext.currentActivity?.let {
+            Log.d(tag, "volumeControlStream: " + streamTypeToString(it.volumeControlStream))
+        }
+        val audioManager = reactContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         logDeviceInfo(tag)
-        logAudioStateBasic(tag, context, audioManager)
+        logAudioStateBasic(tag, reactContext, audioManager)
         logAudioStateVolume(tag, audioManager)
         logAudioDeviceInfo(tag, audioManager)
     }
@@ -173,7 +179,9 @@ object WebRtcAudioUtils {
                 val info = StringBuilder()
                 info.append("  " + streamTypeToString(stream) + ": ")
                 info.append("volume=").append(audioManager.getStreamVolume(stream))
-                info.append(", min=").append(audioManager.getStreamMinVolume(stream))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    info.append(", min=").append(audioManager.getStreamMinVolume(stream))
+                }
                 info.append(", max=").append(audioManager.getStreamMaxVolume(stream))
                 info.append(", muted=").append(audioManager.isStreamMute(stream))
                 Log.d(tag, info.toString())

@@ -7,7 +7,7 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-package com.streamvideo.reactnative.callmanager
+package com.streamvideo.reactnative.audio
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -33,12 +33,13 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.ReactApplicationContext
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
+import com.streamvideo.reactnative.callmanager.InCallManagerModule
 import com.streamvideo.reactnative.callmanager.InCallManagerModule.Companion.runInAudioThread
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 
-class AppRTCBluetoothManager(
+class BluetoothManager(
     private val mReactContext: ReactApplicationContext,
-    private val apprtcAudioManager: InCallManagerModule,
+    private val audioDeviceManager: AudioDeviceManager,
 ) {
     // Bluetooth connection state.
     enum class State {
@@ -80,7 +81,7 @@ class AppRTCBluetoothManager(
 
     private fun updateAudioDeviceState() {
         Log.d(TAG, "updateAudioDeviceState")
-        apprtcAudioManager.updateAudioDeviceState()
+        audioDeviceManager.updateAudioDeviceState()
     }
 
     /** Start the listeners */
@@ -98,7 +99,7 @@ class AppRTCBluetoothManager(
     /** Stop audio flowing through BT communication device. */
     fun stopScoAudio() = btManagerPlatform.stopScoAudio()
 
-    /** Check if there is a BT headset connected and update the state. */
+    /** Check if there is a BT headset connected and update the state accordingly */
     fun updateDevice() = btManagerPlatform.updateDevice()
 
     fun getDeviceName() = btManagerPlatform.getDeviceName()
@@ -727,7 +728,7 @@ class AppRTCBluetoothManager(
 
     companion object {
         private val TAG: String =
-            InCallManagerModule.TAG + ":" + AppRTCBluetoothManager::class.java.simpleName.toString()
+            InCallManagerModule.TAG + ":" + BluetoothManager::class.java.simpleName.toString()
 
         // Timeout interval for starting or stopping audio to a Bluetooth SCO device.
         private const val BLUETOOTH_SCO_TIMEOUT_MS: Int = 6000
