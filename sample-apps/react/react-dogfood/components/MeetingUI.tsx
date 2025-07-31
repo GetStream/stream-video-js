@@ -90,7 +90,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
-            await chatClient?.upsertUser({ id, name });
+            await chatClient?.upsertUser({
+              id,
+              name,
+              email: (chatClient?.user as any)?.email,
+            } as any);
           }
           await call.join({ create: !isRestricted });
         }

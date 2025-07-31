@@ -43,8 +43,8 @@ export async function uploadCallRecording(
         member === primaryMember
           ? {
               userId: primaryUser,
-              name: member.user.name,
-              emailAddress: member.user.custom.email,
+              name: primaryMember.user.name,
+              emailAddress: primaryMember.user.custom.email,
             }
           : { name: member.user.name },
       ),
@@ -65,7 +65,7 @@ export async function uploadCallRecording(
   }
 
   console.log(
-    `Uploaded recording for call ${event.call_cid}`,
+    `Uploaded recording for call ${event.call_cid} with user ${primaryUser} (${primaryMember.user.custom.email}) as primary`,
     await res.json(),
   );
 }
