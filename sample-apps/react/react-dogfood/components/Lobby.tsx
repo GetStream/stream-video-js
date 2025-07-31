@@ -59,7 +59,10 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const callSession = useCallSession();
   const members = useCallMembers();
   const currentUser = useConnectedUser();
-  const [displayName, setDisplayName] = useState(currentUser?.name ?? '');
+  const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
+    null,
+  );
+  const displayName = displayNameOverride ?? currentUser?.name ?? '';
   const custom = useCallCustomData();
 
   const { t } = useI18n();
@@ -206,7 +209,8 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 type="text"
                 value={displayName}
                 maxLength={25}
-                onChange={(e) => setDisplayName(e.currentTarget.value)}
+                autoFocus
+                onChange={(e) => setDisplayNameOverride(e.currentTarget.value)}
               />
 
               {call &&
