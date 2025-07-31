@@ -37,6 +37,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
+  const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
+  const coordinatorUrl = useLocalCoordinator
+    ? 'http://localhost:3030/video'
+    : (router.query['coordinator_url'] as string | undefined);
 
   const { apiKey, userToken, user, gleapApiKey } = props;
 
@@ -44,7 +48,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     setClient(_client);
     window.client = _client;
 
@@ -52,7 +59,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       setClient(undefined);
       window.client = undefined;
     };
-  }, [apiKey, environment, user, userToken]);
+  }, [apiKey, coordinatorUrl, environment, user, userToken]);
 
   const tokenProvider = useMemo(
     () => createTokenProvider(user.id, environment),
