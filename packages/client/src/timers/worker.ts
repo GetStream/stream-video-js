@@ -3,6 +3,9 @@ import type { TimerWorkerEvent, TimerWorkerRequest } from './types';
 const timerIdMapping = new Map<number, NodeJS.Timeout>();
 
 self.addEventListener('message', (event: MessageEvent) => {
+  // Validate the origin of the message
+  if (event.origin !== 'https://trusted-origin.com') return;
+
   const request = event.data as TimerWorkerRequest;
 
   switch (request.type) {
