@@ -46,8 +46,13 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const call = useCall();
   const { data: session, status } = useSession();
-  const { useMicrophoneState, useCameraState, useCallSession, useCallMembers } =
-    useCallStateHooks();
+  const {
+    useMicrophoneState,
+    useCameraState,
+    useCallSession,
+    useCallMembers,
+    useCallCustomData,
+  } = useCallStateHooks();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
   const { hasBrowserPermission: hasCameraPermission, isMute: isCameraMute } =
     useCameraState();
@@ -55,6 +60,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const members = useCallMembers();
   const currentUser = useConnectedUser();
   const [displayName, setDisplayName] = useState(currentUser?.name ?? '');
+  const custom = useCallCustomData();
 
   const { t } = useI18n();
   const edges = useEdges();
@@ -107,14 +113,27 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
           <div className="rd__lobby-content">
             {mode !== 'anon' && (
               <>
-                <h1 className="rd__lobby-heading">
-                  {t('Set up your call before joining')}
-                </h1>
-                <p className="rd__lobby-heading__description">
-                  {t(
-                    'while our Edge Network is selecting the best server for your call...',
-                  )}
-                </p>
+                {custom.name ? (
+                  <>
+                    <h1 className="rd__lobby-heading">{custom.name}</h1>
+                    <p className="rd__lobby-heading__description">
+                      {t(
+                        'Set up your call before joining, while our Edge Network is selecting the best server for your call...',
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="rd__lobby-heading">
+                      {t('Set up your call before joining')}
+                    </h1>
+                    <p className="rd__lobby-heading__description">
+                      {t(
+                        'while our Edge Network is selecting the best server for your call...',
+                      )}
+                    </p>
+                  </>
+                )}
                 <div
                   className={clsx(
                     'rd__lobby-camera',
