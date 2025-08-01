@@ -35,11 +35,10 @@ export default function SignIn({
   const isRestricted = useIsRestrictedEnvironment();
 
   useEffect(() => {
-    // TODO: combine with from_qr
     if (signInAutomatically) {
       signIn('stream-demo-login', { name: getRandomName(), callbackUrl }).catch(
-        () => {
-          // TODO: handle error
+        (err) => {
+          console.error('Error logging in:', err);
         },
       );
     }
