@@ -106,25 +106,6 @@ const RingingCallPanel = ({
   const pushConfig = StreamVideoRN.getConfig().push;
   const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
 
-  // if (shouldRejectCallWhenBusy) {
-  //   const ringingCallsInProgress = calls.filter(
-  //     (c) => c.ringing && c.state.callingState === CallingState.JOINED,
-  //   );
-  //   const callsForRejection = calls.filter(
-  //     (c) => c.ringing && c.state.callingState === CallingState.RINGING,
-  //   );
-  //   const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
-
-  //   if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
-  //     callsForRejection.forEach((c) => {
-  //       c.leave({ reject: true, reason: 'busy' }).catch((err) => {
-  //         const logger = getLogger(['RingingCallPanel']);
-  //         logger('error', 'Error rejecting Call when busy', err);
-  //       });
-  //     });
-  //   }
-  // }
-
   useEffect(() => {
     // android rejection is done in android's firebaseDataHandler
     if (Platform.OS === 'android') return;

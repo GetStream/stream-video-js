@@ -1,4 +1,4 @@
-import { CallingState, getLogger, RxUtils } from '@stream-io/video-client';
+import { getLogger, RxUtils } from '@stream-io/video-client';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
 import {
@@ -53,7 +53,6 @@ export const onVoipNotificationReceived = async (
     );
     return;
   }
-
   const callFromPush = await client.onRingingCall(call_cid);
   let uuid = '';
   try {
