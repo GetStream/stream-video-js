@@ -10,7 +10,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProgressLoader } from './AuthProgressLoader';
-import { StyleSheet } from 'react-native';
+import { NativeModules, StyleSheet } from 'react-native';
 import { CallControlsComponent } from './CallControlsComponent';
 
 export const MeetingUI = () => {
@@ -24,6 +24,7 @@ export const MeetingUI = () => {
     return () => {
       if (call && call.state.callingState !== CallingState.LEFT) {
         call.leave();
+        NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
       }
     };
   }, [call]);

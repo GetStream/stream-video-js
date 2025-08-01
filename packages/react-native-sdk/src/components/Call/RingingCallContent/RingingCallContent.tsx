@@ -1,11 +1,12 @@
-import React from 'react';
-import { CallingState } from '@stream-io/video-client';
+import React, { useEffect } from 'react';
+import { CallingState, getLogger } from '@stream-io/video-client';
 import {
   useCall,
   useCallStateHooks,
+  useCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, Platform, StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -28,6 +29,7 @@ import {
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
 import InCallManager from 'react-native-incall-manager';
+import { StreamVideoRN } from '../../../utils/StreamVideoRN';
 
 /**
  * Props for the RingingCallContent component
@@ -75,6 +77,7 @@ const RingingCallPanel = ({
   onBackPress,
 }: RingingCallContentProps) => {
   const call = useCall();
+  const calls = useCalls();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
   const { useCallCallingState } = useCallStateHooks();
@@ -100,6 +103,50 @@ const RingingCallPanel = ({
       Alert.alert('Call rejected because user is busy.');
     }
   });
+
+  const pushConfig = StreamVideoRN.getConfig().push;
+  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
+
+  // if (shouldRejectCallWhenBusy) {
+  //   const ringingCallsInProgress = calls.filter(
+  //     (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+  //   );
+  //   const callsForRejection = calls.filter(
+  //     (c) => c.ringing && c.state.callingState === CallingState.RINGING,
+  //   );
+  //   const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
+
+  //   if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
+  //     callsForRejection.forEach((c) => {
+  //       c.leave({ reject: true, reason: 'busy' }).catch((err) => {
+  //         const logger = getLogger(['RingingCallPanel']);
+  //         logger('error', 'Error rejecting Call when busy', err);
+  //       });
+  //     });
+  //   }
+  // }
+
+  useEffect(() => {
+    // android rejection is done in android's firebaseDataHandler
+    if (Platform.OS === 'android') return;
+    if (!shouldRejectCallWhenBusy) return;
+
+    const ringingCallsInProgress = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+    );
+    const callsForRejection = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.RINGING,
+    );
+    const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
+    if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
+      callsForRejection.forEach((c) => {
+        c.leave({ reject: true, reason: 'busy' }).catch((err) => {
+          const logger = getLogger(['RingingCallContent']);
+          logger('error', 'Error rejecting Call when busy', err);
+        });
+      });
+    }
+  }, [calls, call, shouldRejectCallWhenBusy]);
 
   switch (callingState) {
     case CallingState.RINGING:

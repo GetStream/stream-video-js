@@ -15,6 +15,7 @@ import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import { LayoutProvider } from '../contexts/LayoutContext';
+import { NativeModules } from 'react-native';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -41,6 +42,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
       const leaveCall = async () => {
         try {
           await call?.leave();
+          NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
         } catch (_e) {
           console.log('Error leaving call:', _e);
         }
@@ -84,6 +86,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     try {
       if (callingState !== CallingState.LEFT) {
         await call?.leave();
+        NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
       }
       navigation.goBack();
     } catch (error) {

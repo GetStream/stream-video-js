@@ -14,6 +14,9 @@ static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 static NSMutableDictionary *_incomingCallCidsByUUID = nil;
 static dispatch_queue_t _dictionaryQueue = nil;
 
+static NSMutableSet *_activeCalls = nil;
+static BOOL _shouldRejectCallWhenBusy = NO;
+
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
                                    CFStringRef name,
@@ -54,6 +57,7 @@ RCT_EXPORT_MODULE();
         _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
         _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
         _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
+        _activeCalls = [NSMutableSet set];
     });
 }
 
@@ -323,6 +327,57 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
 
 -(NSArray<NSString *> *)supportedEvents {
     return @[@"StreamVideoReactNative_Ios_Screenshare_Event", @"isLowPowerModeEnabled", @"thermalStateDidChange"];
+}
+
++(void)setActiveCall:(NSString *)cid {
+    [StreamVideoReactNative initializeSharedDictionaries];
+    dispatch_sync(_dictionaryQueue, ^{
+        [_activeCalls addObject:cid];
+#ifdef DEBUG
+        NSLog(@"setActiveCall: %@, active calls count: %lu", cid, (unsigned long)[_activeCalls count]);
+#endif
+    });
+}
+
++(void)clearActiveCall:(NSString *)cid {
+    [StreamVideoReactNative initializeSharedDictionaries];
+    dispatch_sync(_dictionaryQueue, ^{
+        [_activeCalls removeObject:cid];
+#ifdef DEBUG
+        NSLog(@"clearActiveCall: %@, active calls count: %lu", cid, (unsigned long)[_activeCalls count]);
+#endif
+    });
+}
+
++(BOOL)hasActiveCall {
+    [StreamVideoReactNative initializeSharedDictionaries];
+    __block BOOL hasActive = NO;
+    dispatch_sync(_dictionaryQueue, ^{
+        hasActive = [_activeCalls count] > 0;
+    });
+#ifdef DEBUG
+    NSLog(@"hasActiveCall: %@, active calls count: %lu", hasActive ? @"YES" : @"NO", (unsigned long)[_activeCalls count]);
+#endif
+    return hasActive;
+}
+
++(BOOL)shouldRejectCallWhenBusy {
+    return _shouldRejectCallWhenBusy;
+}
+
+RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
+    _shouldRejectCallWhenBusy = shouldReject;
+#ifdef DEBUG
+    NSLog(@"setShouldRejectCallWhenBusy: %@", shouldReject ? @"YES" : @"NO");
+#endif
+}
+
+RCT_EXPORT_METHOD(setActiveCall:(NSString *)cid) {
+    [StreamVideoReactNative setActiveCall:cid];
+}
+
+RCT_EXPORT_METHOD(clearActiveCall:(NSString *)cid) {
+    [StreamVideoReactNative clearActiveCall:cid];
 }
 
 @end
