@@ -469,20 +469,14 @@ export class StreamClient {
     );
   };
 
-  _logApiError = (type: string, url: string, error: unknown) => {
-    this.logger('error', `client:${type} - Error - url: ${url}`, {
-      url,
-      error,
-    });
-  };
-
   doAxiosRequest = async <T, D = unknown>(
     type: string,
     url: string,
     data?: D,
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
-    } & { publicEndpoint?: boolean } = {},
+      publicEndpoint?: boolean;
+    } = {},
   ): Promise<T> => {
     if (!options.publicEndpoint) {
       await Promise.all([
@@ -528,28 +522,36 @@ export class StreamClient {
       }
       this._logApiResponse<T>(type, url, response);
       this.consecutiveFailures = 0;
-      return this.handleResponse(response);
+      return response.data;
     } catch (e: any /**TODO: generalize error types  */) {
       e.client_request_id = requestConfig.headers?.['x-client-request-id'];
-      this.consecutiveFailures += 1;
-      if (e.response) {
-        this._logApiError(type, url, e.response);
-        /** connection_fallback depends on this token expiration logic */
-        if (
-          e.response.data.code === KnownCodes.TOKEN_EXPIRED &&
-          !this.tokenManager.isStatic()
-        ) {
-          if (this.consecutiveFailures > 1) {
-            await sleep(retryInterval(this.consecutiveFailures));
-          }
-          await this.tokenManager.loadToken();
-          return await this.doAxiosRequest<T, D>(type, url, data, options);
-        }
-        return this.handleResponse(e.response);
-      } else {
-        this._logApiError(type, url, e);
 
+      this.consecutiveFailures += 1;
+      const { response } = e;
+      if (!response || !isErrorResponse(response)) {
+        this.logger('error', `client:${type} url: ${url}`, e);
         throw e as AxiosError<APIErrorResponse>;
+      }
+
+      const { data: responseData, status } = response;
+      const isTokenExpired = responseData.code === KnownCodes.TOKEN_EXPIRED;
+      if (isTokenExpired && !this.tokenManager.isStatic()) {
+        this.logger('warn', `client:${type}: url: ${url}`, response);
+        if (this.consecutiveFailures > 1) {
+          await sleep(retryInterval(this.consecutiveFailures));
+        }
+        // refresh and retry the request
+        await this.tokenManager.loadToken();
+        return await this.doAxiosRequest<T, D>(type, url, data, options);
+      } else {
+        this.logger('error', `client:${type} url: ${url}`, response);
+        throw new ErrorFromResponse<APIErrorResponse>({
+          message: `Stream error code ${responseData.code}: ${responseData.message}`,
+          code: responseData.code ?? null,
+          unrecoverable: responseData.unrecoverable ?? null,
+          response: response,
+          status: status,
+        });
       }
     }
   };
@@ -588,27 +590,6 @@ export class StreamClient {
     return this.doAxiosRequest<T, unknown>('delete', url, null, {
       params,
     });
-  };
-
-  errorFromResponse = (
-    response: AxiosResponse<APIErrorResponse>,
-  ): ErrorFromResponse<APIErrorResponse> => {
-    const { data, status } = response;
-    return new ErrorFromResponse<APIErrorResponse>({
-      message: `Stream error code ${data.code}: ${data.message}`,
-      code: data.code ?? null,
-      unrecoverable: data.unrecoverable ?? null,
-      response: response,
-      status: status,
-    });
-  };
-
-  handleResponse = <T>(response: AxiosResponse<T>) => {
-    const data = response.data;
-    if (isErrorResponse(response)) {
-      throw this.errorFromResponse(response);
-    }
-    return data;
   };
 
   dispatchEvent = (event: StreamVideoEvent) => {
