@@ -20,7 +20,7 @@ const StreamDemoAccountProvider: CredentialsConfig = {
 
 const environment = (process.env.NEXT_PUBLIC_APP_ENVIRONMENT as string) || null;
 const isProntoEnvironment =
-  environment === 'pronto' || environment === 'pronto-sales' || true;
+  environment === 'pronto' || environment === 'pronto-sales';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
