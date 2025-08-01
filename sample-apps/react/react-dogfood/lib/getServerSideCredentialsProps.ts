@@ -75,7 +75,9 @@ export const getServerSideCredentialsPropsWithOptions =
         secretKey,
         session.user?.stream
           ? {
-              role: 'stream',
+              ...(process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales'
+                ? { role: 'stream' }
+                : {}),
               name: session.user?.name,
               image: session.user?.image,
               email: session.user?.email,
