@@ -6,7 +6,7 @@ import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Users } from '../constants/Users';
 
-const API_KEY = 'par8f5s3gn2j';
+const API_KEY = process.env.STREAM_API_KEY;
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({

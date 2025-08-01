@@ -27,6 +27,13 @@ export const createWebSocketSignalChannel = (opts: {
 
   ws.addEventListener('message', (e) => {
     try {
+      // Check the origin of the message
+      const trustedOrigins = ['https://trusted-origin.com']; // Example trusted origin
+      if (!trustedOrigins.includes(new URL(e.origin).origin)) {
+        logger('warn', 'Received message from untrusted origin', e.origin);
+        return;
+      }
+
       const message =
         e.data instanceof ArrayBuffer
           ? SfuEvent.fromBinary(new Uint8Array(e.data))
