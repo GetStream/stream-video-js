@@ -4,10 +4,7 @@ import Link from 'next/link';
 
 import { LanguageMenu } from './Settings/LanguageMenu';
 import { useSettings } from '../context/SettingsContext';
-import {
-  useIsProntoEnvironment,
-  useIsRestrictedEnvironment,
-} from '../context/AppEnvironmentContext';
+import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 
@@ -65,21 +62,16 @@ export const UserInfo = () => {
 const ToggleMenuButton = forwardRef<HTMLDivElement>(
   function ToggleMenuButton(props, ref) {
     const { data: theSession } = useSession();
-    const isRestricted = useIsRestrictedEnvironment();
     if (!theSession || !theSession.user) return null;
     return (
       <div className="rd__user-session" ref={ref}>
         <div className="rd__user-session__container">
           <div className="rd__user-session__user">
-            {isRestricted ? (
-              <p className="rd__user-session__name">Guest</p>
-            ) : (
-              <>
-                <p className="rd__user-session__name">{theSession.user.name}</p>
-                <p className="rd__user-session__email">
-                  {theSession.user.email}
-                </p>
-              </>
+            <p className="rd__user-session__name">
+              {theSession.user.name ?? 'User'}
+            </p>
+            {theSession.user.email && (
+              <p className="rd__user-session__email">{theSession.user.email}</p>
             )}
           </div>
           <Icon icon="chevron-down" />
