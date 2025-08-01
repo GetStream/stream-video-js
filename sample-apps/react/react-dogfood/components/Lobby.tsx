@@ -33,6 +33,7 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { getRandomName } from '../lib/names';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 
@@ -59,8 +60,10 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const callSession = useCallSession();
   const members = useCallMembers();
   const currentUser = useConnectedUser();
+  const isProntoEnvironment = useIsProntoEnvironment();
+  const isDemoEnvironment = useIsDemoEnvironment();
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
-    null,
+    isDemoEnvironment ? getRandomName() : null,
   );
   const displayName = displayNameOverride ?? currentUser?.name ?? '';
   const custom = useCallCustomData();
@@ -91,8 +94,6 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
     };
   }, [onJoin, skipLobby]);
 
-  const isProntoEnvironment = useIsProntoEnvironment();
-  const isDemoEnvironment = useIsDemoEnvironment();
   const [shouldRenderMobileAppBanner, setShouldRenderMobileAppBanner] =
     useState(isDemoEnvironment && (isAndroid || (isIOS && !isSafari)));
 
