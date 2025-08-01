@@ -270,7 +270,6 @@ export class StreamSfuClient {
       error: true,
       goAway: true,
       inboundStateNotification: true,
-      joinResponse: true,
     };
     this.signalWs = createWebSocketSignalChannel({
       tag: this.tag,
