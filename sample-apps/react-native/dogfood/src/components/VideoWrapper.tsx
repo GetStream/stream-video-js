@@ -13,6 +13,7 @@ import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
+import { Alert } from 'react-native';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -75,6 +76,21 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
             : undefined,
         },
       });
+
+      _videoClient.on('call.rejected', async (event) => {
+        const callCid = event.call_cid;
+        const callId = callCid.split(':')[1];
+        const rejectedCall = _videoClient?.call('default', callId);
+        await rejectedCall?.getOrCreate();
+
+        const isCalleeBusy =
+          rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
+
+        if (isCalleeBusy) {
+          Alert.alert('Call rejected because user is busy.');
+        }
+      });
+
       setVideoClient(_videoClient);
     };
     if (user.id) {

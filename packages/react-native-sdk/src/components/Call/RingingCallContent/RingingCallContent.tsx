@@ -6,7 +6,7 @@ import {
   useCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { Alert, Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -100,7 +100,6 @@ const RingingCallPanel = ({
 
     if (isCalleeBusy) {
       InCallManager.stop({ busytone: '_DTMF_' });
-      Alert.alert('Call rejected because user is busy.');
     }
   });
 
