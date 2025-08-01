@@ -9,7 +9,13 @@ export const DisabledVideoPreview = () => {
 
   return (
     <DefaultVideoPlaceholder
-      participant={session?.user as unknown as StreamVideoParticipant}
+      participant={
+        {
+          userId: session?.user?.streamUserId,
+          name: session?.user?.name,
+          image: session?.user?.image,
+        } as StreamVideoParticipant
+      }
     />
   );
 };
