@@ -142,7 +142,25 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   if (!client || !call) return null;
 
   if (callError) {
-    return <>Error: {callError}</>;
+    return (
+      <div className="str-video__call">
+        <div className="str-video__call__loading-screen">
+          <div className="rd__call-not-found">
+            Call not found.
+            <br />
+            It may have already ended, or the call ID is incorrect.
+            <button
+              className="rd__button rd__button--secondary rd__button--large rd__call-not-found-button"
+              onClick={() => {
+                router.push('/');
+              }}
+            >
+              Join another call
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

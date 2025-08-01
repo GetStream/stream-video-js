@@ -86,7 +86,11 @@ export default function SignIn({
                   isRestricted && 'rd__auth-item--secondary',
                 )}
               >
-                <div className="rd__auth-item-label">For Stream employees</div>
+                {isRestricted && (
+                  <div className="rd__auth-item-label">
+                    For Stream employees
+                  </div>
+                )}
                 <button
                   className="rd__button rd__auth-provider"
                   onClick={() => signIn(provider.id, { callbackUrl })}
