@@ -148,17 +148,14 @@
   &__container {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-md);
+    gap: var(--str-video__spacing-xxs);
+    cursor: pointer;
   }
 
   &__user {
     display: none;
     flex-direction: column;
     font-size: var(--str-video__font-size-xs);
-
-    &:hover {
-      cursor: pointer;
-    }
   }
 
   &__name {

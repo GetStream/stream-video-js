@@ -22,7 +22,7 @@ import { createTokenProvider, getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
-  getServerSideCredentialsProps,
+  getServerSideCredentialsPropsWithOptions,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import appTranslations from '../../translations';
@@ -76,6 +76,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   const [call, setCall] = useState<Call>();
+  const [callError, setCallError] = useState<string | null>(null);
   useEffect(() => {
     if (!client) return;
     const _call = client.call(callType, callId, { reuseInstance: true });
@@ -104,6 +105,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
     call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
+      setCallError(
+        err instanceof Error ? err.message : 'Could not get or create call',
+      );
     });
   }, [call, callType, user.id]);
 
@@ -143,6 +147,28 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   if (!client || !call) return null;
+
+  if (callError) {
+    return (
+      <div className="str-video__call">
+        <div className="str-video__call__loading-screen">
+          <div className="rd__call-not-found">
+            Call not found.
+            <br />
+            It may have already ended, or the call ID is incorrect.
+            <button
+              className="rd__button rd__button--secondary rd__button--large rd__call-not-found-button"
+              onClick={() => {
+                router.push('/');
+              }}
+            >
+              Join another call
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -189,4 +215,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
 export default CallRoom;
 
-export const getServerSideProps = getServerSideCredentialsProps;
+export const getServerSideProps = getServerSideCredentialsPropsWithOptions({
+  signInAutomatically: true,
+});

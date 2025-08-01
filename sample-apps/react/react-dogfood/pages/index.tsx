@@ -22,6 +22,7 @@ import { DefaultAppHeader } from '../components/DefaultAppHeader';
 import {
   useAppEnvironment,
   useIsDemoEnvironment,
+  useIsRestrictedEnvironment,
 } from '../context/AppEnvironmentContext';
 import { useSettings } from '../context/SettingsContext';
 import { getClient } from '../helpers/client';
@@ -106,6 +107,8 @@ const HomeContent = () => {
     [onJoin, disabled],
   );
   const isDemoEnvironment = useIsDemoEnvironment();
+  const isRestricted = useIsRestrictedEnvironment();
+
   return (
     <>
       <DefaultAppHeader />
@@ -123,7 +126,14 @@ const HomeContent = () => {
             {isDemoEnvironment && t('Demo')}
           </h1>
           <p className="rd__home-description">
-            Start a new call or join an existing one by providing its Call ID
+            {isRestricted ? (
+              <>Join a call by providing its Call ID</>
+            ) : (
+              <>
+                Start a new call or join an existing one by providing its Call
+                ID
+              </>
+            )}
           </p>
           <div className="rd__home-join">
             <input
@@ -147,34 +157,38 @@ const HomeContent = () => {
               {t('Join call')}
             </button>
           </div>
-          <Link
-            href={`/join/${meetingId()}`}
-            className={clsx(
-              'rd__home-new rd__link rd__link--faux-button',
-              disabled && 'rd__link--primary',
-            )}
-            data-testid="create-and-join-meeting-button"
-          >
-            <Icon className="rd__link__icon" icon="camera-add" />
-            {t('Start new call')}
-          </Link>
-          <div className="rd__home-button-group">
-            <Link
-              href={`/join/${meetingId()}?type=restricted`}
-              className="rd__home-new rd__link rd__link--faux-button"
-              data-testid="create-and-join-restricted-meeting-button"
-            >
-              <Icon className="rd__link__icon" icon="camera-add" />
-              {t('Start new restricted call')}
-            </Link>{' '}
-            <Link
-              href={`/ring`}
-              className="rd__home-ring rd__link rd__link--faux-button"
-              data-testid="goto-ring-button"
-            >
-              <Icon className="rd__link__icon" icon="dialpad" />
-            </Link>
-          </div>
+          {!isRestricted && (
+            <>
+              <Link
+                href={`/join/${meetingId()}`}
+                className={clsx(
+                  'rd__home-new rd__link rd__link--faux-button',
+                  disabled && 'rd__link--primary',
+                )}
+                data-testid="create-and-join-meeting-button"
+              >
+                <Icon className="rd__link__icon" icon="camera-add" />
+                {t('Start new call')}
+              </Link>
+              <div className="rd__home-button-group">
+                <Link
+                  href={`/join/${meetingId()}?type=restricted`}
+                  className="rd__home-new rd__link rd__link--faux-button"
+                  data-testid="create-and-join-restricted-meeting-button"
+                >
+                  <Icon className="rd__link__icon" icon="camera-add" />
+                  {t('Start new restricted call')}
+                </Link>
+                <Link
+                  href={`/ring`}
+                  className="rd__home-ring rd__link rd__link--faux-button"
+                  data-testid="goto-ring-button"
+                >
+                  <Icon className="rd__link__icon" icon="dialpad" />
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

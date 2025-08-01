@@ -38,7 +38,7 @@ export const UserMenu = () => {
             onClick={() => {
               const url = new URL(window.location.href);
               url.pathname = process.env.NEXT_PUBLIC_BASE_PATH || '';
-              signOut({ callbackUrl: url.toString() }).catch((err) => {
+              signOut({ callbackUrl: '/auth/signin' }).catch((err) => {
                 console.error('Sign out error', err);
               });
             }}
@@ -67,9 +67,14 @@ const ToggleMenuButton = forwardRef<HTMLDivElement>(
       <div className="rd__user-session" ref={ref}>
         <div className="rd__user-session__container">
           <div className="rd__user-session__user">
-            <p className="rd__user-session__name">{theSession.user.name}</p>
-            <p className="rd__user-session__email">{theSession.user.email}</p>
+            <p className="rd__user-session__name">
+              {theSession.user.name ?? 'User'}
+            </p>
+            {theSession.user.email && (
+              <p className="rd__user-session__email">{theSession.user.email}</p>
+            )}
           </div>
+          <Icon icon="chevron-down" />
         </div>
       </div>
     );

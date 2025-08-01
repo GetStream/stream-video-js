@@ -7095,7 +7095,6 @@ __metadata:
     "@types/react": "npm:^19.1.3"
     "@types/react-dom": "npm:^19.1.3"
     "@types/react-form": "npm:^4.0.6"
-    "@types/starwars-names": "npm:^1.6.2"
     "@types/yargs": "npm:^17.0.33"
     axios: "npm:^1.8.1"
     clsx: "npm:^2.0.0"
@@ -7110,13 +7109,13 @@ __metadata:
     next: "npm:^15.3.2"
     next-auth: "npm:^4.24.11"
     qrcode.react: "npm:^3.1.0"
+    raw-body: "npm:^3.0.0"
     react: "npm:19.0.0"
     react-dom: "npm:19.0.0"
     react-form: "npm:^4.0.1"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.89.2"
     source-map-loader: "npm:^5.0.0"
-    starwars-names: "npm:^1.6.0"
     stream-chat: "npm:^9.6.1"
     stream-chat-react: "npm:^13.1.0"
     swr: "npm:^2.3.3"
@@ -7911,13 +7910,6 @@ __metadata:
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 10/205fdbe3326b7046d7eaf5e494d8084f2659086a266f3f9cf00bccc549c8e36e407f88168ad4383c8b07099957ad669f75f2532ed4bc70be2b037330f7bae019
-  languageName: node
-  linkType: hard
-
-"@types/starwars-names@npm:^1.6.2":
-  version: 1.6.2
-  resolution: "@types/starwars-names@npm:1.6.2"
-  checksum: 10/7499fd4e7c5035825d29721c5536cf77b068ca2431062186129167dfa28ac9d4999a39108b44d135513ca422a86d42bc8abf0d31dbdcdc27eb95bfb4aadf4721
   languageName: node
   linkType: hard
 
@@ -22213,15 +22205,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"starwars-names@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "starwars-names@npm:1.6.0"
-  dependencies:
-    unique-random-array: "npm:1.0.0"
-  checksum: 10/ee27877fb54c4608f16406f174821a34a15ccbc5175ff46e2ccdedc143fc7c1d1350a0377ea4bab75d6da6b23ef57dcfe66c99d42dfe5663b5fd16924db4384d
-  languageName: node
-  linkType: hard
-
 "statuses@npm:2.0.1, statuses@npm:^2.0.1":
   version: 2.0.1
   resolution: "statuses@npm:2.0.1"
@@ -23600,22 +23583,6 @@ __metadata:
   dependencies:
     unique-slug: "npm:^3.0.0"
   checksum: 10/807acf3381aff319086b64dc7125a9a37c09c44af7620bd4f7f3247fcd5565660ac12d8b80534dcbfd067e6fe88a67e621386dd796a8af828d1337a8420a255f
-  languageName: node
-  linkType: hard
-
-"unique-random-array@npm:1.0.0":
-  version: 1.0.0
-  resolution: "unique-random-array@npm:1.0.0"
-  dependencies:
-    unique-random: "npm:^1.0.0"
-  checksum: 10/2b931818be9134852c35c8450197b24822c7d30ba2f908e886deb6a71100d994bdebc548932e08a3fac9d0a0ae4129448c42e0a6bb56ab7f2cfb1f71ffc3d5d7
-  languageName: node
-  linkType: hard
-
-"unique-random@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "unique-random@npm:1.0.0"
-  checksum: 10/b96fa58ca23936a31322c0efc6ac500777dfd9ae1cab19d36794271544f709391b64728b17a60ce6691814cc16970bc29055cf4099876b26b8c93d80659de6ec
   languageName: node
   linkType: hard
 

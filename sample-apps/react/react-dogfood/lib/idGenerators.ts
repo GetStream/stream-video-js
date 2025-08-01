@@ -5,7 +5,11 @@ const nanoid = customAlphabet(
   10,
 );
 
-export function meetingId(length = 12) {
+export function meetingId(length = 21) {
+  return nanoid(length);
+}
+
+export function userId(length = 21) {
   return nanoid(length);
 }
 
