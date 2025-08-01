@@ -14,8 +14,11 @@ export async function uploadCallRecording(
   const startTime = new Date(event.call_recording.start_time).toISOString();
   const recordingId = `${event.call_recording.session_id}-${startTime}`;
   const [callType, callId] = event.call_cid.split(':');
-  const call = await client.video.getCall({ type: callType, id: callId });
-  const primaryMember = call.members.find((member) => member.role === 'stream');
+  const { call, members } = await client.video.getCall({
+    type: callType,
+    id: callId,
+  });
+  const primaryMember = members.find((member) => member.role === 'stream');
 
   if (!primaryMember) {
     console.warn('Noone from stream was in call');
@@ -34,12 +37,12 @@ export async function uploadCallRecording(
   const res = await fetch(`${process.env.GONG_BASE_URL}/v2/calls`, {
     method: 'POST',
     body: JSON.stringify({
-      title: 'Pronto Sales Call',
+      title: call.custom.name ?? 'Pronto Sales Call',
       clientUniqueId: recordingId,
       actualStart: startTime,
       primaryUser,
       downloadMediaUrl: event.call_recording.url,
-      parties: call.members.map((member) =>
+      parties: members.map((member) =>
         member === primaryMember
           ? {
               userId: primaryUser,
