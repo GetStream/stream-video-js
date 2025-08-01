@@ -276,13 +276,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ToggleEffectsButton />
             </div>
             <div className="str-video__call-controls__desktop">
-              {!isRestricted && <ToggleNoiseCancellationButton />}
+              <ToggleNoiseCancellationButton />
             </div>
-            {
+            {!isRestricted && (
               <div className="str-video__call-controls__desktop">
                 <ToggleClosedCaptionsButton />
               </div>
-            }
+            )}
             <div className="str-video__call-controls__desktop">
               <ReactionsButton />
             </div>
