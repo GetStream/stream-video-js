@@ -270,6 +270,7 @@ export class StreamSfuClient {
       error: true,
       goAway: true,
       inboundStateNotification: true,
+      joinResponse: true,
     };
     this.signalWs = createWebSocketSignalChannel({
       tag: this.tag,
@@ -502,7 +503,9 @@ export class StreamSfuClient {
 
     timeoutId = setTimeout(() => {
       unsubscribe();
-      current.reject(new Error('Waiting for "joinResponse" has timed out'));
+      const message = `Waiting for "joinResponse" has timed out after ${this.joinResponseTimeout}ms`;
+      this.tracer?.trace('joinRequestTimeout', message);
+      current.reject(new Error(message));
     }, this.joinResponseTimeout);
 
     const joinRequest = SfuRequest.create({
