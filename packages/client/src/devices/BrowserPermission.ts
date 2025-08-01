@@ -1,7 +1,7 @@
 import { fromEventPattern, map } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { getLogger } from '../logger';
-import { disposeOfMediaStream } from './devices';
+import { disposeOfMediaStream } from './utils';
 import { withoutConcurrency } from '../helpers/concurrency';
 
 interface BrowserPermissionConfig {
