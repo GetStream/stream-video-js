@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.1...@stream-io/video-react-sdk-1.19.2) (2025-08-01)
+
+### Bug Fixes
+
+- prevent cross-origin bg filter images from tainting canvas ([#1875](https://github.com/GetStream/stream-video-js/issues/1875)) ([c09dcee](https://github.com/GetStream/stream-video-js/commit/c09dcee19ab29a71ae8e602ed7a24d0e3bc85236))
+
 ## [1.19.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.0...@stream-io/video-react-sdk-1.19.1) (2025-07-25)
 
 ### Dependency Updates
