@@ -163,15 +163,20 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
 
   const userAgent = new UAParser(navigator.userAgent);
   const { browser, os, device, cpu } = userAgent.getResult();
-  const browserName = browser.name || navigator.userAgent;
-  const browserVersion =
-    userAgentData?.fullVersionList?.find((v) => v.brand.includes(browserName))
-      ?.version ?? browser.version;
+  // If userAgentData is available, it means we are in a modern Chromium browser,
+  // and we can use it to get more accurate browser information.
+  // We hook into the fullVersionList to find the browser name and version and
+  // eventually detect exotic browsers like Samsung Internet, AVG Secure Browser, etc.
+  // who by default they identify themselves as "Chromium" in the user agent string.
+  // https://wicg.github.io/ua-client-hints/#create-arbitrary-brands-section
+  const uaBrowser = userAgentData?.fullVersionList?.find(
+    (v) => !v.brand.includes('Chromium') && !v.brand.match(/[()\-./:;=?_]/g),
+  );
   return {
     sdk: sdkInfo,
     browser: {
-      name: browserName,
-      version: browserVersion || '',
+      name: uaBrowser?.brand || browser.name || navigator.userAgent,
+      version: uaBrowser?.version || browser.version || '',
     },
     os: {
       name: userAgentData?.platform || os.name || '',
