@@ -8,4 +8,12 @@
 
 + (void)setup DEPRECATED_MSG_ATTRIBUTE("No need to use setup() anymore");
 
++ (BOOL)shouldRejectCallWhenBusy;
+
++ (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject;
+
++ (BOOL)hasActiveCall;
+
++ (void)setActiveCall:(bool)hasActiveCall;
+
 @end

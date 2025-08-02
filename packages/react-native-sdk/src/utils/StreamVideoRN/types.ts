@@ -24,6 +24,13 @@ export type StreamVideoConfig = {
      * @internal
      */
     publishOptions?: ClientPublishOptions;
+
+    /**
+     * Whether to reject the call when the user is busy.
+     * @default false
+     */
+    shouldRejectCallWhenBusy?: boolean;
+
     ios: {
       /**
        * The name for the alias of push provider used for iOS

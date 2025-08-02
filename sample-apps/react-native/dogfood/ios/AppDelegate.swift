@@ -75,7 +75,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       completion() // Ensure completion handler is called even if parsing fails
       return
     }
-    
+        
+    // Check if user is busy BEFORE registering the call
+    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
+    let hasActiveCall = StreamVideoReactNative.hasActiveCall()
+        
+    if shouldReject && hasActiveCall {
+        // Complete the VoIP notification without showing CallKit UI
+        completion()
+        return
+    }
+        
     let uuid = UUID().uuidString
     let videoIncluded = stream["video"] as? String
     let hasVideo = videoIncluded == "false" ? false : true

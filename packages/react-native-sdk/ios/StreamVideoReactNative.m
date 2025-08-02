@@ -14,6 +14,9 @@ static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 static NSMutableDictionary *_incomingCallCidsByUUID = nil;
 static dispatch_queue_t _dictionaryQueue = nil;
 
+static BOOL _hasActiveCall = NO;
+static BOOL _shouldRejectCallWhenBusy = NO;
+
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
                                    CFStringRef name,
@@ -54,6 +57,7 @@ RCT_EXPORT_MODULE();
         _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
         _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
         _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
+        _hasActiveCall = NO;
     });
 }
 
@@ -323,6 +327,28 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
 
 -(NSArray<NSString *> *)supportedEvents {
     return @[@"StreamVideoReactNative_Ios_Screenshare_Event", @"isLowPowerModeEnabled", @"thermalStateDidChange"];
+}
+
++(BOOL)hasActiveCall {
+    return _hasActiveCall;
+}
+
++(BOOL)shouldRejectCallWhenBusy {
+    return _shouldRejectCallWhenBusy;
+}
+
+RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
+    _shouldRejectCallWhenBusy = shouldReject;
+#ifdef DEBUG
+    NSLog(@"setShouldRejectCallWhenBusy: %@", shouldReject ? @"YES" : @"NO");
+#endif
+}
+
+RCT_EXPORT_METHOD(setActiveCall:(BOOL)hasActiveCall) {
+    _hasActiveCall = hasActiveCall;
+#ifdef DEBUG
+    NSLog(@"setActiveCall: %@", hasActiveCall ? @"YES" : @"NO");
+#endif
 }
 
 @end

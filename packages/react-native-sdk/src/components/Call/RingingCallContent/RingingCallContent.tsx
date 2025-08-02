@@ -1,7 +1,12 @@
-import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { CallingState, getLogger } from '@stream-io/video-client';
+import {
+  useCall,
+  useCallStateHooks,
+  useCalls,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
+import { NativeModules, Platform, StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -23,6 +28,8 @@ import {
   type CallPreparingIndicatorProps,
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
+import InCallManager from 'react-native-incall-manager';
+import { StreamVideoRN } from '../../../utils/StreamVideoRN';
 
 /**
  * Props for the RingingCallContent component
@@ -70,10 +77,62 @@ const RingingCallPanel = ({
   onBackPress,
 }: RingingCallContentProps) => {
   const call = useCall();
+  const calls = useCalls();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const client = useStreamVideoClient();
+
+  client?.on('call.rejected', async (event) => {
+    // Workaround needed for the busy tone:
+    // This is because the call was rejected without even starting,
+    // before calling the stop method with busy tone we need to start the call first.
+    InCallManager.start({ media: 'audio' });
+
+    const callCid = event.call_cid;
+    const callId = callCid.split(':')[1];
+    const rejectedCall = client?.call(event.call.type, callId);
+    await rejectedCall?.getOrCreate();
+
+    const isCalleeBusy =
+      rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
+
+    if (isCalleeBusy) {
+      InCallManager.stop({ busytone: '_DTMF_' });
+    }
+  });
+
+  useEffect(() => {
+    if (Platform.OS === 'ios' && callingState === CallingState.JOINED) {
+      NativeModules.StreamVideoReactNative?.setActiveCall(true);
+    }
+  }, [callingState]);
+
+  const pushConfig = StreamVideoRN.getConfig().push;
+  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
+
+  useEffect(() => {
+    // android rejection is done in android's firebaseDataHandler
+    if (Platform.OS === 'android') return;
+    if (!shouldRejectCallWhenBusy) return;
+
+    const ringingCallsInProgress = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
+    );
+    const callsForRejection = calls.filter(
+      (c) => c.ringing && c.state.callingState === CallingState.RINGING,
+    );
+    const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
+    if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
+      callsForRejection.forEach((c) => {
+        c.leave({ reject: true, reason: 'busy' }).catch((err) => {
+          const logger = getLogger(['RingingCallContent']);
+          logger('error', 'Error rejecting Call when busy', err);
+        });
+      });
+    }
+  }, [calls, call, shouldRejectCallWhenBusy, callingState]);
 
   switch (callingState) {
     case CallingState.RINGING:
