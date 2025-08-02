@@ -104,7 +104,7 @@ const RingingCallPanel = ({
   });
 
   useEffect(() => {
-    if (callingState === CallingState.JOINED) {
+    if (Platform.OS === 'ios' && callingState === CallingState.JOINED) {
       NativeModules.StreamVideoReactNative?.setActiveCall(true);
     }
   }, [callingState]);

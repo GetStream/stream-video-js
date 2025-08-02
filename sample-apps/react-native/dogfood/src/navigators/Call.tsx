@@ -9,7 +9,7 @@ import {
   useCalls,
   StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
-import { NativeModules, StyleSheet } from 'react-native';
+import { NativeModules, Platform, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
@@ -54,7 +54,9 @@ const Calls = () => {
 
 const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
   useEffect(() => {
-    NativeModules.StreamVideoReactNative?.setActiveCall(false);
+    if (Platform.OS === 'ios') {
+      NativeModules.StreamVideoReactNative?.setActiveCall(false);
+    }
     return () => {
       if (call && call.state.callingState !== CallingState.LEFT) {
         call.leave();
