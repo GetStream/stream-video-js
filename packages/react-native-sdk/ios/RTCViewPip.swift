@@ -13,17 +13,6 @@ class RTCViewPip: UIView {
     private var pictureInPictureController = StreamPictureInPictureController()
     private var webRtcModule: WebRTCModule?
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupNotificationObserver()
-        self.pictureInPictureController?.sourceView = self
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setupNotificationObserver()
-    }
-    
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(
             self,
@@ -31,10 +20,6 @@ class RTCViewPip: UIView {
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
     }
     
     func setWebRtcModule(_ module: WebRTCModule) {
@@ -82,15 +67,20 @@ class RTCViewPip: UIView {
         self.pictureInPictureController = nil
     }
     
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        let isVisible = self.superview != nil && self.window != nil;
-        if (!isVisible) {
-            // view is detached so we cleanup the pip controller
-            // taken from:  https://github.com/software-mansion/react-native-screens/blob/main/Example/ios/ScreensExample/RNSSampleLifecycleAwareView.m
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        if self.superview == nil {
+            print("PiP - RTCViewPip has been removed from its superview.")
+            NotificationCenter.default.removeObserver(self)
             DispatchQueue.main.async {
                 NSLog("PiP - onCallClosed called due to view detaching")
                 self.onCallClosed()
+            }
+        } else {
+            print("PiP - RTCViewPip has been added to a superview.")
+            setupNotificationObserver()
+            DispatchQueue.main.async {
+                self.pictureInPictureController?.sourceView = self
             }
         }
     }
