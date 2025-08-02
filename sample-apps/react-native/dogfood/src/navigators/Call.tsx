@@ -54,10 +54,10 @@ const Calls = () => {
 
 const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
   useEffect(() => {
+    NativeModules.StreamVideoReactNative?.setActiveCall(false);
     return () => {
       if (call && call.state.callingState !== CallingState.LEFT) {
         call.leave();
-        NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
       }
     };
   }, [call]);

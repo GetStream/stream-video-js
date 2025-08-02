@@ -11,7 +11,6 @@ import type {
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
 import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
-import { NativeModules } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -121,7 +120,6 @@ export const processCallFromPush = async (
         `joining call from push notification with callCid: ${callFromPush.cid}`,
       );
       await callFromPush.join();
-      NativeModules.StreamVideoReactNative?.setActiveCall(callFromPush?.cid);
     } else if (action === 'decline') {
       const canReject =
         callFromPush.state.callingState === CallingState.RINGING;

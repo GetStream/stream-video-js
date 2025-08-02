@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Phone } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { NativeModules } from 'react-native';
 
 /**
  * The props for the Accept Call button.
@@ -49,7 +48,6 @@ export const AcceptCallButton = ({
     }
     try {
       await call?.join();
-      NativeModules.StreamVideoReactNative?.setActiveCall(call?.cid);
       if (onAcceptCallHandler) {
         onAcceptCallHandler();
       }

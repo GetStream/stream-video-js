@@ -12,10 +12,8 @@
 
 + (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject;
 
-+ (void)setActiveCall:(NSString *)cid;
-
-+ (void)clearActiveCall:(NSString *)cid;
-
 + (BOOL)hasActiveCall;
+
++ (void)setActiveCall:(bool)hasActiveCall;
 
 @end

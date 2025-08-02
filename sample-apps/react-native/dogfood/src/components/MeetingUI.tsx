@@ -42,7 +42,6 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
       const leaveCall = async () => {
         try {
           await call?.leave();
-          NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
         } catch (_e) {
           console.log('Error leaving call:', _e);
         }
@@ -86,7 +85,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     try {
       if (callingState !== CallingState.LEFT) {
         await call?.leave();
-        NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
+        NativeModules.StreamVideoReactNative?.seta(call?.cid);
       }
       navigation.goBack();
     } catch (error) {

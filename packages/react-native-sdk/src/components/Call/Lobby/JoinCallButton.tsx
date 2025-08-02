@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type LobbyProps } from './Lobby';
-import { NativeModules, Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { getLogger } from '@stream-io/video-client';
@@ -35,7 +35,6 @@ export const JoinCallButton = ({
     }
     try {
       await call?.join({ create: true });
-      NativeModules.StreamVideoReactNative?.setActiveCall(call?.cid);
       if (onJoinCallHandler) {
         onJoinCallHandler();
       }

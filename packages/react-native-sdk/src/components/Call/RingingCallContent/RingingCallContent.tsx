@@ -6,7 +6,7 @@ import {
   useCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { Platform, StyleSheet, View } from 'react-native';
+import { NativeModules, Platform, StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -103,6 +103,12 @@ const RingingCallPanel = ({
     }
   });
 
+  useEffect(() => {
+    if (callingState === CallingState.JOINED) {
+      NativeModules.StreamVideoReactNative?.setActiveCall(true);
+    }
+  }, [callingState]);
+
   const pushConfig = StreamVideoRN.getConfig().push;
   const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
 
@@ -126,7 +132,7 @@ const RingingCallPanel = ({
         });
       });
     }
-  }, [calls, call, shouldRejectCallWhenBusy]);
+  }, [calls, call, shouldRejectCallWhenBusy, callingState]);
 
   switch (callingState) {
     case CallingState.RINGING:

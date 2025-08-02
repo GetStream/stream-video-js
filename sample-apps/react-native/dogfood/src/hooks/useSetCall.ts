@@ -4,7 +4,6 @@ import {
   CallingState,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import { NativeModules } from 'react-native';
 
 export const useSetCall = (
   callId: string,
@@ -23,7 +22,6 @@ export const useSetCall = (
     return () => {
       if (_call?.state.callingState !== CallingState.LEFT) {
         _call?.leave();
-        NativeModules.StreamVideoReactNative?.clearActiveCall(_call?.cid);
       }
       setCall(undefined);
     };

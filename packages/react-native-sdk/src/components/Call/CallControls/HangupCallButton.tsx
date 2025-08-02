@@ -7,7 +7,6 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { IconWrapper } from '../../../icons/IconWrapper';
-import { NativeModules } from 'react-native';
 
 /**
  * The props for the Hang up call button in the Call Controls.
@@ -57,7 +56,6 @@ export const HangUpCallButton = ({
         return;
       }
       await call?.leave();
-      NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
       if (onHangupCallHandler) {
         onHangupCallHandler();
       }

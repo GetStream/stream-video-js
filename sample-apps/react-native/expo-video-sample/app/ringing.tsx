@@ -6,7 +6,7 @@ import {
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
-import { NativeModules, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
@@ -37,10 +37,10 @@ export default function JoinRingingCallScreen() {
 
 const CallLeaveOnUnmount = ({ call }: { call: Call }) => {
   useEffect(() => {
+    NativeModules.StreamVideoReactNative?.setActiveCall(false);
     return () => {
       if (call && call.state.callingState !== CallingState.LEFT) {
         call.leave();
-        NativeModules.StreamVideoReactNative?.clearActiveCall(call?.cid);
       }
     };
   }, [call]);
