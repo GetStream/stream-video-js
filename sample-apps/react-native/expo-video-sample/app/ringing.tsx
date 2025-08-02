@@ -6,7 +6,7 @@ import {
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { NativeModules, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
