@@ -34,3 +34,9 @@
     gap: var(--str-video__spacing-md);
   }
 }
+
+.rd__call-not-found {
+  display: flex;
+  flex-direction: column;
+  gap: var(--str-video__spacing-lg);
+}

@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.0...@stream-io/video-react-native-sdk-1.20.1) (2025-08-01)
+
+### Bug Fixes
+
+- android OEM specific pip crash ([#1868](https://github.com/GetStream/stream-video-js/issues/1868)) ([2d4ebc5](https://github.com/GetStream/stream-video-js/commit/2d4ebc58cfd21eaa59947e56499ceb3b1258368d))
+
 ## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.19.1...@stream-io/video-react-native-sdk-1.20.0) (2025-07-25)
 
 ### Dependency Updates

@@ -5,6 +5,7 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTView.h>
 #import <React/RCTBridge.h>
+#import <React/UIView+React.h>
 
 #import <WebRTC/RTCCVPixelBuffer.h>
 #import <WebRTC/RTCVideoFrame.h>
