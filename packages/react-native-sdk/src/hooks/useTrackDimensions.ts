@@ -34,7 +34,7 @@ export function useTrackDimensions(
 
   // Set up videoTrackDimensionChanged event listener for more direct dimension updates
   useEffect(() => {
-    if (!trackId || !NativeModules.WebRTCModule) return;
+    if (!trackId || !track) return;
 
     const handleVideoTrackDimensionChanged = (eventData: {
       pcId: string;
@@ -45,16 +45,24 @@ export function useTrackDimensions(
       // Only handle events for this specific participant
       if (eventData.trackId === trackId) {
         setTrackDimensions((prev) => {
-          if (
-            prev.width !== eventData.width ||
-            prev.height !== eventData.height
-          ) {
-            return { width: eventData.width, height: eventData.height };
+          if (prev.width === width && prev.height === height) {
+            return prev;
           }
-          return prev;
+          return { width: eventData.width, height: eventData.height };
         });
       }
     };
+
+    const { width, height } = track.getSettings();
+    setTrackDimensions((prev) => {
+      if (prev.width === width && prev.height === height) {
+        return prev;
+      }
+      return {
+        width: width ?? 0,
+        height: height ?? 0,
+      };
+    });
 
     const subscription = webRTCEventEmitter.addListener(
       'videoTrackDimensionChanged',

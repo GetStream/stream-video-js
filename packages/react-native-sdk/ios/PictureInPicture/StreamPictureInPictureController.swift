@@ -81,6 +81,10 @@ import Foundation
         super.init()
     }
     
+    func setPreferredContentSize(_ size: CGSize) {
+        contentViewController?.preferredContentSize = size
+    }
+    
     // MARK: - AVPictureInPictureControllerDelegate
     
     func pictureInPictureController(
