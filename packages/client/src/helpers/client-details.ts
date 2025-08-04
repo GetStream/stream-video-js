@@ -168,6 +168,7 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
   // We hook into the fullVersionList to find the browser name and version and
   // eventually detect exotic browsers like Samsung Internet, AVG Secure Browser, etc.
   // who by default they identify themselves as "Chromium" in the user agent string.
+  // Eliminates the generic "Chromium" name and "Not)A_Brand" name from the list.
   // https://wicg.github.io/ua-client-hints/#create-arbitrary-brands-section
   const uaBrowser = userAgentData?.fullVersionList?.find(
     (v) => !v.brand.includes('Chromium') && !v.brand.match(/[()\-./:;=?_]/g),
