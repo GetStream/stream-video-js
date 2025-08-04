@@ -85,70 +85,70 @@ describe('browsers', () => {
 
     it('should return true for supported Chrome version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '91' },
+        browser: { name: 'Chrome', version: '124' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return true for supported Chrome detailed version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '138.0.7204.158' },
+        browser: { name: 'Chrome', version: '124.0.7204.158' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Chrome version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '90' },
+        browser: { name: 'Chrome', version: '123' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return false for unsupported Chrome detailed version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '90.0.1234.99' },
+        browser: { name: 'Chrome', version: '123.0.1234.99' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return true for supported Edge version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Edge', version: '91' },
+        browser: { name: 'Edge', version: '124' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Edge version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Edge', version: '90' },
+        browser: { name: 'Edge', version: '123' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return true for supported Firefox version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Firefox', version: '89' },
+        browser: { name: 'Firefox', version: '124' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Firefox version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Firefox', version: '88' },
+        browser: { name: 'Firefox', version: '123' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return true for supported Safari version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Safari', version: '15' },
+        browser: { name: 'Safari', version: '17' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Safari version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Safari', version: '14' },
+        browser: { name: 'Safari', version: '16' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
