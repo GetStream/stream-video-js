@@ -45,7 +45,10 @@ export function useTrackDimensions(
       // Only handle events for this specific participant
       if (eventData.trackId === trackId) {
         setTrackDimensions((prev) => {
-          if (prev.width === width && prev.height === height) {
+          if (
+            prev.width === eventData.width &&
+            prev.height === eventData.height
+          ) {
             return prev;
           }
           return { width: eventData.width, height: eventData.height };
