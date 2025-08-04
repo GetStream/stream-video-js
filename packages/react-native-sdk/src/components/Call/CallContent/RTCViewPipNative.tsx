@@ -26,6 +26,23 @@ export function onNativeCallClosed(reactTag: number) {
   );
 }
 
+export function onNativeDimensionsUpdated(
+  reactTag: number,
+  width: number,
+  height: number,
+) {
+  getLogger(['RTCViewPipNative'])('debug', 'onNativeDimensionsUpdated', {
+    width,
+    height,
+  });
+  UIManager.dispatchViewManagerCommand(
+    reactTag,
+    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands
+      .setPreferredContentSize,
+    [width, height],
+  );
+}
+
 /** Wrapper for the native view
  * meant to stay private and not exposed */
 export const RTCViewPipNative = React.memo(

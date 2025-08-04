@@ -3,14 +3,21 @@ import {
   getLogger,
   hasScreenShare,
   speakerLayoutSortPreset,
+  type StreamVideoParticipant,
+  type VideoTrackType,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { findNodeHandle } from 'react-native';
-import { onNativeCallClosed, RTCViewPipNative } from './RTCViewPipNative';
+import {
+  onNativeCallClosed,
+  onNativeDimensionsUpdated,
+  RTCViewPipNative,
+} from './RTCViewPipNative';
 import { useDebouncedValue } from '../../../utils/hooks';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
+import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
@@ -80,23 +87,60 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     };
   }, [call]);
 
+  const onDimensionsUpdated = useCallback((width: number, height: number) => {
+    const node = findNodeHandle(nativeRef.current);
+    if (node !== null && width > 0 && height > 0) {
+      onNativeDimensionsUpdated(node, width, height);
+    }
+  }, []);
+
+  const { videoStream, screenShareStream } = participantInSpotlight;
+
+  const isScreenSharing = hasScreenShare(participantInSpotlight);
+
+  const videoStreamToRender = (isScreenSharing
+    ? screenShareStream
+    : videoStream) as unknown as MediaStream | undefined;
+
   const streamURL = useMemo(() => {
-    if (!participantInSpotlight) {
+    if (!videoStreamToRender) {
       return undefined;
     }
-
-    const { videoStream, screenShareStream } = participantInSpotlight;
-
-    const isScreenSharing = hasScreenShare(participantInSpotlight);
-
-    const videoStreamToRender = (isScreenSharing
-      ? screenShareStream
-      : videoStream) as unknown as MediaStream | undefined;
-
     return videoStreamToRender?.toURL();
-  }, [participantInSpotlight]);
+  }, [videoStreamToRender]);
 
-  return <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />;
+  return (
+    <>
+      <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />
+      <DimensionsUpdatedRenderless
+        participant={participantInSpotlight}
+        trackType={isScreenSharing ? 'screenShareTrack' : 'videoTrack'}
+        onDimensionsUpdated={onDimensionsUpdated}
+        key={streamURL}
+      />
+    </>
+  );
 });
 
+const DimensionsUpdatedRenderless = React.memo(
+  ({
+    participant,
+    trackType,
+    onDimensionsUpdated,
+  }: {
+    participant: StreamVideoParticipant;
+    trackType: VideoTrackType;
+    onDimensionsUpdated: (width: number, height: number) => void;
+  }) => {
+    const { width, height } = useTrackDimensions(participant, trackType);
+
+    useEffect(() => {
+      onDimensionsUpdated(width, height);
+    }, [width, height, onDimensionsUpdated]);
+
+    return null;
+  },
+);
+
+DimensionsUpdatedRenderless.displayName = 'DimensionsUpdatedRenderless';
 RTCViewPipIOS.displayName = 'RTCViewPipIOS';
