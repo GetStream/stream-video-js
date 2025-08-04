@@ -32,9 +32,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.ReactApplicationContext
+import com.streamvideo.reactnative.audio.AudioDeviceManager.Companion.runInAudioThread
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.callmanager.InCallManagerModule
-import com.streamvideo.reactnative.callmanager.InCallManagerModule.Companion.runInAudioThread
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 
 class BluetoothManager(

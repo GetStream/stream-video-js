@@ -7,7 +7,10 @@ import android.media.AudioManager
 import android.os.Build
 
 enum class CallAudioRole {
-    Listener, Communicator
+                         /* high quality audio output is prioritised */
+    Listener,
+    /* low latency audio output is prioritised */
+    Communicator
 }
 
 class AudioFocusUtil(
@@ -16,32 +19,6 @@ class AudioFocusUtil(
 ) {
 
     private lateinit var request: AudioFocusRequest
-
-    /*
-    class MediaAudioType : AudioType(
-        AudioManager.MODE_NORMAL,
-        AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-            .build(),
-        AudioManager.STREAM_MUSIC
-    )
-
-    /**
-     * An audio type for communications (i.e. participating a call or otherwise
-     * publishing local microphone).
-     *
-     * Audio routing can be manually controlled.
-     */
-    class CommunicationAudioType : AudioType(
-        AudioManager.MODE_IN_COMMUNICATION,
-        AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-            .build(),
-        AudioManager.STREAM_VOICE_CALL
-    )
-     */
 
     fun requestFocus(mode: CallAudioRole) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
