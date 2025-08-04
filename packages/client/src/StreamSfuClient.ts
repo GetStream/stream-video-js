@@ -493,7 +493,6 @@ export class StreamSfuClient {
 
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
-      this.logger('debug', 'Received joinResponse', joinResponse);
       clearTimeout(timeoutId);
       unsubscribe();
       this.keepAlive();
