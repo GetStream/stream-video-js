@@ -493,7 +493,6 @@ export class StreamSfuClient {
 
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
-      this.logger('debug', 'Received joinResponse', joinResponse);
       clearTimeout(timeoutId);
       unsubscribe();
       this.keepAlive();
@@ -502,7 +501,9 @@ export class StreamSfuClient {
 
     timeoutId = setTimeout(() => {
       unsubscribe();
-      current.reject(new Error('Waiting for "joinResponse" has timed out'));
+      const message = `Waiting for "joinResponse" has timed out after ${this.joinResponseTimeout}ms`;
+      this.tracer?.trace('joinRequestTimeout', message);
+      current.reject(new Error(message));
     }, this.joinResponseTimeout);
 
     const joinRequest = SfuRequest.create({

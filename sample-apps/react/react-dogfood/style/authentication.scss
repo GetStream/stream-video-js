@@ -57,6 +57,21 @@
       }
     }
   }
+
+  .rd__auth-item--secondary {
+    background-color: var(--str-video__base-color7);
+    border-radius: var(--str-video__border-radius-md);
+    padding: var(--str-video__spacing-lg);
+  }
+
+  .rd__auth-item-label {
+    color: var(--str-video__text-color2);
+    font-weight: 600;
+    font-size: var(--str-video__font-size-xs);
+    letter-spacing: 0.25ex;
+    text-transform: uppercase;
+    margin-bottom: var(--str-video__spacing-md);
+  }
 }
 
 @include breakpoints.respond-above(sm) {

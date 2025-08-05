@@ -361,6 +361,7 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
           alt="Background"
           ref={bgImageRef}
           src={backgroundImage}
+          crossOrigin="anonymous"
           {...videoSize}
         />
       )}

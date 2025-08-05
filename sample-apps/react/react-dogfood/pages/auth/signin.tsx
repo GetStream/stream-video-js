@@ -1,13 +1,17 @@
+import { Icon, LoadingIndicator, useI18n } from '@stream-io/video-react-sdk';
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
-import { useCallback, useEffect, useState } from 'react';
-import { Icon, useI18n } from '@stream-io/video-react-sdk';
-import names from 'starwars-names';
-import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect } from 'react';
+import {
+  useIsDemoEnvironment,
+  useIsRestrictedEnvironment,
+} from '../../context/AppEnvironmentContext';
+import { getRandomName } from '../../lib/names';
 
 import { authOptions } from '../api/auth/[...nextauth]';
+import clsx from 'clsx';
 
 type ProntoProvider = {
   id: string;
@@ -18,7 +22,6 @@ type ProntoProviders = Record<string, ProntoProvider>;
 
 export default function SignIn({
   providers,
-  randomName,
 }: {
   providers: ProntoProviders;
   randomName: string;
@@ -27,8 +30,30 @@ export default function SignIn({
   const params = useSearchParams();
   const callbackUrl =
     params.get('callbackUrl') || process.env.NEXT_PUBLIC_BASE_PATH || '/';
-
+  const signInAutomatically = Boolean(params.get('signIn'));
   const isDemoEnvironment = useIsDemoEnvironment();
+  const isRestricted = useIsRestrictedEnvironment();
+
+  useEffect(() => {
+    if (signInAutomatically) {
+      signIn('stream-demo-login', { name: getRandomName(), callbackUrl }).catch(
+        (err) => {
+          console.error('Error logging in:', err);
+        },
+      );
+    }
+  }, [signInAutomatically, callbackUrl]);
+
+  if (signInAutomatically) {
+    return (
+      <div className="str-video__call">
+        <div className="str-video__call__loading-screen">
+          <LoadingIndicator text="Signing you in..." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rd__auth">
       <div className="rd__auth-content">
@@ -49,13 +74,23 @@ export default function SignIn({
                 <GuestLoginItem
                   key={provider.id}
                   provider={provider}
-                  randomName={randomName}
                   callbackUrl={callbackUrl}
                 />
               );
             }
             return (
-              <li key={provider.id} className="rd__auth-item">
+              <li
+                key={provider.id}
+                className={clsx(
+                  'rd__auth-item',
+                  isRestricted && 'rd__auth-item--secondary',
+                )}
+              >
+                {isRestricted && (
+                  <div className="rd__auth-item-label">
+                    For Stream employees
+                  </div>
+                )}
                 <button
                   className="rd__button rd__auth-provider"
                   onClick={() => signIn(provider.id, { callbackUrl })}
@@ -65,7 +100,7 @@ export default function SignIn({
                     className="rd__button__icon rd__auth-provider__icon"
                     icon="provider-google"
                   />
-                  <span>{t(`Continue with ${provider.name}`)}</span>
+                  <span>{t(`Sign in with ${provider.name}`)}</span>
                 </button>
               </li>
             );
@@ -78,14 +113,12 @@ export default function SignIn({
 
 const GuestLoginItem = (props: {
   provider: ProntoProvider;
-  randomName: string;
   callbackUrl: string;
 }) => {
-  const { provider, randomName, callbackUrl } = props;
-  const [name, setName] = useState(randomName);
+  const { provider, callbackUrl } = props;
   const logIn = useCallback(
-    () => signIn(provider.id, { name, callbackUrl }),
-    [callbackUrl, name, provider.id],
+    () => signIn(provider.id, { callbackUrl }),
+    [callbackUrl, provider.id],
   );
   const params = useSearchParams();
   const fromQR = params.get('from_qr');
@@ -101,19 +134,8 @@ const GuestLoginItem = (props: {
   }, [fromQR, logIn]);
   return (
     <li className="rd__auth-item rd__auth-item--guest-login">
-      <div className="rd__auth-item--guest_name_wrapper">
-        <span>Your name:</span>
-        <input
-          className="rd__input"
-          type="text"
-          value={name}
-          maxLength={25}
-          onChange={(e) => setName(e.target.value)}
-          onKeyUp={(e) => e.key === 'Enter' && logIn()}
-        />
-      </div>
       <button
-        className="rd__button rd__button--primary rd__auth-provider"
+        className="rd__button rd__button--primary rd__button--large rd__auth-provider"
         onClick={logIn}
         data-testid="guest-sign-in-button"
       >
@@ -147,7 +169,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       providers,
-      randomName: names.random(),
+      randomName: getRandomName(),
     },
   };
 }

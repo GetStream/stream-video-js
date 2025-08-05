@@ -8,18 +8,34 @@ import { decodeBase64 } from 'stream-chat';
 export const maxTokenValidityInSeconds: number =
   Number(process.env.MAX_TOKEN_EXP_IN_SECONDS) || 7 * 24 * 60 * 60; // 7 days
 
-export const createToken = (
+export const createToken = async (
   userId: string,
   apiKey: string,
   jwtSecret: string,
-  params: Record<string, string | string[]> = {},
+  params: Partial<Record<string, string | string[]>> = {},
 ) => {
   const client = new StreamClient(apiKey, jwtSecret);
 
   const {
     exp, // expiration, in seconds from now
+    role,
+    name,
+    image,
+    email,
     ...rest
   } = params;
+
+  if (typeof role === 'string' && role !== 'user') {
+    await client.upsertUsers([
+      {
+        id: userId,
+        name: typeof name === 'string' ? name : undefined,
+        image: typeof image === 'string' ? image : undefined,
+        role,
+        custom: { email },
+      },
+    ]);
+  }
 
   return client.generateUserToken({
     iss: 'https://pronto.getstream.io',

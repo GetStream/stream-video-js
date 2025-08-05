@@ -154,7 +154,7 @@ export const getServerSideProps = async (
   };
 
   // anonymous user tokens must have "!anon" as the user_id
-  const token = createToken('!anon', apiKey, secretKey, {
+  const token = await createToken('!anon', apiKey, secretKey, {
     user_id: '!anon',
     call_cids: [`${callType}:${callId}`],
   });
