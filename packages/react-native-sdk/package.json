@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.20.2",
+  "version": "1.20.3",
   "description": "Stream Video SDK for React Native",
   "author": "https://getstream.io",
   "homepage": "https://getstream.io/video/docs/react-native/",
