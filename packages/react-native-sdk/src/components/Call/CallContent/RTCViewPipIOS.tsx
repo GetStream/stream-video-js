@@ -97,7 +97,9 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
 
   const { videoStream, screenShareStream } = participantInSpotlight || {};
 
-  const isScreenSharing = hasScreenShare(participantInSpotlight);
+  const isScreenSharing = participantInSpotlight
+    ? hasScreenShare(participantInSpotlight)
+    : false;
 
   const videoStreamToRender = (isScreenSharing
     ? screenShareStream

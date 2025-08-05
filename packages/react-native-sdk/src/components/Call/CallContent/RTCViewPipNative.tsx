@@ -21,6 +21,7 @@ export function onNativeCallClosed(reactTag: number) {
   getLogger(['RTCViewPipNative'])('debug', 'onNativeCallClosed');
   UIManager.dispatchViewManagerCommand(
     reactTag,
+    // @ts-expect-error - types issue
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
     [],
   );
@@ -37,6 +38,7 @@ export function onNativeDimensionsUpdated(
   });
   UIManager.dispatchViewManagerCommand(
     reactTag,
+    // @ts-expect-error - types issue
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands
       .setPreferredContentSize,
     [width, height],
