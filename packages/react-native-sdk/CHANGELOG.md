@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.2...@stream-io/video-react-native-sdk-1.20.3) (2025-08-05)
+
+### Bug Fixes
+
+- handle undefined participant in iOS pip ([#1878](https://github.com/GetStream/stream-video-js/issues/1878)) ([69c4694](https://github.com/GetStream/stream-video-js/commit/69c4694196e13afc628150b033a48b227640bda4)), closes [#1876](https://github.com/GetStream/stream-video-js/issues/1876)
+
 ## [1.20.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.1...@stream-io/video-react-native-sdk-1.20.2) (2025-08-05)
 
 ### Dependency Updates
