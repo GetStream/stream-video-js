@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.1...@stream-io/video-client-1.27.2) (2025-08-05)
+
+### Bug Fixes
+
+- improved logging and tracing ([#1874](https://github.com/GetStream/stream-video-js/issues/1874)) ([e450ce2](https://github.com/GetStream/stream-video-js/commit/e450ce2a294d6f80480fcc709591c13d9ede79e4))
+
 ## [1.27.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.0...@stream-io/video-client-1.27.1) (2025-07-25)
 
 ### Bug Fixes

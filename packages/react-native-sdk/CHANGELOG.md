@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.1...@stream-io/video-react-native-sdk-1.20.2) (2025-08-05)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.2.1`
+- `@stream-io/video-filters-react-native` updated to version `0.6.1`
+- `@stream-io/video-client` updated to version `1.27.2`
+- `@stream-io/video-react-bindings` updated to version `1.7.11`
+
+### Bug Fixes
+
+- iOS PiP cleanup ([#1870](https://github.com/GetStream/stream-video-js/issues/1870)) ([88c87f4](https://github.com/GetStream/stream-video-js/commit/88c87f4c9d9b66bb5beef0464863efde720761dd)), closes [#1854](https://github.com/GetStream/stream-video-js/issues/1854)
+- support setting iOS pip window sizes ([#1876](https://github.com/GetStream/stream-video-js/issues/1876)) ([2c553c9](https://github.com/GetStream/stream-video-js/commit/2c553c967b4ceedaf7209c1e98ab4c8025c84ca5))
+
 ## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.0...@stream-io/video-react-native-sdk-1.20.1) (2025-08-01)
 
 ### Bug Fixes
