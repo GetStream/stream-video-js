@@ -39,7 +39,8 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
 
   // show the dominant remote speaker in PiP mode
   // local speaker is shown only if remote doesn't exist
-  let participantInSpotlight = dominantSpeaker;
+  let participantInSpotlight: StreamVideoParticipant | undefined =
+    dominantSpeaker;
   if (dominantSpeaker?.isLocalParticipant && dominantSpeaker2) {
     participantInSpotlight = dominantSpeaker2;
   }
@@ -94,7 +95,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     }
   }, []);
 
-  const { videoStream, screenShareStream } = participantInSpotlight;
+  const { videoStream, screenShareStream } = participantInSpotlight || {};
 
   const isScreenSharing = hasScreenShare(participantInSpotlight);
 
@@ -112,12 +113,14 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   return (
     <>
       <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />
-      <DimensionsUpdatedRenderless
-        participant={participantInSpotlight}
-        trackType={isScreenSharing ? 'screenShareTrack' : 'videoTrack'}
-        onDimensionsUpdated={onDimensionsUpdated}
-        key={streamURL}
-      />
+      {participantInSpotlight && (
+        <DimensionsUpdatedRenderless
+          participant={participantInSpotlight}
+          trackType={isScreenSharing ? 'screenShareTrack' : 'videoTrack'}
+          onDimensionsUpdated={onDimensionsUpdated}
+          key={streamURL}
+        />
+      )}
     </>
   );
 });
