@@ -30,7 +30,7 @@ export function setPushConfig() {
     },
   });
 
-  const shouldRejectCallWhenBusy = true;
+  const shouldRejectCallWhenBusy = false;
 
   StreamVideoRN.setPushConfig({
     ios: {
