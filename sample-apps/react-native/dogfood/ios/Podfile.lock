@@ -2240,7 +2240,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - stream-io-noise-cancellation-react-native (0.2.0):
+  - stream-io-noise-cancellation-react-native (0.2.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2266,7 +2266,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.6.0):
+  - stream-io-video-filters-react-native (0.6.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2294,7 +2294,7 @@ PODS:
   - stream-react-native-webrtc (125.4.1):
     - React-Core
     - StreamWebRTC (~> 125.6422.070)
-  - stream-video-react-native (1.20.1):
+  - stream-video-react-native (1.20.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2719,11 +2719,11 @@ SPEC CHECKSUMS:
   RNSVG: 257f59c952e296c9c36035a8f49b61fda48e398a
   RNVoipPushNotification: a6f7c09e1ca7220e2be1c45e9b6b897c9600024b
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 1803cedc0bf16361b6762e8345f9256e26c60e6f
-  stream-io-noise-cancellation-react-native: dfb7e676688de6feab3c8e1a58fa500d17e3554a
-  stream-io-video-filters-react-native: 96287b284c953821fda3439be5e39a2afcc3cbad
-  stream-react-native-webrtc: 3b627461be05c52d860d7b757d72ca7d4324dc9b
-  stream-video-react-native: 43a769786a1bc329e6aa88af3ffd570161f69131
+  stream-chat-react-native: 963e1146ba5f092aa8f6c59f4e20e431a9265a69
+  stream-io-noise-cancellation-react-native: 298a8c2e53eba0a74d0753a00cdaefe83c23777c
+  stream-io-video-filters-react-native: 7158cbdd0ef58361f26dbd36abec4aeeb3980747
+  stream-react-native-webrtc: f91f49985d356cdb3d8ca3a69ea679cf16feb8a7
+  stream-video-react-native: 2b885a53dc1ab9aac37ca79273a49a1410ffcf59
   StreamVideoNoiseCancellation: c936093dfb72540f1205cd5caec1cf31e27f40ce
   StreamWebRTC: a50ebd8beba4def8f4e378b4895824c3520f9889
   VisionCamera: 39b33d8e530e06d94cf631a99e4cd1ff5d8fe3d7
@@ -2731,4 +2731,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: aa62ba474533b73121c2068a13a8b909b17efbaa
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

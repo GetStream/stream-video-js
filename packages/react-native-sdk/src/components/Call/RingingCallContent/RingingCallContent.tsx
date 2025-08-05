@@ -94,6 +94,8 @@ const RingingCallPanel = ({
 
       const callCid = event.call_cid;
       const callId = callCid.split(':')[1];
+      if (!callId) return;
+
       const rejectedCall = client?.call(event.call.type, callId);
       await rejectedCall?.getOrCreate();
 
