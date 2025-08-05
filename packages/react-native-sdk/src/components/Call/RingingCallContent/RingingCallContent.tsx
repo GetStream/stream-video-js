@@ -6,7 +6,7 @@ import {
   useCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { NativeModules, Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -102,12 +102,6 @@ const RingingCallPanel = ({
       InCallManager.stop({ busytone: '_DTMF_' });
     }
   });
-
-  useEffect(() => {
-    if (Platform.OS === 'ios' && callingState === CallingState.JOINED) {
-      NativeModules.StreamVideoReactNative?.setActiveCall(true);
-    }
-  }, [callingState]);
 
   const pushConfig = StreamVideoRN.getConfig().push;
   const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
