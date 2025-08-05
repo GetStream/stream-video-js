@@ -84,24 +84,27 @@ const RingingCallPanel = ({
   const callingState = useCallCallingState();
   const client = useStreamVideoClient();
 
-  client?.on('call.rejected', async (event) => {
-    // Workaround needed for the busy tone:
-    // This is because the call was rejected without even starting,
-    // before calling the stop method with busy tone we need to start the call first.
-    InCallManager.start({ media: 'audio' });
+  useEffect(() => {
+    if (!client) return;
+    return client?.on('call.rejected', async (event) => {
+      // Workaround needed for the busy tone:
+      // This is because the call was rejected without even starting,
+      // before calling the stop method with busy tone we need to start the call first.
+      InCallManager.start({ media: 'audio' });
 
-    const callCid = event.call_cid;
-    const callId = callCid.split(':')[1];
-    const rejectedCall = client?.call(event.call.type, callId);
-    await rejectedCall?.getOrCreate();
+      const callCid = event.call_cid;
+      const callId = callCid.split(':')[1];
+      const rejectedCall = client?.call(event.call.type, callId);
+      await rejectedCall?.getOrCreate();
 
-    const isCalleeBusy =
-      rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
+      const isCalleeBusy =
+        rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
 
-    if (isCalleeBusy) {
-      InCallManager.stop({ busytone: '_DTMF_' });
-    }
-  });
+      if (isCalleeBusy) {
+        InCallManager.stop({ busytone: '_DTMF_' });
+      }
+    });
+  }, [client]);
 
   const pushConfig = StreamVideoRN.getConfig().push;
   const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
