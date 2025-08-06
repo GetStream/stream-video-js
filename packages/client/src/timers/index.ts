@@ -23,6 +23,9 @@ class TimerWorker {
       const script = URL.createObjectURL(blob);
       this.worker = new Worker(script, { name: 'str-timer-worker' });
       this.worker.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) {
+          return; // Ignore messages from untrusted origins
+        }
         const { type, id } = event.data as TimerWorkerEvent;
         if (type === 'tick') {
           this.callbacks.get(id)?.();
