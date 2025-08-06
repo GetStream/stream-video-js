@@ -12,8 +12,6 @@
 
 + (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject;
 
-+ (BOOL)hasActiveCall;
-
-+ (void)setActiveCall:(bool)hasActiveCall;
++ (BOOL)hasAnyActiveCall;
 
 @end

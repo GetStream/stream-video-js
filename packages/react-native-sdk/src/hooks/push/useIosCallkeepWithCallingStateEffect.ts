@@ -1,9 +1,5 @@
 import { CallingState, getLogger, RxUtils } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallStateHooks,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { NativeModules, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { StreamVideoRN } from '../../utils';
@@ -53,27 +49,12 @@ const log = (message: string) => {
 export const useIosCallkeepWithCallingStateEffect = () => {
   const activeCall = useCall();
   const { useCallCallingState } = useCallStateHooks();
-  const client = useStreamVideoClient();
   const callingState = useCallCallingState();
   const [acceptedForegroundCallkeepMap, setAcceptedForegroundCallkeepMap] =
     useState<{
       uuid: string;
       cid: string;
     }>();
-
-  useEffect(() => {
-    if (!client) return;
-    return client?.on('call.session_started', () => {
-      NativeModules.StreamVideoReactNative?.setActiveCall(true);
-    });
-  }, [client]);
-
-  useEffect(() => {
-    if (!client) return;
-    return client?.on('call.session_ended', () => {
-      NativeModules.StreamVideoReactNative?.setActiveCall(false);
-    });
-  }, [client]);
 
   useEffect(() => {
     return () => {

@@ -78,7 +78,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
     // Check if user is busy BEFORE registering the call
     let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
-    let hasActiveCall = StreamVideoReactNative.hasActiveCall()
+    let hasActiveCall = StreamVideoReactNative.hasAnyActiveCall()
         
     if shouldReject && hasActiveCall {
         // Complete the VoIP notification without showing CallKit UI

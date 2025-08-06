@@ -169,10 +169,10 @@ export const firebaseDataHandler = async (
     const created_by_id = data.created_by_id as string;
     const receiver_id = data.receiver_id as string;
 
-    const shouldRejectWhenBusy = pushConfig.shouldRejectCallWhenBusy;
+    const shouldRejectCallWhenBusy = pushConfig.shouldRejectCallWhenBusy;
 
     const video_client = await pushConfig.createStreamVideoClient();
-    if (video_client && shouldRejectWhenBusy) {
+    if (video_client && shouldRejectCallWhenBusy) {
       try {
         const calls = video_client.state.calls;
         const ringingCallsInProgress = calls.filter(

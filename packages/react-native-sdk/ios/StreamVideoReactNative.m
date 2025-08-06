@@ -2,6 +2,7 @@
 #import <React/RCTEventEmitter.h>
 #import <React/RCTUIManager.h> 
 #import <UIKit/UIKit.h>
+#import <CallKit/CallKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
@@ -14,7 +15,6 @@ static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 static NSMutableDictionary *_incomingCallCidsByUUID = nil;
 static dispatch_queue_t _dictionaryQueue = nil;
 
-static BOOL _hasActiveCall = NO;
 static BOOL _shouldRejectCallWhenBusy = NO;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
@@ -57,7 +57,6 @@ RCT_EXPORT_MODULE();
         _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
         _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
         _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
-        _hasActiveCall = NO;
     });
 }
 
@@ -329,10 +328,6 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
     return @[@"StreamVideoReactNative_Ios_Screenshare_Event", @"isLowPowerModeEnabled", @"thermalStateDidChange"];
 }
 
-+(BOOL)hasActiveCall {
-    return _hasActiveCall;
-}
-
 +(BOOL)shouldRejectCallWhenBusy {
     return _shouldRejectCallWhenBusy;
 }
@@ -344,11 +339,17 @@ RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
 #endif
 }
 
-RCT_EXPORT_METHOD(setActiveCall:(BOOL)hasActiveCall) {
-    _hasActiveCall = hasActiveCall;
-#ifdef DEBUG
-    NSLog(@"setActiveCall: %@", hasActiveCall ? @"YES" : @"NO");
-#endif
++ (BOOL)hasAnyActiveCall
+{
+    CXCallObserver *callObserver = [[CXCallObserver alloc] init];
+    
+    for(CXCall *call in callObserver.calls){
+        if(call.hasConnected){
+            NSLog(@"[RNCallKeep] Found active call with UUID: %@", call.UUID);
+            return YES;
+        }
+    }
+    return NO;
 }
 
 @end
