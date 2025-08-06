@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.0...@stream-io/video-filters-react-native-0.6.1) (2025-08-05)
+
+### Bug Fixes
+
+- support setting iOS pip window sizes ([#1876](https://github.com/GetStream/stream-video-js/issues/1876)) ([2c553c9](https://github.com/GetStream/stream-video-js/commit/2c553c967b4ceedaf7209c1e98ab4c8025c84ca5))
+
 ## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.5.0...@stream-io/video-filters-react-native-0.6.0) (2025-07-25)
 
 ### Features
