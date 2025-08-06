@@ -2,10 +2,6 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 
 const InCallManagerNativeModule = NativeModules.InCallManager;
 
-const InCallManagerEventEmitter = new NativeEventEmitter(
-  InCallManagerNativeModule,
-);
-
 export type AudioDeviceStatus = {
   availableAudioDeviceEndpointNamesList: string[];
   selectedAudioDeviceEndpointType: string;
@@ -57,6 +53,9 @@ function stop() {
 function addAudioDeviceStatusChangeListener(
   onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
 ) {
+  const InCallManagerEventEmitter = new NativeEventEmitter(
+    InCallManagerNativeModule,
+  );
   const subscription = InCallManagerEventEmitter.addListener(
     'onAudioDeviceChanged',
     (audioDeviceStatus: AudioDeviceStatusUnparsed) => {
