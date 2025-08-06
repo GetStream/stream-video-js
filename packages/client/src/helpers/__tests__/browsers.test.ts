@@ -169,14 +169,14 @@ describe('browsers', () => {
 
     it('should return true for supported WebView version (WebView on Android)', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'WebView', version: '115' },
+        browser: { name: 'WebView', version: '124' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported WebView version (WebView on Android)', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'WebView', version: '114' },
+        browser: { name: 'WebView', version: '123' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
