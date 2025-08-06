@@ -876,6 +876,12 @@ export class Call {
         break;
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+        if (err instanceof ErrorFromResponse && err.unrecoverable) {
+          // if the error is unrecoverable, we should not retry as that signals
+          // that connectivity is good, but the coordinator doesn't allow the user
+          // to join the call due to some reason (e.g., ended call, expired token...)
+          throw err;
+        }
 
         const sfuId = this.credentials?.server.edge_name || '';
         const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;

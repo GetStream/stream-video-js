@@ -19,11 +19,26 @@ const NativeComponent: HostComponent<RTCViewPipNativeProps> =
 
 export function onNativeCallClosed(reactTag: number) {
   getLogger(['RTCViewPipNative'])('debug', 'onNativeCallClosed');
-  UIManager.dispatchViewManagerCommand(
-    reactTag,
-    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
-    [],
-  );
+  const commandId =
+    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed;
+  if (!commandId) return;
+  UIManager.dispatchViewManagerCommand(reactTag, commandId, []);
+}
+
+export function onNativeDimensionsUpdated(
+  reactTag: number,
+  width: number,
+  height: number,
+) {
+  getLogger(['RTCViewPipNative'])('debug', 'onNativeDimensionsUpdated', {
+    width,
+    height,
+  });
+  const commandId =
+    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands
+      .setPreferredContentSize;
+  if (!commandId) return;
+  UIManager.dispatchViewManagerCommand(reactTag, commandId, [width, height]);
 }
 
 /** Wrapper for the native view

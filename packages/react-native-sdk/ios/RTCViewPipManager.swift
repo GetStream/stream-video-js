@@ -9,39 +9,59 @@ import Foundation
 
 @objc(RTCViewPipManager)
 class RTCViewPipManager: RCTViewManager {
-
-    // A cached RTCViewPip reference.
-    //
-    // Often, the view unmounts before the `onCallClosed` command arrives and as a consequence
-    // pipView.onCallClosed() method wasn't called, as the view can't be found in the ViewRegistry
-    // causing dangling PiP window with the last video frame frozen.
-    // Now, once this happens, instead forwarding the command to the view returned by the registry,
-    // we manually apply it to the cached view. The current setup allows only one PipView, so we
-    // don't have to introduce more complex view tracking mechanism.
-    private var _view: RTCViewPip? = nil
-
+    
+    private var cachedSizes: [NSNumber: CGSize] = [:]
+    
     override func view() -> UIView! {
         let view = RTCViewPip()
         view.setWebRtcModule(self.bridge.module(forName: "WebRTCModule") as! WebRTCModule)
-        self._view = view
         return view
     }
-
+    
     override static func requiresMainQueueSetup() -> Bool {
         return true
     }
-
-    @objc func onCallClosed(_ reactTag: NSNumber) {
-        self.bridge!.uiManager.addUIBlock { (_: RCTUIManager?, viewRegistry: [NSNumber: UIView]?) in
-            guard let pipView = viewRegistry?[reactTag] as? RTCViewPip else {
-                NSLog("PiP - onCallClosed can't be called, Invalid view returned from registry, expecting RTCViewPip. Disposing the cached view.")
-                self._view?.onCallClosed()
-                self._view = nil
-                return
+    
+    @objc(onCallClosed:)
+    func onCallClosed(_ reactTag: NSNumber) {
+        
+        bridge.uiManager.addUIBlock({ (uiManager, viewRegistry) in
+            let view = uiManager?.view(forReactTag: reactTag)
+            if let pipView = view as? RTCViewPip {
+                DispatchQueue.main.async {
+                    pipView.onCallClosed()
+                }
+            } else {
+                NSLog("PiP - onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip")
             }
-            DispatchQueue.main.async {
-                pipView.onCallClosed()
+        })
+    }
+    
+    
+    @objc(setPreferredContentSize:width:height:)
+    func setPreferredContentSize(_ reactTag: NSNumber, width: CGFloat, height: CGFloat) {
+        let size = CGSize(width: width, height: height)
+        
+        bridge.uiManager.addUIBlock({ (uiManager, viewRegistry) in
+            let view = uiManager?.view(forReactTag: reactTag)
+            if let pipView = view as? RTCViewPip {
+                DispatchQueue.main.async {
+                    pipView.setPreferredContentSize(size)
+                }
+            } else {
+                // If the view is not found, cache the size.
+                // this happens when this method is called before the view can attach react super view
+                NSLog("PiP - View not found for reactTag \(reactTag), caching size.")
+                self.cachedSizes[reactTag] = size
             }
+        })
+    }
+    
+    func getCachedSize(for reactTag: NSNumber) -> CGSize? {
+        let size = self.cachedSizes.removeValue(forKey: reactTag)
+        if size != nil {
+            NSLog("PiP - Found and removed cached size for reactTag \(reactTag).")
         }
+        return size
     }
 }
