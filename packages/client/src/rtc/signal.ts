@@ -1,13 +1,15 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
+import { Tracer } from '../stats';
 
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
   onMessage: <K extends SfuEventKinds>(message: DispatchableMessage<K>) => void;
   tag: string;
+  tracer: Tracer | undefined;
 }) => {
-  const { endpoint, onMessage, tag } = opts;
+  const { endpoint, onMessage, tag, tracer } = opts;
   const logger = getLogger(['SfuClientWS', tag]);
   logger('debug', 'Creating signaling WS channel:', endpoint);
   const ws = new WebSocket(endpoint);
@@ -15,14 +17,17 @@ export const createWebSocketSignalChannel = (opts: {
 
   ws.addEventListener('error', (e) => {
     logger('error', 'Signaling WS channel error', e);
+    tracer?.trace('signal.ws.error', e);
   });
 
   ws.addEventListener('close', (e) => {
     logger('info', 'Signaling WS channel is closed', e);
+    tracer?.trace('signal.ws.close', e);
   });
 
   ws.addEventListener('open', (e) => {
     logger('info', 'Signaling WS channel is open', e);
+    tracer?.trace('signal.ws.open', e);
   });
 
   ws.addEventListener('message', (e) => {
@@ -34,11 +39,10 @@ export const createWebSocketSignalChannel = (opts: {
 
       onMessage(message as DispatchableMessage<SfuEventKinds>);
     } catch (err) {
-      logger(
-        'error',
-        'Failed to decode a message. Check whether the Proto models match.',
-        { event: e, error: err },
-      );
+      const message =
+        'Failed to decode a message. Check whether the Proto models match.';
+      logger('error', message, { event: e, error: err });
+      tracer?.trace('signal.ws.message.error', message);
     }
   });
   return ws;
