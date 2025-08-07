@@ -1,6 +1,9 @@
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import { getLogger } from '@stream-io/video-client';
+import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 
 const InCallManagerNativeModule = NativeModules.InCallManager;
+
+const logger = getLogger(['StreamInCallManager']);
 
 export type AudioDeviceStatus = {
   availableAudioDeviceEndpointNamesList: string[];
@@ -15,6 +18,7 @@ type AudioDeviceStatusUnparsed = {
 };
 
 export type AudioRole = 'communicator' | 'listener';
+export type DefaultAudioDeviceEndpointType = 'speaker' | 'earpiece';
 
 /**
  * Sets the audio role for the call. This should be done before calling **start()**.
@@ -32,6 +36,20 @@ function setAudioRole(audioRole: AudioRole) {
 }
 
 /**
+ * Sets the default audio device endpoint type for the call. This should be done before calling **start()**.
+ * @param defaultAudioDeviceEndpointType The default audio device endpoint type to set. It can be one of the following:
+ * - `'speaker'`: (Default) For normal video or voice calls.
+ * - `'earpiece'`: For voice only mobile call type scenarios.
+ */
+function setDefaultAudioDeviceEndpointType(
+  defaultAudioDeviceEndpointType: DefaultAudioDeviceEndpointType,
+) {
+  InCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+    defaultAudioDeviceEndpointType,
+  );
+}
+
+/**
  * Start the in call manager.
  */
 function start() {
@@ -45,14 +63,29 @@ function stop() {
   InCallManagerNativeModule.stop();
 }
 
+function showIOSAudioRoutePicker() {
+  if (Platform.OS !== 'ios') {
+    logger('warn', 'showAudioRoutePicker is supported only on iOS');
+    return;
+  }
+  InCallManagerNativeModule.showAudioRoutePicker();
+}
+
 /**
  * Add a listener for audio device status changes.
  * @param onChange - The function to call when the audio device status changes.
  * @returns A function to remove the listener.
  */
-function addAudioDeviceStatusChangeListener(
+function addAndroidAudioDeviceStatusChangeListener(
   onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
 ) {
+  if (Platform.OS !== 'android') {
+    logger(
+      'warn',
+      'addAndroidAudioDeviceStatusChangeListener is supported only on Android',
+    );
+    return;
+  }
   const InCallManagerEventEmitter = new NativeEventEmitter(
     InCallManagerNativeModule,
   );
@@ -71,7 +104,14 @@ function addAudioDeviceStatusChangeListener(
  * @param endpointName - The name of the audio device endpoint to choose.
  * @returns The audio device status.
  */
-function chooseAudioDeviceEndpoint(endpointName: string) {
+function chooseAndroidAudioDeviceEndpoint(endpointName: string) {
+  if (Platform.OS !== 'android') {
+    logger(
+      'warn',
+      'chooseAndroidAudioDeviceEndpoint is supported only on Android',
+    );
+    return;
+  }
   InCallManagerNativeModule.chooseAudioDeviceEndpoint(endpointName);
 }
 
@@ -93,7 +133,11 @@ function parseAudioDeviceStatus(
  * Get the current audio device status.
  * @returns The audio device status.
  */
-async function getAudioDeviceStatus() {
+async function getAndroidAudioDeviceStatus() {
+  if (Platform.OS !== 'android') {
+    logger('warn', 'gettAndroidAudioDeviceStatus is supported only on Android');
+    return;
+  }
   const audioDeviceStatus: AudioDeviceStatus = parseAudioDeviceStatus(
     await InCallManagerNativeModule.getAudioDeviceStatus(),
   );
@@ -103,19 +147,27 @@ async function getAudioDeviceStatus() {
 /**
  * Mutes the audio output of the device.
  */
-function muteAudioOutput() {
+function muteAndroidAudioOutput() {
+  if (Platform.OS !== 'android') {
+    logger('warn', 'muteAndroidAudioOutput is supported only on Android');
+    return;
+  }
   InCallManagerNativeModule.muteAudioOutput();
 }
 
 /**
  * Unmutes the audio output of the device.
  */
-function unmuteAudioOutput() {
+function unmuteAndroidAudioOutput() {
+  if (Platform.OS !== 'android') {
+    logger('warn', 'unmuteAndroidAudioOutput is supported only on Android');
+    return;
+  }
   InCallManagerNativeModule.unmuteAudioOutput();
 }
 
 /**
- * Log the current audio state.
+ * Log the current audio state natively.
  * Meant for debugging purposes.
  */
 function logAudioState() {
@@ -123,13 +175,15 @@ function logAudioState() {
 }
 
 export const InCallManager = {
+  setDefaultAudioDeviceEndpointType,
   start,
   stop,
-  getAudioDeviceStatus,
-  chooseAudioDeviceEndpoint,
-  addAudioDeviceStatusChangeListener,
+  getAndroidAudioDeviceStatus,
+  chooseAndroidAudioDeviceEndpoint,
+  addAndroidAudioDeviceStatusChangeListener,
   logAudioState,
   setAudioRole,
-  muteAudioOutput,
-  unmuteAudioOutput,
+  muteAndroidAudioOutput,
+  unmuteAndroidAudioOutput,
+  showIOSAudioRoutePicker,
 };

@@ -60,13 +60,14 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
 
-  const [audioDeviceStatus, setAudioDeviceStatus] =
-    useState<AudioDeviceStatus | null>(null);
+  const [audioDeviceStatus, setAudioDeviceStatus] = useState<
+    AudioDeviceStatus | null | undefined
+  >(null);
 
   useEffect(() => {
-    InCallManager.getAudioDeviceStatus().then(setAudioDeviceStatus);
+    InCallManager.getAndroidAudioDeviceStatus().then(setAudioDeviceStatus);
 
-    return InCallManager.addAudioDeviceStatusChangeListener(
+    return InCallManager.addAndroidAudioDeviceStatusChangeListener(
       setAudioDeviceStatus,
     );
   }, []);
@@ -123,7 +124,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
 
   useEffect(() => {
     if (isVisible) {
-      InCallManager.getAudioDeviceStatus().then(setAudioDeviceStatus);
+      InCallManager.getAndroidAudioDeviceStatus().then(setAudioDeviceStatus);
       Animated.spring(translateY, {
         toValue: SNAP_TOP,
         useNativeDriver: true,
@@ -141,7 +142,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   const elasticAnimRef = useRef(new Animated.Value(0.5));
 
   const handleOptionPress = (route: string) => {
-    InCallManager.chooseAudioDeviceEndpoint(route);
+    InCallManager.chooseAndroidAudioDeviceEndpoint(route);
     Animated.timing(elasticAnimRef.current, {
       toValue: 0.2,
       duration: 150,

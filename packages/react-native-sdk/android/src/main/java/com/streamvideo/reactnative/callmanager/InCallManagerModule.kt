@@ -15,6 +15,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
 import com.streamvideo.reactnative.callmanager.utils.InCallWakeLockUtils
+import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.util.WebRtcAudioUtils
 import java.util.Locale
 
@@ -88,6 +89,19 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
             mAudioDeviceManager.callAudioRole = CallAudioRole.Listener
         } else {
             mAudioDeviceManager.callAudioRole = CallAudioRole.Communicator
+        }
+    }
+
+    @ReactMethod
+    fun setDefaultAudioDevice(endpointDeviceName: String) {
+        if (audioManagerActivated) {
+            Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
+            return
+        }
+        if (endpointDeviceName.lowercase(Locale.getDefault()) == "earpiece") {
+            mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_EARPIECE
+        } else {
+            mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
         }
     }
 

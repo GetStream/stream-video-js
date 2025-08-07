@@ -11,14 +11,12 @@ class StreamVideoReactNative: RCTEventEmitter {
     
     private var hasListeners = false
     private let notificationCenter = CFNotificationCenterGetDarwinNotifyCenter()
-    private var audioUtils: AudioUtils
 
     private static var incomingCallUUIDsByCallID: [String: String] = [:]
     private static var incomingCallCidsByUUID: [String: String] = [:]
     private static let dictionaryQueue = DispatchQueue(label: "com.stream.video.dictionary", attributes: .concurrent)
 
     override init() {
-        audioUtils = AudioUtils()
         super.init()
         UIDevice.current.isBatteryMonitoringEnabled = true
         setupObserver()
@@ -143,11 +141,6 @@ class StreamVideoReactNative: RCTEventEmitter {
             incomingCallUUIDsByCallID[cid] = lowercaseUUID
             incomingCallCidsByUUID[lowercaseUUID] = cid
         }
-    }
-    
-    @objc
-    func showAudioRoutePicker() {
-        self.audioUtils.showAudioRoutePicker()
     }
 
     @objc(getIncomingCallUUid:resolver:rejecter:)

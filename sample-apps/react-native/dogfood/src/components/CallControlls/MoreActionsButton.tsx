@@ -7,15 +7,9 @@ import {
   useTheme,
   useScreenshot,
   useNoiseCancellation,
+  InCallManager,
 } from '@stream-io/video-react-native-sdk';
-import {
-  Text,
-  Modal,
-  Image,
-  TouchableOpacity,
-  Platform,
-  NativeModules,
-} from 'react-native';
+import { Text, Modal, Image, TouchableOpacity, Platform } from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
@@ -129,7 +123,7 @@ export const MoreActionsButton = ({
 
   const showAudioRoutePicker = async () => {
     if (Platform.OS === 'ios') {
-      NativeModules.StreamVideoReactNative.showAudioRoutePicker();
+      InCallManager.showIOSAudioRoutePicker();
     } else {
       setIsAndroidAudioRoutePickerDrawerVisible(true);
     }
