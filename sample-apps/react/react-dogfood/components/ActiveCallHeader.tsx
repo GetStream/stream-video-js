@@ -67,12 +67,18 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   );
 };
 
+const RecordingIndicator = () => {
+  return <div className="rd__header__recording-indicator">Recording...</div>;
+};
+
 export const ActiveCallHeader = ({
   onLeave,
   selectedLayout,
   onMenuItemClick,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
-  const { useCallCallingState, useCallSession } = useCallStateHooks();
+  const { useCallCallingState, useCallSession, useIsCallRecordingInProgress } =
+    useCallStateHooks();
+  const isRecordingInProgress = useIsCallRecordingInProgress();
   const callingState = useCallCallingState();
   const session = useCallSession();
   const isOffline = callingState === CallingState.OFFLINE;
@@ -109,6 +115,7 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
+          {isRecordingInProgress && <RecordingIndicator />}
           <Elapsed startedAt={session?.started_at} />
           <LatencyIndicator />
         </div>

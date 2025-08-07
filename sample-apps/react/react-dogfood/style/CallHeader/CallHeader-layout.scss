@@ -69,6 +69,17 @@
   gap: 0.5rem;
 }
 
+.rd__header__recording-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-variant: tabular-nums;
+  background-color: var(--str-video__brand-color5);
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
+  border-radius: var(--str-video__border-radius-md);
+  font-size: var(--str-video__font-size-xs);
+}
+
 .rd__header__elapsed {
   display: flex;
   justify-content: center;
@@ -215,7 +226,7 @@
 
   .rd__call-header__controls-group {
     > * {
-      &:nth-child(3) {
+      &:nth-child(4) {
         display: none;
       }
     }
