@@ -1,6 +1,6 @@
-import React from 'react';
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,

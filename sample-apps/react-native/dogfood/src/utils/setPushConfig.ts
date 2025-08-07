@@ -29,8 +29,6 @@ export function setPushConfig() {
     },
   });
 
-  const shouldRejectCallWhenBusy = false;
-
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',
@@ -72,7 +70,7 @@ export function setPushConfig() {
         },
       },
     },
-    shouldRejectCallWhenBusy: shouldRejectCallWhenBusy,
+    shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');

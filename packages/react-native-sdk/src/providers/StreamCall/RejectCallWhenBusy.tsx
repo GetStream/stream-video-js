@@ -55,10 +55,6 @@ export const RejectCallWhenBusy = () => {
     );
     const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
     if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
-      console.log(
-        '🚀 ~ RejectCallWhenBusy ~ callsForRejection:',
-        callsForRejection,
-      );
       callsForRejection.forEach((c) => {
         c.leave({ reject: true, reason: 'busy' }).catch((err) => {
           const logger = getLogger(['RejectCallWhenBusy']);
