@@ -13,7 +13,6 @@ import { createToken } from '../modules/helpers/createToken';
 import { deeplinkCallId$ } from '../hooks/useDeepLinkEffect';
 import { Platform } from 'react-native';
 import { setFirebaseListeners } from './setFirebaseListeners';
-import { NativeModules } from 'react-native';
 
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
@@ -87,12 +86,6 @@ export function setPushConfig() {
       }
     },
   });
-
-  if (Platform.OS === 'ios') {
-    NativeModules.StreamVideoReactNative?.setShouldRejectCallWhenBusy(
-      shouldRejectCallWhenBusy,
-    );
-  }
 
   setFirebaseListeners();
   if (Platform.OS === 'android') {

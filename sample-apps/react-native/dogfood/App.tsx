@@ -40,7 +40,6 @@ import {
   isPushNotificationiOSStreamVideoEvent,
   onPushNotificationiOSStreamVideoEvent,
   StreamTheme,
-  StreamVideoRN,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
@@ -189,11 +188,9 @@ const StackNavigator = () => {
 const RingingWatcher = () => {
   const setState = useAppGlobalStoreSetState();
   const calls = useCalls().filter((c) => c.ringing);
-  const shouldRejectCallWhenBusy =
-    StreamVideoRN.getConfig().push?.shouldRejectCallWhenBusy;
 
   useEffect(() => {
-    if (!shouldRejectCallWhenBusy && calls.length > 1) {
+    if (calls.length > 1) {
       const lastCallCreatedBy = calls.at(-1)?.state.createdBy;
       Alert.alert(
         `Incoming call from ${
@@ -201,7 +198,7 @@ const RingingWatcher = () => {
         }, only 1 call at a time is supported`,
       );
     }
-  }, [calls, shouldRejectCallWhenBusy]);
+  }, [calls]);
 
   const firstCall = calls[0];
 

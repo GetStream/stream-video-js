@@ -5,6 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { NativeModules, Platform } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -121,6 +122,12 @@ export class StreamVideoRN {
 
     this.config.push = pushConfig;
 
+    // Configure native iOS module if shouldRejectCallWhenBusy is set
+    if (Platform.OS === 'ios') {
+      NativeModules.StreamVideoReactNative?.setShouldRejectCallWhenBusy(
+        pushConfig?.shouldRejectCallWhenBusy ?? false,
+      );
+    }
     setupIosCallKeepEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
   }
