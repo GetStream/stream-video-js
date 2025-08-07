@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.3...@stream-io/video-react-native-sdk-1.20.4) (2025-08-06)
+
+- best to not create listener before js bridge being ready ([dcb4f0a](https://github.com/GetStream/stream-video-js/commit/dcb4f0aa7d01f7822ed10ae39a52b1b83cbdd077))
+
 ## [1.20.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.2...@stream-io/video-react-native-sdk-1.20.3) (2025-08-05)
 
 ### Bug Fixes

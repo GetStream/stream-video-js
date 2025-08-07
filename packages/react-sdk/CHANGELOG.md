@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.3...@stream-io/video-react-sdk-1.19.4) (2025-08-06)
+
+### Bug Fixes
+
+- respect call type settings when applying persisted device preferеnces ([#1879](https://github.com/GetStream/stream-video-js/issues/1879)) ([4d1352d](https://github.com/GetStream/stream-video-js/commit/4d1352d74f4bd1a6e926abc16c86f3f260942cf0))
+
 ## [1.19.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.2...@stream-io/video-react-sdk-1.19.3) (2025-08-05)
 
 ### Dependency Updates
