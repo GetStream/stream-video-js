@@ -41,21 +41,10 @@ export const ViewLiveStreamChildren = ({
     params: { callId },
   } = route;
 
-  const client = useStreamVideoClient();
-  const call = useSetCall(callId, 'livestream', client);
-
-  if (!call) {
-    return null;
-  }
-
   /**
    * Note: Here we provide the `StreamCall` component again. This is done, so that the call used, is created by the anonymous user.
    */
-  return (
-    <StreamCall call={call}>
-      <LivestreamPlayer callId={callId} callType="livestream" />
-    </StreamCall>
-  );
+  return <LivestreamPlayer callId={callId} callType="livestream" />;
 };
 
 export const ViewLiveStreamScreen = ({
