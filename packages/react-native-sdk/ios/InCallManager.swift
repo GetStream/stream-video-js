@@ -34,6 +34,11 @@ class InCallManager: RCTEventEmitter {
     
     override init() {
         super.init()
+        let config = RTCAudioSessionConfiguration()
+        config.category = AVAudioSession.Category.playAndRecord.rawValue
+        config.categoryOptions = [.allowBluetooth, .defaultToSpeaker]
+        config.mode = AVAudioSession.Mode.voiceChat.rawValue
+        RTCAudioSessionConfiguration.setWebRTC(config)
     }
     
     deinit {
@@ -109,16 +114,14 @@ class InCallManager: RCTEventEmitter {
     }
     
     private func configureAudioSession() {
-        var intendedCategory: AVAudioSession.Category = .playAndRecord
-        var intendedMode: AVAudioSession.Mode = .default
+        let intendedCategory: AVAudioSession.Category = .playAndRecord
+        var intendedMode: AVAudioSession.Mode = .voiceChat
         var intendedOptions: AVAudioSession.CategoryOptions = [.allowBluetooth]
 
         if (callAudioRole == .listener) {
-            intendedCategory = .playback
             intendedMode = .default
-            intendedOptions.formUnion([.allowBluetoothA2DP, .defaultToSpeaker])
+            intendedOptions.formUnion([.allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker])
         } else {
-            intendedMode = .voiceChat
             if (defaultAudioDevice == .speaker) {
                 intendedOptions.insert(.defaultToSpeaker)
             }
@@ -126,9 +129,11 @@ class InCallManager: RCTEventEmitter {
         
         // START: set the config that webrtc must use when it takes control
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
+        log("configureAudioSession: rtcConfig \(rtcConfig.category) \(rtcConfig.mode) \(rtcConfig.categoryOptions)")
         rtcConfig.category = intendedCategory.rawValue
         rtcConfig.mode = intendedMode.rawValue
         rtcConfig.categoryOptions = intendedOptions
+//        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
         // END
         
         // START: compare current audio session with intended, and update if different
@@ -136,6 +141,7 @@ class InCallManager: RCTEventEmitter {
         let currentCategory = session.category
         let currentMode = session.mode
         let currentOptions = session.categoryOptions
+        log("configureAudioSession: currentCategory \(currentCategory) \(currentMode) \(currentOptions)") 
 
         if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions {
             session.lockForConfiguration()

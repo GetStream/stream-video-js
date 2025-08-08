@@ -20,6 +20,11 @@ type AudioDeviceStatusUnparsed = {
 export type AudioRole = 'communicator' | 'listener';
 export type DefaultAudioDeviceEndpointType = 'speaker' | 'earpiece';
 
+export type StreamInCallManagerConfig = {
+  audioRole: AudioRole;
+  defaultAudioDeviceEndpointType: DefaultAudioDeviceEndpointType;
+};
+
 /**
  * Sets the audio role for the call. This should be done before calling **start()**.
  *
@@ -52,7 +57,14 @@ function setDefaultAudioDeviceEndpointType(
 /**
  * Start the in call manager.
  */
-function start() {
+function start(
+  config: StreamInCallManagerConfig = {
+    audioRole: 'communicator',
+    defaultAudioDeviceEndpointType: 'speaker',
+  },
+) {
+  setAudioRole(config.audioRole);
+  setDefaultAudioDeviceEndpointType(config.defaultAudioDeviceEndpointType);
   InCallManagerNativeModule.start();
 }
 
@@ -175,14 +187,12 @@ function logAudioState() {
 }
 
 export const InCallManager = {
-  setDefaultAudioDeviceEndpointType,
   start,
   stop,
   getAndroidAudioDeviceStatus,
   chooseAndroidAudioDeviceEndpoint,
   addAndroidAudioDeviceStatusChangeListener,
   logAudioState,
-  setAudioRole,
   muteAndroidAudioOutput,
   unmuteAndroidAudioOutput,
   showIOSAudioRoutePicker,

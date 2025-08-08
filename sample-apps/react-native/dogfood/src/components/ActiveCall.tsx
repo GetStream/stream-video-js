@@ -80,13 +80,13 @@ export const ActiveCall = ({
   useEffect(() => {
     InCallManager.start();
 
-    const timeout = setTimeout(() => {
+    const timeout = setInterval(() => {
       InCallManager.logAudioState();
     }, 10000);
 
     return () => {
       InCallManager.stop();
-      clearTimeout(timeout);
+      clearInterval(timeout);
     };
   }, []);
 
