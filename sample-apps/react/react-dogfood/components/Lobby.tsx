@@ -147,13 +147,17 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   )}
                 >
                   <div className="rd__lobby-video-preview">
-                    <VideoPreview
-                      DisabledVideoPreview={
-                        hasBrowserMediaPermission
-                          ? DisabledVideoPreview
-                          : AllowBrowserPermissions
-                      }
-                    />
+                    {settings?.video.enabled ? (
+                      <VideoPreview
+                        DisabledVideoPreview={
+                          hasBrowserMediaPermission
+                            ? DisabledVideoPreview
+                            : AllowBrowserPermissions
+                        }
+                      />
+                    ) : (
+                      <DisabledVideoPreview />
+                    )}
                     <div className="rd__lobby-media-toggle">
                       <ToggleAudioPreviewButton Menu={null} />
                       {settings?.video.enabled && (
