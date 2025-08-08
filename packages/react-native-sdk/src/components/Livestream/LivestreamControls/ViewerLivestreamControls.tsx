@@ -107,7 +107,7 @@ export const ViewerLivestreamControls = ({
   };
 
   const toggleAudio = () => {
-    const audioTrack = dominantSpeaker?.audioStream?.getAudioTracks()[0];
+    const audioTrack = dominantSpeaker?.audioStream?.getAudioTracks?.()[0];
     const shouldMute = !isMuted;
     if (shouldMute) {
       // @ts-expect-error - _setVolume is a private method of MediaStreamTrack in rn-webrtc
