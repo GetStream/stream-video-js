@@ -24,6 +24,7 @@ import {
   PauseIcon,
   PlayIcon,
 } from '../../../icons/LivestreamControls';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 /**
  * Props for the ViewerLivestreamControls component.
@@ -64,6 +65,9 @@ export const ViewerLivestreamControls = ({
   const [showPlayPauseButton, setShowPlayPauseButton] = useState(true);
   const playPauseTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  const { useDominantSpeaker } = useCallStateHooks();
+  const dominantSpeaker = useDominantSpeaker();
+
   const hidePlayPauseButtonAfterDelay = useCallback(() => {
     if (playPauseTimeout.current) {
       clearTimeout(playPauseTimeout.current);
@@ -103,7 +107,16 @@ export const ViewerLivestreamControls = ({
   };
 
   const toggleAudio = () => {
-    setIsMuted(!isMuted);
+    const audioTrack = dominantSpeaker?.audioStream?.getAudioTracks()[0];
+    const shouldMute = !isMuted;
+    if (shouldMute) {
+      // @ts-expect-error - _setVolume is a private method of MediaStreamTrack in rn-webrtc
+      audioTrack?._setVolume(0);
+    } else {
+      // @ts-expect-error -_setVolume is a private method of MediaStreamTrack in rn-webrtc
+      audioTrack?._setVolume(1);
+    }
+    setIsMuted(shouldMute);
   };
 
   const togglePlayPause = () => {
