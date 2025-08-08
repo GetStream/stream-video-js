@@ -1,8 +1,9 @@
 import {
   StreamCall,
+  InCallManager,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useEffect } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { useSetCall } from '../../hooks/useSetCall';
@@ -26,6 +27,20 @@ export const ViewLiveStreamWrapper = ({
    * We create a call using the logged in client in the app since we need to get the call live status.
    */
   const call = useSetCall(callId, 'livestream', client);
+
+  useEffect(() => {
+    InCallManager.start({
+      audioRole: 'listener',
+      defaultAudioDeviceEndpointType: 'speaker',
+    });
+    const timer = setInterval(() => {
+      InCallManager.logAudioState();
+    }, 1000);
+    return () => {
+      InCallManager.stop();
+      clearInterval(timer);
+    };
+  }, [call]);
 
   if (!call) {
     return null;

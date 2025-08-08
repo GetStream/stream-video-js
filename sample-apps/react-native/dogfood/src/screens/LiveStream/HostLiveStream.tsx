@@ -4,6 +4,7 @@ import {
   HostLivestream,
   useConnectedUser,
   useStreamVideoClient,
+  InCallManager,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -73,6 +74,17 @@ export const HostLiveStreamScreen = ({
 
     getOrCreateCall();
   }, [call, connectedUser, navigation]);
+
+  useEffect(() => {
+    InCallManager.start();
+    const timeout = setInterval(() => {
+      InCallManager.logAudioState();
+    }, 10000);
+    return () => {
+      InCallManager.stop();
+      clearInterval(timeout);
+    };
+  }, []);
 
   const CustomHostLivestreamMediaControls = useCallback(() => {
     return (
