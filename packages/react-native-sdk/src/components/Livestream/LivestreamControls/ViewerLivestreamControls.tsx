@@ -114,7 +114,7 @@ export const ViewerLivestreamControls = ({
       audioTrack?._setVolume(0);
     } else {
       // @ts-expect-error -_setVolume is a private method of MediaStreamTrack in rn-webrtc
-      audioTrack?._setVolume(1);
+      audioTrack?._setVolume(0.75);
     }
     setIsMuted(shouldMute);
   };
