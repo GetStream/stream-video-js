@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.5...@stream-io/video-react-sdk-1.19.6) (2025-08-11)
+
+### Bug Fixes
+
+- **uPDP:** respect call type camera configuration ([#1883](https://github.com/GetStream/stream-video-js/issues/1883)) ([435a32e](https://github.com/GetStream/stream-video-js/commit/435a32eccae911708e333d55e8dd32a9e4444a69))
+
 ## [1.19.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.4...@stream-io/video-react-sdk-1.19.5) (2025-08-07)
 
 ### Dependency Updates
