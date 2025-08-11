@@ -67,13 +67,17 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
     isDemoEnvironment ? getRandomName() : null,
   );
-  const displayName = displayNameOverride ?? currentUser?.name ?? '';
+  const router = useRouter();
+  const displayName =
+    displayNameOverride ??
+    currentUser?.name ??
+    (router.query['user_id'] as string | undefined) ??
+    '';
   const custom = useCallCustomData();
 
   const { t } = useI18n();
   const edges = useEdges();
 
-  const router = useRouter();
   const skipLobby =
     !!router.query['skip_lobby'] ||
     process.env.NEXT_PUBLIC_SKIP_LOBBY === 'true';
