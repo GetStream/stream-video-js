@@ -59,13 +59,16 @@ export const usePersistedDevicePreferences = (
     'idle' | 'applying' | 'applied'
   >('idle');
 
+  // when the camera is disabled on call type level, we should discard
+  // any stored camera preferences.
+  const cameraDevices = settings?.video?.enabled ? cameraState.devices : false;
   useEffect(
     function apply() {
       if (
         callingState === CallingState.LEFT ||
-        !microphoneState.devices.length ||
-        !cameraState.devices.length ||
-        !speakerState.devices ||
+        microphoneState.devices.length === 0 ||
+        (Array.isArray(cameraDevices) && cameraDevices.length === 0) ||
+        speakerState.devices.length === 0 ||
         !settings ||
         applyingState !== 'idle'
       ) {
@@ -91,7 +94,7 @@ export const usePersistedDevicePreferences = (
             ? applyLocalDevicePreference(
                 manager,
                 [preference].flat(),
-                state.devices,
+                deviceKey === 'camera' ? cameraDevices || [] : state.devices,
                 enabledInCallType,
               )
             : applyMutedState(manager, defaultMuted, enabledInCallType);
@@ -111,7 +114,7 @@ export const usePersistedDevicePreferences = (
       applyingState,
       callingState,
       cameraState,
-      cameraState.devices,
+      cameraDevices,
       key,
       microphoneState,
       microphoneState.devices,
@@ -130,7 +133,7 @@ export const usePersistedDevicePreferences = (
       for (const [deviceKey, devices, selectedDevice, isMute] of [
         [
           'camera',
-          cameraState.devices,
+          cameraDevices || [],
           cameraState.selectedDevice,
           cameraState.isMute,
         ],
@@ -161,7 +164,7 @@ export const usePersistedDevicePreferences = (
     [
       applyingState,
       callingState,
-      cameraState.devices,
+      cameraDevices,
       cameraState.isMute,
       cameraState.selectedDevice,
       key,
