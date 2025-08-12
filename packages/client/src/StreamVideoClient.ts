@@ -1,6 +1,7 @@
 import { Call } from './Call';
 import { StreamClient } from './coordinator/connection/client';
 import {
+  CallingState,
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
@@ -183,6 +184,11 @@ export class StreamVideoClient {
 
     this.eventHandlersToUnregister.push(
       this.on('call.created', (event) => {
+        if (this.shouldRejectCallWhenBusy()) {
+          this.logger('info', 'Call rejected because user is busy');
+          return;
+        }
+
         const { call, members } = event;
         if (this.state.connectedUser?.id === call.created_by.id) {
           this.logger(
@@ -230,6 +236,13 @@ export class StreamVideoClient {
             clientStore: this.writeableStateStore,
             ringing: true,
           });
+
+          if (this.shouldRejectCallWhenBusy()) {
+            await newCallInstance.reject('busy');
+            // do not register the call as it is rejected
+            return;
+          }
+
           await newCallInstance.get();
         }
       }),
@@ -560,6 +573,15 @@ export class StreamVideoClient {
   };
 
   /**
+   * Sets whether to reject incoming calls when the user is already busy in another call.
+   *
+   * @param shouldReject - true to reject calls when busy, false to allow multiple calls
+   */
+  setShouldRejectWhenBusy = (shouldReject: boolean): void => {
+    this.streamClient.shouldRejectCallWhenBusy = shouldReject;
+  };
+
+  /**
    * Connects the given anonymous user to the client.
    *
    * @param user the user to connect.
@@ -572,5 +594,14 @@ export class StreamVideoClient {
     return withoutConcurrency(this.connectionConcurrencyTag, () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );
+  };
+
+  private shouldRejectCallWhenBusy = () => {
+    if (!this.streamClient.shouldRejectCallWhenBusy) return false;
+
+    const hasJoinedCall = this.state.calls.some(
+      (c) => c.state.callingState === CallingState.JOINED,
+    );
+    return hasJoinedCall;
   };
 }

@@ -73,6 +73,7 @@ export class StreamClient {
   rejectConnectionId?: Function;
   private connectionIdPromiseSafe?: SafePromise<string | undefined>;
   guestUserCreatePromise?: Promise<CreateGuestResponse>;
+  shouldRejectCallWhenBusy?: boolean;
 
   /**
    * Initialize a client.
@@ -149,6 +150,9 @@ export class StreamClient {
     this.consecutiveFailures = 0;
 
     this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
+
+    this.shouldRejectCallWhenBusy =
+      this.options.shouldRejectCallWhenBusy ?? false;
 
     this.logger = isFunction(inputOptions.logger)
       ? inputOptions.logger

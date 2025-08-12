@@ -43,6 +43,11 @@ export const RejectCallWhenBusy = () => {
   const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
 
   useEffect(() => {
+    if (!client) return;
+    client.setShouldRejectWhenBusy(shouldRejectCallWhenBusy ?? false);
+  }, [client, shouldRejectCallWhenBusy]);
+
+  useEffect(() => {
     // android rejection is done in android's firebaseDataHandler
     if (Platform.OS === 'android') return;
     if (!shouldRejectCallWhenBusy) return;

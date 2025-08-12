@@ -7,7 +7,6 @@ import {
   RingingCallContent,
   StreamCall,
   useCalls,
-  StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
 import { StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -26,17 +25,7 @@ const Calls = () => {
   const { top } = useSafeAreaInsets();
   const orientation = useOrientation();
 
-  const pushConfig = StreamVideoRN.getConfig().push;
-  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
-
-  let joinedCalls = null;
-  if (shouldRejectCallWhenBusy && calls.length > 1) {
-    joinedCalls = calls.filter(
-      (c) => c.state.callingState === CallingState.JOINED,
-    );
-  }
-
-  const firstCall = joinedCalls ? joinedCalls[0] : calls[0];
+  const firstCall = calls[0];
 
   if (!firstCall) {
     return null;

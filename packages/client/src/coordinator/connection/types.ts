@@ -216,6 +216,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * @param allErrors all errors.
    */
   onConnectUserError?: (lastError: Error, allErrors: Error[]) => void;
+
+  /**
+   * Whether to reject calls when the user is busy.
+   */
+  shouldRejectCallWhenBusy?: boolean;
 };
 
 export type ClientAppIdentifier = {
