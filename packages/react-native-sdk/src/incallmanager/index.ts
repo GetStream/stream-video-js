@@ -147,7 +147,7 @@ function parseAudioDeviceStatus(
  */
 async function getAndroidAudioDeviceStatus() {
   if (Platform.OS !== 'android') {
-    logger('warn', 'gettAndroidAudioDeviceStatus is supported only on Android');
+    logger('warn', 'getAndroidAudioDeviceStatus is supported only on Android');
     return;
   }
   const audioDeviceStatus: AudioDeviceStatus = parseAudioDeviceStatus(
