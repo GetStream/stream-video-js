@@ -600,7 +600,7 @@ export class StreamVideoClient {
     if (!this.streamClient.shouldRejectCallWhenBusy) return false;
 
     const hasJoinedCall = this.state.calls.some(
-      (c) => c.state.callingState === CallingState.JOINED,
+      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
     );
     return hasJoinedCall;
   };
