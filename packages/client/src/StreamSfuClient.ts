@@ -274,6 +274,7 @@ export class StreamSfuClient {
     this.signalWs = createWebSocketSignalChannel({
       tag: this.tag,
       endpoint: `${this.credentials.server.ws_endpoint}?${new URLSearchParams(params).toString()}`,
+      tracer: this.tracer,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
@@ -285,10 +286,14 @@ export class StreamSfuClient {
       },
     });
 
+    let timeoutId: NodeJS.Timeout;
     this.signalReady = makeSafePromise(
       Promise.race<WebSocket>([
         new Promise((resolve, reject) => {
+          let didOpen = false;
           const onOpen = () => {
+            didOpen = true;
+            clearTimeout(timeoutId);
             this.signalWs.removeEventListener('open', onOpen);
             resolve(this.signalWs);
           };
@@ -298,26 +303,26 @@ export class StreamSfuClient {
           this.signalWs.addEventListener('close', (e) => {
             this.handleWebSocketClose(e);
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
-            // before emitting 'open'. However, strager things have happened, and we don't
-            // want to leave signalReady in pending state.
-            reject(
-              new Error(`SFU WS closed or connection can't be established`),
-            );
+            // before emitting 'open'. However, stranger things have happened, and we don't
+            // want to leave signalReady in a pending state.
+            const message = didOpen
+              ? `SFU WS closed: ${e.code} ${e.reason}`
+              : `SFU WS connection can't be established: ${e.code} ${e.reason}`;
+            this.tracer?.trace('signal.close', message);
+            clearTimeout(timeoutId);
+            reject(new Error(message));
           });
         }),
 
         new Promise((resolve, reject) => {
-          setTimeout(
-            () => reject(new Error('SFU WS connection timed out')),
-            this.joinResponseTimeout,
-          );
+          timeoutId = setTimeout(() => {
+            const message = `SFU WS connection failed to open after ${this.joinResponseTimeout}ms`;
+            this.tracer?.trace('signal.timeout', message);
+            reject(new Error(message));
+          }, this.joinResponseTimeout);
         }),
       ]),
     );
-  };
-
-  private cleanUpWebSocket = () => {
-    this.signalWs.removeEventListener('close', this.handleWebSocketClose);
   };
 
   get isHealthy() {
@@ -343,7 +348,7 @@ export class StreamSfuClient {
     if (this.signalWs.readyState === WebSocket.OPEN) {
       this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
-      this.cleanUpWebSocket();
+      this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     }
     this.dispose();
   };

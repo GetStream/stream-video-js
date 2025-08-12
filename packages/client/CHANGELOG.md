@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.2...@stream-io/video-client-1.27.3) (2025-08-07)
+
+### Bug Fixes
+
+- extended telemetry data for the signal websocket ([#1881](https://github.com/GetStream/stream-video-js/issues/1881)) ([984703d](https://github.com/GetStream/stream-video-js/commit/984703dabb8c6189eaf4d6925421568f6d0fd7fc))
+
 ## [1.27.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.1...@stream-io/video-client-1.27.2) (2025-08-05)
 
 ### Bug Fixes

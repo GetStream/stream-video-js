@@ -53,7 +53,8 @@ export const getServerSideCredentialsPropsWithOptions =
     const userIdOverride =
       query.token &&
       (decodeToken(query.token)['user_id'] as string | undefined);
-    const userId = userIdOverride || session.user?.streamUserId;
+    const userId =
+      userIdOverride || query.user_id || session.user?.streamUserId;
 
     if (!userId) {
       return {

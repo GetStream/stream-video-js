@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.5...@stream-io/video-react-sdk-1.19.6) (2025-08-11)
+
+### Bug Fixes
+
+- **uPDP:** respect call type camera configuration ([#1883](https://github.com/GetStream/stream-video-js/issues/1883)) ([435a32e](https://github.com/GetStream/stream-video-js/commit/435a32eccae911708e333d55e8dd32a9e4444a69))
+
+## [1.19.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.4...@stream-io/video-react-sdk-1.19.5) (2025-08-07)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.27.3`
+- `@stream-io/video-react-bindings` updated to version `1.7.12`
+
+## [1.19.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.3...@stream-io/video-react-sdk-1.19.4) (2025-08-06)
+
+### Bug Fixes
+
+- respect call type settings when applying persisted device preferеnces ([#1879](https://github.com/GetStream/stream-video-js/issues/1879)) ([4d1352d](https://github.com/GetStream/stream-video-js/commit/4d1352d74f4bd1a6e926abc16c86f3f260942cf0))
+
 ## [1.19.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.2...@stream-io/video-react-sdk-1.19.3) (2025-08-05)
 
 ### Dependency Updates

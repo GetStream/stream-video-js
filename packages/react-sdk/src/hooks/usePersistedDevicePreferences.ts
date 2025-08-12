@@ -59,13 +59,16 @@ export const usePersistedDevicePreferences = (
     'idle' | 'applying' | 'applied'
   >('idle');
 
+  // when the camera is disabled on call type level, we should discard
+  // any stored camera preferences.
+  const cameraDevices = settings?.video?.enabled ? cameraState.devices : false;
   useEffect(
     function apply() {
       if (
         callingState === CallingState.LEFT ||
-        !microphoneState.devices.length ||
-        !cameraState.devices.length ||
-        !speakerState.devices ||
+        microphoneState.devices.length === 0 ||
+        (Array.isArray(cameraDevices) && cameraDevices.length === 0) ||
+        speakerState.devices.length === 0 ||
         !settings ||
         applyingState !== 'idle'
       ) {
@@ -75,10 +78,11 @@ export const usePersistedDevicePreferences = (
       setApplyingState('applying');
 
       (async () => {
-        for (const [deviceKey, state, defaultMuted] of [
-          ['microphone', microphoneState, !settings.audio.mic_default_on],
-          ['camera', cameraState, !settings.video.camera_default_on],
-          ['speaker', speakerState, false],
+        const { audio, video } = settings;
+        for (const [deviceKey, state, defaultMuted, enabledInCallType] of [
+          ['microphone', microphoneState, !audio.mic_default_on, true],
+          ['camera', cameraState, !video.camera_default_on, video.enabled],
+          ['speaker', speakerState, false, true],
         ] as const) {
           const preferences = parseLocalDevicePreferences(key);
           const preference = preferences[deviceKey];
@@ -90,9 +94,10 @@ export const usePersistedDevicePreferences = (
             ? applyLocalDevicePreference(
                 manager,
                 [preference].flat(),
-                state.devices,
+                deviceKey === 'camera' ? cameraDevices || [] : state.devices,
+                enabledInCallType,
               )
-            : applyMutedState(manager, defaultMuted);
+            : applyMutedState(manager, defaultMuted, enabledInCallType);
 
           await applyPromise.catch((err) => {
             console.warn(
@@ -109,7 +114,7 @@ export const usePersistedDevicePreferences = (
       applyingState,
       callingState,
       cameraState,
-      cameraState.devices,
+      cameraDevices,
       key,
       microphoneState,
       microphoneState.devices,
@@ -128,7 +133,7 @@ export const usePersistedDevicePreferences = (
       for (const [deviceKey, devices, selectedDevice, isMute] of [
         [
           'camera',
-          cameraState.devices,
+          cameraDevices || [],
           cameraState.selectedDevice,
           cameraState.isMute,
         ],
@@ -159,7 +164,7 @@ export const usePersistedDevicePreferences = (
     [
       applyingState,
       callingState,
-      cameraState.devices,
+      cameraDevices,
       cameraState.isMute,
       cameraState.selectedDevice,
       key,
@@ -327,6 +332,7 @@ const applyLocalDevicePreference = async (
   manager: DeviceManagerLike,
   preference: LocalDevicePreference[],
   devices: MediaDeviceInfo[],
+  enabledInCallType: boolean,
 ): Promise<void> => {
   let muted: boolean | undefined;
 
@@ -352,12 +358,16 @@ const applyLocalDevicePreference = async (
   }
 
   if (typeof muted === 'boolean') {
-    await applyMutedState(manager, muted);
+    await applyMutedState(manager, muted, enabledInCallType);
   }
 };
 
-const applyMutedState = async (manager: DeviceManagerLike, muted: boolean) => {
-  if (!manager.state.status) {
+const applyMutedState = async (
+  manager: DeviceManagerLike,
+  muted: boolean,
+  enabledInCallType: boolean,
+) => {
+  if (enabledInCallType && !manager.state.status) {
     await manager[muted ? 'disable' : 'enable']?.();
   }
 };
