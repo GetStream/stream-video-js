@@ -206,6 +206,8 @@ class InCallManager: RCTEventEmitter {
           Output Port: \(session.currentRoute.outputs.first?.portName ?? "N/A")
           Input Port: \(session.currentRoute.inputs.first?.portName ?? "N/A")
           Category Options: \(session.categoryOptions)
+          InputNumberOfChannels: \(session.inputNumberOfChannels)
+          OutputNumberOfChannels: \(session.outputNumberOfChannels)
         """
         log(logString)
     }
