@@ -44,7 +44,7 @@ export const RejectCallWhenBusy = () => {
 
   useEffect(() => {
     if (!client) return;
-    client.setShouldRejectWhenBusy(shouldRejectCallWhenBusy ?? false);
+    client.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy ?? false);
   }, [client, shouldRejectCallWhenBusy]);
 
   useEffect(() => {

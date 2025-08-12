@@ -239,7 +239,7 @@ export class StreamVideoClient {
 
           if (this.shouldRejectCallWhenBusy()) {
             await newCallInstance.reject('busy');
-            // do not register the call as it is rejected
+            this.logger('info', 'Call rejected because user is busy');
             return;
           }
 
@@ -577,7 +577,7 @@ export class StreamVideoClient {
    *
    * @param shouldReject - true to reject calls when busy, false to allow multiple calls
    */
-  setShouldRejectWhenBusy = (shouldReject: boolean): void => {
+  setShouldRejectCallWhenBusy = (shouldReject: boolean): void => {
     this.streamClient.shouldRejectCallWhenBusy = shouldReject;
   };
 
