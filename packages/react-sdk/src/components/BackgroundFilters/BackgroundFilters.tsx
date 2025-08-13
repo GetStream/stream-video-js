@@ -360,8 +360,8 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
           className="str-video__background-filters__background-image"
           alt="Background"
           ref={bgImageRef}
-          src={backgroundImage}
           crossOrigin="anonymous"
+          src={backgroundImage}
           {...videoSize}
         />
       )}
