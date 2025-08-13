@@ -14,6 +14,7 @@ import {
   useIsInPiPMode,
   useTheme,
   useToggleCallRecording,
+  InCallManager,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
@@ -75,6 +76,19 @@ export const ActiveCall = ({
       });
     });
   }, [call]);
+
+  useEffect(() => {
+    InCallManager.start();
+
+    const timeout = setInterval(() => {
+      InCallManager.logAudioState();
+    }, 10000);
+
+    return () => {
+      InCallManager.stop();
+      clearInterval(timeout);
+    };
+  }, []);
 
   useEffect(() => {
     const unsub = call?.on('call.moderation_blur', () => {
