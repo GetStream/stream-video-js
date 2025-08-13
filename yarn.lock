@@ -5140,19 +5140,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.37.1":
-  version: 1.37.1
-  resolution: "@playwright/test@npm:1.37.1"
+"@playwright/test@npm:^1.54.2":
+  version: 1.54.2
+  resolution: "@playwright/test@npm:1.54.2"
   dependencies:
-    "@types/node": "npm:*"
-    fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.37.1"
-  dependenciesMeta:
-    fsevents:
-      optional: true
+    playwright: "npm:1.54.2"
   bin:
     playwright: cli.js
-  checksum: 10/c445f4a590cf5a980e37ed020a8a9020a490d513590bb4d79b24034c7f76add1e540762e313f50376f988ec7d5007542788b53866b957fb84d4359abf814ff30
+  checksum: 10/33d6c0780ef6cca12c008cae166ba06978ae975138a1654e14cd8691ad7826dbbc03e492ed42c65889c44ca893d0fd47d8ae4dc8d824020d7f767260b395dc6b
   languageName: node
   linkType: hard
 
@@ -6780,7 +6775,7 @@ __metadata:
   resolution: "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
-    "@playwright/test": "npm:^1.37.1"
+    "@playwright/test": "npm:^1.54.2"
     "@sentry/react": "npm:^8.55.0"
     "@sentry/vite-plugin": "npm:^2.23.0"
     "@stream-io/video-react-sdk": "workspace:^"
@@ -19346,12 +19341,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.37.1":
-  version: 1.37.1
-  resolution: "playwright-core@npm:1.37.1"
+"playwright-core@npm:1.54.2":
+  version: 1.54.2
+  resolution: "playwright-core@npm:1.54.2"
   bin:
     playwright-core: cli.js
-  checksum: 10/9db000892cbe330d5e047e78de11febf53f708bcd8bacaf727eceedb57d67abc7a74e6bb793dabce13b420da8896e6fef840ba1bb9ace2dac3ade3b81f801502
+  checksum: 10/8eb8b37d7b02c2394f85567c5703464ee7c85929e1de7118946548a0277cacd41a6f247b8f7eb50c921433346f785356eff8132a9d3c6c2dcf3402c6a83e4f18
+  languageName: node
+  linkType: hard
+
+"playwright@npm:1.54.2":
+  version: 1.54.2
+  resolution: "playwright@npm:1.54.2"
+  dependencies:
+    fsevents: "npm:2.3.2"
+    playwright-core: "npm:1.54.2"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    playwright: cli.js
+  checksum: 10/3f4fedc1e2290b6da6960eedf0d78b9097251848b499b0627186ca85e94178fe6be1590c4926246ff4dad5729fc80ab63fee6554fe736d29c0a1808ec483467f
   languageName: node
   linkType: hard
 
