@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.3...@stream-io/video-client-1.27.4) (2025-08-13)
+
+### Bug Fixes
+
+- expose isSupportedBrowser() utility ([#1859](https://github.com/GetStream/stream-video-js/issues/1859)) ([f51a434](https://github.com/GetStream/stream-video-js/commit/f51a4341f57407210ab2e9ba57f41818ddbd7ed9))
+
 ## [1.27.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.2...@stream-io/video-client-1.27.3) (2025-08-07)
 
 ### Bug Fixes
