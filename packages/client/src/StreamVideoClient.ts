@@ -5,6 +5,8 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import type {
+  CallCreatedEvent,
+  CallRingEvent,
   ConnectedEvent,
   CreateDeviceRequest,
   CreateGuestRequest,
@@ -181,57 +183,63 @@ export class StreamVideoClient {
       }),
     );
 
+    const initCallFromEvent = async (
+      e: CallCreatedEvent | CallRingEvent,
+      ringing: boolean,
+    ) => {
+      await withoutConcurrency(`call.init-${e.call_cid}`, async () => {
+        let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
+        if (call) {
+          if (ringing) {
+            await call.updateFromRingingEvent(e as CallRingEvent);
+          } else {
+            call.state.updateFromCallResponse(e.call);
+          }
+          return;
+        }
+
+        call = new Call({
+          streamClient: this.streamClient,
+          type: e.call.type,
+          id: e.call.id,
+          members: e.members,
+          clientStore: this.writeableStateStore,
+          ringing,
+        });
+        call.state.updateFromCallResponse(e.call);
+
+        if (ringing) {
+          await call.get();
+        } else {
+          this.writeableStateStore.registerCall(call);
+          this.logger('info', `New call created and registered: ${call.cid}`);
+        }
+      });
+    };
+
     this.eventHandlersToUnregister.push(
-      this.on('call.created', (event) => {
-        const { call, members } = event;
-        if (this.state.connectedUser?.id === call.created_by.id) {
+      this.on('call.created', async (event) => {
+        if (this.state.connectedUser?.id === event.call.created_by.id) {
           this.logger(
-            'warn',
+            'debug',
             'Received `call.created` sent by the current user',
           );
           return;
         }
-        this.logger('info', `New call created and registered: ${call.cid}`);
-        const newCall = new Call({
-          streamClient: this.streamClient,
-          type: call.type,
-          id: call.id,
-          members,
-          clientStore: this.writeableStateStore,
-        });
-        newCall.state.updateFromCallResponse(call);
-        this.writeableStateStore.registerCall(newCall);
+        await initCallFromEvent(event, false);
       }),
     );
 
     this.eventHandlersToUnregister.push(
       this.on('call.ring', async (event) => {
-        const { call, members } = event;
-        if (this.state.connectedUser?.id === call.created_by.id) {
+        if (this.state.connectedUser?.id === event.call.created_by.id) {
           this.logger(
             'debug',
             'Received `call.ring` sent by the current user so ignoring the event',
           );
           return;
         }
-        // if `call.created` was received before `call.ring`.
-        // the client already has the call instance and we just need to update the state
-        const theCall = this.writeableStateStore.findCall(call.type, call.id);
-        if (theCall) {
-          await theCall.updateFromRingingEvent(event);
-        } else {
-          // if client doesn't have the call instance, create the instance and fetch the latest state
-          // Note: related - we also have onRingingCall method to handle this case from push notifications
-          const newCallInstance = new Call({
-            streamClient: this.streamClient,
-            type: call.type,
-            id: call.id,
-            members,
-            clientStore: this.writeableStateStore,
-            ringing: true,
-          });
-          await newCallInstance.get();
-        }
+        await initCallFromEvent(event, true);
       }),
     );
 
@@ -360,6 +368,7 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call.
+   * @param options additional options for call creation.
    */
   call = (
     type: string,
