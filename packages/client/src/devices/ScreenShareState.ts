@@ -5,6 +5,7 @@ import { RxUtils } from '../store';
 
 export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaStreamOptions> {
   private audioEnabledSubject = new BehaviorSubject<boolean>(true);
+  private hifiEnabledSubject = new BehaviorSubject<boolean>(false);
   private settingsSubject = new BehaviorSubject<
     ScreenShareSettings | undefined
   >(undefined);
@@ -13,6 +14,13 @@ export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaS
    * An Observable that emits the current screen share audio status.
    */
   audioEnabled$ = this.audioEnabledSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
+
+  /**
+   * An Observable that emits the current screen share audio hifi status.
+   */
+  hifiEnabled$ = this.hifiEnabledSubject
     .asObservable()
     .pipe(distinctUntilChanged());
 
@@ -43,6 +51,22 @@ export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaS
    */
   setAudioEnabled(isEnabled: boolean) {
     RxUtils.setCurrentValue(this.audioEnabledSubject, isEnabled);
+  }
+
+  get hifiEnabled() {
+    return RxUtils.getCurrentValue(this.hifiEnabled$);
+  }
+
+  setHifiEnabled(isEnabled: boolean) {
+    this.setDefaultConstraints({
+      audio: {
+        autoGainControl: !isEnabled,
+        echoCancellation: !isEnabled,
+        noiseSuppression: !isEnabled,
+        channelCount: { ideal: 2 },
+      },
+    });
+    RxUtils.setCurrentValue(this.hifiEnabledSubject, isEnabled);
   }
 
   /**

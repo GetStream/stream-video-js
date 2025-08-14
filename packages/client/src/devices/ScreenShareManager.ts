@@ -6,6 +6,7 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
+import { withHifiAudio } from './hifi';
 
 export class ScreenShareManager extends InputMediaDeviceManager<
   ScreenShareState,
@@ -23,6 +24,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 
         if (maybeTargetResolution) {
           this.setDefaultConstraints({
+            ...this.state.defaultConstraints,
             video: {
               width: maybeTargetResolution.width,
               height: maybeTargetResolution.height,
@@ -51,6 +53,14 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     if (this.call.publisher?.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
       await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO);
     }
+  }
+
+  enableHiFi() {
+    this.state.setHifiEnabled(true);
+  }
+
+  disableHiFi() {
+    this.state.setHifiEnabled(false);
   }
 
   /**
@@ -89,7 +99,9 @@ export class ScreenShareManager extends InputMediaDeviceManager<
       );
       track.contentHint = contentHint;
     }
-    return stream;
+    return this.state.hifiEnabled && this.state.audioEnabled
+      ? withHifiAudio(stream)
+      : stream;
   }
 
   protected override async stopPublishStream(): Promise<void> {
