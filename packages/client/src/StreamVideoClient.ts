@@ -208,6 +208,15 @@ export class StreamVideoClient {
         let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
+            if (this.shouldRejectCall(call.cid)) {
+              this.logger(
+                'info',
+                `Rejecting call ${call.cid} because user is busy`,
+              );
+              await call.leave({ reject: true, reason: 'busy' });
+              return;
+            }
+
             await call.updateFromRingingEvent(e as CallRingEvent);
           } else {
             call.state.updateFromCallResponse(e.call);
@@ -226,6 +235,14 @@ export class StreamVideoClient {
         call.state.updateFromCallResponse(e.call);
 
         if (ringing) {
+          if (this.shouldRejectCall(call.cid)) {
+            this.logger(
+              'info',
+              `Rejecting call ${call.cid} because user is busy`,
+            );
+            await call.leave({ reject: true, reason: 'busy' });
+            return;
+          }
           await call.get();
         } else {
           this.writeableStateStore.registerCall(call);
