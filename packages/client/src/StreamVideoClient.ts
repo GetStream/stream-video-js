@@ -165,6 +165,8 @@ export class StreamVideoClient {
     if (this.effectsRegistered) return;
 
     this.eventHandlersToUnregister.push(
+      this.on('call.created', (event) => this.initCallFromEvent(event)),
+      this.on('call.ring', (event) => this.initCallFromEvent(event)),
       this.on('connection.changed', (event) => {
         if (!event.online) return;
 
@@ -182,11 +184,6 @@ export class StreamVideoClient {
           this.logger('error', 'Failed to re-watch calls', err);
         });
       }),
-    );
-
-    this.eventHandlersToUnregister.push(
-      this.on('call.created', (event) => this.initCallFromEvent(event)),
-      this.on('call.ring', (event) => this.initCallFromEvent(event)),
     );
 
     this.effectsRegistered = true;
