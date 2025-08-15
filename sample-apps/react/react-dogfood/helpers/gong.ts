@@ -34,35 +34,44 @@ export async function uploadCallRecording(
     return;
   }
 
+  const body = JSON.stringify({
+    title: call.custom.name ?? 'Pronto Sales Call',
+    clientUniqueId: recordingId,
+    actualStart: startTime,
+    primaryUser,
+    downloadMediaUrl: event.call_recording.url,
+    parties: members.map((member) =>
+      member === primaryMember
+        ? {
+            userId: primaryUser,
+            name: primaryMember.user.name,
+            emailAddress: primaryMember.user.custom.email,
+          }
+        : { name: member.user.name },
+    ),
+    direction: 'Outbound',
+  });
   const res = await fetch(`${process.env.GONG_BASE_URL}/v2/calls`, {
     method: 'POST',
-    body: JSON.stringify({
-      title: call.custom.name ?? 'Pronto Sales Call',
-      clientUniqueId: recordingId,
-      actualStart: startTime,
-      primaryUser,
-      downloadMediaUrl: event.call_recording.url,
-      parties: members.map((member) =>
-        member === primaryMember
-          ? {
-              userId: primaryUser,
-              name: primaryMember.user.name,
-              emailAddress: primaryMember.user.custom.email,
-            }
-          : { name: member.user.name },
-      ),
-      direction: 'Outbound',
-    }),
     headers: {
       Authorization: basicAuth,
       'Content-Type': 'application/json',
     },
+    body,
   });
 
   if (res.status !== 200) {
     console.error(
       `Could not upload recording for call ${event.call_cid}`,
       await res.json(),
+    );
+    console.warn(
+      `To retry uploading manually after the problem is fixed:
+POST ${process.env.GONG_BASE_URL}/v2/calls
+Authentication: Basic ***
+Content-Type: application/json
+
+${body}`,
     );
     return;
   }

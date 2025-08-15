@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.6...@stream-io/video-react-sdk-1.19.7) (2025-08-13)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.27.4`
+- `@stream-io/video-react-bindings` updated to version `1.7.13`
+
+### Bug Fixes
+
+- apply the crossorigin attribute before applying src ([#1886](https://github.com/GetStream/stream-video-js/issues/1886)) ([32f82a2](https://github.com/GetStream/stream-video-js/commit/32f82a24cb494e97c1ca2dee1b45a5da80a590d7))
+
 ## [1.19.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.5...@stream-io/video-react-sdk-1.19.6) (2025-08-11)
 
 ### Bug Fixes
