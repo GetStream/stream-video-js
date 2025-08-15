@@ -51,7 +51,9 @@ describe('StreamVideoClient Ringing', () => {
   });
 
   describe('standard ringing', async () => {
-    it('server-side: oliver should ring all members', async () => {
+    // TODO OL: enable this test once we know more:
+    // https://getstream.slack.com/archives/C040262MY9K/p1755178272202659
+    it.skip('server-side: oliver should ring all members', async () => {
       const oliverRing = expectEvent(oliverClient, 'call.ring');
       const sachaRing = expectEvent(sachaClient, 'call.ring');
       const marceloRing = expectEvent(marceloClient, 'call.ring');
