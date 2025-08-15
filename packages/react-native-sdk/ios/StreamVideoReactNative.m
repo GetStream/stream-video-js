@@ -3,8 +3,6 @@
 
 @interface RCT_EXTERN_MODULE(StreamVideoReactNative, RCTEventEmitter)
 
-RCT_EXTERN_METHOD(showAudioRoutePicker)
-
 RCT_EXTERN_METHOD(isLowPowerModeEnabled:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
