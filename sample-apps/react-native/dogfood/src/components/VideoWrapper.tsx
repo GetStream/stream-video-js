@@ -45,6 +45,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
+    let unsubscribeCallRejected: (() => void) | undefined;
     const run = async () => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id: user.id }, appEnvironment);
@@ -77,19 +78,18 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         },
       });
 
-      _videoClient.on('call.rejected', async (event) => {
-        const callCid = event.call_cid;
-        const callId = callCid.split(':')[1];
-        const rejectedCall = _videoClient?.call('default', callId);
-        await rejectedCall?.getOrCreate();
+      unsubscribeCallRejected = _videoClient?.on(
+        'call.rejected',
+        async (event) => {
+          const isCallCreatedByMe =
+            event.call.created_by.id === _videoClient?.state.connectedUser?.id;
+          const isCalleeBusy = isCallCreatedByMe && event.reason === 'busy';
 
-        const isCalleeBusy =
-          rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
-
-        if (isCalleeBusy) {
-          Alert.alert('Call rejected because user is busy.');
-        }
-      });
+          if (isCalleeBusy) {
+            Alert.alert('Call rejected because user is busy.');
+          }
+        },
+      );
 
       setVideoClient(_videoClient);
     };
@@ -98,6 +98,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     }
 
     return () => {
+      unsubscribeCallRejected?.();
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };

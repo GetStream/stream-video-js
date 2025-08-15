@@ -77,6 +77,7 @@ export const processCallFromPushInBackground = async (
 
   try {
     videoClient = await pushConfig.createStreamVideoClient();
+    videoClient?.isValid();
     if (!videoClient) {
       return;
     }

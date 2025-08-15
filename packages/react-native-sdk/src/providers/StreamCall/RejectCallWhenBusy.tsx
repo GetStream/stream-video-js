@@ -23,15 +23,9 @@ export const RejectCallWhenBusy = () => {
       // before calling the stop method with busy tone we need to start the call first.
       InCallManager.start({ media: 'audio' });
 
-      const callCid = event.call_cid;
-      const callId = callCid.split(':')[1];
-      if (!callId) return;
-
-      const rejectedCall = client?.call(event.call.type, callId);
-      await rejectedCall?.getOrCreate();
-
-      const isCalleeBusy =
-        rejectedCall && rejectedCall.isCreatedByMe && event.reason === 'busy';
+      const isCallCreatedByMe =
+        event.call.created_by.id === client.state.connectedUser?.id;
+      const isCalleeBusy = isCallCreatedByMe && event.reason === 'busy';
 
       if (isCalleeBusy) {
         InCallManager.stop({ busytone: '_DTMF_' });
@@ -52,9 +46,15 @@ export const RejectCallWhenBusy = () => {
     if (Platform.OS === 'android') return;
     if (!shouldRejectCallWhenBusy) return;
 
-    const ringingCallsInProgress = calls.filter(
-      (c) => c.ringing && c.state.callingState === CallingState.JOINED,
-    );
+    const ringingCallsInProgress = calls.filter((c) => {
+      return (
+        c.ringing &&
+        c.state.callingState !== CallingState.RINGING &&
+        c.state.callingState !== CallingState.IDLE &&
+        c.state.callingState !== CallingState.LEFT &&
+        c.state.callingState !== CallingState.RECONNECTING_FAILED
+      );
+    });
     const callsForRejection = calls.filter(
       (c) => c.ringing && c.state.callingState === CallingState.RINGING,
     );

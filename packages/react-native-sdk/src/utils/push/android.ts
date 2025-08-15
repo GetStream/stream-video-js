@@ -172,12 +172,19 @@ export const firebaseDataHandler = async (
     const shouldRejectCallWhenBusy = pushConfig.shouldRejectCallWhenBusy;
 
     const video_client = await pushConfig.createStreamVideoClient();
+    video_client?.isValid();
     if (video_client && shouldRejectCallWhenBusy) {
       try {
         const calls = video_client.state.calls;
-        const ringingCallsInProgress = calls.filter(
-          (c) => c.ringing && c.state.callingState === CallingState.JOINED,
-        );
+        const ringingCallsInProgress = calls.filter((c) => {
+          return (
+            c.ringing &&
+            c.state.callingState !== CallingState.RINGING &&
+            c.state.callingState !== CallingState.IDLE &&
+            c.state.callingState !== CallingState.LEFT &&
+            c.state.callingState !== CallingState.RECONNECTING_FAILED
+          );
+        });
 
         if (ringingCallsInProgress.length > 0) {
           getLogger(['firebaseDataHandler'])(
