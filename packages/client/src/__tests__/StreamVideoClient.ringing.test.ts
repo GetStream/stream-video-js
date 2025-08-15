@@ -1,18 +1,13 @@
 import 'dotenv/config';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  getCallInitConcurrencyTag,
-  StreamVideoClient,
-} from '../StreamVideoClient';
+import { StreamVideoClient } from '../StreamVideoClient';
 import { StreamClient } from '@stream-io/node-sdk';
-import {
-  AllClientEvents,
-  StreamVideoEvent,
-} from '../coordinator/connection/types';
-import { CallingState, RxUtils } from '../store';
+import { StreamVideoEvent } from '../coordinator/connection/types';
+import { CallingState } from '../store';
 import { settled } from '../helpers/concurrency';
-import { Call } from '../Call';
+import { getCallInitConcurrencyTag } from '../helpers/clientUtils';
 import { CallCreatedPayload, CallRingPayload } from './data';
+import { expectCall, expectEvent } from './clientTestUtils';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -170,51 +165,3 @@ describe('StreamVideoClient Ringing', () => {
     });
   });
 });
-
-const expectEvent = async <E extends keyof AllClientEvents>(
-  client: StreamVideoClient,
-  eventName: E,
-  timeout: number = 2500,
-): Promise<AllClientEvents[E]> => {
-  return new Promise<AllClientEvents[E]>((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout | undefined = undefined;
-    const off = client.on(eventName, (e) => {
-      off();
-      clearTimeout(timeoutId);
-      resolve(e);
-    });
-    timeoutId = setTimeout(() => {
-      off();
-      reject(
-        new Error(
-          `Timeout waiting for event: ${eventName}, user_id: ${client.state.connectedUser?.id}`,
-        ),
-      );
-    }, timeout);
-  });
-};
-
-const expectCall = async (
-  client: StreamVideoClient,
-  cid: string,
-  timeout: number = 2500,
-) => {
-  return new Promise<Call>((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout | undefined = undefined;
-    const off = RxUtils.createSubscription(client.state.calls$, (calls) => {
-      const call = calls.find((c) => c.cid === cid);
-      if (call) {
-        clearTimeout(timeoutId);
-        resolve(call);
-      }
-    });
-    timeoutId = setTimeout(() => {
-      off();
-      reject(
-        new Error(
-          `Timeout waiting for call: ${cid}, user_id: ${client.state.connectedUser?.id}`,
-        ),
-      );
-    }, timeout);
-  });
-};

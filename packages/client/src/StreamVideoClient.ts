@@ -34,6 +34,7 @@ import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
   createTokenOrProvider,
+  getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
 import { getLogger, logToConsole, setLogger } from './logger';
@@ -183,12 +184,28 @@ export class StreamVideoClient {
       }),
     );
 
-    const initCallFromEvent = async (
-      e: CallCreatedEvent | CallRingEvent,
-      ringing: boolean,
-    ) => {
-      const tag = getCallInitConcurrencyTag(e.call_cid);
-      await withoutConcurrency(tag, async () => {
+    this.eventHandlersToUnregister.push(
+      this.on('call.created', (event) => this.initCallFromEvent(event)),
+      this.on('call.ring', (event) => this.initCallFromEvent(event)),
+    );
+
+    this.effectsRegistered = true;
+  };
+
+  /**
+   * Initializes a call from a call created or ringing event.
+   * @param e the event.
+   */
+  private initCallFromEvent = async (e: CallCreatedEvent | CallRingEvent) => {
+    if (this.state.connectedUser?.id === e.call.created_by.id) {
+      this.logger('debug', `Ignoring ${e.type} event sent by the current user`);
+      return;
+    }
+
+    try {
+      const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
+      await withoutConcurrency(concurrencyTag, async () => {
+        const ringing = e.type === 'call.ring';
         let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
@@ -216,35 +233,9 @@ export class StreamVideoClient {
           this.logger('info', `New call created and registered: ${call.cid}`);
         }
       });
-    };
-
-    this.eventHandlersToUnregister.push(
-      this.on('call.created', async (event) => {
-        if (this.state.connectedUser?.id === event.call.created_by.id) {
-          this.logger(
-            'debug',
-            'Received `call.created` sent by the current user',
-          );
-          return;
-        }
-        await initCallFromEvent(event, false);
-      }),
-    );
-
-    this.eventHandlersToUnregister.push(
-      this.on('call.ring', async (event) => {
-        if (this.state.connectedUser?.id === event.call.created_by.id) {
-          this.logger(
-            'debug',
-            'Received `call.ring` sent by the current user so ignoring the event',
-          );
-          return;
-        }
-        await initCallFromEvent(event, true);
-      }),
-    );
-
-    this.effectsRegistered = true;
+    } catch (err) {
+      this.logger('error', `Failed to init call from event ${e.type}`, err);
+    }
   };
 
   /**
@@ -585,11 +576,3 @@ export class StreamVideoClient {
     );
   };
 }
-
-/**
- * Returns a concurrency tag for call initialization.
- * @internal
- *
- * @param cid the call cid.
- */
-export const getCallInitConcurrencyTag = (cid: string) => `call.init-${cid}`;

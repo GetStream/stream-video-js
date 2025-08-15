@@ -18,6 +18,14 @@ export const getInstanceKey = (apiKey: string, user: User) => {
 };
 
 /**
+ * Returns a concurrency tag for call initialization.
+ * @internal
+ *
+ * @param cid the call cid.
+ */
+export const getCallInitConcurrencyTag = (cid: string) => `call.init-${cid}`;
+
+/**
  * Utility function to get the client app identifier.
  */
 const getClientAppIdentifier = (
