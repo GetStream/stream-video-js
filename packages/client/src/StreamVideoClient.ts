@@ -5,6 +5,8 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import type {
+  CallCreatedEvent,
+  CallRingEvent,
   ConnectedEvent,
   CreateDeviceRequest,
   CreateGuestRequest,
@@ -32,6 +34,7 @@ import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
   createTokenOrProvider,
+  getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
 import { getLogger, logToConsole, setLogger } from './logger';
@@ -162,6 +165,8 @@ export class StreamVideoClient {
     if (this.effectsRegistered) return;
 
     this.eventHandlersToUnregister.push(
+      this.on('call.created', (event) => this.initCallFromEvent(event)),
+      this.on('call.ring', (event) => this.initCallFromEvent(event)),
       this.on('connection.changed', (event) => {
         if (!event.online) return;
 
@@ -181,61 +186,53 @@ export class StreamVideoClient {
       }),
     );
 
-    this.eventHandlersToUnregister.push(
-      this.on('call.created', (event) => {
-        const { call, members } = event;
-        if (this.state.connectedUser?.id === call.created_by.id) {
-          this.logger(
-            'warn',
-            'Received `call.created` sent by the current user',
-          );
-          return;
-        }
-        this.logger('info', `New call created and registered: ${call.cid}`);
-        const newCall = new Call({
-          streamClient: this.streamClient,
-          type: call.type,
-          id: call.id,
-          members,
-          clientStore: this.writeableStateStore,
-        });
-        newCall.state.updateFromCallResponse(call);
-        this.writeableStateStore.registerCall(newCall);
-      }),
-    );
-
-    this.eventHandlersToUnregister.push(
-      this.on('call.ring', async (event) => {
-        const { call, members } = event;
-        if (this.state.connectedUser?.id === call.created_by.id) {
-          this.logger(
-            'debug',
-            'Received `call.ring` sent by the current user so ignoring the event',
-          );
-          return;
-        }
-        // if `call.created` was received before `call.ring`.
-        // the client already has the call instance and we just need to update the state
-        const theCall = this.writeableStateStore.findCall(call.type, call.id);
-        if (theCall) {
-          await theCall.updateFromRingingEvent(event);
-        } else {
-          // if client doesn't have the call instance, create the instance and fetch the latest state
-          // Note: related - we also have onRingingCall method to handle this case from push notifications
-          const newCallInstance = new Call({
-            streamClient: this.streamClient,
-            type: call.type,
-            id: call.id,
-            members,
-            clientStore: this.writeableStateStore,
-            ringing: true,
-          });
-          await newCallInstance.get();
-        }
-      }),
-    );
-
     this.effectsRegistered = true;
+  };
+
+  /**
+   * Initializes a call from a call created or ringing event.
+   * @param e the event.
+   */
+  private initCallFromEvent = async (e: CallCreatedEvent | CallRingEvent) => {
+    if (this.state.connectedUser?.id === e.call.created_by.id) {
+      this.logger('debug', `Ignoring ${e.type} event sent by the current user`);
+      return;
+    }
+
+    try {
+      const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
+      await withoutConcurrency(concurrencyTag, async () => {
+        const ringing = e.type === 'call.ring';
+        let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
+        if (call) {
+          if (ringing) {
+            await call.updateFromRingingEvent(e as CallRingEvent);
+          } else {
+            call.state.updateFromCallResponse(e.call);
+          }
+          return;
+        }
+
+        call = new Call({
+          streamClient: this.streamClient,
+          type: e.call.type,
+          id: e.call.id,
+          members: e.members,
+          clientStore: this.writeableStateStore,
+          ringing,
+        });
+        call.state.updateFromCallResponse(e.call);
+
+        if (ringing) {
+          await call.get();
+        } else {
+          this.writeableStateStore.registerCall(call);
+          this.logger('info', `New call created and registered: ${call.cid}`);
+        }
+      });
+    } catch (err) {
+      this.logger('error', `Failed to init call from event ${e.type}`, err);
+    }
   };
 
   /**
@@ -360,6 +357,7 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call.
+   * @param options additional options for call creation.
    */
   call = (
     type: string,
@@ -540,23 +538,24 @@ export class StreamVideoClient {
    * @returns
    */
   onRingingCall = async (call_cid: string) => {
-    // if we find the call and is already ringing, we don't need to create a new call
-    // as client would have received the call.ring state because the app had WS alive when receiving push notifications
-    let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
-    if (!call) {
-      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-      const [callType, callId] = call_cid.split(':');
-      call = new Call({
-        streamClient: this.streamClient,
-        type: callType,
-        id: callId,
-        clientStore: this.writeableStateStore,
-        ringing: true,
-      });
-      await call.get();
-    }
-
-    return call;
+    return withoutConcurrency(getCallInitConcurrencyTag(call_cid), async () => {
+      // if we find the call and is already ringing, we don't need to create a new call
+      // as client would have received the call.ring state because the app had WS alive when receiving push notifications
+      let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
+      if (!call) {
+        // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
+        const [callType, callId] = call_cid.split(':');
+        call = new Call({
+          streamClient: this.streamClient,
+          type: callType,
+          id: callId,
+          clientStore: this.writeableStateStore,
+          ringing: true,
+        });
+        await call.get();
+      }
+      return call;
+    });
   };
 
   /**

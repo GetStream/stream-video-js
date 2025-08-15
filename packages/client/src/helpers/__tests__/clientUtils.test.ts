@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createCoordinatorClient,
   createTokenOrProvider,
+  getCallInitConcurrencyTag,
   getInstanceKey,
 } from '../clientUtils';
 import { TokenProvider } from '../../coordinator/connection/types';
@@ -12,6 +13,13 @@ describe('clientUtils', () => {
     it('should compute the correct instance key', () => {
       const instanceKey = getInstanceKey('apiKey', { id: 'userId' });
       expect(instanceKey).toBe('apiKey/userId');
+    });
+  });
+
+  describe('getCallInitConcurrencyTag', () => {
+    it('should compute the correct concurrency tag', () => {
+      const tag = getCallInitConcurrencyTag('default:123');
+      expect(tag).toBe('call.init-default:123');
     });
   });
 
