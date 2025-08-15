@@ -169,6 +169,43 @@ export const firebaseDataHandler = async (
     const created_by_id = data.created_by_id as string;
     const receiver_id = data.receiver_id as string;
 
+    const shouldRejectCallWhenBusy = pushConfig.shouldRejectCallWhenBusy;
+
+    const video_client = await pushConfig.createStreamVideoClient();
+    video_client?.isValid();
+    if (video_client && shouldRejectCallWhenBusy) {
+      try {
+        const calls = video_client.state.calls;
+        const ringingCallsInProgress = calls.filter((c) => {
+          return (
+            c.cid !== call_cid &&
+            c.ringing &&
+            c.state.callingState !== CallingState.IDLE &&
+            c.state.callingState !== CallingState.LEFT &&
+            c.state.callingState !== CallingState.RECONNECTING_FAILED
+          );
+        });
+
+        if (ringingCallsInProgress.length > 0) {
+          getLogger(['firebaseDataHandler'])(
+            'debug',
+            `User is already in a call. Silently rejecting incoming call: ${call_cid}`,
+          );
+
+          const callFromPush = await video_client.onRingingCall(call_cid);
+          await callFromPush.leave({ reject: true, reason: 'busy' });
+
+          return;
+        }
+      } catch (err) {
+        getLogger(['firebaseDataHandler'])(
+          'error',
+          'Error checking if user is already in a call',
+          err,
+        );
+      }
+    }
+
     const shouldCallBeClosed = (callToCheck: Call) => {
       const { mustEndCall } = shouldCallBeEnded(
         callToCheck,

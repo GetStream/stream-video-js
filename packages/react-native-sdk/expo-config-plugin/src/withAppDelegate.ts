@@ -472,6 +472,16 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
       completion()
       return
     }
+
+    // Check if user is busy BEFORE registering the call
+    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
+    let hasAnyActiveCall = StreamVideoReactNative.hasAnyActiveCall()
+        
+    if shouldReject && hasAnyActiveCall {
+        // Complete the VoIP notification without showing CallKit UI
+        completion()
+        return
+    }
     
     let uuid = UUID().uuidString
     let videoIncluded = stream["video"] as? String
