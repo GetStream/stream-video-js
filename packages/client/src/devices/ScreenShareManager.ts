@@ -1,14 +1,13 @@
 import { Observable, of } from 'rxjs';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { HiFiDeviceManager } from './hifi/HiFiDeviceManager';
 import { ScreenShareState } from './ScreenShareState';
 import { Call } from '../Call';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
-import { withHifiAudio } from './hifi';
 
-export class ScreenShareManager extends InputMediaDeviceManager<
+export class ScreenShareManager extends HiFiDeviceManager<
   ScreenShareState,
   DisplayMediaStreamOptions
 > {
@@ -55,14 +54,6 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     }
   }
 
-  enableHiFi() {
-    this.state.setHifiEnabled(true);
-  }
-
-  disableHiFi() {
-    this.state.setHifiEnabled(false);
-  }
-
   /**
    * Returns the current screen share settings.
    */
@@ -83,7 +74,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return of([]); // there are no devices to be listed for Screen Share
   }
 
-  protected async getStream(
+  protected override async doGetStream(
     constraints: DisplayMediaStreamOptions,
   ): Promise<MediaStream> {
     if (!this.state.audioEnabled) {
@@ -99,9 +90,23 @@ export class ScreenShareManager extends InputMediaDeviceManager<
       );
       track.contentHint = contentHint;
     }
-    return this.state.hifiEnabled && this.state.audioEnabled
-      ? withHifiAudio(stream)
-      : stream;
+    return stream;
+  }
+
+  protected override doSetHiFiEnabled(enabled: boolean) {
+    const { defaultConstraints } = this.state;
+    this.setDefaultConstraints({
+      ...defaultConstraints,
+      audio: {
+        ...(typeof defaultConstraints?.audio !== 'boolean'
+          ? defaultConstraints?.audio
+          : null),
+        autoGainControl: !enabled,
+        echoCancellation: !enabled,
+        noiseSuppression: !enabled,
+        channelCount: { ideal: 2 },
+      },
+    });
   }
 
   protected override async stopPublishStream(): Promise<void> {

@@ -1,7 +1,7 @@
 import { combineLatest, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { HiFiDeviceManager } from './hifi/HiFiDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
 import { TrackDisableMode } from './InputMediaDeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
@@ -21,7 +21,7 @@ import {
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 
-export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
+export class MicrophoneManager extends HiFiDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: Function;
@@ -249,10 +249,23 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return getAudioDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override doGetStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     return getAudioStream(constraints, this.call.tracer);
+  }
+
+  protected override doSetHiFiEnabled(enabled: boolean) {
+    this.setDefaultConstraints({
+      ...this.state.defaultConstraints,
+      echoCancellation: !enabled,
+      noiseSuppression: !enabled,
+      autoGainControl: !enabled,
+      channelCount: { ideal: enabled ? 2 : 1 },
+    });
+    this.disableNoiseCancellation().catch((err) => {
+      this.logger('warn', '[HiFi]: Failed to disable noise cancellation', err);
+    });
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {

@@ -1,12 +1,10 @@
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { RxUtils } from '../store';
-import {
-  InputMediaDeviceManagerState,
-  TrackDisableMode,
-} from './InputMediaDeviceManagerState';
+import { TrackDisableMode } from './InputMediaDeviceManagerState';
+import { HiFiDeviceManagerState } from './hifi/HiFiDeviceManagerState';
 import { getAudioBrowserPermission, resolveDeviceId } from './devices';
 
-export class MicrophoneManagerState extends InputMediaDeviceManagerState {
+export class MicrophoneManagerState extends HiFiDeviceManagerState<MediaTrackConstraints> {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
 
   /**
