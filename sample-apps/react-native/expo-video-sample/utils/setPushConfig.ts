@@ -56,6 +56,7 @@ export function setPushConfig() {
         },
       },
     },
+    shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
     onTapNonRingingCallNotification: () => {
       staticNavigateToNonRingingCall();
