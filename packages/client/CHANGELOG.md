@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.4...@stream-io/video-client-1.27.5) (2025-08-15)
+
+### Bug Fixes
+
+- synchronize ring events ([#1888](https://github.com/GetStream/stream-video-js/issues/1888)) ([0951e6d](https://github.com/GetStream/stream-video-js/commit/0951e6d4c825806937d6bdc548df9f186c531466))
+
 ## [1.27.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.3...@stream-io/video-client-1.27.4) (2025-08-13)
 
 ### Bug Fixes
