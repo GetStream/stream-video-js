@@ -1,9 +1,9 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { HiFiDeviceManagerState } from './hifi/HiFiDeviceManagerState';
 import { ScreenShareSettings } from '../types';
 import { RxUtils } from '../store';
 
-export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaStreamOptions> {
+export class ScreenShareState extends HiFiDeviceManagerState<DisplayMediaStreamOptions> {
   private audioEnabledSubject = new BehaviorSubject<boolean>(true);
   private settingsSubject = new BehaviorSubject<
     ScreenShareSettings | undefined
