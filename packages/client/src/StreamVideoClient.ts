@@ -220,7 +220,7 @@ export class StreamVideoClient {
         // the client already has the call instance and we just need to update the state
         const theCall = this.writeableStateStore.findCall(call.type, call.id);
         if (theCall) {
-          if (this.shouldRejectCall()) {
+          if (this.shouldRejectCall(theCall.cid)) {
             await theCall.reject('busy');
             this.logger('info', 'Call rejected because user is busy');
             return;
@@ -239,7 +239,7 @@ export class StreamVideoClient {
             ringing: true,
           });
 
-          if (this.shouldRejectCall()) {
+          if (this.shouldRejectCall(newCallInstance.cid)) {
             await newCallInstance.reject('busy');
             this.logger('info', 'Call rejected because user is busy');
             return;
@@ -617,17 +617,18 @@ export class StreamVideoClient {
     );
   };
 
-  private shouldRejectCall = () => {
+  private shouldRejectCall = (currentCallId: string) => {
     if (!this.shouldRejectCallWhenBusy) return false;
 
-    const hasOngoingRingingCall = this.state.calls.some(
-      (c) =>
-        c.ringing &&
-        c.state.callingState !== CallingState.RINGING &&
-        c.state.callingState !== CallingState.IDLE &&
-        c.state.callingState !== CallingState.LEFT &&
-        c.state.callingState !== CallingState.RECONNECTING_FAILED,
-    );
+    const hasOngoingRingingCall = this.state.calls
+      .filter((c) => c.cid !== currentCallId)
+      .some(
+        (c) =>
+          c.ringing &&
+          c.state.callingState !== CallingState.IDLE &&
+          c.state.callingState !== CallingState.LEFT &&
+          c.state.callingState !== CallingState.RECONNECTING_FAILED,
+      );
 
     return hasOngoingRingingCall;
   };

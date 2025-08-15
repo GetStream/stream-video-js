@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import {
+  useCall,
   useCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -14,6 +15,7 @@ import { Platform } from 'react-native';
 export const RejectCallWhenBusy = () => {
   const client = useStreamVideoClient();
   const calls = useCalls();
+  const call = useCall();
 
   useEffect(() => {
     if (!client) return;
@@ -48,8 +50,8 @@ export const RejectCallWhenBusy = () => {
 
     const ringingCallsInProgress = calls.filter((c) => {
       return (
+        c.cid !== call?.cid &&
         c.ringing &&
-        c.state.callingState !== CallingState.RINGING &&
         c.state.callingState !== CallingState.IDLE &&
         c.state.callingState !== CallingState.LEFT &&
         c.state.callingState !== CallingState.RECONNECTING_FAILED
@@ -67,7 +69,7 @@ export const RejectCallWhenBusy = () => {
         });
       });
     }
-  }, [calls, shouldRejectCallWhenBusy]);
+  }, [call, calls, shouldRejectCallWhenBusy]);
 
   return null;
 };

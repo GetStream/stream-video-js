@@ -178,8 +178,8 @@ export const firebaseDataHandler = async (
         const calls = video_client.state.calls;
         const ringingCallsInProgress = calls.filter((c) => {
           return (
+            c.cid !== call_cid &&
             c.ringing &&
-            c.state.callingState !== CallingState.RINGING &&
             c.state.callingState !== CallingState.IDLE &&
             c.state.callingState !== CallingState.LEFT &&
             c.state.callingState !== CallingState.RECONNECTING_FAILED
