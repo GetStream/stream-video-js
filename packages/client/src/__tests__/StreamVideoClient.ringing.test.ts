@@ -1,6 +1,9 @@
 import 'dotenv/config';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { StreamVideoClient } from '../StreamVideoClient';
+import {
+  getCallInitConcurrencyTag,
+  StreamVideoClient,
+} from '../StreamVideoClient';
 import { StreamClient } from '@stream-io/node-sdk';
 import {
   AllClientEvents,
@@ -128,7 +131,7 @@ describe('StreamVideoClient Ringing', () => {
       oliverClient.streamClient.dispatchEvent(
         CallCreatedPayload as StreamVideoEvent,
       );
-      await settled(`call.init-${CallCreatedPayload.call_cid}`);
+      await settled(getCallInitConcurrencyTag(CallCreatedPayload.call_cid));
       expect(oliverClient.state.calls.length).toBe(1);
       expect(oliverClient.state.calls[0].state.callingState).toBe(
         CallingState.RINGING,
@@ -143,11 +146,25 @@ describe('StreamVideoClient Ringing', () => {
         CallRingPayload as StreamVideoEvent,
       );
 
-      await settled(`call.init-${CallCreatedPayload.call_cid}`);
+      await settled(getCallInitConcurrencyTag(CallCreatedPayload.call_cid));
       expect(oliverClient.state.calls.length).toBe(1);
       expect(oliverClient.state.calls[0].state.callingState).toBe(
         CallingState.RINGING,
       );
+    });
+
+    it('receives a push notification followed by `call.ring` then `call.created`', async () => {
+      const call = await oliverClient.onRingingCall(CallRingPayload.call_cid);
+      oliverClient.streamClient.dispatchEvent(
+        CallRingPayload as StreamVideoEvent,
+      );
+      oliverClient.streamClient.dispatchEvent(
+        CallCreatedPayload as StreamVideoEvent,
+      );
+      await settled(getCallInitConcurrencyTag(CallRingPayload.call_cid));
+      expect(oliverClient.state.calls.length).toBe(1);
+      expect(oliverClient.state.calls[0]).toBe(call);
+      expect(call.ringing).toBe(true);
     });
   });
 });

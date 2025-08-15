@@ -187,7 +187,8 @@ export class StreamVideoClient {
       e: CallCreatedEvent | CallRingEvent,
       ringing: boolean,
     ) => {
-      await withoutConcurrency(`call.init-${e.call_cid}`, async () => {
+      const tag = getCallInitConcurrencyTag(e.call_cid);
+      await withoutConcurrency(tag, async () => {
         let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
@@ -549,23 +550,24 @@ export class StreamVideoClient {
    * @returns
    */
   onRingingCall = async (call_cid: string) => {
-    // if we find the call and is already ringing, we don't need to create a new call
-    // as client would have received the call.ring state because the app had WS alive when receiving push notifications
-    let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
-    if (!call) {
-      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-      const [callType, callId] = call_cid.split(':');
-      call = new Call({
-        streamClient: this.streamClient,
-        type: callType,
-        id: callId,
-        clientStore: this.writeableStateStore,
-        ringing: true,
-      });
-      await call.get();
-    }
-
-    return call;
+    return withoutConcurrency(getCallInitConcurrencyTag(call_cid), async () => {
+      // if we find the call and is already ringing, we don't need to create a new call
+      // as client would have received the call.ring state because the app had WS alive when receiving push notifications
+      let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
+      if (!call) {
+        // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
+        const [callType, callId] = call_cid.split(':');
+        call = new Call({
+          streamClient: this.streamClient,
+          type: callType,
+          id: callId,
+          clientStore: this.writeableStateStore,
+          ringing: true,
+        });
+        await call.get();
+      }
+      return call;
+    });
   };
 
   /**
@@ -583,3 +585,11 @@ export class StreamVideoClient {
     );
   };
 }
+
+/**
+ * Returns a concurrency tag for call initialization.
+ * @internal
+ *
+ * @param cid the call cid.
+ */
+export const getCallInitConcurrencyTag = (cid: string) => `call.init-${cid}`;
