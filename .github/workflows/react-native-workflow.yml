@@ -67,7 +67,7 @@ jobs:
     name: Build iOS
     timeout-minutes: 60
     needs: code_review
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
@@ -98,7 +98,7 @@ jobs:
     needs: build_ios
     timeout-minutes: 60
     if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
