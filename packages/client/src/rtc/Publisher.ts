@@ -331,7 +331,6 @@ export class Publisher extends BasePeerConnection {
 
       try {
         this.isIceRestarting = options?.iceRestart ?? false;
-        offer.sdp = enableOpusStereo(offer.sdp!);
         await this.pc.setLocalDescription(offer);
 
         const { sdp = '' } = offer;
@@ -444,57 +443,4 @@ export class Publisher extends BasePeerConnection {
     track.stop();
     this.clonedTracks.delete(track);
   };
-}
-
-// TODO remove. Munging will be done on the SFU side.
-function enableOpusStereo(sdp: string) {
-  try {
-    const lines = sdp.split('\n');
-    let opusPt = null;
-    for (const line of lines) {
-      const m = line.match(/^a=rtpmap:(\d+) opus\/(\d+)/);
-      if (m) {
-        opusPt = m[1];
-        break;
-      }
-    }
-    if (!opusPt) return sdp;
-
-    let fmtpIndex = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith(`a=fmtp:${opusPt}`)) {
-        fmtpIndex = i;
-        break;
-      }
-    }
-
-    if (fmtpIndex !== -1) {
-      const parts = lines[fmtpIndex].split(' ');
-      const params = parts.slice(1).join(' ');
-      const set = new Set(
-        params
-          .split(';')
-          .map((p) => p.trim())
-          .filter(Boolean),
-      );
-      set.add('stereo=1');
-      set.add('sprop-stereo=1');
-      lines[fmtpIndex] = `a=fmtp:${opusPt} ${Array.from(set).join(';')}`;
-    } else {
-      // Insert a new fmtp line right after the rtpmap for opus
-      const rtpmapIndex = lines.findIndex((l) =>
-        l.startsWith(`a=rtpmap:${opusPt}`),
-      );
-      if (rtpmapIndex !== -1) {
-        lines.splice(
-          rtpmapIndex + 1,
-          0,
-          `a=fmtp:${opusPt} stereo=1;sprop-stereo=1`,
-        );
-      }
-    }
-    return lines.join('\n');
-  } catch {
-    return sdp;
-  }
 }
