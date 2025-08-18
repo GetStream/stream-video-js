@@ -67,11 +67,11 @@ jobs:
     name: Build iOS
     timeout-minutes: 60
     needs: code_review
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode version
+      - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
       - uses: ./.github/actions/rn-bootstrap
@@ -102,7 +102,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode version
+      - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
       - uses: ./.github/actions/rn-bootstrap
