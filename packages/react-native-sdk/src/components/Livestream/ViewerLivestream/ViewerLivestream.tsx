@@ -19,6 +19,7 @@ import {
 import { CallingState, hasVideo } from '@stream-io/video-client';
 import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
 import { ViewerLobby } from './ViewerLobby';
+import { getRNInCallManagerLibNoThrow } from '../../../incallmanager/PrevLibDetection';
 
 /**
  * Props for the ViewerLivestream component.
@@ -98,6 +99,19 @@ export const ViewerLivestream = ({
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
+
+  // Automatically route audio to speaker devices as relevant for watching videos.
+  useEffect(() => {
+    const prevInCallManager = getRNInCallManagerLibNoThrow();
+    if (prevInCallManager) {
+      prevInCallManager.start({ media: 'video' });
+    }
+    return () => {
+      if (prevInCallManager) {
+        prevInCallManager.stop();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (callingState === CallingState.LEFT) {

@@ -1,11 +1,19 @@
 import { getLogger } from '@stream-io/video-client';
 
-export type RNInCallManagerLib = typeof import('react-native-incall-manager');
+declare class RNInCallManagerLib {
+  start(setup?: {
+    auto?: boolean;
+    media?: 'video' | 'audio';
+    ringback?: string;
+  }): void;
+
+  stop(setup?: { busytone?: string }): void;
+}
 
 let rnInCallManagerLib: RNInCallManagerLib | undefined;
 
 try {
-  rnInCallManagerLib = require('react-native-incall-manager');
+  rnInCallManagerLib = require('react-native-incall-manager').default;
 } catch {}
 
 export function getRNInCallManagerLibNoThrow() {

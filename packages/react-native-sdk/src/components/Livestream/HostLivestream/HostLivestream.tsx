@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { getRNInCallManagerLibNoThrow } from '../../../incallmanager/PrevLibDetection';
 
 import { useTheme } from '../../../contexts';
 import {
@@ -85,6 +86,19 @@ export const HostLivestream = ({
     currentSpeaker &&
     hasVideo(currentSpeaker) &&
     currentSpeaker;
+
+  // Automatically route audio to speaker devices as relevant for watching videos.
+  useEffect(() => {
+    const prevInCallManager = getRNInCallManagerLibNoThrow();
+    if (prevInCallManager) {
+      prevInCallManager.start({ media: 'video' });
+    }
+    return () => {
+      if (prevInCallManager) {
+        prevInCallManager.stop();
+      }
+    };
+  }, []);
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
   const [controlsHeight, setControlsHeight] = React.useState<number>();
