@@ -301,12 +301,14 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
-      <AndroidAudioRoutePickerDrawer
-        isVisible={isAndroidAudioRoutePickerDrawerVisible}
-        onClose={() => {
-          setIsAndroidAudioRoutePickerDrawerVisible(false);
-        }}
-      />
+      {Platform.OS === 'android' && (
+        <AndroidAudioRoutePickerDrawer
+          isVisible={isAndroidAudioRoutePickerDrawerVisible}
+          onClose={() => {
+            setIsAndroidAudioRoutePickerDrawerVisible(false);
+          }}
+        />
+      )}
       <BottomControlsDrawer
         isVisible={isDrawerVisible}
         onClose={() => {
