@@ -9,7 +9,7 @@ runs:
     - uses: actions/setup-node@v4
       if: ${{ env.INSTALL_NODE == 'true' }}
       with:
-        node-version: 20.x
+        node-version: 22.x
         cache: 'yarn'
 
     - name: Install Yarn Dependencies
