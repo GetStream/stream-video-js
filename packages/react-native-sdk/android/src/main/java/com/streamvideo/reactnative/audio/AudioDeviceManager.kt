@@ -101,37 +101,42 @@ class AudioDeviceManager(
     }
 
     fun start(activity: Activity) {
-        userSelectedAudioDevice = null
-        selectedAudioDeviceEndpoint = null
         runInAudioThread {
-            bluetoothManager.start()
+            userSelectedAudioDevice = null
+            selectedAudioDeviceEndpoint = null
             audioSetupStoreUtil.storeOriginalAudioSetup()
             if (callAudioRole == CallAudioRole.Communicator) {
                 // Audio routing is manually controlled by the SDK in communication media mode
                 // and local microphone can be published
                 mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
                 activity.volumeControlStream = AudioManager.STREAM_VOICE_CALL
+                bluetoothManager.start()
+                mAudioManager.registerAudioDeviceCallback(this, null)
+                updateAudioDeviceState()
+
             } else {
                 // Audio routing is handled automatically by the system in normal media mode
                 // and bluetooth microphones may not work on some devices.
                 mAudioManager.mode = AudioManager.MODE_NORMAL
                 activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             }
+            audioSetupStoreUtil.storeOriginalAudioSetup()
             audioFocusUtil.requestFocus(callAudioRole)
-            updateAudioDeviceState()
         }
     }
 
     fun stop() {
         runInAudioThread {
-            if (Build.VERSION.SDK_INT >= 31) {
-                mAudioManager.clearCommunicationDevice()
-            } else {
-                mAudioManager.setSpeakerphoneOn(false)
+            if (callAudioRole == CallAudioRole.Communicator) {
+                if (Build.VERSION.SDK_INT >= 31) {
+                    mAudioManager.clearCommunicationDevice()
+                } else {
+                    mAudioManager.setSpeakerphoneOn(false)
+                }
+                bluetoothManager.stop()
             }
-            bluetoothManager.stop()
-            audioFocusUtil.abandonFocus()
             audioSetupStoreUtil.restoreOriginalAudioSetup()
+            audioFocusUtil.abandonFocus()
         }
     }
 

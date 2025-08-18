@@ -7,9 +7,8 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-package com.streamvideo.reactnative.util
+package com.streamvideo.reactnative.audio.utils
 
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioDeviceInfo

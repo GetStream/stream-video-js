@@ -17,7 +17,7 @@ enum DefaultAudioDevice {
 
 @objc(InCallManager)
 class InCallManager: RCTEventEmitter {
-
+    
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
     
     private var audioManagerActivated = false
@@ -29,17 +29,11 @@ class InCallManager: RCTEventEmitter {
         let mode: AVAudioSession.Mode
         let options: AVAudioSession.CategoryOptions
     }
-
+    
     private var previousAudioSessionState: AudioSessionState?
     
     override init() {
-        super.init()
-        let config = RTCAudioSessionConfiguration()
-        config.category = AVAudioSession.Category.playAndRecord.rawValue
-        config.categoryOptions = [.allowBluetooth, .defaultToSpeaker]
-        config.mode = AVAudioSession.Mode.voiceChat.rawValue
-        RTCAudioSessionConfiguration.setWebRTC(config)
-    }
+        super.init()    }
     
     deinit {
         stop()
@@ -54,27 +48,27 @@ class InCallManager: RCTEventEmitter {
         return false
     }
     
-    // MARK: - Logging Helper
-    private func log(_ message: String) {
-        NSLog("InCallManager: %@", message)
-    }
     
     @objc(setAudioRole:)
     func setAudioRole(audioRole: String) {
-        if audioManagerActivated {
-            log("AudioManager is already activated, audio role cannot be changed.")
-            return
+        audioSessionQueue.async { [self] in
+            if audioManagerActivated {
+                log("AudioManager is already activated, audio role cannot be changed.")
+                return
+            }
+            self.callAudioRole = audioRole.lowercased() == "listener" ? .listener : .communicator
         }
-        self.callAudioRole = audioRole.lowercased() == "listener" ? .listener : .communicator
     }
     
     @objc(setDefaultAudioDeviceEndpointType:)
     func setDefaultAudioDeviceEndpointType(endpointType: String) {
-        if audioManagerActivated {
-            log("AudioManager is already activated, default audio device cannot be changed.")
-            return
+        audioSessionQueue.async { [self] in
+            if audioManagerActivated {
+                log("AudioManager is already activated, default audio device cannot be changed.")
+                return
+            }
+            self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
         }
-        self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
     }
     
     @objc
@@ -114,26 +108,34 @@ class InCallManager: RCTEventEmitter {
     }
     
     private func configureAudioSession() {
-        let intendedCategory: AVAudioSession.Category = .playAndRecord
-        var intendedMode: AVAudioSession.Mode = .voiceChat
-        var intendedOptions: AVAudioSession.CategoryOptions = [.allowBluetooth]
-
+        let intendedCategory: AVAudioSession.Category!
+        let intendedMode: AVAudioSession.Mode!
+        let intendedOptions: AVAudioSession.CategoryOptions!
+        
         if (callAudioRole == .listener) {
+            // enables high quality audio playback but disables microphone
+            intendedCategory = .playback
             intendedMode = .default
-            intendedOptions.formUnion([.allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker])
+            intendedOptions = []
         } else {
+            intendedCategory = .playAndRecord
+            intendedMode = .voiceChat
+            
             if (defaultAudioDevice == .speaker) {
-                intendedOptions.insert(.defaultToSpeaker)
+                // defaultToSpeaker will route to speaker if nothing else is connected
+                intendedOptions = [.allowBluetooth, .defaultToSpeaker]
+            } else {
+                // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
+                intendedOptions = [.allowBluetooth]
             }
         }
         
         // START: set the config that webrtc must use when it takes control
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        log("configureAudioSession: rtcConfig \(rtcConfig.category) \(rtcConfig.mode) \(rtcConfig.categoryOptions)")
         rtcConfig.category = intendedCategory.rawValue
         rtcConfig.mode = intendedMode.rawValue
         rtcConfig.categoryOptions = intendedOptions
-//        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
+        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
         // END
         
         // START: compare current audio session with intended, and update if different
@@ -141,14 +143,14 @@ class InCallManager: RCTEventEmitter {
         let currentCategory = session.category
         let currentMode = session.mode
         let currentOptions = session.categoryOptions
-        log("configureAudioSession: currentCategory \(currentCategory) \(currentMode) \(currentOptions)") 
-
-        if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions {
+        let currentIsActive = session.isActive
+        
+        if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions || !currentIsActive {
             session.lockForConfiguration()
             do {
                 try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
                 try session.setActive(true)
-                log("configureAudioSession: setCategory success \(intendedCategory.rawValue) \(intendedMode.rawValue) \(intendedOptions)")
+                log("configureAudioSession: setCategory success \(intendedCategory.rawValue) \(intendedMode.rawValue) \(intendedOptions.rawValue)")
             } catch {
                 log("configureAudioSession: setCategory failed due to: \(error.localizedDescription)")
                 do {
@@ -169,7 +171,7 @@ class InCallManager: RCTEventEmitter {
     @objc(showAudioRoutePicker)
     public func showAudioRoutePicker() {
         guard #available(iOS 11.0, tvOS 11.0, macOS 10.15, *) else {
-               return
+            return
         }
         DispatchQueue.main.async {
             // AVRoutePickerView is the default UI with a
@@ -186,6 +188,7 @@ class InCallManager: RCTEventEmitter {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.overrideOutputAudioPort(enable ? .speaker : .none)
+            try session.setActive(true)
         } catch {
             log("Error setting speakerphone: \(error)")
         }
@@ -228,4 +231,10 @@ class InCallManager: RCTEventEmitter {
     override func removeListeners(_ count: Double) {
         super.removeListeners(count)
     }
+    
+    // MARK: - Logging Helper
+    private func log(_ message: String) {
+        NSLog("InCallManager: %@", message)
+    }
+    
 }

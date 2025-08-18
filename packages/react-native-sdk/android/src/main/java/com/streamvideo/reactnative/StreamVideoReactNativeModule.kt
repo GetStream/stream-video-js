@@ -9,15 +9,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.util.Base64
-import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.oney.WebRTCModule.WebRTCModule
-import com.streamvideo.reactnative.callmanager.InCallManagerModule
-import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper

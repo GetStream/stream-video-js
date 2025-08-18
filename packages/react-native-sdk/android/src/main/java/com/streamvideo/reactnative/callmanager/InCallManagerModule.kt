@@ -1,7 +1,5 @@
 package com.streamvideo.reactnative.callmanager
 
-import android.content.Context
-import android.os.PowerManager
 import android.util.Log
 import android.view.WindowManager
 import com.facebook.react.bridge.LifecycleEventListener
@@ -14,24 +12,18 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
-import com.streamvideo.reactnative.callmanager.utils.InCallWakeLockUtils
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
-import com.streamvideo.reactnative.util.WebRtcAudioUtils
+import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
 import java.util.Locale
 
 
 class InCallManagerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
 
-    private val mPowerManager: PowerManager
-
     private var audioManagerActivated = false
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
 
-    private val proximityManager: InCallProximityManager
-
-    private val wakeLockUtils: InCallWakeLockUtils
 
     override fun getName(): String {
         return TAG
@@ -39,12 +31,6 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     init {
         reactContext.addLifecycleEventListener(this)
-        mPowerManager = reactContext.getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLockUtils = InCallWakeLockUtils(reactContext)
-        proximityManager = InCallProximityManager.create(
-            reactContext, this
-        )
-        Log.d(TAG, "InCallManager initialized")
     }
 
     // This method was removed upstream in react-native 0.74+, replaced with invalidate
@@ -81,39 +67,44 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun setAudioRole(audioRole: String) {
-        if (audioManagerActivated) {
-            Log.e(TAG, "setAudioRole(): AudioManager is already activated and so Audio Role cannot be changed, current audio role is ${mAudioDeviceManager.callAudioRole}")
-            return
-        }
-        if (audioRole.lowercase(Locale.getDefault()) === "listener") {
-            mAudioDeviceManager.callAudioRole = CallAudioRole.Listener
-        } else {
-            mAudioDeviceManager.callAudioRole = CallAudioRole.Communicator
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setAudioRole(): AudioManager is already activated and so Audio Role cannot be changed, current audio role is ${mAudioDeviceManager.callAudioRole}")
+                return@runInAudioThread
+            }
+            Log.d(TAG, "setAudioRole(): $audioRole ${audioRole.lowercase(Locale.getDefault())}")
+            if (audioRole.lowercase(Locale.getDefault()) == "listener") {
+                mAudioDeviceManager.callAudioRole = CallAudioRole.Listener
+            } else {
+                mAudioDeviceManager.callAudioRole = CallAudioRole.Communicator
+            }
         }
     }
 
     @ReactMethod
-    fun setDefaultAudioDevice(endpointDeviceName: String) {
-        if (audioManagerActivated) {
-            Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
-            return
-        }
-        if (endpointDeviceName.lowercase(Locale.getDefault()) == "earpiece") {
-            mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_EARPIECE
-        } else {
-            mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
+    fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
+                return@runInAudioThread
+            }
+            Log.d(TAG, "runInAudioThread(): $endpointDeviceTypeName ${endpointDeviceTypeName.lowercase(Locale.getDefault())}")
+            if (endpointDeviceTypeName.lowercase(Locale.getDefault()) == "earpiece") {
+                mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_EARPIECE
+            } else {
+                mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
+            }
         }
     }
 
     @ReactMethod
     fun start() {
-        if (!audioManagerActivated) {
-            AudioDeviceManager.runInAudioThread {
+        AudioDeviceManager.runInAudioThread {
+            if (!audioManagerActivated) {
                 currentActivity?.let {
+                    Log.d(TAG, "start() mAudioDeviceManager")
                     mAudioDeviceManager.start(it)
                     setKeepScreenOn(true)
-                    Log.d(TAG, "start() audioRouteManager")
-                    wakeLockUtils.acquirePartialWakeLock()
                     audioManagerActivated = true
                 }
             }
@@ -122,13 +113,12 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun stop() {
-        if (audioManagerActivated) {
-            AudioDeviceManager.runInAudioThread {
-                Log.d(TAG, "stop() audioRouteManager")
-                setKeepScreenOn(false)
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.d(TAG, "stop() mAudioDeviceManager")
                 mAudioDeviceManager.stop()
                 setMicrophoneMute(false)
-                wakeLockUtils.releasePartialWakeLock()
+                setKeepScreenOn(false)
                 audioManagerActivated = false
             }
         }
@@ -150,6 +140,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun setForceSpeakerphoneOn(enable: Boolean) {
+        if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
+            Log.e(TAG, "setForceSpeakerphoneOn() is not supported when audio role is not Communicator")
+            return
+        }
         mAudioDeviceManager.setSpeakerphoneOn(enable)
     }
 
@@ -168,6 +162,10 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
+        if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
+            Log.e(TAG, "chooseAudioDeviceEndpoint() is not supported when audio role is not Communicator")
+            return
+        }
         mAudioDeviceManager.switchDeviceFromDeviceName(
             endpointDeviceName
         )
