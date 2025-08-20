@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode version
+      - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
       - uses: ./.github/actions/rn-bootstrap
@@ -98,11 +98,11 @@ jobs:
     needs: build_ios
     timeout-minutes: 60
     if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode version
+      - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
       - uses: ./.github/actions/rn-bootstrap
