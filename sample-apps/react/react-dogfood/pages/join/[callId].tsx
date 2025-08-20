@@ -1,10 +1,8 @@
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
   BackgroundFiltersProvider,
   Call,
   CallingState,
   CallRequest,
-  NoiseCancellationProvider,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -12,7 +10,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
@@ -80,6 +78,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   useEffect(() => {
     if (!client) return;
     const _call = client.call(callType, callId, { reuseInstance: true });
+    _call.microphone.disableSpeakingWhileMutedNotification().catch((err) => {
+      console.error('Failed to disable speaking while muted notification', err);
+    });
     setCall(_call);
 
     window.call = _call;
@@ -129,22 +130,22 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   useGleap(gleapApiKey, client, call, user);
-  const [noiseCancellation, setNoiseCancellation] =
-    useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>(undefined);
-  useEffect(() => {
-    const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        // const modelsPath = `${basePath}/krispai/models`;
-        // const nc = new NoiseCancellation({ basePath: modelsPath });
-        const nc = new NoiseCancellation();
-        setNoiseCancellation(nc);
-      });
-    return () => {
-      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
-    };
-  }, []);
+  // const [noiseCancellation, setNoiseCancellation] =
+  //   useState<INoiseCancellation>();
+  // const ncLoader = useRef<Promise<void>>(undefined);
+  // useEffect(() => {
+  //   const load = (ncLoader.current || Promise.resolve())
+  //     .then(() => import('@stream-io/audio-filters-web'))
+  //     .then(({ NoiseCancellation }) => {
+  //       // const modelsPath = `${basePath}/krispai/models`;
+  //       // const nc = new NoiseCancellation({ basePath: modelsPath });
+  //       const nc = new NoiseCancellation();
+  //       setNoiseCancellation(nc);
+  //     });
+  //   return () => {
+  //     ncLoader.current = load.then(() => setNoiseCancellation(undefined));
+  //   };
+  // }, []);
 
   if (!client || !call) return null;
 
@@ -197,14 +198,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 `${basePath}/backgrounds/gradient-3.jpg`,
               ]}
             >
-              {noiseCancellation && (
-                <NoiseCancellationProvider
-                  noiseCancellation={noiseCancellation}
-                >
-                  <RingingCallNotification />
-                  <MeetingUI key={call.cid} chatClient={chatClient} />
-                </NoiseCancellationProvider>
-              )}
+              {/*{noiseCancellation && (*/}
+              {/*  <NoiseCancellationProvider*/}
+              {/*    noiseCancellation={noiseCancellation}*/}
+              {/*  >*/}
+              <RingingCallNotification />
+              <MeetingUI key={call.cid} chatClient={chatClient} />
+              {/*  </NoiseCancellationProvider>*/}
+              {/*)}*/}
             </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>
