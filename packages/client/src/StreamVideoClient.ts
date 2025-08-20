@@ -213,7 +213,7 @@ export class StreamVideoClient {
                 'info',
                 `Rejecting call ${call.cid} because user is busy`,
               );
-              await call.leave({ reject: true, reason: 'busy' });
+              await call.reject('busy');
               return;
             }
 
@@ -240,7 +240,7 @@ export class StreamVideoClient {
               'info',
               `Rejecting call ${call.cid} because user is busy`,
             );
-            await call.leave({ reject: true, reason: 'busy' });
+            await call.reject('busy');
             return;
           }
           await call.get();
@@ -623,15 +623,14 @@ export class StreamVideoClient {
   private shouldRejectCall = (currentCallId: string) => {
     if (!this.shouldRejectCallWhenBusy) return false;
 
-    const hasOngoingRingingCall = this.state.calls
-      .filter((c) => c.cid !== currentCallId)
-      .some(
-        (c) =>
-          c.ringing &&
-          c.state.callingState !== CallingState.IDLE &&
-          c.state.callingState !== CallingState.LEFT &&
-          c.state.callingState !== CallingState.RECONNECTING_FAILED,
-      );
+    const hasOngoingRingingCall = this.state.calls.some(
+      (c) =>
+        c.cid !== currentCallId &&
+        c.ringing &&
+        c.state.callingState !== CallingState.IDLE &&
+        c.state.callingState !== CallingState.LEFT &&
+        c.state.callingState !== CallingState.RECONNECTING_FAILED,
+    );
 
     return hasOngoingRingingCall;
   };

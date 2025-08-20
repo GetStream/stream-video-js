@@ -48,22 +48,29 @@ export const RejectCallWhenBusy = () => {
     if (Platform.OS === 'android') return;
     if (!shouldRejectCallWhenBusy) return;
 
-    const ringingCallsInProgress = calls.filter((c) => {
-      return (
-        c.cid !== call?.cid &&
+    const ringingCallsInProgress = calls.filter(
+      (c) =>
         c.ringing &&
         c.state.callingState !== CallingState.IDLE &&
         c.state.callingState !== CallingState.LEFT &&
-        c.state.callingState !== CallingState.RECONNECTING_FAILED
-      );
-    });
-    const callsForRejection = calls.filter(
-      (c) => c.ringing && c.state.callingState === CallingState.RINGING,
+        c.state.callingState !== CallingState.RECONNECTING_FAILED,
     );
+
     const alreadyInAnotherRingingCall = ringingCallsInProgress.length > 0;
-    if (callsForRejection.length > 0 && alreadyInAnotherRingingCall) {
+    if (!alreadyInAnotherRingingCall) {
+      return;
+    }
+
+    const callsForRejection = calls.filter(
+      (c) =>
+        c.ringing &&
+        c.cid !== ringingCallsInProgress[0]?.cid &&
+        c.state.callingState === CallingState.RINGING,
+    );
+
+    if (callsForRejection.length > 0) {
       callsForRejection.forEach((c) => {
-        c.leave({ reject: true, reason: 'busy' }).catch((err) => {
+        c.reject('busy').catch((err) => {
           const logger = getLogger(['RejectCallWhenBusy']);
           logger('error', 'Error rejecting Call when busy', err);
         });

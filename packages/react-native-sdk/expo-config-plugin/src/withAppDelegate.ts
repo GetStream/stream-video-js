@@ -547,6 +547,16 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
   
+  // Check if user is busy BEFORE registering the call
+  BOOL shouldReject = [StreamVideoReactNative shouldRejectCallWhenBusy];
+  BOOL hasAnyActiveCall = [StreamVideoReactNative hasAnyActiveCall];
+  
+  if (shouldReject && hasAnyActiveCall) {
+      // Complete the VoIP notification without showing CallKit UI
+      completion();
+      return;
+  }
+  
   NSString *videoIncluded = stream[@"video"];
   BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
 
