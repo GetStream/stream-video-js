@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/noise-cancellation-react-native",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Noise cancellation for the Stream React Native Video SDK",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
