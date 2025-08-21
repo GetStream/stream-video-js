@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export type SearchController<T> = {
   /** Flag signals that the search request is flight await the response */
@@ -11,18 +11,21 @@ export type UseSearchParams<T> = {
   /** Search function performing the search request */
   searchFn: (searchQuery: string) => Promise<T[]>;
   /** Debounce interval applied to the search function */
-  debounceInterval: number;
+  debounceInterval?: number;
   /** Search query string */
   searchQuery?: string;
 };
 
 export const useSearch = <T>({
-  debounceInterval,
+  debounceInterval = 200,
   searchFn,
   searchQuery = '',
 }: UseSearchParams<T>): SearchController<T> => {
   const [searchResults, setSearchResults] = useState<T[]>([]);
   const [searchQueryInProgress, setSearchQueryInProgress] = useState(false);
+
+  const searchFnRef = useRef(searchFn);
+  searchFnRef.current = searchFn;
 
   useEffect(() => {
     if (!searchQuery.length) {
@@ -35,7 +38,7 @@ export const useSearch = <T>({
 
     const timeout = setTimeout(async () => {
       try {
-        const results = await searchFn(searchQuery);
+        const results = await searchFnRef.current(searchQuery);
         setSearchResults(results);
       } catch (error) {
         console.error(error);
@@ -47,7 +50,7 @@ export const useSearch = <T>({
     return () => {
       clearTimeout(timeout);
     };
-  }, [debounceInterval, searchFn, searchQuery]);
+  }, [debounceInterval, searchQuery]);
 
   return {
     searchQueryInProgress,
