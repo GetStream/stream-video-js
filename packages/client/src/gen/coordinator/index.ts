@@ -4921,6 +4921,7 @@ export const OwnCapability = {
   JOIN_BACKSTAGE: 'join-backstage',
   JOIN_CALL: 'join-call',
   JOIN_ENDED_CALL: 'join-ended-call',
+  KICK_USER: 'kick-user',
   MUTE_USERS: 'mute-users',
   PIN_FOR_EVERYONE: 'pin-for-everyone',
   READ_CALL: 'read-call',

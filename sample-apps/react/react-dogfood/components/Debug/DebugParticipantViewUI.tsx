@@ -207,10 +207,12 @@ const CustomParticipantActionsContextMenu = () => {
           {t('Block')}
         </GenericMenuButtonItem>
       </Restricted>
-      <GenericMenuButtonItem onClick={kickUser}>
-        <Icon icon="kick-user" />
-        {t('Kick')}
-      </GenericMenuButtonItem>
+      <Restricted requiredGrants={[OwnCapability.KICK_USER]}>
+        <GenericMenuButtonItem onClick={kickUser}>
+          <Icon icon="kick-user" />
+          {t('Kick')}
+        </GenericMenuButtonItem>
+      </Restricted>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>
