@@ -14,7 +14,7 @@ import {
   useIsInPiPMode,
   useTheme,
   useToggleCallRecording,
-  InCallManager,
+  StreamInCallManager,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
@@ -78,15 +78,10 @@ export const ActiveCall = ({
   }, [call]);
 
   useEffect(() => {
-    InCallManager.start();
-
-    const timeout = setInterval(() => {
-      InCallManager.logAudioState();
-    }, 10000);
+    StreamInCallManager.start();
 
     return () => {
-      InCallManager.stop();
-      clearInterval(timeout);
+      StreamInCallManager.stop();
     };
   }, []);
 

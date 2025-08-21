@@ -19,7 +19,7 @@ import {
 import { CallingState, hasVideo } from '@stream-io/video-client';
 import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
 import { ViewerLobby } from './ViewerLobby';
-import { getRNInCallManagerLibNoThrow } from '../../../incallmanager/PrevLibDetection';
+import { getRNInCallManagerLibNoThrow } from '../../../StreamInCallManager/PrevLibDetection';
 
 /**
  * Props for the ViewerLivestream component.

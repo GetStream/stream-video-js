@@ -42,7 +42,7 @@ import {
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import { RTCViewPipIOS } from './RTCViewPipIOS';
-import { getRNInCallManagerLibNoThrow } from '../../../incallmanager/PrevLibDetection';
+import { getRNInCallManagerLibNoThrow } from '../../../StreamInCallManager/PrevLibDetection';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;

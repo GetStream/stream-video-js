@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { getRNInCallManagerLibNoThrow } from '../../../incallmanager/PrevLibDetection';
+import { getRNInCallManagerLibNoThrow } from '../../../StreamInCallManager/PrevLibDetection';
 
 import { useTheme } from '../../../contexts';
 import {

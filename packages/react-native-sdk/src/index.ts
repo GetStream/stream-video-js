@@ -27,7 +27,7 @@ export * from './hooks';
 export * from './theme';
 export * from './utils';
 export * from './translations';
-export * from './incallmanager';
+export * from './StreamInCallManager';
 
 // Overriding 'StreamVideo' and 'StreamCall' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.

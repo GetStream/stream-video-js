@@ -7,7 +7,7 @@ import {
   useTheme,
   useScreenshot,
   useNoiseCancellation,
-  InCallManager,
+  StreamInCallManager,
 } from '@stream-io/video-react-native-sdk';
 import { Text, Modal, Image, TouchableOpacity, Platform } from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
@@ -123,7 +123,7 @@ export const MoreActionsButton = ({
 
   const showAudioRoutePicker = async () => {
     if (Platform.OS === 'ios') {
-      InCallManager.showIOSAudioRoutePicker();
+      StreamInCallManager.showIOSAudioRoutePicker();
     } else {
       setIsAndroidAudioRoutePickerDrawerVisible(true);
     }
