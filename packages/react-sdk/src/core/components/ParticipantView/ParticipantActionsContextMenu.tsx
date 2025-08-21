@@ -34,6 +34,7 @@ export const ParticipantActionsContextMenu = () => {
   const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
   const blockUser = () => call?.blockUser(userId);
+  const kickUser = () => call?.kickUser({ user_id: userId });
   const muteAudio = () => call?.muteUser(userId, 'audio');
   const muteVideo = () => call?.muteUser(userId, 'video');
   const muteScreenShare = () => call?.muteUser(userId, 'screenshare');
@@ -64,10 +65,7 @@ export const ParticipantActionsContextMenu = () => {
 
   const pinForEveryone = () => {
     call
-      ?.pinForEveryone({
-        user_id: userId,
-        session_id: sessionId,
-      })
+      ?.pinForEveryone({ user_id: userId, session_id: sessionId })
       .catch((err) => {
         console.error(`Failed to pin participant ${userId}`, err);
       });
@@ -75,10 +73,7 @@ export const ParticipantActionsContextMenu = () => {
 
   const unpinForEveryone = () => {
     call
-      ?.unpinForEveryone({
-        user_id: userId,
-        session_id: sessionId,
-      })
+      ?.unpinForEveryone({ user_id: userId, session_id: sessionId })
       .catch((err) => {
         console.error(`Failed to unpin participant ${userId}`, err);
       });
@@ -145,6 +140,10 @@ export const ParticipantActionsContextMenu = () => {
           {t('Block')}
         </GenericMenuButtonItem>
       </Restricted>
+      <GenericMenuButtonItem onClick={kickUser}>
+        <Icon icon="kick-user" />
+        {t('Kick')}
+      </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>

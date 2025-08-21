@@ -44,6 +44,8 @@ import type {
   GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
+  KickUserRequest,
+  KickUserResponse,
   ListRecordingsResponse,
   ListTranscriptionsResponse,
   MuteUsersRequest,
@@ -1987,6 +1989,17 @@ export class Call {
       {
         user_id: userId,
       },
+    );
+  };
+
+  /**
+   * Kicks the user with the given `userId`.
+   * @param data the kick request.
+   */
+  kickUser = async (data: KickUserRequest): Promise<KickUserResponse> => {
+    return this.streamClient.post<KickUserResponse, KickUserRequest>(
+      `${this.streamClientBasePath}/kick`,
+      data,
     );
   };
 
