@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,7 +6,6 @@ import {
   type ViewStyle,
   Platform,
 } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
 import {
   CallParticipantsGrid,
   type CallParticipantsGridProps,
@@ -43,6 +42,7 @@ import {
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import { RTCViewPipIOS } from './RTCViewPipIOS';
+import { getRNInCallManagerLibNoThrow } from '../../../StreamInCallManager/PrevLibDetection';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -119,9 +119,9 @@ export const CallContent = ({
   layout = 'grid',
   landscape = false,
   supportedReactions,
+  initialInCallManagerAudioMode,
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
-  initialInCallManagerAudioMode = 'video',
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -189,9 +189,16 @@ export const CallContent = ({
    * This hook is used to handle IncallManager specs of the application.
    */
   useEffect(() => {
-    InCallManager.start({ media: incallManagerModeRef.current });
+    const prevInCallManager = getRNInCallManagerLibNoThrow();
+    if (prevInCallManager) {
+      prevInCallManager.start({ media: incallManagerModeRef.current });
+    }
 
-    return () => InCallManager.stop();
+    return () => {
+      if (prevInCallManager) {
+        prevInCallManager.stop();
+      }
+    };
   }, []);
 
   const handleFloatingViewParticipantSwitch = () => {
