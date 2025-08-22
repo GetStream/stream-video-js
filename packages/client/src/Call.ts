@@ -399,6 +399,21 @@ export class Call {
       }),
     );
 
+    if (this.ringing) {
+      // if the call is ringing, we need to register the ringing call effects
+      this.handleRingingCall();
+    } else {
+      // if the call is not ringing, we need to register the ringing call subscriptions
+      // to handle the case when the call gets ringing flag after creation event
+      this.leaveCallHooks.add(
+        // "ringing" mode effects and event handlers
+        createSubscription(this.ringingSubject, (isRinging) => {
+          if (!isRinging) return;
+          this.handleRingingCall();
+        }),
+      );
+    }
+
     this.leaveCallHooks.add(
       // cancel auto-drop when call is accepted or rejected
       createSubscription(this.state.session$, (session) => {
@@ -430,50 +445,46 @@ export class Call {
         }
       }),
     );
+  };
 
-    this.leaveCallHooks.add(
-      // "ringing" mode effects and event handlers
-      createSubscription(this.ringingSubject, (isRinging) => {
-        if (!isRinging) return;
-        const callSession = this.state.session;
-        const receiver_id = this.clientStore.connectedUser?.id;
-        const ended_at = callSession?.ended_at;
-        const created_by_id = this.state.createdBy?.id;
-        const rejected_by = callSession?.rejected_by;
-        const accepted_by = callSession?.accepted_by;
-        let leaveCallIdle = false;
-        if (ended_at) {
-          // call was ended before it was accepted or rejected so we should leave it to idle
-          leaveCallIdle = true;
-        } else if (created_by_id && rejected_by) {
-          if (rejected_by[created_by_id]) {
-            // call was cancelled by the caller
-            leaveCallIdle = true;
-          }
-        } else if (receiver_id && rejected_by) {
-          if (rejected_by[receiver_id]) {
-            // call was rejected by the receiver in some other device
-            leaveCallIdle = true;
-          }
-        } else if (receiver_id && accepted_by) {
-          if (accepted_by[receiver_id]) {
-            // call was accepted by the receiver in some other device
-            leaveCallIdle = true;
-          }
-        }
-        if (leaveCallIdle) {
-          if (this.state.callingState !== CallingState.IDLE) {
-            this.state.setCallingState(CallingState.IDLE);
-          }
-        } else {
-          if (this.state.callingState === CallingState.IDLE) {
-            this.state.setCallingState(CallingState.RINGING);
-          }
-          this.scheduleAutoDrop();
-          this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
-        }
-      }),
-    );
+  private handleRingingCall = () => {
+    const callSession = this.state.session;
+    const receiver_id = this.clientStore.connectedUser?.id;
+    const ended_at = callSession?.ended_at;
+    const created_by_id = this.state.createdBy?.id;
+    const rejected_by = callSession?.rejected_by;
+    const accepted_by = callSession?.accepted_by;
+    let leaveCallIdle = false;
+    if (ended_at) {
+      // call was ended before it was accepted or rejected so we should leave it to idle
+      leaveCallIdle = true;
+    } else if (created_by_id && rejected_by) {
+      if (rejected_by[created_by_id]) {
+        // call was cancelled by the caller
+        leaveCallIdle = true;
+      }
+    } else if (receiver_id && rejected_by) {
+      if (rejected_by[receiver_id]) {
+        // call was rejected by the receiver in some other device
+        leaveCallIdle = true;
+      }
+    } else if (receiver_id && accepted_by) {
+      if (accepted_by[receiver_id]) {
+        // call was accepted by the receiver in some other device
+        leaveCallIdle = true;
+      }
+    }
+    if (leaveCallIdle) {
+      if (this.state.callingState !== CallingState.IDLE) {
+        this.state.setCallingState(CallingState.IDLE);
+      }
+    } else {
+      if (this.state.callingState === CallingState.IDLE) {
+        this.state.setCallingState(CallingState.RINGING);
+      }
+      this.scheduleAutoDrop();
+      this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
+    }
   };
 
   private handleOwnCapabilitiesUpdated = async (
