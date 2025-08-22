@@ -399,7 +399,7 @@ export class Call {
 
     if (this.ringing) {
       // if the call is ringing, we need to register the ringing call effects
-      this.registerRingingCallEffects();
+      this.handleRingingCall();
     } else {
       // if the call is not ringing, we need to register the ringing call subscriptions
       // to handle the case when the call gets ringing flag after creation event
@@ -407,7 +407,7 @@ export class Call {
         // "ringing" mode effects and event handlers
         createSubscription(this.ringingSubject, (isRinging) => {
           if (!isRinging) return;
-          this.registerRingingCallEffects();
+          this.handleRingingCall();
         }),
       );
     }
@@ -445,7 +445,7 @@ export class Call {
     );
   };
 
-  private registerRingingCallEffects = () => {
+  private handleRingingCall = () => {
     const callSession = this.state.session;
     const receiver_id = this.clientStore.connectedUser?.id;
     const ended_at = callSession?.ended_at;
