@@ -255,7 +255,7 @@ export class MicrophoneManager extends HiFiDeviceManager<MicrophoneManagerState>
     return getAudioStream(constraints, this.call.tracer);
   }
 
-  protected override doSetHiFiEnabled(enabled: boolean) {
+  protected override async doSetHiFiEnabled(enabled: boolean) {
     this.setDefaultConstraints({
       ...this.state.defaultConstraints,
       echoCancellation: !enabled,
@@ -263,9 +263,12 @@ export class MicrophoneManager extends HiFiDeviceManager<MicrophoneManagerState>
       autoGainControl: !enabled,
       channelCount: { ideal: enabled ? 2 : 1 },
     });
-    this.disableNoiseCancellation().catch((err) => {
-      this.logger('warn', '[HiFi]: Failed to disable noise cancellation', err);
-    });
+    if (enabled) {
+      await Promise.all([
+        this.disableNoiseCancellation(),
+        this.disableSpeakingWhileMutedNotification(),
+      ]);
+    }
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {

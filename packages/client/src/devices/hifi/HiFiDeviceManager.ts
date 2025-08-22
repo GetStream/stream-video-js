@@ -12,16 +12,16 @@ export abstract class HiFiDeviceManager<
   /**
    * Enables HiFi audio.
    */
-  enableHiFi() {
-    this.doSetHiFiEnabled(true);
+  async enableHiFi() {
+    await this.doSetHiFiEnabled(true);
     this.state.setHiFiEnabled(true);
   }
 
   /**
    * Disables HiFi audio.
    */
-  disableHiFi() {
-    this.doSetHiFiEnabled(false);
+  async disableHiFi() {
+    await this.doSetHiFiEnabled(false);
     this.state.setHiFiEnabled(false);
   }
 
@@ -43,5 +43,5 @@ export abstract class HiFiDeviceManager<
   /**
    * Applies Device Manager specific High Fidelity settings.
    */
-  protected abstract doSetHiFiEnabled(enabled: boolean): void;
+  protected abstract doSetHiFiEnabled(enabled: boolean): Promise<void>;
 }
