@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.4.0...@stream-io/video-styling-1.5.0) (2025-08-21)
+
+### Features
+
+- Kick user from a call ([#1894](https://github.com/GetStream/stream-video-js/issues/1894)) ([32e2afc](https://github.com/GetStream/stream-video-js/commit/32e2afca0ea59e3f57e1ff9d05828c1e07fbff78))
+
 ## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.3.0...@stream-io/video-styling-1.4.0) (2025-07-18)
 
 ### Features

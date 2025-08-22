@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.8...@stream-io/video-react-sdk-1.20.0) (2025-08-21)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.5.0`
+- `@stream-io/video-client` updated to version `1.28.0`
+- `@stream-io/video-react-bindings` updated to version `1.7.15`
+
+### Features
+
+- Kick user from a call ([#1894](https://github.com/GetStream/stream-video-js/issues/1894)) ([32e2afc](https://github.com/GetStream/stream-video-js/commit/32e2afca0ea59e3f57e1ff9d05828c1e07fbff78))
+
+### Bug Fixes
+
+- **CallParticipantList:** prevent search results from flickering ([#1893](https://github.com/GetStream/stream-video-js/issues/1893)) ([a8cda31](https://github.com/GetStream/stream-video-js/commit/a8cda316893efe6e541b4300baab8b12500cd0fa))
+
 ## [1.19.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.7...@stream-io/video-react-sdk-1.19.8) (2025-08-15)
 
 ### Dependency Updates
