@@ -93,7 +93,7 @@ export class ScreenShareManager extends HiFiDeviceManager<
     return stream;
   }
 
-  protected override doSetHiFiEnabled(enabled: boolean) {
+  protected override async doSetHiFiEnabled(enabled: boolean) {
     const { defaultConstraints } = this.state;
     this.setDefaultConstraints({
       ...defaultConstraints,
