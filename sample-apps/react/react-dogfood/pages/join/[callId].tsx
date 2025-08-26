@@ -8,6 +8,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -29,6 +30,18 @@ import appTranslations from '../../translations';
 import { RingingCallNotification } from '../../components/Ringing/RingingCallNotification';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+const HeadComponent = ({ callId }: { callId: string }) => {
+  const { useCallCustomData } = useCallStateHooks();
+  const customData = useCallCustomData();
+
+  return (
+    <Head>
+      <title>Stream Calls: {customData.name || callId}</title>
+      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    </Head>
+  );
+};
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -172,11 +185,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   return (
     <>
-      <Head>
-        <title>Stream Calls: {callId}</title>
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
-
       <StreamVideo
         client={client}
         language={language}
@@ -184,6 +192,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         translationsOverrides={appTranslations}
       >
         <StreamCall call={call}>
+          <HeadComponent callId={callId} />
+
           <TourProvider>
             <BackgroundFiltersProvider
               basePath={`${basePath}/tf`}
