@@ -1618,6 +1618,12 @@ export interface CallReportResponse {
 export interface CallRequest {
   /**
    *
+   * @type {string}
+   * @memberof CallRequest
+   */
+  channel_cid?: string;
+  /**
+   *
    * @type {{ [key: string]: any; }}
    * @memberof CallRequest
    */
@@ -1677,6 +1683,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   captioning: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof CallResponse
+   */
+  channel_cid?: string;
   /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
@@ -2254,6 +2266,12 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   /**
    *
+   * @type {IngressSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  ingress?: IngressSettingsRequest;
+  /**
+   *
    * @type {LimitsSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -2337,6 +2355,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   geofencing: GeofenceSettingsResponse;
+  /**
+   *
+   * @type {IngressSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  ingress?: IngressSettingsResponse;
   /**
    *
    * @type {LimitsSettingsResponse}
@@ -2713,6 +2737,73 @@ export interface CallUpdatedEvent {
    * @memberof CallUpdatedEvent
    */
   type: string;
+}
+/**
+ * This event is sent when a user submits feedback for a call.
+ * @export
+ * @interface CallUserFeedbackSubmittedEvent
+ */
+export interface CallUserFeedbackSubmittedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  created_at: string;
+  /**
+   * Custom data provided by the user
+   * @type {{ [key: string]: any; }}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  custom?: { [key: string]: any };
+  /**
+   * The rating given by the user (1-5)
+   * @type {number}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  rating: number;
+  /**
+   * The reason provided by the user for the rating
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  reason?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  sdk?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  sdk_version?: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event, "call.user_feedback" in this case
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  user: UserResponse;
 }
 /**
  * This event is sent when a call member is muted
@@ -4047,6 +4138,230 @@ export interface ICEServer {
 /**
  *
  * @export
+ * @interface IngressAudioEncodingOptionsRequest
+ */
+export interface IngressAudioEncodingOptionsRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingOptionsRequest
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingOptionsRequest
+   */
+  channels: IngressAudioEncodingOptionsRequestChannelsEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressAudioEncodingOptionsRequest
+   */
+  enable_dtx?: boolean;
+}
+
+/**
+ * @export
+ */
+export const IngressAudioEncodingOptionsRequestChannelsEnum = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+} as const;
+export type IngressAudioEncodingOptionsRequestChannelsEnum =
+  (typeof IngressAudioEncodingOptionsRequestChannelsEnum)[keyof typeof IngressAudioEncodingOptionsRequestChannelsEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressAudioEncodingResponse
+ */
+export interface IngressAudioEncodingResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingResponse
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingResponse
+   */
+  channels: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressAudioEncodingResponse
+   */
+  enable_dtx: boolean;
+}
+/**
+ *
+ * @export
+ * @interface IngressSettingsRequest
+ */
+export interface IngressSettingsRequest {
+  /**
+   *
+   * @type {IngressAudioEncodingOptionsRequest}
+   * @memberof IngressSettingsRequest
+   */
+  audio_encoding_options?: IngressAudioEncodingOptionsRequest;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressSettingsRequest
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {{ [key: string]: IngressVideoEncodingOptionsRequest; }}
+   * @memberof IngressSettingsRequest
+   */
+  video_encoding_options?: {
+    [key: string]: IngressVideoEncodingOptionsRequest;
+  };
+}
+/**
+ *
+ * @export
+ * @interface IngressSettingsResponse
+ */
+export interface IngressSettingsResponse {
+  /**
+   *
+   * @type {IngressAudioEncodingResponse}
+   * @memberof IngressSettingsResponse
+   */
+  audio_encoding_options?: IngressAudioEncodingResponse;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressSettingsResponse
+   */
+  enabled: boolean;
+  /**
+   *
+   * @type {{ [key: string]: IngressVideoEncodingResponse; }}
+   * @memberof IngressSettingsResponse
+   */
+  video_encoding_options?: { [key: string]: IngressVideoEncodingResponse };
+}
+/**
+ *
+ * @export
+ * @interface IngressVideoEncodingOptionsRequest
+ */
+export interface IngressVideoEncodingOptionsRequest {
+  /**
+   *
+   * @type {Array<IngressVideoLayerRequest>}
+   * @memberof IngressVideoEncodingOptionsRequest
+   */
+  layers: Array<IngressVideoLayerRequest>;
+}
+/**
+ *
+ * @export
+ * @interface IngressVideoEncodingResponse
+ */
+export interface IngressVideoEncodingResponse {
+  /**
+   *
+   * @type {Array<IngressVideoLayerResponse>}
+   * @memberof IngressVideoEncodingResponse
+   */
+  layers: Array<IngressVideoLayerResponse>;
+}
+/**
+ *
+ * @export
+ * @interface IngressVideoLayerRequest
+ */
+export interface IngressVideoLayerRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {string}
+   * @memberof IngressVideoLayerRequest
+   */
+  codec: IngressVideoLayerRequestCodecEnum;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  frame_rate_limit: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  max_dimension: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  min_dimension: number;
+}
+
+/**
+ * @export
+ */
+export const IngressVideoLayerRequestCodecEnum = {
+  H264: 'h264',
+  VP8: 'vp8',
+} as const;
+export type IngressVideoLayerRequestCodecEnum =
+  (typeof IngressVideoLayerRequestCodecEnum)[keyof typeof IngressVideoLayerRequestCodecEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressVideoLayerResponse
+ */
+export interface IngressVideoLayerResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {string}
+   * @memberof IngressVideoLayerResponse
+   */
+  codec: string;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  frame_rate_limit: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  max_dimension: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  min_dimension: number;
+}
+/**
+ *
+ * @export
  * @interface JoinCallRequest
  */
 export interface JoinCallRequest {
@@ -4155,6 +4470,75 @@ export interface JoinCallResponse {
   stats_options: StatsOptions;
 }
 /**
+ * KickUserRequest is the payload for kicking a user from a call. Optionally block the user as well.
+ * @export
+ * @interface KickUserRequest
+ */
+export interface KickUserRequest {
+  /**
+   * If true, also block the user from rejoining the call
+   * @type {boolean}
+   * @memberof KickUserRequest
+   */
+  block?: boolean;
+  /**
+   * The user to kick
+   * @type {string}
+   * @memberof KickUserRequest
+   */
+  user_id: string;
+}
+/**
+ * KickUserResponse is the payload for kicking a user from a call.
+ * @export
+ * @interface KickUserResponse
+ */
+export interface KickUserResponse {
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof KickUserResponse
+   */
+  duration: string;
+}
+/**
+ * This event is sent to call participants to notify when a user is kicked from a call. Clients should make the kicked user leave the call UI.
+ * @export
+ * @interface KickedUserEvent
+ */
+export interface KickedUserEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof KickedUserEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof KickedUserEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof KickedUserEvent
+   */
+  kicked_by_user?: UserResponse;
+  /**
+   * The type of event: "call.kicked_user" in this case
+   * @type {string}
+   * @memberof KickedUserEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof KickedUserEvent
+   */
+  user: UserResponse;
+}
+/**
  *
  * @export
  * @interface LayoutSettingsRequest
@@ -4223,6 +4607,18 @@ export interface LimitsSettingsRequest {
    * @memberof LimitsSettingsRequest
    */
   max_participants?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof LimitsSettingsRequest
+   */
+  max_participants_exclude_owner?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof LimitsSettingsRequest
+   */
+  max_participants_exclude_roles?: Array<string>;
 }
 /**
  *
@@ -4242,6 +4638,18 @@ export interface LimitsSettingsResponse {
    * @memberof LimitsSettingsResponse
    */
   max_participants?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof LimitsSettingsResponse
+   */
+  max_participants_exclude_owner?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof LimitsSettingsResponse
+   */
+  max_participants_exclude_roles: Array<string>;
 }
 /**
  * List devices response
@@ -4513,6 +4921,7 @@ export const OwnCapability = {
   JOIN_BACKSTAGE: 'join-backstage',
   JOIN_CALL: 'join-call',
   JOIN_ENDED_CALL: 'join-ended-call',
+  KICK_USER: 'kick-user',
   MUTE_USERS: 'mute-users',
   PIN_FOR_EVERYONE: 'pin-for-everyone',
   READ_CALL: 'read-call',
@@ -4543,6 +4952,12 @@ export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
  * @interface OwnUserResponse
  */
 export interface OwnUserResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUserResponse
+   */
+  avg_response_time?: number;
   /**
    *
    * @type {Array<string>}
@@ -7058,6 +7473,12 @@ export interface UserRequest {
 export interface UserResponse {
   /**
    *
+   * @type {number}
+   * @memberof UserResponse
+   */
+  avg_response_time?: number;
+  /**
+   *
    * @type {Array<string>}
    * @memberof UserResponse
    */
@@ -7153,6 +7574,12 @@ export interface UserResponse {
  * @interface UserResponsePrivacyFields
  */
 export interface UserResponsePrivacyFields {
+  /**
+   *
+   * @type {number}
+   * @memberof UserResponsePrivacyFields
+   */
+  avg_response_time?: number;
   /**
    *
    * @type {Array<string>}
@@ -7319,6 +7746,7 @@ export type VideoEvent =
   | ({
       type: 'call.hls_broadcasting_stopped';
     } & CallHLSBroadcastingStoppedEvent)
+  | ({ type: 'call.kicked_user' } & KickedUserEvent)
   | ({ type: 'call.live_started' } & CallLiveStartedEvent)
   | ({ type: 'call.member_added' } & CallMemberAddedEvent)
   | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
@@ -7360,6 +7788,7 @@ export type VideoEvent =
   | ({ type: 'call.transcription_stopped' } & CallTranscriptionStoppedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.user_feedback_submitted' } & CallUserFeedbackSubmittedEvent)
   | ({ type: 'call.user_muted' } & CallUserMutedEvent)
   | ({ type: 'connection.error' } & ConnectionErrorEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)

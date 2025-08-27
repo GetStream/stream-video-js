@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.0...@stream-io/video-client-1.28.1) (2025-08-22)
+
+### Bug Fixes
+
+- handle pre ended calls on ringing push arrival ([#1897](https://github.com/GetStream/stream-video-js/issues/1897)) ([935e375](https://github.com/GetStream/stream-video-js/commit/935e3756035639c651b3ac4469321a64b8576a0e))
+
+## [1.28.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.5...@stream-io/video-client-1.28.0) (2025-08-21)
+
+### Features
+
+- Kick user from a call ([#1894](https://github.com/GetStream/stream-video-js/issues/1894)) ([32e2afc](https://github.com/GetStream/stream-video-js/commit/32e2afca0ea59e3f57e1ff9d05828c1e07fbff78))
+
 ## [1.27.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.4...@stream-io/video-client-1.27.5) (2025-08-15)
 
 ### Bug Fixes
