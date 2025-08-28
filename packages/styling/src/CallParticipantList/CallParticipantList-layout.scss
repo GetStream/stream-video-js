@@ -25,7 +25,7 @@ $scope-name: 'str-video__participant-list';
   }
 
   .str-video__participant-list__content-header {
-    display: none;
+    display: flex;
     align-items: center;
     gap: 0.5rem;
     margin-top: var(--str-video__spacing-md);
