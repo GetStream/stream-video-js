@@ -102,7 +102,9 @@ export type ToggleAudioPublishingButtonProps = PropsWithErrorHandler<
   Pick<
     IconButtonWithMenuProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
-  >
+  > & {
+    optimisticUpdates?: boolean;
+  }
 >;
 
 export const ToggleAudioPublishingButton = (
@@ -114,6 +116,7 @@ export const ToggleAudioPublishingButton = (
     Menu = <DeviceSelectorAudioInput visualType="list" />,
     menuPlacement = 'top',
     onMenuToggle,
+    optimisticUpdates,
     ...restCompositeButtonProps
   } = props;
 
@@ -122,11 +125,14 @@ export const ToggleAudioPublishingButton = (
 
   const { useMicrophoneState } = useCallStateHooks();
   const {
+    isMute,
     microphone,
     optimisticIsMute,
     hasBrowserPermission,
     isPromptingPermission,
+    isTogglePending,
   } = useMicrophoneState();
+
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, async () => {
     if (!hasPermission) {
@@ -135,6 +141,8 @@ export const ToggleAudioPublishingButton = (
       await microphone.toggle();
     }
   });
+
+  const muted = optimisticUpdates ? optimisticIsMute : isMute;
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
@@ -156,13 +164,16 @@ export const ToggleAudioPublishingButton = (
           tooltipDisabled={tooltipDisabled}
         >
           <CompositeButton
-            active={optimisticIsMute}
+            active={muted}
             caption={caption}
             variant="secondary"
-            disabled={!hasBrowserPermission || !hasPermission}
-            data-testid={
-              optimisticIsMute ? 'audio-unmute-button' : 'audio-mute-button'
+            disabled={
+              !hasBrowserPermission ||
+              !hasPermission ||
+              // disable button while the toggle action is pending when not using optimistic updates
+              (!optimisticUpdates && isTogglePending)
             }
+            data-testid={muted ? 'audio-unmute-button' : 'audio-mute-button'}
             onClick={handleClick}
             Menu={Menu}
             menuPlacement={menuPlacement}
@@ -173,7 +184,7 @@ export const ToggleAudioPublishingButton = (
               onMenuToggle?.(shown);
             }}
           >
-            <Icon icon={optimisticIsMute ? 'mic-off' : 'mic'} />
+            <Icon icon={muted ? 'mic-off' : 'mic'} />
             {(!hasBrowserPermission || !hasPermission) && (
               <span className="str-video__no-media-permission">!</span>
             )}
