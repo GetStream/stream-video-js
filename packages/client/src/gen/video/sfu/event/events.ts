@@ -15,6 +15,7 @@ import {
   ICETrickle as ICETrickle$,
   Participant,
   ParticipantCount,
+  ParticipantSource,
   PeerType,
   Pin,
   PublishOption,
@@ -522,6 +523,10 @@ export interface JoinRequest {
    * @generated from protobuf field: repeated stream.video.sfu.models.ClientCapability capabilities = 11;
    */
   capabilities: ClientCapability[];
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.ParticipantSource source = 12;
+   */
+  source: ParticipantSource;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ReconnectDetails
@@ -1402,6 +1407,16 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
           'stream.video.sfu.models.ClientCapability',
           ClientCapability,
           'CLIENT_CAPABILITY_',
+        ],
+      },
+      {
+        no: 12,
+        name: 'source',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.ParticipantSource',
+          ParticipantSource,
+          'PARTICIPANT_SOURCE_',
         ],
       },
     ]);
