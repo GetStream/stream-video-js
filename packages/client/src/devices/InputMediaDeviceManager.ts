@@ -111,7 +111,14 @@ export abstract class InputMediaDeviceManager<
    * Stops or pauses the stream based on state.disableMode
    * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
-  async disable(forceStop: boolean = false) {
+  async disable(options: { forceStop?: boolean }): Promise<void>;
+  async disable(forceStop?: boolean): Promise<void>;
+  async disable(forceStopOrOptions?: boolean | { forceStop?: boolean }) {
+    const forceStop =
+      typeof forceStopOrOptions === 'boolean'
+        ? forceStopOrOptions
+        : (forceStopOrOptions?.forceStop ?? false);
+
     this.state.prevStatus = this.state.optimisticStatus;
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
