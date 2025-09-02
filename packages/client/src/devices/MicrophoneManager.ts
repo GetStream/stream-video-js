@@ -255,19 +255,22 @@ export class MicrophoneManager extends HiFiDeviceManager<MicrophoneManagerState>
     return getAudioStream(constraints, this.call.tracer);
   }
 
-  protected override async doSetHiFiEnabled(enabled: boolean) {
+  protected override async doSetHiFiEnabled(hiFiEnabled: boolean) {
     this.setDefaultConstraints({
       ...this.state.defaultConstraints,
-      echoCancellation: !enabled,
-      noiseSuppression: !enabled,
-      autoGainControl: !enabled,
-      channelCount: { ideal: enabled ? 2 : 1 },
+      echoCancellation: !hiFiEnabled,
+      noiseSuppression: !hiFiEnabled,
+      autoGainControl: !hiFiEnabled,
+      channelCount: { ideal: hiFiEnabled ? 2 : 1 },
     });
-    if (enabled) {
+    if (hiFiEnabled) {
       await Promise.all([
         this.disableNoiseCancellation(),
         this.disableSpeakingWhileMutedNotification(),
       ]);
+    }
+    if (this.enabled) {
+      await this.applySettingsToStream();
     }
   }
 

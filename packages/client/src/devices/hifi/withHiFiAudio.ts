@@ -54,7 +54,7 @@ let cachedWorkletUrl: string | undefined;
  * Returns a URL to a worklet module that processes stereo audio.
  */
 const getStereoProcessorWorkletModule = (): string => {
-  // Minified version of the code below (https://try.terser.org/)
+  // minified version of the StereoCaptureProcessor code below (https://try.terser.org/)
   if (!cachedWorkletUrl) {
     const code = `class t extends AudioWorkletProcessor{constructor(t){super(),this.chunkSize=t?.processorOptions?.chunkSize||2048,this.bufL=[],this.bufR=[],this.len=0,this.channels=0}process(t){const s=t[0];if(!s||0===s.length)return!0;this.channels=s.length;const e=s[0]||new Float32Array(128),n=s[1]||e;if(this.bufL.push(new Float32Array(e)),this.bufR.push(new Float32Array(n)),this.len+=e.length,this.len>=this.chunkSize){const t=new Float32Array(this.len),s=new Float32Array(this.len);let e=0;for(const s of this.bufL)t.set(s,e),e+=s.length;e=0;for(const t of this.bufR)s.set(t,e),e+=t.length;this.port.postMessage({left:t,right:s,sampleRate:sampleRate,inputChannels:this.channels},[t.buffer,s.buffer]),this.bufL.length=0,this.bufR.length=0,this.len=0}return!0}}registerProcessor("stereo-capture",t);`;
     const blob = new Blob([code], { type: 'application/javascript' });
