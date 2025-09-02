@@ -16,7 +16,7 @@ export const CallControls = ({ onLeave }: CallControlsProps) => (
   <div className="str-video__call-controls">
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <SpeakingWhileMutedNotification>
-        <ToggleAudioPublishingButton optimisticUpdates={false} />
+        <ToggleAudioPublishingButton />
       </SpeakingWhileMutedNotification>
     </Restricted>
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
