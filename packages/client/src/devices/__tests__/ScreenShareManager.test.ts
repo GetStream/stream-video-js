@@ -121,6 +121,7 @@ describe('ScreenShareManager', () => {
     expect(call.publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.SCREEN_SHARE,
+      undefined,
     );
   });
 

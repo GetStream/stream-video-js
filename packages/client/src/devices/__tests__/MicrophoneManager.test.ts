@@ -7,7 +7,7 @@ import {
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../../gen/coordinator';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import { AudioBitrateType, TrackType } from '../../gen/video/sfu/models/models';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   mockAudioDevices,
@@ -100,6 +100,7 @@ describe('MicrophoneManager', () => {
     expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.AUDIO,
+      { audioBitrateType: AudioBitrateType.VOICE_STANDARD_UNSPECIFIED },
     );
   });
 

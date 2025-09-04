@@ -3,9 +3,10 @@ import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 export class NoiseCancellationStub implements INoiseCancellation {
   private listeners: { [event: string]: Array<(arg: boolean) => void> } = {};
 
+  canAutoEnable = async () => true;
   isSupported = () => true;
   init = () => Promise.resolve(undefined);
-  isEnabled = () => true;
+  isEnabled = async () => true;
   enable = () => this.listeners['change']?.forEach((l) => l(true));
   disable = () => this.listeners['change']?.forEach((l) => l(false));
   setSuppressionLevel = () => {};
@@ -16,4 +17,5 @@ export class NoiseCancellationStub implements INoiseCancellation {
     return () => {};
   };
   off = () => {};
+  resume = () => {};
 }
