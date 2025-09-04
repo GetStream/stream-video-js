@@ -137,6 +137,10 @@ export interface Participant {
    * @generated from protobuf field: repeated string roles = 13;
    */
   roles: string[];
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.ParticipantSource source = 14;
+   */
+  source: ParticipantSource;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.StreamQuality
@@ -760,6 +764,37 @@ export enum TrackType {
   SCREEN_SHARE_AUDIO = 4,
 }
 /**
+ * must be aligned with kit
+ *
+ * @generated from protobuf enum stream.video.sfu.models.ParticipantSource
+ */
+export enum ParticipantSource {
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_WEBRTC_UNSPECIFIED = 0;
+   */
+  WEBRTC_UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_RTMP = 1;
+   */
+  RTMP = 1,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_WHIP = 2;
+   */
+  WHIP = 2,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_SIP = 3;
+   */
+  SIP = 3,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_RTSP = 4;
+   */
+  RTSP = 4,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_SRT = 5;
+   */
+  SRT = 5,
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.ErrorCode
  */
 export enum ErrorCode {
@@ -1210,6 +1245,16 @@ class Participant$Type extends MessageType<Participant> {
         kind: 'scalar',
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 14,
+        name: 'source',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.ParticipantSource',
+          ParticipantSource,
+          'PARTICIPANT_SOURCE_',
+        ],
       },
     ]);
   }

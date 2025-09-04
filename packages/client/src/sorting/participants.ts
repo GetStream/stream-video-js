@@ -1,5 +1,6 @@
 import { Comparator } from './';
 import { StreamVideoParticipant } from '../types';
+import { ParticipantSource } from '../gen/video/sfu/models/models';
 import {
   hasAudio,
   hasScreenShare,
@@ -85,6 +86,20 @@ export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
 
   return 0;
 };
+
+/**
+ * A comparator creator which will set up a comparator which prioritizes
+ * participants who are from a specific source (e.g., WebRTC, RTMP, WHIP...).
+ *
+ * @param source the source to prioritize.
+ */
+export const withParticipantSource =
+  (source: ParticipantSource): Comparator<StreamVideoParticipant> =>
+  (a, b) => {
+    if (a.source === source && b.source !== source) return -1;
+    if (a.source !== source && b.source === source) return 1;
+    return 0;
+  };
 
 /**
  * A comparator creator which will set up a comparator which prioritizes
