@@ -1,24 +1,31 @@
 import {
   CompositeButton,
   Icon,
-  WithTooltip,
+  SfuModels,
   useCallStateHooks,
   useI18n,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 
 export const ToggleHiFiButton = () => {
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, hiFiEnabled } = useMicrophoneState();
+  const { microphone, audioBitrateType } = useMicrophoneState();
+  const hiFiEnabled =
+    audioBitrateType === SfuModels.AudioBitrateType.MUSIC_HIGH_QUALITY;
 
   const handleToggle = async () => {
     if (!microphone) return;
 
     try {
       if (hiFiEnabled) {
-        await microphone.disableHiFi();
+        await microphone.setAudioBitrateType(
+          SfuModels.AudioBitrateType.VOICE_STANDARD_UNSPECIFIED,
+        );
       } else {
-        await microphone.enableHiFi();
+        await microphone.setAudioBitrateType(
+          SfuModels.AudioBitrateType.MUSIC_HIGH_QUALITY,
+        );
       }
     } catch (error) {
       console.error('Failed to toggle Hi-Fi audio:', error);

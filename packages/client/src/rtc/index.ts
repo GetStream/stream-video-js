@@ -9,3 +9,5 @@ export * from './videoLayers';
 export * from './helpers/sdp';
 export * from './helpers/tracks';
 export * from './helpers/rtcConfiguration';
+
+export * from './types';

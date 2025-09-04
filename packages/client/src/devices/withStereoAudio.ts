@@ -1,4 +1,4 @@
-export const withHiFiAudio = async (
+export const withStereoAudio = async (
   stream: MediaStream,
 ): Promise<MediaStream> => {
   const originalAudioTrack = stream.getAudioTracks()[0];

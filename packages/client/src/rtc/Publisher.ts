@@ -1,10 +1,13 @@
+import { BasePeerConnection } from './BasePeerConnection';
 import {
-  BasePeerConnection,
-  BasePeerConnectionOpts,
-} from './BasePeerConnection';
+  PublishBundle,
+  PublisherConstructorOpts,
+  PublishOptions,
+} from './types';
 import { NegotiationError } from './NegotiationError';
 import { TransceiverCache } from './TransceiverCache';
 import {
+  AudioBitrateType,
   PeerType,
   PublishOption,
   TrackInfo,
@@ -21,10 +24,6 @@ import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
-
-export type PublisherConstructorOpts = BasePeerConnectionOpts & {
-  publishOptions: PublishOption[];
-};
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
@@ -77,8 +76,13 @@ export class Publisher extends BasePeerConnection {
    *
    * @param track the track to publish.
    * @param trackType the track type to publish.
+   * @param options the publish options to use.
    */
-  publish = async (track: MediaStreamTrack, trackType: TrackType) => {
+  publish = async (
+    track: MediaStreamTrack,
+    trackType: TrackType,
+    options: PublishOptions,
+  ) => {
     if (!this.publishOptions.some((o) => o.trackType === trackType)) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);
     }
@@ -90,9 +94,9 @@ export class Publisher extends BasePeerConnection {
       // appear in the SDP in multiple transceivers
       const trackToPublish = this.cloneTrack(track);
 
-      const transceiver = this.transceiverCache.get(publishOption);
+      const { transceiver } = this.transceiverCache.get(publishOption) || {};
       if (!transceiver) {
-        await this.addTransceiver(trackToPublish, publishOption);
+        await this.addTransceiver(trackToPublish, publishOption, options);
       } else {
         const previousTrack = transceiver.sender.track;
         await this.updateTransceiver(transceiver, trackToPublish, trackType);
@@ -109,6 +113,7 @@ export class Publisher extends BasePeerConnection {
   private addTransceiver = async (
     track: MediaStreamTrack,
     publishOption: PublishOption,
+    options: PublishOptions,
   ) => {
     const videoEncodings = computeVideoLayers(track, publishOption);
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
@@ -125,7 +130,7 @@ export class Publisher extends BasePeerConnection {
 
     const trackType = publishOption.trackType;
     this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
-    this.transceiverCache.add(publishOption, transceiver);
+    this.transceiverCache.add({ publishOption, transceiver, options });
     this.trackIdToTrackType.set(track.id, trackType);
 
     await this.negotiate();
@@ -160,12 +165,12 @@ export class Publisher extends BasePeerConnection {
           !!i.transceiver.sender.track &&
           i.publishOption.trackType === trackType,
       );
-      if (!item || !item.transceiver) continue;
+      if (!item) continue;
 
       // take the track from the existing transceiver for the same track type,
       // clone it and publish it with the new publish options
       const track = this.cloneTrack(item.transceiver.sender.track!);
-      await this.addTransceiver(track, publishOption);
+      await this.addTransceiver(track, publishOption, item.options);
     }
 
     // stop publishing with options not required anymore -> [vp9]
@@ -372,11 +377,8 @@ export class Publisher extends BasePeerConnection {
   getAnnouncedTracks = (sdp: string | undefined): TrackInfo[] => {
     const trackInfos: TrackInfo[] = [];
     for (const bundle of this.transceiverCache.items()) {
-      const { transceiver, publishOption } = bundle;
-      const track = transceiver.sender.track;
-      if (!track) continue;
-
-      trackInfos.push(this.toTrackInfo(transceiver, publishOption, sdp));
+      if (!bundle.transceiver.sender.track) continue;
+      trackInfos.push(this.toTrackInfo(bundle, sdp));
     }
     return trackInfos;
   };
@@ -390,10 +392,9 @@ export class Publisher extends BasePeerConnection {
     const sdp = this.pc.localDescription?.sdp;
     const trackInfos: TrackInfo[] = [];
     for (const publishOption of this.publishOptions) {
-      const transceiver = this.transceiverCache.get(publishOption);
-      if (!transceiver || !transceiver.sender.track) continue;
-
-      trackInfos.push(this.toTrackInfo(transceiver, publishOption, sdp));
+      const bundle = this.transceiverCache.get(publishOption);
+      if (!bundle || !bundle.transceiver.sender.track) continue;
+      trackInfos.push(this.toTrackInfo(bundle, sdp));
     }
     return trackInfos;
   };
@@ -402,10 +403,10 @@ export class Publisher extends BasePeerConnection {
    * Converts the given transceiver to a `TrackInfo` object.
    */
   private toTrackInfo = (
-    transceiver: RTCRtpTransceiver,
-    publishOption: PublishOption,
+    bundle: PublishBundle,
     sdp: string | undefined,
   ): TrackInfo => {
+    const { transceiver, publishOption, options } = bundle;
     const track = transceiver.sender.track!;
     const isTrackLive = track.readyState === 'live';
     const layers = isTrackLive
@@ -429,6 +430,8 @@ export class Publisher extends BasePeerConnection {
       muted: !isTrackLive,
       codec: publishOption.codec,
       publishOptionId: publishOption.id,
+      audioBitrateType:
+        options.audioBitrateType ?? AudioBitrateType.VOICE_STANDARD_UNSPECIFIED,
     };
   };
 

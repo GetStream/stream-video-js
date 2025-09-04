@@ -1,31 +1,25 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { RxUtils } from '../store';
 import { TrackDisableMode } from './InputMediaDeviceManagerState';
-import { HiFiDeviceManagerState } from './hifi/HiFiDeviceManagerState';
+import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { getAudioBrowserPermission, resolveDeviceId } from './devices';
 
-export class MicrophoneManagerState extends HiFiDeviceManagerState<MediaTrackConstraints> {
+export class MicrophoneManagerState extends AudioDeviceManagerState<MediaTrackConstraints> {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
 
   /**
-   * An Observable that emits `true` if the user's microphone is muted but they'are speaking.
-   *
-   * This feature is not available in the React Native SDK.
+   * An Observable that emits `true` if the user's microphone is muted, but they're speaking.
    */
-  speakingWhileMuted$: Observable<boolean>;
+  speakingWhileMuted$ = this.speakingWhileMutedSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   constructor(disableMode: TrackDisableMode) {
     super(disableMode, getAudioBrowserPermission());
-
-    this.speakingWhileMuted$ = this.speakingWhileMutedSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
   }
 
   /**
-   * `true` if the user's microphone is muted but they'are speaking.
-   *
-   * This feature is not available in the React Native SDK.
+   * `true` if the user's microphone is muted but they're speaking.
    */
   get speakingWhileMuted() {
     return RxUtils.getCurrentValue(this.speakingWhileMuted$);
@@ -38,7 +32,9 @@ export class MicrophoneManagerState extends HiFiDeviceManagerState<MediaTrackCon
     RxUtils.setCurrentValue(this.speakingWhileMutedSubject, isSpeaking);
   }
 
-  protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
+  protected override getDeviceIdFromStream(
+    stream: MediaStream,
+  ): string | undefined {
     const [track] = stream.getAudioTracks();
     const unresolvedDeviceId = track?.getSettings().deviceId;
     return resolveDeviceId(unresolvedDeviceId, 'audioinput');

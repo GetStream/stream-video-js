@@ -1,13 +1,13 @@
 import { Observable, of } from 'rxjs';
-import { HiFiDeviceManager } from './hifi/HiFiDeviceManager';
+import { AudioDeviceManager } from './AudioDeviceManager';
 import { ScreenShareState } from './ScreenShareState';
 import { Call } from '../Call';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { AudioBitrateType, TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
 
-export class ScreenShareManager extends HiFiDeviceManager<
+export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
   DisplayMediaStreamOptions
 > {
@@ -93,7 +93,8 @@ export class ScreenShareManager extends HiFiDeviceManager<
     return stream;
   }
 
-  protected override async doSetHiFiEnabled(enabled: boolean) {
+  protected override async doSetAudioBitrateType(type: AudioBitrateType) {
+    const isHiFiMusic = type === AudioBitrateType.MUSIC_HIGH_QUALITY;
     const { defaultConstraints } = this.state;
     this.setDefaultConstraints({
       ...defaultConstraints,
@@ -101,9 +102,9 @@ export class ScreenShareManager extends HiFiDeviceManager<
         ...(typeof defaultConstraints?.audio !== 'boolean'
           ? defaultConstraints?.audio
           : null),
-        autoGainControl: !enabled,
-        echoCancellation: !enabled,
-        noiseSuppression: !enabled,
+        autoGainControl: !isHiFiMusic,
+        echoCancellation: !isHiFiMusic,
+        noiseSuppression: !isHiFiMusic,
         channelCount: { ideal: 2 },
       },
     });

@@ -148,11 +148,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     }
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Observable<MediaDeviceInfo[]> {
     return getVideoDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     constraints.width = this.targetResolution.width;
