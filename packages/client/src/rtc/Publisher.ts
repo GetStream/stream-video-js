@@ -81,7 +81,7 @@ export class Publisher extends BasePeerConnection {
   publish = async (
     track: MediaStreamTrack,
     trackType: TrackType,
-    options: PublishOptions,
+    options: PublishOptions = {},
   ) => {
     if (!this.publishOptions.some((o) => o.trackType === trackType)) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);

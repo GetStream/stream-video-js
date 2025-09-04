@@ -1774,7 +1774,7 @@ export class Call {
   publish = async (
     mediaStream: MediaStream,
     trackType: TrackType,
-    options: PublishOptions = {},
+    options?: PublishOptions,
   ) => {
     if (!this.sfuClient) throw new Error(`Call is not joined yet`);
     // joining is in progress, and we should wait until the client is ready
