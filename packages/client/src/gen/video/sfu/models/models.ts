@@ -768,15 +768,15 @@ export enum TrackType {
  */
 export enum AudioBitrateType {
   /**
-   * @generated from protobuf enum value: VOICE_STANDARD_UNSPECIFIED = 0;
+   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_VOICE_STANDARD_UNSPECIFIED = 0;
    */
   VOICE_STANDARD_UNSPECIFIED = 0,
   /**
-   * @generated from protobuf enum value: VOICE_HIGH_QUALITY = 1;
+   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_VOICE_HIGH_QUALITY = 1;
    */
   VOICE_HIGH_QUALITY = 1,
   /**
-   * @generated from protobuf enum value: MUSIC_HIGH_QUALITY = 2;
+   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_MUSIC_HIGH_QUALITY = 2;
    */
   MUSIC_HIGH_QUALITY = 2,
 }
@@ -1474,7 +1474,11 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         no: 13,
         name: 'audio_bitrate_type',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.AudioBitrateType', AudioBitrateType],
+        T: () => [
+          'stream.video.sfu.models.AudioBitrateType',
+          AudioBitrateType,
+          'AUDIO_BITRATE_TYPE_',
+        ],
       },
     ]);
   }
