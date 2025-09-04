@@ -11,7 +11,7 @@ import { BrowserPermission, BrowserPermissionState } from './BrowserPermission';
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
 
-export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
+export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
   protected optimisticStatusSubject = new BehaviorSubject<InputDeviceStatus>(
     undefined,

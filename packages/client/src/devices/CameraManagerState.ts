@@ -1,12 +1,12 @@
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { DeviceManagerState } from './DeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { getVideoBrowserPermission } from './devices';
 import { RxUtils } from '../store';
 
 export type CameraDirection = 'front' | 'back' | undefined;
 
-export class CameraManagerState extends InputMediaDeviceManagerState {
+export class CameraManagerState extends DeviceManagerState {
   private directionSubject = new BehaviorSubject<CameraDirection>(undefined);
 
   /**

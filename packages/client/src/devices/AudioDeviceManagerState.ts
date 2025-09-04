@@ -1,14 +1,12 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { AudioBitrateType } from '../gen/video/sfu/models/models';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { DeviceManagerState } from './DeviceManagerState';
 import { RxUtils } from './../store';
 
 /**
  * Base state class for High Fidelity enabled device managers.
  */
-export abstract class AudioDeviceManagerState<
-  C,
-> extends InputMediaDeviceManagerState<C> {
+export abstract class AudioDeviceManagerState<C> extends DeviceManagerState<C> {
   private audioBitrateTypeSubject = new BehaviorSubject<AudioBitrateType>(
     AudioBitrateType.VOICE_STANDARD_UNSPECIFIED,
   );

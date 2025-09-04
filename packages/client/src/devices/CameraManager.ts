@@ -1,14 +1,14 @@
 import { Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { DeviceManager } from './DeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { OwnCapability, VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 
-export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
+export class CameraManager extends DeviceManager<CameraManagerState> {
   private targetResolution = {
     width: 1280,
     height: 720,

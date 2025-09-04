@@ -1,4 +1,4 @@
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { DeviceManager } from './DeviceManager';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { withStereoAudio } from './withStereoAudio';
 import { AudioBitrateType } from '../gen/video/sfu/models/models';
@@ -9,7 +9,7 @@ import { AudioBitrateType } from '../gen/video/sfu/models/models';
 export abstract class AudioDeviceManager<
   S extends AudioDeviceManagerState<C>,
   C = MediaTrackConstraints,
-> extends InputMediaDeviceManager<S, C> {
+> extends DeviceManager<S, C> {
   /**
    * Sets the audio bitrate type.
    * @param type the bitrate type to set.

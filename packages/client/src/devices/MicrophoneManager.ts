@@ -4,7 +4,7 @@ import type { PublishOptions } from '../rtc';
 import { Call } from '../Call';
 import { AudioDeviceManager } from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './InputMediaDeviceManagerState';
+import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { AudioBitrateType, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';

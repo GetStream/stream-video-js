@@ -3,7 +3,7 @@ import { Call } from '../Call';
 import { PublishOptions } from '../rtc';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { DeviceManagerState } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
@@ -21,8 +21,8 @@ import {
   MediaStreamFilterRegistrationResult,
 } from './filters';
 
-export abstract class InputMediaDeviceManager<
-  S extends InputMediaDeviceManagerState<C>,
+export abstract class DeviceManager<
+  S extends DeviceManagerState<C>,
   C = MediaTrackConstraints,
 > {
   /**
