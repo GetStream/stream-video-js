@@ -1,4 +1,4 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { DeviceManagerState } from './DeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { getVideoBrowserPermission } from './devices';
@@ -14,13 +14,12 @@ export class CameraManagerState extends DeviceManagerState {
    * front - means the camera facing the user
    * back - means the camera facing the environment
    */
-  direction$: Observable<CameraDirection>;
+  direction$ = this.directionSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   constructor() {
     super('stop-tracks', getVideoBrowserPermission());
-    this.direction$ = this.directionSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
   }
 
   /**

@@ -24,7 +24,7 @@ export class ScreenShareState extends AudioDeviceManagerState<DisplayMediaStream
   /**
    * @internal
    */
-  protected getDeviceIdFromStream = (
+  protected override getDeviceIdFromStream = (
     stream: MediaStream,
   ): string | undefined => {
     const [track] = stream.getTracks();
