@@ -336,7 +336,7 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
 
     resolve(@{
         @"charging": @(isCharging),
-        @"level": @([UIDevice currentDevice].batteryLevel)
+        @"level": @(round([UIDevice currentDevice].batteryLevel * 100))
     });
 }
 
@@ -347,7 +347,7 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
 
     [self sendEventWithName:@"chargingStateChanged" body:@{
         @"charging": @(isCharging),
-        @"level": @([UIDevice currentDevice].batteryLevel)
+        @"level": @(round([UIDevice currentDevice].batteryLevel * 100))
     }];
 }
 

@@ -39,7 +39,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
-    private var batteryReceiver: BroadcastReceiver? = null
+
+    private var batteryChargingStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent == null) return
+            val result = getBatteryStatusFromIntent(intent)
+            reactApplicationContext
+                .getJSModule(RCTDeviceEventEmitter::class.java)
+                .emit("chargingStateChanged", result)
+        }
+    }
 
     override fun initialize() {
         super.initialize()
@@ -48,10 +57,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 PiPHelper.onPiPChange(reactApplicationContext, isInPictureInPictureMode, newConfig)
             }
         }
-        val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
-        reactApplicationContext.registerReceiver(powerReceiver, filter)
 
-        initBatteryReceiver()
+        reactApplicationContext.registerReceiver(
+            powerReceiver,
+            IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+        )
+
+        reactApplicationContext.registerReceiver(batteryChargingStateReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_POWER_CONNECTED)
+            addAction(Intent.ACTION_POWER_DISCONNECTED)
+        })
     }
 
     @ReactMethod
@@ -106,10 +121,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     override fun invalidate() {
         StreamVideoReactNative.clearPipListeners()
         reactApplicationContext.unregisterReceiver(powerReceiver)
-        batteryReceiver?.let {
-            reactApplicationContext.unregisterReceiver(it)
-            batteryReceiver = null
-        }
+        reactApplicationContext.unregisterReceiver(batteryChargingStateReceiver)
         stopThermalStatusUpdates()
         super.invalidate()
     }
@@ -295,39 +307,15 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getBatteryState(promise: Promise) {
         try {
-            val batteryStatus = reactApplicationContext.registerReceiver(
-                null,
-                IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-            )
-
+            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
             if (batteryStatus == null) {
                 return promise.reject("BATTERY_ERROR", "Failed to get battery status")
             }
 
-            val result = getBatteryStatusFromIntent(batteryStatus)
-            promise.resolve(result)
+            promise.resolve(getBatteryStatusFromIntent(batteryStatus))
         } catch (e: Exception) {
             promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
-        }
-    }
-
-    private fun initBatteryReceiver() {
-        if (batteryReceiver == null) {
-            batteryReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    if (intent == null) return;
-                    val result = getBatteryStatusFromIntent(intent)
-                    reactApplicationContext
-                        .getJSModule(RCTDeviceEventEmitter::class.java)
-                        .emit("chargingStateChanged", result)
-                }
-            }
-
-            val filter = IntentFilter().apply {
-                addAction(Intent.ACTION_POWER_CONNECTED)
-                addAction(Intent.ACTION_POWER_DISCONNECTED)
-            }
-            reactApplicationContext.registerReceiver(batteryReceiver, filter)
         }
     }
 
@@ -345,7 +333,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
         return Arguments.createMap().apply {
             putBoolean("charging", isCharging)
-            putDouble("level", batteryLevel.toDouble())
+            putInt("level", batteryLevel.toInt())
         }
     }
 
