@@ -16,7 +16,7 @@ export const withStereoAudio = async (
   }
 
   // Create media stream source from the screen capture
-  const screenSource = ctx.createMediaStreamSource(
+  const source = ctx.createMediaStreamSource(
     new MediaStream([originalAudioTrack]),
   );
 
@@ -34,7 +34,7 @@ export const withStereoAudio = async (
   rightGain.gain.value = 1.0;
 
   // Route the audio: source -> splitter -> gains -> merger -> destination
-  screenSource.connect(splitter);
+  source.connect(splitter);
   splitter.connect(leftGain, 0); // Left channel
   splitter.connect(rightGain, 1); // Right channel
   leftGain.connect(merger, 0, 0); // Left gain to left output
