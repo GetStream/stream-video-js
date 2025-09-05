@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.2...@stream-io/video-filters-react-native-0.6.3) (2025-09-05)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.3 ([#1908](https://github.com/GetStream/stream-video-js/issues/1908)) ([24b2f95](https://github.com/GetStream/stream-video-js/commit/24b2f958f4430212116ddd78800a1ea71adbea4d))
+
 ## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.1...@stream-io/video-filters-react-native-0.6.2) (2025-08-21)
 
 ### Bug Fixes
