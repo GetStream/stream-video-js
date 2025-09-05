@@ -7,8 +7,10 @@ import {
 } from '@stream-io/video-client';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
-const eventEmitter = NativeModules?.StreamVideoReactNative
-  ? new NativeEventEmitter(NativeModules?.StreamVideoReactNative)
+const StreamVideoReactNative = NativeModules?.StreamVideoReactNative;
+
+const eventEmitter = StreamVideoReactNative
+  ? new NativeEventEmitter(StreamVideoReactNative)
   : undefined;
 
 /**
@@ -22,7 +24,7 @@ export const DeviceStats = () => {
   useEffect(() => {
     if (!call || callingState !== CallingState.JOINED) return;
 
-    NativeModules?.StreamVideoReactNative.isLowPowerModeEnabled().then(
+    StreamVideoReactNative?.isLowPowerModeEnabled().then(
       (initialPowerMode: boolean) => {
         setPowerState(initialPowerMode);
         call.tracer.trace('device.lowPowerMode', initialPowerMode);
@@ -37,7 +39,7 @@ export const DeviceStats = () => {
       },
     );
 
-    NativeModules?.StreamVideoReactNative.currentThermalState().then(
+    StreamVideoReactNative?.currentThermalState().then(
       (initialState: string) => {
         setThermalState(initialState);
         call.tracer.trace('device.thermalState', initialState);
@@ -52,16 +54,37 @@ export const DeviceStats = () => {
       },
     );
 
+    const pollBatteryState = () => {
+      StreamVideoReactNative?.getBatteryState().then(
+        (data: { charging: boolean; level: number }) => {
+          call.tracer.trace('device.batteryState', data);
+        },
+      );
+    };
+
+    // poll every 3 minutes, so we can calculate potential battery drain
+    const batteryLevelId = setInterval(() => pollBatteryState(), 3 * 60 * 1000);
+    pollBatteryState(); // initial call
+
+    const batteryChargingSubscription = eventEmitter?.addListener(
+      'chargingStateChanged',
+      (data: { charging: boolean; level: number }) => {
+        call.tracer.trace('device.batteryChargingStateChanged', data);
+      },
+    );
+
     // on android we need to explicitly start and stop the thermal status updates
     if (Platform.OS === 'android') {
-      NativeModules?.StreamVideoReactNative.startThermalStatusUpdates();
+      StreamVideoReactNative?.startThermalStatusUpdates();
     }
 
     return () => {
       powerModeSubscription?.remove();
       thermalStateSubscription?.remove();
+      batteryChargingSubscription?.remove();
+      clearInterval(batteryLevelId);
       if (Platform.OS === 'android') {
-        NativeModules?.StreamVideoReactNative.stopThermalStatusUpdates();
+        StreamVideoReactNative?.stopThermalStatusUpdates();
       }
     };
   }, [call, callingState]);
