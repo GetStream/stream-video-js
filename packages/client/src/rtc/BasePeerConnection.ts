@@ -16,22 +16,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-
-export type OnReconnectionNeeded = (
-  kind: WebsocketReconnectStrategy,
-  reason: string,
-) => void;
-
-export type BasePeerConnectionOpts = {
-  sfuClient: StreamSfuClient;
-  state: CallState;
-  connectionConfig?: RTCConfiguration;
-  dispatcher: Dispatcher;
-  onReconnectionNeeded?: OnReconnectionNeeded;
-  tag: string;
-  enableTracing: boolean;
-  iceRestartDelay?: number;
-};
+import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.

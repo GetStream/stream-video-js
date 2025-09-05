@@ -1,11 +1,12 @@
 import { combineLatest, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import type { PublishOptions } from '../rtc';
 import { Call } from '../Call';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { AudioDeviceManager } from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './InputMediaDeviceManagerState';
+import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { AudioBitrateType, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
@@ -21,7 +22,7 @@ import {
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 
-export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
+export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: Function;
@@ -245,14 +246,44 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     }
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Observable<MediaDeviceInfo[]> {
     return getAudioDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override doGetStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     return getAudioStream(constraints, this.call.tracer);
+  }
+
+  protected override publishStream(
+    stream: MediaStream,
+    options?: PublishOptions,
+  ): Promise<void> {
+    return super.publishStream(stream, {
+      audioBitrateType: this.state.audioBitrateType,
+      ...options,
+    });
+  }
+
+  protected override async doSetAudioBitrateType(type: AudioBitrateType) {
+    const isHiFiMusic = type === AudioBitrateType.MUSIC_HIGH_QUALITY;
+    this.setDefaultConstraints({
+      ...this.state.defaultConstraints,
+      echoCancellation: !isHiFiMusic,
+      noiseSuppression: !isHiFiMusic,
+      autoGainControl: !isHiFiMusic,
+      channelCount: { ideal: isHiFiMusic ? 2 : 1 },
+    });
+    if (isHiFiMusic) {
+      await Promise.all([
+        this.disableNoiseCancellation(),
+        this.disableSpeakingWhileMutedNotification(),
+      ]);
+    }
+    if (this.enabled) {
+      await this.applySettingsToStream();
+    }
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
