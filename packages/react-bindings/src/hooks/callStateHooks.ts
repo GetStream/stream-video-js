@@ -25,6 +25,13 @@ const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
   [],
 ) as MediaDeviceInfo[];
 
+export type UseInputMediaDeviceOptions = {
+  /**
+   * If `true`, the hook will use the optimistic status to determine whether the device is muted or not.
+   */
+  optimisticUpdates?: boolean;
+};
+
 /**
  * Utility hook, which provides the current call's state.
  */
@@ -333,7 +340,9 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
 /**
  * Returns the camera state of the current call.
  */
-export const useCameraState = () => {
+export const useCameraState = ({
+  optimisticUpdates = true,
+}: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { camera } = call as Call;
 
@@ -360,6 +369,7 @@ export const useCameraState = () => {
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
+      { optimisticUpdates },
     ),
   };
 };
@@ -367,7 +377,9 @@ export const useCameraState = () => {
 /**
  * Returns the microphone state of the current call.
  */
-export const useMicrophoneState = () => {
+export const useMicrophoneState = ({
+  optimisticUpdates = true,
+}: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { microphone } = call as Call;
 
@@ -394,6 +406,7 @@ export const useMicrophoneState = () => {
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
+      { optimisticUpdates },
     ),
   };
 };
@@ -428,7 +441,9 @@ export const useSpeakerState = () => {
 /**
  * Returns the Screen Share state of the current call.
  */
-export const useScreenShareState = () => {
+export const useScreenShareState = ({
+  optimisticUpdates = true,
+}: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { screenShare } = call as Call;
 
@@ -438,6 +453,7 @@ export const useScreenShareState = () => {
     ...getComputedStatus(
       useObservableValue(screenShare.state.status$),
       useObservableValue(screenShare.state.optimisticStatus$),
+      { optimisticUpdates },
     ),
   };
 };
@@ -473,6 +489,7 @@ export const useIsCallCaptioningInProgress = (): boolean => {
 function getComputedStatus(
   status: InputDeviceStatus,
   pendingStatus: InputDeviceStatus,
+  options: Required<UseInputMediaDeviceOptions>,
 ) {
   const optimisticStatus = pendingStatus ?? status;
 
@@ -483,6 +500,14 @@ function getComputedStatus(
     isMute: status !== 'enabled',
     optimisticIsMute: optimisticStatus !== 'enabled',
     isTogglePending: optimisticStatus !== status,
+    /**
+     * If optimistic updates are enabled (`options.optimisticUpdates`), we
+     * consider the optimistic status to determine whether the device is muted or not.
+     * Otherwise, we rely on the actual status.
+     */
+    optionsAwareIsMute: options.optimisticUpdates
+      ? optimisticStatus !== 'enabled'
+      : status !== 'enabled',
   };
 }
 
