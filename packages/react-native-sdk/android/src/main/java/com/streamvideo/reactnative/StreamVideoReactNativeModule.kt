@@ -6,18 +6,18 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 import android.util.Base64
-import android.util.Log
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.oney.WebRTCModule.WebRTCModule
-import com.oney.WebRTCModule.WebRTCView
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
@@ -25,7 +25,6 @@ import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
@@ -41,6 +40,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
+    private var batteryChargingStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent == null) return
+            val result = getBatteryStatusFromIntent(intent)
+            reactApplicationContext
+                .getJSModule(RCTDeviceEventEmitter::class.java)
+                .emit("chargingStateChanged", result)
+        }
+    }
+
     override fun initialize() {
         super.initialize()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -48,8 +57,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 PiPHelper.onPiPChange(reactApplicationContext, isInPictureInPictureMode, newConfig)
             }
         }
-        val filter = IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
-        reactApplicationContext.registerReceiver(powerReceiver, filter)
+
+        reactApplicationContext.registerReceiver(
+            powerReceiver,
+            IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+        )
+
+        reactApplicationContext.registerReceiver(batteryChargingStateReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_POWER_CONNECTED)
+            addAction(Intent.ACTION_POWER_DISCONNECTED)
+        })
     }
 
     @ReactMethod
@@ -104,6 +121,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     override fun invalidate() {
         StreamVideoReactNative.clearPipListeners()
         reactApplicationContext.unregisterReceiver(powerReceiver)
+        reactApplicationContext.unregisterReceiver(batteryChargingStateReceiver)
         stopThermalStatusUpdates()
         super.invalidate()
     }
@@ -281,9 +299,41 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 }
             }
             track.addSink(screenshotSink)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             promise.reject("ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
+    fun getBatteryState(promise: Promise) {
+        try {
+            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
+            if (batteryStatus == null) {
+                return promise.reject("BATTERY_ERROR", "Failed to get battery status")
+            }
+
+            promise.resolve(getBatteryStatusFromIntent(batteryStatus))
+        } catch (e: Exception) {
+            promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
+        }
+    }
+
+    private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+
+        val batteryLevel = if (level >= 0 && scale > 0) {
+            (level.toFloat() / scale.toFloat()) * 100
+        } else -1f
+
+        return Arguments.createMap().apply {
+            putBoolean("charging", isCharging)
+            putInt("level", batteryLevel.toInt())
         }
     }
 
