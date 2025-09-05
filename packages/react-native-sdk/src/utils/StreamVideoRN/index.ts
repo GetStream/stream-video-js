@@ -171,4 +171,23 @@ export class StreamVideoRN {
         newNotificationCallbacks.current?.filter((cb) => cb !== callback);
     };
   }
+
+  /**
+   * Play native busy tone for call rejection
+   */
+  static playBusyTone() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      NativeModules.StreamVideoReactNative?.playBusyTone();
+      console.log('playBusyTone');
+    }
+  }
+
+  /**
+   * Stop native busy tone
+   */
+  static stopBusyTone() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      NativeModules.StreamVideoReactNative?.stopBusyTone();
+    }
+  }
 }

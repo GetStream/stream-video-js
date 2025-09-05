@@ -5,9 +5,10 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { CallingState, getLogger } from '@stream-io/video-client';
-import InCallManager from 'react-native-incall-manager';
 import { StreamVideoRN } from '../../utils';
 import { Platform } from 'react-native';
+
+const BUSY_TONE_DURATION_IN_MS = 3000;
 
 /**
  * This is a renderless component to reject calls when the user is busy.
@@ -20,17 +21,16 @@ export const RejectCallWhenBusy = () => {
   useEffect(() => {
     if (!client) return;
     return client?.on('call.rejected', async (event) => {
-      // Workaround needed for the busy tone:
-      // This is because the call was rejected without even starting,
-      // before calling the stop method with busy tone we need to start the call first.
-      InCallManager.start({ media: 'audio' });
-
       const isCallCreatedByMe =
         event.call.created_by.id === client.state.connectedUser?.id;
       const isCalleeBusy = isCallCreatedByMe && event.reason === 'busy';
 
       if (isCalleeBusy) {
-        InCallManager.stop({ busytone: '_DTMF_' });
+        StreamVideoRN.playBusyTone();
+
+        setTimeout(() => {
+          StreamVideoRN.stopBusyTone();
+        }, BUSY_TONE_DURATION_IN_MS);
       }
     });
   }, [client]);

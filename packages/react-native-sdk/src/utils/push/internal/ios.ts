@@ -1,4 +1,4 @@
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { CallingState, getLogger, RxUtils } from '@stream-io/video-client';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
 import {
@@ -131,4 +131,33 @@ export const onVoipNotificationReceived = async (
     `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification`,
   );
   voipPushNotificationCallCId$.next(call_cid);
+
+  if (pushConfig.shouldRejectCallWhenBusy) {
+    try {
+      const calls = client.state.calls;
+      const ringingCallsInProgress = calls.filter(
+        (c) =>
+          c.cid !== call_cid &&
+          c.ringing &&
+          c.state.callingState !== CallingState.IDLE &&
+          c.state.callingState !== CallingState.LEFT &&
+          c.state.callingState !== CallingState.RECONNECTING_FAILED,
+      );
+
+      if (ringingCallsInProgress.length > 0) {
+        // Reject the call and end the CallKit call
+        const ringingCall = await client.onRingingCall(call_cid);
+        await ringingCall?.reject('busy');
+
+        const callkeep = getCallKeepLib();
+        callkeep.reportEndCallWithUUID(uuid, 2);
+
+        const voipPushNotification = getVoipPushNotificationLib();
+        voipPushNotification.onVoipNotificationCompleted(uuid);
+        return;
+      }
+    } catch (err) {
+      logger('error', 'Error checking if user is already in a call', err);
+    }
+  }
 };

@@ -6,6 +6,7 @@
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
+#import <AVFoundation/AVFoundation.h>
 
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
@@ -39,6 +40,8 @@ RCT_EXPORT_MODULE();
 @synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
 #endif // RCT_NEW_ARCH_ENABLED
 @synthesize bridge = _bridge;
+
+static AVAudioPlayer *_busyTonePlayer = nil;
 
 +(BOOL)requiresMainQueueSetup {
     return NO;
@@ -350,6 +353,49 @@ RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
         }
     }
     return NO;
+}
+
+
+RCT_EXPORT_METHOD(playBusyTone)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StreamVideoReactNative stopBusyTone]; // Stop any existing playback first
+    
+    NSBundle *bundle = [NSBundle bundleForClass:[StreamVideoReactNative class]];
+    NSString *path = [bundle pathForResource:@"busy" ofType:@"mp3"];
+
+    NSLog(@"Busy tone path: %@", path);
+    if (path) {
+      NSURL *url = [NSURL fileURLWithPath:path];
+      NSError *error = nil;
+      _busyTonePlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
+      if (!error) {
+        [_busyTonePlayer prepareToPlay];
+        [_busyTonePlayer play];
+      } else {
+        NSLog(@"Error loading audio: %@", error);
+      }
+    } else {
+      NSLog(@"busy.mp3 not found in bundle");
+    }
+  });
+}
+
+RCT_EXPORT_METHOD(stopBusyTone)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
+      [_busyTonePlayer stop];
+      _busyTonePlayer = nil;
+    }
+  });
+}
+
++ (void)stopBusyTone {
+    if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
+        [_busyTonePlayer stop];
+        _busyTonePlayer = nil;
+    }
 }
 
 @end

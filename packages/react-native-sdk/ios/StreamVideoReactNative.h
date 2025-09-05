@@ -14,4 +14,8 @@
 
 + (BOOL)hasAnyActiveCall;
 
++ (void)playBusyTone;
+
++ (void)stopBusyTone;
+
 @end
