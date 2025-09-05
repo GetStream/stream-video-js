@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -287,7 +288,45 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    @ReactMethod
+    fun playBusyTone() {
+        try {
+            stopBusyTone()
+            
+            val context = reactApplicationContext
+            val resourceId = context.resources.getIdentifier("busy", "raw", context.packageName)
+            
+            if (resourceId != 0) {
+                busyTonePlayer = MediaPlayer.create(context, resourceId)
+                busyTonePlayer?.let { player ->
+                    player.isLooping = false
+                    player.start()
+                }
+            } else {
+                Log.e(NAME, "busy.mp3 not found in resources")
+            }
+        } catch (e: Exception) {
+            Log.e(NAME, "Error playing busy tone: ${e.message}")
+        }
+    }
+
+    @ReactMethod
+    fun stopBusyTone() {
+        try {
+            busyTonePlayer?.let { player ->
+                if (player.isPlaying) {
+                    player.stop()
+                }
+                player.release()
+                busyTonePlayer = null
+            }
+        } catch (e: Exception) {
+            Log.e(NAME, "Error stopping busy tone: ${e.message}")
+        }
+    }
+
     companion object {
         private const val NAME = "StreamVideoReactNative"
+        private var busyTonePlayer: MediaPlayer? = null
     }
 }

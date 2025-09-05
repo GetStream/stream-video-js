@@ -5,6 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { NativeModules, Platform } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -121,6 +122,12 @@ export class StreamVideoRN {
 
     this.config.push = pushConfig;
 
+    // Configure native iOS module if shouldRejectCallWhenBusy is set
+    if (Platform.OS === 'ios') {
+      NativeModules.StreamVideoReactNative?.setShouldRejectCallWhenBusy(
+        pushConfig?.shouldRejectCallWhenBusy ?? false,
+      );
+    }
     setupIosCallKeepEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
   }
@@ -163,5 +170,24 @@ export class StreamVideoRN {
       newNotificationCallbacks.current =
         newNotificationCallbacks.current?.filter((cb) => cb !== callback);
     };
+  }
+
+  /**
+   * Play native busy tone for call rejection
+   */
+  static playBusyTone() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      NativeModules.StreamVideoReactNative?.playBusyTone();
+      console.log('playBusyTone');
+    }
+  }
+
+  /**
+   * Stop native busy tone
+   */
+  static stopBusyTone() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      NativeModules.StreamVideoReactNative?.stopBusyTone();
+    }
   }
 }

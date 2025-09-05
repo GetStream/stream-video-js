@@ -2,9 +2,11 @@
 #import <React/RCTEventEmitter.h>
 #import <React/RCTUIManager.h> 
 #import <UIKit/UIKit.h>
+#import <CallKit/CallKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
+#import <AVFoundation/AVFoundation.h>
 
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
@@ -13,6 +15,8 @@ NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped"
 static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 static NSMutableDictionary *_incomingCallCidsByUUID = nil;
 static dispatch_queue_t _dictionaryQueue = nil;
+
+static BOOL _shouldRejectCallWhenBusy = NO;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
@@ -36,6 +40,8 @@ RCT_EXPORT_MODULE();
 @synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
 #endif // RCT_NEW_ARCH_ENABLED
 @synthesize bridge = _bridge;
+
+static AVAudioPlayer *_busyTonePlayer = nil;
 
 +(BOOL)requiresMainQueueSetup {
     return NO;
@@ -323,6 +329,73 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
 
 -(NSArray<NSString *> *)supportedEvents {
     return @[@"StreamVideoReactNative_Ios_Screenshare_Event", @"isLowPowerModeEnabled", @"thermalStateDidChange"];
+}
+
++(BOOL)shouldRejectCallWhenBusy {
+    return _shouldRejectCallWhenBusy;
+}
+
+RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
+    _shouldRejectCallWhenBusy = shouldReject;
+#ifdef DEBUG
+    NSLog(@"setShouldRejectCallWhenBusy: %@", shouldReject ? @"YES" : @"NO");
+#endif
+}
+
++ (BOOL)hasAnyActiveCall
+{
+    CXCallObserver *callObserver = [[CXCallObserver alloc] init];
+    
+    for(CXCall *call in callObserver.calls){
+        if(call.hasConnected){
+            NSLog(@"[RNCallKeep] Found active call with UUID: %@", call.UUID);
+            return YES;
+        }
+    }
+    return NO;
+}
+
+
+RCT_EXPORT_METHOD(playBusyTone)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StreamVideoReactNative stopBusyTone]; // Stop any existing playback first
+    
+    NSBundle *bundle = [NSBundle bundleForClass:[StreamVideoReactNative class]];
+    NSString *path = [bundle pathForResource:@"busy" ofType:@"mp3"];
+
+    NSLog(@"Busy tone path: %@", path);
+    if (path) {
+      NSURL *url = [NSURL fileURLWithPath:path];
+      NSError *error = nil;
+      _busyTonePlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
+      if (!error) {
+        [_busyTonePlayer prepareToPlay];
+        [_busyTonePlayer play];
+      } else {
+        NSLog(@"Error loading audio: %@", error);
+      }
+    } else {
+      NSLog(@"busy.mp3 not found in bundle");
+    }
+  });
+}
+
+RCT_EXPORT_METHOD(stopBusyTone)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
+      [_busyTonePlayer stop];
+      _busyTonePlayer = nil;
+    }
+  });
+}
+
++ (void)stopBusyTone {
+    if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
+        [_busyTonePlayer stop];
+        _busyTonePlayer = nil;
+    }
 }
 
 @end
