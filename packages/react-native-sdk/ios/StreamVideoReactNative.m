@@ -1,6 +1,6 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
-#import <React/RCTUIManager.h> 
+#import <React/RCTUIManager.h>
 #import <UIKit/UIKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
@@ -118,6 +118,10 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
                                              selector:@selector(thermalStateDidChange)
                                                  name:NSProcessInfoThermalStateDidChangeNotification
                                                object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(batteryStateDidChange:)
+                                                 name:UIDeviceBatteryStateDidChangeNotification
+                                               object:nil];
 }
 
 -(void)stopObserving {
@@ -127,6 +131,9 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
                                                   object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:NSProcessInfoThermalStateDidChangeNotification
+                                                  object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:UIDeviceBatteryStateDidChangeNotification
                                                   object:nil];
 }
 
@@ -171,7 +178,7 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 +(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
     [StreamVideoReactNative initializeSharedDictionaries];
     dispatch_sync(_dictionaryQueue, ^{
-        
+
 #ifdef DEBUG
         NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
 #endif
@@ -203,7 +210,7 @@ RCT_EXPORT_METHOD(getIncomingCallCid:(NSString *)uuid
     dispatch_sync(_dictionaryQueue, ^{
         NSString *lowercaseUUID = [uuid lowercaseString];
         NSString *foundCid = _incomingCallCidsByUUID[lowercaseUUID];
-        
+
         if (foundCid) {
             resolve(foundCid);
         } else {
@@ -223,7 +230,7 @@ RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
 #ifdef DEBUG
             NSLog(@"removeIncomingCall cid:%@ -> uuid:%@",cid,uuid);
 #endif
-            
+
             [_incomingCallUUIDsByCallID removeObjectForKey:cid];
             [_incomingCallCidsByUUID removeObjectForKey:uuid];
             resolve(@YES);
@@ -241,7 +248,7 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
 #ifdef RCT_NEW_ARCH_ENABLED
     [self.viewRegistry_DEPRECATED addUIBlock:^(RCTViewRegistry *viewRegistry) {
         UIView *view = [self.viewRegistry_DEPRECATED viewForReactTag:reactTag];
-        
+
 #else
     [self.bridge.uiManager
      addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
@@ -252,13 +259,13 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
           reject(RCTErrorUnspecified, [NSString stringWithFormat:@"No view found with reactTag: %@", reactTag], nil);
           return;
         }
-        
+
         // Get capture options
         NSString *format = options[@"format"] ? [options[@"format"] lowercaseString] : @"png";
         CGFloat quality = options[@"quality"] ? [options[@"quality"] floatValue] : 1.0;
         NSNumber *width = options[@"width"];
         NSNumber *height = options[@"height"];
-        
+
         // Determine the size to render
         CGSize size;
         CGRect bounds = view.bounds;
@@ -267,22 +274,22 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
         } else {
             size = bounds.size;
         }
-        
+
         // Abort if size is invalid
         if (size.width <= 0 || size.height <= 0) {
             reject(@"INVALID_SIZE", @"View has invalid size", nil);
             return;
         }
-        
+
         // Begin image context with appropriate scale
         UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-        
+
         // Calculate scaling if needed
         CGRect drawRect = bounds;
         if (width && height) {
             CGFloat scaleX = size.width / bounds.size.width;
             CGFloat scaleY = size.height / bounds.size.height;
-            
+
             // Apply transform to context for scaling if dimensions differ
             CGContextRef context = UIGraphicsGetCurrentContext();
             if (context) {
@@ -291,17 +298,17 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
                 drawRect = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
             }
         }
-        
+
         BOOL success = [view drawViewHierarchyInRect:drawRect afterScreenUpdates:YES];
-        
+
         UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-        
+
         if (!success || !image) {
             reject(@"CAPTURE_FAILED", @"Failed to capture view as image", nil);
             return;
         }
-        
+
         // Convert to base64 string based on format
         NSString *base64;
         if ([format isEqualToString:@"jpg"] || [format isEqualToString:@"jpeg"]) {
@@ -312,7 +319,7 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
             NSData *imageData = UIImagePNGRepresentation(image);
             base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
         }
-        
+
         if (base64) {
             resolve(base64);
         } else {
@@ -321,8 +328,36 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
     }];
 }
 
+RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
+                   rejecter:(RCTPromiseRejectBlock)reject) {
+    UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
+    BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||
+                      batteryState == UIDeviceBatteryStateFull);
+
+    resolve(@{
+        @"charging": @(isCharging),
+        @"level": @(round([UIDevice currentDevice].batteryLevel * 100))
+    });
+}
+
+-(void)batteryStateDidChange:(NSNotification *)notification {
+    UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
+    BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||
+                      batteryState == UIDeviceBatteryStateFull);
+
+    [self sendEventWithName:@"chargingStateChanged" body:@{
+        @"charging": @(isCharging),
+        @"level": @(round([UIDevice currentDevice].batteryLevel * 100))
+    }];
+}
+
 -(NSArray<NSString *> *)supportedEvents {
-    return @[@"StreamVideoReactNative_Ios_Screenshare_Event", @"isLowPowerModeEnabled", @"thermalStateDidChange"];
+    return @[
+        @"StreamVideoReactNative_Ios_Screenshare_Event",
+        @"isLowPowerModeEnabled",
+        @"thermalStateDidChange",
+        @"chargingStateChanged"
+    ];
 }
 
 @end
