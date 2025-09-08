@@ -17,7 +17,7 @@ import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
 import java.util.Locale
 
 
-class InCallManagerModule(reactContext: ReactApplicationContext) :
+class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
 
     private var audioManagerActivated = false
@@ -202,7 +202,7 @@ class InCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     companion object {
-        const val TAG = "InCallManager"
+        const val TAG = "StreamInCallManager"
     }
 }
 

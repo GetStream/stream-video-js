@@ -95,7 +95,8 @@ export type CallContentProps = Pick<
      */
     disablePictureInPicture?: boolean;
     /**
-     * Props to set the audio mode for the InCallManager.
+     * @deprecated This prop is deprecated and will be removed in the future. Use `StreamInCallManager` instead.
+     * Props to set the audio mode for the react-native-incall-manager library
      * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
      * Changing the mode on the fly is not supported.
      * Manually invoke `InCallManager.start({ media })` to achieve this.
@@ -192,13 +193,10 @@ export const CallContent = ({
     const prevInCallManager = getRNInCallManagerLibNoThrow();
     if (prevInCallManager) {
       prevInCallManager.start({ media: incallManagerModeRef.current });
-    }
-
-    return () => {
-      if (prevInCallManager) {
+      return () => {
         prevInCallManager.stop();
-      }
-    };
+      };
+    }
   }, []);
 
   const handleFloatingViewParticipantSwitch = () => {

@@ -15,8 +15,8 @@ enum DefaultAudioDevice {
     case earpiece
 }
 
-@objc(InCallManager)
-class InCallManager: RCTEventEmitter {
+@objc(StreamInCallManager)
+class StreamInCallManager: RCTEventEmitter {
     
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
     

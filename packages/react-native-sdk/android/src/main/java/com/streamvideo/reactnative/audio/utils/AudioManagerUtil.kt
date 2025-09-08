@@ -24,14 +24,14 @@ import androidx.annotation.DoNotInline
 import androidx.annotation.RequiresApi
 import com.streamvideo.reactnative.audio.BluetoothManager
 import com.streamvideo.reactnative.audio.EndpointMaps
-import com.streamvideo.reactnative.callmanager.InCallManagerModule
+import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
 
 
 internal class AudioManagerUtil {
     companion object {
-        private val TAG: String = InCallManagerModule.TAG + ":" + AudioManagerUtil::class.java.simpleName.toString()
+        private val TAG: String = StreamInCallManagerModule.TAG + ":" + AudioManagerUtil::class.java.simpleName.toString()
 
         fun getAvailableAudioDevices(audioManager: AudioManager): List<AudioDeviceInfo> {
             return if (Build.VERSION.SDK_INT >= 31) {

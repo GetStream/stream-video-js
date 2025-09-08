@@ -33,7 +33,7 @@ import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil.Companion.getAvailableAudioDevices
 import com.streamvideo.reactnative.audio.utils.AudioSetupStoreUtil
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
-import com.streamvideo.reactnative.callmanager.InCallManagerModule
+import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
 import java.util.concurrent.ExecutorService
@@ -566,7 +566,7 @@ class AudioDeviceManager(
 
     companion object {
         private val TAG: String =
-            InCallManagerModule.TAG + ":" + AudioDeviceManager::class.java.simpleName.toString()
+            StreamInCallManagerModule.TAG + ":" + AudioDeviceManager::class.java.simpleName.toString()
 
         /**
          * Executor service for running audio-related tasks on a dedicated single thread.

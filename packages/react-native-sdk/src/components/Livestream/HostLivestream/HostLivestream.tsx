@@ -92,12 +92,10 @@ export const HostLivestream = ({
     const prevInCallManager = getRNInCallManagerLibNoThrow();
     if (prevInCallManager) {
       prevInCallManager.start({ media: 'video' });
-    }
-    return () => {
-      if (prevInCallManager) {
+      return () => {
         prevInCallManager.stop();
-      }
-    };
+      };
+    }
   }, []);
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();

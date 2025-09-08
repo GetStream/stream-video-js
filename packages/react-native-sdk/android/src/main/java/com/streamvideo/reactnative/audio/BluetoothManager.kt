@@ -34,7 +34,7 @@ import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.ReactApplicationContext
 import com.streamvideo.reactnative.audio.AudioDeviceManager.Companion.runInAudioThread
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
-import com.streamvideo.reactnative.callmanager.InCallManagerModule
+import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 
 class BluetoothManager(
@@ -728,7 +728,7 @@ class BluetoothManager(
 
     companion object {
         private val TAG: String =
-            InCallManagerModule.TAG + ":" + BluetoothManager::class.java.simpleName.toString()
+            StreamInCallManagerModule.TAG + ":" + BluetoothManager::class.java.simpleName.toString()
 
         // Timeout interval for starting or stopping audio to a Bluetooth SCO device.
         private const val BLUETOOTH_SCO_TIMEOUT_MS: Int = 6000

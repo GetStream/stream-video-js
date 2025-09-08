@@ -5,7 +5,7 @@ import android.media.AudioManager
 import android.util.Log
 import com.facebook.react.bridge.ReactContext
 import com.streamvideo.reactnative.audio.AudioDeviceManager
-import com.streamvideo.reactnative.callmanager.InCallManagerModule.Companion.TAG
+import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule.Companion.TAG
 
 class AudioSetupStoreUtil(
     private val mReactContext: ReactContext,

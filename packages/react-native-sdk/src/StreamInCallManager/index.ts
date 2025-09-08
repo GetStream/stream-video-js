@@ -1,7 +1,7 @@
 import { getLogger } from '@stream-io/video-client';
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 
-const StreamInCallManagerNativeModule = NativeModules.InCallManager;
+const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 
 const logger = getLogger(['StreamInCallManager']);
 

@@ -105,12 +105,10 @@ export const ViewerLivestream = ({
     const prevInCallManager = getRNInCallManagerLibNoThrow();
     if (prevInCallManager) {
       prevInCallManager.start({ media: 'video' });
-    }
-    return () => {
-      if (prevInCallManager) {
+      return () => {
         prevInCallManager.stop();
-      }
-    };
+      };
+    }
   }, []);
 
   useEffect(() => {
