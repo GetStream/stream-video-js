@@ -261,15 +261,24 @@ const useUpdateCallDuration = () => {
 
 const useToggleFullScreen = () => {
   const { participantViewElement } = useParticipantViewContext();
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(
+    !!document.fullscreenElement,
+  );
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => {
+      document.removeEventListener('fullscreenchange', handler);
+    };
+  }, []);
   return useCallback(() => {
     if (isFullscreen) {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
+      document.exitFullscreen().catch((err) => {
+        console.error('Failed to exit fullscreen', err);
       });
     } else {
-      participantViewElement?.requestFullscreen().then(() => {
-        setIsFullscreen(true);
+      participantViewElement?.requestFullscreen().catch((err) => {
+        console.error('Failed to enter fullscreen', err);
       });
     }
   }, [isFullscreen, participantViewElement]);
