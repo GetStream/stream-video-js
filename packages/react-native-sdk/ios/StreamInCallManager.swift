@@ -4,6 +4,7 @@ import UIKit
 import AVFoundation
 import stream_react_native_webrtc
 import AVKit
+import MediaPlayer
 
 enum CallAudioRole {
     case listener
@@ -23,6 +24,7 @@ class StreamInCallManager: RCTEventEmitter {
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
+    private var previousVolume: Float = 0.75
     
     private struct AudioSessionState {
         let category: AVAudioSession.Category
@@ -213,6 +215,32 @@ class StreamInCallManager: RCTEventEmitter {
           OutputNumberOfChannels: \(session.outputNumberOfChannels)
         """
         log(logString)
+    }
+
+    @objc(muteAudioOutput)
+    func muteAudioOutput() {
+        DispatchQueue.main.async { [self] in
+            let volumeView = MPVolumeView()
+            if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+                self.previousVolume = slider.value
+                slider.setValue(0.0, animated: false)
+                slider.sendActions(for: .valueChanged)
+                log("Audio output muted via slider event")
+            }
+        }
+    }
+
+    @objc(unmuteAudioOutput)
+    func unmuteAudioOutput() {
+        DispatchQueue.main.async { [self] in
+            let volumeView = MPVolumeView()
+            if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+                let targetVolume = self.previousVolume > 0 ? self.previousVolume : 0.75
+                slider.setValue(targetVolume, animated: false)
+                slider.sendActions(for: .valueChanged)
+                log("Audio output unmuted via slider event")
+            }
+        }
     }
     
     // MARK: - RCTEventEmitter
