@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.1...@stream-io/video-client-1.29.0) (2025-09-09)
+
+### Features
+
+- opt-out from optimistic updates ([#1904](https://github.com/GetStream/stream-video-js/issues/1904)) ([45dba34](https://github.com/GetStream/stream-video-js/commit/45dba34d38dc64f456e37b593e38e420426529f5))
+
+### Bug Fixes
+
+- capabilities and call grants ([#1899](https://github.com/GetStream/stream-video-js/issues/1899)) ([5725dfa](https://github.com/GetStream/stream-video-js/commit/5725dfa29b1e5fdb6fe4e26825ce7b268664d2fa))
+- graceful Axios request config overrides ([#1913](https://github.com/GetStream/stream-video-js/issues/1913)) ([a124099](https://github.com/GetStream/stream-video-js/commit/a124099f984a592750d66ac440ef6c27ae7a02d9))
+
 ## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.0...@stream-io/video-client-1.28.1) (2025-08-22)
 
 ### Bug Fixes
