@@ -1,9 +1,12 @@
 import {
   BehaviorSubject,
+  combineLatest,
   distinctUntilChanged,
   map,
   Observable,
+  ReplaySubject,
   shareReplay,
+  startWith,
 } from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
@@ -49,6 +52,7 @@ import {
   CallState as SfuCallState,
   Pin,
   TrackType,
+  CallGrants,
 } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
@@ -127,6 +131,8 @@ export class CallState {
   // This happens when the participantJoined event hasn't been received yet.
   // We keep these tracks around until we can associate them with a participant.
   private orphanedTracks: OrphanedTrack[] = [];
+
+  private callGrantsSubject = new ReplaySubject<CallGrants>(1);
 
   // Derived state
 
@@ -394,8 +400,12 @@ export class CallState {
      */
     const isShallowEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
       if (a.length !== b.length) return false;
-      for (const item of a) if (!b.includes(item)) return false;
-      for (const item of b) if (!a.includes(item)) return false;
+      for (const item of a) {
+        if (!b.includes(item)) return false;
+      }
+      for (const item of b) {
+        if (!a.includes(item)) return false;
+      }
       return true;
     };
 
@@ -406,8 +416,7 @@ export class CallState {
     const duc = <T>(
       subject: BehaviorSubject<T>,
       comparator?: (a: T, b: T) => boolean,
-    ): Observable<T> =>
-      subject.asObservable().pipe(distinctUntilChanged(comparator));
+    ): Observable<T> => subject.pipe(distinctUntilChanged(comparator));
 
     // primitive values should only emit once the value they hold changes
     this.anonymousParticipantCount$ = duc(
@@ -416,7 +425,41 @@ export class CallState {
     this.blockedUserIds$ = duc(this.blockedUserIdsSubject, isShallowEqual);
     this.backstage$ = duc(this.backstageSubject);
     this.callingState$ = duc(this.callingStateSubject);
-    this.ownCapabilities$ = duc(this.ownCapabilitiesSubject, isShallowEqual);
+    this.ownCapabilities$ = combineLatest([
+      this.ownCapabilitiesSubject,
+      this.callGrantsSubject.pipe(startWith(undefined)),
+    ]).pipe(
+      map(([capabilities, grants]) => {
+        if (!grants) return capabilities;
+
+        const { canPublishAudio, canPublishVideo, canScreenshare } = grants;
+
+        const update = {
+          [OwnCapability.SEND_AUDIO]: canPublishAudio,
+          [OwnCapability.SEND_VIDEO]: canPublishVideo,
+          [OwnCapability.SCREENSHARE]: canScreenshare,
+        } as const;
+
+        const nextCapabilities = [...capabilities];
+
+        for (const _capability in update) {
+          const capability = _capability as keyof typeof update;
+          const allowed = update[capability];
+
+          // grants take precedence over capabilities, reconstruct the capabilities
+          if (allowed && !nextCapabilities.includes(capability)) {
+            nextCapabilities.push(capability);
+          } else if (!allowed && nextCapabilities.includes(capability)) {
+            const index = nextCapabilities.indexOf(capability);
+            nextCapabilities.splice(index, 1);
+          }
+        }
+
+        return nextCapabilities;
+      }),
+      distinctUntilChanged(isShallowEqual),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
@@ -765,6 +808,16 @@ export class CallState {
    */
   setOwnCapabilities = (capabilities: Patch<OwnCapability[]>) => {
     return this.setCurrentValue(this.ownCapabilitiesSubject, capabilities);
+  };
+
+  /**
+   * Sets the call grants (used for own capabilities).
+   *
+   * @internal
+   * @param grants the grants to set.
+   */
+  setCallGrants = (grants: Patch<CallGrants>) => {
+    return this.setCurrentValue(this.callGrantsSubject, grants);
   };
 
   /**
@@ -1412,7 +1465,7 @@ export class CallState {
 
   private updateOwnCapabilities = (event: UpdatedCallPermissionsEvent) => {
     if (event.user.id === this.localParticipant?.userId) {
-      this.setCurrentValue(this.ownCapabilitiesSubject, event.own_capabilities);
+      this.setOwnCapabilities(event.own_capabilities);
     }
   };
 

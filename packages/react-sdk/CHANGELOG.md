@@ -2,6 +2,35 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.21.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.20.2...@stream-io/video-react-sdk-1.21.0) (2025-09-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.29.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.0`
+
+### Features
+
+- opt-out from optimistic updates ([#1904](https://github.com/GetStream/stream-video-js/issues/1904)) ([45dba34](https://github.com/GetStream/stream-video-js/commit/45dba34d38dc64f456e37b593e38e420426529f5))
+
+### Bug Fixes
+
+- capabilities and call grants ([#1899](https://github.com/GetStream/stream-video-js/issues/1899)) ([5725dfa](https://github.com/GetStream/stream-video-js/commit/5725dfa29b1e5fdb6fe4e26825ce7b268664d2fa))
+- **LivestreamLayout:** handle enter/exit fullscreen gracefully ([#1916](https://github.com/GetStream/stream-video-js/issues/1916)) ([7dd2a0b](https://github.com/GetStream/stream-video-js/commit/7dd2a0b74d9767aae8463fb665a14b944e6cb204)), closes [#1915](https://github.com/GetStream/stream-video-js/issues/1915)
+
+## [1.20.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.20.1...@stream-io/video-react-sdk-1.20.2) (2025-09-02)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.5.1`
+
+## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.20.0...@stream-io/video-react-sdk-1.20.1) (2025-08-22)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.28.1`
+- `@stream-io/video-react-bindings` updated to version `1.7.16`
+
 ## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.19.8...@stream-io/video-react-sdk-1.20.0) (2025-08-21)
 
 ### Dependency Updates

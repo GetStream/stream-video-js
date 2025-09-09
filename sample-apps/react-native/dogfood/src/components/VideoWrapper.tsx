@@ -78,7 +78,9 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       setVideoClient(_videoClient);
     };
     if (user.id) {
-      run();
+      run().catch((error) => {
+        console.error('Error creating video client', error);
+      });
     }
 
     return () => {

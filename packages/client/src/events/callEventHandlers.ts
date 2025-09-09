@@ -66,11 +66,6 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
     handleRemoteSoftMute(call),
   ];
 
-  if (call.ringing) {
-    // these events are only relevant when the call is ringing
-    eventHandlers.push(registerRingingCallEventHandlers(call));
-  }
-
   return () => {
     eventHandlers.forEach((unsubscribe) => unsubscribe());
   };
