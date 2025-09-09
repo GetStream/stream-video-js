@@ -27,6 +27,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.oney.WebRTCModule.WebRTCModule
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.audio.utils.AudioFocusUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
@@ -105,6 +106,7 @@ class AudioDeviceManager(
             userSelectedAudioDevice = null
             selectedAudioDeviceEndpoint = null
             audioSetupStoreUtil.storeOriginalAudioSetup()
+            val webRTCModule = mReactContext.getNativeModule(WebRTCModule::class.java)
             if (callAudioRole == CallAudioRole.Communicator) {
                 // Audio routing is manually controlled by the SDK in communication media mode
                 // and local microphone can be published
@@ -113,13 +115,16 @@ class AudioDeviceManager(
                 bluetoothManager.start()
                 mAudioManager.registerAudioDeviceCallback(this, null)
                 updateAudioDeviceState()
-
+//                webRTCModule.audioDeviceModule.
             } else {
                 // Audio routing is handled automatically by the system in normal media mode
                 // and bluetooth microphones may not work on some devices.
                 mAudioManager.mode = AudioManager.MODE_NORMAL
-                activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+                activity.volumeControlStream = AudioManager.STREAM_MUSIC
+
+//                webRTCModule.mAudioDeviceModule
             }
+
             audioSetupStoreUtil.storeOriginalAudioSetup()
             audioFocusUtil.requestFocus(callAudioRole)
         }
