@@ -10,6 +10,7 @@ import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
   type ViewerLeaveStreamButtonProps,
 } from './ViewerLeaveStreamButton';
+import { StreamInCallManager } from '../../../StreamInCallManager';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
 import {
@@ -65,9 +66,6 @@ export const ViewerLivestreamControls = ({
   const [showPlayPauseButton, setShowPlayPauseButton] = useState(true);
   const playPauseTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const { useDominantSpeaker } = useCallStateHooks();
-  const dominantSpeaker = useDominantSpeaker();
-
   const hidePlayPauseButtonAfterDelay = useCallback(() => {
     if (playPauseTimeout.current) {
       clearTimeout(playPauseTimeout.current);
@@ -107,17 +105,19 @@ export const ViewerLivestreamControls = ({
   };
 
   const toggleAudio = () => {
-    const audioTrack = dominantSpeaker?.audioStream?.getAudioTracks()[0];
     const shouldMute = !isMuted;
     if (shouldMute) {
-      // @ts-expect-error - _setVolume is a private method of MediaStreamTrack in rn-webrtc
-      audioTrack?._setVolume(0);
+      StreamInCallManager.muteAudioOutput();
     } else {
-      // @ts-expect-error -_setVolume is a private method of MediaStreamTrack in rn-webrtc
-      audioTrack?._setVolume(1);
+      StreamInCallManager.unmuteAudioOutput();
     }
     setIsMuted(shouldMute);
   };
+
+  useEffect(() => {
+    // always unmute audio output on mount for consistency
+    StreamInCallManager.unmuteAudioOutput();
+  }, []);
 
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying);

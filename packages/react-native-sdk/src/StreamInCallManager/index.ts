@@ -174,6 +174,14 @@ function logAudioState() {
   StreamInCallManagerNativeModule.logAudioState();
 }
 
+function muteAudioOutput() {
+  StreamInCallManagerNativeModule.muteAudioOutput();
+}
+
+function unmuteAudioOutput() {
+  StreamInCallManagerNativeModule.unmuteAudioOutput();
+}
+
 export const StreamInCallManager = {
   start,
   stop,
@@ -182,4 +190,6 @@ export const StreamInCallManager = {
   addAndroidAudioDeviceStatusChangeListener,
   logAudioState,
   showIOSAudioRoutePicker,
+  muteAudioOutput,
+  unmuteAudioOutput,
 };

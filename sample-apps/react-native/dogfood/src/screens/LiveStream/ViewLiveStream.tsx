@@ -1,6 +1,6 @@
 import {
   StreamCall,
-  InCallManager,
+  StreamInCallManager,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import React, { PropsWithChildren, useEffect } from 'react';
@@ -28,20 +28,6 @@ export const ViewLiveStreamWrapper = ({
    */
   const call = useSetCall(callId, 'livestream', client);
 
-  useEffect(() => {
-    InCallManager.start({
-      audioRole: 'listener',
-      defaultAudioDeviceEndpointType: 'speaker',
-    });
-    const timer = setInterval(() => {
-      InCallManager.logAudioState();
-    }, 1000);
-    return () => {
-      InCallManager.stop();
-      clearInterval(timer);
-    };
-  }, [call]);
-
   if (!call) {
     return null;
   }
@@ -55,6 +41,19 @@ export const ViewLiveStreamChildren = ({
   const {
     params: { callId },
   } = route;
+
+  useEffect(() => {
+    StreamInCallManager.start({
+      audioRole: 'listener',
+    });
+    const interval = setInterval(() => {
+      StreamInCallManager.logAudioState();
+    }, 10000);
+    return () => {
+      StreamInCallManager.stop();
+      clearInterval(interval);
+    };
+  }, []);
 
   /**
    * Note: Here we provide the `StreamCall` component again. This is done, so that the call used, is created by the anonymous user.

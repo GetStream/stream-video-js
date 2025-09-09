@@ -221,11 +221,26 @@ class StreamInCallManager: RCTEventEmitter {
     func muteAudioOutput() {
         DispatchQueue.main.async { [self] in
             let volumeView = MPVolumeView()
-            if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
-                self.previousVolume = slider.value
-                slider.setValue(0.0, animated: false)
-                slider.sendActions(for: .valueChanged)
-                log("Audio output muted via slider event")
+            
+            // Add to a temporary view hierarchy to make it functional
+            if let window = getCurrentWindow() {
+                volumeView.frame = CGRect(x: -1000, y: -1000, width: 1, height: 1)
+                window.addSubview(volumeView)
+                
+                // Give it a moment to initialize
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+                        self.previousVolume = slider.value
+                        slider.setValue(0.0, animated: false)
+                        slider.sendActions(for: .valueChanged)
+                        self.log("Audio output muted via slider event")
+                    } else {
+                        self.log("Could not find volume slider")
+                    }
+                    
+                    // Remove from view hierarchy after use
+                    volumeView.removeFromSuperview()
+                }
             }
         }
     }
@@ -234,11 +249,26 @@ class StreamInCallManager: RCTEventEmitter {
     func unmuteAudioOutput() {
         DispatchQueue.main.async { [self] in
             let volumeView = MPVolumeView()
-            if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
-                let targetVolume = self.previousVolume > 0 ? self.previousVolume : 0.75
-                slider.setValue(targetVolume, animated: false)
-                slider.sendActions(for: .valueChanged)
-                log("Audio output unmuted via slider event")
+            
+            // Add to a temporary view hierarchy to make it functional
+            if let window = getCurrentWindow() {
+                volumeView.frame = CGRect(x: -1000, y: -1000, width: 1, height: 1)
+                window.addSubview(volumeView)
+                
+                // Give it a moment to initialize
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+                        let targetVolume = self.previousVolume > 0 ? self.previousVolume : 0.75
+                        slider.setValue(targetVolume, animated: false)
+                        slider.sendActions(for: .valueChanged)
+                        self.log("Audio output unmuted via slider event")
+                    } else {
+                        self.log("Could not find volume slider")
+                    }
+                    
+                    // Remove from view hierarchy after use
+                    volumeView.removeFromSuperview()
+                }
             }
         }
     }
@@ -258,6 +288,18 @@ class StreamInCallManager: RCTEventEmitter {
     @objc
     override func removeListeners(_ count: Double) {
         super.removeListeners(count)
+    }
+    
+    // MARK: - Helper Methods
+    private func getCurrentWindow() -> UIWindow? {
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first?.windows
+                .first(where: { $0.isKeyWindow })
+        } else {
+            return UIApplication.shared.keyWindow
+        }
     }
     
     // MARK: - Logging Helper
