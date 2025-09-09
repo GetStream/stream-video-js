@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.11...@stream-io/video-react-native-sdk-1.20.12) (2025-09-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.29.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.0`
+
+- trace charging and battery level ([#1909](https://github.com/GetStream/stream-video-js/issues/1909)) ([31d7c01](https://github.com/GetStream/stream-video-js/commit/31d7c015a1b243b759b3ef8934e44c5dc521b9a2))
+
 ## [1.20.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.10...@stream-io/video-react-native-sdk-1.20.11) (2025-09-05)
 
 ### Dependency Updates
