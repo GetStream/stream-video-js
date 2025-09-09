@@ -665,12 +665,19 @@ export class StreamClient {
       };
     }
 
+    const {
+      params: axiosConfigParams,
+      headers: axiosConfigHeaders,
+      ...axiosRequestConfig
+    } = this.options.axiosRequestConfig || {};
+
     return {
       params: {
         user_id: this.userID,
         connection_id: this._getConnectionID(),
         api_key: this.key,
         ...options.params,
+        ...axiosConfigParams,
       },
       headers: {
         ...authorization,
@@ -680,9 +687,10 @@ export class StreamClient {
             : this.getAuthType(),
         'X-Stream-Client': this.getUserAgent(),
         ...options.headers,
+        ...axiosConfigHeaders,
       },
       ...options.config,
-      ...this.options.axiosRequestConfig,
+      ...axiosRequestConfig,
     };
   };
 
