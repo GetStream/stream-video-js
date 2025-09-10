@@ -277,39 +277,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun getBatteryState(promise: Promise) {
-        try {
-            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-            val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
-            if (batteryStatus == null) {
-                return promise.reject("BATTERY_ERROR", "Failed to get battery status")
-            }
-
-            promise.resolve(getBatteryStatusFromIntent(batteryStatus))
-        } catch (e: Exception) {
-            promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
-        }
-    }
-
-    private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
-        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-
-        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                status == BatteryManager.BATTERY_STATUS_FULL
-
-        val batteryLevel = if (level >= 0 && scale > 0) {
-            (level.toFloat() / scale.toFloat()) * 100
-        } else -1f
-
-        return Arguments.createMap().apply {
-            putBoolean("charging", isCharging)
-            putInt("level", batteryLevel.toInt())
-        }
-    }
-
-    @ReactMethod
     fun takeScreenshot(streamURL: String?, promise: Promise) {
         if (streamURL == null) {
             promise.reject("ERROR", "Null stream URL provided")
@@ -341,6 +308,40 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             track.addSink(screenshotSink)
         } catch (e: Exception) {
             promise.reject("ERROR", e.message)
+        }
+    }
+
+
+    @ReactMethod
+    fun getBatteryState(promise: Promise) {
+        try {
+            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
+            if (batteryStatus == null) {
+                return promise.reject("BATTERY_ERROR", "Failed to get battery status")
+            }
+
+            promise.resolve(getBatteryStatusFromIntent(batteryStatus))
+        } catch (e: Exception) {
+            promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
+        }
+    }
+
+    private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+
+        val batteryLevel = if (level >= 0 && scale > 0) {
+            (level.toFloat() / scale.toFloat()) * 100
+        } else -1f
+
+        return Arguments.createMap().apply {
+            putBoolean("charging", isCharging)
+            putInt("level", batteryLevel.toInt())
         }
     }
 
