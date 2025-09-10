@@ -3,6 +3,7 @@ import {
   Restricted,
   useCallStateHooks,
   useI18n,
+  UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
@@ -14,13 +15,15 @@ import {
   createCallControlHandler,
 } from '../../utilities/callControlHandler';
 
-export type ScreenShareButtonProps = PropsWithErrorHandler<{
-  caption?: string;
-}>;
+export type ScreenShareButtonProps = PropsWithErrorHandler<
+  {
+    caption?: string;
+  } & UseInputMediaDeviceOptions
+>;
 
 export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
-  const { caption } = props;
+  const { caption, optimisticUpdates } = props;
 
   const { useHasOngoingScreenShare, useScreenShareState, useCallSettings } =
     useCallStateHooks();
@@ -31,11 +34,15 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const callSettings = useCallSettings();
   const isScreenSharingAllowed = callSettings?.screensharing.enabled;
 
-  const { screenShare, optimisticIsMute } = useScreenShareState();
-  const amIScreenSharing = !optimisticIsMute;
+  const { screenShare, optionsAwareIsMute, isTogglePending } =
+    useScreenShareState({
+      optimisticUpdates,
+    });
+  const amIScreenSharing = !optionsAwareIsMute;
   const disableScreenShareButton =
-    !amIScreenSharing &&
-    (isSomeoneScreenSharing || isScreenSharingAllowed === false);
+    (!amIScreenSharing &&
+      (isSomeoneScreenSharing || isScreenSharingAllowed === false)) ||
+    (!optimisticUpdates && isTogglePending);
   const handleClick = createCallControlHandler(props, async () => {
     if (!hasPermission) {
       await requestPermission();

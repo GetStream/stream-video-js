@@ -2,6 +2,47 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.1...@stream-io/video-client-1.29.0) (2025-09-09)
+
+### Features
+
+- opt-out from optimistic updates ([#1904](https://github.com/GetStream/stream-video-js/issues/1904)) ([45dba34](https://github.com/GetStream/stream-video-js/commit/45dba34d38dc64f456e37b593e38e420426529f5))
+
+### Bug Fixes
+
+- capabilities and call grants ([#1899](https://github.com/GetStream/stream-video-js/issues/1899)) ([5725dfa](https://github.com/GetStream/stream-video-js/commit/5725dfa29b1e5fdb6fe4e26825ce7b268664d2fa))
+- graceful Axios request config overrides ([#1913](https://github.com/GetStream/stream-video-js/issues/1913)) ([a124099](https://github.com/GetStream/stream-video-js/commit/a124099f984a592750d66ac440ef6c27ae7a02d9))
+
+## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.0...@stream-io/video-client-1.28.1) (2025-08-22)
+
+### Bug Fixes
+
+- handle pre ended calls on ringing push arrival ([#1897](https://github.com/GetStream/stream-video-js/issues/1897)) ([935e375](https://github.com/GetStream/stream-video-js/commit/935e3756035639c651b3ac4469321a64b8576a0e))
+
+## [1.28.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.5...@stream-io/video-client-1.28.0) (2025-08-21)
+
+### Features
+
+- Kick user from a call ([#1894](https://github.com/GetStream/stream-video-js/issues/1894)) ([32e2afc](https://github.com/GetStream/stream-video-js/commit/32e2afca0ea59e3f57e1ff9d05828c1e07fbff78))
+
+## [1.27.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.4...@stream-io/video-client-1.27.5) (2025-08-15)
+
+### Bug Fixes
+
+- synchronize ring events ([#1888](https://github.com/GetStream/stream-video-js/issues/1888)) ([0951e6d](https://github.com/GetStream/stream-video-js/commit/0951e6d4c825806937d6bdc548df9f186c531466))
+
+## [1.27.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.3...@stream-io/video-client-1.27.4) (2025-08-13)
+
+### Bug Fixes
+
+- expose isSupportedBrowser() utility ([#1859](https://github.com/GetStream/stream-video-js/issues/1859)) ([f51a434](https://github.com/GetStream/stream-video-js/commit/f51a4341f57407210ab2e9ba57f41818ddbd7ed9))
+
+## [1.27.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.2...@stream-io/video-client-1.27.3) (2025-08-07)
+
+### Bug Fixes
+
+- extended telemetry data for the signal websocket ([#1881](https://github.com/GetStream/stream-video-js/issues/1881)) ([984703d](https://github.com/GetStream/stream-video-js/commit/984703dabb8c6189eaf4d6925421568f6d0fd7fc))
+
 ## [1.27.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.27.1...@stream-io/video-client-1.27.2) (2025-08-05)
 
 ### Bug Fixes

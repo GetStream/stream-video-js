@@ -14,5 +14,5 @@ services:
       - ./sample-apps/react/egress-composite/tests/:/e2e/sample-apps/react/egress-composite/tests/
     environment:
       VITE_STREAM_API_KEY: hd8szvscpxvd
-      VITE_STREAM_USER_TOKEN: <token>
+      VITE_STREAM_USER_TOKEN: <jane-token>
       CI: true

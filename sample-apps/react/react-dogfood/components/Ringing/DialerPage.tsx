@@ -126,6 +126,11 @@ export const DialerPage = ({
       .filter((uid) => uid !== '')
       .map((uid) => ({ user_id: uid }));
 
+    const currentUser = videoClient.state.connectedUser?.id;
+    if (currentUser) {
+      members.push({ user_id: currentUser });
+    }
+
     try {
       setRingingCall(call);
       await call.getOrCreate({

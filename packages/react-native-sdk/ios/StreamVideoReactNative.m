@@ -24,6 +24,9 @@ RCT_EXTERN_METHOD(captureRef:(nonnull NSNumber *)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
 +(BOOL)requiresMainQueueSetup {
   return NO;
 }

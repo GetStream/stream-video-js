@@ -90,11 +90,14 @@ class StreamVideoReactNative: RCTEventEmitter {
         hasListeners = true
         NotificationCenter.default.addObserver(self, selector: #selector(powerModeDidChange), name: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(thermalStateDidChange), name: ProcessInfo.thermalStateDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(batteryStateDidChange), name: UIDevice.batteryStateDidChangeNotification, object: nil)
     }
     
     override func stopObserving() {
         hasListeners = false
-        // deinit will handle removal of observers
+        NotificationCenter.default.removeObserver(self, name: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil)
+        NotificationCenter.default.removeObserver(self, name: ProcessInfo.thermalStateDidChangeNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIDevice.batteryStateDidChangeNotification, object: nil)
     }
     
     @objc private func powerModeDidChange() {
@@ -248,9 +251,30 @@ class StreamVideoReactNative: RCTEventEmitter {
             }
         }
     }
+    
+    @objc(getBatteryState:rejecter:)
+    func getBatteryState(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let batteryState = UIDevice.current.batteryState
+        let isCharging = (batteryState == .charging || batteryState == .full)
+        
+        resolve([
+            "charging": isCharging,
+            "level": round(UIDevice.current.batteryLevel * 100)
+        ])
+    }
+
+    @objc private func batteryStateDidChange(_ notification: Notification) {
+        let batteryState = UIDevice.current.batteryState
+        let isCharging = (batteryState == .charging || batteryState == .full)
+        
+        sendEvent(withName: "chargingStateChanged", body: [
+            "charging": isCharging,
+            "level": round(UIDevice.current.batteryLevel * 100)
+        ])
+    }
 
     @objc
     override func supportedEvents() -> [String]! {
-        return ["StreamVideoReactNative_Ios_Screenshare_Event", "isLowPowerModeEnabled", "thermalStateDidChange"]
+        return ["StreamVideoReactNative_Ios_Screenshare_Event", "isLowPowerModeEnabled", "thermalStateDidChange", "chargingStateChanged"]
     }
 } 

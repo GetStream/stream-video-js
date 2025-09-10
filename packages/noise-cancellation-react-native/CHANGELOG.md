@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.2...@stream-io/noise-cancellation-react-native-0.2.3) (2025-09-05)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.3 ([#1908](https://github.com/GetStream/stream-video-js/issues/1908)) ([24b2f95](https://github.com/GetStream/stream-video-js/commit/24b2f958f4430212116ddd78800a1ea71adbea4d))
+
+## [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.1...@stream-io/noise-cancellation-react-native-0.2.2) (2025-08-21)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.2 ([#1895](https://github.com/GetStream/stream-video-js/issues/1895)) ([9a102a9](https://github.com/GetStream/stream-video-js/commit/9a102a964d4b350eb9223272cfe294e4805c6533))
+
 ## [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.0...@stream-io/noise-cancellation-react-native-0.2.1) (2025-08-05)
 
 ### Bug Fixes

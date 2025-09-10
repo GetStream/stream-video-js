@@ -10,7 +10,6 @@ import {
   PipLayout,
   ReactionsButton,
   RecordCallConfirmationButton,
-  RecordingInProgressNotification,
   Restricted,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
@@ -227,7 +226,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
           </div>
         </div>
         <div className="rd__notifications">
-          <RecordingInProgressNotification />
           <Restricted
             requiredGrants={[OwnCapability.SEND_AUDIO]}
             hasPermissionsOnly

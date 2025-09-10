@@ -305,10 +305,7 @@ const TraceStats = () => {
         const appId = process.env.NEXT_PUBLIC_STREAM_APP_ID || '';
         if (!appId) return window.open('http://rtcstats.gtstrm.com/', '_blank');
         const path = `app/${appId}/${call.cid}/${call.state.session?.id}/`;
-        window.open(
-          `http://rtcstats.gtstrm.com/?path=${encodeURIComponent(path)}`,
-          '_blank',
-        );
+        window.open(`http://rtcstats.gtstrm.com/stats/${path}`, '_blank');
       }}
     >
       <Icon className="rd__button__icon" icon="folder" />

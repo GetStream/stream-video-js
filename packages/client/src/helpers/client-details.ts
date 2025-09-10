@@ -143,13 +143,18 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
   // @ts-expect-error - userAgentData is not yet in the TS types
   const userAgentDataApi = navigator.userAgentData;
   let userAgentData:
-    | { platform?: string; platformVersion?: string }
+    | {
+        platform?: string;
+        platformVersion?: string;
+        fullVersionList?: Array<{ brand: string; version: string }>;
+      }
     | undefined;
   if (userAgentDataApi && userAgentDataApi.getHighEntropyValues) {
     try {
       userAgentData = await userAgentDataApi.getHighEntropyValues([
         'platform',
         'platformVersion',
+        'fullVersionList',
       ]);
     } catch {
       // Ignore the error
@@ -158,11 +163,21 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
 
   const userAgent = new UAParser(navigator.userAgent);
   const { browser, os, device, cpu } = userAgent.getResult();
+  // If userAgentData is available, it means we are in a modern Chromium browser,
+  // and we can use it to get more accurate browser information.
+  // We hook into the fullVersionList to find the browser name and version and
+  // eventually detect exotic browsers like Samsung Internet, AVG Secure Browser, etc.
+  // who by default they identify themselves as "Chromium" in the user agent string.
+  // Eliminates the generic "Chromium" name and "Not)A_Brand" name from the list.
+  // https://wicg.github.io/ua-client-hints/#create-arbitrary-brands-section
+  const uaBrowser = userAgentData?.fullVersionList?.find(
+    (v) => !v.brand.includes('Chromium') && !v.brand.match(/[()\-./:;=?_]/g),
+  );
   return {
     sdk: sdkInfo,
     browser: {
-      name: browser.name || navigator.userAgent,
-      version: browser.version || '',
+      name: uaBrowser?.brand || browser.name || navigator.userAgent,
+      version: uaBrowser?.version || browser.version || '',
     },
     os: {
       name: userAgentData?.platform || os.name || '',
