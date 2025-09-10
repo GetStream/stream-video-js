@@ -15,7 +15,6 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  s.resources = "ios/Resources/**/*"
   s.dependency "stream-react-native-webrtc"
 
   # Use install_modules_dependencies helper to install the dependencies if React Native version >=0.71.0.

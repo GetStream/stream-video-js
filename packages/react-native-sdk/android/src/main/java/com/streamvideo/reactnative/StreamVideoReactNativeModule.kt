@@ -311,7 +311,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-
     @ReactMethod
     fun getBatteryState(promise: Promise) {
         try {
