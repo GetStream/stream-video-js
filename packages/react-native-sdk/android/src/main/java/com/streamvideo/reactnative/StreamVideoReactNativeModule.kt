@@ -254,6 +254,28 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    private fun getVideoTrackForStreamURL(streamURL: String): VideoTrack {
+        var videoTrack: VideoTrack? = null
+
+
+        val module = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
+        val stream = module!!.getStreamForReactTag(streamURL)
+
+        if (stream != null) {
+            val videoTracks = stream.videoTracks
+
+            if (videoTracks.isNotEmpty()) {
+                videoTrack = videoTracks[0]
+            }
+        }
+
+        if (videoTrack != null) {
+            return videoTrack
+        }
+
+        throw Exception("No video stream for react tag: $streamURL")
+    }
+
     @ReactMethod
     fun getBatteryState(promise: Promise) {
         try {
@@ -285,28 +307,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             putBoolean("charging", isCharging)
             putInt("level", batteryLevel.toInt())
         }
-    }
-
-    private fun getVideoTrackForStreamURL(streamURL: String): VideoTrack {
-        var videoTrack: VideoTrack? = null
-
-
-        val module = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
-        val stream = module!!.getStreamForReactTag(streamURL)
-
-        if (stream != null) {
-            val videoTracks = stream.videoTracks
-
-            if (videoTracks.isNotEmpty()) {
-                videoTrack = videoTracks[0]
-            }
-        }
-
-        if (videoTrack != null) {
-            return videoTrack
-        }
-
-        throw Exception("No video stream for react tag: $streamURL")
     }
 
     @ReactMethod
