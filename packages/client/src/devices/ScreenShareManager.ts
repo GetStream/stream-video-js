@@ -74,7 +74,7 @@ export class ScreenShareManager extends AudioDeviceManager<
     return of([]); // there are no devices to be listed for Screen Share
   }
 
-  protected override async doGetStream(
+  protected override async getStream(
     constraints: DisplayMediaStreamOptions,
   ): Promise<MediaStream> {
     if (!this.state.audioEnabled) {

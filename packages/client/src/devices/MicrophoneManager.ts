@@ -250,7 +250,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     return getAudioDevices(this.call.tracer);
   }
 
-  protected override doGetStream(
+  protected override getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     return getAudioStream(constraints, this.call.tracer);
