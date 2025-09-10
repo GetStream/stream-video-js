@@ -5,12 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
-import android.media.MediaPlayer
+import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioTrack
 import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 import android.util.Base64
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -26,10 +29,13 @@ import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
 import java.io.ByteArrayOutputStream
+import kotlin.math.sin
 
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
@@ -248,6 +254,39 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    @ReactMethod
+    fun getBatteryState(promise: Promise) {
+        try {
+            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
+            if (batteryStatus == null) {
+                return promise.reject("BATTERY_ERROR", "Failed to get battery status")
+            }
+
+            promise.resolve(getBatteryStatusFromIntent(batteryStatus))
+        } catch (e: Exception) {
+            promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
+        }
+    }
+
+    private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+
+        val batteryLevel = if (level >= 0 && scale > 0) {
+            (level.toFloat() / scale.toFloat()) * 100
+        } else -1f
+
+        return Arguments.createMap().apply {
+            putBoolean("charging", isCharging)
+            putInt("level", batteryLevel.toInt())
+        }
+    }
+
     private fun getVideoTrackForStreamURL(streamURL: String): VideoTrack {
         var videoTrack: VideoTrack? = null
 
@@ -309,18 +348,53 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     fun playBusyTone() {
         try {
             stopBusyTone()
-            
-            val context = reactApplicationContext
-            val resourceId = context.resources.getIdentifier("busy", "raw", context.packageName)
-            
-            if (resourceId != 0) {
-                busyTonePlayer = MediaPlayer.create(context, resourceId)
-                busyTonePlayer?.let { player ->
-                    player.isLooping = false
-                    player.start()
+
+            busyToneJob = CoroutineScope(Dispatchers.IO).launch {
+                val beepBuffer = generateBeepBuffer(0.5, 480.0)
+                val silenceBuffer = generateSilenceBuffer(0.5)
+
+                val minBuf = AudioTrack.getMinBufferSize(
+                    SAMPLE_RATE,
+                    AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT
+                )
+                val bufferInShorts = maxOf(minBuf / 2, beepBuffer.size)
+
+                val audioTrack = AudioTrack.Builder()
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .build()
+                    )
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(SAMPLE_RATE)
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(bufferInShorts * 2)
+                    .setTransferMode(AudioTrack.MODE_STREAM)
+                    .build()
+
+                if (audioTrack.state != AudioTrack.STATE_INITIALIZED) {
+                    Log.e(NAME, "AudioTrack not initialized for busy tone")
+                    return@launch
                 }
-            } else {
-                Log.e(NAME, "busy.mp3 not found in resources")
+
+                busyToneAudioTrack = audioTrack
+                audioTrack.play()
+
+                while (isActive) {
+                    val bw1 = audioTrack.write(beepBuffer, 0, beepBuffer.size, AudioTrack.WRITE_BLOCKING)
+                    if (!isActive) break
+                    val bw2 = audioTrack.write(silenceBuffer, 0, silenceBuffer.size, AudioTrack.WRITE_BLOCKING)
+                    if (bw1 < 0 || bw2 < 0) {
+                        Log.e(NAME, "Error writing to AudioTrack: $bw1, $bw2")
+                        break
+                    }
+                }
             }
         } catch (e: Exception) {
             Log.e(NAME, "Error playing busy tone: ${e.message}")
@@ -330,20 +404,48 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopBusyTone() {
         try {
-            busyTonePlayer?.let { player ->
-                if (player.isPlaying) {
-                    player.stop()
+            busyToneJob?.cancel()
+            busyToneJob = null
+
+            busyToneAudioTrack?.let { track ->
+                try {
+                    if (track.playState == AudioTrack.PLAYSTATE_PLAYING) {
+                        track.stop()
+                    }
+                } catch (_: Exception) {
+                } finally {
+                    track.release()
                 }
-                player.release()
-                busyTonePlayer = null
             }
+            busyToneAudioTrack = null
         } catch (e: Exception) {
             Log.e(NAME, "Error stopping busy tone: ${e.message}")
         }
     }
 
+    private fun generateBeepBuffer(durationSeconds: Double, frequency: Double): ShortArray {
+        val totalSamples = (durationSeconds * SAMPLE_RATE).toInt()
+        val twoPiF = 2.0 * Math.PI * frequency
+        val amplitude = 0.3
+
+        val data = ShortArray(totalSamples)
+        for (i in 0 until totalSamples) {
+            val t = i.toDouble() / SAMPLE_RATE
+            val sample = (amplitude * sin(twoPiF * t) * Short.MAX_VALUE).toInt()
+            data[i] = sample.toShort()
+        }
+        return data
+    }
+
+    private fun generateSilenceBuffer(durationSeconds: Double): ShortArray {
+        val totalSamples = (durationSeconds * SAMPLE_RATE).toInt()
+        return ShortArray(totalSamples) { 0 }
+    }
+
     companion object {
         private const val NAME = "StreamVideoReactNative"
-        private var busyTonePlayer: MediaPlayer? = null
+        private const val SAMPLE_RATE = 22050
+        private var busyToneAudioTrack: AudioTrack? = null
+        private var busyToneJob: Job? = null
     }
 }
