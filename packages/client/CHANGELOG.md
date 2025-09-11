@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.30.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.29.0...@stream-io/video-client-1.30.0) (2025-09-11)
+
+- Skip tests for StreamVideoClient coordinator API ([aabe1d0](https://github.com/GetStream/stream-video-js/commit/aabe1d0ad3e3a95698b422991729e46289ab0277))
+
+### Features
+
+- Participant Source ([#1896](https://github.com/GetStream/stream-video-js/issues/1896)) ([b1cf710](https://github.com/GetStream/stream-video-js/commit/b1cf710ac3bfda573c0379dac1e6a107d2dbabf6))
+
 ## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.1...@stream-io/video-client-1.29.0) (2025-09-09)
 
 ### Features
