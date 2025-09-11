@@ -106,7 +106,6 @@ class AudioDeviceManager(
             userSelectedAudioDevice = null
             selectedAudioDeviceEndpoint = null
             audioSetupStoreUtil.storeOriginalAudioSetup()
-            val webRTCModule = mReactContext.getNativeModule(WebRTCModule::class.java)
             if (callAudioRole == CallAudioRole.Communicator) {
                 // Audio routing is manually controlled by the SDK in communication media mode
                 // and local microphone can be published
@@ -126,7 +125,7 @@ class AudioDeviceManager(
             }
 
             audioSetupStoreUtil.storeOriginalAudioSetup()
-            audioFocusUtil.requestFocus(callAudioRole)
+            audioFocusUtil.requestFocus(callAudioRole, mReactContext)
         }
     }
 
