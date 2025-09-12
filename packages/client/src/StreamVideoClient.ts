@@ -1,6 +1,7 @@
 import { Call } from './Call';
 import { StreamClient } from './coordinator/connection/client';
 import {
+  CallingState,
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
@@ -74,6 +75,7 @@ export class StreamVideoClient {
   );
 
   private static _instances = new Map<string, StreamVideoClient>();
+  private shouldRejectCallWhenBusy = false;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -206,6 +208,15 @@ export class StreamVideoClient {
         let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
+            if (this.shouldRejectCall(call.cid)) {
+              this.logger(
+                'info',
+                `Rejecting call ${call.cid} because user is busy`,
+              );
+              await call.reject('busy');
+              return;
+            }
+
             await call.updateFromRingingEvent(e as CallRingEvent);
           } else {
             call.state.updateFromCallResponse(e.call);
@@ -224,6 +235,14 @@ export class StreamVideoClient {
         call.state.updateFromCallResponse(e.call);
 
         if (ringing) {
+          if (this.shouldRejectCall(call.cid)) {
+            this.logger(
+              'info',
+              `Rejecting call ${call.cid} because user is busy`,
+            );
+            await call.reject('busy');
+            return;
+          }
           await call.get();
         } else {
           this.writeableStateStore.registerCall(call);
@@ -559,6 +578,34 @@ export class StreamVideoClient {
   };
 
   /**
+   * Sets whether to reject incoming calls when the user is already busy in another call.
+   *
+   * @param shouldReject - true to reject calls when busy, false to allow multiple calls
+   */
+  setShouldRejectCallWhenBusy = (shouldReject: boolean): void => {
+    this.shouldRejectCallWhenBusy = shouldReject;
+  };
+
+  /**
+   * Check if this client instance is properly managed (created via getOrCreateInstance)
+   */
+  isValid(): void {
+    const instanceKey = getInstanceKey(
+      this.streamClient.key,
+      this.streamClient._user!,
+    );
+
+    const managedInstance = StreamVideoClient._instances.get(instanceKey);
+    if (!managedInstance) {
+      throw new Error(
+        'StreamVideoClient: Multiple client instances detected. ' +
+          'Please use StreamVideoClient.getOrCreateInstance() in your createStreamVideoClient implementation ' +
+          'to avoid potential issues with state management and WebSocket connections.',
+      );
+    }
+  }
+
+  /**
    * Connects the given anonymous user to the client.
    *
    * @param user the user to connect.
@@ -571,5 +618,20 @@ export class StreamVideoClient {
     return withoutConcurrency(this.connectionConcurrencyTag, () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );
+  };
+
+  private shouldRejectCall = (currentCallId: string) => {
+    if (!this.shouldRejectCallWhenBusy) return false;
+
+    const hasOngoingRingingCall = this.state.calls.some(
+      (c) =>
+        c.cid !== currentCallId &&
+        c.ringing &&
+        c.state.callingState !== CallingState.IDLE &&
+        c.state.callingState !== CallingState.LEFT &&
+        c.state.callingState !== CallingState.RECONNECTING_FAILED,
+    );
+
+    return hasOngoingRingingCall;
   };
 }
