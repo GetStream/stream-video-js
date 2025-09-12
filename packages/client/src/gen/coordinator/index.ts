@@ -71,6 +71,80 @@ export interface AcceptCallResponse {
 /**
  *
  * @export
+ * @interface AppEventResponse
+ */
+export interface AppEventResponse {
+  /**
+   * boolean
+   * @type {boolean}
+   * @memberof AppEventResponse
+   */
+  async_url_enrich_enabled?: boolean;
+  /**
+   * boolean
+   * @type {boolean}
+   * @memberof AppEventResponse
+   */
+  auto_translation_enabled: boolean;
+  /**
+   *
+   * @type {FileUploadConfig}
+   * @memberof AppEventResponse
+   */
+  file_upload_config?: FileUploadConfig;
+  /**
+   *
+   * @type {FileUploadConfig}
+   * @memberof AppEventResponse
+   */
+  image_upload_config?: FileUploadConfig;
+  /**
+   * string
+   * @type {string}
+   * @memberof AppEventResponse
+   */
+  name: string;
+}
+/**
+ * Emitted when app settings are updated
+ * @export
+ * @interface AppUpdatedEvent
+ */
+export interface AppUpdatedEvent {
+  /**
+   *
+   * @type {AppEventResponse}
+   * @memberof AppUpdatedEvent
+   */
+  app: AppEventResponse;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof AppUpdatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof AppUpdatedEvent
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof AppUpdatedEvent
+   */
+  received_at?: string;
+  /**
+   * The type of event: "app.updated" in this case
+   * @type {string}
+   * @memberof AppUpdatedEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
  * @interface AudioSettingsRequest
  */
 export interface AudioSettingsRequest {
@@ -413,6 +487,24 @@ export interface CallClosedCaption {
    * @type {string}
    * @memberof CallClosedCaption
    */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  language: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  service?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
   speaker_id: string;
   /**
    *
@@ -426,6 +518,12 @@ export interface CallClosedCaption {
    * @memberof CallClosedCaption
    */
   text: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallClosedCaption
+   */
+  translated: boolean;
   /**
    *
    * @type {UserResponse}
@@ -917,6 +1015,18 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   rtmp: RTMPIngress;
+  /**
+   *
+   * @type {SRTIngress}
+   * @memberof CallIngressResponse
+   */
+  srt: SRTIngress;
+  /**
+   *
+   * @type {WHIPIngress}
+   * @memberof CallIngressResponse
+   */
+  whip: WHIPIngress;
 }
 /**
  * This event is sent when a call is started. Clients receiving this event should start the call.
@@ -1792,6 +1902,12 @@ export interface CallResponse {
    */
   transcribing: boolean;
   /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  translating: boolean;
+  /**
    * The type of call
    * @type {string}
    * @memberof CallResponse
@@ -2099,6 +2215,12 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   participant: CallParticipantResponse;
+  /**
+   * The reason why the participant left the session
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  reason?: string;
   /**
    * Call session ID
    * @type {string}
@@ -2732,7 +2854,7 @@ export interface CallUpdatedEvent {
    */
   created_at: string;
   /**
-   * The type of event: "call.ended" in this case
+   * The type of event: "call.updated" in this case
    * @type {string}
    * @memberof CallUpdatedEvent
    */
@@ -3639,6 +3761,86 @@ export interface EndCallResponse {
 /**
  *
  * @export
+ * @interface FeedsPreferences
+ */
+export interface FeedsPreferences {
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferences
+   */
+  comment?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferences
+   */
+  comment_reaction?: string;
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof FeedsPreferences
+   */
+  custom_activity_types?: { [key: string]: string };
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferences
+   */
+  follow?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferences
+   */
+  mention?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferences
+   */
+  reaction?: string;
+}
+/**
+ *
+ * @export
+ * @interface FileUploadConfig
+ */
+export interface FileUploadConfig {
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  allowed_file_extensions: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  allowed_mime_types: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  blocked_file_extensions: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  blocked_mime_types: Array<string>;
+  /**
+   *
+   * @type {number}
+   * @memberof FileUploadConfig
+   */
+  size_limit: number;
+}
+/**
+ *
+ * @export
  * @interface FrameRecordingResponse
  */
 export interface FrameRecordingResponse {
@@ -3695,7 +3897,6 @@ export const FrameRecordingSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
 } as const;
 export type FrameRecordingSettingsRequestQualityEnum =
   (typeof FrameRecordingSettingsRequestQualityEnum)[keyof typeof FrameRecordingSettingsRequestQualityEnum];
@@ -3787,6 +3988,12 @@ export interface GetCallReportResponse {
    * @memberof GetCallReportResponse
    */
   report: ReportResponse;
+  /**
+   *
+   * @type {CallSessionResponse}
+   * @memberof GetCallReportResponse
+   */
+  session?: CallSessionResponse;
   /**
    *
    * @type {string}
@@ -4928,6 +5135,7 @@ export const OwnCapability = {
   REMOVE_CALL_MEMBER: 'remove-call-member',
   SCREENSHARE: 'screenshare',
   SEND_AUDIO: 'send-audio',
+  SEND_CLOSED_CAPTIONS_CALL: 'send-closed-captions-call',
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
@@ -5276,6 +5484,25 @@ export interface PinResponse {
 /**
  *
  * @export
+ * @interface PrivacySettings
+ */
+export interface PrivacySettings {
+  /**
+   *
+   * @type {ReadReceipts}
+   * @memberof PrivacySettings
+   */
+  read_receipts?: ReadReceipts;
+  /**
+   *
+   * @type {TypingIndicators}
+   * @memberof PrivacySettings
+   */
+  typing_indicators?: TypingIndicators;
+}
+/**
+ *
+ * @export
  * @interface PublisherStatsResponse
  */
 export interface PublisherStatsResponse {
@@ -5322,6 +5549,18 @@ export interface PushPreferences {
    * @memberof PushPreferences
    */
   disabled_until?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PushPreferences
+   */
+  feeds_level?: string;
+  /**
+   *
+   * @type {FeedsPreferences}
+   * @memberof PushPreferences
+   */
+  feeds_preferences?: FeedsPreferences;
 }
 /**
  *
@@ -5760,13 +5999,11 @@ export const RTMPBroadcastRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
-  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPBroadcastRequestQualityEnum =
   (typeof RTMPBroadcastRequestQualityEnum)[keyof typeof RTMPBroadcastRequestQualityEnum];
@@ -5813,13 +6050,11 @@ export const RTMPSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
-  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPSettingsRequestQualityEnum =
   (typeof RTMPSettingsRequestQualityEnum)[keyof typeof RTMPSettingsRequestQualityEnum];
@@ -5877,6 +6112,19 @@ export interface ReactionResponse {
 /**
  *
  * @export
+ * @interface ReadReceipts
+ */
+export interface ReadReceipts {
+  /**
+   *
+   * @type {boolean}
+   * @memberof ReadReceipts
+   */
+  enabled: boolean;
+}
+/**
+ *
+ * @export
  * @interface RecordSettingsRequest
  */
 export interface RecordSettingsRequest {
@@ -5920,13 +6168,11 @@ export const RecordSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
-  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
@@ -6187,6 +6433,19 @@ export interface SFUResponse {
 /**
  *
  * @export
+ * @interface SRTIngress
+ */
+export interface SRTIngress {
+  /**
+   *
+   * @type {string}
+   * @memberof SRTIngress
+   */
+  address: string;
+}
+/**
+ *
+ * @export
  * @interface ScreensharingSettingsRequest
  */
 export interface ScreensharingSettingsRequest {
@@ -6352,6 +6611,25 @@ export interface SortParamRequest {
 /**
  *
  * @export
+ * @interface SpeechSegmentConfig
+ */
+export interface SpeechSegmentConfig {
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  max_speech_caption_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  silence_duration_ms?: number;
+}
+/**
+ *
+ * @export
  * @interface StartClosedCaptionsRequest
  */
 export interface StartClosedCaptionsRequest {
@@ -6373,6 +6651,12 @@ export interface StartClosedCaptionsRequest {
    * @memberof StartClosedCaptionsRequest
    */
   language?: StartClosedCaptionsRequestLanguageEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof StartClosedCaptionsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
 }
 
 /**
@@ -6937,7 +7221,19 @@ export interface TranscriptionSettingsRequest {
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  mode: TranscriptionSettingsRequestModeEnum;
+  mode?: TranscriptionSettingsRequestModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsRequest
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -7031,6 +7327,18 @@ export interface TranscriptionSettingsResponse {
    * @memberof TranscriptionSettingsResponse
    */
   mode: TranscriptionSettingsResponseModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsResponse
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsResponse
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -7100,6 +7408,38 @@ export const TranscriptionSettingsResponseModeEnum = {
 export type TranscriptionSettingsResponseModeEnum =
   (typeof TranscriptionSettingsResponseModeEnum)[keyof typeof TranscriptionSettingsResponseModeEnum];
 
+/**
+ *
+ * @export
+ * @interface TranslationSettings
+ */
+export interface TranslationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof TranslationSettings
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof TranslationSettings
+   */
+  languages?: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface TypingIndicators
+ */
+export interface TypingIndicators {
+  /**
+   *
+   * @type {boolean}
+   * @memberof TypingIndicators
+   */
+  enabled: boolean;
+}
 /**
  * UnblockUserRequest is the payload for unblocking a user.
  * @export
@@ -7368,6 +7708,231 @@ export interface UpdatedCallPermissionsEvent {
 /**
  *
  * @export
+ * @interface User
+ */
+export interface User {
+  /**
+   *
+   * @type {number}
+   * @memberof User
+   */
+  readonly avg_response_time?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  ban_expires?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof User
+   */
+  banned: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  readonly created_at?: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof User
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  readonly deactivated_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  readonly deleted_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  id: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof User
+   */
+  invisible?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  language?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  readonly last_active?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  readonly last_engaged_at?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof User
+   */
+  readonly online: boolean;
+  /**
+   *
+   * @type {PrivacySettings}
+   * @memberof User
+   */
+  privacy_settings?: PrivacySettings;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  revoke_tokens_issued_before?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  role: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof User
+   */
+  teams?: Array<string>;
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof User
+   */
+  teams_role: { [key: string]: string };
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  readonly updated_at?: string;
+}
+/**
+ *
+ * @export
+ * @interface UserBannedEvent
+ */
+export interface UserBannedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  channel_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  channel_type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {User}
+   * @memberof UserBannedEvent
+   */
+  created_by: User;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  expiration?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  reason?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserBannedEvent
+   */
+  shadow: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  team?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserBannedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {User}
+   * @memberof UserBannedEvent
+   */
+  user?: User;
+}
+/**
+ *
+ * @export
+ * @interface UserDeactivatedEvent
+ */
+export interface UserDeactivatedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserDeactivatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {User}
+   * @memberof UserDeactivatedEvent
+   */
+  created_by: User;
+  /**
+   *
+   * @type {string}
+   * @memberof UserDeactivatedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {User}
+   * @memberof UserDeactivatedEvent
+   */
+  user?: User;
+}
+/**
+ *
+ * @export
  * @interface UserFeedbackReport
  */
 export interface UserFeedbackReport {
@@ -7400,6 +7965,43 @@ export interface UserFeedbackReportResponse {
 /**
  *
  * @export
+ * @interface UserMutedEvent
+ */
+export interface UserMutedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserMutedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserMutedEvent
+   */
+  target_user?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof UserMutedEvent
+   */
+  target_users?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof UserMutedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {User}
+   * @memberof UserMutedEvent
+   */
+  user?: User;
+}
+/**
+ *
+ * @export
  * @interface UserRatingReportResponse
  */
 export interface UserRatingReportResponse {
@@ -7415,6 +8017,31 @@ export interface UserRatingReportResponse {
    * @memberof UserRatingReportResponse
    */
   count: number;
+}
+/**
+ *
+ * @export
+ * @interface UserReactivatedEvent
+ */
+export interface UserReactivatedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UserReactivatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserReactivatedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {User}
+   * @memberof UserReactivatedEvent
+   */
+  user?: User;
 }
 /**
  * User request object
@@ -7726,6 +8353,7 @@ export interface UserUpdatedEvent {
  * @export
  */
 export type VideoEvent =
+  | ({ type: 'app.updated' } & AppUpdatedEvent)
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
   | ({ type: 'call.closed_caption' } & ClosedCaptionEvent)
@@ -7794,6 +8422,10 @@ export type VideoEvent =
   | ({ type: 'connection.ok' } & ConnectedEvent)
   | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent)
+  | ({ type: 'user.banned' } & UserBannedEvent)
+  | ({ type: 'user.deactivated' } & UserDeactivatedEvent)
+  | ({ type: 'user.muted' } & UserMutedEvent)
+  | ({ type: 'user.reactivated' } & UserReactivatedEvent)
   | ({ type: 'user.updated' } & UserUpdatedEvent);
 /**
  *
@@ -7925,6 +8557,19 @@ export const VideoSettingsResponseCameraFacingEnum = {
 export type VideoSettingsResponseCameraFacingEnum =
   (typeof VideoSettingsResponseCameraFacingEnum)[keyof typeof VideoSettingsResponseCameraFacingEnum];
 
+/**
+ *
+ * @export
+ * @interface WHIPIngress
+ */
+export interface WHIPIngress {
+  /**
+   * URL for a new whip input, every time a new link is created
+   * @type {string}
+   * @memberof WHIPIngress
+   */
+  address: string;
+}
 /**
  * Websocket auth message
  * @export
