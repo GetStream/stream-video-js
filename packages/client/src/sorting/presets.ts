@@ -1,3 +1,4 @@
+import { ParticipantSource } from '../gen/video/sfu/models/models';
 import { StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
 import {
@@ -9,6 +10,7 @@ import {
   role,
   screenSharing,
   speaking,
+  withParticipantSource,
 } from './participants';
 
 // a comparator decorator which applies the decorated comparator only if the
@@ -48,7 +50,6 @@ export const defaultSortPreset = combineComparators(
       publishingAudio,
     ),
   ),
-  // ifInvisibleBy(name),
 );
 
 /**
@@ -66,7 +67,6 @@ export const speakerLayoutSortPreset = combineComparators(
       publishingAudio,
     ),
   ),
-  // ifInvisibleBy(name),
 );
 
 /**
@@ -84,7 +84,6 @@ export const paginatedLayoutSortPreset = combineComparators(
       publishingAudio,
     ),
   ),
-  // ifInvisibleOrUnknownBy(name),
 );
 
 /**
@@ -96,10 +95,10 @@ export const livestreamOrAudioRoomSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
+      withParticipantSource(ParticipantSource.RTMP),
       publishingVideo,
       publishingAudio,
     ),
   ),
   role('admin', 'host', 'speaker'),
-  // name,
 );
