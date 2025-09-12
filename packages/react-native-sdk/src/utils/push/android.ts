@@ -173,37 +173,10 @@ export const firebaseDataHandler = async (
 
     const video_client = await pushConfig.createStreamVideoClient();
     video_client?.isValid();
-    if (video_client && shouldRejectCallWhenBusy) {
-      try {
-        const calls = video_client.state.calls;
-        const ringingCallsInProgress = calls.filter(
-          (c) =>
-            c.cid !== call_cid &&
-            c.ringing &&
-            c.state.callingState !== CallingState.IDLE &&
-            c.state.callingState !== CallingState.LEFT &&
-            c.state.callingState !== CallingState.RECONNECTING_FAILED,
-        );
-
-        if (ringingCallsInProgress.length > 0) {
-          getLogger(['firebaseDataHandler'])(
-            'debug',
-            `User is already in a call. Silently rejecting incoming call: ${call_cid}`,
-          );
-
-          const callFromPush = await video_client.onRingingCall(call_cid);
-          await callFromPush?.reject('busy');
-
-          return;
-        }
-      } catch (err) {
-        getLogger(['firebaseDataHandler'])(
-          'error',
-          'Error checking if user is already in a call',
-          err,
-        );
-      }
-    }
+    video_client?.setShouldRejectCallWhenBusy(
+      shouldRejectCallWhenBusy ?? false,
+    );
+    await video_client?.onRingingCall(call_cid);
 
     const shouldCallBeClosed = (callToCheck: Call) => {
       const { mustEndCall } = shouldCallBeEnded(
@@ -225,6 +198,10 @@ export const firebaseDataHandler = async (
       notifee.registerForegroundService(() => {
         return new Promise(async () => {
           const client = await pushConfig.createStreamVideoClient();
+          video_client?.isValid();
+          client?.setShouldRejectCallWhenBusy(
+            shouldRejectCallWhenBusy ?? false,
+          );
           if (!client) {
             getLogger(['firebaseMessagingOnMessageHandler'])(
               'debug',
@@ -378,6 +355,7 @@ export const firebaseDataHandler = async (
     // check if call needs to be closed if accept/decline event was done
     // before the notification was shown
     const client = await pushConfig.createStreamVideoClient();
+    video_client?.isValid();
     if (!client) {
       return;
     }

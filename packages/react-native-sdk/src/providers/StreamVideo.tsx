@@ -10,6 +10,7 @@ import { translations } from '../translations';
 import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme } from '../theme/theme';
 import { ScreenshotIosContextProvider } from '../contexts/internal/ScreenshotIosContext';
+import { StreamVideoRN } from '../utils/StreamVideoRN';
 
 /**
  *
@@ -51,6 +52,14 @@ export const StreamVideo = (
       client.streamClient.updateNetworkConnectionStatus({ type });
     });
   }, [client]);
+
+  const pushConfig = StreamVideoRN.getConfig().push;
+  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
+
+  useEffect(() => {
+    if (!client) return;
+    client.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy ?? false);
+  }, [client, shouldRejectCallWhenBusy]);
 
   return (
     <StreamVideoProvider

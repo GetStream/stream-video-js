@@ -63,6 +63,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
+  private static busyToneTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Update the global config for StreamVideoRN except for push config.
@@ -178,8 +179,21 @@ export class StreamVideoRN {
   static playBusyTone() {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       NativeModules.StreamVideoReactNative?.playBusyTone();
-      console.log('playBusyTone');
     }
+  }
+
+  /**
+   * Play native busy tone for call rejection for a given duration
+   */
+  static playBusyToneFor(durationMS = 3000) {
+    if (this.busyToneTimeout) {
+      clearTimeout(this.busyToneTimeout);
+      this.busyToneTimeout = null;
+    }
+    this.playBusyTone();
+    this.busyToneTimeout = setTimeout(() => {
+      this.stopBusyTone();
+    }, durationMS);
   }
 
   /**
@@ -188,6 +202,11 @@ export class StreamVideoRN {
   static stopBusyTone() {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       NativeModules.StreamVideoReactNative?.stopBusyTone();
+    }
+
+    if (this.busyToneTimeout) {
+      clearTimeout(this.busyToneTimeout);
+      this.busyToneTimeout = null;
     }
   }
 }

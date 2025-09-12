@@ -2723,7 +2723,7 @@ SPEC CHECKSUMS:
   stream-io-noise-cancellation-react-native: 76b58c2466b883690ff00e2976b7938c9533ac26
   stream-io-video-filters-react-native: 53b0215c7770610dbad5ed3978ac5eeb35f90c70
   stream-react-native-webrtc: 08d540bd2520d7530a6dafe71bf3a494b00f2de1
-  stream-video-react-native: 1d959bb9db3ac787ea795e60016ddd712f4fdd3d
+  stream-video-react-native: 92cc0b7b4a8992e8ac2c9642641f5ace552da16e
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: a50ebd8beba4def8f4e378b4895824c3520f9889
   VisionCamera: 39b33d8e530e06d94cf631a99e4cd1ff5d8fe3d7
