@@ -46,12 +46,8 @@ export const ViewLiveStreamChildren = ({
     StreamInCallManager.start({
       audioRole: 'listener',
     });
-    const interval = setInterval(() => {
-      StreamInCallManager.logAudioState();
-    }, 10000);
     return () => {
       StreamInCallManager.stop();
-      clearInterval(interval);
     };
   }, []);
 

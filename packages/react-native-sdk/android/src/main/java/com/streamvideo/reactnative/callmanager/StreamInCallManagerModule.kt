@@ -138,6 +138,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    @Suppress("unused")
     @ReactMethod
     fun setForceSpeakerphoneOn(enable: Boolean) {
         if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
@@ -160,6 +161,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         )
     }
 
+    @Suppress("unused")
     @ReactMethod
     fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
         if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {

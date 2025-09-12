@@ -25,7 +25,6 @@ import {
   PauseIcon,
   PlayIcon,
 } from '../../../icons/LivestreamControls';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 /**
  * Props for the ViewerLivestreamControls component.

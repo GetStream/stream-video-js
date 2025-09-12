@@ -12,11 +12,17 @@ import { ControlsPanel } from '../../components/AudioRoom/ControlsPanel';
 import { PermissionRequestsPanel } from '../../components/AudioRoom/PermissionRequestsPanel';
 import { ParticipantsPanel } from '../../components/AudioRoom/ParticipantsPanel';
 import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
+import { StreamInCallManager } from '@stream-io/video-react-native-sdk';
 
 export default function Room({ onClose }: { onClose: () => void }) {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
+
+  useEffect(() => {
+    StreamInCallManager.start();
+    return () => StreamInCallManager.stop();
+  }, []);
 
   // when the component unmounts, leave the call
   useEffect(() => {

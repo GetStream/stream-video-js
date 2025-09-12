@@ -114,14 +114,11 @@ class AudioDeviceManager(
                 bluetoothManager.start()
                 mAudioManager.registerAudioDeviceCallback(this, null)
                 updateAudioDeviceState()
-//                webRTCModule.audioDeviceModule.
             } else {
                 // Audio routing is handled automatically by the system in normal media mode
                 // and bluetooth microphones may not work on some devices.
                 mAudioManager.mode = AudioManager.MODE_NORMAL
-                activity.volumeControlStream = AudioManager.STREAM_MUSIC
-
-//                webRTCModule.mAudioDeviceModule
+                activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             }
 
             audioSetupStoreUtil.storeOriginalAudioSetup()
@@ -221,10 +218,6 @@ class AudioDeviceManager(
                 )
             }
         }
-    }
-
-    fun hasWiredHeadset(): Boolean {
-        return mEndpointMaps.nonBluetoothEndpoints.containsKey(AudioDeviceEndpoint.TYPE_WIRED_HEADSET)
     }
 
     override fun close() {

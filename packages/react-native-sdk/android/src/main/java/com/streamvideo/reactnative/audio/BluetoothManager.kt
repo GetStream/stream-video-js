@@ -67,10 +67,6 @@ class BluetoothManager(
         SCO_CONNECTED
     }
 
-    init {
-        Log.d(TAG, "constructor")
-    }
-
     private val mAudioManager =
         mReactContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 

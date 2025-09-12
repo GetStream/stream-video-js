@@ -1,6 +1,5 @@
 package com.streamvideo.reactnative.audio.utils
 
-import android.app.Activity
 import android.media.AudioManager
 import android.util.Log
 import com.facebook.react.bridge.ReactContext
@@ -18,7 +17,6 @@ class AudioSetupStoreUtil(
     private var origAudioMode = AudioManager.MODE_NORMAL
 
     fun storeOriginalAudioSetup() {
-        Log.d(TAG, "storeOriginalAudioSetup()")
         if (!isOrigAudioSetupStored) {
             origAudioMode = mAudioManager.mode
             origIsSpeakerPhoneOn = AudioManagerUtil.isSpeakerphoneOn(mAudioManager)
@@ -28,7 +26,6 @@ class AudioSetupStoreUtil(
     }
 
     fun restoreOriginalAudioSetup() {
-        Log.d(TAG, "restoreOriginalAudioSetup()")
         if (isOrigAudioSetupStored) {
             if (origIsSpeakerPhoneOn) {
                 mAudioDeviceManager.setSpeakerphoneOn(true)

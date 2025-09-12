@@ -1,5 +1,7 @@
 #import <React/RCTEventEmitter.h>
 
+/// only the public methods exposed from module are to be written here
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface StreamVideoReactNative : RCTEventEmitter
@@ -15,8 +17,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @param uuid The UUID of the incoming call, which should be used for CallKit.
  */
 + (void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid;
-
-- (void)screenShareEventReceived:(NSString *)event;
 
 @end
 
