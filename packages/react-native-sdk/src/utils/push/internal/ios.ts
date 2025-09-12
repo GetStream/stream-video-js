@@ -1,4 +1,4 @@
-import { CallingState, getLogger, RxUtils } from '@stream-io/video-client';
+import { getLogger, RxUtils } from '@stream-io/video-client';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
 import {
