@@ -1,8 +1,9 @@
 import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
+import { PublishOptions } from '../rtc';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { DeviceManagerState } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
@@ -20,8 +21,8 @@ import {
   MediaStreamFilterRegistrationResult,
 } from './filters';
 
-export abstract class InputMediaDeviceManager<
-  T extends InputMediaDeviceManagerState<C>,
+export abstract class DeviceManager<
+  S extends DeviceManagerState<C>,
   C = MediaTrackConstraints,
 > {
   /**
@@ -30,7 +31,7 @@ export abstract class InputMediaDeviceManager<
   stopOnLeave = true;
   logger: Logger;
 
-  state: T;
+  state: S;
 
   protected readonly call: Call;
   protected readonly trackType: TrackType;
@@ -43,7 +44,7 @@ export abstract class InputMediaDeviceManager<
     'filterRegistrationConcurrencyTag',
   );
 
-  protected constructor(call: Call, state: T, trackType: TrackType) {
+  protected constructor(call: Call, state: S, trackType: TrackType) {
     this.call = call;
     this.state = state;
     this.trackType = trackType;
@@ -282,8 +283,11 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
-  protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publish(stream, this.trackType);
+  protected publishStream(
+    stream: MediaStream,
+    options?: PublishOptions,
+  ): Promise<void> {
+    return this.call.publish(stream, this.trackType, options);
   }
 
   protected stopPublishStream(): Promise<void> {

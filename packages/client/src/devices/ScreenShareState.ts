@@ -1,9 +1,9 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { ScreenShareSettings } from '../types';
 import { RxUtils } from '../store';
 
-export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaStreamOptions> {
+export class ScreenShareState extends AudioDeviceManagerState<DisplayMediaStreamOptions> {
   private audioEnabledSubject = new BehaviorSubject<boolean>(true);
   private settingsSubject = new BehaviorSubject<
     ScreenShareSettings | undefined
@@ -24,7 +24,7 @@ export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaS
   /**
    * @internal
    */
-  protected getDeviceIdFromStream = (
+  protected override getDeviceIdFromStream = (
     stream: MediaStream,
   ): string | undefined => {
     const [track] = stream.getTracks();

@@ -390,6 +390,10 @@ export interface TrackInfo {
    * @generated from protobuf field: int32 publish_option_id = 12;
    */
   publishOptionId: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.AudioBitrateType audio_bitrate_type = 13;
+   */
+  audioBitrateType: AudioBitrateType;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -793,6 +797,23 @@ export enum ParticipantSource {
    * @generated from protobuf enum value: PARTICIPANT_SOURCE_SRT = 5;
    */
   SRT = 5,
+}
+/**
+ * @generated from protobuf enum stream.video.sfu.models.AudioBitrateType
+ */
+export enum AudioBitrateType {
+  /**
+   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_VOICE_STANDARD_UNSPECIFIED = 0;
+   */
+  VOICE_STANDARD_UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_VOICE_HIGH_QUALITY = 1;
+   */
+  VOICE_HIGH_QUALITY = 1,
+  /**
+   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_MUSIC_HIGH_QUALITY = 2;
+   */
+  MUSIC_HIGH_QUALITY = 2,
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.ErrorCode
@@ -1493,6 +1514,16 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         name: 'publish_option_id',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 13,
+        name: 'audio_bitrate_type',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.AudioBitrateType',
+          AudioBitrateType,
+          'AUDIO_BITRATE_TYPE_',
+        ],
       },
     ]);
   }
