@@ -392,6 +392,8 @@ export const useMicrophoneState = ({
     state.isPromptingPermission$,
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
+  const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
+  const stereo = useObservableValue(state.stereo$);
 
   return {
     microphone,
@@ -403,7 +405,8 @@ export const useMicrophoneState = ({
     hasBrowserPermission,
     isPromptingPermission,
     isSpeakingWhileMuted,
-    audioBitrateType: useObservableValue(state.audioBitrateType$),
+    audioBitrateProfile,
+    stereo,
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
@@ -447,14 +450,15 @@ export const useScreenShareState = ({
 }: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { screenShare } = call as Call;
-
+  const { state } = screenShare;
   return {
     screenShare,
-    mediaStream: useObservableValue(screenShare.state.mediaStream$),
-    audioBitrateType: useObservableValue(screenShare.state.audioBitrateType$),
+    mediaStream: useObservableValue(state.mediaStream$),
+    audioBitrateProfile: useObservableValue(state.audioBitrateProfile$),
+    stereo: useObservableValue(state.stereo$),
     ...getComputedStatus(
-      useObservableValue(screenShare.state.status$),
-      useObservableValue(screenShare.state.optimisticStatus$),
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
       { optimisticUpdates },
     ),
   };

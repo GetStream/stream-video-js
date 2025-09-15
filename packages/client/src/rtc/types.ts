@@ -1,12 +1,12 @@
 import {
-  AudioBitrateType,
+  AudioBitrateProfile,
   PublishOption,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
-import { OptimalVideoLayer } from './videoLayers';
+import type { OptimalVideoLayer } from './layers';
 
 export type OnReconnectionNeeded = (
   kind: WebsocketReconnectStrategy,
@@ -28,14 +28,14 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
   publishOptions: PublishOption[];
 };
 
-export type PublishOptions = {
-  audioBitrateType?: AudioBitrateType;
+export type TrackPublishOptions = {
+  audioBitrateProfile?: AudioBitrateProfile;
 };
 
 export type PublishBundle = {
   publishOption: PublishOption;
   transceiver: RTCRtpTransceiver;
-  options: PublishOptions;
+  options: TrackPublishOptions;
 };
 
 export type TrackLayersCache = {

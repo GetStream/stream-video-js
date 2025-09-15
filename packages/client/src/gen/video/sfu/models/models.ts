@@ -301,6 +301,12 @@ export interface PublishOption {
    * @generated from protobuf field: bool use_single_layer = 9;
    */
   useSingleLayer: boolean;
+  /**
+   * Audio bitrate profiles for different audio quality profiles.
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.AudioBitrate audio_bitrate_profiles = 10;
+   */
+  audioBitrateProfiles: AudioBitrate[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
@@ -343,6 +349,19 @@ export interface ICETrickle {
    * @generated from protobuf field: string session_id = 3;
    */
   sessionId: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.AudioBitrate
+ */
+export interface AudioBitrate {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.AudioBitrateProfile profile = 1;
+   */
+  profile: AudioBitrateProfile;
+  /**
+   * @generated from protobuf field: int32 bitrate = 2;
+   */
+  bitrate: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.TrackInfo
@@ -390,10 +409,6 @@ export interface TrackInfo {
    * @generated from protobuf field: int32 publish_option_id = 12;
    */
   publishOptionId: number;
-  /**
-   * @generated from protobuf field: stream.video.sfu.models.AudioBitrateType audio_bitrate_type = 13;
-   */
-  audioBitrateType: AudioBitrateType;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -799,19 +814,19 @@ export enum ParticipantSource {
   SRT = 5,
 }
 /**
- * @generated from protobuf enum stream.video.sfu.models.AudioBitrateType
+ * @generated from protobuf enum stream.video.sfu.models.AudioBitrateProfile
  */
-export enum AudioBitrateType {
+export enum AudioBitrateProfile {
   /**
-   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_VOICE_STANDARD_UNSPECIFIED = 0;
+   * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_VOICE_STANDARD_UNSPECIFIED = 0;
    */
   VOICE_STANDARD_UNSPECIFIED = 0,
   /**
-   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_VOICE_HIGH_QUALITY = 1;
+   * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_VOICE_HIGH_QUALITY = 1;
    */
   VOICE_HIGH_QUALITY = 1,
   /**
-   * @generated from protobuf enum value: AUDIO_BITRATE_TYPE_MUSIC_HIGH_QUALITY = 2;
+   * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_MUSIC_HIGH_QUALITY = 2;
    */
   MUSIC_HIGH_QUALITY = 2,
 }
@@ -1419,6 +1434,13 @@ class PublishOption$Type extends MessageType<PublishOption> {
         kind: 'scalar',
         T: 8 /*ScalarType.BOOL*/,
       },
+      {
+        no: 10,
+        name: 'audio_bitrate_profiles',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => AudioBitrate,
+      },
     ]);
   }
 }
@@ -1482,6 +1504,28 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
  */
 export const ICETrickle = new ICETrickle$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class AudioBitrate$Type extends MessageType<AudioBitrate> {
+  constructor() {
+    super('stream.video.sfu.models.AudioBitrate', [
+      {
+        no: 1,
+        name: 'profile',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.AudioBitrateProfile',
+          AudioBitrateProfile,
+          'AUDIO_BITRATE_PROFILE_',
+        ],
+      },
+      { no: 2, name: 'bitrate', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.AudioBitrate
+ */
+export const AudioBitrate = new AudioBitrate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class TrackInfo$Type extends MessageType<TrackInfo> {
   constructor() {
     super('stream.video.sfu.models.TrackInfo', [
@@ -1514,16 +1558,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         name: 'publish_option_id',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
-      },
-      {
-        no: 13,
-        name: 'audio_bitrate_type',
-        kind: 'enum',
-        T: () => [
-          'stream.video.sfu.models.AudioBitrateType',
-          AudioBitrateType,
-          'AUDIO_BITRATE_TYPE_',
-        ],
       },
     ]);
   }

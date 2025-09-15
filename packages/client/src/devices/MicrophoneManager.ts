@@ -1,12 +1,11 @@
 import { combineLatest, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
-import type { PublishOptions } from '../rtc';
 import { Call } from '../Call';
 import { AudioDeviceManager } from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
 import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
-import { AudioBitrateType, TrackType } from '../gen/video/sfu/models/models';
+import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
@@ -21,6 +20,7 @@ import {
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { createAudioConstraints } from './utils';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -256,33 +256,21 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     return getAudioStream(constraints, this.call.tracer);
   }
 
-  protected override publishStream(
-    stream: MediaStream,
-    options?: PublishOptions,
+  protected override async doSetAudioBitrateProfile(
+    profile: AudioBitrateProfile,
+    stereo: boolean,
   ): Promise<void> {
-    return super.publishStream(stream, {
-      audioBitrateType: this.state.audioBitrateType,
-      ...options,
-    });
-  }
-
-  protected override async doSetAudioBitrateType(type: AudioBitrateType) {
-    const isHiFiMusic = type === AudioBitrateType.MUSIC_HIGH_QUALITY;
     this.setDefaultConstraints({
       ...this.state.defaultConstraints,
-      echoCancellation: !isHiFiMusic,
-      noiseSuppression: !isHiFiMusic,
-      autoGainControl: !isHiFiMusic,
-      channelCount: { ideal: isHiFiMusic ? 2 : 1 },
+      ...createAudioConstraints(profile, stereo),
     });
-    if (isHiFiMusic) {
+    const disableAudioProcessing =
+      profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+    if (disableAudioProcessing) {
       await Promise.all([
         this.disableNoiseCancellation(),
         this.disableSpeakingWhileMutedNotification(),
       ]);
-    }
-    if (this.enabled) {
-      await this.applySettingsToStream();
     }
   }
 

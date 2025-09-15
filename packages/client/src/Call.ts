@@ -6,9 +6,9 @@ import {
   isSfuEvent,
   muteTypeToTrackType,
   Publisher,
-  PublishOptions,
   Subscriber,
   toRtcConfiguration,
+  TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
 import {
@@ -1776,7 +1776,7 @@ export class Call {
   publish = async (
     mediaStream: MediaStream,
     trackType: TrackType,
-    options?: PublishOptions,
+    options?: TrackPublishOptions,
   ) => {
     if (!this.sfuClient) throw new Error(`Call is not joined yet`);
     // joining is in progress, and we should wait until the client is ready
@@ -1870,7 +1870,7 @@ export class Call {
    * @internal
    * @param options the options to use.
    */
-  updatePublishOptions = (options: ClientPublishOptions) => {
+  updatePublishOptions = (options: TrackPublishOptions) => {
     this.logger(
       'warn',
       '[call.updatePublishOptions]: You are manually overriding the publish options for this call. ' +

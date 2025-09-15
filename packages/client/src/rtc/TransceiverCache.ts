@@ -1,5 +1,5 @@
 import { PublishOption } from '../gen/video/sfu/models/models';
-import { OptimalVideoLayer } from './videoLayers';
+import type { OptimalVideoLayer } from './layers';
 import type { PublishBundle, TrackLayersCache } from './types';
 
 export class TransceiverCache {

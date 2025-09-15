@@ -10,21 +10,23 @@ import {
 export const ToggleHiFiButton = () => {
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, audioBitrateType } = useMicrophoneState();
+  const { microphone, audioBitrateProfile } = useMicrophoneState();
   const hiFiEnabled =
-    audioBitrateType === SfuModels.AudioBitrateType.MUSIC_HIGH_QUALITY;
+    audioBitrateProfile === SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY;
 
   const handleToggle = async () => {
     if (!microphone) return;
 
     try {
       if (hiFiEnabled) {
-        await microphone.setAudioBitrateType(
-          SfuModels.AudioBitrateType.VOICE_STANDARD_UNSPECIFIED,
+        await microphone.setAudioBitrateProfile(
+          SfuModels.AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+          false,
         );
       } else {
-        await microphone.setAudioBitrateType(
-          SfuModels.AudioBitrateType.MUSIC_HIGH_QUALITY,
+        await microphone.setAudioBitrateProfile(
+          SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+          true,
         );
       }
     } catch (error) {

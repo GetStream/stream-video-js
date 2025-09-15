@@ -2,12 +2,11 @@ import { BasePeerConnection } from './BasePeerConnection';
 import {
   PublishBundle,
   PublisherConstructorOpts,
-  PublishOptions,
+  TrackPublishOptions,
 } from './types';
 import { NegotiationError } from './NegotiationError';
 import { TransceiverCache } from './TransceiverCache';
 import {
-  AudioBitrateType,
   PeerType,
   PublishOption,
   TrackInfo,
@@ -15,10 +14,11 @@ import {
 } from '../gen/video/sfu/models/models';
 import { VideoSender } from '../gen/video/sfu/event/events';
 import {
+  computeAudioLayers,
   computeVideoLayers,
   toSvcEncodings,
   toVideoLayers,
-} from './videoLayers';
+} from './layers';
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid } from './helpers/sdp';
@@ -81,7 +81,7 @@ export class Publisher extends BasePeerConnection {
   publish = async (
     track: MediaStreamTrack,
     trackType: TrackType,
-    options: PublishOptions = {},
+    options: TrackPublishOptions = {},
   ) => {
     if (!this.publishOptions.some((o) => o.trackType === trackType)) {
       throw new Error(`No publish options found for ${TrackType[trackType]}`);
@@ -99,7 +99,12 @@ export class Publisher extends BasePeerConnection {
         await this.addTransceiver(trackToPublish, publishOption, options);
       } else {
         const previousTrack = transceiver.sender.track;
-        await this.updateTransceiver(transceiver, trackToPublish, trackType);
+        await this.updateTransceiver(
+          transceiver,
+          trackToPublish,
+          trackType,
+          options,
+        );
         if (!isReactNative()) {
           this.stopTrack(previousTrack);
         }
@@ -113,12 +118,14 @@ export class Publisher extends BasePeerConnection {
   private addTransceiver = async (
     track: MediaStreamTrack,
     publishOption: PublishOption,
-    options: PublishOptions,
+    options: TrackPublishOptions,
   ) => {
-    const videoEncodings = computeVideoLayers(track, publishOption);
+    const encodings = isAudioTrackType(publishOption.trackType)
+      ? computeAudioLayers(track, publishOption, options)
+      : computeVideoLayers(track, publishOption);
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
-      ? toSvcEncodings(videoEncodings)
-      : videoEncodings;
+      ? toSvcEncodings(encodings)
+      : encodings;
     const transceiver = this.pc.addTransceiver(track, {
       direction: 'sendonly',
       sendEncodings,
@@ -143,11 +150,43 @@ export class Publisher extends BasePeerConnection {
     transceiver: RTCRtpTransceiver,
     track: MediaStreamTrack | null,
     trackType: TrackType,
+    options: TrackPublishOptions = {},
   ) => {
     const sender = transceiver.sender;
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
     await sender.replaceTrack(track);
     if (track) this.trackIdToTrackType.set(track.id, trackType);
+    await this.updateTrackPublishOptions(trackType, options);
+  };
+
+  /**
+   * Updates the publish options for the given track type.
+   */
+  private updateTrackPublishOptions = async (
+    trackType: TrackType,
+    options: TrackPublishOptions,
+  ) => {
+    if (!isAudioTrackType(trackType)) return;
+    for (const publishOption of this.publishOptions) {
+      if (publishOption.trackType !== trackType) continue;
+      const bundle = this.transceiverCache.get(publishOption);
+      if (!bundle) continue;
+
+      const { transceiver, options: current } = bundle;
+      if (current.audioBitrateProfile === options.audioBitrateProfile) continue;
+
+      const track = transceiver.sender.track!;
+      const targetEncodings = computeAudioLayers(track, publishOption, options);
+      if (targetEncodings && targetEncodings.length > 0) {
+        const params = transceiver.sender.getParameters();
+        const [currentEncoding] = params.encodings;
+        const [targetEncoding] = targetEncodings;
+        if (currentEncoding.maxBitrate !== targetEncoding.maxBitrate) {
+          currentEncoding.maxBitrate = targetEncoding.maxBitrate;
+        }
+        await transceiver.sender.setParameters(params);
+      }
+    }
   };
 
   /**
@@ -406,7 +445,7 @@ export class Publisher extends BasePeerConnection {
     bundle: PublishBundle,
     sdp: string | undefined,
   ): TrackInfo => {
-    const { transceiver, publishOption, options } = bundle;
+    const { transceiver, publishOption } = bundle;
     const track = transceiver.sender.track!;
     const isTrackLive = track.readyState === 'live';
     const layers = isTrackLive
@@ -415,7 +454,6 @@ export class Publisher extends BasePeerConnection {
     this.transceiverCache.setLayers(publishOption, layers);
 
     const isAudioTrack = isAudioTrackType(publishOption.trackType);
-    const isStereo = isAudioTrack && track.getSettings().channelCount === 2;
     const transceiverIndex = this.transceiverCache.indexOf(transceiver);
     const audioSettings = this.state.settings?.audio;
 
@@ -424,14 +462,12 @@ export class Publisher extends BasePeerConnection {
       layers: toVideoLayers(layers),
       trackType: publishOption.trackType,
       mid: extractMid(transceiver, transceiverIndex, sdp),
-      stereo: isStereo,
+      stereo: true, // negotiates stereo transceiver
       dtx: isAudioTrack && !!audioSettings?.opus_dtx_enabled,
       red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
       muted: !isTrackLive,
       codec: publishOption.codec,
       publishOptionId: publishOption.id,
-      audioBitrateType:
-        options.audioBitrateType ?? AudioBitrateType.VOICE_STANDARD_UNSPECIFIED,
     };
   };
 

@@ -12,7 +12,7 @@ import {
   ridToVideoQuality,
   toSvcEncodings,
   toVideoLayers,
-} from '../videoLayers';
+} from '../layers';
 
 describe('videoLayers', () => {
   it('should find optimal video layers', () => {

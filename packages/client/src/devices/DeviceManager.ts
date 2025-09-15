@@ -1,6 +1,6 @@
 import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
-import { PublishOptions } from '../rtc';
+import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { DeviceManagerState } from './DeviceManagerState';
@@ -110,7 +110,6 @@ export abstract class DeviceManager<
 
   /**
    * Stops or pauses the stream based on state.disableMode
-   * @param {boolean} [forceStop=false] when true, stops the tracks regardless of the state.disableMode
    */
   async disable(options: { forceStop?: boolean }): Promise<void>;
   async disable(forceStop?: boolean): Promise<void>;
@@ -285,7 +284,7 @@ export abstract class DeviceManager<
 
   protected publishStream(
     stream: MediaStream,
-    options?: PublishOptions,
+    options?: TrackPublishOptions,
   ): Promise<void> {
     return this.call.publish(stream, this.trackType, options);
   }

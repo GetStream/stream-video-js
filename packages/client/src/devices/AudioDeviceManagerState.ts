@@ -1,5 +1,5 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
-import { AudioBitrateType } from '../gen/video/sfu/models/models';
+import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
 import { DeviceManagerState } from './DeviceManagerState';
 import { RxUtils } from './../store';
 
@@ -7,28 +7,38 @@ import { RxUtils } from './../store';
  * Base state class for High Fidelity enabled device managers.
  */
 export abstract class AudioDeviceManagerState<C> extends DeviceManagerState<C> {
-  private audioBitrateTypeSubject = new BehaviorSubject<AudioBitrateType>(
-    AudioBitrateType.VOICE_STANDARD_UNSPECIFIED,
+  private audioBitrateProfileSubject = new BehaviorSubject<AudioBitrateProfile>(
+    AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
   );
+  private stereoSubject = new BehaviorSubject<boolean>(false);
 
-  /**
-   * An Observable that emits the current audio bitrate type.
-   */
-  audioBitrateType$ = this.audioBitrateTypeSubject
+  /** An Observable that emits the current audio bitrate profile. */
+  audioBitrateProfile$ = this.audioBitrateProfileSubject
     .asObservable()
     .pipe(distinctUntilChanged());
 
+  /** An Observable that emits the current stereo mode. */
+  stereo$ = this.stereoSubject.asObservable().pipe(distinctUntilChanged());
+
   /**
-   * Returns the current audio bitrate type.
+   * Returns the current audio bitrate profile.
    */
-  get audioBitrateType() {
-    return RxUtils.getCurrentValue(this.audioBitrateType$);
+  get audioBitrateProfile() {
+    return RxUtils.getCurrentValue(this.audioBitrateProfile$);
   }
 
   /**
-   * Sets the audio bitrate type.
+   * Returns the current stereo mode.
    */
-  setAudioBitrateType(type: AudioBitrateType) {
-    RxUtils.setCurrentValue(this.audioBitrateTypeSubject, type);
+  get stereo() {
+    return RxUtils.getCurrentValue(this.stereo$);
+  }
+
+  /**
+   * Sets the audio bitrate profile and stereo mode.
+   */
+  setAudioBitrateProfile(profile: AudioBitrateProfile, stereo: boolean) {
+    RxUtils.setCurrentValue(this.audioBitrateProfileSubject, profile);
+    RxUtils.setCurrentValue(this.stereoSubject, stereo);
   }
 }
