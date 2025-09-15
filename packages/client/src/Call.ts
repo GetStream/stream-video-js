@@ -8,6 +8,7 @@ import {
   Publisher,
   Subscriber,
   toRtcConfiguration,
+  TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
 import {
@@ -1770,9 +1771,14 @@ export class Call {
    *
    * @param mediaStream the media stream to publish.
    * @param trackType the type of the track to announce.
+   * @param options the publish options.
    */
-  publish = async (mediaStream: MediaStream, trackType: TrackType) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
+  publish = async (
+    mediaStream: MediaStream,
+    trackType: TrackType,
+    options?: TrackPublishOptions,
+  ) => {
+    if (!this.sfuClient) throw new Error(`Call is not joined yet`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
 
@@ -1797,15 +1803,16 @@ export class Call {
     }
 
     pushToIfMissing(this.trackPublishOrder, trackType);
-    await this.publisher.publish(track, trackType);
+    await this.publisher.publish(track, trackType, options);
 
     const trackTypes = [trackType];
     if (trackType === TrackType.SCREEN_SHARE) {
       const [audioTrack] = mediaStream.getAudioTracks();
       if (audioTrack) {
-        pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
-        await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
-        trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
+        const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
+        pushToIfMissing(this.trackPublishOrder, screenShareAudio);
+        await this.publisher.publish(audioTrack, screenShareAudio, options);
+        trackTypes.push(screenShareAudio);
       }
     }
 

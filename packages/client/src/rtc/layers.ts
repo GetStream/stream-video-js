@@ -6,6 +6,7 @@ import {
   VideoQuality,
 } from '../gen/video/sfu/models/models';
 import { isAudioTrackType } from './helpers/tracks';
+import { TrackPublishOptions } from './types';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -21,6 +22,26 @@ const defaultBitratePerRid: Record<string, number> = {
 };
 
 /**
+ * Prepares the audio layer for the given track.
+ * Based on the provided audio bitrate profile, we apply the appropriate bitrate.
+ */
+export const computeAudioLayers = (
+  track: MediaStreamTrack,
+  publishOption: PublishOption,
+  options: TrackPublishOptions,
+): RTCRtpEncodingParameters[] | undefined => {
+  const profileConfig = publishOption.audioBitrateProfiles.find(
+    (config) => config.profile === options.audioBitrateProfile,
+  );
+  if (!profileConfig) return;
+  // The SFU provides the bitrate for the mono channel. So, when we have
+  // a stereo track, we need to multiply the bitrate by the number of channels.
+  const settings = track.getSettings();
+  const channels = settings.channelCount ?? 1;
+  return [{ maxBitrate: profileConfig.bitrate * channels }];
+};
+
+/**
  * In SVC, we need to send only one video encoding (layer).
  * this layer will have the additional spatial and temporal layers
  * defined via the scalabilityMode property.
@@ -28,11 +49,12 @@ const defaultBitratePerRid: Record<string, number> = {
  * @param layers the layers to process.
  */
 export const toSvcEncodings = (
-  layers: OptimalVideoLayer[] | undefined,
+  layers: RTCRtpEncodingParameters[] | undefined,
 ): RTCRtpEncodingParameters[] | undefined => {
   if (!layers) return;
   // we take the highest quality layer, and we assign it to `q` encoder.
-  const withRid = (rid: string) => (l: OptimalVideoLayer) => l.rid === rid;
+  const withRid = (rid: string) => (layer: RTCRtpEncodingParameters) =>
+    layer.rid === rid;
   const highestLayer =
     layers.find(withRid('f')) ||
     layers.find(withRid('h')) ||

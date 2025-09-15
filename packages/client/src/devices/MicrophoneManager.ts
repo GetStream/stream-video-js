@@ -1,11 +1,11 @@
 import { combineLatest, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { AudioDeviceManager } from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './InputMediaDeviceManagerState';
+import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
@@ -20,8 +20,9 @@ import {
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { createAudioConstraints } from './utils';
 
-export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
+export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: Function;
@@ -245,14 +246,32 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     }
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Observable<MediaDeviceInfo[]> {
     return getAudioDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     return getAudioStream(constraints, this.call.tracer);
+  }
+
+  protected override async doSetAudioBitrateProfile(
+    profile: AudioBitrateProfile,
+    stereo: boolean,
+  ): Promise<void> {
+    this.setDefaultConstraints({
+      ...this.state.defaultConstraints,
+      ...createAudioConstraints(profile, stereo),
+    });
+    const disableAudioProcessing =
+      profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+    if (disableAudioProcessing) {
+      await Promise.all([
+        this.disableNoiseCancellation(),
+        this.disableSpeakingWhileMutedNotification(),
+      ]);
+    }
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
