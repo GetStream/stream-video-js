@@ -1870,7 +1870,7 @@ export class Call {
    * @internal
    * @param options the options to use.
    */
-  updatePublishOptions = (options: TrackPublishOptions) => {
+  updatePublishOptions = (options: ClientPublishOptions) => {
     this.logger(
       'warn',
       '[call.updatePublishOptions]: You are manually overriding the publish options for this call. ' +
