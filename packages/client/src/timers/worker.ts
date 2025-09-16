@@ -2,9 +2,8 @@ import type { TimerWorkerEvent, TimerWorkerRequest } from './types';
 
 const timerIdMapping = new Map<number, NodeJS.Timeout>();
 
-self.addEventListener('message', (event: MessageEvent) => {
-  const request = event.data as TimerWorkerRequest;
-
+self.addEventListener('message', (event: MessageEvent<TimerWorkerRequest>) => {
+  const request = event.data;
   switch (request.type) {
     case 'setTimeout':
     case 'setInterval':
