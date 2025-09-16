@@ -10,6 +10,7 @@ import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
   type ViewerLeaveStreamButtonProps,
 } from './ViewerLeaveStreamButton';
+import { StreamInCallManager } from '../../../StreamInCallManager';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
 import {
@@ -18,7 +19,6 @@ import {
   LiveIndicator,
 } from '../LivestreamTopView';
 import { IconWrapper, Maximize } from '../../../icons';
-import InCallManager from 'react-native-incall-manager';
 import {
   VolumeOff,
   VolumeOn,
@@ -104,9 +104,19 @@ export const ViewerLivestreamControls = ({
   };
 
   const toggleAudio = () => {
-    setIsMuted(!isMuted);
-    InCallManager.setForceSpeakerphoneOn(isMuted);
+    const shouldMute = !isMuted;
+    if (shouldMute) {
+      StreamInCallManager.muteAudioOutput();
+    } else {
+      StreamInCallManager.unmuteAudioOutput();
+    }
+    setIsMuted(shouldMute);
   };
+
+  useEffect(() => {
+    // always unmute audio output on mount for consistency
+    StreamInCallManager.unmuteAudioOutput();
+  }, []);
 
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying);
