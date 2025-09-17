@@ -2554,6 +2554,21 @@ export class Call {
   };
 
   /**
+   * Loads the call report for the given session ID.
+   *
+   * @param sessionId optional session ID to load the report for.
+   * Defaults to the current session ID.
+   */
+  getCallParticipantsStats = async (
+    sessionId: string | undefined = this.state.session?.id,
+  ): Promise<any> => {
+    // FIXME OL: not yet part of the API
+    if (!sessionId) return;
+    const endpoint = `https://video-edge-frankfurt-ce1.stream-io-api.com/video/call_stats/${this.type}/${this.id}/${sessionId}/participants`;
+    return this.streamClient.get(endpoint);
+  };
+
+  /**
    * Submit user feedback for the call
    *
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
