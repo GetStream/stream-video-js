@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.1...@stream-io/video-filters-web-0.2.2) (2025-09-17)
+
+### Bug Fixes
+
+- **video-filters:** prevent background tab throttling ([#1920](https://github.com/GetStream/stream-video-js/issues/1920)) ([f93d5cc](https://github.com/GetStream/stream-video-js/commit/f93d5cc5785957c7f181fcaf689ec366df9e646b))
+
 ## [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.0...@stream-io/video-filters-web-0.2.1) (2025-05-15)
 
 ### Bug Fixes
