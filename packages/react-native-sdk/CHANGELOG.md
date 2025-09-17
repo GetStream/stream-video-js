@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.14...@stream-io/video-react-native-sdk-1.20.15) (2025-09-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.31.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.3`
+
+### Bug Fixes
+
+- screenshot for iOS was broken on old arch on interop layer ([#1923](https://github.com/GetStream/stream-video-js/issues/1923)) ([9b3134b](https://github.com/GetStream/stream-video-js/commit/9b3134bb6f6380551af4c3a0a69274eada2f8d94))
+
 ## [1.20.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.13...@stream-io/video-react-native-sdk-1.20.14) (2025-09-16)
 
 ### Dependency Updates
