@@ -17,11 +17,12 @@ import {
   createRenderer,
   isPlatformSupported,
   loadTFLite,
+  PlatformSupportFlags,
   Renderer,
   TFLite,
 } from '@stream-io/video-filters-web';
 
-export type BackgroundFiltersProps = {
+export type BackgroundFiltersProps = PlatformSupportFlags & {
   /**
    * A list of URLs to use as background images.
    */
@@ -150,6 +151,8 @@ export const BackgroundFiltersProvider = (
     modelFilePath,
     basePath,
     onError,
+    forceSafariSupport,
+    forceMobileSupport,
   } = props;
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
@@ -178,8 +181,11 @@ export const BackgroundFiltersProvider = (
 
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
-    isPlatformSupported().then(setIsSupported);
-  }, []);
+    isPlatformSupported({
+      forceSafariSupport,
+      forceMobileSupport,
+    }).then(setIsSupported);
+  }, [forceMobileSupport, forceSafariSupport]);
 
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {

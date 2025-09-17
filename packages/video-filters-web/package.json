@@ -27,6 +27,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@stream-io/worker-timer": "^1.2.4",
     "wasm-feature-detect": "^1.8.0"
   },
   "devDependencies": {
