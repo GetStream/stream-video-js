@@ -6864,10 +6864,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/logger@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "@stream-io/logger@npm:1.1.3"
-  checksum: 10/e7df1eabd2ccfcdb3a9cfd3bdfe34cb8a800faffc584c6bfe06fffcf0c3a49b2cbe37fb1427f8c4a6f23dc7354a68a1f29e2823f48d580abce8e0fe60461a9a3
+"@stream-io/logger@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "@stream-io/logger@npm:1.1.4"
+  checksum: 10/fe3a2d08739a981ca1794662b35d1ee980d8a3b8db4c65bd8223cd9617523fb1a83116cbfc777ca50d317e29dbd9505f6fae3e735b7539e41e988d54c7aebf0d
   languageName: node
   linkType: hard
 
@@ -6989,7 +6989,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/node-sdk": "npm:^0.4.24"
-    "@stream-io/worker-timer": "npm:^1.2.3"
+    "@stream-io/worker-timer": "npm:^1.2.4"
     "@types/sdp-transform": "npm:^2.4.9"
     "@types/ua-parser-js": "npm:^0.7.39"
     "@vitest/coverage-v8": "npm:^3.1.3"
@@ -7031,7 +7031,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@stream-io/worker-timer": "npm:^1.2.3"
+    "@stream-io/worker-timer": "npm:^1.2.4"
     "@types/emscripten": "npm:^1.40.1"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.40.2"
@@ -7377,12 +7377,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/worker-timer@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "@stream-io/worker-timer@npm:1.2.3"
+"@stream-io/worker-timer@npm:^1.2.4":
+  version: 1.2.4
+  resolution: "@stream-io/worker-timer@npm:1.2.4"
   dependencies:
-    "@stream-io/logger": "npm:^1.1.3"
-  checksum: 10/84b4cfe2232d083e9dfa2bc8ebe8c6a30215876969a692cbe9f2e27057c832f1fd6efebd6aa49b4f508749e69a3b314c6b77443557884334b62b5e89c188b419
+    "@stream-io/logger": "npm:^1.1.4"
+  checksum: 10/15c4017aedf7c4e1862ee0d652f0b2b7047dae56ac5668bfc520506babaf4481022e3cf30bcafcd6898843d5943e461e45c96973bedcba1fa2accca00bab54c2
   languageName: node
   linkType: hard
 
