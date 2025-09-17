@@ -31,6 +31,7 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     CFNotificationCenterRef _notificationCenter;
 }
 
+// necessary for addUIBlock usage https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
 @synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
 
 RCT_EXPORT_MODULE();
