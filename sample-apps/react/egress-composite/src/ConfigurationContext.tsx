@@ -7,6 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { Layout, ScreenshareLayout } from './components/layouts';
+import { Filter } from '@stream-io/video-react-sdk';
 
 const DEFAULT_USER_ID = 'egress';
 const DEFAULT_CALL_TYPE = 'default';
@@ -35,6 +36,28 @@ export const objectFitMap: Record<ObjectFit, string> = {
   fit: 'contain',
   fill: 'cover',
 };
+
+export type ConditionValues = {
+  participantCount: number;
+  hasPinnedParticipant: boolean;
+};
+
+export type CustomActions = ({
+  condition: Filter<ConditionValues>;
+} & (
+  | {
+      action: 'layout_override';
+      layout: Layout;
+    }
+  | {
+      action: 'adjust_options';
+      options: Partial<ConfigurationValue['options']>;
+    }
+))[];
+
+export type ProcessedCustomActions = Array<
+  CustomActions[number] & { conditionMet: boolean }
+>;
 
 export type ConfigurationValue = {
   base_url?: string;
@@ -121,6 +144,8 @@ export type ConfigurationValue = {
       'center'
     >; // ✅
     'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // ✅
+
+    custom_actions?: CustomActions;
   };
 };
 
