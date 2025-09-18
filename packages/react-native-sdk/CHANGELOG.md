@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.15...@stream-io/video-react-native-sdk-1.20.16) (2025-09-18)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.2.4`
+
+### Bug Fixes
+
+- android RN module compilation error on RN 0.81 ([#1924](https://github.com/GetStream/stream-video-js/issues/1924)) ([b02294c](https://github.com/GetStream/stream-video-js/commit/b02294c8bb85795ff5ac5fed2195e26d7e1f11a4)), closes [#1921](https://github.com/GetStream/stream-video-js/issues/1921)
+
 ## [1.20.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.14...@stream-io/video-react-native-sdk-1.20.15) (2025-09-17)
 
 ### Dependency Updates
