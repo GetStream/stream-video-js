@@ -66,17 +66,22 @@ android {
     }
 }
 
+rootProject.allprojects {
+    repositories {
+        maven {
+            name = 'Central Portal Snapshots'
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+            content {
+                // This efficiently tells Gradle to only look for this specific dependency in this repository
+                includeModule('io.getstream', 'stream-video-android-noise-cancellation')
+            }
+        }
+    }
+}
+
 repositories {
     mavenCentral()
     google()
-    maven {
-        name = 'Central Portal Snapshots'
-        url = 'https://central.sonatype.com/repository/maven-snapshots/'
-        content {
-            // This efficiently tells Gradle to only look for this specific dependency in this repository
-            includeModule('io.getstream', 'stream-video-android-noise-cancellation')
-        }
-    }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
