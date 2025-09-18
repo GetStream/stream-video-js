@@ -20,7 +20,9 @@ const useProcessCustomActions = () => {
   const { useParticipantCount, useParticipants } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const participants = useParticipants();
-  const hasPinnedParticipant = participants.some(isPinned);
+  const pinnedParticipantCount = participants.reduce((count, participant) => {
+    return isPinned(participant) ? count + 1 : count;
+  }, 0);
 
   return useMemo(() => {
     if (!options?.custom_actions) {
@@ -30,7 +32,7 @@ const useProcessCustomActions = () => {
     const processed: ProcessedCustomActions = options.custom_actions.map(
       (behavior) => {
         const conditionMet = applyFilter<ConditionValues>(
-          { participantCount, hasPinnedParticipant },
+          { participantCount, pinnedParticipantCount },
           behavior.condition,
         );
 
@@ -42,7 +44,7 @@ const useProcessCustomActions = () => {
     );
 
     return processed;
-  }, [options, participantCount, hasPinnedParticipant]);
+  }, [options, participantCount, pinnedParticipantCount]);
 };
 
 export const UIDispatcher = () => {
@@ -50,15 +52,15 @@ export const UIDispatcher = () => {
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
-  const processedBehaviors = useProcessCustomActions();
+  const processedActions = useProcessCustomActions();
 
   const layoutOverride = useMemo<(typeof layoutMap)[Layout] | undefined>(() => {
-    if (!processedBehaviors) {
+    if (!processedActions) {
       return;
     }
 
     // pick first matching layout override action
-    const switchLayoutBehavior = processedBehaviors.find(
+    const switchLayoutBehavior = processedActions.find(
       (behavior) =>
         behavior.action === 'layout_override' && behavior.conditionMet === true,
     ) as
@@ -68,7 +70,7 @@ export const UIDispatcher = () => {
     return switchLayoutBehavior?.layout
       ? layoutMap[switchLayoutBehavior.layout]
       : undefined;
-  }, [processedBehaviors]);
+  }, [processedActions]);
 
   const DefaultView =
     layoutOverride?.[0] ??

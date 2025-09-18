@@ -17,6 +17,26 @@ test('checks single $neq condition', (t: TestContext) => {
   t.assert.ok(!applyFilter(obj, { num: { $neq: 42 } }));
 });
 
+test('checks single $gt condition', (t: TestContext) => {
+  t.assert.ok(applyFilter(obj, { num: { $gt: 41 } }));
+  t.assert.ok(!applyFilter(obj, { num: { $gt: 42 } }));
+});
+
+test('checks single $gte condition', (t: TestContext) => {
+  t.assert.ok(applyFilter(obj, { num: { $gte: 42 } }));
+  t.assert.ok(!applyFilter(obj, { num: { $gte: 43 } }));
+});
+
+test('checks single $lt condition', (t: TestContext) => {
+  t.assert.ok(applyFilter(obj, { num: { $lt: 43 } }));
+  t.assert.ok(!applyFilter(obj, { num: { $lt: 42 } }));
+});
+
+test('checks single $lte condition', (t: TestContext) => {
+  t.assert.ok(applyFilter(obj, { num: { $lte: 42 } }));
+  t.assert.ok(!applyFilter(obj, { num: { $lte: 41 } }));
+});
+
 test('checks single $in condition', (t: TestContext) => {
   t.assert.ok(applyFilter(obj, { num: { $in: [41, 42, 43] } }));
   t.assert.ok(!applyFilter(obj, { num: { $in: [1, 2, 3] } }));
