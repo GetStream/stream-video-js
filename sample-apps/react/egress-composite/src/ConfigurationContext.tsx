@@ -39,7 +39,7 @@ export const objectFitMap: Record<ObjectFit, string> = {
 
 export type ConditionValues = {
   participantCount: number;
-  hasPinnedParticipant: boolean;
+  pinnedParticipantCount: number;
 };
 
 export type CustomActions = ({
@@ -48,6 +48,7 @@ export type CustomActions = ({
   | {
       action: 'layout_override';
       layout: Layout;
+      // ignore_screnshare: boolean; // default: false
     }
   | {
       action: 'adjust_options';

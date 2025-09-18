@@ -60,10 +60,9 @@ window.setupLayout = (configuration: ConfigurationValue) => {
       custom_actions: [
         {
           action: 'layout_override',
-          layout: 'spotlight',
-          condition: { participantCount: { $eq: 1 } },
+          layout: 'dominant-speaker',
+          condition: { pinnedParticipantCount: { $gte: 1 } },
         },
-
       ],
       // 'grid.cell_padding': 0,
       // 'grid.columns': 5,
