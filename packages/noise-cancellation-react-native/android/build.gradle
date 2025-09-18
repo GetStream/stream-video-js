@@ -6,7 +6,14 @@ buildscript {
   repositories {
     google()
     mavenCentral()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven {
+      name = 'Central Portal Snapshots'
+      url = 'https://central.sonatype.com/repository/maven-snapshots/'
+      content {
+          // This efficiently tells Gradle to only look for this specific dependency in this repository
+          includeModule('io.getstream', 'stream-video-android-noise-cancellation')
+      }
+    }
   }
 
   dependencies {
