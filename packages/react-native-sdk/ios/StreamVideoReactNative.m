@@ -3,9 +3,12 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTUIManagerUtils.h>
 #import <UIKit/UIKit.h>
+#import <CallKit/CallKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
+#import <AVFoundation/AVFoundation.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
@@ -14,6 +17,8 @@ NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped"
 static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
 static NSMutableDictionary *_incomingCallCidsByUUID = nil;
 static dispatch_queue_t _dictionaryQueue = nil;
+
+static BOOL _shouldRejectCallWhenBusy = NO;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
@@ -35,6 +40,8 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
 @synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
 
 RCT_EXPORT_MODULE();
+
+static AVAudioPlayer *_busyTonePlayer = nil;
 
 +(BOOL)requiresMainQueueSetup {
     return NO;
@@ -354,6 +361,113 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
         @"thermalStateDidChange",
         @"chargingStateChanged"
     ];
+}
+
++(BOOL)shouldRejectCallWhenBusy {
+    return _shouldRejectCallWhenBusy;
+}
+
+RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
+    _shouldRejectCallWhenBusy = shouldReject;
+#ifdef DEBUG
+    NSLog(@"setShouldRejectCallWhenBusy: %@", shouldReject ? @"YES" : @"NO");
+#endif
+}
+
++ (BOOL)hasAnyActiveCall
+{
+    CXCallObserver *callObserver = [[CXCallObserver alloc] init];
+    
+    for(CXCall *call in callObserver.calls){
+        if(call.hasConnected){
+            NSLog(@"[RNCallKeep] Found active call with UUID: %@", call.UUID);
+            return YES;
+        }
+    }
+    return NO;
+}
+
+
+RCT_EXPORT_METHOD(playBusyTone)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StreamVideoReactNative stopBusyTone]; // Stop any existing playback first
+    
+    NSData *busyToneData = [self generateBusyToneData];
+    NSError *error = nil;
+    _busyTonePlayer = [[AVAudioPlayer alloc] initWithData:busyToneData error:&error];
+    
+    if (!error && _busyTonePlayer) {
+      _busyTonePlayer.numberOfLoops = -1; // Loop indefinitely
+      [_busyTonePlayer prepareToPlay];
+      [_busyTonePlayer play];
+    } else {
+      NSLog(@"Error creating busy tone: %@", error);
+    }
+  });
+}
+
+- (NSData *)generateBusyToneData {
+    // Generate 1 seconds of busy tone pattern: 0.5s 480Hz tone, 0.5s silence, repeat
+    const int sampleRate = 22050; // Lower sample rate for smaller data
+    const float duration = 1.0; // 1 seconds total
+    const float beepDuration = 0.5; // 0.5 seconds beep
+    const float frequency = 480.0; // 480 Hz busy tone frequency
+    
+    int totalSamples = (int)(duration * sampleRate);
+    int beepSamples = (int)(beepDuration * sampleRate);
+    
+    // Create PCM data buffer
+    NSMutableData *audioData = [NSMutableData dataWithLength:44 + totalSamples * 2]; // WAV header + 16-bit samples
+    uint8_t *bytes = (uint8_t *)[audioData mutableBytes];
+    
+    // Write WAV header
+    memcpy(bytes, "RIFF", 4);
+    *(uint32_t *)(bytes + 4) = (uint32_t)(36 + totalSamples * 2);
+    memcpy(bytes + 8, "WAVE", 4);
+    memcpy(bytes + 12, "fmt ", 4);
+    *(uint32_t *)(bytes + 16) = 16; // PCM format chunk size
+    *(uint16_t *)(bytes + 20) = 1;  // PCM format
+    *(uint16_t *)(bytes + 22) = 1;  // Mono
+    *(uint32_t *)(bytes + 24) = sampleRate;
+    *(uint32_t *)(bytes + 28) = sampleRate * 2; // Bytes per second
+    *(uint16_t *)(bytes + 32) = 2;  // Bytes per sample
+    *(uint16_t *)(bytes + 34) = 16; // Bits per sample
+    memcpy(bytes + 36, "data", 4);
+    *(uint32_t *)(bytes + 40) = totalSamples * 2;
+    
+    // Generate audio samples
+    int16_t *samples = (int16_t *)(bytes + 44);
+    for (int i = 0; i < totalSamples; i++) {
+        float t = (float)i / sampleRate;
+        int cyclePosition = (int)(t / 1.0) % 2; // 2 cycles per pattern
+        float cycleTime = fmod(t, 1.0);
+        
+        if (cycleTime < beepDuration) {
+            // Generate 480Hz sine wave
+            float amplitude = 0.3f * sinf(2.0f * M_PI * frequency * t);
+            samples[i] = (int16_t)(amplitude * 32767);
+        } else {
+            // Silence
+            samples[i] = 0;
+        }
+    }
+    
+    return audioData;
+}
+
+RCT_EXPORT_METHOD(stopBusyTone)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [StreamVideoReactNative stopBusyTone];
+  });
+}
+
++ (void)stopBusyTone {
+    if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
+        [_busyTonePlayer stop];
+        _busyTonePlayer = nil;
+    }
 }
 
 @end

@@ -5,6 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { NativeModules, Platform } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -62,6 +63,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
+  private static busyToneTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Update the global config for StreamVideoRN except for push config.
@@ -121,6 +123,12 @@ export class StreamVideoRN {
 
     this.config.push = pushConfig;
 
+    // Configure native iOS module if shouldRejectCallWhenBusy is set
+    if (Platform.OS === 'ios') {
+      NativeModules.StreamVideoReactNative?.setShouldRejectCallWhenBusy(
+        pushConfig?.shouldRejectCallWhenBusy ?? false,
+      );
+    }
     setupIosCallKeepEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
   }
@@ -163,5 +171,42 @@ export class StreamVideoRN {
       newNotificationCallbacks.current =
         newNotificationCallbacks.current?.filter((cb) => cb !== callback);
     };
+  }
+
+  /**
+   * Play native busy tone for call rejection
+   */
+  static playBusyTone() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      NativeModules.StreamVideoReactNative?.playBusyTone();
+    }
+  }
+
+  /**
+   * Play native busy tone for call rejection for a given duration
+   */
+  static playBusyToneFor(durationMS = 3000) {
+    if (this.busyToneTimeout) {
+      clearTimeout(this.busyToneTimeout);
+      this.busyToneTimeout = null;
+    }
+    this.playBusyTone();
+    this.busyToneTimeout = setTimeout(() => {
+      this.stopBusyTone();
+    }, durationMS);
+  }
+
+  /**
+   * Stop native busy tone
+   */
+  static stopBusyTone() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      NativeModules.StreamVideoReactNative?.stopBusyTone();
+    }
+
+    if (this.busyToneTimeout) {
+      clearTimeout(this.busyToneTimeout);
+      this.busyToneTimeout = null;
+    }
   }
 }
