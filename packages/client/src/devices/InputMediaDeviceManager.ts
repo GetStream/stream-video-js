@@ -5,7 +5,7 @@ import { createSubscription } from '../store/rxUtils';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { Logger } from '../coordinator/connection/types';
+import type { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';

@@ -10,7 +10,7 @@ import {
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
-import { Logger, LogLevel } from '../coordinator/connection/types';
+import type { Logger, LogLevel } from '../coordinator/connection/types';
 import type { Trace } from '../stats';
 import type { SfuResponseWithError } from './retryable';
 

@@ -1,7 +1,7 @@
 import users from '../../data/users.json';
 import { SESSION_STORAGE_USER_KEY } from './constants';
 import { getURLCredentials } from './getURLCredentials';
-import { User } from '../types';
+import type { User } from '../types';
 
 export const storeUser = (user?: User) => {
   if (!(user && user.id)) return;

@@ -8,9 +8,9 @@ import {
   StreamVideo,
   StreamVideoClient,
   useCallStateHooks,
-  User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
+import type { User }  from '@stream-io/video-react-sdk';
 import { GetServerSidePropsContext } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';

@@ -29,7 +29,7 @@ import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
-import { Logger } from './coordinator/connection/types';
+import type { Logger } from './coordinator/connection/types';
 import { getLogger, getLogLevel } from './logger';
 import {
   makeSafePromise,

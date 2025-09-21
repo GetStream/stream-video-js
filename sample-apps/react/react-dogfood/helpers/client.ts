@@ -1,4 +1,5 @@
-import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import type { User }  from '@stream-io/video-react-sdk';
 import { AppEnvironment } from '../context/AppEnvironmentContext';
 import {
   CreateJwtTokenRequest,

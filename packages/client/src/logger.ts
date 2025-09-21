@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from './coordinator/connection/types';
+import type { Logger, LogLevel } from './coordinator/connection/types';
 import { isReactNative } from './helpers/platforms';
 
 // log levels, sorted by verbosity

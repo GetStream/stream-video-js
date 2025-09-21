@@ -1,4 +1,4 @@
-import { User } from '../types';
+import type { User } from '../types';
 
 export const generateRoomId = () => Math.random().toString(36).substring(2, 12);
 export const generateRoomPayload = ({

@@ -131,7 +131,7 @@ import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { retryInterval, sleep } from './coordinator/connection/utils';
-import {
+import type {
   AllCallEvents,
   CallEventListener,
   ErrorFromResponse,

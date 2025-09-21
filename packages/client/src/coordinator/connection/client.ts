@@ -17,7 +17,7 @@ import {
   retryInterval,
   sleep,
 } from './utils';
-import {
+import type {
   AllClientEvents,
   AllClientEventTypes,
   APIErrorResponse,
