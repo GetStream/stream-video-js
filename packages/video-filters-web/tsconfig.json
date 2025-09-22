@@ -3,10 +3,7 @@
     "outDir": "./dist",
     "module": "ES2020",
     "target": "ES2020",
-    "lib": [
-      "esnext",
-      "dom"
-    ],
+    "lib": ["esnext", "dom"],
     "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -18,11 +15,8 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "inlineSources": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": true
   },
   "exclude": ["**/__tests__/**"],
-  "include": [
-    "./src",
-    "index.ts"
-  ]
+  "include": ["./src", "index.ts"]
 }

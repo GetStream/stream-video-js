@@ -1,5 +1,9 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
-import type { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import type {
+  ConnectedEvent,
+  UserRequest,
+  VideoEvent,
+} from '../../gen/coordinator';
 import type { AllSfuEvents } from '../../rtc';
 
 export type UR = Record<string, unknown>;

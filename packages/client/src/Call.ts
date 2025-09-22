@@ -131,13 +131,13 @@ import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { retryInterval, sleep } from './coordinator/connection/utils';
-import  {
+import {
   type AllCallEvents,
   type CallEventListener,
   ErrorFromResponse,
   type Logger,
   type RejectReason,
- type  StreamCallEvent,
+  type StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
 import { getLogger } from './logger';
@@ -152,7 +152,7 @@ import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
   makeSafePromise,
-  type  PromiseWithResolvers,
+  type PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
 import type { GetCallStatsResponse } from './gen/shims';
