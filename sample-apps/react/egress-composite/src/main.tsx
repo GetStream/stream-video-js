@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react';
 
 import {
   applyConfigurationDefaults,
-  ConfigurationContext,
+  ConfigurationContextProvider,
   ConfigurationValue,
 } from './ConfigurationContext';
 import { CompositeApp } from './CompositeApp';
@@ -35,9 +35,9 @@ window.setupLayout = (configuration: ConfigurationValue) => {
   console.log('Mounting with config:', { configuration: newConfiguration });
 
   createRoot(document.getElementById('root') as HTMLElement).render(
-    <ConfigurationContext.Provider value={newConfiguration}>
+    <ConfigurationContextProvider value={newConfiguration}>
       <CompositeApp />
-    </ConfigurationContext.Provider>,
+    </ConfigurationContextProvider>,
   );
 };
 
@@ -59,9 +59,19 @@ window.setupLayout = (configuration: ConfigurationValue) => {
     options: {
       custom_actions: [
         {
-          action: 'layout_override',
+          action_type: 'layout_override',
           layout: 'dominant-speaker',
-          condition: { pinnedParticipantCount: { $gte: 1 } },
+          condition: { pinned_participant_count: { $gte: 1 } },
+        },
+        {
+          action_type: 'options_override',
+          options: { 'layout.background_color': 'green' },
+          condition: { participant_count: { $lte: 3 } },
+        },
+        {
+          action_type: 'options_override',
+          options: { 'layout.background_color': 'pink' },
+          condition: { participant_count: { $gte: 4 } },
         },
       ],
       // 'grid.cell_padding': 0,

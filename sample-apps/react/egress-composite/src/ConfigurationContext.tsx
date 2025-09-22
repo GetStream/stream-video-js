@@ -1,4 +1,12 @@
-import { createContext, useContext } from 'react';
+import {
+  createContext,
+  Dispatch,
+  PropsWithChildren,
+  SetStateAction,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { decode } from 'js-base64';
 import {
   LogLevel,
@@ -7,7 +15,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { Layout, ScreenshareLayout } from './components/layouts';
-import { Filter } from '@stream-io/video-react-sdk';
+import { CustomActions } from './components/CustomActionsContext';
 
 const DEFAULT_USER_ID = 'egress';
 const DEFAULT_CALL_TYPE = 'default';
@@ -36,29 +44,6 @@ export const objectFitMap: Record<ObjectFit, string> = {
   fit: 'contain',
   fill: 'cover',
 };
-
-export type ConditionValues = {
-  participantCount: number;
-  pinnedParticipantCount: number;
-};
-
-export type CustomActions = ({
-  condition: Filter<ConditionValues>;
-} & (
-  | {
-      action: 'layout_override';
-      layout: Layout;
-      // ignore_screnshare: boolean; // default: false
-    }
-  | {
-      action: 'adjust_options';
-      options: Partial<ConfigurationValue['options']>;
-    }
-))[];
-
-export type ProcessedCustomActions = Array<
-  CustomActions[number] & { conditionMet: boolean }
->;
 
 export type ConfigurationValue = {
   base_url?: string;
@@ -148,11 +133,40 @@ export type ConfigurationValue = {
 
     custom_actions?: CustomActions;
   };
+} & {
+  setOptionsOverride: Dispatch<
+    SetStateAction<ConfigurationValue['options'] | undefined>
+  >;
 };
 
 export const ConfigurationContext = createContext<ConfigurationValue>(
   {} as ConfigurationValue,
 );
+
+export const ConfigurationContextProvider = ({
+  value,
+  children,
+}: PropsWithChildren<{
+  value: Omit<ConfigurationValue, 'setOptionsOverride'>;
+}>) => {
+  const [optionsOverride, setOptionsOverride] = useState<
+    ConfigurationValue['options'] | undefined
+  >(undefined);
+
+  const merged = useMemo(() => {
+    return {
+      ...value,
+      setOptionsOverride,
+      options: { ...value.options, ...optionsOverride },
+    } satisfies ConfigurationValue;
+  }, [value, optionsOverride]);
+
+  return (
+    <ConfigurationContext.Provider value={merged}>
+      {children}
+    </ConfigurationContext.Provider>
+  );
+};
 
 export const extractPayloadFromToken = (
   token: string,
