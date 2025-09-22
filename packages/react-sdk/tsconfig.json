@@ -9,6 +9,7 @@
     ],
     "declaration": true,
     "moduleResolution": "node",
+    "verbatimModuleSyntax": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,

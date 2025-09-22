@@ -1,5 +1,5 @@
 import { TrackType } from '../../gen/video/sfu/models/models';
-import { TrackMuteType } from '../../types';
+import type { TrackMuteType } from '../../types';
 import { ensureExhausted } from '../../helpers/ensureExhausted';
 
 export const trackTypeToParticipantStreamKey = (

@@ -6,7 +6,7 @@ import {
   voipPushNotificationCallCId$,
 } from './rxSubjects';
 import { canAddPushWSSubscriptionsRef, shouldCallBeEnded } from './utils';
-import { StreamVideoConfig } from '../../StreamVideoRN/types';
+import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 
 export const onVoipNotificationReceived = async (
   notification: any,

@@ -1,4 +1,4 @@
-import { CallSettingsResponse, OwnCapability } from '../gen/coordinator';
+import { type CallSettingsResponse, OwnCapability } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { ensureExhausted } from '../helpers/ensureExhausted';
 

@@ -1,13 +1,13 @@
 import {
-  MethodInfo,
-  NextUnaryFn,
-  RpcInterceptor,
-  RpcOptions,
+  type MethodInfo,
+  type NextUnaryFn,
+  type RpcInterceptor,
+  type RpcOptions,
   UnaryCall,
 } from '@protobuf-ts/runtime-rpc';
 import {
   TwirpFetchTransport,
-  TwirpOptions,
+  type TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 import type { Logger, LogLevel } from '../coordinator/connection/types';

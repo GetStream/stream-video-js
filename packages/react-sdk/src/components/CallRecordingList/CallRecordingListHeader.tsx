@@ -1,4 +1,4 @@
-import { CallRecording } from '@stream-io/video-client';
+import type { CallRecording } from '@stream-io/video-client';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { IconButton } from '../Button';
 

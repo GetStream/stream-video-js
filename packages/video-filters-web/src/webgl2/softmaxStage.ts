@@ -1,11 +1,11 @@
-import { TFLite } from '../tflite';
+import type { TFLite } from '../tflite';
 import {
   compileShader,
   createPipelineStageProgram,
   createTexture,
   glsl,
 } from '../helpers/webglHelper';
-import { SegmentationParams } from '../segmentation';
+import type { SegmentationParams } from '../segmentation';
 
 export function buildSoftmaxStage(
   gl: WebGL2RenderingContext,

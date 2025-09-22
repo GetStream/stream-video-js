@@ -1,5 +1,5 @@
-import { BaseStats } from '../stats';
-import { SoundStateChangeHandler } from './sound-detector';
+import type { BaseStats } from '../stats';
+import type { SoundStateChangeHandler } from './sound-detector';
 import { flatten } from '../stats/utils';
 import { getLogger } from '../logger';
 

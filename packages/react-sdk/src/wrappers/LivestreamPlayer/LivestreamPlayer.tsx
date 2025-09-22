@@ -7,9 +7,9 @@ import {
 } from '@stream-io/video-react-bindings';
 import {
   BackstageLayout,
-  BackstageLayoutProps,
+  type BackstageLayoutProps,
   LivestreamLayout,
-  LivestreamLayoutProps,
+  type LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
 import { useEffectEvent } from '../../hooks/useEffectEvent';

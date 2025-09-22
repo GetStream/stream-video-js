@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type CallPreviewProps = {

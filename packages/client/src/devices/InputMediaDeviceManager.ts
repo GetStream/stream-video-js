@@ -14,7 +14,7 @@ import {
   withCancellation,
   withoutConcurrency,
 } from '../helpers/concurrency';
-import {
+import type {
   MediaStreamFilter,
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,

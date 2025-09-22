@@ -4,7 +4,7 @@ import { ScreenShareState } from './ScreenShareState';
 import { Call } from '../Call';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
-import { ScreenShareSettings } from '../types';
+import type { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
 
 export class ScreenShareManager extends InputMediaDeviceManager<

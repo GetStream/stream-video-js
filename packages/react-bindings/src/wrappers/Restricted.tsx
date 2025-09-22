@@ -1,6 +1,6 @@
 import { OwnCapability } from '@stream-io/video-client';
 
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { useCall } from '../contexts';
 import { useCallStateHooks } from '../hooks';
 

@@ -17,34 +17,34 @@ import {
   type StreamVideoParticipantPatch,
   type StreamVideoParticipantPatches,
   type SubscriptionChanges,
-  VideoTrackType,
+  type VideoTrackType,
   VisibilityState,
 } from '../types';
-import { CallStatsReport } from '../stats';
+import type { CallStatsReport } from '../stats';
 import {
-  BlockedUserEvent,
-  CallClosedCaption,
-  CallIngressResponse,
-  CallMemberAddedEvent,
-  CallMemberRemovedEvent,
-  CallMemberUpdatedEvent,
-  CallMemberUpdatedPermissionEvent,
-  CallReactionEvent,
-  CallResponse,
-  CallSessionParticipantCountsUpdatedEvent,
-  CallSessionParticipantJoinedEvent,
-  CallSessionParticipantLeftEvent,
-  CallSessionResponse,
-  CallSettingsResponse,
-  ClosedCaptionEvent,
-  EgressResponse,
-  MemberResponse,
+  type BlockedUserEvent,
+  type CallClosedCaption,
+  type CallIngressResponse,
+  type CallMemberAddedEvent,
+  type CallMemberRemovedEvent,
+  type CallMemberUpdatedEvent,
+  type CallMemberUpdatedPermissionEvent,
+  type CallReactionEvent,
+  type CallResponse,
+  type CallSessionParticipantCountsUpdatedEvent,
+  type CallSessionParticipantJoinedEvent,
+  type CallSessionParticipantLeftEvent,
+  type CallSessionResponse,
+  type CallSettingsResponse,
+  type ClosedCaptionEvent,
+  type EgressResponse,
+  type MemberResponse,
   OwnCapability,
-  ThumbnailResponse,
-  UnblockedUserEvent,
-  UpdatedCallPermissionsEvent,
-  UserResponse,
-  VideoEvent,
+  type ThumbnailResponse,
+  type UnblockedUserEvent,
+  type UpdatedCallPermissionsEvent,
+  type UserResponse,
+  type VideoEvent,
 } from '../gen/coordinator';
 import { Timestamp } from '../gen/google/protobuf/timestamp';
 import { ReconnectDetails } from '../gen/video/sfu/event/events';
@@ -54,7 +54,7 @@ import {
   TrackType,
   CallGrants,
 } from '../gen/video/sfu/models/models';
-import { Comparator, defaultSortPreset } from '../sorting';
+import { type Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
 import { hasScreenShare } from '../helpers/participantUtils';
 

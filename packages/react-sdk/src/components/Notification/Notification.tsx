@@ -1,5 +1,5 @@
-import { PropsWithChildren, ReactNode, useEffect } from 'react';
-import { Placement } from '@floating-ui/react';
+import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
+import type { Placement } from '@floating-ui/react';
 
 import { useFloatingUIPreset } from '../../hooks';
 

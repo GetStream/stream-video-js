@@ -1,7 +1,7 @@
 import { Dispatcher } from '../rtc';
 import { Call } from '../Call';
 import { CallState } from '../store';
-import { StreamVideoParticipantPatches } from '../types';
+import type { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import type {

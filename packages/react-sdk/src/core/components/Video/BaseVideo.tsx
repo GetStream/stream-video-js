@@ -1,4 +1,4 @@
-import { ComponentPropsWithRef, forwardRef, useEffect, useState } from 'react';
+import { type ComponentPropsWithRef, forwardRef, useEffect, useState } from 'react';
 import { Browsers } from '@stream-io/video-client';
 
 import { applyElementToRef } from '../../../utilities';

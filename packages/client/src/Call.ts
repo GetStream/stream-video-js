@@ -96,7 +96,7 @@ import type {
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
-import {
+import type {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
@@ -123,7 +123,7 @@ import {
   createStatsReporter,
   getSdkSignature,
   SfuStatsReporter,
-  StatsReporter,
+  type StatsReporter,
   Tracer,
 } from './stats';
 import { DynascaleManager } from './helpers/DynascaleManager';
@@ -131,13 +131,13 @@ import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { retryInterval, sleep } from './coordinator/connection/utils';
-import type {
-  AllCallEvents,
-  CallEventListener,
+import  {
+  type AllCallEvents,
+  type CallEventListener,
   ErrorFromResponse,
-  Logger,
-  RejectReason,
-  StreamCallEvent,
+  type Logger,
+  type RejectReason,
+ type  StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
 import { getLogger } from './logger';
@@ -152,10 +152,10 @@ import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
   makeSafePromise,
-  PromiseWithResolvers,
+  type  PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
-import { GetCallStatsResponse } from './gen/shims';
+import type { GetCallStatsResponse } from './gen/shims';
 
 /**
  * An object representation of a `Call`.

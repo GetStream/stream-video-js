@@ -1,7 +1,7 @@
-import { ComponentType, PropsWithChildren } from 'react';
+import type { ComponentType, PropsWithChildren } from 'react';
 import {
   StreamCallProvider,
-  StreamCallProviderProps,
+  type StreamCallProviderProps,
 } from '@stream-io/video-react-bindings';
 
 // re-exporting the StreamCallProvider as StreamCall

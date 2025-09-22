@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
 import clsx from 'clsx';
 
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  ParticipantViewProps,
+  type ParticipantViewProps,
 } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
 import {
-  ParticipantFilter,
-  ParticipantPredicate,
+  type ParticipantFilter,
+  type ParticipantPredicate,
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
   useRawRemoteParticipants,

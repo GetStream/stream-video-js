@@ -1,7 +1,7 @@
 import {
-  Dispatch,
+  type Dispatch,
   forwardRef,
-  SetStateAction,
+  type SetStateAction,
   useCallback,
   useState,
 } from 'react';
@@ -13,7 +13,7 @@ import {
 import {
   name,
   OwnCapability,
-  StreamVideoParticipant,
+  type StreamVideoParticipant,
 } from '@stream-io/video-client';
 
 import { BlockedUserListing } from './BlockedUserListing';
@@ -23,12 +23,12 @@ import { CallParticipantListing } from './CallParticipantListing';
 import { EmptyParticipantSearchList } from './EmptyParticipantSearchList';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { SearchInput, SearchResults } from '../Search';
-import { useSearch, UseSearchParams } from '../Search/hooks';
+import { useSearch, type UseSearchParams } from '../Search/hooks';
 import {
   GenericMenu,
   GenericMenuButtonItem,
   MenuToggle,
-  ToggleMenuButtonProps,
+  type ToggleMenuButtonProps,
 } from '../Menu';
 
 type CallParticipantListProps = {

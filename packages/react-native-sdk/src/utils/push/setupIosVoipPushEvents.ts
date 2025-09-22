@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { onVoipNotificationReceived } from './internal/ios';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { getLogger } from '@stream-io/video-client';
-import { StreamVideoConfig } from '../StreamVideoRN/types';
+import type  { StreamVideoConfig } from '../StreamVideoRN/types';
 
 export function setupIosVoipPushEvents(
   pushConfig: NonNullable<StreamVideoConfig['push']>,

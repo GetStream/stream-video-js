@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { DynascaleManager, VideoTrackType } from '@stream-io/video-client';
+import { DynascaleManager, type VideoTrackType } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 
 export const useTrackElementVisibility = <T extends HTMLElement>({

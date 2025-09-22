@@ -1,8 +1,8 @@
 import axios, {
   AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
 } from 'axios';
 import https from 'https';
 import { StableWSConnection } from './connection';
@@ -17,22 +17,22 @@ import {
   retryInterval,
   sleep,
 } from './utils';
-import type {
-  AllClientEvents,
-  AllClientEventTypes,
-  APIErrorResponse,
-  ClientEventListener,
-  ConnectAPIResponse,
+import  {
+  type AllClientEvents,
+  type AllClientEventTypes,
+  type APIErrorResponse,
+  type ClientEventListener,
+  type ConnectAPIResponse,
   ErrorFromResponse,
-  Logger,
-  StreamClientOptions,
-  StreamVideoEvent,
-  TokenOrProvider,
-  User,
-  UserWithId,
+  type Logger,
+  type StreamClientOptions,
+  type StreamVideoEvent,
+  type TokenOrProvider,
+  type User,
+  type UserWithId,
 } from './types';
 import { getLocationHint } from './location';
-import {
+import type {
   ConnectedEvent,
   CreateGuestRequest,
   CreateGuestResponse,

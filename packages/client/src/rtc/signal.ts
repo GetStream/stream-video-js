@@ -1,6 +1,6 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
-import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
+import type { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 import { Tracer } from '../stats';
 
 export const createWebSocketSignalChannel = (opts: {

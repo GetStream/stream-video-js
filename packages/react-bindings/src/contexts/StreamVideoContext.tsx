@@ -1,8 +1,8 @@
-import { createContext, PropsWithChildren, useContext } from 'react';
+import { createContext, type PropsWithChildren, useContext } from 'react';
 import { StreamVideoClient } from '@stream-io/video-client';
 import {
   StreamI18nProvider,
-  StreamI18nProviderProps,
+  type StreamI18nProviderProps,
 } from './StreamI18nContext';
 
 const StreamVideoContext = createContext<StreamVideoClient | undefined>(

@@ -1,6 +1,6 @@
 import {
   createContext,
-  PropsWithChildren,
+  type PropsWithChildren,
   useContext,
   useEffect,
   useMemo,
@@ -9,8 +9,8 @@ import {
 import {
   defaultTranslationFunction,
   StreamI18n,
-  TranslationLanguage,
-  TranslationsMap,
+  type TranslationLanguage,
+  type TranslationsMap,
 } from '../i18n';
 
 type StreamI18nContextValue = {

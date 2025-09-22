@@ -1,13 +1,13 @@
 import { forwardRef } from 'react';
 import clsx from 'clsx';
 
-import { OwnCapability, StreamReaction } from '@stream-io/video-client';
+import { OwnCapability, type StreamReaction } from '@stream-io/video-client';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
 import {
   MenuToggle,
   MenuVisualType,
-  ToggleMenuButtonProps,
+  type ToggleMenuButtonProps,
   useMenuContext,
 } from '../Menu';
 import { CompositeButton } from '../Button';

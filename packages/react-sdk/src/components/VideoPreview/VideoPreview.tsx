@@ -1,4 +1,4 @@
-import { ComponentType } from 'react';
+import type { ComponentType } from 'react';
 import clsx from 'clsx';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { BaseVideo } from '../../core/components/Video';

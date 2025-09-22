@@ -1,4 +1,4 @@
-import { ComponentProps, RefAttributes, forwardRef, useState } from 'react';
+import { type ComponentProps, type RefAttributes, forwardRef, useState } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type BaseVideoPlaceholderProps = {

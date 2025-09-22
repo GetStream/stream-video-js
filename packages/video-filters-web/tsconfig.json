@@ -17,7 +17,8 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "inlineSources": true
+    "inlineSources": true,
+    "verbatimModuleSyntax": true,
   },
   "exclude": ["**/__tests__/**"],
   "include": [

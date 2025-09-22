@@ -2,7 +2,7 @@ import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { RxUtils } from '../store';
 import {
   InputMediaDeviceManagerState,
-  TrackDisableMode,
+  type TrackDisableMode,
 } from './InputMediaDeviceManagerState';
 import { getAudioBrowserPermission, resolveDeviceId } from './devices';
 

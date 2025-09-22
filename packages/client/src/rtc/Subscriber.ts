@@ -1,6 +1,6 @@
 import {
   BasePeerConnection,
-  BasePeerConnectionOpts,
+  type BasePeerConnectionOpts,
 } from './BasePeerConnection';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';

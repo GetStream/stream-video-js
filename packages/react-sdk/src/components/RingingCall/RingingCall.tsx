@@ -1,4 +1,4 @@
-import { CallingState, UserResponse } from '@stream-io/video-client';
+import { CallingState, type UserResponse } from '@stream-io/video-client';
 import {
   useCall,
   useCallStateHooks,

@@ -1,4 +1,4 @@
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { test, type TestContext } from 'node:test';
 import { applyParticipantsFilter } from './hooks';
 

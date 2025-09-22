@@ -1,13 +1,13 @@
 import clsx from 'clsx';
-import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { MenuToggle, type ToggleMenuButtonProps } from '../Menu';
 import {
-  ComponentProps,
-  ComponentType,
+  type ComponentProps,
+  type ComponentType,
   forwardRef,
-  PropsWithChildren,
-  ReactElement,
+  type PropsWithChildren,
+  type ReactElement,
 } from 'react';
-import { Placement } from '@floating-ui/react';
+import type { Placement } from '@floating-ui/react';
 
 import { IconButton } from './IconButton';
 import { isComponentType } from '../../utilities';

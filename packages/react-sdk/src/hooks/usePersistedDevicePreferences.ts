@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CallingState, InputDeviceStatus } from '@stream-io/video-client';
+import { CallingState, type InputDeviceStatus } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type LocalDevicePreference = {

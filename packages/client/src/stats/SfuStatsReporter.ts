@@ -1,9 +1,9 @@
 import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { OwnCapability, StatsOptions } from '../gen/coordinator';
+import { OwnCapability, type StatsOptions } from '../gen/coordinator';
 import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
-import { Tracer, TraceRecord } from './rtc';
+import { Tracer, type TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {

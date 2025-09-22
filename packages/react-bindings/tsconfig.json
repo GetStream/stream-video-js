@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
