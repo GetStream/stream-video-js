@@ -38,8 +38,7 @@
               "RNFBApp",
               "RNFBMessaging",
               "stream-react-native-webrtc",
-              "VideoEffects",
-              "StreamWebRTC"
+              "VideoEffects"
             ]
           }
         }
