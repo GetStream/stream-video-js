@@ -28,7 +28,7 @@ export const UIDispatcher = () => {
     ]?.[1] ??
     Spotlight;
 
-  return hasScreenShare && !layoutOverrideCustomAction?.ignore_screnshare ? (
+  return hasScreenShare && !layoutOverrideCustomAction?.ignore_screenshare ? (
     <ScreenShareView />
   ) : (
     <DefaultView />

@@ -30,11 +30,11 @@ export type CustomActions = ({
       layout: Layout;
       // keep the override when screen sharing is active
       // otherwise use the screenshare layout from configuration
-      ignore_screnshare?: boolean; // default: false
+      ignore_screenshare?: boolean; // default: false
     }
   | {
       action_type: 'options_override';
-      options: Partial<ConfigurationValue['options']>;
+      options: Partial<Omit<ConfigurationValue['options'], 'custom_actions'>>;
     }
 ))[];
 
@@ -126,7 +126,7 @@ export const useOptionsOverride = (
 ) => {
   const { setOptionsOverride } = useConfigurationContext();
 
-  const t = useMemo(() => {
+  const data = useMemo(() => {
     const optionsToCombine = processedCustomActions.reduce<
       Partial<ConfigurationValue['options']>[]
     >((options, ca) => {
@@ -136,19 +136,24 @@ export const useOptionsOverride = (
       return options;
     }, []);
 
+    const optionsOverride = Object.assign({}, ...optionsToCombine) as Partial<
+      ConfigurationValue['options']
+    >;
+
+    // we don't want to have custom_actions in the override
+    delete optionsOverride.custom_actions;
+
     return {
-      optionsOverride: Object.assign({}, ...optionsToCombine) as Partial<
-        ConfigurationValue['options']
-      >,
+      optionsOverride,
       hasOptionsOverride: optionsToCombine.length > 0,
     };
   }, [processedCustomActions]);
 
   useLayoutEffect(() => {
-    if (t.hasOptionsOverride) {
-      setOptionsOverride(t.optionsOverride);
+    if (data.hasOptionsOverride) {
+      setOptionsOverride(data.optionsOverride);
     } else {
       setOptionsOverride(undefined);
     }
-  }, [setOptionsOverride, t]);
+  }, [setOptionsOverride, data]);
 };
