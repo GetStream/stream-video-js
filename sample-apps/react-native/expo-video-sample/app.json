@@ -33,7 +33,14 @@
           },
           "ios": {
             "flipper": false,
-            "useFrameworks": "static"
+            "useFrameworks": "static",
+            "forceStaticLinking": [
+              "RNFBApp",
+              "RNFBMessaging",
+              "stream-react-native-webrtc",
+              "VideoEffects",
+              "StreamWebRTC"
+            ]
           }
         }
       ],
