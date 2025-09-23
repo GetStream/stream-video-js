@@ -7118,6 +7118,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rnx-kit/metro-config@npm:^2.1":
+  version: 2.1.2
+  resolution: "@rnx-kit/metro-config@npm:2.1.2"
+  dependencies:
+    "@rnx-kit/tools-node": "npm:^3.0.0"
+    "@rnx-kit/tools-react-native": "npm:^2.0.0"
+    "@rnx-kit/tools-workspaces": "npm:^0.2.0"
+  peerDependencies:
+    "@react-native/metro-config": "*"
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    "@react-native/metro-config":
+      optional: true
+  checksum: 10/da3f9622fc4c4fe519003d7acfeaf0df032969e491ca8b1e33b331aa4d99690670d36f58f8a554032b7c5bc15ef5c4c62b1b5273f7401cd00ca7d93e18901d8f
+  languageName: node
+  linkType: hard
+
 "@rnx-kit/metro-resolver-symlinks@npm:^0.1.22, @rnx-kit/metro-resolver-symlinks@npm:^0.1.36":
   version: 0.1.36
   resolution: "@rnx-kit/metro-resolver-symlinks@npm:0.1.36"
@@ -7137,12 +7155,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rnx-kit/tools-node@npm:^3.0.0":
+  version: 3.0.2
+  resolution: "@rnx-kit/tools-node@npm:3.0.2"
+  checksum: 10/427db5099999463de60cf72b62e771b1ef9178900aa9e6b433e0c754c19255e50720ca37f07bdea4fc7a46fb20f94c432b66c6dc4015c40eec3936bd970e3988
+  languageName: node
+  linkType: hard
+
 "@rnx-kit/tools-react-native@npm:^1.3.4, @rnx-kit/tools-react-native@npm:^1.4.1":
   version: 1.4.2
   resolution: "@rnx-kit/tools-react-native@npm:1.4.2"
   dependencies:
     "@rnx-kit/tools-node": "npm:^2.0.1"
   checksum: 10/a6881d8e8aba7400a274f653a7d7e9e151e4ca5d347370b81933acdbc9b80462e01144c60816a4684339e54ce9c5ac2574aacef3548e6dbfa7590f9ecea6c726
+  languageName: node
+  linkType: hard
+
+"@rnx-kit/tools-react-native@npm:^2.0.0":
+  version: 2.2.0
+  resolution: "@rnx-kit/tools-react-native@npm:2.2.0"
+  dependencies:
+    "@rnx-kit/tools-node": "npm:^3.0.0"
+  checksum: 10/e11c499e870d182654ec2e75a1e008f8c67f40b842e997469137c01d3223963547637efa52a82ae2adbb1109e3c22808e2911c0af7ac4b3d21871844759409b7
   languageName: node
   linkType: hard
 
@@ -7155,6 +7189,19 @@ __metadata:
     read-yaml-file: "npm:^2.1.0"
     strip-json-comments: "npm:^3.1.1"
   checksum: 10/6f43737ed57f196ce5a9c537178dc7d5e63ccbe6e9b4cff11e338273b9191b30346dcd4e1cfb725f4f242d3345f60cd69fcd7b2f6807ebfcf24e050a7d1f881d
+  languageName: node
+  linkType: hard
+
+"@rnx-kit/tools-workspaces@npm:^0.2.0":
+  version: 0.2.3
+  resolution: "@rnx-kit/tools-workspaces@npm:0.2.3"
+  dependencies:
+    fast-glob: "npm:^3.2.7"
+    find-up: "npm:^5.0.0"
+    micromatch: "npm:^4.0.0"
+    read-yaml-file: "npm:^2.1.0"
+    strip-json-comments: "npm:^3.1.1"
+  checksum: 10/1aa128b3479e24ad80a4d3fab40fcc2da2befb79340ae15fa761cedd0c6a8f7a7b7cccea95477a5f06773cdb8849d6cfbc4bf459a719d6779263761fef7ada7e
   languageName: node
   linkType: hard
 
@@ -7845,7 +7892,7 @@ __metadata:
     "@react-native-community/netinfo": "npm:11.4.1"
     "@react-native-firebase/app": "npm:^22.1.0"
     "@react-native-firebase/messaging": "npm:^22.1.0"
-    "@rnx-kit/metro-config": "npm:^1.3.17"
+    "@rnx-kit/metro-config": "npm:^2.1"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.1.36"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:125.4.3"
@@ -7873,6 +7920,7 @@ __metadata:
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.12.1"
     react-native-voip-push-notification: "npm:^3.3.3"
+    react-native-worklets: "npm:^0.5.0"
     typescript: "npm:~5.9.2"
   languageName: unknown
   linkType: soft
@@ -19838,7 +19886,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:^4.0.4, micromatch@npm:^4.0.5, micromatch@npm:^4.0.8":
+"micromatch@npm:^4.0.0, micromatch@npm:^4.0.4, micromatch@npm:^4.0.5, micromatch@npm:^4.0.8":
   version: 4.0.8
   resolution: "micromatch@npm:4.0.8"
   dependencies:
@@ -22698,6 +22746,29 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/be1949566d4f19c2def0bb1450df62b7d94f219ec3ef816e4c2abf69e88fe72202c3e1d43d3db2d5d5e91ab409215065af16f1fb7d16e9b8952fb1c6eb996a2d
+  languageName: node
+  linkType: hard
+
+"react-native-worklets@npm:^0.5.0":
+  version: 0.5.1
+  resolution: "react-native-worklets@npm:0.5.1"
+  dependencies:
+    "@babel/plugin-transform-arrow-functions": "npm:^7.0.0-0"
+    "@babel/plugin-transform-class-properties": "npm:^7.0.0-0"
+    "@babel/plugin-transform-classes": "npm:^7.0.0-0"
+    "@babel/plugin-transform-nullish-coalescing-operator": "npm:^7.0.0-0"
+    "@babel/plugin-transform-optional-chaining": "npm:^7.0.0-0"
+    "@babel/plugin-transform-shorthand-properties": "npm:^7.0.0-0"
+    "@babel/plugin-transform-template-literals": "npm:^7.0.0-0"
+    "@babel/plugin-transform-unicode-regex": "npm:^7.0.0-0"
+    "@babel/preset-typescript": "npm:^7.16.7"
+    convert-source-map: "npm:^2.0.0"
+    semver: "npm:7.7.2"
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+    react: "*"
+    react-native: "*"
+  checksum: 10/39e70b64560cc4b031ac329bfbd0686b744b6940bbe1d1768a227bb9e142a0e2bad5ef16752003e83374db49d8d6396c72236b9c279e1465a7177f887ae12d48
   languageName: node
   linkType: hard
 
