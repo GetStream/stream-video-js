@@ -1,4 +1,4 @@
-import { CallRecording } from '@stream-io/video-client';
+import type { CallRecording } from '@stream-io/video-client';
 import { CallRecordingListItem } from './CallRecordingListItem';
 import { LoadingIndicator } from '../LoadingIndicator';
 

@@ -5,9 +5,8 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-native-sdk';
-import type { User }  from '@stream-io/video-react-sdk';
+import type { User } from '@stream-io/video-react-sdk';
 import type { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';

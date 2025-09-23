@@ -1,4 +1,4 @@
-import { ComponentProps, CSSProperties, useState } from 'react';
+import { type ComponentProps, type CSSProperties, useState } from 'react';
 import clsx from 'clsx';
 
 export type AvatarData = {

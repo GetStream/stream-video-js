@@ -1,5 +1,5 @@
-import { ComponentType } from 'react';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import type { ComponentType } from 'react';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { CallParticipantListingItem } from './CallParticipantListingItem';
 
 export type CallParticipantListingProps = {

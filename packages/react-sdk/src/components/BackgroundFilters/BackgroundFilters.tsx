@@ -1,6 +1,6 @@
 import {
   createContext,
-  PropsWithChildren,
+  type PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
@@ -12,14 +12,14 @@ import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream, getLogger } from '@stream-io/video-client';
 import {
-  BackgroundBlurLevel,
-  BackgroundFilter,
+  type BackgroundBlurLevel,
+  type BackgroundFilter,
   createRenderer,
   isPlatformSupported,
   loadTFLite,
-  PlatformSupportFlags,
-  Renderer,
-  TFLite,
+  type PlatformSupportFlags,
+  type Renderer,
+  type TFLite,
 } from '@stream-io/video-filters-web';
 
 export type BackgroundFiltersProps = PlatformSupportFlags & {
