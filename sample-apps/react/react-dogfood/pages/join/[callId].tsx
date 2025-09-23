@@ -13,13 +13,13 @@ import {
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { TourProvider } from '../../context/TourContext';
-import { createTokenProvider, getClient } from '../../helpers/client';
+import { getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
@@ -74,13 +74,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     };
   }, [apiKey, coordinatorUrl, environment, user, userToken]);
 
-  const tokenProvider = useMemo(
-    () => createTokenProvider(user.id, environment),
-    [environment, user.id],
-  );
   const chatClient = useCreateStreamChatClient({
     apiKey,
-    tokenOrProvider: tokenProvider,
+    tokenOrProvider: userToken,
     userData: {
       id: '!anon',
       ...(user as Omit<User, 'type' | 'push_notifications'>),
