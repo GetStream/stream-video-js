@@ -15,7 +15,15 @@ export default function Stats(props: ServerSideCredentialsProps) {
   const [data, setData] = useState<any>({ message: 'Loading...' });
 
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const useLocalCoordinator =
+      router.query['use_local_coordinator'] === 'true';
+    const coordinatorUrl = useLocalCoordinator
+      ? 'http://localhost:3030/video'
+      : (router.query['coordinator_url'] as string | undefined);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     window.client = _client;
 
     const [type, id] = cid.split(':');
@@ -38,7 +46,7 @@ export default function Stats(props: ServerSideCredentialsProps) {
 
       window.client = undefined;
     };
-  }, [apiKey, user, userToken, environment, cid]);
+  }, [apiKey, user, userToken, environment, cid, router.query]);
 
   return (
     <pre style={{ height: '100%', overflow: 'scroll' }}>
