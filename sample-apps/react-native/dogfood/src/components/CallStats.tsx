@@ -1,14 +1,14 @@
 import {
+  AggregatedStatsReport,
+  CallStatsReport,
+  useCall,
   useCallStateHooks,
   useI18n,
-  CallStatsReport,
-  AggregatedStatsReport,
   useTheme,
-  useCall,
 } from '@stream-io/video-react-native-sdk';
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 enum Status {
@@ -122,7 +122,7 @@ export const CallStats = (props: CallStatsProps) => {
           <View style={styles.row}>
             <StatCard
               label={t('Receiving resolution')}
-              value={toFrameSize(callStatsReport.publisherStats)}
+              value={toFrameSize(callStatsReport.subscriberStats)}
             />
             <StatCard
               label={t('Receive quality drop reason')}

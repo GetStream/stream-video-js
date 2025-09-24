@@ -243,6 +243,7 @@ describe('CameraManager', () => {
       await manager.apply(
         // @ts-expect-error - partial settings
         {
+          enabled: true,
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
@@ -261,6 +262,7 @@ describe('CameraManager', () => {
       await manager.apply(
         // @ts-expect-error - partial settings
         {
+          enabled: true,
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: false,
@@ -326,6 +328,23 @@ describe('CameraManager', () => {
       );
 
       expect(manager['publishStream']).toHaveBeenCalled();
+    });
+
+    it('should not turn on the camera when video is disabled', async () => {
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        // @ts-expect-error - partial settings
+        {
+          enabled: false,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        },
+        false,
+      );
+
+      expect(manager.state.status).toBe(undefined);
+      expect(manager.enable).not.toHaveBeenCalled();
     });
   });
 

@@ -1,10 +1,9 @@
-#import <React/RCTBridgeModule.h>
+#import <React/RCTBridge.h>
 #import <React/RCTViewManager.h>
 #import <React/RCTEventEmitter.h>
 #import <React/RCTLog.h>
 #import <React/RCTUIManager.h>
 #import <React/RCTView.h>
-#import <React/RCTBridge.h>
 #import <React/UIView+React.h>
 
 #import <WebRTC/RTCCVPixelBuffer.h>

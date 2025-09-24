@@ -112,6 +112,7 @@ import {
   ClientCapability,
   ClientDetails,
   Codec,
+  ParticipantSource,
   PublishOption,
   SubscribeOption,
   TrackType,
@@ -1015,6 +1016,7 @@ export class Call {
             preferredPublishOptions,
             preferredSubscribeOptions,
             capabilities: Array.from(this.clientCapabilities),
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
           });
 
         this.currentPublishOptions = publishOptions;

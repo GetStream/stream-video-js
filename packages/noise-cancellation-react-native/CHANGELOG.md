@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.3...@stream-io/noise-cancellation-react-native-0.2.4) (2025-09-18)
+
+### Bug Fixes
+
+- noise cancellation snapshot url ([#1925](https://github.com/GetStream/stream-video-js/issues/1925)) ([7bdf589](https://github.com/GetStream/stream-video-js/commit/7bdf589e079f8d3f2836999781dbfa57be96cfa3))
+
 ## [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.2...@stream-io/noise-cancellation-react-native-0.2.3) (2025-09-05)
 
 ### Bug Fixes

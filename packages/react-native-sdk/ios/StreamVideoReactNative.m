@@ -1,6 +1,7 @@
-#import <React/RCTBridgeModule.h>
+#import <React/RCTBridge.h>
 #import <React/RCTEventEmitter.h>
 #import <React/RCTUIManager.h>
+#import <React/RCTUIManagerUtils.h>
 #import <UIKit/UIKit.h>
 #import <CallKit/CallKit.h>
 #import "StreamVideoReactNative.h"
@@ -34,13 +35,11 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     bool hasListeners;
     CFNotificationCenterRef _notificationCenter;
 }
-RCT_EXPORT_MODULE();
 
-// the viewRegistry approach is taken from https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
-#ifdef RCT_NEW_ARCH_ENABLED
+// necessary for addUIBlock usage https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
 @synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
-#endif // RCT_NEW_ARCH_ENABLED
-@synthesize bridge = _bridge;
+
+RCT_EXPORT_MODULE();
 
 static AVAudioPlayer *_busyTonePlayer = nil;
 
@@ -185,7 +184,7 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
 +(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
     [StreamVideoReactNative initializeSharedDictionaries];
     dispatch_sync(_dictionaryQueue, ^{
-
+        
 #ifdef DEBUG
         NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
 #endif
@@ -217,7 +216,7 @@ RCT_EXPORT_METHOD(getIncomingCallCid:(NSString *)uuid
     dispatch_sync(_dictionaryQueue, ^{
         NSString *lowercaseUUID = [uuid lowercaseString];
         NSString *foundCid = _incomingCallCidsByUUID[lowercaseUUID];
-
+        
         if (foundCid) {
             resolve(foundCid);
         } else {
@@ -237,7 +236,7 @@ RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
 #ifdef DEBUG
             NSLog(@"removeIncomingCall cid:%@ -> uuid:%@",cid,uuid);
 #endif
-
+            
             [_incomingCallUUIDsByCallID removeObjectForKey:cid];
             [_incomingCallCidsByUUID removeObjectForKey:uuid];
             resolve(@YES);
@@ -252,95 +251,92 @@ RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-#ifdef RCT_NEW_ARCH_ENABLED
-    [self.viewRegistry_DEPRECATED addUIBlock:^(RCTViewRegistry *viewRegistry) {
-        UIView *view = [self.viewRegistry_DEPRECATED viewForReactTag:reactTag];
-
-#else
-    [self.bridge.uiManager
-     addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        UIView *view = [uiManager viewForReactTag:reactTag];
-#endif
-
-        if (!view) {
-          reject(RCTErrorUnspecified, [NSString stringWithFormat:@"No view found with reactTag: %@", reactTag], nil);
-          return;
-        }
-
-        // Get capture options
-        NSString *format = options[@"format"] ? [options[@"format"] lowercaseString] : @"png";
-        CGFloat quality = options[@"quality"] ? [options[@"quality"] floatValue] : 1.0;
-        NSNumber *width = options[@"width"];
-        NSNumber *height = options[@"height"];
-
-        // Determine the size to render
-        CGSize size;
-        CGRect bounds = view.bounds;
-        if (width && height) {
-            size = CGSizeMake([width floatValue], [height floatValue]);
-        } else {
-            size = bounds.size;
-        }
-
-        // Abort if size is invalid
-        if (size.width <= 0 || size.height <= 0) {
-            reject(@"INVALID_SIZE", @"View has invalid size", nil);
-            return;
-        }
-
-        // Begin image context with appropriate scale
-        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-
-        // Calculate scaling if needed
-        CGRect drawRect = bounds;
-        if (width && height) {
-            CGFloat scaleX = size.width / bounds.size.width;
-            CGFloat scaleY = size.height / bounds.size.height;
-
-            // Apply transform to context for scaling if dimensions differ
-            CGContextRef context = UIGraphicsGetCurrentContext();
-            if (context) {
-                CGContextTranslateCTM(context, 0, size.height);
-                CGContextScaleCTM(context, scaleX, -scaleY);
-                drawRect = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+    // It seems that due to how UIBlocks work with uiManager, we need to call the methods in UIManagerQueue
+    // for the blocks to be dispatched before the batch is completed
+    dispatch_async(RCTGetUIManagerQueue(), ^{
+        [self.viewRegistry_DEPRECATED addUIBlock:^(RCTViewRegistry *viewRegistry) {
+            UIView *view = [viewRegistry viewForReactTag:reactTag];
+            
+            if (!view) {
+                reject(RCTErrorUnspecified, [NSString stringWithFormat:@"No view found with reactTag: %@", reactTag], nil);
+                return;
             }
-        }
-
-        BOOL success = [view drawViewHierarchyInRect:drawRect afterScreenUpdates:YES];
-
-        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-
-        if (!success || !image) {
-            reject(@"CAPTURE_FAILED", @"Failed to capture view as image", nil);
-            return;
-        }
-
-        // Convert to base64 string based on format
-        NSString *base64;
-        if ([format isEqualToString:@"jpg"] || [format isEqualToString:@"jpeg"]) {
-            NSData *imageData = UIImageJPEGRepresentation(image, quality);
-            base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
-        } else {
-            // Default to PNG
-            NSData *imageData = UIImagePNGRepresentation(image);
-            base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
-        }
-
-        if (base64) {
-            resolve(base64);
-        } else {
-            reject(@"ENCODING_FAILED", @"Failed to encode image to base64", nil);
-        }
-    }];
+            
+            // Get capture options
+            NSString *format = options[@"format"] ? [options[@"format"] lowercaseString] : @"png";
+            CGFloat quality = options[@"quality"] ? [options[@"quality"] floatValue] : 1.0;
+            NSNumber *width = options[@"width"];
+            NSNumber *height = options[@"height"];
+            
+            // Determine the size to render
+            CGSize size;
+            CGRect bounds = view.bounds;
+            if (width && height) {
+                size = CGSizeMake([width floatValue], [height floatValue]);
+            } else {
+                size = bounds.size;
+            }
+            
+            // Abort if size is invalid
+            if (size.width <= 0 || size.height <= 0) {
+                reject(@"INVALID_SIZE", @"View has invalid size", nil);
+                return;
+            }
+            
+            // Begin image context with appropriate scale
+            UIGraphicsBeginImageContextWithOptions(size, NO, 0);
+            
+            // Calculate scaling if needed
+            CGRect drawRect = bounds;
+            if (width && height) {
+                CGFloat scaleX = size.width / bounds.size.width;
+                CGFloat scaleY = size.height / bounds.size.height;
+                
+                // Apply transform to context for scaling if dimensions differ
+                CGContextRef context = UIGraphicsGetCurrentContext();
+                if (context) {
+                    CGContextTranslateCTM(context, 0, size.height);
+                    CGContextScaleCTM(context, scaleX, -scaleY);
+                    drawRect = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+                }
+            }
+            
+            BOOL success = [view drawViewHierarchyInRect:drawRect afterScreenUpdates:YES];
+            
+            UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+            UIGraphicsEndImageContext();
+            
+            if (!success || !image) {
+                reject(@"CAPTURE_FAILED", @"Failed to capture view as image", nil);
+                return;
+            }
+            
+            // Convert to base64 string based on format
+            NSString *base64;
+            if ([format isEqualToString:@"jpg"] || [format isEqualToString:@"jpeg"]) {
+                NSData *imageData = UIImageJPEGRepresentation(image, quality);
+                base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
+            } else {
+                // Default to PNG
+                NSData *imageData = UIImagePNGRepresentation(image);
+                base64 = [imageData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
+            }
+            
+            if (base64) {
+                resolve(base64);
+            } else {
+                reject(@"ENCODING_FAILED", @"Failed to encode image to base64", nil);
+            }
+        }];
+    });
 }
 
 RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
-                   rejecter:(RCTPromiseRejectBlock)reject) {
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
     BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||
-                      batteryState == UIDeviceBatteryStateFull);
-
+                       batteryState == UIDeviceBatteryStateFull);
+    
     resolve(@{
         @"charging": @(isCharging),
         @"level": @(round([UIDevice currentDevice].batteryLevel * 100))
@@ -350,8 +346,8 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
 -(void)batteryStateDidChange:(NSNotification *)notification {
     UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
     BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||
-                      batteryState == UIDeviceBatteryStateFull);
-
+                       batteryState == UIDeviceBatteryStateFull);
+    
     [self sendEventWithName:@"chargingStateChanged" body:@{
         @"charging": @(isCharging),
         @"level": @(round([UIDevice currentDevice].batteryLevel * 100))

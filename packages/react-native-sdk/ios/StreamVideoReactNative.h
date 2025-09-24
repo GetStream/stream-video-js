@@ -1,4 +1,5 @@
 #import <React/RCTEventEmitter.h>
+#import <React/RCTBridge.h>
 
 @interface StreamVideoReactNative : RCTEventEmitter <RCTBridgeModule>
 
