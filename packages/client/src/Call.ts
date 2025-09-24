@@ -981,6 +981,7 @@ export class Call {
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
+    this.unifiedSessionId ??= sfuClient.sessionId;
     this.dynascaleManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
@@ -1008,6 +1009,7 @@ export class Call {
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
           await sfuClient.join({
+            unifiedSessionId: this.unifiedSessionId,
             subscriberSdp,
             publisherSdp,
             clientDetails,
@@ -1061,6 +1063,7 @@ export class Call {
         statsOptions,
         publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
+        unifiedSessionId: this.unifiedSessionId,
       });
     }
 
@@ -1222,6 +1225,7 @@ export class Call {
     clientDetails: ClientDetails;
     publishOptions: PublishOption[];
     closePreviousInstances: boolean;
+    unifiedSessionId: string;
   }) => {
     const {
       sfuClient,
@@ -1230,6 +1234,7 @@ export class Call {
       statsOptions,
       publishOptions,
       closePreviousInstances,
+      unifiedSessionId,
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
@@ -1288,7 +1293,6 @@ export class Call {
     this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
-      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1298,7 +1302,7 @@ export class Call {
         camera: this.camera,
         state: this.state,
         tracer: this.tracer,
-        unifiedSessionId: this.unifiedSessionId,
+        unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }
@@ -2551,6 +2555,21 @@ export class Call {
     const endpoint = `${this.streamClientBasePath}/report`;
     const params = callSessionID !== '' ? { session_id: callSessionID } : {};
     return this.streamClient.get<GetCallReportResponse>(endpoint, params);
+  };
+
+  /**
+   * Loads the call report for the given session ID.
+   *
+   * @param sessionId optional session ID to load the report for.
+   * Defaults to the current session ID.
+   */
+  getCallParticipantsStats = async (
+    sessionId: string | undefined = this.state.session?.id,
+  ): Promise<any> => {
+    // FIXME OL: not yet part of the API
+    if (!sessionId) return;
+    const endpoint = `https://video-edge-frankfurt-ce1.stream-io-api.com/video/call_stats/${this.type}/${this.id}/${sessionId}/participants`;
+    return this.streamClient.get(endpoint);
   };
 
   /**

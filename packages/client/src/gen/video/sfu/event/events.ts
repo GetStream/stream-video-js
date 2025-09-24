@@ -472,6 +472,14 @@ export interface JoinRequest {
    */
   sessionId: string;
   /**
+   * user_session id can change during reconnects, this helps us to
+   * identify the user across reconnects and should remain consistent until the user explicitly
+   * disconnects, is kicked or the call is ended.
+   *
+   * @generated from protobuf field: string unified_session_id = 13;
+   */
+  unifiedSessionId: string;
+  /**
    * dumb SDP that allow us to extract subscriber's decode codecs
    *
    * @generated from protobuf field: string subscriber_sdp = 3;
@@ -1353,6 +1361,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
     super('stream.video.sfu.event.JoinRequest', [
       { no: 1, name: 'token', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 13,
+        name: 'unified_session_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
       {
         no: 3,
         name: 'subscriber_sdp',

@@ -97,6 +97,16 @@ export const DevMenu = () => {
           Go to Inspector
         </a>
       )}
+      {call && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={`/stats/${call.cid}`}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to Participant Stats
+        </a>
+      )}
     </ul>
   );
 };
