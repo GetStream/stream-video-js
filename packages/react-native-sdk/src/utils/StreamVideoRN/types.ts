@@ -26,10 +26,9 @@ export type StreamVideoConfig = {
     publishOptions?: ClientPublishOptions;
 
     /**
-     * Whether to reject the call when the user is busy.
-     * @default false
+     * When set to true, the SDK will reject incoming calls when the user is busy in another call.
      */
-    shouldRejectCallWhenBusy?: boolean;
+    shouldRejectCallWhenBusy: boolean;
 
     ios: {
       /**

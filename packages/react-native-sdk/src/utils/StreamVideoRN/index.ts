@@ -126,7 +126,7 @@ export class StreamVideoRN {
     // Configure native iOS module if shouldRejectCallWhenBusy is set
     if (Platform.OS === 'ios') {
       NativeModules.StreamVideoReactNative?.setShouldRejectCallWhenBusy(
-        pushConfig?.shouldRejectCallWhenBusy ?? false,
+        pushConfig.shouldRejectCallWhenBusy,
       );
     }
     setupIosCallKeepEvents(pushConfig);

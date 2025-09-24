@@ -47,9 +47,7 @@ export const onVoipNotificationReceived = async (
   const logger = getLogger(['setupIosVoipPushEvents']);
   const client = await pushConfig.createStreamVideoClient();
   client?.isValid();
-  client?.setShouldRejectCallWhenBusy(
-    pushConfig.shouldRejectCallWhenBusy ?? false,
-  );
+  client?.setShouldRejectCallWhenBusy(pushConfig.shouldRejectCallWhenBusy);
 
   if (!client) {
     logger(

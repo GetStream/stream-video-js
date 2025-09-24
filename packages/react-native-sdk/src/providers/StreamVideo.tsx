@@ -54,11 +54,12 @@ export const StreamVideo = (
   }, [client]);
 
   const pushConfig = StreamVideoRN.getConfig().push;
-  const shouldRejectCallWhenBusy = pushConfig?.shouldRejectCallWhenBusy;
+  const shouldRejectCallWhenBusy =
+    pushConfig?.shouldRejectCallWhenBusy ?? false;
 
   useEffect(() => {
     if (!client) return;
-    client.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy ?? false);
+    client.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy);
   }, [client, shouldRejectCallWhenBusy]);
 
   return (
