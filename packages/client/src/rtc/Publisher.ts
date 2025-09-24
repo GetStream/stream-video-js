@@ -174,6 +174,7 @@ export class Publisher extends BasePeerConnection {
 
       const { transceiver, options: current } = bundle;
       if (current.audioBitrateProfile === options.audioBitrateProfile) continue;
+      current.audioBitrateProfile = options.audioBitrateProfile; // update
 
       const track = transceiver.sender.track!;
       const targetEncodings = computeAudioLayers(track, publishOption, options);
