@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.30.1...@stream-io/video-client-1.31.0) (2025-09-17)
+
+### Features
+
+- introduce @stream-io/worker-timers ([94c962b](https://github.com/GetStream/stream-video-js/commit/94c962b2c5f731c152771b7803a59664fa925477))
+
+### Bug Fixes
+
+- **video-filters:** prevent background tab throttling ([#1920](https://github.com/GetStream/stream-video-js/issues/1920)) ([f93d5cc](https://github.com/GetStream/stream-video-js/commit/f93d5cc5785957c7f181fcaf689ec366df9e646b))
+
+## [1.30.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.30.0...@stream-io/video-client-1.30.1) (2025-09-16)
+
+### Bug Fixes
+
+- don't apply default camera state if video is off ([#1917](https://github.com/GetStream/stream-video-js/issues/1917)) ([9cf1d75](https://github.com/GetStream/stream-video-js/commit/9cf1d752d824a0527fbb187df21d8a020590d4bb))
+- **rn:** set direction state for flip after constraints are applied ([1f03c59](https://github.com/GetStream/stream-video-js/commit/1f03c59b9b3fecc0ff1f7cb6b0eccb083b4a3475))
+
 ## [1.30.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.29.0...@stream-io/video-client-1.30.0) (2025-09-11)
 
 - Skip tests for StreamVideoClient coordinator API ([aabe1d0](https://github.com/GetStream/stream-video-js/commit/aabe1d0ad3e3a95698b422991729e46289ab0277))

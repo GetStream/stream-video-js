@@ -38,18 +38,17 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       return;
     }
 
-    // providing both device id and direction doesn't work, so we deselect the device
-    this.state.setDirection(direction);
-    this.state.setDevice(undefined);
-
     if (isReactNative()) {
       const videoTrack = this.getTracks()[0] as MediaStreamTrack | undefined;
       await videoTrack?.applyConstraints({
         facingMode: direction === 'front' ? 'user' : 'environment',
       });
+      this.state.setDirection(direction);
       return;
     }
-
+    // providing both device id and direction doesn't work, so we deselect the device
+    this.state.setDirection(direction);
+    this.state.setDevice(undefined);
     this.getTracks().forEach((track) => track.stop());
     try {
       await this.unmuteStream();

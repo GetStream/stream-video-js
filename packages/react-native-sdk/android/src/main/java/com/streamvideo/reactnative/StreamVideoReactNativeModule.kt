@@ -38,6 +38,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         return NAME
     }
 
+    private val mPowerManager = reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
     private var batteryChargingStateReceiver = object : BroadcastReceiver() {
@@ -147,8 +149,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     fun startThermalStatusUpdates(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val powerManager =
-                    reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
 
                 val listener = PowerManager.OnThermalStatusChangedListener { status ->
                     val thermalStatus = when (status) {
@@ -168,7 +168,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 thermalStatusListener = listener
-                powerManager.addThermalStatusListener(listener)
+                mPowerManager.addThermalStatusListener(listener)
                 // Get initial status
                 currentThermalState(promise)
             } else {
@@ -182,12 +182,10 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopThermalStatusUpdates() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val powerManager =
-                reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
             // Store the current listener in a local val for safe null checking
             val currentListener = thermalStatusListener
             if (currentListener != null) {
-                powerManager.removeThermalStatusListener(currentListener)
+                mPowerManager.removeThermalStatusListener(currentListener)
                 thermalStatusListener = null
             }
         }
@@ -197,9 +195,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     fun currentThermalState(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val powerManager =
-                    reactApplicationContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
-                val status = powerManager.currentThermalStatus
+                val status = mPowerManager.currentThermalStatus
                 val thermalStatus = when (status) {
                     PowerManager.THERMAL_STATUS_NONE -> "NONE"
                     PowerManager.THERMAL_STATUS_LIGHT -> "LIGHT"
@@ -228,9 +224,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     private fun sendPowerModeEvent() {
-        val powerManager =
-            reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val isLowPowerMode = powerManager.isPowerSaveMode
+        val isLowPowerMode = mPowerManager.isPowerSaveMode
         reactApplicationContext
             .getJSModule(RCTDeviceEventEmitter::class.java)
             .emit("isLowPowerModeEnabled", isLowPowerMode)
@@ -239,9 +233,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun isLowPowerModeEnabled(promise: Promise) {
         try {
-            val powerManager =
-                reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
-            promise.resolve(powerManager.isPowerSaveMode)
+            promise.resolve(mPowerManager.isPowerSaveMode)
         } catch (e: Exception) {
             promise.reject("ERROR", e.message)
         }

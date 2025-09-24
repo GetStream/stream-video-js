@@ -1,3 +1,4 @@
+import { WorkerTimer } from '@stream-io/worker-timer';
 import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 import { getSegmentationParams, SegmentationLevel } from './segmentation';
@@ -47,7 +48,8 @@ export function createRenderer(
     getSegmentationParams(segmentationLevel),
   );
 
-  const id = setInterval(
+  const timers = new WorkerTimer({ useWorker: true });
+  const id = timers.setInterval(
     () => {
       try {
         pipeline.render();
@@ -59,13 +61,14 @@ export function createRenderer(
         onError?.(error);
       }
     },
-    1000 / (fps <= 0 ? 30 : fps),
+    Math.floor(1000 / (fps <= 0 ? 30 : fps)),
   );
 
   return {
     dispose: () => {
       pipeline.cleanUp();
-      clearInterval(id);
+      timers.clearInterval(id);
+      timers.destroy();
     },
   };
 }
