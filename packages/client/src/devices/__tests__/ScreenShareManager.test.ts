@@ -6,7 +6,10 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import {
+  AudioBitrateProfile,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import { Tracer } from '../../stats';
 
 vi.mock('../devices.ts', () => {
@@ -121,7 +124,7 @@ describe('ScreenShareManager', () => {
     expect(call.publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.SCREEN_SHARE,
-      undefined,
+      { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
     );
   });
 
