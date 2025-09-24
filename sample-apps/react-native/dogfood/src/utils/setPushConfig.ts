@@ -70,7 +70,7 @@ export function setPushConfig() {
         },
       },
     },
-    shouldRejectCallWhenBusy: false,
+    shouldRejectCallWhenBusy: true,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');
