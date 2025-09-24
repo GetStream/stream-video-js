@@ -11,12 +11,6 @@
 
 + (BOOL)shouldRejectCallWhenBusy;
 
-+ (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject;
-
 + (BOOL)hasAnyActiveCall;
-
-+ (void)playBusyTone;
-
-+ (void)stopBusyTone;
 
 @end
