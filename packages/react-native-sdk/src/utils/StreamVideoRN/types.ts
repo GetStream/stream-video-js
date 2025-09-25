@@ -24,6 +24,7 @@ export type StreamVideoConfig = {
      * @internal
      */
     publishOptions?: ClientPublishOptions;
+
     ios: {
       /**
        * The name for the alias of push provider used for iOS

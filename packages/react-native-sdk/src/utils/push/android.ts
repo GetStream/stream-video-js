@@ -169,6 +169,9 @@ export const firebaseDataHandler = async (
     const created_by_id = data.created_by_id as string;
     const receiver_id = data.receiver_id as string;
 
+    const video_client = await pushConfig.createStreamVideoClient();
+    await video_client?.onRingingCall(call_cid);
+
     const shouldCallBeClosed = (callToCheck: Call) => {
       const { mustEndCall } = shouldCallBeEnded(
         callToCheck,
