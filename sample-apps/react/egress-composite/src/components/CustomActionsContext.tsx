@@ -42,9 +42,10 @@ export type ProcessedCustomActions = Array<
   CustomActions[number] & { conditionMet: boolean }
 >;
 
-export const CustomActionsContext = createContext<ProcessedCustomActions>([]);
-
 const EMPTY: ProcessedCustomActions = [];
+
+export const CustomActionsContext =
+  createContext<ProcessedCustomActions>(EMPTY);
 
 const useProcessCustomActions = () => {
   const { options } = useConfigurationContext();
@@ -81,9 +82,23 @@ const useProcessCustomActions = () => {
   }, [options.custom_actions, participantCount, pinnedParticipantCount]);
 };
 
-export const CustomActionsContextProvider = ({
-  children,
-}: PropsWithChildren) => {
+/**
+ * Evaluates whether there are any custom actions to process, and if so,
+ * wraps children with the CustomActionsContextProvider.
+ */
+export const WithCustomActions = ({ children }: PropsWithChildren) => {
+  const { options } = useConfigurationContext();
+
+  if (!options.custom_actions?.length) {
+    return <>{children}</>;
+  }
+
+  return (
+    <CustomActionsContextProvider>{children}</CustomActionsContextProvider>
+  );
+};
+
+const CustomActionsContextProvider = ({ children }: PropsWithChildren) => {
   const processedActions = useProcessCustomActions();
 
   useOptionsOverride(processedActions);
