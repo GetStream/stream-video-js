@@ -874,8 +874,6 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    this.state.setCallingState(CallingState.JOINING);
-
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU
@@ -894,8 +892,7 @@ export class Call {
           // if the error is unrecoverable, we should not retry as that signals
           // that connectivity is good, but the coordinator doesn't allow the user
           // to join the call due to some reason (e.g., ended call, expired token...)
-          // We also restore the previous call state before throwing.
-          this.state.setCallingState(callingState);
+
           throw err;
         }
 
@@ -907,8 +904,6 @@ export class Call {
         }
 
         if (attempt === maxJoinRetries - 1) {
-          // restore the previous call state if the join-flow fails
-          this.state.setCallingState(callingState);
           throw err;
         }
       }
