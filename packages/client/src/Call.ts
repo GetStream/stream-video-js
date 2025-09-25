@@ -894,6 +894,8 @@ export class Call {
           // if the error is unrecoverable, we should not retry as that signals
           // that connectivity is good, but the coordinator doesn't allow the user
           // to join the call due to some reason (e.g., ended call, expired token...)
+          // We also restore the previous call state before throwing.
+          this.state.setCallingState(callingState);
           throw err;
         }
 
