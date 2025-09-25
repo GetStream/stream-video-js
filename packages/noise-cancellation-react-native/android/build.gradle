@@ -94,7 +94,7 @@ println "Using targetSdkVersion: ${getExtOrIntegerDefault("targetSdkVersion")}"
 
 dependencies {
     implementation "com.facebook.react:react-native:+"
-    implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.2-kotlin-1.9.25'
+    implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.4-kotlin-1.9.25'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation project(':stream-io_react-native-webrtc')
 }
