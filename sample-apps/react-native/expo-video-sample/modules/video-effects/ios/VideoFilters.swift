@@ -42,6 +42,7 @@ extension UIInterfaceOrientation {
 #endif // #if canImport(UIKit)
 
 import Foundation
+import stream_react_native_webrtc
 
 open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
 

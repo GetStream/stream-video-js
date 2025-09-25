@@ -1,4 +1,5 @@
 import ExpoModulesCore
+import stream_react_native_webrtc
 
 public class VideoEffectsModule: Module {
   // Each module class must implement the definition function. The definition consists of components
