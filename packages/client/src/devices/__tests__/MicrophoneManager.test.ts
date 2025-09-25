@@ -371,6 +371,45 @@ describe('MicrophoneManager', () => {
     });
   });
 
+  describe('Hi-Fi Audio', () => {
+    it('enables hi-fi audio', async () => {
+      call.state.updateFromCallResponse({
+        // @ts-expect-error partial data
+        settings: { audio: { hifi_audio_enabled: true } },
+      });
+
+      await manager.enable();
+
+      // @ts-expect-error - private api
+      const apply = vi.spyOn(manager, 'applySettingsToStream');
+      const publish = vi.spyOn(call, 'publish');
+      const profile = AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+      await manager.setAudioBitrateProfile(profile, true);
+
+      expect(apply).toHaveBeenCalledOnce();
+      expect(publish).toHaveBeenCalledWith(
+        manager.state.mediaStream,
+        TrackType.AUDIO,
+        { audioBitrateProfile: profile },
+      );
+    });
+
+    it('throws an error when enabling hi-fi audio if not allowed', async () => {
+      call.state.updateFromCallResponse({
+        // @ts-expect-error partial data
+        settings: { audio: { hifi_audio_enabled: false } },
+      });
+
+      await manager.enable();
+      await expect(() =>
+        manager.setAudioBitrateProfile(
+          AudioBitrateProfile.VOICE_HIGH_QUALITY,
+          true,
+        ),
+      ).rejects.toThrowError();
+    });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
