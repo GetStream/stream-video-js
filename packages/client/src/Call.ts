@@ -892,7 +892,6 @@ export class Call {
           // if the error is unrecoverable, we should not retry as that signals
           // that connectivity is good, but the coordinator doesn't allow the user
           // to join the call due to some reason (e.g., ended call, expired token...)
-
           throw err;
         }
 
