@@ -23,12 +23,13 @@ const BusyTonePlayer = () => {
 
       let busyToneTimeout: ReturnType<typeof setTimeout> | undefined;
 
+      const logger = getLogger(['RejectCallWhenBusy']);
+
       if (isCalleeBusy) {
         if (busyToneTimeout) {
           clearTimeout(busyToneTimeout);
           busyToneTimeout = undefined;
         }
-        const logger = getLogger(['RejectCallWhenBusy']);
         logger(
           'info',
           `Playing busy tone for call rejection for call cid: ${event.call.cid}`,
@@ -55,7 +56,9 @@ const BusyTonePlayer = () => {
           });
       }
       return () => {
-        StreamVideoRN.stopBusyTone();
+        StreamVideoRN.stopBusyTone().catch((err) =>
+          logger('error', 'stopBusyTone on cleanup failed:', err),
+        );
         clearTimeout(busyToneTimeout);
         unsubscribe();
       };
