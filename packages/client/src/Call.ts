@@ -982,6 +982,7 @@ export class Call {
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
+    this.unifiedSessionId ??= sfuClient.sessionId;
     this.dynascaleManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
@@ -1009,6 +1010,7 @@ export class Call {
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
           await sfuClient.join({
+            unifiedSessionId: this.unifiedSessionId,
             subscriberSdp,
             publisherSdp,
             clientDetails,
@@ -1062,6 +1064,7 @@ export class Call {
         statsOptions,
         publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
+        unifiedSessionId: this.unifiedSessionId,
       });
     }
 
@@ -1223,6 +1226,7 @@ export class Call {
     clientDetails: ClientDetails;
     publishOptions: PublishOption[];
     closePreviousInstances: boolean;
+    unifiedSessionId: string;
   }) => {
     const {
       sfuClient,
@@ -1231,6 +1235,7 @@ export class Call {
       statsOptions,
       publishOptions,
       closePreviousInstances,
+      unifiedSessionId,
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
@@ -1289,7 +1294,6 @@ export class Call {
     this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
-      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1299,7 +1303,7 @@ export class Call {
         camera: this.camera,
         state: this.state,
         tracer: this.tracer,
-        unifiedSessionId: this.unifiedSessionId,
+        unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }
