@@ -46,7 +46,6 @@ export const onVoipNotificationReceived = async (
   }
   const logger = getLogger(['setupIosVoipPushEvents']);
   const client = await pushConfig.createStreamVideoClient();
-  client?.isValid();
 
   if (!client) {
     logger(

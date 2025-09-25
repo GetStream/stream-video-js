@@ -583,25 +583,6 @@ export class StreamVideoClient {
   };
 
   /**
-   * Check if this client instance is properly managed (created via getOrCreateInstance)
-   */
-  isValid(): void {
-    const instanceKey = getInstanceKey(
-      this.streamClient.key,
-      this.streamClient._user!,
-    );
-
-    const managedInstance = StreamVideoClient._instances.get(instanceKey);
-    if (!managedInstance) {
-      throw new Error(
-        'StreamVideoClient: Multiple client instances detected. ' +
-          'Please use StreamVideoClient.getOrCreateInstance() in your createStreamVideoClient implementation ' +
-          'to avoid potential issues with state management and WebSocket connections.',
-      );
-    }
-  }
-
-  /**
    * Connects the given anonymous user to the client.
    *
    * @param user the user to connect.

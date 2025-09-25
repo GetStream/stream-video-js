@@ -170,7 +170,6 @@ export const firebaseDataHandler = async (
     const receiver_id = data.receiver_id as string;
 
     const video_client = await pushConfig.createStreamVideoClient();
-    video_client?.isValid();
     await video_client?.onRingingCall(call_cid);
 
     const shouldCallBeClosed = (callToCheck: Call) => {
@@ -193,7 +192,6 @@ export const firebaseDataHandler = async (
       notifee.registerForegroundService(() => {
         return new Promise(async () => {
           const client = await pushConfig.createStreamVideoClient();
-          video_client?.isValid();
           if (!client) {
             getLogger(['firebaseMessagingOnMessageHandler'])(
               'debug',
@@ -347,7 +345,6 @@ export const firebaseDataHandler = async (
     // check if call needs to be closed if accept/decline event was done
     // before the notification was shown
     const client = await pushConfig.createStreamVideoClient();
-    video_client?.isValid();
     if (!client) {
       return;
     }
