@@ -59,6 +59,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         token,
         tokenProvider,
         options: {
+          rejectCallWhenBusy: true,
           logLevel: 'debug',
           logger: (level, message, ...args) => {
             if (
@@ -83,10 +84,11 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         async (event) => {
           const isCallCreatedByMe =
             event.call.created_by.id === _videoClient?.state.connectedUser?.id;
+          const calleeName = event.user.name ?? event.user.id;
           const isCalleeBusy = isCallCreatedByMe && event.reason === 'busy';
 
           if (isCalleeBusy) {
-            Alert.alert('Call rejected because user is busy.');
+            Alert.alert('Call rejected', `User: ${calleeName} is busy.`);
           }
         },
       );

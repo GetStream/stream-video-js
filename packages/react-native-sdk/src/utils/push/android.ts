@@ -169,11 +169,8 @@ export const firebaseDataHandler = async (
     const created_by_id = data.created_by_id as string;
     const receiver_id = data.receiver_id as string;
 
-    const shouldRejectCallWhenBusy = pushConfig.shouldRejectCallWhenBusy;
-
     const video_client = await pushConfig.createStreamVideoClient();
     video_client?.isValid();
-    video_client?.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy);
     await video_client?.onRingingCall(call_cid);
 
     const shouldCallBeClosed = (callToCheck: Call) => {
@@ -197,7 +194,6 @@ export const firebaseDataHandler = async (
         return new Promise(async () => {
           const client = await pushConfig.createStreamVideoClient();
           video_client?.isValid();
-          client?.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy);
           if (!client) {
             getLogger(['firebaseMessagingOnMessageHandler'])(
               'debug',

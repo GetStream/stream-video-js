@@ -46,6 +46,10 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     private val mPowerManager = reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+    
+    // Instance variables for busy tone (not static)
+    private var busyToneAudioTrack: AudioTrack? = null
+    private var busyToneJob: Job? = null
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
@@ -132,6 +136,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         reactApplicationContext.unregisterReceiver(powerReceiver)
         reactApplicationContext.unregisterReceiver(batteryChargingStateReceiver)
         stopThermalStatusUpdates()
+        stopBusyToneInternal() // Clean up busy tone on invalidate
         super.invalidate()
     }
 
@@ -337,64 +342,79 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun playBusyTone() {
+    fun playBusyTone(promise: Promise) {
         try {
-            stopBusyTone()
+            stopBusyToneInternal()
 
             busyToneJob = CoroutineScope(Dispatchers.IO).launch {
-                val beepBuffer = generateBeepBuffer(0.5, 480.0)
-                val silenceBuffer = generateSilenceBuffer(0.5)
+                try {
+                    val beepBuffer = generateBeepBuffer(0.5, 480.0)
+                    val silenceBuffer = generateSilenceBuffer(0.5)
 
-                val minBuf = AudioTrack.getMinBufferSize(
-                    SAMPLE_RATE,
-                    AudioFormat.CHANNEL_OUT_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT
-                )
-                val bufferInShorts = maxOf(minBuf / 2, beepBuffer.size)
-
-                val audioTrack = AudioTrack.Builder()
-                    .setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                            .build()
+                    val minBuf = AudioTrack.getMinBufferSize(
+                        SAMPLE_RATE,
+                        AudioFormat.CHANNEL_OUT_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT
                     )
-                    .setAudioFormat(
-                        AudioFormat.Builder()
-                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                            .setSampleRate(SAMPLE_RATE)
-                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                            .build()
-                    )
-                    .setBufferSizeInBytes(bufferInShorts * 2)
-                    .setTransferMode(AudioTrack.MODE_STREAM)
-                    .build()
+                    val bufferInShorts = maxOf(minBuf / 2, beepBuffer.size)
 
-                if (audioTrack.state != AudioTrack.STATE_INITIALIZED) {
-                    Log.e(NAME, "AudioTrack not initialized for busy tone")
-                    return@launch
-                }
+                    val audioTrack = AudioTrack.Builder()
+                        .setAudioAttributes(
+                            AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                .build()
+                        )
+                        .setAudioFormat(
+                            AudioFormat.Builder()
+                                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                                .setSampleRate(SAMPLE_RATE)
+                                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                                .build()
+                        )
+                        .setBufferSizeInBytes(bufferInShorts * 2)
+                        .setTransferMode(AudioTrack.MODE_STREAM)
+                        .build()
 
-                busyToneAudioTrack = audioTrack
-                audioTrack.play()
-
-                while (isActive) {
-                    val bw1 = audioTrack.write(beepBuffer, 0, beepBuffer.size, AudioTrack.WRITE_BLOCKING)
-                    if (!isActive) break
-                    val bw2 = audioTrack.write(silenceBuffer, 0, silenceBuffer.size, AudioTrack.WRITE_BLOCKING)
-                    if (bw1 < 0 || bw2 < 0) {
-                        Log.e(NAME, "Error writing to AudioTrack: $bw1, $bw2")
-                        break
+                    if (audioTrack.state != AudioTrack.STATE_INITIALIZED) {
+                        promise.reject("AUDIO_TRACK_ERROR", "AudioTrack not initialized for busy tone")
+                        return@launch
                     }
+
+                    busyToneAudioTrack = audioTrack
+                    audioTrack.play()
+                    promise.resolve(true)
+
+                    while (isActive) {
+                        val bw1 = audioTrack.write(beepBuffer, 0, beepBuffer.size, AudioTrack.WRITE_BLOCKING)
+                        if (!isActive) break
+                        val bw2 = audioTrack.write(silenceBuffer, 0, silenceBuffer.size, AudioTrack.WRITE_BLOCKING)
+                        if (bw1 < 0 || bw2 < 0) {
+                            Log.e(NAME, "Error writing to AudioTrack: $bw1, $bw2")
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    promise.reject("AUDIO_PLAYBACK_ERROR", "Error in busy tone playback: ${e.message}")
                 }
             }
         } catch (e: Exception) {
-            Log.e(NAME, "Error playing busy tone: ${e.message}")
+            promise.reject("AUDIO_PLAYBACK_ERROR", "Error playing busy tone: ${e.message}")
         }
     }
 
     @ReactMethod
-    fun stopBusyTone() {
+    fun stopBusyTone(promise: Promise) {
+        try {
+            stopBusyToneInternal()
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(NAME, "Error stopping busy tone: ${e.message}")
+            promise.reject("AUDIO_STOP_ERROR", "Error stopping busy tone: ${e.message}")
+        }
+    }
+
+    private fun stopBusyToneInternal() {
         try {
             busyToneJob?.cancel()
             busyToneJob = null
@@ -404,14 +424,15 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                     if (track.playState == AudioTrack.PLAYSTATE_PLAYING) {
                         track.stop()
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Log.e(NAME, "Error stopping AudioTrack: ${e.message}")
                 } finally {
                     track.release()
                 }
             }
             busyToneAudioTrack = null
         } catch (e: Exception) {
-            Log.e(NAME, "Error stopping busy tone: ${e.message}")
+            Log.e(NAME, "Error stopping busy tone internally: ${e.message}")
         }
     }
 
@@ -431,13 +452,11 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     private fun generateSilenceBuffer(durationSeconds: Double): ShortArray {
         val totalSamples = (durationSeconds * SAMPLE_RATE).toInt()
-        return ShortArray(totalSamples) { 0 }
+        return ShortArray(totalSamples)
     }
 
     companion object {
         private const val NAME = "StreamVideoReactNative"
         private const val SAMPLE_RATE = 22050
-        private var busyToneAudioTrack: AudioTrack? = null
-        private var busyToneJob: Job? = null
     }
 }

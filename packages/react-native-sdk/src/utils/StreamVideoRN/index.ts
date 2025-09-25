@@ -5,7 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -123,12 +123,6 @@ export class StreamVideoRN {
 
     this.config.push = pushConfig;
 
-    // Configure native iOS module if shouldRejectCallWhenBusy is set
-    if (Platform.OS === 'ios') {
-      NativeModules.StreamVideoReactNative?.setShouldRejectCallWhenBusy(
-        pushConfig.shouldRejectCallWhenBusy,
-      );
-    }
     setupIosCallKeepEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
   }
@@ -176,37 +170,14 @@ export class StreamVideoRN {
   /**
    * Play native busy tone for call rejection
    */
-  static playBusyTone() {
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      NativeModules.StreamVideoReactNative?.playBusyTone();
-    }
-  }
-
-  /**
-   * Play native busy tone for call rejection for a given duration
-   */
-  static playBusyToneFor(durationMS = 3000) {
-    if (this.busyToneTimeout) {
-      clearTimeout(this.busyToneTimeout);
-      this.busyToneTimeout = null;
-    }
-    this.playBusyTone();
-    this.busyToneTimeout = setTimeout(() => {
-      this.stopBusyTone();
-    }, durationMS);
+  static async playBusyTone() {
+    return NativeModules.StreamVideoReactNative?.playBusyTone();
   }
 
   /**
    * Stop native busy tone
    */
-  static stopBusyTone() {
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      NativeModules.StreamVideoReactNative?.stopBusyTone();
-    }
-
-    if (this.busyToneTimeout) {
-      clearTimeout(this.busyToneTimeout);
-      this.busyToneTimeout = null;
-    }
+  static async stopBusyTone() {
+    return NativeModules.StreamVideoReactNative?.stopBusyTone();
   }
 }

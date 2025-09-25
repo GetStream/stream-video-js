@@ -9,7 +9,6 @@ import {
 import { useAndroidKeepCallAliveEffect } from '../../hooks/useAndroidKeepCallAliveEffect';
 import { AppStateListener } from './AppStateListener';
 import { DeviceStats } from './DeviceStats';
-import { RejectCallWhenBusy } from './RejectCallWhenBusy';
 
 // const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -40,7 +39,6 @@ export const StreamCall = ({
       <IosInformCallkeepCallEnd />
       <ClearPushWSSubscriptions />
       <DeviceStats />
-      <RejectCallWhenBusy />
       {children}
     </StreamCallProvider>
   );

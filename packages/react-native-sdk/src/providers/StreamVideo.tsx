@@ -10,7 +10,7 @@ import { translations } from '../translations';
 import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme } from '../theme/theme';
 import { ScreenshotIosContextProvider } from '../contexts/internal/ScreenshotIosContext';
-import { StreamVideoRN } from '../utils/StreamVideoRN';
+import BusyTonePlayer from './BusyTonePlayer';
 
 /**
  *
@@ -53,15 +53,6 @@ export const StreamVideo = (
     });
   }, [client]);
 
-  const pushConfig = StreamVideoRN.getConfig().push;
-  const shouldRejectCallWhenBusy =
-    pushConfig?.shouldRejectCallWhenBusy ?? false;
-
-  useEffect(() => {
-    if (!client) return;
-    client.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy);
-  }, [client, shouldRejectCallWhenBusy]);
-
   return (
     <StreamVideoProvider
       client={client}
@@ -69,11 +60,10 @@ export const StreamVideo = (
       translationsOverrides={translationsOverrides}
       i18nInstance={i18nInstance}
     >
+      <PushRegister />
+      <BusyTonePlayer />
       <StreamTheme style={style}>
-        <ScreenshotIosContextProvider>
-          <PushRegister />
-          {children}
-        </ScreenshotIosContextProvider>
+        <ScreenshotIosContextProvider>{children}</ScreenshotIosContextProvider>
       </StreamTheme>
     </StreamVideoProvider>
   );
