@@ -457,13 +457,16 @@ export class Publisher extends BasePeerConnection {
     const isAudioTrack = isAudioTrackType(publishOption.trackType);
     const transceiverIndex = this.transceiverCache.indexOf(transceiver);
     const audioSettings = this.state.settings?.audio;
+    const stereo =
+      publishOption.trackType === TrackType.SCREEN_SHARE_AUDIO ||
+      (isAudioTrack && !!audioSettings?.hifi_audio_enabled);
 
     return {
       trackId: track.id,
       layers: toVideoLayers(layers),
       trackType: publishOption.trackType,
       mid: extractMid(transceiver, transceiverIndex, sdp),
-      stereo: true, // negotiates stereo transceiver
+      stereo,
       dtx: isAudioTrack && !!audioSettings?.opus_dtx_enabled,
       red: isAudioTrack && !!audioSettings?.redundant_coding_enabled,
       muted: !isTrackLive,

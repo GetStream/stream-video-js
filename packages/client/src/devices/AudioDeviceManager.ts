@@ -14,6 +14,9 @@ export abstract class AudioDeviceManager<
    * Sets the audio bitrate profile and stereo mode.
    */
   async setAudioBitrateProfile(profile: AudioBitrateProfile, stereo: boolean) {
+    if (!this.call.state.settings?.audio.hifi_audio_enabled) {
+      throw new Error('High Fidelity audio is not enabled for this call');
+    }
     await this.doSetAudioBitrateProfile(profile, stereo);
     this.state.setAudioBitrateProfile(profile, stereo);
     if (this.enabled) {

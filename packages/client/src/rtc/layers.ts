@@ -15,12 +15,6 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   scalabilityMode?: string;
 };
 
-const defaultBitratePerRid: Record<string, number> = {
-  q: 300000,
-  h: 750000,
-  f: 1250000,
-};
-
 /**
  * Prepares the audio layer for the given track.
  * Based on the provided audio bitrate profile, we apply the appropriate bitrate.
@@ -37,8 +31,8 @@ export const computeAudioLayers = (
   // The SFU provides the bitrate for the mono channel. So, when we have
   // a stereo track, we need to multiply the bitrate by the number of channels.
   const settings = track.getSettings();
-  const channels = settings.channelCount ?? 1;
-  return [{ maxBitrate: profileConfig.bitrate * channels }];
+  const channels = settings.channelCount || 1;
+  return [{ maxBitrate: Math.round(profileConfig.bitrate * channels) }];
 };
 
 /**
@@ -133,7 +127,8 @@ export const computeVideoLayers = (
       width: Math.round(width / downscaleFactor),
       height: Math.round(height / downscaleFactor),
       maxBitrate:
-        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
+        Math.round(maxBitrate / bitrateFactor) ||
+        { q: 300_000, h: 750_000, f: 1_250_000 }[rid],
       maxFramerate: fps,
     };
     if (svcCodec) {
