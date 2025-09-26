@@ -79,7 +79,7 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    */
   isPromptingPermission$: Observable<boolean>;
 
-  private readonly disableMode: TrackDisableMode;
+  readonly disableMode: TrackDisableMode;
 
   /**
    * Constructs a new InputMediaDeviceManagerState instance.
