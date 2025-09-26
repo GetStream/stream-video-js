@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  hasVideo,
-  isPinned,
   StreamVideoParticipant,
   useFilteredParticipants,
 } from '@stream-io/video-react-sdk';
@@ -24,26 +22,19 @@ export const useSpotlightParticipant = () => {
   });
 
   useEffect(() => {
-    if (mode === 'shuffle') {
-      const shuffleId = window.setInterval(() => {
-        const randomParticipant =
-          participants[Math.floor(Math.random() * participants.length)];
-        setSpeakerInSpotlight(randomParticipant);
-      }, 3500);
+    if (mode !== 'shuffle') return;
 
-      return () => {
-        clearInterval(shuffleId);
-      };
-    } else {
-      const spotlightSpeaker =
-        participants.find((p) => isPinned(p)) ||
-        participants.find((p) => p.isDominantSpeaker) ||
-        participants.find((p) => hasVideo(p)) ||
-        participants[0];
+    const shuffleId = window.setInterval(() => {
+      const randomParticipant =
+        participants[Math.floor(Math.random() * participants.length)];
+      setSpeakerInSpotlight(randomParticipant);
+    }, 3500);
 
-      setSpeakerInSpotlight(spotlightSpeaker);
-    }
+    return () => {
+      clearInterval(shuffleId);
+      setSpeakerInSpotlight(undefined);
+    };
   }, [participants, mode]);
 
-  return speakerInSpotlight;
+  return speakerInSpotlight ?? participants[0];
 };
