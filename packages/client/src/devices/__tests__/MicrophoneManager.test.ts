@@ -103,7 +103,10 @@ describe('MicrophoneManager', () => {
     expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.AUDIO,
-      { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
+      {
+        audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+        stereo: false,
+      },
     );
   });
 
@@ -384,13 +387,14 @@ describe('MicrophoneManager', () => {
       const apply = vi.spyOn(manager, 'applySettingsToStream');
       const publish = vi.spyOn(call, 'publish');
       const profile = AudioBitrateProfile.MUSIC_HIGH_QUALITY;
-      await manager.setAudioBitrateProfile(profile, true);
+      const stereo = true;
+      await manager.setAudioBitrateProfile(profile, stereo);
 
       expect(apply).toHaveBeenCalledOnce();
       expect(publish).toHaveBeenCalledWith(
         manager.state.mediaStream,
         TrackType.AUDIO,
-        { audioBitrateProfile: profile },
+        { audioBitrateProfile: profile, stereo },
       );
     });
 

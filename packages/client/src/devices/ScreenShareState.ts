@@ -1,5 +1,6 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
+import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
 import { ScreenShareSettings } from '../types';
 import { RxUtils } from '../store';
 
@@ -20,6 +21,14 @@ export class ScreenShareState extends AudioDeviceManagerState<DisplayMediaStream
    * An Observable that emits the current screen share settings.
    */
   settings$ = this.settingsSubject.asObservable();
+
+  /**
+   * Constructs new ScreenShareState instance.
+   */
+  constructor() {
+    super();
+    super.setAudioBitrateProfile(AudioBitrateProfile.MUSIC_HIGH_QUALITY, true);
+  }
 
   /**
    * @internal

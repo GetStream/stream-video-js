@@ -33,6 +33,14 @@ export class TransceiverCache {
   };
 
   /**
+   * Updates the cached bundle with the given patch.
+   */
+  update = (publishOption: PublishOption, patch: Partial<PublishBundle>) => {
+    const bundle = this.get(publishOption);
+    if (bundle) Object.assign(bundle, patch);
+  };
+
+  /**
    * Checks if the cache has the given publish option.
    */
   has = (publishOption: PublishOption): boolean => {

@@ -33,6 +33,7 @@ export abstract class AudioDeviceManager<
   ): Promise<void> {
     return super.publishStream(stream, {
       audioBitrateProfile: this.state.audioBitrateProfile,
+      stereo: this.state.stereo,
       ...options,
     });
   }

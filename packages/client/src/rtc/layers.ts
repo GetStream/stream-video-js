@@ -1,5 +1,6 @@
 import { isSvcCodec } from './codecs';
 import {
+  AudioBitrateProfile,
   PublishOption,
   VideoDimension,
   VideoLayer,
@@ -20,19 +21,22 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
  * Based on the provided audio bitrate profile, we apply the appropriate bitrate.
  */
 export const computeAudioLayers = (
-  track: MediaStreamTrack,
   publishOption: PublishOption,
   options: TrackPublishOptions,
 ): RTCRtpEncodingParameters[] | undefined => {
-  const profileConfig = publishOption.audioBitrateProfiles.find(
-    (config) => config.profile === options.audioBitrateProfile,
+  const { audioBitrateProfile } = options;
+  const profileConfig = publishOption.audioBitrateProfiles?.find(
+    (config) => config.profile === audioBitrateProfile,
   );
-  if (!profileConfig) return;
-  // The SFU provides the bitrate for the mono channel. So, when we have
-  // a stereo track, we need to multiply the bitrate by the number of channels.
-  const settings = track.getSettings();
-  const channels = settings.channelCount || 1;
-  return [{ maxBitrate: Math.round(profileConfig.bitrate * channels) }];
+  const maxBitrate =
+    profileConfig?.bitrate ||
+    {
+      [AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED]: 64_000,
+      [AudioBitrateProfile.VOICE_HIGH_QUALITY]: 128_000,
+      [AudioBitrateProfile.MUSIC_HIGH_QUALITY]: 128_000,
+    }[audioBitrateProfile || AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED];
+
+  return [{ maxBitrate }];
 };
 
 /**

@@ -30,6 +30,7 @@ export type PublisherConstructorOpts = BasePeerConnectionOpts & {
 
 export type TrackPublishOptions = {
   audioBitrateProfile?: AudioBitrateProfile;
+  stereo?: boolean;
 };
 
 export type PublishBundle = {

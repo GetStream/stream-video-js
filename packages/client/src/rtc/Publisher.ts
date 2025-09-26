@@ -121,7 +121,7 @@ export class Publisher extends BasePeerConnection {
     options: TrackPublishOptions,
   ) => {
     const encodings = isAudioTrackType(publishOption.trackType)
-      ? computeAudioLayers(track, publishOption, options)
+      ? computeAudioLayers(publishOption, options)
       : computeVideoLayers(track, publishOption);
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(encodings)
@@ -173,19 +173,22 @@ export class Publisher extends BasePeerConnection {
       if (!bundle) continue;
 
       const { transceiver, options: current } = bundle;
-      if (current.audioBitrateProfile === options.audioBitrateProfile) continue;
-      current.audioBitrateProfile = options.audioBitrateProfile; // update
-
-      const track = transceiver.sender.track!;
-      const targetEncodings = computeAudioLayers(track, publishOption, options);
-      if (targetEncodings && targetEncodings.length > 0) {
-        const params = transceiver.sender.getParameters();
-        const [currentEncoding] = params.encodings;
-        const [targetEncoding] = targetEncodings;
-        if (currentEncoding.maxBitrate !== targetEncoding.maxBitrate) {
-          currentEncoding.maxBitrate = targetEncoding.maxBitrate;
+      if (
+        current.audioBitrateProfile !== options.audioBitrateProfile ||
+        current.stereo !== options.stereo
+      ) {
+        const encodings = computeAudioLayers(publishOption, options);
+        if (encodings && encodings.length > 0) {
+          const params = transceiver.sender.getParameters();
+          const [currentEncoding] = params.encodings;
+          const [targetEncoding] = encodings;
+          if (currentEncoding.maxBitrate !== targetEncoding.maxBitrate) {
+            currentEncoding.maxBitrate = targetEncoding.maxBitrate;
+          }
+          await transceiver.sender.setParameters(params);
         }
-        await transceiver.sender.setParameters(params);
+
+        this.transceiverCache.update(publishOption, { options });
       }
     }
   };
