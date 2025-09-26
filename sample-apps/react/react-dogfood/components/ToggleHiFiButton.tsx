@@ -21,12 +21,10 @@ export const ToggleHiFiButton = () => {
       if (hiFiEnabled) {
         await microphone.setAudioBitrateProfile(
           SfuModels.AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
-          false,
         );
       } else {
         await microphone.setAudioBitrateProfile(
           SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY,
-          true,
         );
       }
     } catch (error) {

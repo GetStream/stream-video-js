@@ -258,11 +258,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   protected override async doSetAudioBitrateProfile(
     profile: AudioBitrateProfile,
-    stereo: boolean,
   ): Promise<void> {
     this.setDefaultConstraints({
       ...this.state.defaultConstraints,
-      ...createAudioConstraints(profile, stereo),
+      ...createAudioConstraints(profile),
     });
     const disableAudioProcessing =
       profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;

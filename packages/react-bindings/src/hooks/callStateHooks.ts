@@ -393,7 +393,6 @@ export const useMicrophoneState = ({
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
-  const stereo = useObservableValue(state.stereo$);
 
   return {
     microphone,
@@ -406,7 +405,6 @@ export const useMicrophoneState = ({
     isPromptingPermission,
     isSpeakingWhileMuted,
     audioBitrateProfile,
-    stereo,
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
@@ -455,7 +453,6 @@ export const useScreenShareState = ({
     screenShare,
     mediaStream: useObservableValue(state.mediaStream$),
     audioBitrateProfile: useObservableValue(state.audioBitrateProfile$),
-    stereo: useObservableValue(state.stereo$),
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
@@ -470,10 +467,7 @@ export const useScreenShareState = ({
  */
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
-  const settings = useObservableValue(
-    call.dynascaleManager.incomingVideoSettings$,
-  );
-  return settings;
+  return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
 };
 
 /**

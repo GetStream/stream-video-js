@@ -1,24 +1,32 @@
-import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
-import { DeviceManagerState } from './DeviceManagerState';
+import { DeviceManagerState, TrackDisableMode } from './DeviceManagerState';
 import { RxUtils } from './../store';
+import { BrowserPermission } from './BrowserPermission';
 
 /**
  * Base state class for High Fidelity enabled device managers.
  */
 export abstract class AudioDeviceManagerState<C> extends DeviceManagerState<C> {
-  private audioBitrateProfileSubject = new BehaviorSubject<AudioBitrateProfile>(
-    AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
-  );
-  private stereoSubject = new BehaviorSubject<boolean>(false);
+  private readonly audioBitrateProfileSubject: BehaviorSubject<AudioBitrateProfile>;
 
   /** An Observable that emits the current audio bitrate profile. */
-  audioBitrateProfile$ = this.audioBitrateProfileSubject
-    .asObservable()
-    .pipe(distinctUntilChanged());
+  audioBitrateProfile$: Observable<AudioBitrateProfile>;
 
-  /** An Observable that emits the current stereo mode. */
-  stereo$ = this.stereoSubject.asObservable().pipe(distinctUntilChanged());
+  /**
+   * Constructs a new AudioDeviceManagerState instance.
+   */
+  protected constructor(
+    disableMode: TrackDisableMode,
+    permission: BrowserPermission | undefined,
+    profile: AudioBitrateProfile,
+  ) {
+    super(disableMode, permission);
+    this.audioBitrateProfileSubject = new BehaviorSubject(profile);
+    this.audioBitrateProfile$ = this.audioBitrateProfileSubject
+      .asObservable()
+      .pipe(distinctUntilChanged());
+  }
 
   /**
    * Returns the current audio bitrate profile.
@@ -28,17 +36,9 @@ export abstract class AudioDeviceManagerState<C> extends DeviceManagerState<C> {
   }
 
   /**
-   * Returns the current stereo mode.
-   */
-  get stereo() {
-    return RxUtils.getCurrentValue(this.stereo$);
-  }
-
-  /**
    * Sets the audio bitrate profile and stereo mode.
    */
-  setAudioBitrateProfile(profile: AudioBitrateProfile, stereo: boolean) {
+  setAudioBitrateProfile(profile: AudioBitrateProfile) {
     RxUtils.setCurrentValue(this.audioBitrateProfileSubject, profile);
-    RxUtils.setCurrentValue(this.stereoSubject, stereo);
   }
 }

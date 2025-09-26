@@ -23,13 +23,12 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
  */
 export const createAudioConstraints = (
   profile: AudioBitrateProfile,
-  stereo: boolean,
 ): MediaTrackConstraints => {
-  const enableProcessing = profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+  const stereo = profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
   return {
-    echoCancellation: enableProcessing,
-    noiseSuppression: enableProcessing,
-    autoGainControl: enableProcessing,
+    echoCancellation: !stereo,
+    noiseSuppression: !stereo,
+    autoGainControl: !stereo,
     channelCount: { ideal: stereo ? 2 : 1 },
   };
 };

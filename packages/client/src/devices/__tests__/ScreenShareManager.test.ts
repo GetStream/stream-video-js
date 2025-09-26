@@ -124,10 +124,7 @@ describe('ScreenShareManager', () => {
     expect(call.publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.SCREEN_SHARE,
-      {
-        audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY,
-        stereo: true,
-      },
+      { audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY },
     );
   });
 

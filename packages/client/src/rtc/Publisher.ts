@@ -156,27 +156,25 @@ export class Publisher extends BasePeerConnection {
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
     await sender.replaceTrack(track);
     if (track) this.trackIdToTrackType.set(track.id, trackType);
-    await this.updateTrackPublishOptions(trackType, options);
+    if (isAudioTrackType(trackType)) {
+      await this.updateAudioPublishOptions(trackType, options);
+    }
   };
 
   /**
    * Updates the publish options for the given track type.
    */
-  private updateTrackPublishOptions = async (
+  private updateAudioPublishOptions = async (
     trackType: TrackType,
     options: TrackPublishOptions,
   ) => {
-    if (!isAudioTrackType(trackType)) return;
     for (const publishOption of this.publishOptions) {
       if (publishOption.trackType !== trackType) continue;
       const bundle = this.transceiverCache.get(publishOption);
       if (!bundle) continue;
 
       const { transceiver, options: current } = bundle;
-      if (
-        current.audioBitrateProfile !== options.audioBitrateProfile ||
-        current.stereo !== options.stereo
-      ) {
+      if (current.audioBitrateProfile !== options.audioBitrateProfile) {
         const encodings = computeAudioLayers(publishOption, options);
         if (encodings && encodings.length > 0) {
           const params = transceiver.sender.getParameters();
@@ -187,9 +185,8 @@ export class Publisher extends BasePeerConnection {
           }
           await transceiver.sender.setParameters(params);
         }
-
-        this.transceiverCache.update(publishOption, { options });
       }
+      this.transceiverCache.update(publishOption, { options });
     }
   };
 

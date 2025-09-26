@@ -3,6 +3,7 @@ import { RxUtils } from '../store';
 import { TrackDisableMode } from './DeviceManagerState';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { getAudioBrowserPermission, resolveDeviceId } from './devices';
+import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
 
 export class MicrophoneManagerState extends AudioDeviceManagerState<MediaTrackConstraints> {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
@@ -15,7 +16,11 @@ export class MicrophoneManagerState extends AudioDeviceManagerState<MediaTrackCo
     .pipe(distinctUntilChanged());
 
   constructor(disableMode: TrackDisableMode) {
-    super(disableMode, getAudioBrowserPermission());
+    super(
+      disableMode,
+      getAudioBrowserPermission(),
+      AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+    );
   }
 
   /**

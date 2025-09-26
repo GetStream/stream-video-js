@@ -23,11 +23,10 @@ export class ScreenShareState extends AudioDeviceManagerState<DisplayMediaStream
   settings$ = this.settingsSubject.asObservable();
 
   /**
-   * Constructs new ScreenShareState instance.
+   * Constructs a new ScreenShareState instance.
    */
   constructor() {
-    super();
-    super.setAudioBitrateProfile(AudioBitrateProfile.MUSIC_HIGH_QUALITY, true);
+    super('stop-tracks', undefined, AudioBitrateProfile.MUSIC_HIGH_QUALITY);
   }
 
   /**

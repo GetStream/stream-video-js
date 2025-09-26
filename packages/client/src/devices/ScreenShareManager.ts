@@ -96,7 +96,6 @@ export class ScreenShareManager extends AudioDeviceManager<
 
   protected override async doSetAudioBitrateProfile(
     profile: AudioBitrateProfile,
-    stereo: boolean,
   ): Promise<void> {
     const { defaultConstraints } = this.state;
     const baseAudioConstraints =
@@ -107,7 +106,7 @@ export class ScreenShareManager extends AudioDeviceManager<
       ...defaultConstraints,
       audio: {
         ...baseAudioConstraints,
-        ...createAudioConstraints(profile, stereo),
+        ...createAudioConstraints(profile),
       },
     });
   }

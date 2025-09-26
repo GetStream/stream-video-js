@@ -103,10 +103,7 @@ describe('MicrophoneManager', () => {
     expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.AUDIO,
-      {
-        audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
-        stereo: false,
-      },
+      { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
     );
   });
 
@@ -387,14 +384,13 @@ describe('MicrophoneManager', () => {
       const apply = vi.spyOn(manager, 'applySettingsToStream');
       const publish = vi.spyOn(call, 'publish');
       const profile = AudioBitrateProfile.MUSIC_HIGH_QUALITY;
-      const stereo = true;
-      await manager.setAudioBitrateProfile(profile, stereo);
+      await manager.setAudioBitrateProfile(profile);
 
       expect(apply).toHaveBeenCalledOnce();
       expect(publish).toHaveBeenCalledWith(
         manager.state.mediaStream,
         TrackType.AUDIO,
-        { audioBitrateProfile: profile, stereo },
+        { audioBitrateProfile: profile },
       );
     });
 
@@ -406,10 +402,7 @@ describe('MicrophoneManager', () => {
 
       await manager.enable();
       await expect(() =>
-        manager.setAudioBitrateProfile(
-          AudioBitrateProfile.VOICE_HIGH_QUALITY,
-          true,
-        ),
+        manager.setAudioBitrateProfile(AudioBitrateProfile.VOICE_HIGH_QUALITY),
       ).rejects.toThrowError();
     });
   });

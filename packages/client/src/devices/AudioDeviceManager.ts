@@ -13,12 +13,12 @@ export abstract class AudioDeviceManager<
   /**
    * Sets the audio bitrate profile and stereo mode.
    */
-  async setAudioBitrateProfile(profile: AudioBitrateProfile, stereo: boolean) {
+  async setAudioBitrateProfile(profile: AudioBitrateProfile) {
     if (!this.call.state.settings?.audio.hifi_audio_enabled) {
       throw new Error('High Fidelity audio is not enabled for this call');
     }
-    await this.doSetAudioBitrateProfile(profile, stereo);
-    this.state.setAudioBitrateProfile(profile, stereo);
+    await this.doSetAudioBitrateProfile(profile);
+    this.state.setAudioBitrateProfile(profile);
     if (this.enabled) {
       await this.applySettingsToStream();
     }
@@ -33,7 +33,6 @@ export abstract class AudioDeviceManager<
   ): Promise<void> {
     return super.publishStream(stream, {
       audioBitrateProfile: this.state.audioBitrateProfile,
-      stereo: this.state.stereo,
       ...options,
     });
   }
@@ -43,6 +42,5 @@ export abstract class AudioDeviceManager<
    */
   protected abstract doSetAudioBitrateProfile(
     profile: AudioBitrateProfile,
-    stereo: boolean,
   ): Promise<void>;
 }
