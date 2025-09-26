@@ -1128,8 +1128,8 @@ export class CallState {
    */
   setServerSidePins = (pins: Pin[]) => {
     const pinsLookup = pins.reduce<{ [sessionId: string]: number | undefined }>(
-      (lookup, pin) => {
-        lookup[pin.sessionId] = Date.now();
+      (lookup, pin, index) => {
+        lookup[pin.sessionId] = Date.now() + index;
         return lookup;
       },
       {},
@@ -1139,7 +1139,10 @@ export class CallState {
       participants.map((participant) => {
         const serverSidePinnedAt = pinsLookup[participant.sessionId];
         // the participant is newly pinned
-        if (serverSidePinnedAt) {
+        if (
+          serverSidePinnedAt &&
+          typeof participant.pin?.pinnedAt !== 'number'
+        ) {
           return {
             ...participant,
             pin: {
@@ -1150,7 +1153,7 @@ export class CallState {
         }
         // the participant is no longer pinned server side
         // we need to reset the pin
-        if (participant.pin && !participant.pin.isLocalPin) {
+        if (!serverSidePinnedAt && participant.pin?.isLocalPin === false) {
           return {
             ...participant,
             pin: undefined,
