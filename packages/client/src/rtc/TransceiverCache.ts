@@ -1,17 +1,9 @@
 import { PublishOption } from '../gen/video/sfu/models/models';
-import { OptimalVideoLayer } from './videoLayers';
-
-type TransceiverId = {
-  publishOption: PublishOption;
-  transceiver: RTCRtpTransceiver;
-};
-type TrackLayersCache = {
-  publishOption: PublishOption;
-  layers: OptimalVideoLayer[];
-};
+import type { OptimalVideoLayer } from './layers';
+import type { PublishBundle, TrackLayersCache } from './types';
 
 export class TransceiverCache {
-  private readonly cache: TransceiverId[] = [];
+  private readonly cache: PublishBundle[] = [];
   private readonly layers: TrackLayersCache[] = [];
 
   /**
@@ -24,16 +16,28 @@ export class TransceiverCache {
   /**
    * Adds a transceiver to the cache.
    */
-  add = (publishOption: PublishOption, transceiver: RTCRtpTransceiver) => {
-    this.cache.push({ publishOption, transceiver });
-    this.transceiverOrder.push(transceiver);
+  add = (bundle: PublishBundle) => {
+    this.cache.push(bundle);
+    this.transceiverOrder.push(bundle.transceiver);
   };
 
   /**
    * Gets the transceiver for the given publish option.
    */
-  get = (publishOption: PublishOption): RTCRtpTransceiver | undefined => {
-    return this.findTransceiver(publishOption)?.transceiver;
+  get = (publishOption: PublishOption): PublishBundle | undefined => {
+    return this.cache.find(
+      (bundle) =>
+        bundle.publishOption.id === publishOption.id &&
+        bundle.publishOption.trackType === publishOption.trackType,
+    );
+  };
+
+  /**
+   * Updates the cached bundle with the given patch.
+   */
+  update = (publishOption: PublishOption, patch: Partial<PublishBundle>) => {
+    const bundle = this.get(publishOption);
+    if (bundle) Object.assign(bundle, patch);
   };
 
   /**
@@ -47,15 +51,15 @@ export class TransceiverCache {
    * Finds the first transceiver that satisfies the given predicate.
    */
   find = (
-    predicate: (item: TransceiverId) => boolean,
-  ): TransceiverId | undefined => {
+    predicate: (bundle: PublishBundle) => boolean,
+  ): PublishBundle | undefined => {
     return this.cache.find(predicate);
   };
 
   /**
    * Provides all the items in the cache.
    */
-  items = (): TransceiverId[] => {
+  items = (): PublishBundle[] => {
     return this.cache;
   };
 
@@ -93,14 +97,6 @@ export class TransceiverCache {
     } else {
       this.layers.push({ publishOption, layers });
     }
-  };
-
-  private findTransceiver = (publishOption: Partial<PublishOption>) => {
-    return this.cache.find(
-      (item) =>
-        item.publishOption.id === publishOption.id &&
-        item.publishOption.trackType === publishOption.trackType,
-    );
   };
 
   private findLayer = (publishOption: PublishOption) => {

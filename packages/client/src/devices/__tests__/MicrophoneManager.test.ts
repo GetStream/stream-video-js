@@ -7,7 +7,10 @@ import {
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../../gen/coordinator';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import {
+  AudioBitrateProfile,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   mockAudioDevices,
@@ -100,6 +103,7 @@ describe('MicrophoneManager', () => {
     expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.AUDIO,
+      { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
     );
   });
 
@@ -364,6 +368,42 @@ describe('MicrophoneManager', () => {
       // @ts-expect-error - partial data
       await manager.apply({ mic_default_on: true }, true);
       expect(manager['publishStream']).toHaveBeenCalled();
+    });
+  });
+
+  describe('Hi-Fi Audio', () => {
+    it('enables hi-fi audio', async () => {
+      call.state.updateFromCallResponse({
+        // @ts-expect-error partial data
+        settings: { audio: { hifi_audio_enabled: true } },
+      });
+
+      await manager.enable();
+
+      // @ts-expect-error - private api
+      const apply = vi.spyOn(manager, 'applySettingsToStream');
+      const publish = vi.spyOn(call, 'publish');
+      const profile = AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+      await manager.setAudioBitrateProfile(profile);
+
+      expect(apply).toHaveBeenCalledOnce();
+      expect(publish).toHaveBeenCalledWith(
+        manager.state.mediaStream,
+        TrackType.AUDIO,
+        { audioBitrateProfile: profile },
+      );
+    });
+
+    it('throws an error when enabling hi-fi audio if not allowed', async () => {
+      call.state.updateFromCallResponse({
+        // @ts-expect-error partial data
+        settings: { audio: { hifi_audio_enabled: false } },
+      });
+
+      await manager.enable();
+      await expect(() =>
+        manager.setAudioBitrateProfile(AudioBitrateProfile.VOICE_HIGH_QUALITY),
+      ).rejects.toThrowError();
     });
   });
 

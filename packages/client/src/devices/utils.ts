@@ -1,3 +1,5 @@
+import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
+
 /**
  * Deactivates MediaStream (stops and removes tracks) to be later garbage collected
  *
@@ -14,4 +16,19 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
     // @ts-expect-error - release() is present in react-native-webrtc
     stream.release();
   }
+};
+
+/**
+ * Prepares a new MediaTrackConstraints set based on the provided arguments.
+ */
+export const createAudioConstraints = (
+  profile: AudioBitrateProfile,
+): MediaTrackConstraints => {
+  const stereo = profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+  return {
+    echoCancellation: !stereo,
+    noiseSuppression: !stereo,
+    autoGainControl: !stereo,
+    channelCount: { ideal: stereo ? 2 : 1 },
+  };
 };

@@ -25,7 +25,7 @@ const tokenProvider = (userId: string) => {
   };
 };
 
-describe.skip('StreamVideoClient - coordinator API', () => {
+describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
   const user = {
     id: 'sara',

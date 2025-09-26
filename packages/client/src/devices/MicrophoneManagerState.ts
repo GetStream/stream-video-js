@@ -1,33 +1,30 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { RxUtils } from '../store';
-import {
-  InputMediaDeviceManagerState,
-  TrackDisableMode,
-} from './InputMediaDeviceManagerState';
+import { TrackDisableMode } from './DeviceManagerState';
+import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { getAudioBrowserPermission, resolveDeviceId } from './devices';
+import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
 
-export class MicrophoneManagerState extends InputMediaDeviceManagerState {
+export class MicrophoneManagerState extends AudioDeviceManagerState<MediaTrackConstraints> {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
 
   /**
-   * An Observable that emits `true` if the user's microphone is muted but they'are speaking.
-   *
-   * This feature is not available in the React Native SDK.
+   * An Observable that emits `true` if the user's microphone is muted, but they're speaking.
    */
-  speakingWhileMuted$: Observable<boolean>;
+  speakingWhileMuted$ = this.speakingWhileMutedSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   constructor(disableMode: TrackDisableMode) {
-    super(disableMode, getAudioBrowserPermission());
-
-    this.speakingWhileMuted$ = this.speakingWhileMutedSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
+    super(
+      disableMode,
+      getAudioBrowserPermission(),
+      AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+    );
   }
 
   /**
-   * `true` if the user's microphone is muted but they'are speaking.
-   *
-   * This feature is not available in the React Native SDK.
+   * `true` if the user's microphone is muted but they're speaking.
    */
   get speakingWhileMuted() {
     return RxUtils.getCurrentValue(this.speakingWhileMuted$);
@@ -40,7 +37,9 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
     RxUtils.setCurrentValue(this.speakingWhileMutedSubject, isSpeaking);
   }
 
-  protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
+  protected override getDeviceIdFromStream(
+    stream: MediaStream,
+  ): string | undefined {
     const [track] = stream.getAudioTracks();
     const unresolvedDeviceId = track?.getSettings().deviceId;
     return resolveDeviceId(unresolvedDeviceId, 'audioinput');

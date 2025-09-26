@@ -78,7 +78,7 @@ export const CallStats = (props: CallStatsProps) => {
 
         <View style={styles.textContainer}>
           <Text style={styles.topText}>Call ID:</Text>
-          <Text style={styles.bottomText}>{call?.id}</Text>
+          <Text style={styles.bottomText}>{call?.cid}</Text>
         </View>
       </View>
       {callStatsReport && (
