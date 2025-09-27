@@ -1,7 +1,7 @@
-import { ComponentProps, ForwardedRef, forwardRef } from 'react';
+import { type ComponentProps, type ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
-import { Icon, IconProps } from '../Icon';
+import { Icon, type IconProps } from '../Icon';
 
 export type ButtonWithIconProps = {
   enabled?: boolean;

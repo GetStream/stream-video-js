@@ -1,5 +1,5 @@
 import { ParticipantSource } from '../gen/video/sfu/models/models';
-import { StreamVideoParticipant, VisibilityState } from '../types';
+import { type StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
 import {
   dominantSpeaker,

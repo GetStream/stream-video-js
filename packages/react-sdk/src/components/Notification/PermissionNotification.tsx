@@ -1,7 +1,7 @@
 import { Notification } from './Notification';
 import { OwnCapability } from '@stream-io/video-client';
 import {
-  PropsWithChildren,
+  type PropsWithChildren,
   useCallback,
   useEffect,
   useRef,

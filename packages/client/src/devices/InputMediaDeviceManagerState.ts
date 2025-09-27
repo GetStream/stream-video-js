@@ -6,7 +6,7 @@ import {
   shareReplay,
 } from 'rxjs';
 import { RxUtils } from '../store';
-import { BrowserPermission, BrowserPermissionState } from './BrowserPermission';
+import { BrowserPermission, type BrowserPermissionState } from './BrowserPermission';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';

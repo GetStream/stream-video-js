@@ -7,8 +7,8 @@ import type {
 } from '../gen/video/sfu/event/events';
 import type { Participant } from '../gen/video/sfu/models/models';
 import {
-  StreamVideoParticipant,
-  StreamVideoParticipantPatch,
+  type StreamVideoParticipant,
+  type StreamVideoParticipantPatch,
   VisibilityState,
 } from '../types';
 import { CallState } from '../store';

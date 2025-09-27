@@ -1,19 +1,19 @@
 import {
-  ButtonHTMLAttributes,
-  ComponentProps,
+  type ButtonHTMLAttributes,
+  type ComponentProps,
   forwardRef,
   Fragment,
-  PropsWithChildren,
+  type PropsWithChildren,
   useEffect,
   useState,
 } from 'react';
 import {
   OwnCapability,
-  PermissionRequestEvent,
-  UserResponse,
+  type PermissionRequestEvent,
+  type UserResponse,
 } from '@stream-io/video-client';
 import {
-  TranslatorFunction,
+  type TranslatorFunction,
   useCall,
   useCallStateHooks,
   useI18n,

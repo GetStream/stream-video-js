@@ -1,18 +1,18 @@
-import { TFLite } from '../tflite';
+import type { TFLite } from '../tflite';
 import { compileShader, createTexture, glsl } from '../helpers/webglHelper';
 import {
-  BackgroundBlurStage,
+  type BackgroundBlurStage,
   buildBackgroundBlurStage,
 } from './backgroundBlurStage';
 import {
-  BackgroundImageStage,
+  type BackgroundImageStage,
   buildBackgroundImageStage,
 } from './backgroundImageStage';
 import { buildJointBilateralFilterStage } from './jointBilateralFilterStage';
 import { buildResizingStage } from './resizingStage';
 import { buildSoftmaxStage } from './softmaxStage';
-import { BackgroundBlurLevel, BackgroundFilter } from '../createRenderer';
-import { SegmentationParams } from '../segmentation';
+import type { BackgroundBlurLevel, BackgroundFilter } from '../createRenderer';
+import type { SegmentationParams } from '../segmentation';
 
 export function buildWebGL2Pipeline(
   videoSource: HTMLVideoElement,

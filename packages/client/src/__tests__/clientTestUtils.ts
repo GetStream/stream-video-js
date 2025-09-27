@@ -1,4 +1,4 @@
-import { AllClientEvents } from '../coordinator/connection/types';
+import type { AllClientEvents } from '../coordinator/connection/types';
 import { StreamVideoClient } from '../StreamVideoClient';
 import { Call } from '../Call';
 import { RxUtils } from '../store';

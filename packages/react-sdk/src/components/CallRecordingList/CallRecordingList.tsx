@@ -1,18 +1,18 @@
-import { ComponentType } from 'react';
-import { CallRecording } from '@stream-io/video-client';
+import type { ComponentType } from 'react';
+import type { CallRecording } from '@stream-io/video-client';
 
 import {
   CallRecordingListHeader as DefaultCallRecordingListHeader,
-  CallRecordingListHeaderProps,
+  type CallRecordingListHeaderProps,
 } from './CallRecordingListHeader';
 import {
   CallRecordingListItem as DefaultCallRecordingListItem,
-  CallRecordingListItemProps,
+  type CallRecordingListItemProps,
 } from './CallRecordingListItem';
 import { EmptyCallRecordingListing as DefaultEmptyCallRecordingList } from './EmptyCallRecordingListing';
 import {
   LoadingCallRecordingListing as DefaultLoadingCallRecordingList,
-  LoadingCallRecordingListProps,
+  type LoadingCallRecordingListProps,
 } from './LoadingCallRecordingListing';
 
 export type CallRecordingListProps = {

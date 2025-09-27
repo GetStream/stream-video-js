@@ -3,13 +3,13 @@ import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './InputMediaDeviceManagerState';
+import type { TrackDisableMode } from './InputMediaDeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
-  AudioSettingsResponse,
+  type AudioSettingsResponse,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../gen/coordinator';

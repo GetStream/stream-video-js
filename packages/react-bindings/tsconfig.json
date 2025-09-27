@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
@@ -18,5 +19,5 @@
     "jsx": "react-jsxdev"
   },
   "exclude": ["**/__tests__/**"],
-  "include": ["./src", "index.ts"],
+  "include": ["./src", "index.ts"]
 }

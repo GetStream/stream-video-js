@@ -1,6 +1,6 @@
 import {
-  ComponentPropsWithoutRef,
-  ComponentType,
+  type ComponentPropsWithoutRef,
+  type ComponentType,
   useEffect,
   useLayoutEffect,
   useState,
@@ -9,20 +9,20 @@ import {
   hasPausedTrack,
   hasScreenShare,
   hasVideo,
-  StreamVideoParticipant,
-  VideoTrackType,
+  type StreamVideoParticipant,
+  type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 import {
   DefaultVideoPlaceholder,
-  VideoPlaceholderProps,
+  type VideoPlaceholderProps,
 } from './DefaultVideoPlaceholder';
 import { useCall } from '@stream-io/video-react-bindings';
 import { usePictureInPictureState } from '../../hooks/usePictureInPictureState';
 import {
   DefaultPictureInPicturePlaceholder,
-  PictureInPicturePlaceholderProps,
+  type PictureInPicturePlaceholderProps,
 } from './DefaultPictureInPicturePlaceholder';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
