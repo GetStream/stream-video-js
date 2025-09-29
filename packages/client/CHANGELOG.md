@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.31.0...@stream-io/video-client-1.32.0) (2025-09-29)
+
+### Features
+
+- **react-native:** reject call when busy ([#1856](https://github.com/GetStream/stream-video-js/issues/1856)) ([b60bc7c](https://github.com/GetStream/stream-video-js/commit/b60bc7cd2dc2e09d52496d7b5cb593cac4b89485))
+
+### Bug Fixes
+
+- restore calling state after unrecoverable join fail ([#1935](https://github.com/GetStream/stream-video-js/issues/1935)) ([8ab0168](https://github.com/GetStream/stream-video-js/commit/8ab01680d01cc47f9cf48078634358507f0c109d))
+- send unifiedSessionId in the initial join request ([#1934](https://github.com/GetStream/stream-video-js/issues/1934)) ([e6a533d](https://github.com/GetStream/stream-video-js/commit/e6a533d7e926086ac5930ebfb4648dade449d15a))
+
 ## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.30.1...@stream-io/video-client-1.31.0) (2025-09-17)
 
 ### Features
