@@ -112,7 +112,7 @@ export const DevMenu = () => {
       {call && localParticipant && (
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
-          href={`/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}}`}
+          href={`/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}`}
           rel="noreferrer"
           target="_blank"
         >
