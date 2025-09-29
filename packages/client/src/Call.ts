@@ -2555,16 +2555,23 @@ export class Call {
 
   /**
    * Loads the call report for the given session ID.
-   *
-   * @param sessionId optional session ID to load the report for.
-   * Defaults to the current session ID.
    */
-  getCallParticipantsStats = async (
-    sessionId: string | undefined = this.state.session?.id,
-  ): Promise<any> => {
+  getCallParticipantsStats = async (opts: {
+    sessionId?: string;
+    userId?: string;
+    userSessionId?: string;
+  }): Promise<any> => {
+    const {
+      sessionId = this.state.session?.id,
+      userId = this.currentUserId,
+      userSessionId = this.unifiedSessionId,
+    } = opts;
     // FIXME OL: not yet part of the API
     if (!sessionId) return;
-    const endpoint = `https://video-edge-frankfurt-ce1.stream-io-api.com/video/call_stats/${this.type}/${this.id}/${sessionId}/participants`;
+    const endpoint =
+      userId && userSessionId
+        ? `https://video-edge-frankfurt-ce1.stream-io-api.com/video/call_stats/${this.type}/${this.id}/${sessionId}/participant/${userId}/${userSessionId}/details`
+        : `https://video-edge-frankfurt-ce1.stream-io-api.com/video/call_stats/${this.type}/${this.id}/${sessionId}/participants`;
     return this.streamClient.get(endpoint);
   };
 

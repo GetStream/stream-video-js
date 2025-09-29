@@ -31,7 +31,15 @@ export default function Stats(props: ServerSideCredentialsProps) {
     (async () => {
       try {
         await _call.get();
-        const stats = await _call.getCallParticipantsStats();
+        const userId =
+          (router.query['user_id'] as string | undefined) || user.id;
+        const userSessionId = router.query['user_session_id'] as
+          | string
+          | undefined;
+        const stats = await _call.getCallParticipantsStats({
+          userId,
+          userSessionId,
+        });
         console.log('Call participants stats:', stats);
         setData(stats);
       } catch (err) {
