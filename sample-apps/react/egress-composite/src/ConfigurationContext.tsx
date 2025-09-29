@@ -1,4 +1,12 @@
-import { createContext, useContext } from 'react';
+import {
+  createContext,
+  Dispatch,
+  PropsWithChildren,
+  SetStateAction,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { decode } from 'js-base64';
 import {
   LogLevel,
@@ -7,6 +15,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { Layout, ScreenshareLayout } from './components/layouts';
+import { CustomActions } from './components/CustomActionsContext';
 
 const DEFAULT_USER_ID = 'egress';
 const DEFAULT_CALL_TYPE = 'default';
@@ -121,12 +130,43 @@ export type ConfigurationValue = {
       'center'
     >; // ✅
     'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // ✅
+
+    custom_actions?: CustomActions;
   };
+} & {
+  setOptionsOverride: Dispatch<
+    SetStateAction<ConfigurationValue['options'] | undefined>
+  >;
 };
 
 export const ConfigurationContext = createContext<ConfigurationValue>(
   {} as ConfigurationValue,
 );
+
+export const ConfigurationContextProvider = ({
+  value,
+  children,
+}: PropsWithChildren<{
+  value: Omit<ConfigurationValue, 'setOptionsOverride'>;
+}>) => {
+  const [optionsOverride, setOptionsOverride] = useState<
+    ConfigurationValue['options'] | undefined
+  >(undefined);
+
+  const merged = useMemo(() => {
+    return {
+      ...value,
+      setOptionsOverride,
+      options: { ...value.options, ...optionsOverride },
+    } satisfies ConfigurationValue;
+  }, [value, optionsOverride]);
+
+  return (
+    <ConfigurationContext.Provider value={merged}>
+      {children}
+    </ConfigurationContext.Provider>
+  );
+};
 
 export const extractPayloadFromToken = (
   token: string,

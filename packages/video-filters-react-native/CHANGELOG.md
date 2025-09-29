@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.3...@stream-io/video-filters-react-native-0.7.0) (2025-09-29)
+
+### Features
+
+- 16KB page size support for noise cancellation & screenshot ([#1933](https://github.com/GetStream/stream-video-js/issues/1933)) ([7e3b046](https://github.com/GetStream/stream-video-js/commit/7e3b046820bde9d331871718a6f841bff88a73ce)), closes [#1937](https://github.com/GetStream/stream-video-js/issues/1937)
+
 ## [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.2...@stream-io/video-filters-react-native-0.6.3) (2025-09-05)
 
 ### Bug Fixes

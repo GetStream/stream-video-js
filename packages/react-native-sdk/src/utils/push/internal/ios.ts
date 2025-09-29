@@ -46,12 +46,20 @@ export const onVoipNotificationReceived = async (
   }
   const logger = getLogger(['setupIosVoipPushEvents']);
   const client = await pushConfig.createStreamVideoClient();
+
   if (!client) {
     logger(
       'debug',
       'client not found, not processing call.ring voip push notification',
     );
     return;
+  }
+  const shouldRejectCallWhenBusy = client['rejectCallWhenBusy'] ?? false;
+  if (shouldRejectCallWhenBusy) {
+    // inform the iOS native module that we should reject call when busy
+    NativeModules.StreamVideoReactNative.setShouldRejectCallWhenBusy(
+      shouldRejectCallWhenBusy,
+    );
   }
   const callFromPush = await client.onRingingCall(call_cid);
   let uuid = '';
