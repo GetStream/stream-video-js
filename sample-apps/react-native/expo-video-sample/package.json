@@ -45,7 +45,7 @@
     "react-native-worklets": "^0.5.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.1",
+    "@babel/core": "^7.28.4",
     "@rnx-kit/metro-config": "^2.1.2",
     "@rnx-kit/metro-resolver-symlinks": "^0.2.6",
     "@types/react": "^19.1.15",
