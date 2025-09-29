@@ -1,7 +1,10 @@
 import { combineLatest, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
-import { AudioDeviceManager } from './AudioDeviceManager';
+import {
+  AudioDeviceManager,
+  createAudioConstraints,
+} from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
 import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
@@ -20,7 +23,6 @@ import {
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { createAudioConstraints } from './utils';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -256,20 +258,20 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     return getAudioStream(constraints, this.call.tracer);
   }
 
-  protected override async doSetAudioBitrateProfile(
-    profile: AudioBitrateProfile,
-  ): Promise<void> {
+  protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
     this.setDefaultConstraints({
       ...this.state.defaultConstraints,
       ...createAudioConstraints(profile),
     });
-    const disableAudioProcessing =
-      profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
-    if (disableAudioProcessing) {
-      await Promise.all([
-        this.disableNoiseCancellation(),
-        this.disableSpeakingWhileMutedNotification(),
-      ]);
+
+    if (this.noiseCancellation) {
+      const disableAudioProcessing =
+        profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+      if (disableAudioProcessing) {
+        this.noiseCancellation.disable(); // disable for high quality music mode
+      } else {
+        this.noiseCancellation.enable(); // restore it for other modes if available
+      }
     }
   }
 

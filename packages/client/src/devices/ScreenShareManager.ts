@@ -1,12 +1,14 @@
 import { Observable, of } from 'rxjs';
-import { AudioDeviceManager } from './AudioDeviceManager';
+import {
+  AudioDeviceManager,
+  createAudioConstraints,
+} from './AudioDeviceManager';
 import { ScreenShareState } from './ScreenShareState';
 import { Call } from '../Call';
 import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
-import { createAudioConstraints } from './utils';
 
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
@@ -94,9 +96,7 @@ export class ScreenShareManager extends AudioDeviceManager<
     return stream;
   }
 
-  protected override async doSetAudioBitrateProfile(
-    profile: AudioBitrateProfile,
-  ): Promise<void> {
+  protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
     const { defaultConstraints } = this.state;
     const baseAudioConstraints =
       typeof defaultConstraints?.audio !== 'boolean'

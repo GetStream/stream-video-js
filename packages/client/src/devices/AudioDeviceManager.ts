@@ -17,7 +17,7 @@ export abstract class AudioDeviceManager<
     if (!this.call.state.settings?.audio.hifi_audio_enabled) {
       throw new Error('High Fidelity audio is not enabled for this call');
     }
-    await this.doSetAudioBitrateProfile(profile);
+    this.doSetAudioBitrateProfile(profile);
     this.state.setAudioBitrateProfile(profile);
     if (this.enabled) {
       await this.applySettingsToStream();
@@ -42,5 +42,20 @@ export abstract class AudioDeviceManager<
    */
   protected abstract doSetAudioBitrateProfile(
     profile: AudioBitrateProfile,
-  ): Promise<void>;
+  ): void;
 }
+
+/**
+ * Prepares a new MediaTrackConstraints set based on the provided arguments.
+ */
+export const createAudioConstraints = (
+  profile: AudioBitrateProfile,
+): MediaTrackConstraints => {
+  const stereo = profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+  return {
+    echoCancellation: !stereo,
+    noiseSuppression: !stereo,
+    autoGainControl: !stereo,
+    channelCount: { ideal: stereo ? 2 : 1 },
+  };
+};
