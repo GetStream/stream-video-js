@@ -2,10 +2,7 @@ import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import React, { type PropsWithChildren, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useIosCallkeepWithCallingStateEffect } from '../../hooks/push/useIosCallkeepWithCallingStateEffect';
-import {
-  canAddPushWSSubscriptionsRef,
-  clearPushWSEventSubscriptions,
-} from '../../utils/push/internal/utils';
+import { canAddPushWSSubscriptionsRef } from '../../utils/push/internal/utils';
 import { useAndroidKeepCallAliveEffect } from '../../hooks/useAndroidKeepCallAliveEffect';
 import { AppStateListener } from './AppStateListener';
 import { DeviceStats } from './DeviceStats';
