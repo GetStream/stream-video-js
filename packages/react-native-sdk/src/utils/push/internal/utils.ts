@@ -2,7 +2,6 @@ import {
   Call,
   CallingState,
   getLogger,
-  RxUtils,
   StreamVideoClient,
 } from '@stream-io/video-client';
 import type {
@@ -10,7 +9,11 @@ import type {
   StreamVideoConfig,
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
-import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
+import {
+  pushUnsubscriptionCallbacksAndroid,
+  pushUnsubscriptionCallbackIos,
+} from './constants';
+import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -174,14 +177,21 @@ export const processNonIncomingCallFromPush = async (
  * This function is used to clear all the push related WS subscriptions
  * note: events are subscribed in push for accept/decline through WS
  */
-export const clearPushWSEventSubscriptions = () => {
-  const unsubscriptionCallbacks = RxUtils.getCurrentValue(
-    pushUnsubscriptionCallbacks$,
-  );
-  if (unsubscriptionCallbacks) {
-    unsubscriptionCallbacks.forEach((cb) => cb());
+export const clearPushWSEventSubscriptions = (call_cid: string) => {
+  if (Platform.OS === 'android') {
+    const unsubscriptionCallbacks =
+      pushUnsubscriptionCallbacksAndroid.get(call_cid);
+    if (unsubscriptionCallbacks) {
+      unsubscriptionCallbacks.forEach((cb) => cb());
+      pushUnsubscriptionCallbacksAndroid.delete(call_cid);
+    }
+  } else if (Platform.OS === 'ios') {
+    const unsubscriptionCallback = pushUnsubscriptionCallbackIos.get(call_cid);
+    if (unsubscriptionCallback) {
+      unsubscriptionCallback();
+      pushUnsubscriptionCallbackIos.delete(call_cid);
+    }
   }
-  pushUnsubscriptionCallbacks$.next(undefined);
 };
 
 /**

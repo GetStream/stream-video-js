@@ -1,10 +1,8 @@
 import { getLogger, RxUtils } from '@stream-io/video-client';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
-import {
-  pushUnsubscriptionCallbacks$,
-  voipPushNotificationCallCId$,
-} from './rxSubjects';
+import { voipPushNotificationCallCId$ } from './rxSubjects';
+import { pushUnsubscriptionCallbackIos } from './constants';
 import { canAddPushWSSubscriptionsRef, shouldCallBeEnded } from './utils';
 import { StreamVideoConfig } from '../../StreamVideoRN/types';
 
@@ -124,12 +122,10 @@ export const onVoipNotificationReceived = async (
         unsubscribe();
       }
     });
-    const unsubscriptionCallbacks =
-      RxUtils.getCurrentValue(pushUnsubscriptionCallbacks$) ?? [];
-    pushUnsubscriptionCallbacks$.next([
-      ...unsubscriptionCallbacks,
-      unsubscribe,
-    ]);
+    const oldUnsubscriptionCallback =
+      pushUnsubscriptionCallbackIos.get(call_cid);
+    oldUnsubscriptionCallback?.();
+    pushUnsubscriptionCallbackIos.set(call_cid, unsubscribe);
   }
   // send the info to this subject, it is listened by callkeep events
   // callkeep events will then accept/reject the call
