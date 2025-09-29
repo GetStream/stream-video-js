@@ -9,6 +9,7 @@ import {
 import { useAndroidKeepCallAliveEffect } from '../../hooks/useAndroidKeepCallAliveEffect';
 import { AppStateListener } from './AppStateListener';
 import { DeviceStats } from './DeviceStats';
+import { pushUnsubscriptionCallbacks } from '../../utils/push/internal/constants';
 
 // const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -68,7 +69,11 @@ const IosInformCallkeepCallEnd = () => {
  */
 const ClearPushWSSubscriptions = () => {
   useEffect(() => {
-    clearPushWSEventSubscriptions();
+    // clear all the push ws event subscriptions
+    pushUnsubscriptionCallbacks.forEach((cbArray) =>
+      cbArray.forEach((cb) => cb()),
+    );
+    pushUnsubscriptionCallbacks.clear();
     canAddPushWSSubscriptionsRef.current = false;
     return () => {
       canAddPushWSSubscriptionsRef.current = true;
