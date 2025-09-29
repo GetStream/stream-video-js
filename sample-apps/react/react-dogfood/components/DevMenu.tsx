@@ -4,6 +4,8 @@ import { getConnectionString } from '../lib/connectionString';
 
 export const DevMenu = () => {
   const call = useCall();
+  const { useLocalParticipant } = useCallStateHooks();
+  const localParticipant = useLocalParticipant();
   return (
     <ul className="rd__dev-menu">
       <li className="rd__dev-menu__item">
@@ -105,6 +107,16 @@ export const DevMenu = () => {
           target="_blank"
         >
           Go to Participant Stats
+        </a>
+      )}
+      {call && localParticipant && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={`/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}}`}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to {localParticipant?.name || 'User'} Stats
         </a>
       )}
     </ul>
