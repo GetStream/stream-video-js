@@ -30,9 +30,9 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
-    "@rollup/plugin-typescript": "^12.1.2",
+    "@rollup/plugin-typescript": "^12.1.4",
     "rimraf": "^6.0.1",
-    "rollup": "^4.40.2",
+    "rollup": "^4.52.3",
     "typescript": "^5.9.2"
   }
 }
