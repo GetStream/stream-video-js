@@ -1,5 +1,4 @@
 import {
-  BackgroundFiltersProvider,
   getLogger,
   SendReactionRequest,
   useCall,
