@@ -64,7 +64,7 @@
     "@rnx-kit/metro-config": "^2.1.2",
     "@rnx-kit/metro-resolver-symlinks": "^0.2.6",
     "@types/react": "^19.1.15",
-    "@types/react-native-incall-manager": "^4.0.3",
+    "@types/react-native-incall-manager": "^4.2.0",
     "typescript": "^5.8.3"
   },
   "engines": {
