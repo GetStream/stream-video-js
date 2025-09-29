@@ -39,8 +39,8 @@ const ifInvisibleOrUnknownBy = conditional(
  * The default sorting preset.
  */
 export const defaultSortPreset = combineComparators(
-  pinned,
   screenSharing,
+  pinned,
   ifInvisibleBy(
     combineComparators(
       dominantSpeaker,
@@ -56,8 +56,8 @@ export const defaultSortPreset = combineComparators(
  * The sorting preset for speaker layout.
  */
 export const speakerLayoutSortPreset = combineComparators(
-  pinned,
   screenSharing,
+  pinned,
   dominantSpeaker,
   ifInvisibleBy(
     combineComparators(
