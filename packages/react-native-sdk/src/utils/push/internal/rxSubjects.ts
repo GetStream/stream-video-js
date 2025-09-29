@@ -69,25 +69,3 @@ export const voipCallkeepCallOnForegroundMap$ = new BehaviorSubject<
 export const voipCallkeepAcceptedCallOnNativeDialerMap$ = new BehaviorSubject<
   CallkeepMap | undefined
 >(undefined);
-
-type UnsubscribeCallback = () => void;
-
-type AndroidCallBacksMap = Map<string, UnsubscribeCallback[]>;
-
-type IosCallBacksMap = Map<string, UnsubscribeCallback>;
-
-/**
- * This rxjs subject is used to store the unsubscribe callbacks (if any) of the push notification processing in Android
- * Note: it should be used to clear it when app processes push notification from foreground
- */
-export const pushUnsubscriptionCallbacksAndroid$ = new BehaviorSubject<
-  AndroidCallBacksMap | undefined
->(undefined);
-
-/**
- * This rxjs subject is used to store the unsubscribe callback (if any) of the push notification processing in iOS
- * Note: it should be used to clear it when app processes push notification from foreground
- */
-export const pushUnsubscriptionCallbackIos$ = new BehaviorSubject<
-  IosCallBacksMap | undefined
->(undefined);
