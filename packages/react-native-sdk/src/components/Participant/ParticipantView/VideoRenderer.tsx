@@ -104,12 +104,7 @@ export const VideoRenderer = ({
     isParticipantVideoEnabled(participant.sessionId);
 
   useEffect(() => {
-    if (
-      Platform.OS === 'ios' &&
-      registerIosScreenshot &&
-      viewRef.current &&
-      canShowVideo
-    ) {
+    if (Platform.OS === 'ios' && registerIosScreenshot && canShowVideo) {
       registerIosScreenshot(participant, trackType, viewRef);
       return () => {
         deregisterIosScreenshot(participant, trackType);

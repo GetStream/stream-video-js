@@ -13,11 +13,11 @@ export function setupIosVoipPushEvents(
     return;
   }
   const logger = getLogger(['setupIosVoipPushEvents']);
-  if (!pushConfig.android.incomingCallChannel) {
+  if (!pushConfig.ios.pushProviderName) {
     // TODO: remove this check and find a better way once we have telecom integration for android
     logger(
       'debug',
-      'android incomingCallChannel is not defined, so skipping the setupIosVoipPushEvents',
+      'ios pushProviderName is not defined, so skipping the setupIosVoipPushEvents',
     );
     return;
   }
