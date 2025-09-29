@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.21.3...@stream-io/video-react-sdk-1.22.0) (2025-09-29)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.32.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.4`
+
+### Features
+
+- **egress-composite:** custom actions ([#1926](https://github.com/GetStream/stream-video-js/issues/1926)) ([760a35a](https://github.com/GetStream/stream-video-js/commit/760a35a5a5b450d9cde9398f011b5efba8b44458))
+
+### Bug Fixes
+
+- make `mute all` label translatable ([#1930](https://github.com/GetStream/stream-video-js/issues/1930)) ([1f49368](https://github.com/GetStream/stream-video-js/commit/1f49368643ccf9a4cec643e4bd9e10ddf7635232))
+
 ## [1.21.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.21.2...@stream-io/video-react-sdk-1.21.3) (2025-09-17)
 
 ### Dependency Updates
