@@ -9,11 +9,7 @@ import type {
   StreamVideoConfig,
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
-import {
-  pushUnsubscriptionCallbacksAndroid,
-  pushUnsubscriptionCallbackIos,
-} from './constants';
-import { Platform } from 'react-native';
+import { pushUnsubscriptionCallbacks } from './constants';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -178,19 +174,10 @@ export const processNonIncomingCallFromPush = async (
  * note: events are subscribed in push for accept/decline through WS
  */
 export const clearPushWSEventSubscriptions = (call_cid: string) => {
-  if (Platform.OS === 'android') {
-    const unsubscriptionCallbacks =
-      pushUnsubscriptionCallbacksAndroid.get(call_cid);
-    if (unsubscriptionCallbacks) {
-      unsubscriptionCallbacks.forEach((cb) => cb());
-      pushUnsubscriptionCallbacksAndroid.delete(call_cid);
-    }
-  } else if (Platform.OS === 'ios') {
-    const unsubscriptionCallback = pushUnsubscriptionCallbackIos.get(call_cid);
-    if (unsubscriptionCallback) {
-      unsubscriptionCallback();
-      pushUnsubscriptionCallbackIos.delete(call_cid);
-    }
+  const unsubscriptionCallbacks = pushUnsubscriptionCallbacks.get(call_cid);
+  if (unsubscriptionCallbacks) {
+    unsubscriptionCallbacks.forEach((cb) => cb());
+    pushUnsubscriptionCallbacks.delete(call_cid);
   }
 };
 

@@ -26,7 +26,7 @@ import {
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
 } from './internal/rxSubjects';
-import { pushUnsubscriptionCallbacksAndroid } from './internal/constants';
+import { pushUnsubscriptionCallbacks } from './internal/constants';
 import {
   canAddPushWSSubscriptionsRef,
   clearPushWSEventSubscriptions,
@@ -252,13 +252,8 @@ export const firebaseDataHandler = async (
           );
           unsubscribeFunctions.push(unsubscribe);
           unsubscribeFunctions.push(() => subscription.unsubscribe());
-          pushUnsubscriptionCallbacksAndroid
-            .get(call_cid)
-            ?.forEach((cb) => cb());
-          pushUnsubscriptionCallbacksAndroid.set(
-            call_cid,
-            unsubscribeFunctions,
-          );
+          pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
+          pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
         });
       });
     }
