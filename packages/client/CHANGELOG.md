@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.32.0...@stream-io/video-client-1.33.0) (2025-09-30)
+
+### Features
+
+- Audio profiles and Hi-Fi stereo audio ([#1887](https://github.com/GetStream/stream-video-js/issues/1887)) ([3b60c89](https://github.com/GetStream/stream-video-js/commit/3b60c89b8c0dbc40544fe13be79c10e93bbddd3d))
+
+### Bug Fixes
+
+- **client:** server side pinning ([#1936](https://github.com/GetStream/stream-video-js/issues/1936)) ([cd33b9e](https://github.com/GetStream/stream-video-js/commit/cd33b9e4417e8fdc452b6d4a192e10183ddfa31b))
+
 ## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.31.0...@stream-io/video-client-1.32.0) (2025-09-29)
 
 ### Features
