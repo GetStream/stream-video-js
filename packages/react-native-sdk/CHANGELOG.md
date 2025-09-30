@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.21.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.21.0...@stream-io/video-react-native-sdk-1.21.1) (2025-09-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.33.0`
+- `@stream-io/video-react-bindings` updated to version `1.9.0`
+
+### Bug Fixes
+
+- support scenario of accept second call when there is ongoing first call ([#1939](https://github.com/GetStream/stream-video-js/issues/1939)) ([1e73517](https://github.com/GetStream/stream-video-js/commit/1e7351704cebe36af8ea0833ab1725472bbedbe8))
+
 ## [1.21.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.16...@stream-io/video-react-native-sdk-1.21.0) (2025-09-29)
 
 ### Dependency Updates
