@@ -1,6 +1,6 @@
 import React from 'react';
 import { Path, Svg } from 'react-native-svg';
-import { ColorValue } from 'react-native/types';
+import { ColorValue } from 'react-native';
 
 type IconProps = {
   color: ColorValue;
