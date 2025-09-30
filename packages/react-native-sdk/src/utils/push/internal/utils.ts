@@ -2,7 +2,6 @@ import {
   Call,
   CallingState,
   getLogger,
-  RxUtils,
   StreamVideoClient,
 } from '@stream-io/video-client';
 import type {
@@ -10,7 +9,7 @@ import type {
   StreamVideoConfig,
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
-import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
+import { pushUnsubscriptionCallbacks } from './constants';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -174,14 +173,12 @@ export const processNonIncomingCallFromPush = async (
  * This function is used to clear all the push related WS subscriptions
  * note: events are subscribed in push for accept/decline through WS
  */
-export const clearPushWSEventSubscriptions = () => {
-  const unsubscriptionCallbacks = RxUtils.getCurrentValue(
-    pushUnsubscriptionCallbacks$,
-  );
+export const clearPushWSEventSubscriptions = (call_cid: string) => {
+  const unsubscriptionCallbacks = pushUnsubscriptionCallbacks.get(call_cid);
   if (unsubscriptionCallbacks) {
     unsubscriptionCallbacks.forEach((cb) => cb());
+    pushUnsubscriptionCallbacks.delete(call_cid);
   }
-  pushUnsubscriptionCallbacks$.next(undefined);
 };
 
 /**
