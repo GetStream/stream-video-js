@@ -12,8 +12,8 @@ import {
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
-import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
-import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
+import { DeviceManager } from '../DeviceManager';
+import { DeviceManagerState } from '../DeviceManagerState';
 import { of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 
@@ -34,13 +34,13 @@ vi.mock('../devices.ts', () => {
   };
 });
 
-class TestInputMediaDeviceManagerState extends InputMediaDeviceManagerState {
+class TestInputMediaDeviceManagerState extends DeviceManagerState {
   public getDeviceIdFromStream = vi.fn(
     (stream) => stream.getVideoTracks()[0].getSettings().deviceId,
   );
 }
 
-class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMediaDeviceManagerState> {
+class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceManagerState> {
   public getDevices = vi.fn(() => of(mockVideoDevices));
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();

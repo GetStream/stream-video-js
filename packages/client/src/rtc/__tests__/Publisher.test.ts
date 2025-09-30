@@ -139,10 +139,11 @@ describe('Publisher', () => {
       const transceiver = new RTCRtpTransceiver();
       // @ts-expect-error test setup
       transceiver.sender.track = track;
-      publisher['transceiverCache'].add(
-        publisher['publishOptions'][0],
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
         transceiver,
-      );
+        options: {},
+      });
 
       await publisher.publish(track, TrackType.VIDEO);
 
@@ -429,11 +430,12 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].add(
+      publisher['transceiverCache'].add({
         // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 1 },
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
         transceiver,
-      );
+        options: {},
+      });
 
       await publisher['changePublishQuality']({
         publishOptionId: 1,
@@ -504,11 +506,12 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].add(
+      publisher['transceiverCache'].add({
         // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 1 },
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
         transceiver,
-      );
+        options: {},
+      });
 
       await publisher['changePublishQuality']({
         publishOptionId: 1,
@@ -567,11 +570,12 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].add(
+      publisher['transceiverCache'].add({
         // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 1 },
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
         transceiver,
-      );
+        options: {},
+      });
       await publisher['changePublishQuality']({
         publishOptionId: 1,
         trackType: TrackType.VIDEO,
@@ -624,11 +628,12 @@ describe('Publisher', () => {
         });
 
       // inject the transceiver
-      publisher['transceiverCache'].add(
+      publisher['transceiverCache'].add({
         // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 1 },
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
         transceiver,
-      );
+        options: {},
+      });
 
       await publisher['changePublishQuality']({
         publishOptionId: 1,
@@ -679,10 +684,11 @@ describe('Publisher', () => {
         { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
       ];
 
-      publisher['transceiverCache'].add(
-        publisher['publishOptions'][0],
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
         transceiver,
-      );
+        options: {},
+      });
 
       vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
 
@@ -698,6 +704,7 @@ describe('Publisher', () => {
           id: 1,
           codec: { name: 'av1' },
         }),
+        {},
       );
       expect(publisher['addTransceiver']).toHaveBeenCalledWith(
         track,
@@ -706,6 +713,7 @@ describe('Publisher', () => {
           id: 2,
           codec: { name: 'vp9' },
         }),
+        {},
       );
       expect(publisher['negotiate']).toHaveBeenCalledTimes(2);
     });
@@ -725,9 +733,21 @@ describe('Publisher', () => {
       // @ts-expect-error test setup
       transceiver.sender.track = track;
 
-      publisher['transceiverCache'].add(publishOptions[0], transceiver);
-      publisher['transceiverCache'].add(publishOptions[1], transceiver);
-      publisher['transceiverCache'].add(publishOptions[2], transceiver);
+      publisher['transceiverCache'].add({
+        publishOption: publishOptions[0],
+        transceiver,
+        options: {},
+      });
+      publisher['transceiverCache'].add({
+        publishOption: publishOptions[1],
+        transceiver,
+        options: {},
+      });
+      publisher['transceiverCache'].add({
+        publishOption: publishOptions[2],
+        transceiver,
+        options: {},
+      });
 
       vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
       // disable av1
@@ -749,10 +769,10 @@ describe('Publisher', () => {
 
     beforeEach(() => {
       cache = publisher['transceiverCache'];
-      const transceiver = new RTCRtpTransceiver();
+      const videoTransceiver = new RTCRtpTransceiver();
       const track = new MediaStreamTrack();
       vi.spyOn(track, 'enabled', 'get').mockReturnValue(true);
-      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      vi.spyOn(videoTransceiver.sender, 'track', 'get').mockReturnValue(track);
 
       const inactiveTransceiver = new RTCRtpTransceiver();
       const inactiveTrack = new MediaStreamTrack();
@@ -770,12 +790,24 @@ describe('Publisher', () => {
         audioTrack,
       );
 
-      // @ts-expect-error incomplete data
-      cache.add({ trackType: TrackType.VIDEO, id: 1 }, transceiver);
-      // @ts-expect-error incomplete data
-      cache.add({ trackType: TrackType.VIDEO, id: 2 }, inactiveTransceiver);
-      // @ts-expect-error incomplete data
-      cache.add({ trackType: TrackType.AUDIO, id: 3 }, audioTransceiver);
+      cache.add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
+        transceiver: videoTransceiver,
+        options: {},
+      });
+      cache.add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.VIDEO, id: 2 },
+        transceiver: inactiveTransceiver,
+        options: {},
+      });
+      cache.add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.AUDIO, id: 3 },
+        transceiver: audioTransceiver,
+        options: {},
+      });
 
       publisher['clonedTracks'].add(track).add(inactiveTrack).add(audioTrack);
       publisher['trackIdToTrackType']
