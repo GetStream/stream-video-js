@@ -1127,19 +1127,42 @@ export class CallState {
    * @param pins the latest pins from the server.
    */
   setServerSidePins = (pins: Pin[]) => {
-    const pinsLookup = pins.reduce<{ [sessionId: string]: number | undefined }>(
-      (lookup, pin) => {
-        lookup[pin.sessionId] = Date.now();
-        return lookup;
-      },
-      {},
-    );
+    const now = Date.now();
+    const unknownSymbol = Symbol('unknown');
+
+    // generate a lookup table of pinnedAt timestamps by userId and sessionId
+    // if there are multiple pins for the same userId, then we set the pinnedAt
+    // to `unknown` (for that userId lookup) so that we don't apply any pin for that participant
+    // this is to avoid conflicts during reconstruction of the pin state after reconnections
+    // as sessionIds can change
+    const pinnedAtByIdentifier = pins.reduce<
+      Record<string, number | undefined | typeof unknownSymbol>
+    >((lookup, pin, index) => {
+      const pinnedAt = now + (pins.length - index);
+
+      if (lookup[pin.userId]) {
+        lookup[pin.userId] = unknownSymbol;
+      } else {
+        lookup[pin.userId] = pinnedAt;
+      }
+
+      lookup[pin.sessionId] ??= pinnedAt;
+
+      return lookup;
+    }, {});
 
     return this.setParticipants((participants) =>
       participants.map((participant) => {
-        const serverSidePinnedAt = pinsLookup[participant.sessionId];
+        // first check by sessionId as that is 100% correct, then by attempt reconstruction by userId
+        const serverSidePinnedAt =
+          pinnedAtByIdentifier[participant.sessionId] ??
+          pinnedAtByIdentifier[participant.userId];
+
         // the participant is newly pinned
-        if (serverSidePinnedAt) {
+        if (
+          typeof serverSidePinnedAt === 'number' &&
+          typeof participant.pin?.pinnedAt !== 'number'
+        ) {
           return {
             ...participant,
             pin: {
@@ -1150,7 +1173,10 @@ export class CallState {
         }
         // the participant is no longer pinned server side
         // we need to reset the pin
-        if (participant.pin && !participant.pin.isLocalPin) {
+        if (
+          typeof serverSidePinnedAt !== 'number' &&
+          participant.pin?.isLocalPin === false
+        ) {
           return {
             ...participant,
             pin: undefined,
