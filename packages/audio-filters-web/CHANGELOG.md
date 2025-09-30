@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.3...@stream-io/audio-filters-web-0.5.0) (2025-09-30)
+
+### Features
+
+- Audio profiles and Hi-Fi stereo audio ([#1887](https://github.com/GetStream/stream-video-js/issues/1887)) ([3b60c89](https://github.com/GetStream/stream-video-js/commit/3b60c89b8c0dbc40544fe13be79c10e93bbddd3d))
+
 ## [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.2...@stream-io/audio-filters-web-0.4.3) (2025-07-25)
 
 ### Bug Fixes
