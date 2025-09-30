@@ -21,7 +21,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "i18next": "^25.2.1",
+    "i18next": "^25.5.2",
     "rxjs": "~7.8.2"
   },
   "peerDependencies": {

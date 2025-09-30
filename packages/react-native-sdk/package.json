@@ -116,6 +116,7 @@
     }
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
     "@expo/config-plugins": "54.0.1",
     "@expo/config-types": "^54.0.8",
     "@expo/plist": "^0.4.7",
@@ -151,6 +152,7 @@
     "react-native-reanimated": "~4.1.2",
     "react-native-svg": "15.13.0",
     "react-native-voip-push-notification": "3.3.3",
+    "react-native-worklets": "^0.5.0",
     "react-test-renderer": "19.1.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2"

@@ -26,14 +26,14 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@protobuf-ts/runtime": "^2.9.4",
-    "@protobuf-ts/runtime-rpc": "^2.9.4",
-    "@protobuf-ts/twirp-transport": "^2.9.4",
+    "@protobuf-ts/runtime": "^2.11.1",
+    "@protobuf-ts/runtime-rpc": "^2.11.1",
+    "@protobuf-ts/twirp-transport": "^2.11.1",
     "@stream-io/worker-timer": "^1.2.4",
-    "axios": "^1.8.1",
+    "axios": "^1.12.2",
     "rxjs": "~7.8.2",
     "sdp-transform": "^2.15.0",
-    "ua-parser-js": "^1.0.40",
+    "ua-parser-js": "^1.0.41",
     "webrtc-adapter": "^8.2.4"
   },
   "devDependencies": {
@@ -41,7 +41,7 @@
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.4",
     "@stream-io/audio-filters-web": "workspace:^",
-    "@stream-io/node-sdk": "^0.4.24",
+    "@stream-io/node-sdk": "^0.7.0",
     "@types/sdp-transform": "^2.15.0",
     "@types/ua-parser-js": "^0.7.39",
     "@vitest/coverage-v8": "^3.2.4",
@@ -51,7 +51,6 @@
     "rimraf": "^6.0.1",
     "rollup": "^4.52.3",
     "typescript": "^5.9.2",
-    "vite": "^7.1.7",
     "vitest": "^3.2.4",
     "vitest-mock-extended": "^3.1.0"
   }
