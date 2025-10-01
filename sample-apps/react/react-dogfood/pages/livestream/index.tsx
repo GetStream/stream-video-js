@@ -12,46 +12,59 @@ export default function LivestreamSetupPage() {
   const [callType, setCallType] = useState('livestream');
   const [callId, setCallId] = useState('');
   const [userId, setUserId] = useState('livestream-demo-user');
+  const [error, setError] = useState('');
 
   const hasAllData = apiKey && secret && callType && callId && userId;
-  const edges = useEdges();
-
   const router = useRouter();
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const generator = new JwtTokenGenerator(secret);
     const token = await generator.generate({ user_id: userId });
-    const userClient = new StreamVideoClient(apiKey);
-    await userClient.connectUser({ id: userId }, token);
-    const userCall = userClient.call(callType, callId);
-    await userCall.get();
+    let userClient: StreamVideoClient | undefined = undefined;
+    let creatorClient: StreamVideoClient | undefined = undefined;
 
-    // ensure that the current user can join the livestream
-    const creatorId = userCall.state.createdBy?.id;
-    if (creatorId && creatorId !== userId) {
-      const creatorClient = new StreamVideoClient(apiKey);
-      const creatorToken = await generator.generate({ user_id: creatorId });
-      await creatorClient.connectUser({ id: creatorId }, creatorToken);
-      const creatorCall = creatorClient.call(callType, callId);
-      await creatorCall.get();
-      await creatorCall.updateCallMembers({
-        update_members: [{ user_id: userId, role: 'user' }],
-      });
-      if (
-        creatorCall.state.settings?.backstage.enabled &&
-        creatorCall.state.backstage
-      ) {
-        await creatorCall.goLive();
+    try {
+      userClient = new StreamVideoClient(apiKey);
+      await userClient.connectUser({ id: userId }, token);
+      const userCall = userClient.call(callType, callId);
+      await userCall.get();
+
+      // ensure that the current user can join the livestream
+      const creatorId = userCall.state.createdBy?.id;
+      if (creatorId && creatorId !== userId) {
+        creatorClient = new StreamVideoClient(apiKey);
+        const creatorToken = await generator.generate({ user_id: creatorId });
+        await creatorClient.connectUser({ id: creatorId }, creatorToken);
+        const creatorCall = creatorClient.call(callType, callId);
+        await creatorCall.get();
+        await creatorCall.updateCallMembers({
+          update_members: [{ user_id: userId, role: 'user' }],
+        });
+        if (
+          creatorCall.state.settings?.backstage.enabled &&
+          creatorCall.state.backstage
+        ) {
+          await creatorCall.goLive();
+        }
       }
 
-      await creatorClient.disconnectUser();
+      const params = new URLSearchParams({
+        api_key: apiKey,
+        token: token,
+        type: callType,
+        skip_lobby: 'true',
+        layout: 'LivestreamLayout',
+      });
+      await router.push(`/join/${callId}?${params.toString()}`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      await userClient?.disconnectUser().catch((err) => console.error(err));
+      await creatorClient?.disconnectUser().catch((err) => console.error(err));
     }
-
-    await userClient.disconnectUser();
-    await router.push(
-      `/join/${callId}?api_key=${apiKey}&token=${token}&type=${callType}&layout=LivestreamLayout`,
-    );
   };
+
+  const edges = useEdges();
   return (
     <>
       <DefaultAppHeader />
@@ -113,7 +126,7 @@ export default function LivestreamSetupPage() {
               <input
                 className="rd__input"
                 id="callId"
-                placeholder="demo-call-id"
+                placeholder="livestream-call-id"
                 value={callId}
                 onChange={(e) => setCallId(e.target.value)}
               />
@@ -130,6 +143,8 @@ export default function LivestreamSetupPage() {
                 onChange={(e) => setUserId(e.target.value)}
               />
             </div>
+
+            {error && <div className="rd__livestream__errors">{error}</div>}
 
             <button
               type="submit"

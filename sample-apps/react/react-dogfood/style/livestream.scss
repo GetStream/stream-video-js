@@ -5,6 +5,14 @@
   position: absolute;
 }
 
+.rd__livestream__errors {
+  display: flex;
+  width: 100%;
+  padding: var(--str-video__spacing-lg);
+  font-size: var(--str-video__font-size-sm);
+  color: var(--str-video__danger-color);
+}
+
 .rd__livestream__credentials {
   width: 100%;
   padding: var(--str-video__spacing-lg);
