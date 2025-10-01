@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ParticipantSource } from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
   Comparator,
@@ -8,6 +9,7 @@ import {
   publishingAudio,
   publishingVideo,
   screenSharing,
+  withVideoIngressSource,
 } from '../index';
 import * as TestData from './participant-data';
 
@@ -42,5 +44,43 @@ describe('Sorting', () => {
 
     const disableComparator = conditional<number>(() => false);
     expect([...input].sort(disableComparator(byValue))).toEqual([2, 3, 1]);
+  });
+
+  it('withIngressSource', () => {
+    expect(
+      withVideoIngressSource(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.WEBRTC_UNSPECIFIED },
+        { source: ParticipantSource.SRT },
+      ),
+    ).toEqual(1);
+    expect(
+      withVideoIngressSource(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.WEBRTC_UNSPECIFIED },
+        { source: ParticipantSource.SIP },
+      ),
+    ).toEqual(0);
+    expect(
+      withVideoIngressSource(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.RTMP },
+        { source: ParticipantSource.SIP },
+      ),
+    ).toEqual(-1);
+    expect(
+      withVideoIngressSource(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.SIP },
+        { source: ParticipantSource.RTMP },
+      ),
+    ).toEqual(1);
+    expect(
+      withVideoIngressSource(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.WEBRTC_UNSPECIFIED },
+        { source: ParticipantSource.RTMP },
+      ),
+    ).toEqual(1);
   });
 });

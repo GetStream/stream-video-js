@@ -38,8 +38,10 @@ export const speaking: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const screenSharing: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (hasScreenShare(a) && !hasScreenShare(b)) return -1;
-  if (!hasScreenShare(a) && hasScreenShare(b)) return 1;
+  const hasA = hasScreenShare(a);
+  const hasB = hasScreenShare(b);
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
   return 0;
 };
 
@@ -50,8 +52,10 @@ export const screenSharing: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const publishingVideo: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (hasVideo(a) && !hasVideo(b)) return -1;
-  if (!hasVideo(a) && hasVideo(b)) return 1;
+  const hasA = hasVideo(a);
+  const hasB = hasVideo(b);
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
   return 0;
 };
 
@@ -62,8 +66,10 @@ export const publishingVideo: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const publishingAudio: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (hasAudio(a) && !hasAudio(b)) return -1;
-  if (!hasAudio(a) && hasAudio(b)) return 1;
+  const hasA = hasAudio(a);
+  const hasB = hasAudio(b);
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
   return 0;
 };
 
@@ -102,6 +108,21 @@ export const withParticipantSource =
   };
 
 /**
+ * A comparator that prioritizes participants who are from a video ingress source
+ * (e.g., RTMP, SRT, WHIP...).
+ */
+export const withVideoIngressSource: Comparator<StreamVideoParticipant> = (
+  a,
+  b,
+) => {
+  const aIsIngress = isVideoIngress(a.source);
+  const bIsIngress = isVideoIngress(b.source);
+  if (aIsIngress && !bIsIngress) return -1;
+  if (!aIsIngress && bIsIngress) return 1;
+  return 0;
+};
+
+/**
  * A comparator creator which will set up a comparator which prioritizes
  * participants who have a specific reaction.
  *
@@ -126,8 +147,10 @@ export const reactionType = (
 export const role =
   (...roles: string[]): Comparator<StreamVideoParticipant> =>
   (a, b) => {
-    if (hasAnyRole(a, roles) && !hasAnyRole(b, roles)) return -1;
-    if (!hasAnyRole(a, roles) && hasAnyRole(b, roles)) return 1;
+    const hasA = hasAnyRole(a, roles);
+    const hasB = hasAnyRole(b, roles);
+    if (hasA && !hasB) return -1;
+    if (!hasA && hasB) return 1;
     return 0;
   };
 
@@ -145,3 +168,8 @@ export const name: Comparator<StreamVideoParticipant> = (a, b) => {
 
 const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
   (p.roles || []).some((r) => roles.includes(r));
+
+const isVideoIngress = (source: ParticipantSource) =>
+  source !== ParticipantSource.SIP && // audio-only ingress
+  source > ParticipantSource.WEBRTC_UNSPECIFIED &&
+  source <= ParticipantSource.SRT;

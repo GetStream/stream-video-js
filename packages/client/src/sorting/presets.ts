@@ -1,4 +1,3 @@
-import { ParticipantSource } from '../gen/video/sfu/models/models';
 import { StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
 import {
@@ -10,7 +9,7 @@ import {
   role,
   screenSharing,
   speaking,
-  withParticipantSource,
+  withVideoIngressSource,
 } from './participants';
 
 // a comparator decorator which applies the decorated comparator only if the
@@ -63,6 +62,7 @@ export const speakerLayoutSortPreset = combineComparators(
     combineComparators(
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
@@ -80,6 +80,7 @@ export const paginatedLayoutSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
@@ -95,7 +96,7 @@ export const livestreamOrAudioRoomSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
-      withParticipantSource(ParticipantSource.RTMP),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
