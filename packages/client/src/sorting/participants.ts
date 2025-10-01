@@ -170,7 +170,7 @@ export const name: Comparator<StreamVideoParticipant> = (a, b) => {
 const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
   (p.roles || []).some((r) => roles.includes(r));
 
-const isVideoIngress = (source: ParticipantSource) => {
+const isVideoIngress = (source: ParticipantSource): boolean => {
   switch (source) {
     case ParticipantSource.WEBRTC_UNSPECIFIED:
     case ParticipantSource.SIP:
@@ -182,5 +182,6 @@ const isVideoIngress = (source: ParticipantSource) => {
       return true;
     default:
       ensureExhausted(source, 'Unknown participant source');
+      return true;
   }
 };
