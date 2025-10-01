@@ -1,3 +1,4 @@
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
 import { DefaultAppHeader } from '../../components/DefaultAppHeader';
 import { FormEvent, useState } from 'react';
@@ -20,6 +21,33 @@ export default function LivestreamSetupPage() {
     e.preventDefault();
     const generator = new JwtTokenGenerator(secret);
     const token = await generator.generate({ user_id: userId });
+    const userClient = new StreamVideoClient(apiKey);
+    await userClient.connectUser({ id: userId }, token);
+    const userCall = userClient.call(callType, callId);
+    await userCall.get();
+
+    // ensure that the current user can join the livestream
+    const creatorId = userCall.state.createdBy?.id;
+    if (creatorId && creatorId !== userId) {
+      const creatorClient = new StreamVideoClient(apiKey);
+      const creatorToken = await generator.generate({ user_id: creatorId });
+      await creatorClient.connectUser({ id: creatorId }, creatorToken);
+      const creatorCall = creatorClient.call(callType, callId);
+      await creatorCall.get();
+      await creatorCall.updateCallMembers({
+        update_members: [{ user_id: userId, role: 'user' }],
+      });
+      if (
+        creatorCall.state.settings?.backstage.enabled &&
+        creatorCall.state.backstage
+      ) {
+        await creatorCall.goLive();
+      }
+
+      await creatorClient.disconnectUser();
+    }
+
+    await userClient.disconnectUser();
     await router.push(
       `/join/${callId}?api_key=${apiKey}&token=${token}&type=${callType}&layout=LivestreamLayout`,
     );
@@ -49,7 +77,7 @@ export default function LivestreamSetupPage() {
               <input
                 className="rd__input"
                 id="apiKey"
-                placeholder="mmhfdzb5evj2"
+                placeholder="e.g.: mmhfdzb5evj2"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
               />
@@ -61,7 +89,7 @@ export default function LivestreamSetupPage() {
               <input
                 className="rd__input"
                 id="secret"
-                placeholder="5cssrefv55rs3cnkk38kfjam2k7c2ykwn..."
+                placeholder="e.g.: 5cssrefv55rs3cnkk38kfjam2..."
                 value={secret}
                 onChange={(e) => setSecret(e.target.value)}
               />
