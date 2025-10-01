@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.4...@stream-io/noise-cancellation-react-native-0.3.0) (2025-09-29)
+
+### Features
+
+- 16KB page size support for noise cancellation & screenshot ([#1933](https://github.com/GetStream/stream-video-js/issues/1933)) ([7e3b046](https://github.com/GetStream/stream-video-js/commit/7e3b046820bde9d331871718a6f841bff88a73ce)), closes [#1937](https://github.com/GetStream/stream-video-js/issues/1937)
+
+### Bug Fixes
+
+- **nc:** switch to a stable version channel ([#1931](https://github.com/GetStream/stream-video-js/issues/1931)) ([9f8e555](https://github.com/GetStream/stream-video-js/commit/9f8e5558ab288eb5a7a503b4be341b9018750b7f))
+
+## [0.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.3...@stream-io/noise-cancellation-react-native-0.2.4) (2025-09-18)
+
+### Bug Fixes
+
+- noise cancellation snapshot url ([#1925](https://github.com/GetStream/stream-video-js/issues/1925)) ([7bdf589](https://github.com/GetStream/stream-video-js/commit/7bdf589e079f8d3f2836999781dbfa57be96cfa3))
+
 ## [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.2...@stream-io/noise-cancellation-react-native-0.2.3) (2025-09-05)
 
 ### Bug Fixes

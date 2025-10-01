@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,6 +42,21 @@
 		F4FF95D5245B92E700C19C63 /* StreamVideoReactNative-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StreamVideoReactNative-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		05DBB1DF2E6B3F0600309346 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				busy.mp3,
+			);
+			target = 58B511DA1A9E6C8500147676 /* StreamVideoReactNative */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		05DBB1DA2E6B3ECE00309346 /* New Folder */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "New Folder"; sourceTree = "<group>"; };
+		05DBB1DB2E6B3EEC00309346 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (05DBB1DF2E6B3F0600309346 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		58B511D81A9E6C8500147676 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -64,6 +79,8 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				05DBB1DB2E6B3EEC00309346 /* Resources */,
+				05DBB1DA2E6B3ECE00309346 /* New Folder */,
 				DDCF7DCC2C90359D00420842 /* PictureInPicture */,
 				DDCF7DCA2C90359D00420842 /* RTCViewPip.swift */,
 				DDCF7DC92C90359D00420842 /* RTCViewPipManager.mm */,
@@ -114,6 +131,7 @@
 				58B511D71A9E6C8500147676 /* Sources */,
 				58B511D81A9E6C8500147676 /* Frameworks */,
 				58B511D91A9E6C8500147676 /* CopyFiles */,
+				05DBB1DD2E6B3F0100309346 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -155,6 +173,16 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		05DBB1DD2E6B3F0100309346 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		58B511D71A9E6C8500147676 /* Sources */ = {

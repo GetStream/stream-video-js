@@ -2,6 +2,60 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.21.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.16...@stream-io/video-react-native-sdk-1.21.0) (2025-09-29)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.3.0`
+- `@stream-io/video-filters-react-native` updated to version `0.7.0`
+- `@stream-io/video-client` updated to version `1.32.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.4`
+
+### Features
+
+- 16KB page size support for noise cancellation & screenshot ([#1933](https://github.com/GetStream/stream-video-js/issues/1933)) ([7e3b046](https://github.com/GetStream/stream-video-js/commit/7e3b046820bde9d331871718a6f841bff88a73ce)), closes [#1937](https://github.com/GetStream/stream-video-js/issues/1937)
+- **react-native:** reject call when busy ([#1856](https://github.com/GetStream/stream-video-js/issues/1856)) ([b60bc7c](https://github.com/GetStream/stream-video-js/commit/b60bc7cd2dc2e09d52496d7b5cb593cac4b89485))
+
+### Bug Fixes
+
+- dont check android.incomingCallChannel for ios voip setup ([01bd3fd](https://github.com/GetStream/stream-video-js/commit/01bd3fdb249fbdf2896c4851acd7ae5486dae88f))
+- unncessary to check if viewRef is defined to register screenshot view ([f35315f](https://github.com/GetStream/stream-video-js/commit/f35315fa4e565c002a0dde54e21433ca068fbd21))
+
+## [1.20.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.15...@stream-io/video-react-native-sdk-1.20.16) (2025-09-18)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.2.4`
+
+### Bug Fixes
+
+- android RN module compilation error on RN 0.81 ([#1924](https://github.com/GetStream/stream-video-js/issues/1924)) ([b02294c](https://github.com/GetStream/stream-video-js/commit/b02294c8bb85795ff5ac5fed2195e26d7e1f11a4)), closes [#1921](https://github.com/GetStream/stream-video-js/issues/1921)
+
+## [1.20.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.14...@stream-io/video-react-native-sdk-1.20.15) (2025-09-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.31.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.3`
+
+### Bug Fixes
+
+- screenshot for iOS was broken on old arch on interop layer ([#1923](https://github.com/GetStream/stream-video-js/issues/1923)) ([9b3134b](https://github.com/GetStream/stream-video-js/commit/9b3134bb6f6380551af4c3a0a69274eada2f8d94))
+
+## [1.20.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.13...@stream-io/video-react-native-sdk-1.20.14) (2025-09-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.30.1`
+- `@stream-io/video-react-bindings` updated to version `1.8.2`
+
+## [1.20.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.12...@stream-io/video-react-native-sdk-1.20.13) (2025-09-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.30.0`
+- `@stream-io/video-react-bindings` updated to version `1.8.1`
+
 ## [1.20.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.20.11...@stream-io/video-react-native-sdk-1.20.12) (2025-09-09)
 
 ### Dependency Updates

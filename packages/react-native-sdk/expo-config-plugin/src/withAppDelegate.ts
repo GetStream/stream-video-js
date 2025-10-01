@@ -472,6 +472,16 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
       completion()
       return
     }
+
+    // Check if user is busy BEFORE registering the call
+    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
+    let hasAnyActiveCall = StreamVideoReactNative.hasAnyActiveCall()
+        
+    if shouldReject && hasAnyActiveCall {
+        // Complete the VoIP notification without showing CallKit UI
+        completion()
+        return
+    }
     
     let uuid = UUID().uuidString
     let videoIncluded = stream["video"] as? String
@@ -536,6 +546,16 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   NSString *cid = stream[@"call_cid"];
+  
+  // Check if user is busy BEFORE registering the call
+  BOOL shouldReject = [StreamVideoReactNative shouldRejectCallWhenBusy];
+  BOOL hasAnyActiveCall = [StreamVideoReactNative hasAnyActiveCall];
+  
+  if (shouldReject && hasAnyActiveCall) {
+      // Complete the VoIP notification without showing CallKit UI
+      completion();
+      return;
+  }
   
   NSString *videoIncluded = stream[@"video"];
   BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;

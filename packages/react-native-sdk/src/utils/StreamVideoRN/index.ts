@@ -5,6 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { NativeModules } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -62,6 +63,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
+  private static busyToneTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Update the global config for StreamVideoRN except for push config.
@@ -163,5 +165,19 @@ export class StreamVideoRN {
       newNotificationCallbacks.current =
         newNotificationCallbacks.current?.filter((cb) => cb !== callback);
     };
+  }
+
+  /**
+   * Play native busy tone for call rejection
+   */
+  static async playBusyTone() {
+    return NativeModules.StreamVideoReactNative?.playBusyTone();
+  }
+
+  /**
+   * Stop native busy tone
+   */
+  static async stopBusyTone() {
+    return NativeModules.StreamVideoReactNative?.stopBusyTone();
   }
 }

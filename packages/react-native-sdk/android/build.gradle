@@ -95,6 +95,6 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"
     implementation project(':stream-io_react-native-webrtc')
-    implementation "io.github.crow-misia.libyuv:libyuv-android:0.34.0"
+    implementation "io.github.crow-misia.libyuv:libyuv-android:0.36.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }

@@ -112,6 +112,7 @@ import {
   ClientCapability,
   ClientDetails,
   Codec,
+  ParticipantSource,
   PublishOption,
   SubscribeOption,
   TrackType,
@@ -873,8 +874,6 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    this.state.setCallingState(CallingState.JOINING);
-
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU
@@ -904,8 +903,6 @@ export class Call {
         }
 
         if (attempt === maxJoinRetries - 1) {
-          // restore the previous call state if the join-flow fails
-          this.state.setCallingState(callingState);
           throw err;
         }
       }
@@ -980,6 +977,7 @@ export class Call {
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
+    this.unifiedSessionId ??= sfuClient.sessionId;
     this.dynascaleManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
@@ -1007,6 +1005,7 @@ export class Call {
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
           await sfuClient.join({
+            unifiedSessionId: this.unifiedSessionId,
             subscriberSdp,
             publisherSdp,
             clientDetails,
@@ -1015,6 +1014,7 @@ export class Call {
             preferredPublishOptions,
             preferredSubscribeOptions,
             capabilities: Array.from(this.clientCapabilities),
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
           });
 
         this.currentPublishOptions = publishOptions;
@@ -1059,6 +1059,7 @@ export class Call {
         statsOptions,
         publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
+        unifiedSessionId: this.unifiedSessionId,
       });
     }
 
@@ -1220,6 +1221,7 @@ export class Call {
     clientDetails: ClientDetails;
     publishOptions: PublishOption[];
     closePreviousInstances: boolean;
+    unifiedSessionId: string;
   }) => {
     const {
       sfuClient,
@@ -1228,6 +1230,7 @@ export class Call {
       statsOptions,
       publishOptions,
       closePreviousInstances,
+      unifiedSessionId,
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
@@ -1286,7 +1289,6 @@ export class Call {
     this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
-      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1296,7 +1298,7 @@ export class Call {
         camera: this.camera,
         state: this.state,
         tracer: this.tracer,
-        unifiedSessionId: this.unifiedSessionId,
+        unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }

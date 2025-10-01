@@ -38,18 +38,17 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
       return;
     }
 
-    // providing both device id and direction doesn't work, so we deselect the device
-    this.state.setDirection(direction);
-    this.state.setDevice(undefined);
-
     if (isReactNative()) {
       const videoTrack = this.getTracks()[0] as MediaStreamTrack | undefined;
       await videoTrack?.applyConstraints({
         facingMode: direction === 'front' ? 'user' : 'environment',
       });
+      this.state.setDirection(direction);
       return;
     }
-
+    // providing both device id and direction doesn't work, so we deselect the device
+    this.state.setDirection(direction);
+    this.state.setDevice(undefined);
     this.getTracks().forEach((track) => track.stop());
     try {
       await this.unmuteStream();
@@ -122,7 +121,8 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
 
-    const { target_resolution, camera_facing, camera_default_on } = settings;
+    const { target_resolution, camera_facing, camera_default_on, enabled } =
+      settings;
     // normalize target resolution to landscape format.
     // on mobile devices, the device itself adjusts the resolution to portrait or landscape
     // depending on the orientation of the device. using portrait resolution
@@ -142,7 +142,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     if (this.enabled && mediaStream) {
       // The camera is already enabled (e.g. lobby screen). Publish the stream
       await this.publishStream(mediaStream);
-    } else if (this.state.status === undefined && camera_default_on) {
+    } else if (
+      this.state.status === undefined &&
+      camera_default_on &&
+      enabled
+    ) {
       // Start camera if backend config specifies, and there is no local setting
       await this.enable();
     }
