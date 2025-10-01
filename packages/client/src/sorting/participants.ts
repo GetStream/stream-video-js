@@ -1,6 +1,7 @@
 import { Comparator } from './';
 import { StreamVideoParticipant } from '../types';
 import { ParticipantSource } from '../gen/video/sfu/models/models';
+import { ensureExhausted } from '../helpers/ensureExhausted';
 import {
   hasAudio,
   hasScreenShare,
@@ -169,7 +170,17 @@ export const name: Comparator<StreamVideoParticipant> = (a, b) => {
 const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
   (p.roles || []).some((r) => roles.includes(r));
 
-const isVideoIngress = (source: ParticipantSource) =>
-  source !== ParticipantSource.SIP && // audio-only ingress
-  source > ParticipantSource.WEBRTC_UNSPECIFIED &&
-  source <= ParticipantSource.SRT;
+const isVideoIngress = (source: ParticipantSource) => {
+  switch (source) {
+    case ParticipantSource.WEBRTC_UNSPECIFIED:
+    case ParticipantSource.SIP:
+      return false;
+    case ParticipantSource.RTMP:
+    case ParticipantSource.WHIP:
+    case ParticipantSource.RTSP:
+    case ParticipantSource.SRT:
+      return true;
+    default:
+      ensureExhausted(source, 'Unknown participant source');
+  }
+};
