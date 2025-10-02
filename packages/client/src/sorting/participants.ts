@@ -102,15 +102,18 @@ export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
  *
  * @param sources the sources to prioritize.
  */
-export const withParticipantSource =
-  (...sources: ParticipantSource[]): Comparator<StreamVideoParticipant> =>
-  (a, b) => {
-    const priorityA = priority(sources, a.source);
-    const priorityB = priority(sources, b.source);
+export const withParticipantSource = (
+  ...sources: ParticipantSource[]
+): Comparator<StreamVideoParticipant> => {
+  const priority = (i: number) => (i === -1 ? Number.MAX_SAFE_INTEGER : i);
+  return (a, b) => {
+    const priorityA = priority(sources.indexOf(a.source));
+    const priorityB = priority(sources.indexOf(b.source));
     if (priorityA < priorityB) return -1;
     if (priorityA > priorityB) return 1;
     return 0;
   };
+};
 
 /**
  * A comparator creator which will set up a comparator which prioritizes
@@ -158,8 +161,3 @@ export const name: Comparator<StreamVideoParticipant> = (a, b) => {
 
 const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
   (p.roles || []).some((r) => roles.includes(r));
-
-const priority = (sources: ParticipantSource[], s: ParticipantSource) => {
-  const index = sources.indexOf(s);
-  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
-};
