@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import { usePrevious } from '../utils/hooks/usePrevious';
 import { useEffectEvent } from '@stream-io/video-react-bindings';
+
 export type PermissionNotificationProps = {
   /**
    * The permission to check for.
