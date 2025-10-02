@@ -1,18 +1,23 @@
-import * as React from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useEffectEvent as BuiltInHook,
+} from 'react';
 
 function useEffectEventShim<T extends (...args: any[]) => any>(
   cb: T,
 ): (...funcArgs: Parameters<T>) => ReturnType<T> {
-  const cbRef = React.useRef(cb);
+  const cbRef = useRef(cb);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     cbRef.current = cb;
   }, [cb]);
 
-  return React.useCallback((...args: Parameters<T>) => {
+  return useCallback((...args: Parameters<T>) => {
     const callback = cbRef.current;
     return callback(...args);
   }, []);
 }
 
-export const useEffectEvent = React.useEffectEvent ?? useEffectEventShim;
+export const useEffectEvent = BuiltInHook ?? useEffectEventShim;
