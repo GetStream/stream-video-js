@@ -20,6 +20,7 @@ export default function Stats(props: ServerSideCredentialsProps) {
     const coordinatorUrl = useLocalCoordinator
       ? 'http://localhost:3030/video'
       : (router.query['coordinator_url'] as string | undefined);
+    const callSessionId = router.query['call_session_id'] as string | undefined;
     const _client = getClient(
       { apiKey, user, userToken, coordinatorUrl },
       environment,
@@ -41,6 +42,7 @@ export default function Stats(props: ServerSideCredentialsProps) {
         const stats = await _call.getCallParticipantsStats({
           userId,
           userSessionId,
+          sessionId: callSessionId,
           kind,
         });
         console.log('Call participants stats:', stats);
