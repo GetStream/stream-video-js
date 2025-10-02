@@ -25,8 +25,8 @@ export const layoutMap: Record<
   [ComponentType, ComponentType] | [ComponentType]
 > = {
   'single-participant': [DominantSpeaker, DominantSpeakerScreenShare],
+  'dominant-speaker': [DominantSpeaker, DominantSpeakerScreenShare],
+  mobile: [DominantSpeaker, DominantSpeakerScreenShare],
   grid: [PaginatedGrid],
   spotlight: [Spotlight, Spotlight],
-  mobile: [DominantSpeaker, DominantSpeakerScreenShare],
-  'dominant-speaker': [DominantSpeaker, DominantSpeakerScreenShare],
 };

@@ -1,18 +1,20 @@
 import './mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  AudioBitrateProfile,
   PublishOption,
   TrackType,
   VideoQuality,
 } from '../../gen/video/sfu/models/models';
 import {
+  computeAudioLayers,
   computeVideoLayers,
   getComputedMaxBitrate,
   OptimalVideoLayer,
   ridToVideoQuality,
   toSvcEncodings,
   toVideoLayers,
-} from '../videoLayers';
+} from '../layers';
 
 describe('videoLayers', () => {
   it('should find optimal video layers', () => {
@@ -413,5 +415,78 @@ describe('videoLayers', () => {
       );
       expect(scaledBitrate).toBe(1666667);
     });
+  });
+});
+
+describe('audioLayers', () => {
+  it('should use predefined bitrates when publish options are missing', () => {
+    expect(
+      computeAudioLayers(
+        // @ts-expect-error - incomplete data
+        { trackType: TrackType.AUDIO, id: 1, audioBitrateProfiles: [] },
+        { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
+      ),
+    ).toEqual([{ maxBitrate: 64000 }]);
+    expect(
+      computeAudioLayers(
+        // @ts-expect-error - incomplete data
+        { trackType: TrackType.AUDIO, id: 1, audioBitrateProfiles: [] },
+        { audioBitrateProfile: AudioBitrateProfile.VOICE_HIGH_QUALITY },
+      ),
+    ).toEqual([{ maxBitrate: 128000 }]);
+    expect(
+      computeAudioLayers(
+        // @ts-expect-error - incomplete data
+        { trackType: TrackType.AUDIO, id: 1, audioBitrateProfiles: [] },
+        { audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY },
+      ),
+    ).toEqual([{ maxBitrate: 128000 }]);
+  });
+
+  it('should use the predefined bitrate when the SFU does not provide audioBitrateProfiles', () => {
+    expect(
+      computeAudioLayers(
+        // @ts-expect-error - incomplete data
+        { trackType: TrackType.AUDIO, id: 1 },
+        { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
+      ),
+    ).toEqual([{ maxBitrate: 64000 }]);
+  });
+
+  it('should respect the bitrates provided in publish options', () => {
+    // @ts-expect-error - incomplete data
+    const config: PublishOption = {
+      trackType: TrackType.AUDIO,
+      id: 1,
+      audioBitrateProfiles: [
+        {
+          profile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+          bitrate: 32000,
+        },
+        {
+          profile: AudioBitrateProfile.VOICE_HIGH_QUALITY,
+          bitrate: 96000,
+        },
+        {
+          profile: AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+          bitrate: 192000,
+        },
+      ],
+    };
+    expect(
+      computeAudioLayers(config, {
+        audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+      }),
+    ).toEqual([{ maxBitrate: 32000 }]);
+    expect(
+      computeAudioLayers(config, {
+        audioBitrateProfile: AudioBitrateProfile.VOICE_HIGH_QUALITY,
+      }),
+    ).toEqual([{ maxBitrate: 96000 }]);
+    expect(
+      computeAudioLayers(config, {
+        audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+      }),
+    ).toEqual([{ maxBitrate: 192000 }]);
   });
 });

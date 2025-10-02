@@ -91,6 +91,12 @@ export interface AudioSettingsRequest {
    * @type {boolean}
    * @memberof AudioSettingsRequest
    */
+  hifi_audio_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
   mic_default_on?: boolean;
   /**
    *
@@ -146,6 +152,12 @@ export interface AudioSettingsResponse {
    * @memberof AudioSettingsResponse
    */
   default_device: AudioSettingsResponseDefaultDeviceEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsResponse
+   */
+  hifi_audio_enabled?: boolean;
   /**
    *
    * @type {boolean}
@@ -413,6 +425,24 @@ export interface CallClosedCaption {
    * @type {string}
    * @memberof CallClosedCaption
    */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  language: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  service?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
   speaker_id: string;
   /**
    *
@@ -426,6 +456,12 @@ export interface CallClosedCaption {
    * @memberof CallClosedCaption
    */
   text: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallClosedCaption
+   */
+  translated: boolean;
   /**
    *
    * @type {UserResponse}
@@ -917,6 +953,18 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   rtmp: RTMPIngress;
+  /**
+   *
+   * @type {SRTIngress}
+   * @memberof CallIngressResponse
+   */
+  srt: SRTIngress;
+  /**
+   *
+   * @type {WHIPIngress}
+   * @memberof CallIngressResponse
+   */
+  whip: WHIPIngress;
 }
 /**
  * This event is sent when a call is started. Clients receiving this event should start the call.
@@ -1792,6 +1840,12 @@ export interface CallResponse {
    */
   transcribing: boolean;
   /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  translating: boolean;
+  /**
    * The type of call
    * @type {string}
    * @memberof CallResponse
@@ -2099,6 +2153,12 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   participant: CallParticipantResponse;
+  /**
+   * The reason why the participant left the session
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  reason?: string;
   /**
    * Call session ID
    * @type {string}
@@ -2732,7 +2792,7 @@ export interface CallUpdatedEvent {
    */
   created_at: string;
   /**
-   * The type of event: "call.ended" in this case
+   * The type of event: "call.updated" in this case
    * @type {string}
    * @memberof CallUpdatedEvent
    */
@@ -2835,6 +2895,12 @@ export interface CallUserMutedEvent {
    * @memberof CallUserMutedEvent
    */
   muted_user_ids: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserMutedEvent
+   */
+  reason: string;
   /**
    * The type of event: "call.user_muted" in this case
    * @type {string}
@@ -3787,6 +3853,12 @@ export interface GetCallReportResponse {
    * @memberof GetCallReportResponse
    */
   report: ReportResponse;
+  /**
+   *
+   * @type {CallSessionResponse}
+   * @memberof GetCallReportResponse
+   */
+  session?: CallSessionResponse;
   /**
    *
    * @type {string}
@@ -4928,6 +5000,7 @@ export const OwnCapability = {
   REMOVE_CALL_MEMBER: 'remove-call-member',
   SCREENSHARE: 'screenshare',
   SEND_AUDIO: 'send-audio',
+  SEND_CLOSED_CAPTIONS_CALL: 'send-closed-captions-call',
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
@@ -6187,6 +6260,19 @@ export interface SFUResponse {
 /**
  *
  * @export
+ * @interface SRTIngress
+ */
+export interface SRTIngress {
+  /**
+   *
+   * @type {string}
+   * @memberof SRTIngress
+   */
+  address: string;
+}
+/**
+ *
+ * @export
  * @interface ScreensharingSettingsRequest
  */
 export interface ScreensharingSettingsRequest {
@@ -6352,6 +6438,25 @@ export interface SortParamRequest {
 /**
  *
  * @export
+ * @interface SpeechSegmentConfig
+ */
+export interface SpeechSegmentConfig {
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  max_speech_caption_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  silence_duration_ms?: number;
+}
+/**
+ *
+ * @export
  * @interface StartClosedCaptionsRequest
  */
 export interface StartClosedCaptionsRequest {
@@ -6373,6 +6478,12 @@ export interface StartClosedCaptionsRequest {
    * @memberof StartClosedCaptionsRequest
    */
   language?: StartClosedCaptionsRequestLanguageEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof StartClosedCaptionsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
 }
 
 /**
@@ -6937,7 +7048,19 @@ export interface TranscriptionSettingsRequest {
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  mode: TranscriptionSettingsRequestModeEnum;
+  mode?: TranscriptionSettingsRequestModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsRequest
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -7031,6 +7154,18 @@ export interface TranscriptionSettingsResponse {
    * @memberof TranscriptionSettingsResponse
    */
   mode: TranscriptionSettingsResponseModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsResponse
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsResponse
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -7100,6 +7235,25 @@ export const TranscriptionSettingsResponseModeEnum = {
 export type TranscriptionSettingsResponseModeEnum =
   (typeof TranscriptionSettingsResponseModeEnum)[keyof typeof TranscriptionSettingsResponseModeEnum];
 
+/**
+ *
+ * @export
+ * @interface TranslationSettings
+ */
+export interface TranslationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof TranslationSettings
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof TranslationSettings
+   */
+  languages?: Array<string>;
+}
 /**
  * UnblockUserRequest is the payload for unblocking a user.
  * @export
@@ -7925,6 +8079,19 @@ export const VideoSettingsResponseCameraFacingEnum = {
 export type VideoSettingsResponseCameraFacingEnum =
   (typeof VideoSettingsResponseCameraFacingEnum)[keyof typeof VideoSettingsResponseCameraFacingEnum];
 
+/**
+ *
+ * @export
+ * @interface WHIPIngress
+ */
+export interface WHIPIngress {
+  /**
+   * URL for a new whip input, every time a new link is created
+   * @type {string}
+   * @memberof WHIPIngress
+   */
+  address: string;
+}
 /**
  * Websocket auth message
  * @export

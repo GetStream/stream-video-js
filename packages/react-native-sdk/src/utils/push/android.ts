@@ -2,7 +2,6 @@ import {
   Call,
   CallingState,
   getLogger,
-  RxUtils,
   StreamVideoClient,
 } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
@@ -26,8 +25,8 @@ import {
   pushNonRingingCallData$,
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
-  pushUnsubscriptionCallbacks$,
 } from './internal/rxSubjects';
+import { pushUnsubscriptionCallbacks } from './internal/constants';
 import {
   canAddPushWSSubscriptionsRef,
   clearPushWSEventSubscriptions,
@@ -253,12 +252,8 @@ export const firebaseDataHandler = async (
           );
           unsubscribeFunctions.push(unsubscribe);
           unsubscribeFunctions.push(() => subscription.unsubscribe());
-          const unsubscriptionCallbacks =
-            RxUtils.getCurrentValue(pushUnsubscriptionCallbacks$) ?? [];
-          pushUnsubscriptionCallbacks$.next([
-            ...unsubscriptionCallbacks,
-            ...unsubscribeFunctions,
-          ]);
+          pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
+          pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
         });
       });
     }
@@ -459,7 +454,7 @@ export const onAndroidNotifeeEvent = async ({
         'debug',
         `clearPushWSEventSubscriptions for callCId: ${call_cid} mustAccept: ${mustAccept} mustDecline: ${mustDecline}`,
       );
-      clearPushWSEventSubscriptions();
+      clearPushWSEventSubscriptions(call_cid);
       notifee.stopForegroundService();
     }
 

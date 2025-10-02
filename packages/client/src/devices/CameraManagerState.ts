@@ -1,12 +1,12 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
-import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+import { DeviceManagerState } from './DeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { getVideoBrowserPermission } from './devices';
 import { RxUtils } from '../store';
 
 export type CameraDirection = 'front' | 'back' | undefined;
 
-export class CameraManagerState extends InputMediaDeviceManagerState {
+export class CameraManagerState extends DeviceManagerState {
   private directionSubject = new BehaviorSubject<CameraDirection>(undefined);
 
   /**
@@ -14,13 +14,12 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
    * front - means the camera facing the user
    * back - means the camera facing the environment
    */
-  direction$: Observable<CameraDirection>;
+  direction$ = this.directionSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   constructor() {
     super('stop-tracks', getVideoBrowserPermission());
-    this.direction$ = this.directionSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
   }
 
   /**
@@ -58,7 +57,9 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
     }
   }
 
-  protected getDeviceIdFromStream(stream: MediaStream): string | undefined {
+  protected override getDeviceIdFromStream(
+    stream: MediaStream,
+  ): string | undefined {
     const [track] = stream.getVideoTracks();
     return track?.getSettings().deviceId;
   }
