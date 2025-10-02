@@ -32,7 +32,7 @@
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "expo-system-ui": "~6.0.7",
-    "react": "19.2.0",
+    "react": "19.1.0",
     "react-native": "0.81.4",
     "react-native-callkeep": "^4.3.16",
     "react-native-gesture-handler": "~2.28.0",
@@ -48,7 +48,7 @@
     "@babel/core": "^7.27.1",
     "@rnx-kit/metro-config": "^2.1",
     "@rnx-kit/metro-resolver-symlinks": "^0.1.36",
-    "@types/react": "~19.2.0",
+    "@types/react": "~19.1.10",
     "@types/react-native-incall-manager": "^4.0.3",
     "typescript": "~5.9.2"
   },
