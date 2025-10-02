@@ -34,13 +34,6 @@ class StreamInCallManager: RCTEventEmitter {
     
     private var previousAudioSessionState: AudioSessionState?
     
-    override init() {
-        super.init()    }
-    
-    deinit {
-        stop()
-    }
-    
     override func invalidate() {
         stop()
         super.invalidate()
@@ -216,7 +209,7 @@ class StreamInCallManager: RCTEventEmitter {
         """
         log(logString)
     }
-
+    
     @objc(muteAudioOutput)
     func muteAudioOutput() {
         DispatchQueue.main.async { [self] in
@@ -244,7 +237,7 @@ class StreamInCallManager: RCTEventEmitter {
             }
         }
     }
-
+    
     @objc(unmuteAudioOutput)
     func unmuteAudioOutput() {
         DispatchQueue.main.async { [self] in
