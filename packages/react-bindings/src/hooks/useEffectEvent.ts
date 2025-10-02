@@ -1,15 +1,15 @@
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import * as React from 'react';
 
 function useEffectEventShim<T extends (...args: any[]) => any>(
   cb: T,
 ): (...funcArgs: Parameters<T>) => ReturnType<T> {
-  const cbRef = useRef(cb);
+  const cbRef = React.useRef(cb);
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     cbRef.current = cb;
   }, [cb]);
 
-  return useCallback((...args: Parameters<T>) => {
+  return React.useCallback((...args: Parameters<T>) => {
     const callback = cbRef.current;
     return callback(...args);
   }, []);
