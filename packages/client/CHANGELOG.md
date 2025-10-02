@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.33.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.33.0...@stream-io/video-client-1.33.1) (2025-10-02)
+
+### Bug Fixes
+
+- ensure ingress participants are prioritized ([#1943](https://github.com/GetStream/stream-video-js/issues/1943)) ([a51a119](https://github.com/GetStream/stream-video-js/commit/a51a119cfb9f13736395b4afb3d3947ef994a6d9))
+
 ## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.32.0...@stream-io/video-client-1.33.0) (2025-09-30)
 
 ### Features
