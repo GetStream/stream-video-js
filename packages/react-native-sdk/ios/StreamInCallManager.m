@@ -23,8 +23,4 @@ RCT_EXTERN_METHOD(muteAudioOutput)
 
 RCT_EXTERN_METHOD(unmuteAudioOutput)
 
-+(BOOL)requiresMainQueueSetup {
-  return NO;
-}
-
 @end 
