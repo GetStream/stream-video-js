@@ -1,6 +1,6 @@
-import { ParticipantSource } from '../gen/video/sfu/models/models';
 import { StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
+import { ParticipantSource } from '../gen/video/sfu/models/models';
 import {
   dominantSpeaker,
   pinned,
@@ -36,6 +36,16 @@ const ifInvisibleOrUnknownBy = conditional(
 );
 
 /**
+ * A comparator that prioritizes participants with video ingress sources.
+ */
+const withVideoIngressSource = withParticipantSource(
+  ParticipantSource.RTMP,
+  ParticipantSource.SRT,
+  ParticipantSource.WHIP,
+  ParticipantSource.RTSP,
+);
+
+/**
  * The default sorting preset.
  */
 export const defaultSortPreset = combineComparators(
@@ -63,6 +73,7 @@ export const speakerLayoutSortPreset = combineComparators(
     combineComparators(
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
@@ -80,6 +91,7 @@ export const paginatedLayoutSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
@@ -95,7 +107,7 @@ export const livestreamOrAudioRoomSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
-      withParticipantSource(ParticipantSource.RTMP),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
