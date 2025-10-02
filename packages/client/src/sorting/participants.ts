@@ -1,7 +1,6 @@
 import { Comparator } from './';
 import { StreamVideoParticipant } from '../types';
 import { ParticipantSource } from '../gen/video/sfu/models/models';
-import { ensureExhausted } from '../helpers/ensureExhausted';
 import {
   hasAudio,
   hasScreenShare,
@@ -98,30 +97,20 @@ export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
  * A comparator creator which will set up a comparator which prioritizes
  * participants who are from a specific source (e.g., WebRTC, RTMP, WHIP...).
  *
- * @param source the source to prioritize.
+ * The priority of a source is determined by the order of the sources passed in.
+ * e.g. [SRT, RTMP, WHIP] will prioritize SRT sources first, then RTMP, then WHIP.
+ *
+ * @param sources the sources to prioritize.
  */
 export const withParticipantSource =
-  (source: ParticipantSource): Comparator<StreamVideoParticipant> =>
+  (...sources: ParticipantSource[]): Comparator<StreamVideoParticipant> =>
   (a, b) => {
-    if (a.source === source && b.source !== source) return -1;
-    if (a.source !== source && b.source === source) return 1;
+    const priorityA = priority(sources, a.source);
+    const priorityB = priority(sources, b.source);
+    if (priorityA < priorityB) return -1;
+    if (priorityA > priorityB) return 1;
     return 0;
   };
-
-/**
- * A comparator that prioritizes participants who are from a video ingress source
- * (e.g., RTMP, SRT, WHIP...).
- */
-export const withVideoIngressSource: Comparator<StreamVideoParticipant> = (
-  a,
-  b,
-) => {
-  const aIsIngress = isVideoIngress(a.source);
-  const bIsIngress = isVideoIngress(b.source);
-  if (aIsIngress && !bIsIngress) return -1;
-  if (!aIsIngress && bIsIngress) return 1;
-  return 0;
-};
 
 /**
  * A comparator creator which will set up a comparator which prioritizes
@@ -170,18 +159,7 @@ export const name: Comparator<StreamVideoParticipant> = (a, b) => {
 const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
   (p.roles || []).some((r) => roles.includes(r));
 
-const isVideoIngress = (source: ParticipantSource): boolean => {
-  switch (source) {
-    case ParticipantSource.WEBRTC_UNSPECIFIED:
-    case ParticipantSource.SIP:
-      return false;
-    case ParticipantSource.RTMP:
-    case ParticipantSource.WHIP:
-    case ParticipantSource.RTSP:
-    case ParticipantSource.SRT:
-      return true;
-    default:
-      ensureExhausted(source, 'Unknown participant source');
-      return true;
-  }
+const priority = (sources: ParticipantSource[], s: ParticipantSource) => {
+  const index = sources.indexOf(s);
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 };

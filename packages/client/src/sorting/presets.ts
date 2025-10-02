@@ -1,5 +1,6 @@
 import { StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
+import { ParticipantSource } from '../gen/video/sfu/models/models';
 import {
   dominantSpeaker,
   pinned,
@@ -9,7 +10,7 @@ import {
   role,
   screenSharing,
   speaking,
-  withVideoIngressSource,
+  withParticipantSource,
 } from './participants';
 
 // a comparator decorator which applies the decorated comparator only if the
@@ -32,6 +33,22 @@ const ifInvisibleOrUnknownBy = conditional(
     a.viewportVisibilityState?.videoTrack === VisibilityState.UNKNOWN ||
     b.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE ||
     b.viewportVisibilityState?.videoTrack === VisibilityState.UNKNOWN,
+);
+
+/**
+ * A comparator that prioritizes participants with video ingress sources.
+ */
+const withVideoIngressSource = withParticipantSource(
+  ...(Object.entries({
+    [ParticipantSource.RTMP]: true,
+    [ParticipantSource.SRT]: true,
+    [ParticipantSource.WHIP]: true,
+    [ParticipantSource.RTSP]: true,
+    [ParticipantSource.SIP]: false, // audio only
+    [ParticipantSource.WEBRTC_UNSPECIFIED]: false, // prioritize lower
+  } satisfies Record<ParticipantSource, boolean>)
+    .map(([source, enabled]) => (enabled ? source : null))
+    .filter(Boolean) as unknown as ParticipantSource[]),
 );
 
 /**

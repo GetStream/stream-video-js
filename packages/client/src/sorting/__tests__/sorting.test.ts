@@ -9,7 +9,7 @@ import {
   publishingAudio,
   publishingVideo,
   screenSharing,
-  withVideoIngressSource,
+  withParticipantSource,
 } from '../index';
 import * as TestData from './participant-data';
 
@@ -46,41 +46,76 @@ describe('Sorting', () => {
     expect([...input].sort(disableComparator(byValue))).toEqual([2, 3, 1]);
   });
 
-  it('withIngressSource', () => {
+  it('withParticipantSource', () => {
     expect(
-      withVideoIngressSource(
+      withParticipantSource(ParticipantSource.SRT)(
         // @ts-expect-error incomplete data
-        { source: ParticipantSource.WEBRTC_UNSPECIFIED },
-        { source: ParticipantSource.SRT },
+        { source: ParticipantSource.WEBRTC_UNSPECIFIED }, // -1
+        { source: ParticipantSource.SRT }, // 0
       ),
     ).toEqual(1);
     expect(
-      withVideoIngressSource(
+      withParticipantSource(ParticipantSource.RTMP)(
         // @ts-expect-error incomplete data
         { source: ParticipantSource.WEBRTC_UNSPECIFIED },
         { source: ParticipantSource.SIP },
       ),
     ).toEqual(0);
     expect(
-      withVideoIngressSource(
+      withParticipantSource(ParticipantSource.RTMP)(
         // @ts-expect-error incomplete data
         { source: ParticipantSource.RTMP },
         { source: ParticipantSource.SIP },
       ),
     ).toEqual(-1);
     expect(
-      withVideoIngressSource(
+      withParticipantSource(ParticipantSource.RTMP)(
         // @ts-expect-error incomplete data
         { source: ParticipantSource.SIP },
         { source: ParticipantSource.RTMP },
       ),
     ).toEqual(1);
     expect(
-      withVideoIngressSource(
+      withParticipantSource(ParticipantSource.RTMP)(
         // @ts-expect-error incomplete data
         { source: ParticipantSource.WEBRTC_UNSPECIFIED },
         { source: ParticipantSource.RTMP },
       ),
     ).toEqual(1);
+
+    expect(
+      withParticipantSource(ParticipantSource.SRT, ParticipantSource.RTMP)(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.RTMP },
+        { source: ParticipantSource.SRT },
+      ),
+    ).toEqual(1);
+
+    expect(
+      withParticipantSource(ParticipantSource.RTMP, ParticipantSource.SRT)(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.RTMP },
+        { source: ParticipantSource.SRT },
+      ),
+    ).toEqual(-1);
+    expect(
+      withParticipantSource(ParticipantSource.RTMP, ParticipantSource.SRT)(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.WHIP },
+        { source: ParticipantSource.SRT },
+      ),
+    ).toEqual(1);
+
+    expect(
+      withParticipantSource(
+        ParticipantSource.WHIP,
+        ParticipantSource.RTMP,
+        ParticipantSource.SRT,
+      )(
+        // @ts-expect-error incomplete data
+        { source: ParticipantSource.WHIP },
+        { source: ParticipantSource.SRT },
+      ),
+    ).toEqual(-1);
   });
 });
