@@ -118,4 +118,35 @@ describe('Sorting', () => {
       ),
     ).toEqual(-1);
   });
+
+  it('withParticipantSources with multiple participants', () => {
+    const participants = [
+      { source: ParticipantSource.WEBRTC_UNSPECIFIED },
+      { source: ParticipantSource.SRT },
+      { source: ParticipantSource.RTMP },
+      { source: ParticipantSource.SIP },
+      { source: ParticipantSource.RTSP },
+      { source: ParticipantSource.WHIP },
+    ];
+
+    const sorted = [...participants].sort(
+      withParticipantSource(
+        ParticipantSource.RTMP,
+        ParticipantSource.SRT,
+        ParticipantSource.WHIP,
+        ParticipantSource.RTSP,
+        ParticipantSource.SIP,
+        ParticipantSource.WEBRTC_UNSPECIFIED,
+      ),
+    );
+
+    expect(sorted).toEqual([
+      { source: ParticipantSource.RTMP },
+      { source: ParticipantSource.SRT },
+      { source: ParticipantSource.WHIP },
+      { source: ParticipantSource.RTSP },
+      { source: ParticipantSource.SIP },
+      { source: ParticipantSource.WEBRTC_UNSPECIFIED },
+    ]);
+  });
 });

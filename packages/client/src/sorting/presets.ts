@@ -39,16 +39,10 @@ const ifInvisibleOrUnknownBy = conditional(
  * A comparator that prioritizes participants with video ingress sources.
  */
 const withVideoIngressSource = withParticipantSource(
-  ...(Object.entries({
-    [ParticipantSource.RTMP]: true,
-    [ParticipantSource.SRT]: true,
-    [ParticipantSource.WHIP]: true,
-    [ParticipantSource.RTSP]: true,
-    [ParticipantSource.SIP]: false, // audio only
-    [ParticipantSource.WEBRTC_UNSPECIFIED]: false, // prioritize lower
-  } satisfies Record<ParticipantSource, boolean>)
-    .map(([source, enabled]) => (enabled ? source : null))
-    .filter(Boolean) as unknown as ParticipantSource[]),
+  ParticipantSource.RTMP,
+  ParticipantSource.SRT,
+  ParticipantSource.WHIP,
+  ParticipantSource.RTSP,
 );
 
 /**
