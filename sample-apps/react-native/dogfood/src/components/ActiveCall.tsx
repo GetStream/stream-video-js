@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import {
   CallContent,
+  callManager,
   NoiseCancellationProvider,
   useBackgroundFilters,
   useCall,
@@ -75,6 +76,13 @@ export const ActiveCall = ({
       });
     });
   }, [call]);
+
+  useEffect(() => {
+    callManager.start();
+    return () => {
+      callManager.stop();
+    };
+  }, []);
 
   useEffect(() => {
     const unsub = call?.on('call.moderation_blur', () => {

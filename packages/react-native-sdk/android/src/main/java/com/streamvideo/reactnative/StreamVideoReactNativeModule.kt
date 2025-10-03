@@ -82,6 +82,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         })
     }
 
+
     @ReactMethod
     fun getDefaultRingtoneUrl(promise: Promise) {
         val defaultRingtoneUri: Uri? =
@@ -129,6 +130,15 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("UNUSED_PARAMETER")
     @ReactMethod
     fun removeListeners(count: Int) {
+    }
+
+    // This method was removed upstream in react-native 0.74+, replaced with invalidate
+    // We will leave this stub here for older react-native versions compatibility
+    // ...but it will just delegate to the new invalidate method
+    @Deprecated("Deprecated in Java", ReplaceWith("invalidate()"))
+    @Suppress("removal")
+    override fun onCatalystInstanceDestroy() {
+        invalidate()
     }
 
     override fun invalidate() {

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
 import { useTheme } from '../../../contexts';
 import { type ViewerLivestreamTopViewProps } from '../LivestreamTopView/ViewerLivestreamTopView';
 import {
@@ -20,6 +19,7 @@ import {
 import { CallingState, hasVideo } from '@stream-io/video-client';
 import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
 import { ViewerLobby } from './ViewerLobby';
+import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
 
 /**
  * Props for the ViewerLivestream component.
@@ -102,8 +102,13 @@ export const ViewerLivestream = ({
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
-    InCallManager.start({ media: 'video' });
-    return () => InCallManager.stop();
+    const prevInCallManager = getRNInCallManagerLibNoThrow();
+    if (prevInCallManager) {
+      prevInCallManager.start({ media: 'video' });
+      return () => {
+        prevInCallManager.stop();
+      };
+    }
   }, []);
 
   useEffect(() => {

@@ -69,7 +69,7 @@ RCT_EXPORT_MODULE();
     if ((self = [super init])) {
         _notificationCenter = CFNotificationCenterGetDarwinNotifyCenter();
         [UIDevice currentDevice].batteryMonitoringEnabled = YES;
-        [self setupObserver];
+        [self setupScreenshareEventObserver];
         [StreamVideoReactNative initializeSharedDictionaries];
     }
     return self;
@@ -85,7 +85,7 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
     resolve(thermalStateString);
 }
 
--(void)dealloc {
+-(void)invalidate {
     if (_busyTonePlayer) {
         if (_busyTonePlayer.isPlaying) {
             [_busyTonePlayer stop];
@@ -93,11 +93,12 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
         _busyTonePlayer = nil;
         [self removeAudioInterruptionHandling];
     }
-    [self clearObserver];
+    [self clearScreenshareEventObserver];
+    [super invalidate];
 }
 
 
--(void)setupObserver {
+-(void)setupScreenshareEventObserver {
     CFNotificationCenterAddObserver(_notificationCenter,
                                     (__bridge const void *)(self),
                                     broadcastNotificationCallback,
@@ -112,7 +113,7 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
                                     CFNotificationSuspensionBehaviorDeliverImmediately);
 }
 
--(void)clearObserver {
+-(void)clearScreenshareEventObserver {
     CFNotificationCenterRemoveObserver(_notificationCenter,
                                        (__bridge const void *)(self),
                                        (__bridge CFStringRef)kBroadcastStartedNotification,

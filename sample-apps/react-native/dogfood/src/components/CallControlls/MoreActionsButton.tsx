@@ -1,14 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsButton,
+  callManager,
   OwnCapability,
   useCall,
   useCallStateHooks,
-  useTheme,
-  useScreenshot,
   useNoiseCancellation,
+  useScreenshot,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { Text, Modal, Image, TouchableOpacity } from 'react-native';
+import {
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
@@ -24,7 +34,8 @@ import Stats from '../../assets/Stats';
 import ClosedCaptions from '../../assets/ClosedCaptions';
 import Screenshot from '../../assets/Screenshot';
 import Hearing from '../../assets/Hearing';
-import { View, Alert, StyleSheet } from 'react-native';
+import { AudioOutput } from '../../assets/AudioOutput';
+import { AndroidAudioRoutePickerDrawer } from '../AndroidAudioRoutePickerDrawer';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -54,6 +65,10 @@ export const MoreActionsButton = ({
     setEnabled: setNoiseCancellationEnabled,
   } = useNoiseCancellation();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [
+    isAndroidAudioRoutePickerDrawerVisible,
+    setIsAndroidAudioRoutePickerDrawerVisible,
+  ] = useState(false);
   const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [screenshotModalVisible, setScreenshotModalVisible] = useState(false);
@@ -112,6 +127,15 @@ export const MoreActionsButton = ({
       setNoiseCancellationEnabled(!prev);
       return !prev;
     });
+  };
+
+  const showAudioRoutePicker = async () => {
+    if (Platform.OS === 'ios') {
+      callManager.ios.showDeviceSelector();
+    } else {
+      setIsAndroidAudioRoutePickerDrawerVisible(true);
+    }
+    setIsDrawerVisible(false);
   };
 
   const getScreenshotOfDominantSpeaker = async () => {
@@ -210,10 +234,25 @@ export const MoreActionsButton = ({
       ),
       onPress: getScreenshotOfDominantSpeaker,
     },
+    {
+      id: '5',
+      label: 'Show Audio Route Picker',
+      icon: (
+        <IconWrapper>
+          <AudioOutput
+            color={colors.iconPrimary}
+            size={variants.roundButtonSizes.sm}
+          />
+        </IconWrapper>
+      ),
+      onPress: () => {
+        showAudioRoutePicker();
+      },
+    },
     ...(isSupported && deviceSupportsAdvancedAudioProcessing
       ? [
           {
-            id: '5',
+            id: '6',
             label: isNoiseCancellationEnabled
               ? 'Disable noise cancellation'
               : 'Enable noise cancellation',
@@ -232,7 +271,7 @@ export const MoreActionsButton = ({
     ...(canToggle
       ? [
           {
-            id: '6',
+            id: '7',
             label: getCaptionsLabel(),
             icon: (
               <IconWrapper>
@@ -270,6 +309,14 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
+      {Platform.OS === 'android' && (
+        <AndroidAudioRoutePickerDrawer
+          isVisible={isAndroidAudioRoutePickerDrawerVisible}
+          onClose={() => {
+            setIsAndroidAudioRoutePickerDrawerVisible(false);
+          }}
+        />
+      )}
       <BottomControlsDrawer
         isVisible={isDrawerVisible}
         onClose={() => {
