@@ -1288,6 +1288,7 @@ export class Call {
     }
 
     this.tracer.setEnabled(enableTracing);
+    this.sfuStatsReporter?.flush();
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
