@@ -27,7 +27,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import com.oney.WebRTCModule.WebRTCModule
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.audio.utils.AudioFocusUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
@@ -524,18 +523,8 @@ class AudioDeviceManager(
 
     fun audioStatusMap(): WritableMap {
         val data = Arguments.createMap()
-        var audioDevicesJson = "["
-        for (s in getCurrentDeviceEndpoints()) {
-            audioDevicesJson += "\"" + s.name + "\","
-        }
-
-        // --- strip the last `,`
-        if (audioDevicesJson.length > 1) {
-            audioDevicesJson = audioDevicesJson.substring(0, audioDevicesJson.length - 1)
-        }
-        audioDevicesJson += "]"
-
-        data.putString("availableAudioDeviceEndpointNamesList", audioDevicesJson)
+        val availableAudioDeviceEndpointNamesList = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
+        data.putArray("availableAudioDeviceEndpointNamesList", availableAudioDeviceEndpointNamesList)
         data.putString(
             "selectedAudioDeviceEndpointType",
             endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type)

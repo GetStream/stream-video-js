@@ -11,12 +11,6 @@ export type AudioDeviceStatus = {
   selectedAudioDeviceName: string;
 };
 
-type AudioDeviceStatusUnparsed = {
-  availableAudioDeviceEndpointNamesList: string;
-  selectedAudioDeviceEndpointType: string;
-  selectedAudioDeviceName: string;
-};
-
 export type AudioRole = 'communicator' | 'listener';
 export type DefaultAudioDeviceEndpointType = 'speaker' | 'earpiece';
 
@@ -113,8 +107,8 @@ function addAndroidAudioDeviceStatusChangeListener(
   );
   const subscription = InCallManagerEventEmitter.addListener(
     'onAudioDeviceChanged',
-    (audioDeviceStatus: AudioDeviceStatusUnparsed) => {
-      onChange(parseAudioDeviceStatus(audioDeviceStatus));
+    (audioDeviceStatus: AudioDeviceStatus) => {
+      onChange(audioDeviceStatus);
     },
   );
 
@@ -137,20 +131,6 @@ function chooseAndroidAudioDeviceEndpoint(endpointName: string) {
   StreamInCallManagerNativeModule.chooseAudioDeviceEndpoint(endpointName);
 }
 
-function parseAudioDeviceStatus(
-  audioDeviceStatusUnparsed: AudioDeviceStatusUnparsed,
-) {
-  const audioDeviceStatus: AudioDeviceStatus = {
-    availableAudioDeviceEndpointNamesList: JSON.parse(
-      audioDeviceStatusUnparsed.availableAudioDeviceEndpointNamesList,
-    ),
-    selectedAudioDeviceEndpointType:
-      audioDeviceStatusUnparsed.selectedAudioDeviceEndpointType,
-    selectedAudioDeviceName: audioDeviceStatusUnparsed.selectedAudioDeviceName,
-  };
-  return audioDeviceStatus;
-}
-
 /**
  * Get the current audio device status.
  * @returns The audio device status.
@@ -160,9 +140,8 @@ async function getAndroidAudioDeviceStatus() {
     logger('warn', 'getAndroidAudioDeviceStatus is supported only on Android');
     return;
   }
-  const audioDeviceStatus: AudioDeviceStatus = parseAudioDeviceStatus(
-    await StreamInCallManagerNativeModule.getAudioDeviceStatus(),
-  );
+  const audioDeviceStatus: AudioDeviceStatus =
+    await StreamInCallManagerNativeModule.getAudioDeviceStatus();
   return audioDeviceStatus;
 }
 
