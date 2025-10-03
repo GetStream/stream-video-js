@@ -1,15 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsButton,
+  callManager,
   OwnCapability,
   useCall,
   useCallStateHooks,
-  useTheme,
-  useScreenshot,
   useNoiseCancellation,
-  StreamInCallManager,
+  useScreenshot,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { Text, Modal, Image, TouchableOpacity, Platform } from 'react-native';
+import {
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import MoreActions from '../../assets/MoreActions';
 import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
@@ -26,7 +35,6 @@ import ClosedCaptions from '../../assets/ClosedCaptions';
 import Screenshot from '../../assets/Screenshot';
 import Hearing from '../../assets/Hearing';
 import { AudioOutput } from '../../assets/AudioOutput';
-import { View, Alert, StyleSheet } from 'react-native';
 import { AndroidAudioRoutePickerDrawer } from '../AndroidAudioRoutePickerDrawer';
 
 /**
@@ -123,7 +131,7 @@ export const MoreActionsButton = ({
 
   const showAudioRoutePicker = async () => {
     if (Platform.OS === 'ios') {
-      StreamInCallManager.showIOSAudioRoutePicker();
+      callManager.ios.showDeviceSelector();
     } else {
       setIsAndroidAudioRoutePickerDrawerVisible(true);
     }

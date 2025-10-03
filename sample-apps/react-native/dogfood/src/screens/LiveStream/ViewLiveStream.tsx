@@ -1,6 +1,6 @@
 import {
+  callManager,
   StreamCall,
-  StreamInCallManager,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import React, { PropsWithChildren, useEffect } from 'react';
@@ -43,11 +43,9 @@ export const ViewLiveStreamChildren = ({
   } = route;
 
   useEffect(() => {
-    StreamInCallManager.start({
-      audioRole: 'listener',
-    });
+    callManager.start({ audioRole: 'listener' });
     return () => {
-      StreamInCallManager.stop();
+      callManager.stop();
     };
   }, []);
 

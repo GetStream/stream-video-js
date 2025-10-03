@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  NativeModules,
+  Platform,
   StyleSheet,
   View,
-  NativeModules,
   type ViewStyle,
-  Platform,
 } from 'react-native';
 import {
   CallParticipantsGrid,
@@ -42,7 +42,7 @@ import {
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import { RTCViewPipIOS } from './RTCViewPipIOS';
-import { getRNInCallManagerLibNoThrow } from '../../../StreamInCallManager/PrevLibDetection';
+import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;

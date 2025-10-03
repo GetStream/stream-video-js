@@ -524,12 +524,9 @@ class AudioDeviceManager(
     fun audioStatusMap(): WritableMap {
         val data = Arguments.createMap()
         val availableAudioDeviceEndpointNamesList = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
-        data.putArray("availableAudioDeviceEndpointNamesList", availableAudioDeviceEndpointNamesList)
-        data.putString(
-            "selectedAudioDeviceEndpointType",
-            endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type)
-        )
-        data.putString("selectedAudioDeviceName", this.selectedAudioDeviceEndpoint?.name)
+        data.putArray("devices", availableAudioDeviceEndpointNamesList)
+        data.putString("currentEndpointType", endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type))
+        data.putString("selectedDevice", this.selectedAudioDeviceEndpoint?.name)
         return data
     }
 

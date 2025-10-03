@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import {
   CallContent,
+  callManager,
   NoiseCancellationProvider,
   useBackgroundFilters,
   useCall,
@@ -14,7 +15,6 @@ import {
   useIsInPiPMode,
   useTheme,
   useToggleCallRecording,
-  StreamInCallManager,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
@@ -78,10 +78,9 @@ export const ActiveCall = ({
   }, [call]);
 
   useEffect(() => {
-    StreamInCallManager.start();
-
+    callManager.start();
     return () => {
-      StreamInCallManager.stop();
+      callManager.stop();
     };
   }, []);
 

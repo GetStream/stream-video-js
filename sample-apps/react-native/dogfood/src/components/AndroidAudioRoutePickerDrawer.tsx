@@ -1,7 +1,7 @@
 import {
-  useTheme,
   AudioDeviceStatus,
-  StreamInCallManager,
+  callManager,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -9,6 +9,7 @@ import {
   Animated,
   Easing,
   FlatList,
+  Image,
   Modal,
   PanResponder,
   SafeAreaView,
@@ -18,7 +19,6 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
   View,
-  Image,
 } from 'react-native';
 import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
 
@@ -65,19 +65,14 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   >(null);
 
   useEffect(() => {
-    StreamInCallManager.getAndroidAudioDeviceStatus().then(
-      setAudioDeviceStatus,
-    );
-
-    return StreamInCallManager.addAndroidAudioDeviceStatusChangeListener(
+    callManager.android.getAudioDeviceStatus().then(setAudioDeviceStatus);
+    return callManager.android.addAudioDeviceChangeListener(
       setAudioDeviceStatus,
     );
   }, []);
 
-  const audioRoutes =
-    audioDeviceStatus?.availableAudioDeviceEndpointNamesList ?? [];
-
-  const selectedAudioDeviceName = audioDeviceStatus?.selectedAudioDeviceName;
+  const audioRoutes = audioDeviceStatus?.devices ?? [];
+  const selectedAudioDeviceName = audioDeviceStatus?.selectedDevice;
 
   // negative offset is needed so the drawer component start above the bottom controls
   const offset = -BOTTOM_CONTROLS_HEIGHT;
@@ -126,9 +121,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
 
   useEffect(() => {
     if (isVisible) {
-      StreamInCallManager.getAndroidAudioDeviceStatus().then(
-        setAudioDeviceStatus,
-      );
+      callManager.android.getAudioDeviceStatus().then(setAudioDeviceStatus);
       Animated.spring(translateY, {
         toValue: SNAP_TOP,
         useNativeDriver: true,
@@ -146,7 +139,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   const elasticAnimRef = useRef(new Animated.Value(0.5));
 
   const handleOptionPress = (route: string) => {
-    StreamInCallManager.chooseAndroidAudioDeviceEndpoint(route);
+    callManager.android.selectAudioDevice(route);
     Animated.timing(elasticAnimRef.current, {
       toValue: 0.2,
       duration: 150,

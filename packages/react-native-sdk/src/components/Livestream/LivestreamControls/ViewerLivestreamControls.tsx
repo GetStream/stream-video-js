@@ -10,7 +10,7 @@ import {
   ViewerLeaveStreamButton as DefaultViewerLeaveStreamButton,
   type ViewerLeaveStreamButtonProps,
 } from './ViewerLeaveStreamButton';
-import { StreamInCallManager } from '../../../StreamInCallManager';
+import { callManager } from '../../../modules/call-manager';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
 import {
@@ -20,10 +20,10 @@ import {
 } from '../LivestreamTopView';
 import { IconWrapper, Maximize } from '../../../icons';
 import {
-  VolumeOff,
-  VolumeOn,
   PauseIcon,
   PlayIcon,
+  VolumeOff,
+  VolumeOn,
 } from '../../../icons/LivestreamControls';
 
 /**
@@ -105,17 +105,13 @@ export const ViewerLivestreamControls = ({
 
   const toggleAudio = () => {
     const shouldMute = !isMuted;
-    if (shouldMute) {
-      StreamInCallManager.muteAudioOutput();
-    } else {
-      StreamInCallManager.unmuteAudioOutput();
-    }
+    callManager.speaker.setMute(shouldMute);
     setIsMuted(shouldMute);
   };
 
   useEffect(() => {
     // always unmute audio output on mount for consistency
-    StreamInCallManager.unmuteAudioOutput();
+    callManager.speaker.setMute(false);
   }, []);
 
   const togglePlayPause = () => {

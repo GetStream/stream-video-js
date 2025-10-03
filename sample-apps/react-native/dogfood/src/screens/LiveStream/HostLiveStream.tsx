@@ -1,10 +1,10 @@
 import {
   Call,
-  StreamCall,
+  callManager,
   HostLivestream,
+  StreamCall,
   useConnectedUser,
   useStreamVideoClient,
-  StreamInCallManager,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -76,9 +76,9 @@ export const HostLiveStreamScreen = ({
   }, [call, connectedUser, navigation]);
 
   useEffect(() => {
-    StreamInCallManager.start();
+    callManager.start();
     return () => {
-      StreamInCallManager.stop();
+      callManager.stop();
     };
   }, []);
 
