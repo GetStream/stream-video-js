@@ -32,7 +32,7 @@
     "@rollup/plugin-typescript": "^12.1.2",
     "@stream-io/video-client": "workspace:^",
     "@types/react": "^19.2.0",
-    "react": "19.2.0",
+    "react": "19.0.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.40.2",
     "typescript": "^5.8.3"
