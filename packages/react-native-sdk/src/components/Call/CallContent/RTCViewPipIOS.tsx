@@ -18,7 +18,7 @@ import {
 import { useDebouncedValue } from '../../../utils/hooks';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
-import { isInPiPModeiOS$ } from '../../../utils/internal/rxSubjects';
+import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
@@ -119,7 +119,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   }, [videoStreamToRender]);
 
   const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
-    isInPiPModeiOS$.next(event.nativeEvent.active);
+    isInPiPMode$.next(event.nativeEvent.active);
     onPiPChange?.(event.nativeEvent.active);
   };
 
