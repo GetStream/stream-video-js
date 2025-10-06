@@ -38,8 +38,10 @@ export const speaking: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const screenSharing: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (hasScreenShare(a) && !hasScreenShare(b)) return -1;
-  if (!hasScreenShare(a) && hasScreenShare(b)) return 1;
+  const hasA = hasScreenShare(a);
+  const hasB = hasScreenShare(b);
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
   return 0;
 };
 
@@ -50,8 +52,10 @@ export const screenSharing: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const publishingVideo: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (hasVideo(a) && !hasVideo(b)) return -1;
-  if (!hasVideo(a) && hasVideo(b)) return 1;
+  const hasA = hasVideo(a);
+  const hasB = hasVideo(b);
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
   return 0;
 };
 
@@ -62,8 +66,10 @@ export const publishingVideo: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const publishingAudio: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (hasAudio(a) && !hasAudio(b)) return -1;
-  if (!hasAudio(a) && hasAudio(b)) return 1;
+  const hasA = hasAudio(a);
+  const hasB = hasAudio(b);
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
   return 0;
 };
 
@@ -91,15 +97,23 @@ export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
  * A comparator creator which will set up a comparator which prioritizes
  * participants who are from a specific source (e.g., WebRTC, RTMP, WHIP...).
  *
- * @param source the source to prioritize.
+ * The priority of a source is determined by the order of the sources passed in.
+ * e.g. [SRT, RTMP, WHIP] will prioritize SRT sources first, then RTMP, then WHIP.
+ *
+ * @param sources the sources to prioritize.
  */
-export const withParticipantSource =
-  (source: ParticipantSource): Comparator<StreamVideoParticipant> =>
-  (a, b) => {
-    if (a.source === source && b.source !== source) return -1;
-    if (a.source !== source && b.source === source) return 1;
+export const withParticipantSource = (
+  ...sources: ParticipantSource[]
+): Comparator<StreamVideoParticipant> => {
+  const priority = (i: number) => (i === -1 ? Number.MAX_SAFE_INTEGER : i);
+  return (a, b) => {
+    const priorityA = priority(sources.indexOf(a.source));
+    const priorityB = priority(sources.indexOf(b.source));
+    if (priorityA < priorityB) return -1;
+    if (priorityA > priorityB) return 1;
     return 0;
   };
+};
 
 /**
  * A comparator creator which will set up a comparator which prioritizes
@@ -126,8 +140,10 @@ export const reactionType = (
 export const role =
   (...roles: string[]): Comparator<StreamVideoParticipant> =>
   (a, b) => {
-    if (hasAnyRole(a, roles) && !hasAnyRole(b, roles)) return -1;
-    if (!hasAnyRole(a, roles) && hasAnyRole(b, roles)) return 1;
+    const hasA = hasAnyRole(a, roles);
+    const hasB = hasAnyRole(b, roles);
+    if (hasA && !hasB) return -1;
+    if (!hasA && hasB) return 1;
     return 0;
   };
 

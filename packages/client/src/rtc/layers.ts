@@ -1,11 +1,13 @@
 import { isSvcCodec } from './codecs';
 import {
+  AudioBitrateProfile,
   PublishOption,
   VideoDimension,
   VideoLayer,
   VideoQuality,
 } from '../gen/video/sfu/models/models';
 import { isAudioTrackType } from './helpers/tracks';
+import { TrackPublishOptions } from './types';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
@@ -14,10 +16,27 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   scalabilityMode?: string;
 };
 
-const defaultBitratePerRid: Record<string, number> = {
-  q: 300000,
-  h: 750000,
-  f: 1250000,
+/**
+ * Prepares the audio layer for the given track.
+ * Based on the provided audio bitrate profile, we apply the appropriate bitrate.
+ */
+export const computeAudioLayers = (
+  publishOption: PublishOption,
+  options: TrackPublishOptions,
+): RTCRtpEncodingParameters[] | undefined => {
+  const { audioBitrateProfile } = options;
+  const profileConfig = publishOption.audioBitrateProfiles?.find(
+    (config) => config.profile === audioBitrateProfile,
+  );
+  const maxBitrate =
+    profileConfig?.bitrate ||
+    {
+      [AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED]: 64_000,
+      [AudioBitrateProfile.VOICE_HIGH_QUALITY]: 128_000,
+      [AudioBitrateProfile.MUSIC_HIGH_QUALITY]: 128_000,
+    }[audioBitrateProfile || AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED];
+
+  return [{ maxBitrate }];
 };
 
 /**
@@ -28,11 +47,12 @@ const defaultBitratePerRid: Record<string, number> = {
  * @param layers the layers to process.
  */
 export const toSvcEncodings = (
-  layers: OptimalVideoLayer[] | undefined,
+  layers: RTCRtpEncodingParameters[] | undefined,
 ): RTCRtpEncodingParameters[] | undefined => {
   if (!layers) return;
   // we take the highest quality layer, and we assign it to `q` encoder.
-  const withRid = (rid: string) => (l: OptimalVideoLayer) => l.rid === rid;
+  const withRid = (rid: string) => (layer: RTCRtpEncodingParameters) =>
+    layer.rid === rid;
   const highestLayer =
     layers.find(withRid('f')) ||
     layers.find(withRid('h')) ||
@@ -111,7 +131,8 @@ export const computeVideoLayers = (
       width: Math.round(width / downscaleFactor),
       height: Math.round(height / downscaleFactor),
       maxBitrate:
-        Math.round(maxBitrate / bitrateFactor) || defaultBitratePerRid[rid],
+        Math.round(maxBitrate / bitrateFactor) ||
+        { q: 300_000, h: 750_000, f: 1_250_000 }[rid],
       maxFramerate: fps,
     };
     if (svcCodec) {

@@ -1,9 +1,9 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
+import { DeviceManagerState } from '../DeviceManagerState';
 import { firstValueFrom } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
 
-class TestInputMediaDeviceManagerState extends InputMediaDeviceManagerState {
+class TestInputMediaDeviceManagerState extends DeviceManagerState {
   constructor() {
     super(
       'stop-tracks',

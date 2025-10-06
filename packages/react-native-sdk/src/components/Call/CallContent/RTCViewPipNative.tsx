@@ -10,8 +10,13 @@ import {
 
 const COMPONENT_NAME = 'RTCViewPip';
 
+export type PiPChangeEvent = {
+  active: boolean;
+};
+
 type RTCViewPipNativeProps = {
   streamURL?: string;
+  onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
 };
 
 const NativeComponent: HostComponent<RTCViewPipNativeProps> =
@@ -48,6 +53,7 @@ export const RTCViewPipNative = React.memo(
     React.Ref<any>,
     {
       streamURL?: string;
+      onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
     }
   >((props, ref) => {
     if (Platform.OS !== 'ios') return null;
@@ -58,6 +64,8 @@ export const RTCViewPipNative = React.memo(
         pointerEvents={'none'}
         // eslint-disable-next-line react/prop-types
         streamURL={props.streamURL}
+        // eslint-disable-next-line react/prop-types
+        onPiPChange={props.onPiPChange}
         // @ts-expect-error - types issue
         ref={ref}
       />

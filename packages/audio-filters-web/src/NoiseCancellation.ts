@@ -269,8 +269,13 @@ export class NoiseCancellation implements INoiseCancellation {
     if (!this.filterNode || !this.audioContext) {
       throw new Error('NoiseCancellation is not initialized');
     }
+
+    const [audioTrack] = mediaStream.getAudioTracks();
+    if (!audioTrack) throw new Error('No audio track found in the stream');
+
     const source = this.audioContext.createMediaStreamSource(mediaStream);
     const destination = this.audioContext.createMediaStreamDestination();
+    destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
 
     source.connect(this.filterNode).connect(destination);
     // When filter is started, user's microphone media stream is active.
