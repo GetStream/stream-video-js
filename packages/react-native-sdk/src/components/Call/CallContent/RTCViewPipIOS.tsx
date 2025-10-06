@@ -6,11 +6,7 @@ import {
   type StreamVideoParticipant,
   type VideoTrackType,
 } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallStateHooks,
-  useEffectEvent,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { findNodeHandle } from 'react-native';
