@@ -47,7 +47,7 @@ export async function uploadCallRecording(
             name: primaryMember.user.name,
             emailAddress: primaryMember.user.custom.email,
           }
-        : { name: member.user.name },
+        : { name: member.user.name || member.user_id },
     ),
     direction: 'Outbound',
   });
