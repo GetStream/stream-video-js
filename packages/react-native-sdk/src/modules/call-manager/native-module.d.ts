@@ -6,7 +6,7 @@ export interface CallManager extends NativeModule {
   /**
    * Sets the audio role for the call. This should be done before calling **start()**.
    *
-   * @param audioRole The audio role to set. It can be one of the following:
+   * @param role The audio role to set. It can be one of the following:
    * - `'communicator'`: (Default) For use cases like video or voice calls.
    * It prioritizes low latency and allows manual audio device switching.
    * Audio routing is controlled by the SDK.
@@ -18,7 +18,7 @@ export interface CallManager extends NativeModule {
 
   /**
    * Sets the default audio device endpoint type for the call. This should be done before calling **start()**.
-   * @param defaultAudioDeviceEndpointType The default audio device endpoint type to set. It can be one of the following:
+   * @param type The default audio device endpoint type to set. It can be one of the following:
    * - `'speaker'`: (Default) For normal video or voice calls.
    * - `'earpiece'`: For voice only mobile call type scenarios.
    */
