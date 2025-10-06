@@ -62,6 +62,11 @@ export interface CallManager extends NativeModule {
   unmuteAudioOutput: () => void;
 
   /**
+   * Forces speakerphone on/off.
+   */
+  setForceSpeakerphoneOn: (boolean) => void;
+
+  /**
    * Log the current audio state natively.
    * Meant for debugging purposes.
    */

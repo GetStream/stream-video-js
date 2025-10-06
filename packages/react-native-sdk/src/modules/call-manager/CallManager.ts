@@ -63,6 +63,13 @@ class SpeakerManager {
       NativeManager.unmuteAudioOutput();
     }
   };
+
+  /**
+   * Forces speakerphone on/off.
+   */
+  setForceSpeakerphoneOn = (force: boolean) => {
+    NativeManager.setForceSpeakerphoneOn(force);
+  };
 }
 
 export class CallManager {
