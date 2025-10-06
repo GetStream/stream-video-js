@@ -95,6 +95,11 @@ export type CallContentProps = Pick<
      */
     disablePictureInPicture?: boolean;
     /**
+     * Callback that is called when the PiP mode state changes (iOS only).
+     * @param active - true when PiP started, false when PiP stopped
+     */
+    onPiPChange?: (active: boolean) => void;
+    /**
      * Props to set the audio mode for the InCallManager.
      * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
      * Changing the mode on the fly is not supported.
@@ -121,6 +126,7 @@ export const CallContent = ({
   supportedReactions,
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
+  onPiPChange,
   initialInCallManagerAudioMode = 'video',
 }: CallContentProps) => {
   const [
@@ -238,6 +244,7 @@ export const CallContent = ({
       {!disablePictureInPicture && (
         <RTCViewPipIOS
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
+          onPiPChange={onPiPChange}
         />
       )}
       <View style={[styles.container, landscapeStyles, callContent.container]}>
