@@ -66,14 +66,7 @@ class AudioDeviceManager(
         EndpointMaps(bluetoothEndpoints, nonBluetoothEndpoints)
     }
 
-    private var _cachedAvailableEndpointNamesSet = setOf<String>()
-    private var cachedAvailableEndpointNamesSet: Set<String>
-        get() = _cachedAvailableEndpointNamesSet
-        set(value) {
-            _cachedAvailableEndpointNamesSet = value
-            // send an event to the frontend everytime the list of available endpoints changes
-            sendAudioStatusEvent();
-        }
+    private var cachedAvailableEndpointNamesSet = setOf<String>()
 
     /** Returns the currently selected audio device. */
     private var _selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
@@ -384,6 +377,11 @@ class AudioDeviceManager(
                 ))
             )
 
+            if (devicesChanged) {
+                // notify the frontend that the available devices changed
+                this.sendAudioStatusEvent();
+            }
+
             // Double-check if any Bluetooth headset is connected once again (useful for older android platforms)
             // TODO: we can possibly remove this, to be tested on older platforms
             if (bluetoothManager.bluetoothState == BluetoothManager.State.HEADSET_AVAILABLE || bluetoothManager.bluetoothState == BluetoothManager.State.HEADSET_UNAVAILABLE) {
@@ -511,7 +509,7 @@ class AudioDeviceManager(
                 if (audioFocusLost) {
                     // removing the currently selected device store, as its untrue
                     selectedAudioDeviceEndpoint = null
-                    // removing the currectly selected device store will make sure a device selection is made
+                    // removing the currently selected device store will make sure a device selection is made
                     updateAudioDeviceState()
                 }
                 audioFocusLost = false
@@ -524,7 +522,7 @@ class AudioDeviceManager(
         }
     }
 
-    fun audioStatusMap(): WritableMap {
+    private fun audioStatusMap(): WritableMap {
         val endpoint = this.selectedAudioDeviceEndpoint
         val availableEndpoints = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
 
@@ -535,7 +533,7 @@ class AudioDeviceManager(
         return data
     }
 
-    fun sendAudioStatusEvent() {
+    private fun sendAudioStatusEvent() {
         try {
             if (mReactContext.hasActiveReactInstance()) {
                 val payload = audioStatusMap()

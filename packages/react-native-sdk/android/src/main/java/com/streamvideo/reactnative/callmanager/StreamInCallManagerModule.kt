@@ -4,16 +4,13 @@ import android.util.Log
 import android.view.WindowManager
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.UiThreadUtil
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
-import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
+import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import java.util.Locale
 
 
@@ -45,24 +42,6 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun invalidate() {
         mAudioDeviceManager.close()
         super.invalidate()
-    }
-
-    fun sendEvent(eventName: String, params: WritableMap?) {
-        try {
-            val reactContext: ReactContext? = reactApplicationContext
-            if (reactContext != null && reactContext.hasActiveReactInstance()) {
-                reactContext.getJSModule(
-                    DeviceEventManagerModule.RCTDeviceEventEmitter::class.java
-                ).emit(eventName, params)
-            } else {
-                Log.e(TAG, "sendEvent(): reactContext is null or not having CatalystInstance yet.")
-            }
-        } catch (e: RuntimeException) {
-            Log.e(
-                TAG,
-                "sendEvent(): java.lang.RuntimeException: Trying to invoke JS before CatalystInstance has been set!"
-            )
-        }
     }
 
     @ReactMethod
