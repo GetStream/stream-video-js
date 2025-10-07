@@ -12,7 +12,7 @@ import {
   type LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
-import { useEffectEvent } from '../../hooks/useEffectEvent';
+import { useEffectEvent } from '@stream-io/video-react-bindings';
 
 export type LivestreamPlayerProps = {
   /**
@@ -53,7 +53,7 @@ export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
   const { callType, callId, ...restProps } = props;
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call>();
-  const onError = useEffectEvent(props.onError);
+  const onError = useEffectEvent(props.onError ?? (() => {}));
 
   useEffect(() => {
     if (!client) return;
@@ -69,7 +69,7 @@ export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
       });
       setCall(undefined);
     };
-  }, [callId, callType, client, onError]);
+  }, [callId, callType, client]);
 
   if (!call) {
     return null;
@@ -116,7 +116,7 @@ const useLivestreamCall = (props: {
   const canJoin =
     (joinBehavior === 'asap' && canJoinAsap) ||
     (joinBehavior === 'live' && canJoinLive);
-  const onError = useEffectEvent(props.onError);
+  const onError = useEffectEvent(props.onError ?? (() => {}));
 
   useEffect(() => {
     if (call && call.state.callingState === CallingState.IDLE && canJoin) {
@@ -125,7 +125,7 @@ const useLivestreamCall = (props: {
         onError(e);
       });
     }
-  }, [call, canJoin, onError]);
+  }, [call, canJoin]);
 
   return call;
 };

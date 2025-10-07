@@ -2,6 +2,33 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.33.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.33.0...@stream-io/video-client-1.33.1) (2025-10-02)
+
+### Bug Fixes
+
+- ensure ingress participants are prioritized ([#1943](https://github.com/GetStream/stream-video-js/issues/1943)) ([a51a119](https://github.com/GetStream/stream-video-js/commit/a51a119cfb9f13736395b4afb3d3947ef994a6d9))
+
+## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.32.0...@stream-io/video-client-1.33.0) (2025-09-30)
+
+### Features
+
+- Audio profiles and Hi-Fi stereo audio ([#1887](https://github.com/GetStream/stream-video-js/issues/1887)) ([3b60c89](https://github.com/GetStream/stream-video-js/commit/3b60c89b8c0dbc40544fe13be79c10e93bbddd3d))
+
+### Bug Fixes
+
+- **client:** server side pinning ([#1936](https://github.com/GetStream/stream-video-js/issues/1936)) ([cd33b9e](https://github.com/GetStream/stream-video-js/commit/cd33b9e4417e8fdc452b6d4a192e10183ddfa31b))
+
+## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.31.0...@stream-io/video-client-1.32.0) (2025-09-29)
+
+### Features
+
+- **react-native:** reject call when busy ([#1856](https://github.com/GetStream/stream-video-js/issues/1856)) ([b60bc7c](https://github.com/GetStream/stream-video-js/commit/b60bc7cd2dc2e09d52496d7b5cb593cac4b89485))
+
+### Bug Fixes
+
+- restore calling state after unrecoverable join fail ([#1935](https://github.com/GetStream/stream-video-js/issues/1935)) ([8ab0168](https://github.com/GetStream/stream-video-js/commit/8ab01680d01cc47f9cf48078634358507f0c109d))
+- send unifiedSessionId in the initial join request ([#1934](https://github.com/GetStream/stream-video-js/issues/1934)) ([e6a533d](https://github.com/GetStream/stream-video-js/commit/e6a533d7e926086ac5930ebfb4648dade449d15a))
+
 ## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.30.1...@stream-io/video-client-1.31.0) (2025-09-17)
 
 ### Features

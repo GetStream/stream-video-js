@@ -1,6 +1,7 @@
 import { Call } from './Call';
 import { StreamClient } from './coordinator/connection/client';
 import {
+  CallingState,
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
@@ -74,6 +75,7 @@ export class StreamVideoClient {
   );
 
   private static _instances = new Map<string, StreamVideoClient>();
+  private rejectCallWhenBusy = false;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -95,6 +97,7 @@ export class StreamVideoClient {
     setLogger(rootLogger, clientOptions?.logLevel || 'warn');
 
     this.logger = getLogger(['client']);
+    this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
 
@@ -206,7 +209,18 @@ export class StreamVideoClient {
         let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
-            await call.updateFromRingingEvent(e as CallRingEvent);
+            if (this.shouldRejectCall(call.cid)) {
+              this.logger(
+                'info',
+                `Leaving call with busy reject reason ${call.cid} because user is busy`,
+              );
+              // remove the instance from the state store
+              await call.leave();
+              // explicitly reject the call with busy reason as calling state was not ringing before and leave would not call it therefore
+              await call.reject('busy');
+            } else {
+              await call.updateFromRingingEvent(e as CallRingEvent);
+            }
           } else {
             call.state.updateFromCallResponse(e.call);
           }
@@ -221,11 +235,21 @@ export class StreamVideoClient {
           clientStore: this.writeableStateStore,
           ringing,
         });
-        call.state.updateFromCallResponse(e.call);
 
         if (ringing) {
-          await call.get();
+          if (this.shouldRejectCall(call.cid)) {
+            this.logger(
+              'info',
+              `Rejecting call ${call.cid} because user is busy`,
+            );
+            // call is not in the state store yet, so just reject api is enough
+            await call.reject('busy');
+          } else {
+            await call.updateFromRingingEvent(e as CallRingEvent);
+            await call.get();
+          }
         } else {
+          call.state.updateFromCallResponse(e.call);
           this.writeableStateStore.registerCall(call);
           this.logger('info', `New call created and registered: ${call.cid}`);
         }
@@ -571,5 +595,20 @@ export class StreamVideoClient {
     return withoutConcurrency(this.connectionConcurrencyTag, () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );
+  };
+
+  private shouldRejectCall = (currentCallId: string) => {
+    if (!this.rejectCallWhenBusy) return false;
+
+    const hasOngoingRingingCall = this.state.calls.some(
+      (c) =>
+        c.cid !== currentCallId &&
+        c.ringing &&
+        c.state.callingState !== CallingState.IDLE &&
+        c.state.callingState !== CallingState.LEFT &&
+        c.state.callingState !== CallingState.RECONNECTING_FAILED,
+    );
+
+    return hasOngoingRingingCall;
   };
 }

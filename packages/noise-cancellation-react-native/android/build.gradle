@@ -79,6 +79,19 @@ rootProject.allprojects {
     }
 }
 
+rootProject.allprojects {
+    repositories {
+        maven {
+            name = 'Central Sonatype Portal Snapshots'
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            content {
+                // This efficiently tells Gradle to only look for this specific dependency here
+                includeModule('io.getstream', 'stream-video-android-noise-cancellation')
+            }
+        }
+    }
+}
+
 repositories {
     mavenCentral()
     google()
@@ -94,7 +107,7 @@ println "Using targetSdkVersion: ${getExtOrIntegerDefault("targetSdkVersion")}"
 
 dependencies {
     implementation "com.facebook.react:react-native:+"
-    implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.2-kotlin-1.9.25'
+    implementation 'io.getstream:stream-video-android-noise-cancellation:1.0.4-kotlin-1.9.25'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation project(':stream-io_react-native-webrtc')
 }

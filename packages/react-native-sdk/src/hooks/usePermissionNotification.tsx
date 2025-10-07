@@ -1,8 +1,9 @@
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import { usePrevious } from '../utils/hooks/usePrevious';
+import { useEffectEvent } from '@stream-io/video-react-bindings';
 
 export type PermissionNotificationProps = {
   /**
@@ -32,13 +33,13 @@ export const usePermissionNotification = (
   const previousHasPermission = usePrevious(hasPermission);
   const callingState = useCallCallingState();
 
-  const showGrantedNotification = useCallback(() => {
+  const showGrantedNotification = useEffectEvent(() => {
     Alert.alert(messageApproved);
-  }, [messageApproved]);
+  });
 
-  const showRevokedNotification = useCallback(() => {
+  const showRevokedNotification = useEffectEvent(() => {
     Alert.alert(messageRevoked);
-  }, [messageRevoked]);
+  });
 
   useEffect(() => {
     // Permission state is not reliable before the call is joined,
@@ -51,11 +52,5 @@ export const usePermissionNotification = (
     } else if (!hasPermission && previousHasPermission) {
       showRevokedNotification();
     }
-  }, [
-    callingState,
-    hasPermission,
-    previousHasPermission,
-    showGrantedNotification,
-    showRevokedNotification,
-  ]);
+  }, [callingState, hasPermission, previousHasPermission]);
 };

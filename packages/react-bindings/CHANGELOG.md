@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.9.0...@stream-io/video-react-bindings-1.9.1) (2025-10-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.33.1`
+
+## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.8.4...@stream-io/video-react-bindings-1.9.0) (2025-09-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.33.0`
+
+### Features
+
+- Audio profiles and Hi-Fi stereo audio ([#1887](https://github.com/GetStream/stream-video-js/issues/1887)) ([3b60c89](https://github.com/GetStream/stream-video-js/commit/3b60c89b8c0dbc40544fe13be79c10e93bbddd3d))
+
+## [1.8.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.8.3...@stream-io/video-react-bindings-1.8.4) (2025-09-29)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.32.0`
+
 ## [1.8.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.8.2...@stream-io/video-react-bindings-1.8.3) (2025-09-17)
 
 ### Dependency Updates

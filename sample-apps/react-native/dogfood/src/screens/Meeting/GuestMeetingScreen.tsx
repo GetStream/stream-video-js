@@ -61,7 +61,7 @@ export const GuestMeetingScreen = (props: Props) => {
         apiKey,
         user: userToConnect,
         tokenProvider,
-        options: { logLevel: 'warn' },
+        options: { logLevel: 'warn', rejectCallWhenBusy: true },
       });
       setVideoClient(_videoClient);
     };

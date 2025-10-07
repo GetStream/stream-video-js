@@ -392,6 +392,7 @@ export const useMicrophoneState = ({
     state.isPromptingPermission$,
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
+  const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
 
   return {
     microphone,
@@ -403,6 +404,7 @@ export const useMicrophoneState = ({
     hasBrowserPermission,
     isPromptingPermission,
     isSpeakingWhileMuted,
+    audioBitrateProfile,
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
@@ -446,13 +448,14 @@ export const useScreenShareState = ({
 }: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { screenShare } = call as Call;
-
+  const { state } = screenShare;
   return {
     screenShare,
-    mediaStream: useObservableValue(screenShare.state.mediaStream$),
+    mediaStream: useObservableValue(state.mediaStream$),
+    audioBitrateProfile: useObservableValue(state.audioBitrateProfile$),
     ...getComputedStatus(
-      useObservableValue(screenShare.state.status$),
-      useObservableValue(screenShare.state.optimisticStatus$),
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
       { optimisticUpdates },
     ),
   };
@@ -464,10 +467,7 @@ export const useScreenShareState = ({
  */
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
-  const settings = useObservableValue(
-    call.dynascaleManager.incomingVideoSettings$,
-  );
-  return settings;
+  return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
 };
 
 /**

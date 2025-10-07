@@ -113,14 +113,17 @@ export class SpeakerManager {
    * @param volume a number between 0 and 1. Set it to `undefined` to use the default volume.
    */
   setParticipantVolume(sessionId: string, volume: number | undefined) {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
     if (volume && (volume < 0 || volume > 1)) {
       throw new Error('Volume must be between 0 and 1, or undefined');
     }
-    this.call.state.updateParticipant(sessionId, { audioVolume: volume });
+    this.call.state.updateParticipant(sessionId, (p) => {
+      if (isReactNative() && p.audioStream) {
+        for (const track of p.audioStream.getAudioTracks()) {
+          // @ts-expect-error track._setVolume is present in react-native-webrtc
+          track?._setVolume(volume);
+        }
+      }
+      return { audioVolume: volume };
+    });
   }
 }

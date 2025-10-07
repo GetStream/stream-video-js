@@ -1,5 +1,5 @@
 import * as CallStateHooks from './callStateHooks';
-
+export * from './useEffectEvent';
 export * from './useObservableValue';
 
 export * from './store';

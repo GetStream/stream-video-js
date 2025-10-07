@@ -19,6 +19,7 @@ import { LogoAndTitleOverlay, UIDispatcher } from './components';
 
 import './CompositeApp.scss';
 import { useParticipantStyles } from './hooks/options/useParticipantStyles';
+import { WithCustomActions } from './components/CustomActionsContext';
 
 export const CompositeApp = () => {
   const { client, call } = useInitializeClientAndCall();
@@ -31,13 +32,15 @@ export const CompositeApp = () => {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <StreamThemeWrapper>
-          <EgressReadyNotificationProvider>
-            <UIDispatcher />
-            <LogoAndTitleOverlay />
-          </EgressReadyNotificationProvider>
-          {/* <StyleComponent /> */}
-        </StreamThemeWrapper>
+        <WithCustomActions>
+          <StreamThemeWrapper>
+            <EgressReadyNotificationProvider>
+              <UIDispatcher />
+              <LogoAndTitleOverlay />
+            </EgressReadyNotificationProvider>
+            {/* <StyleComponent /> */}
+          </StreamThemeWrapper>
+        </WithCustomActions>
       </StreamCall>
     </StreamVideo>
   );

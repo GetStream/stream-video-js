@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { onVoipNotificationReceived } from './internal/ios';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { getLogger } from '@stream-io/video-client';
-import type  { StreamVideoConfig } from '../StreamVideoRN/types';
+import type { StreamVideoConfig } from '../StreamVideoRN/types';
 
 export function setupIosVoipPushEvents(
   pushConfig: NonNullable<StreamVideoConfig['push']>,
@@ -13,11 +13,11 @@ export function setupIosVoipPushEvents(
     return;
   }
   const logger = getLogger(['setupIosVoipPushEvents']);
-  if (!pushConfig.android.incomingCallChannel) {
+  if (!pushConfig.ios.pushProviderName) {
     // TODO: remove this check and find a better way once we have telecom integration for android
     logger(
       'debug',
-      'android incomingCallChannel is not defined, so skipping the setupIosVoipPushEvents',
+      'ios pushProviderName is not defined, so skipping the setupIosVoipPushEvents',
     );
     return;
   }
