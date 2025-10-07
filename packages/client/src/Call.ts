@@ -8,7 +8,7 @@ import {
   Publisher,
   Subscriber,
   toRtcConfiguration,
-  TrackPublishOptions,
+  type TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
 import {

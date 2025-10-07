@@ -16,7 +16,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { type AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.

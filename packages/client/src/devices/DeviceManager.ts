@@ -1,6 +1,6 @@
 import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
-import { TrackPublishOptions } from '../rtc';
+import type { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { DeviceManagerState } from './DeviceManagerState';

@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { Call } from '../Call';
 import { type CameraDirection, CameraManagerState } from './CameraManagerState';
-import type { DeviceManager } from './DeviceManager';
+import { DeviceManager } from './DeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { OwnCapability, type VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';

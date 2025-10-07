@@ -1,7 +1,7 @@
 import { DeviceManager } from './DeviceManager';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
-import { TrackPublishOptions } from '../rtc';
+import type { TrackPublishOptions } from '../rtc';
 
 /**
  * Base class for High Fidelity enabled Device Managers.
