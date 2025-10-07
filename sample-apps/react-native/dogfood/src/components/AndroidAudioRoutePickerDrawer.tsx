@@ -1,4 +1,5 @@
 import {
+  AudioDeviceEndpointType,
   AudioDeviceStatus,
   callManager,
   useTheme,
@@ -27,7 +28,7 @@ type DrawerProps = {
   onClose: () => void;
 };
 
-const endpointNameToIconImage = (endPointName: string) => {
+const endpointNameToIconImage = (endPointName: AudioDeviceEndpointType) => {
   switch (endPointName) {
     case 'Speaker':
       return require('../assets/audio-routes/volume_up_24dp.png');

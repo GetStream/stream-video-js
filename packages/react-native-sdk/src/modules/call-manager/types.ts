@@ -1,6 +1,14 @@
+export type AudioDeviceEndpointType =
+  | 'Bluetooth Device'
+  | 'Earpiece'
+  | 'Speaker'
+  | 'Wired Headset'
+  | 'Unknown'
+  | (string & {});
+
 export type AudioDeviceStatus = {
   devices: string[];
-  currentEndpointType: string;
+  currentEndpointType: AudioDeviceEndpointType;
   selectedDevice: string;
 };
 

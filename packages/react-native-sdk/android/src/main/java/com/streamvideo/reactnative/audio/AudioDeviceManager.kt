@@ -66,7 +66,14 @@ class AudioDeviceManager(
         EndpointMaps(bluetoothEndpoints, nonBluetoothEndpoints)
     }
 
-    private var cachedAvailableEndpointNamesSet = setOf<String>()
+    private var _cachedAvailableEndpointNamesSet = setOf<String>()
+    private var cachedAvailableEndpointNamesSet: Set<String>
+        get() = _cachedAvailableEndpointNamesSet
+        set(value) {
+            _cachedAvailableEndpointNamesSet = value
+            // send an event to the frontend everytime the list of available endpoints changes
+            sendAudioStatusEvent();
+        }
 
     /** Returns the currently selected audio device. */
     private var _selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
@@ -153,13 +160,6 @@ class AudioDeviceManager(
         }
     }
 
-    private fun getEndpointFromType(@EndpointType endpointType: Int): AudioDeviceEndpoint? {
-        return when (endpointType) {
-            AudioDeviceEndpoint.TYPE_BLUETOOTH -> mEndpointMaps.bluetoothEndpoints.values.firstOrNull()
-            else -> mEndpointMaps.nonBluetoothEndpoints[endpointType]
-        }
-    }
-
     private fun getEndpointFromName(name: String): AudioDeviceEndpoint? {
         val endpointType = AudioDeviceEndpointUtils.endpointStringToType(name)
         val endpoint = when (endpointType) {
@@ -187,15 +187,14 @@ class AudioDeviceManager(
         }
     }
 
-    private fun switchDeviceEndpointType(
-        @EndpointType deviceType: Int
-    ): AudioDeviceEndpoint? {
-        return AudioManagerUtil.switchDeviceEndpointType(
+    private fun switchDeviceEndpointType(@EndpointType deviceType: Int) {
+        val newDevice = AudioManagerUtil.switchDeviceEndpointType(
             deviceType,
             mEndpointMaps,
             mAudioManager,
             bluetoothManager
         )
+        this.selectedAudioDeviceEndpoint = newDevice
     }
 
     fun switchDeviceFromDeviceName(
@@ -208,24 +207,22 @@ class AudioDeviceManager(
         )
         runInAudioThread {
             val btDevice = mEndpointMaps.bluetoothEndpoints[deviceName]
-            var endpoint: AudioDeviceEndpoint?
             if (btDevice != null) {
                 if (Build.VERSION.SDK_INT >= 31) {
                     mAudioManager.setCommunicationDevice(btDevice.deviceInfo)
                     bluetoothManager.updateDevice()
-                    endpoint = btDevice
+                    this.selectedAudioDeviceEndpoint = btDevice
                 } else {
-                    endpoint = switchDeviceEndpointType(
+                    switchDeviceEndpointType(
                         AudioDeviceEndpoint.TYPE_BLUETOOTH
                     )
                 }
             } else {
                 val endpointType = AudioDeviceEndpointUtils.endpointStringToType(deviceName)
-                endpoint = switchDeviceEndpointType(
+                switchDeviceEndpointType(
                     endpointType
                 )
             }
-            this.selectedAudioDeviceEndpoint = endpoint
         }
     }
 
@@ -488,9 +485,6 @@ class AudioDeviceManager(
                     deviceSwitched = true
                 }
 
-                if (deviceSwitched) {
-                    this.selectedAudioDeviceEndpoint = getEndpointFromType(newAudioDevice)
-                }
                 if (deviceSwitched || devicesChanged) {
                     Log.d(
                         TAG,
@@ -555,7 +549,8 @@ class AudioDeviceManager(
         } catch (e: RuntimeException) {
             Log.e(
                 TAG,
-                "sendEvent(): java.lang.RuntimeException: Trying to invoke JS before CatalystInstance has been set!"
+                "sendEvent(): java.lang.RuntimeException: Trying to invoke JS before CatalystInstance has been set!",
+                e
             )
         }
     }

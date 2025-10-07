@@ -72,8 +72,9 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 Log.e(TAG, "setAudioRole(): AudioManager is already activated and so Audio Role cannot be changed, current audio role is ${mAudioDeviceManager.callAudioRole}")
                 return@runInAudioThread
             }
-            Log.d(TAG, "setAudioRole(): $audioRole ${audioRole.lowercase(Locale.getDefault())}")
-            if (audioRole.lowercase(Locale.getDefault()) == "listener") {
+            val role = audioRole.lowercase(Locale.getDefault())
+            Log.d(TAG, "setAudioRole(): $audioRole $role")
+            if (role == "listener") {
                 mAudioDeviceManager.callAudioRole = CallAudioRole.Listener
             } else {
                 mAudioDeviceManager.callAudioRole = CallAudioRole.Communicator
@@ -88,8 +89,9 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
                 return@runInAudioThread
             }
-            Log.d(TAG, "runInAudioThread(): $endpointDeviceTypeName ${endpointDeviceTypeName.lowercase(Locale.getDefault())}")
-            if (endpointDeviceTypeName.lowercase(Locale.getDefault()) == "earpiece") {
+            val endpointType = endpointDeviceTypeName.lowercase(Locale.getDefault())
+            Log.d(TAG, "runInAudioThread(): $endpointDeviceTypeName $endpointType")
+            if (endpointType == "earpiece") {
                 mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_EARPIECE
             } else {
                 mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
