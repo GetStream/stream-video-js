@@ -88,7 +88,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.11.6, @babel/core@npm:^7.12.3, @babel/core@npm:^7.13.16, @babel/core@npm:^7.18.5, @babel/core@npm:^7.20.0, @babel/core@npm:^7.25.2, @babel/core@npm:^7.28.4":
+"@babel/core@npm:^7.11.6, @babel/core@npm:^7.12.3, @babel/core@npm:^7.13.16, @babel/core@npm:^7.18.5, @babel/core@npm:^7.20.0, @babel/core@npm:^7.24.4, @babel/core@npm:^7.25.2, @babel/core@npm:^7.28.4":
   version: 7.28.4
   resolution: "@babel/core@npm:7.28.4"
   dependencies:
@@ -346,7 +346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.13.16, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.20.0, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.25.3, @babel/parser@npm:^7.25.4, @babel/parser@npm:^7.25.7, @babel/parser@npm:^7.27.2, @babel/parser@npm:^7.28.3, @babel/parser@npm:^7.28.4":
+"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.13.16, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.20.0, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.24.4, @babel/parser@npm:^7.25.3, @babel/parser@npm:^7.25.4, @babel/parser@npm:^7.25.7, @babel/parser@npm:^7.27.2, @babel/parser@npm:^7.28.3, @babel/parser@npm:^7.28.4":
   version: 7.28.4
   resolution: "@babel/parser@npm:7.28.4"
   dependencies:
@@ -3333,7 +3333,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gorhom/bottom-sheet@npm:^5.1.8, @gorhom/bottom-sheet@npm:^5.2.6":
+"@gorhom/bottom-sheet@npm:5.1.6":
+  version: 5.1.6
+  resolution: "@gorhom/bottom-sheet@npm:5.1.6"
+  dependencies:
+    "@gorhom/portal": "npm:1.0.14"
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-native": "*"
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: ">=2.16.1"
+    react-native-reanimated: ">=3.16.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-native":
+      optional: true
+  checksum: 10/321d85abac24cfab5ce6c77623381c73d95a09d8b1d95c0e7e968540af5c9d1bd3369b669459df483a962f65a363ea929940f006a1b4f3acf8f4b31500c4863f
+  languageName: node
+  linkType: hard
+
+"@gorhom/bottom-sheet@npm:^5.1.8":
   version: 5.2.6
   resolution: "@gorhom/bottom-sheet@npm:5.2.6"
   dependencies:
@@ -7382,7 +7404,6 @@ __metadata:
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.1.15"
     "@types/react-dom": "npm:^19.1.9"
-    "@types/react-native-incall-manager": "npm:^4.2.0"
     expo: "npm:^54.0.10"
     expo-build-properties: "npm:~1.0.9"
     expo-constants: "npm:~18.0.9"
@@ -7398,7 +7419,6 @@ __metadata:
     react-native: "npm:^0.81.4"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:~2.28.0"
-    react-native-incall-manager: "npm:^4.2.1"
     react-native-reanimated: "npm:~4.1.2"
     react-native-safe-area-context: "npm:~5.6.1"
     react-native-screens: "npm:~4.16.0"
@@ -7557,6 +7577,7 @@ __metadata:
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/node-sdk": "npm:^0.7.0"
     "@stream-io/worker-timer": "npm:^1.2.4"
+    "@total-typescript/shoehorn": "npm:^0.1.2"
     "@types/sdp-transform": "npm:^2.15.0"
     "@types/ua-parser-js": "npm:^0.7.39"
     "@vitest/coverage-v8": "npm:^3.2.4"
@@ -7617,7 +7638,7 @@ __metadata:
     eslint: "npm:^9.36.0"
     eslint-plugin-import: "npm:^2.32.0"
     eslint-plugin-react: "npm:^7.37.5"
-    eslint-plugin-react-hooks: "npm:^5.2.0"
+    eslint-plugin-react-hooks: "npm:^6.1.0"
     globals: "npm:^16.4.0"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.2.3"
@@ -7635,9 +7656,9 @@ __metadata:
   dependencies:
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/video-client": "workspace:^"
-    "@types/react": "npm:^19.1.15"
+    "@types/react": "npm:^19.2.0"
     i18next: "npm:^25.5.2"
-    react: "npm:19.1.0"
+    react: "npm:19.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.3"
     rxjs: "npm:~7.8.2"
@@ -7701,7 +7722,7 @@ __metadata:
     "@babel/core": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
-    "@gorhom/bottom-sheet": "npm:^5.2.6"
+    "@gorhom/bottom-sheet": "npm:5.1.6"
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
     "@react-native-community/cli": "npm:20.0.0"
@@ -7724,7 +7745,6 @@ __metadata:
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.1.15"
-    "@types/react-native-incall-manager": "npm:^4.2.0"
     axios: "npm:^1.12.2"
     react: "npm:19.1.0"
     react-native: "npm:^0.81.4"
@@ -7735,7 +7755,6 @@ __metadata:
     react-native-gesture-handler: "npm:^2.28.0"
     react-native-haptic-feedback: "npm:^2.3.3"
     react-native-image-picker: "npm:^7.2.3"
-    react-native-incall-manager: "npm:4.2.1"
     react-native-mmkv: "npm:^3.3.3"
     react-native-permissions: "npm:^5.4.2"
     react-native-reanimated: "npm:~4.1.2"
@@ -7795,7 +7814,6 @@ __metadata:
     react-native: "npm:^0.81.4"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.28.0"
-    react-native-incall-manager: "npm:^4.2.1"
     react-native-reanimated: "npm:~4.1.2"
     react-native-safe-area-context: "npm:~5.6.1"
     react-native-screens: "npm:~4.16.0"
@@ -7833,7 +7851,6 @@ __metadata:
     "@types/jest": "npm:^29.5.14"
     "@types/lodash.merge": "npm:^4.6.9"
     "@types/react": "npm:^19.1.15"
-    "@types/react-native-incall-manager": "npm:^4.2.0"
     "@types/react-test-renderer": "npm:^19.1.0"
     expo: "npm:~54.0.10"
     expo-build-properties: "npm:^0.13.2"
@@ -7848,7 +7865,6 @@ __metadata:
     react-native-builder-bob: "npm:~0.23"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.28.0"
-    react-native-incall-manager: "npm:^4.2.1"
     react-native-reanimated: "npm:~4.1.2"
     react-native-svg: "npm:15.13.0"
     react-native-url-polyfill: "npm:1.3.0"
@@ -7866,7 +7882,7 @@ __metadata:
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
     "@stream-io/noise-cancellation-react-native": ">=0.1.0"
-    "@stream-io/react-native-webrtc": ">=125.4.3"
+    "@stream-io/react-native-webrtc": ">=125.4.4"
     "@stream-io/video-filters-react-native": ">=0.1.0"
     expo: ">=47.0.0"
     expo-build-properties: "*"
@@ -7875,7 +7891,6 @@ __metadata:
     react-native: ">=0.67.0"
     react-native-callkeep: ">=4.3.11"
     react-native-gesture-handler: ">=2.8.0"
-    react-native-incall-manager: ">=4.2.0"
     react-native-reanimated: ">=2.7.0"
     react-native-svg: ">=13.6.0"
     react-native-voip-push-notification: ">=3.3.1"
@@ -8083,6 +8098,13 @@ __metadata:
   version: 0.23.0
   resolution: "@tootallnate/quickjs-emscripten@npm:0.23.0"
   checksum: 10/95cbad451d195b9d8f312103abafcc010741eb9256e98d7953e7c026d4c1ed4abb2248a14018bf49e3201c350104fc643137b23aa0bbed2744c795c39dc48a28
+  languageName: node
+  linkType: hard
+
+"@total-typescript/shoehorn@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@total-typescript/shoehorn@npm:0.1.2"
+  checksum: 10/9c624c049e8b7c0add47fdf71c32341186000e2aaa90267e8966d85ecea171ab6384bdddefc6d851630b6f0c452aa2cc74157b6865181d4d56ec5a024d662d74
   languageName: node
   linkType: hard
 
@@ -8447,15 +8469,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-native-incall-manager@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "@types/react-native-incall-manager@npm:4.2.0"
-  dependencies:
-    react-native-incall-manager: "npm:*"
-  checksum: 10/2ff035fa2f25b71b0fcc3ff42221f2d0095ff126d111828485fae7077f7dfb1929f24e971a91ae2b0cf64fa1547b70a482ee745a9c8bd6992dd62a3315abbe7d
-  languageName: node
-  linkType: hard
-
 "@types/react-test-renderer@npm:^19.1.0":
   version: 19.1.0
   resolution: "@types/react-test-renderer@npm:19.1.0"
@@ -8480,6 +8493,15 @@ __metadata:
   dependencies:
     csstype: "npm:^3.0.2"
   checksum: 10/9acff968d35e02152a817a11f8572cbcc985d9ea93616898b34e75ab193af20f9ab46274217abd12cd1ff4e4150081143b13ba20e0bb503efd64fe6601cb8bd8
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^19.2.0":
+  version: 19.2.2
+  resolution: "@types/react@npm:19.2.2"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10/d6adf8fd4bb23a7e04da5700d96b15dc0f59653727a9c6e940c151d7232fa1dbbab98417d5ac830dcfb6cba3f206efbd4cd83647e6f9a688d7363a90e607f6bf
   languageName: node
   linkType: hard
 
@@ -12366,12 +12388,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "eslint-plugin-react-hooks@npm:5.2.0"
+"eslint-plugin-react-hooks@npm:^6.1.0":
+  version: 6.1.1
+  resolution: "eslint-plugin-react-hooks@npm:6.1.1"
+  dependencies:
+    "@babel/core": "npm:^7.24.4"
+    "@babel/parser": "npm:^7.24.4"
+    zod: "npm:^3.22.4 || ^4.0.0"
+    zod-validation-error: "npm:^3.0.3 || ^4.0.0"
   peerDependencies:
     eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
-  checksum: 10/ebb79e9cf69ae06e3a7876536653c5e556b5fd8cd9dc49577f10a6e728360e7b6f5ce91f4339b33e93b26e3bb23805418f8b5e75db80baddd617b1dffe73bed1
+  checksum: 10/dcd74dbff0f18ba5aa1d36f0e414628f99c25f14e5bd7ce8205d719dd488adca7530d15ea429ffbc94b09ab6d499160a2e3d2a9a9d9a72f9d517c79e6b472ba6
   languageName: node
   linkType: hard
 
@@ -20825,15 +20852,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-incall-manager@npm:*, react-native-incall-manager@npm:4.2.1, react-native-incall-manager@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "react-native-incall-manager@npm:4.2.1"
-  peerDependencies:
-    react-native: ">=0.40.0"
-  checksum: 10/fdcfb9fc5c3b9b8e15d7f9b0834618ef0b6b024b15f42c5f41f3ed7c09a21b72b73c3b5d6dd05d5ff18402856ee8726c7a173acd2df86bfe4c43afa7a2111197
-  languageName: node
-  linkType: hard
-
 "react-native-is-edge-to-edge@npm:^1.1.6, react-native-is-edge-to-edge@npm:^1.2.1":
   version: 1.2.1
   resolution: "react-native-is-edge-to-edge@npm:1.2.1"
@@ -21324,6 +21342,13 @@ __metadata:
     react: ">=16 || >=17 || >= 18"
     react-dom: ">=16 || >=17 || >= 18"
   checksum: 10/fe601913b9d61cd97d80859124c5b4408238183f4354d2e2832df74ae01d52ce925f4aa2ce574c46b25239b607d191c86f3653d5481961bf3c133f9d962a7aef
+  languageName: node
+  linkType: hard
+
+"react@npm:19.0.0":
+  version: 19.0.0
+  resolution: "react@npm:19.0.0"
+  checksum: 10/2490969c503f644703c88990d20e4011fa6119ddeca451e9de48f6d7ab058d670d2852a5fcd3aa3cd90a923ab2815d532637bd4a814add402ae5c0d4f129ee71
   languageName: node
   linkType: hard
 
@@ -25307,6 +25332,22 @@ __metadata:
   peerDependencies:
     zod: ^3.24.1
   checksum: 10/a2c30cf1f250aa79a7f975e65b4236d1abafafd63b43c43475057f28ce6e13f4c882391553c656fb426fd09665e6ae293c2439b4ed8600863beda43fb1a56922
+  languageName: node
+  linkType: hard
+
+"zod-validation-error@npm:^3.0.3 || ^4.0.0":
+  version: 4.0.2
+  resolution: "zod-validation-error@npm:4.0.2"
+  peerDependencies:
+    zod: ^3.25.0 || ^4.0.0
+  checksum: 10/5e35ca8ebb4602dcb526e122d7e9fca695c4a479bd97535f3400a732d49160f24f7213a9ed64986fc9dc3a2e8a6c4e1241ec0c4d8a4e3e69ea91a0328ded2192
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.22.4 || ^4.0.0":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 10/c5f04e6ac306515c4db6ef73cf7705f521c7a2107c8c8912416a0658d689f361db9bee829b0bf01ef4a22492f1065c5cbcdb523ce532606ac6792fd714f3c326
   languageName: node
   linkType: hard
 
