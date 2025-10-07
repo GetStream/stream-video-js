@@ -120,7 +120,7 @@ export const CallContent = ({
   layout = 'grid',
   landscape = false,
   supportedReactions,
-  initialInCallManagerAudioMode,
+  initialInCallManagerAudioMode = 'video',
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
 }: CallContentProps) => {
@@ -140,8 +140,6 @@ export const CallContent = ({
   } = useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
-
-  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
 
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
@@ -189,6 +187,7 @@ export const CallContent = ({
   /**
    * This hook is used to handle IncallManager specs of the application.
    */
+  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
   useEffect(() => {
     const prevInCallManager = getRNInCallManagerLibNoThrow();
     if (prevInCallManager) {
