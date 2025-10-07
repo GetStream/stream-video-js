@@ -11,7 +11,7 @@ import { BrowserPermission, BrowserPermissionState } from './BrowserPermission';
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
 
-export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
+export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
   protected optimisticStatusSubject = new BehaviorSubject<InputDeviceStatus>(
     undefined,
@@ -79,17 +79,20 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    */
   isPromptingPermission$: Observable<boolean>;
 
+  readonly disableMode: TrackDisableMode;
+
   /**
-   * Constructs new InputMediaDeviceManagerState instance.
+   * Constructs a new InputMediaDeviceManagerState instance.
    *
    * @param disableMode the disable mode to use.
    * @param permission the BrowserPermission to use for querying.
    * `undefined` means no permission is required.
    */
   constructor(
-    public readonly disableMode: TrackDisableMode = 'stop-tracks',
-    permission?: BrowserPermission,
+    disableMode: TrackDisableMode,
+    permission: BrowserPermission | undefined,
   ) {
+    this.disableMode = disableMode;
     this.hasBrowserPermission$ = permission
       ? permission.asObservable().pipe(shareReplay(1))
       : of(true);

@@ -106,6 +106,7 @@ describe('CameraManager', () => {
     expect(manager['call'].publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.VIDEO,
+      undefined,
     );
   });
 

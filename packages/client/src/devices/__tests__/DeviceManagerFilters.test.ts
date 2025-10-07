@@ -3,8 +3,8 @@ import { of } from 'rxjs';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
-import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
-import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
+import { DeviceManagerState } from '../DeviceManagerState';
+import { DeviceManager } from '../DeviceManager';
 import {
   mockBrowserPermission,
   mockVideoDevices,
@@ -14,13 +14,13 @@ import { TrackType } from '../../gen/video/sfu/models/models';
 
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
-class TestInputMediaDeviceManagerState extends InputMediaDeviceManagerState {
+class TestInputMediaDeviceManagerState extends DeviceManagerState {
   public getDeviceIdFromStream = vi.fn(
     (stream) => stream.getTracks()[0].getSettings().deviceId,
   );
 }
 
-class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMediaDeviceManagerState> {
+class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceManagerState> {
   public getDevices = vi.fn(() => of(mockVideoDevices));
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();

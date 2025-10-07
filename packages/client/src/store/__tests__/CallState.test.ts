@@ -254,7 +254,16 @@ describe('CallState', () => {
       state.setParticipants(TestData.participants());
       // initial sort criteria
       const ps = state.participants;
-      expect(ps.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
+      expect(ps.map((p) => p.name)).toMatchInlineSnapshot(`
+        [
+          "B",
+          "E",
+          "F",
+          "A",
+          "C",
+          "D",
+        ]
+      `);
 
       // disable sorting
       state.setSortParticipantsBy(noopComparator());
@@ -267,7 +276,16 @@ describe('CallState', () => {
 
       const ps2 = state.participants;
       // should resolve in initial - non-mutated state as set at the beginning
-      expect(ps2.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
+      expect(ps2.map((p) => p.name)).toMatchInlineSnapshot(`
+        [
+          "B",
+          "E",
+          "F",
+          "A",
+          "C",
+          "D",
+        ]
+      `);
     });
 
     it('should support custom sorting', () => {

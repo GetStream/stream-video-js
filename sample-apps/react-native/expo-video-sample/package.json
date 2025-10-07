@@ -37,7 +37,6 @@
     "react-native": "^0.81.4",
     "react-native-callkeep": "^4.3.16",
     "react-native-gesture-handler": "~2.28.0",
-    "react-native-incall-manager": "^4.2.1",
     "react-native-reanimated": "~4.1.2",
     "react-native-safe-area-context": "~5.6.1",
     "react-native-screens": "~4.16.0",
@@ -51,7 +50,6 @@
     "@rnx-kit/metro-resolver-symlinks": "^0.2.6",
     "@types/react": "^19.1.15",
     "@types/react-dom": "^19.1.9",
-    "@types/react-native-incall-manager": "^4.2.0",
     "typescript": "~5.9.2"
   },
   "private": true,

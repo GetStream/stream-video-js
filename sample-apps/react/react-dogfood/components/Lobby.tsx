@@ -25,6 +25,7 @@ import { ToggleEffectsButton } from './ToggleEffectsButton';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
+import { ToggleHiFiButton } from './ToggleHiFiButton';
 
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
@@ -177,6 +178,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
 
                     <div className="rd__lobby-settings">
                       <ToggleParticipantsPreviewButton onJoin={onJoin} />
+                      <ToggleHiFiButton />
                       <ToggleEffectsButton inMeeting={false} />
                       <ToggleSettingsTabModal
                         layoutProps={{

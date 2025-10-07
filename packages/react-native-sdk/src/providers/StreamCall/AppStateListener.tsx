@@ -7,10 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
-import {
-  disablePiPMode$,
-  isInPiPModeAndroid$,
-} from '../../utils/internal/rxSubjects';
+import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
 import { getLogger, RxUtils } from '@stream-io/video-client';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
@@ -35,12 +32,12 @@ export const AppStateListener = () => {
     const logger = getLogger(['AppStateListener']);
     const initialPipMode =
       !disablePiP && AppState.currentState === 'background';
-    isInPiPModeAndroid$.next(initialPipMode);
+    isInPiPMode$.next(initialPipMode);
     logger('debug', 'Initial PiP mode on mount set to ', initialPipMode);
 
     NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
       (isInPiP: boolean | null | undefined) => {
-        isInPiPModeAndroid$.next(!!isInPiP);
+        isInPiPMode$.next(!!isInPiP);
         logger(
           'debug',
           'Initial PiP mode on mount (after asking native module) set to ',
@@ -56,7 +53,7 @@ export const AppStateListener = () => {
     const subscriptionPiPChange = eventEmitter.addListener(
       PIP_CHANGE_EVENT,
       (isInPiPMode: boolean) => {
-        isInPiPModeAndroid$.next(isInPiPMode);
+        isInPiPMode$.next(isInPiPMode);
       },
     );
 
@@ -108,11 +105,11 @@ export const AppStateListener = () => {
           if (isAndroid8OrAbove) {
             // set with an assumption that its enabled so that UI disabling happens faster
             const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
-            isInPiPModeAndroid$.next(!disablePiP);
+            isInPiPMode$.next(!disablePiP);
             // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
             NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
               (isInPiP: boolean | null | undefined) => {
-                isInPiPModeAndroid$.next(!!isInPiP);
+                isInPiPMode$.next(!!isInPiP);
                 if (!isInPiP) {
                   if (AppState.currentState === 'active') {
                     // this is to handle the case that the app became active as soon as it went to background
