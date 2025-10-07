@@ -13,7 +13,7 @@ class AndroidCallManager {
   /**
    * Get the current audio device status.
    */
-  getAudioDeviceStatus = async () => {
+  getAudioDeviceStatus = async (): Promise<AudioDeviceStatus> => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
     return NativeManager.getAudioDeviceStatus();
   };
@@ -23,7 +23,7 @@ class AndroidCallManager {
    *
    * @param endpointName the device name.
    */
-  selectAudioDevice = (endpointName: string) => {
+  selectAudioDevice = (endpointName: string): void => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
     NativeManager.chooseAudioDeviceEndpoint(endpointName);
   };
@@ -34,7 +34,7 @@ class AndroidCallManager {
    */
   addAudioDeviceChangeListener = (
     onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
-  ) => {
+  ): (() => void) => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
     this.eventEmitter ??= new NativeEventEmitter(NativeManager);
     const s = this.eventEmitter.addListener('onAudioDeviceChanged', onChange);
@@ -46,7 +46,7 @@ class IOSCallManager {
   /**
    * Will trigger the iOS device selector.
    */
-  showDeviceSelector = () => {
+  showDeviceSelector = (): void => {
     invariant(Platform.OS === 'ios', 'Supported only on iOS');
     NativeManager.showAudioRoutePicker();
   };
@@ -56,7 +56,7 @@ class SpeakerManager {
   /**
    * Mutes or unmutes the speaker.
    */
-  setMute = (mute: boolean) => {
+  setMute = (mute: boolean): void => {
     if (mute) {
       NativeManager.muteAudioOutput();
     } else {
@@ -67,7 +67,7 @@ class SpeakerManager {
   /**
    * Forces speakerphone on/off.
    */
-  setForceSpeakerphoneOn = (force: boolean) => {
+  setForceSpeakerphoneOn = (force: boolean): void => {
     NativeManager.setForceSpeakerphoneOn(force);
   };
 }
@@ -92,7 +92,7 @@ export class CallManager {
    * - `'speaker'`: (Default) For normal video or voice calls.
    * - `'earpiece'`: For voice-only mobile call type scenarios.
    */
-  start = (config?: StreamInCallManagerConfig) => {
+  start = (config?: StreamInCallManagerConfig): void => {
     NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
     if (config?.audioRole === 'communicator') {
       const type = config.deviceEndpointType ?? 'speaker';
@@ -104,7 +104,7 @@ export class CallManager {
   /**
    * Stops the in call manager.
    */
-  stop = () => {
+  stop = (): void => {
     NativeManager.stop();
   };
 
@@ -112,5 +112,5 @@ export class CallManager {
    * For debugging purposes, will emit a log event with the current audio state.
    * in the native layer.
    */
-  logAudioState = () => NativeManager.logAudioState();
+  logAudioState = (): void => NativeManager.logAudioState();
 }

@@ -69,7 +69,14 @@ class AudioDeviceManager(
     private var cachedAvailableEndpointNamesSet = setOf<String>()
 
     /** Returns the currently selected audio device. */
-    private var selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
+    private var _selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
+    private var selectedAudioDeviceEndpoint: AudioDeviceEndpoint?
+        get() = _selectedAudioDeviceEndpoint
+        set(value) {
+            _selectedAudioDeviceEndpoint = value
+            // send an event to the frontend everytime this endpoint changes
+            sendAudioStatusEvent()
+        }
 
     // Default audio device; speaker phone for video calls or earpiece for audio only phone calls
     @EndpointType
@@ -201,21 +208,24 @@ class AudioDeviceManager(
         )
         runInAudioThread {
             val btDevice = mEndpointMaps.bluetoothEndpoints[deviceName]
+            var endpoint: AudioDeviceEndpoint?
             if (btDevice != null) {
                 if (Build.VERSION.SDK_INT >= 31) {
                     mAudioManager.setCommunicationDevice(btDevice.deviceInfo)
                     bluetoothManager.updateDevice()
+                    endpoint = btDevice
                 } else {
-                    switchDeviceEndpointType(
+                    endpoint = switchDeviceEndpointType(
                         AudioDeviceEndpoint.TYPE_BLUETOOTH
                     )
                 }
             } else {
                 val endpointType = AudioDeviceEndpointUtils.endpointStringToType(deviceName)
-                switchDeviceEndpointType(
+                endpoint = switchDeviceEndpointType(
                     endpointType
                 )
             }
+            this.selectedAudioDeviceEndpoint = endpoint
         }
     }
 
@@ -486,7 +496,6 @@ class AudioDeviceManager(
                         TAG,
                         ("New device status: " + "available=" + audioDevices + ", " + "selected=" + this.selectedAudioDeviceEndpoint)
                     )
-                    sendAudioStatusEvent()
                 }
                 Log.d(
                     TAG, "--- updateAudioDeviceState done"
@@ -502,7 +511,7 @@ class AudioDeviceManager(
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN -> {
-                Log.d(TAG,  "Audio focus gained")
+                Log.d(TAG, "Audio focus gained")
                 // Some other application potentially stole our audio focus
                 // temporarily. Restore our mode.
                 if (audioFocusLost) {
@@ -515,27 +524,31 @@ class AudioDeviceManager(
             }
 
             AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                Log.d(TAG,  "Audio focus lost")
+                Log.d(TAG, "Audio focus lost")
                 audioFocusLost = true
             }
         }
     }
 
     fun audioStatusMap(): WritableMap {
+        val endpoint = this.selectedAudioDeviceEndpoint
+        val availableEndpoints = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
+
         val data = Arguments.createMap()
-        val availableAudioDeviceEndpointNamesList = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
-        data.putArray("devices", availableAudioDeviceEndpointNamesList)
-        data.putString("currentEndpointType", endpointTypeDebug(this.selectedAudioDeviceEndpoint?.type))
-        data.putString("selectedDevice", this.selectedAudioDeviceEndpoint?.name)
+        data.putArray("devices", availableEndpoints)
+        data.putString("currentEndpointType", endpointTypeDebug(endpoint?.type))
+        data.putString("selectedDevice", endpoint?.name)
         return data
     }
 
     fun sendAudioStatusEvent() {
         try {
             if (mReactContext.hasActiveReactInstance()) {
+                val payload = audioStatusMap()
+                Log.d(TAG, "sendAudioStatusEvent: $payload")
                 mReactContext.getJSModule(
                     DeviceEventManagerModule.RCTDeviceEventEmitter::class.java
-                ).emit("onAudioDeviceChanged", audioStatusMap())
+                ).emit("onAudioDeviceChanged", payload)
             } else {
                 Log.e(TAG, "sendEvent(): reactContext is null or not having CatalystInstance yet.")
             }

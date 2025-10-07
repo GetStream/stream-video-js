@@ -40,18 +40,6 @@ const endpointNameToIconImage = (endPointName: string) => {
   }
 };
 
-const endpointNameToDisplayName = (endPointName: string) => {
-  switch (endPointName) {
-    case 'SPEAKER':
-      return 'Speaker';
-    case 'EARPIECE':
-      return 'Phone';
-    case 'WIRED_HEADSET':
-      return 'Wired Headset';
-    default:
-      return endPointName;
-  }
-};
 export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   isVisible,
   onClose,
@@ -60,9 +48,8 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
 
-  const [audioDeviceStatus, setAudioDeviceStatus] = useState<
-    AudioDeviceStatus | null | undefined
-  >(null);
+  const [audioDeviceStatus, setAudioDeviceStatus] =
+    useState<AudioDeviceStatus>();
 
   useEffect(() => {
     callManager.android.getAudioDeviceStatus().then(setAudioDeviceStatus);
@@ -182,7 +169,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
                       source={endpointNameToIconImage(item)}
                     />
                     <Text style={styles.label}>{item}</Text>
-                    {item == selectedAudioDeviceName && (
+                    {item === selectedAudioDeviceName && (
                       <Text style={styles.selectedIcon}>✓</Text> // Checkmark for selected item
                     )}
                   </TouchableOpacity>
