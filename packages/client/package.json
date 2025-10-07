@@ -41,7 +41,7 @@
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.4",
     "@stream-io/audio-filters-web": "workspace:^",
-    "@stream-io/node-sdk": "^0.7.0",
+    "@stream-io/node-sdk": "^0.7.6",
     "@total-typescript/shoehorn": "^0.1.2",
     "@types/sdp-transform": "^2.15.0",
     "@types/ua-parser-js": "^0.7.39",
@@ -50,8 +50,8 @@
     "happy-dom": "^17.5.6",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "rollup": "^4.52.3",
-    "typescript": "^5.9.2",
+    "rollup": "^4.52.4",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "vitest-mock-extended": "^3.1.0"
   }

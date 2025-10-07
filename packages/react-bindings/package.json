@@ -21,7 +21,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "i18next": "^25.5.2",
+    "i18next": "^25.5.3",
     "rxjs": "~7.8.2"
   },
   "peerDependencies": {
@@ -31,10 +31,10 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",
     "@stream-io/video-client": "workspace:^",
-    "@types/react": "^19.2.0",
-    "react": "19.0.0",
+    "@types/react": "^19.2.2",
+    "react": "19.1.0",
     "rimraf": "^6.0.1",
-    "rollup": "^4.52.3",
-    "typescript": "^5.9.2"
+    "rollup": "^4.52.4",
+    "typescript": "^5.9.3"
   }
 }

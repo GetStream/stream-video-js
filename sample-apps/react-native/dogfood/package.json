@@ -18,8 +18,8 @@
     "@react-native-community/push-notification-ios": "^1.11.0",
     "@react-native-firebase/app": "^23.4.0",
     "@react-native-firebase/messaging": "^23.4.0",
-    "@react-navigation/native": "^7.1.17",
-    "@react-navigation/native-stack": "^7.3.26",
+    "@react-navigation/native": "^7.1.18",
+    "@react-navigation/native-stack": "^7.3.27",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
     "@stream-io/react-native-webrtc": "125.4.4",
     "@stream-io/video-filters-react-native": "workspace:^",
@@ -40,13 +40,13 @@
     "react-native-safe-area-context": "^5.6.1",
     "react-native-screens": "^4.16.0",
     "react-native-svg": "^15.13.0",
-    "react-native-toast-message": "^2.3.0",
-    "react-native-video": "^6.16.1",
+    "react-native-toast-message": "^2.3.3",
+    "react-native-video": "^6.17.0",
     "react-native-vision-camera": "^4.7.2",
     "react-native-voip-push-notification": "~3.3.3",
     "react-native-worklets": "^0.5.0",
     "rxjs": "~7.8.2",
-    "stream-chat": "^9.20.1",
+    "stream-chat": "^9.20.3",
     "stream-chat-react-native": "^8.5.2"
   },
   "devDependencies": {
@@ -62,8 +62,8 @@
     "@rnx-kit/babel-preset-metro-react-native": "^3.0.0",
     "@rnx-kit/metro-config": "^2.1.2",
     "@rnx-kit/metro-resolver-symlinks": "^0.2.6",
-    "@types/react": "^19.1.15",
-    "typescript": "^5.9.2"
+    "@types/react": "^19.2.2",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20"
