@@ -7,7 +7,7 @@
     "noEmitOnError": true,
     "noImplicitAny": true,
     "declaration": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
