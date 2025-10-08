@@ -2,7 +2,7 @@
   "name": "@stream-io/video-js-root",
   "description": "Stream Video JS SDKs",
   "author": "https://getstream.io",
-  "packageManager": "yarn@4.9.1",
+  "packageManager": "yarn@4.10.3",
   "private": true,
   "license": "See license in LICENSE",
   "workspaces": [
