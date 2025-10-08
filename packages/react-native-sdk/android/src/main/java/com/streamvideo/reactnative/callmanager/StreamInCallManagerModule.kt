@@ -82,7 +82,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     fun start() {
         AudioDeviceManager.runInAudioThread {
             if (!audioManagerActivated) {
-                currentActivity?.let {
+                reactApplicationContext.currentActivity?.let {
                     Log.d(TAG, "start() mAudioDeviceManager")
                     mAudioDeviceManager.start(it)
                     setKeepScreenOn(true)
@@ -108,7 +108,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     private fun setKeepScreenOn(enable: Boolean) {
         Log.d(TAG, "setKeepScreenOn() $enable")
         UiThreadUtil.runOnUiThread {
-            currentActivity?.let {
+            reactApplicationContext.currentActivity?.let {
                 val window = it.window
                 if (enable) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
