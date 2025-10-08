@@ -43,8 +43,8 @@
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
     "@types/mapbox-gl": "^2.7.21",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.1",
+    "@types/react": "~19.1.17",
+    "@types/react-dom": "~19.1.11",
     "@types/react-form": "^4.0.6",
     "@types/yargs": "^17.0.33",
     "rimraf": "^6.0.1",

@@ -59,7 +59,7 @@
     "@babel/runtime": "^7.28.4",
     "@rnx-kit/metro-config": "^2.1.2",
     "@rnx-kit/metro-resolver-symlinks": "^0.2.6",
-    "@types/react": "~19.2.2",
+    "@types/react": "~19.1.17",
     "typescript": "~5.9.3"
   },
   "installConfig": {

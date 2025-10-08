@@ -31,7 +31,7 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",
     "@stream-io/video-client": "workspace:^",
-    "@types/react": "^19.2.2",
+    "@types/react": "~19.1.17",
     "react": "19.1.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.52.4",

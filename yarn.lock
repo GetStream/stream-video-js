@@ -7235,8 +7235,8 @@ __metadata:
   resolution: "@stream-io/audio-rooms@workspace:sample-apps/react/audio-rooms"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -7255,8 +7255,8 @@ __metadata:
     "@mui/material": "npm:^6.4.5"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -7274,8 +7274,8 @@ __metadata:
     "@sentry/react": "npm:^8.55.0"
     "@sentry/vite-plugin": "npm:^2.23.1"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     clsx: "npm:^2.0.0"
     js-base64: "npm:^3.7.8"
@@ -7314,8 +7314,8 @@ __metadata:
     "@stream-io/react-native-webrtc": "npm:125.4.4"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.2"
-    "@types/react-dom": "npm:~19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     expo: "npm:^54.0.12"
     expo-build-properties: "npm:~1.0.9"
     expo-constants: "npm:~18.0.9"
@@ -7349,8 +7349,8 @@ __metadata:
     "@emotion/styled": "npm:^11.14.0"
     "@mui/material": "npm:^6.4.5"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     clsx: "npm:^2.0.0"
     hls.js: "npm:^1.5.20"
@@ -7375,8 +7375,8 @@ __metadata:
   dependencies:
     "@mui/icons-material": "npm:^6.4.5"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     clsx: "npm:^2.0.0"
     dayjs: "npm:^1.11.6"
@@ -7445,8 +7445,8 @@ __metadata:
   resolution: "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -7568,7 +7568,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/video-client": "workspace:^"
-    "@types/react": "npm:^19.2.2"
+    "@types/react": "npm:~19.1.17"
     i18next: "npm:^25.5.3"
     react: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
@@ -7596,8 +7596,8 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/geojson": "npm:^7946.0.16"
     "@types/mapbox-gl": "npm:^2.7.21"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@types/react-form": "npm:^4.0.6"
     "@types/yargs": "npm:^17.0.33"
     axios: "npm:^1.12.2"
@@ -7656,7 +7656,7 @@ __metadata:
     "@stream-io/react-native-webrtc": "npm:125.4.4"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.2"
+    "@types/react": "npm:~19.1.17"
     axios: "npm:^1.12.2"
     react: "npm:19.1.0"
     react-native: "npm:^0.81.4"
@@ -7706,7 +7706,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/react-native-webrtc": "npm:125.4.4"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.2"
+    "@types/react": "npm:~19.1.17"
     expo: "npm:^54.0.12"
     expo-blur: "npm:~15.0.7"
     expo-build-properties: "npm:~1.0.9"
@@ -7762,7 +7762,7 @@ __metadata:
     "@tsconfig/node14": "npm:14.1.5"
     "@types/jest": "npm:^29.5.14"
     "@types/lodash.merge": "npm:^4.6.9"
-    "@types/react": "npm:^19.2.2"
+    "@types/react": "npm:~19.1.17"
     "@types/react-test-renderer": "npm:^19.1.0"
     expo: "npm:~54.0.12"
     expo-build-properties: "npm:^0.13.3"
@@ -7849,8 +7849,8 @@ __metadata:
     "@stream-io/video-filters-web": "workspace:*"
     "@stream-io/video-react-bindings": "workspace:*"
     "@stream-io/video-styling": "workspace:^"
-    "@types/react": "npm:^19.2.2"
-    "@types/react-dom": "npm:^19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     chart.js: "npm:^4.4.4"
     clsx: "npm:^2.0.0"
     react: "npm:19.1.0"
@@ -7888,8 +7888,8 @@ __metadata:
   resolution: "@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.2"
-    "@types/react-dom": "npm:~19.2.1"
+    "@types/react": "npm:~19.1.17"
+    "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
     autoprefixer: "npm:^10.4.13"
     clsx: "npm:^2.0.0"
@@ -8344,12 +8344,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.2.1, @types/react-dom@npm:~19.2.1":
-  version: 19.2.1
-  resolution: "@types/react-dom@npm:19.2.1"
+"@types/react-dom@npm:~19.1.11":
+  version: 19.1.11
+  resolution: "@types/react-dom@npm:19.1.11"
   peerDependencies:
-    "@types/react": ^19.2.0
-  checksum: 10/273730069d34e8ba6e5261b968cc24c148cac98a017241aa8e87186a5d446c3afd4d98ceffa6be8ea2c2e96e9d2fb6450fbae5094ee2221d2a0b40f4b58cfb53
+    "@types/react": ^19.0.0
+  checksum: 10/2fba541180fd341ffa81c867822470fb287e6b738a7b79b65532d7cf25339f820140a75015bd98f456518289963518cdc2e63cf31e35d5ae31b11aaf6ef99b46
   languageName: node
   linkType: hard
 
@@ -8380,12 +8380,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16.0.0, @types/react@npm:^19.2.2, @types/react@npm:~19.2.2":
-  version: 19.2.2
-  resolution: "@types/react@npm:19.2.2"
+"@types/react@npm:*, @types/react@npm:>=16.0.0, @types/react@npm:~19.1.17":
+  version: 19.1.17
+  resolution: "@types/react@npm:19.1.17"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10/d6adf8fd4bb23a7e04da5700d96b15dc0f59653727a9c6e940c151d7232fa1dbbab98417d5ac830dcfb6cba3f206efbd4cd83647e6f9a688d7363a90e607f6bf
+  checksum: 10/b21d0ce3296e758e0bbbaa177bea0ed2d7c6a08810d3889d2e7777b2d7ff76d9454690b964883ce2c9d3da73412380dd6cff05794cbd54890e0ef1f3c4b4332d
   languageName: node
   linkType: hard
 
