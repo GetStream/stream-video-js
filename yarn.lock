@@ -7362,7 +7362,7 @@ __metadata:
   dependencies:
     "@stream-io/react-native-webrtc": "npm:125.4.4"
     react: "npm:19.1.0"
-    react-native: "npm:0.81.4"
+    react-native: "npm:^0.81.4"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.9.3"
@@ -20601,7 +20601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:0.81.4, react-native@npm:^0.81.4":
+"react-native@npm:^0.81.4":
   version: 0.81.4
   resolution: "react-native@npm:0.81.4"
   dependencies:
