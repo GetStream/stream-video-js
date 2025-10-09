@@ -1777,7 +1777,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-image-picker (7.2.3):
+  - react-native-image-picker (8.2.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3412,7 +3412,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: e4a65db5f4df53369f39558c0cf2f480f6d3d6c7
   React-microtasksnativemodule: 86334c5c06315e0bccb7b6e6f2c905e92f98b615
   react-native-blob-util: 7f71e0af02279ef38a2ba43e8c2fcb79cf927732
-  react-native-image-picker: a340c7cd3566cedd56aacd5e61b6b492e9fe2139
+  react-native-image-picker: 6051cfd030121b880a58f1cc0e5e33e9887804e4
   react-native-mmkv: 7b9c7469fa0a7e463f9411ad3e4fe273bd5ff030
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: ee1e8e2a7abf737a8d4d9d1a5686a7f2e7466236

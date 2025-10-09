@@ -24,6 +24,7 @@ const getChatStyle = (colorScheme: ColorSchemeName): DeepPartial<Theme> => ({
           grey_whisper: '#1C1E22',
           grey_dark: '#F7F7F8',
           icon_background: '#FFFFFF',
+          light_blue: '#005FFF',
           modal_shadow: '#000000',
           overlay: '#FFFFFFCC', // CC = 80% opacity
           shadow_icon: '#00000080', // 80 = 50% opacity

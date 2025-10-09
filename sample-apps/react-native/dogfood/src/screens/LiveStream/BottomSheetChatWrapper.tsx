@@ -13,8 +13,10 @@ import {
   BottomSheetModal,
   BottomSheetModalProvider,
   BottomSheetView,
+  useBottomSheetInternal,
 } from '@gorhom/bottom-sheet';
 import {
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -143,9 +145,9 @@ const BottomSheetChatWrapper = React.forwardRef<
   }, [callId, chatClient]);
 
   // This function is to bring back the bottom sheet to the initial snap point for iOS when the focus is outside message input
-  // const focusOutsideMessageInput = () => {
-  //   bottomSheetModalRef.current?.snapToIndex(0);
-  // };
+  const focusOutsideMessageInput = () => {
+    bottomSheetModalRef.current?.snapToIndex(0);
+  };
 
   useImperativeHandle(ref, () => ({
     open: () => {
@@ -195,7 +197,7 @@ const BottomSheetChatWrapper = React.forwardRef<
         >
           <LivestreamChat
             channel={chatChannel}
-            // focusOutsideMessageInput={focusOutsideMessageInput}
+            focusOutsideMessageInput={focusOutsideMessageInput}
           />
         </BottomSheetView>
       </BottomSheetModal>
@@ -207,28 +209,45 @@ BottomSheetChatWrapper.displayName = 'BottomSheetChatWrapper';
 
 type LivestreamChatProps = {
   channel: ChannelType;
-  // focusOutsideMessageInput: () => void;
+  focusOutsideMessageInput: () => void;
 };
 
-const LivestreamChat = ({ channel }: LivestreamChatProps) => {
+const LivestreamChat = ({
+  channel,
+  focusOutsideMessageInput,
+}: LivestreamChatProps) => {
+  const { shouldHandleKeyboardEvents } = useBottomSheetInternal();
+
+  /**
+   * Done as per the text input behaviour from BottomSheetTextInput(https://github.com/gorhom/react-native-bottom-sheet/blob/master/src/components/bottomSheetTextInput/BottomSheetTextInput.tsx)
+   * to solve the issue around keyboard hiding the text input in the chat inside bottom sheet.
+   * The tip in https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ is followed.
+   */
+  useEffect(() => {
+    return () => {
+      // Reset the flag on unmount
+      shouldHandleKeyboardEvents.value = false;
+    };
+  }, [shouldHandleKeyboardEvents]);
+
   return (
     <View style={styles.chatContainer}>
       <Channel
-        // // On Android, the default behaviour is as expected so we do not need to apply the fix to the text input to work with keyboard.
-        // additionalTextInputProps={
-        //   Platform.OS === 'ios'
-        //     ? {
-        //         // Done as per https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ to solve keyboard hiding the text input in the chat inside bottom sheet.
-        //         onBlur: () => {
-        //           shouldHandleKeyboardEvents.value = false;
-        //           focusOutsideMessageInput();
-        //         },
-        //         onFocus: () => {
-        //           shouldHandleKeyboardEvents.value = true;
-        //         },
-        //       }
-        //     : {}
-        // }
+        // On Android, the default behaviour is as expected so we do not need to apply the fix to the text input to work with keyboard.
+        additionalTextInputProps={
+          Platform.OS === 'ios'
+            ? {
+                // Done as per https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ to solve keyboard hiding the text input in the chat inside bottom sheet.
+                onBlur: () => {
+                  shouldHandleKeyboardEvents.value = false;
+                  focusOutsideMessageInput();
+                },
+                onFocus: () => {
+                  shouldHandleKeyboardEvents.value = true;
+                },
+              }
+            : {}
+        }
         // Hides the sticky date header component on the top of the MessageList
         hideStickyDateHeader={true}
         channel={channel}
