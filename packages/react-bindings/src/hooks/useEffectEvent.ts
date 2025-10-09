@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useEffectEvent as BuiltInHook,
-} from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 
 function useEffectEventShim<T extends (...args: any[]) => any>(
   cb: T,
@@ -20,4 +15,4 @@ function useEffectEventShim<T extends (...args: any[]) => any>(
   }, []);
 }
 
-export const useEffectEvent = BuiltInHook ?? useEffectEventShim;
+export const useEffectEvent = useEffectEventShim;

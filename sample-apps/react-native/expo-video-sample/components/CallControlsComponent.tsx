@@ -1,14 +1,13 @@
 import {
+  CallControlProps,
+  CallControlsButton,
   HangUpCallButton,
   ReactionsButton,
+  ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
-  ScreenShareToggleButton,
-  CallControlProps,
-  CallControlsButton,
   useNoiseCancellation,
-  useBackgroundFilters,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';

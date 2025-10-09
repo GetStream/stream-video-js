@@ -12,12 +12,6 @@ const createCallSlackHookAPI = async (
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
   const queryParams = new URLSearchParams(args as Record<string, string>);
 
-  // handle the special case /pronto --edges
-  if (queryParams.get('edges')) {
-    const message = await listAvailableEdges();
-    return res.status(200).json(message);
-  }
-
   try {
     const cid = queryParams.get('cid');
     if (cid) {
@@ -97,38 +91,6 @@ const notifyError = (message: string) => {
         },
       },
     ],
-  };
-};
-
-const listAvailableEdges = async () => {
-  const chunkedMessages = [
-    `
-    Static edges:
-    sfu-000c954.fdc-ams1.stream-io-video.com
-    sfu-039364a.lsw-ams1.stream-io-video.com
-    sfu-9c050b4.ovh-lon1.stream-io-video.com
-    sfu-9c0dc03.ovh-lim1.stream-io-video.com
-    sfu-9f0306f.eqx-nyc1.stream-io-video.com
-    sfu-a69b58a.blu-tal1.stream-io-video.com
-    sfu-e74550c.aws-sin1.stream-io-video.com
-    sfu-f079b1a.dpk-den1.stream-io-video.com
-    sfu-dd73d37.aws-mum1.stream-io-video.com
-    `,
-  ];
-
-  // https://app.slack.com/block-kit-builder/
-  // useful too for testing the formatting of the Slack messages
-  return {
-    response_type: 'ephemeral', // notify just the initiator
-    blocks: chunkedMessages.map((msg) => {
-      return {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `Available edges: \`\`\`${msg.trim()}\`\`\``,
-        },
-      };
-    }),
   };
 };
 

@@ -56,7 +56,6 @@
             ]
           },
           "ios": {
-            "flipper": false,
             "useFrameworks": "static",
             "forceStaticLinking": [
               "RNFBApp",
