@@ -7445,7 +7445,6 @@ __metadata:
     "@types/mapbox-gl": "npm:^2.7.21"
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
-    "@types/react-form": "npm:^4.0.6"
     "@types/yargs": "npm:^17.0.33"
     axios: "npm:^1.12.2"
     clsx: "npm:^2.0.0"
@@ -7463,7 +7462,6 @@ __metadata:
     raw-body: "npm:^3.0.1"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
-    react-form: "npm:^4.0.1"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.89.2"
     source-map-loader: "npm:^5.0.0"
@@ -8189,15 +8187,6 @@ __metadata:
   peerDependencies:
     "@types/react": ^19.0.0
   checksum: 10/2fba541180fd341ffa81c867822470fb287e6b738a7b79b65532d7cf25339f820140a75015bd98f456518289963518cdc2e63cf31e35d5ae31b11aaf6ef99b46
-  languageName: node
-  linkType: hard
-
-"@types/react-form@npm:^4.0.6":
-  version: 4.0.6
-  resolution: "@types/react-form@npm:4.0.6"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/1f4a4fc7ac66d968593bb7bfb36a76a02d178855269b984647a5ed9dbcde80f98c3627ea142e1ece351c4ee9d192f1c9d281a7f6253fcdb20249c6f022c00264
   languageName: node
   linkType: hard
 
@@ -20158,16 +20147,6 @@ __metadata:
   version: 3.2.2
   resolution: "react-fast-compare@npm:3.2.2"
   checksum: 10/a6826180ba75cefba1c8d3ac539735f9b627ca05d3d307fe155487f5d0228d376dac6c9708d04a283a7b9f9aee599b637446635b79c8c8753d0b4eece56c125c
-  languageName: node
-  linkType: hard
-
-"react-form@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "react-form@npm:4.0.1"
-  peerDependencies:
-    prop-types: ^15.5.4
-    react: ^16.8.3
-  checksum: 10/677b7ea812b557a116afe433f4d59c1c9c931bc866d35dd00d737df88f560557abd0ebb3295d51aa3a51266b774389f46e8c0909a46589963b914c84edcfe94b
   languageName: node
   linkType: hard
 
