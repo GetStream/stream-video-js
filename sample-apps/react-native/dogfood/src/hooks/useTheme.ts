@@ -61,6 +61,12 @@ const getChatStyle = (colorScheme: ColorSchemeName): DeepPartial<Theme> => ({
     height: 15,
     width: 15,
   },
+  messageSimple: {
+    content: {
+      receiverMessageBackgroundColor: '#005FFF',
+      senderMessageBackgroundColor: '#005FFF',
+    },
+  },
 });
 
 export const useStreamChatTheme = () => {

@@ -7372,7 +7372,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^3.2.4"
     axios: "npm:^1.12.2"
     dotenv: "npm:^16.6.1"
-    happy-dom: "npm:^17.6.3"
+    happy-dom: "npm:^19.0.2"
     prettier: "npm:^3.6.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
@@ -7653,7 +7653,7 @@ __metadata:
     react-native-gesture-handler: "npm:^2.28.0"
     react-native-reanimated: "npm:~4.1.2"
     react-native-svg: "npm:^15.14.0"
-    react-native-url-polyfill: "npm:1.3.0"
+    react-native-url-polyfill: "npm:^3.0.0"
     react-native-voip-push-notification: "npm:3.3.3"
     react-native-worklets: "npm:^0.5.0"
     react-test-renderer: "npm:19.1.0"
@@ -8166,6 +8166,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^20.0.0":
+  version: 20.19.19
+  resolution: "@types/node@npm:20.19.19"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10/0230dadfe83f1aa6a5e4aad5e00a6ee3501bd539f19024b40ac198afcb4e21e3ab8b8f47c4765e5c537a1da1e53dcb41cd5549aa48efc686c9542cc9841663bb
+  languageName: node
+  linkType: hard
+
 "@types/normalize-package-data@npm:^2.4.1":
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
@@ -8309,6 +8318,13 @@ __metadata:
   version: 2.0.11
   resolution: "@types/unist@npm:2.0.11"
   checksum: 10/6d436e832bc35c6dde9f056ac515ebf2b3384a1d7f63679d12358766f9b313368077402e9c1126a14d827f10370a5485e628bf61aa91117cf4fc882423191a4e
+  languageName: node
+  linkType: hard
+
+"@types/whatwg-mimetype@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "@types/whatwg-mimetype@npm:3.0.2"
+  checksum: 10/609607beeaa8b50b9e00541d8f571880d651b26b6b006103370099aba00784037de54433627c9fe775a5558e3d1fc09c2a48f54c8af91988e9bebeaf6a698eeb
   languageName: node
   linkType: hard
 
@@ -13867,13 +13883,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^17.6.3":
-  version: 17.6.3
-  resolution: "happy-dom@npm:17.6.3"
+"happy-dom@npm:^19.0.2":
+  version: 19.0.2
+  resolution: "happy-dom@npm:19.0.2"
   dependencies:
-    webidl-conversions: "npm:^7.0.0"
+    "@types/node": "npm:^20.0.0"
+    "@types/whatwg-mimetype": "npm:^3.0.2"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/0f82fe84a0a9885185e0b390c01befe4746d32a98e362dd09929490df1c56c82ff01a0c33a6203a90341575a2bfbb3e53368e37f80f795cd89c2292659a4b5cb
+  checksum: 10/cca23fa7c12ed73307be93a312b389d2c9e5497a647d884ab2c8684833824e369137ee8a3496a9abdaf08a1ed02b1af925c6f661cf29ef6a90c675c0bc11ce5f
   languageName: node
   linkType: hard
 
@@ -20531,17 +20548,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-url-polyfill@npm:1.3.0":
-  version: 1.3.0
-  resolution: "react-native-url-polyfill@npm:1.3.0"
-  dependencies:
-    whatwg-url-without-unicode: "npm:8.0.0-3"
-  peerDependencies:
-    react-native: "*"
-  checksum: 10/e2dcfc11744ab16e841c44d037062dee971cf1387cfc20dd610f175e53eb8c203a1c9d9f0df3570605371560f3e64f6f078f31409846fa1c68dfd316b168df33
-  languageName: node
-  linkType: hard
-
 "react-native-url-polyfill@npm:^2.0.0":
   version: 2.0.0
   resolution: "react-native-url-polyfill@npm:2.0.0"
@@ -20550,6 +20556,17 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 10/6a8d605eeb1b0ee9b0f47f1866acc2edfa2131a4a8fb1ea3839ceb507e225b894ed66f49a3bd826fc964f2c8005b3678c9d3b65d07eb0a3b979be830cb618686
+  languageName: node
+  linkType: hard
+
+"react-native-url-polyfill@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "react-native-url-polyfill@npm:3.0.0"
+  dependencies:
+    whatwg-url-without-unicode: "npm:8.0.0-3"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10/62457a360745bb65fda2349bb95d2a90ad70f87005aa464fa8dd4919fa34bf2007f64bf6bbb1a76b5cdb579e3df9da6a23040a0eddf64456cadf6e766069854f
   languageName: node
   linkType: hard
 
@@ -23678,6 +23695,13 @@ __metadata:
   version: 6.19.8
   resolution: "undici-types@npm:6.19.8"
   checksum: 10/cf0b48ed4fc99baf56584afa91aaffa5010c268b8842f62e02f752df209e3dea138b372a60a963b3b2576ed932f32329ce7ddb9cb5f27a6c83040d8cd74b7a70
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 
