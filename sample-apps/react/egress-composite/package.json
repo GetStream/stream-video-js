@@ -20,7 +20,7 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.54.2",
+    "@playwright/test": "^1.56.0",
     "@sentry/vite-plugin": "^2.23.1",
     "@types/react": "~19.1.17",
     "@types/react-dom": "~19.1.11",

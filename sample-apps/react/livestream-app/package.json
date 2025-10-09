@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/material": "^6.4.5",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^6.5.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.0.0",
-    "hls.js": "^1.5.20",
+    "hls.js": "^1.6.13",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-router-dom": "^6.30.1"
