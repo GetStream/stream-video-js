@@ -7488,7 +7488,7 @@ __metadata:
     nanoid: "npm:^5.1.6"
     next: "npm:^15.5.4"
     next-auth: "npm:^4.24.11"
-    qrcode.react: "npm:^3.2.0"
+    qrcode.react: "npm:^4.2.0"
     raw-body: "npm:^3.0.1"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -20061,12 +20061,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qrcode.react@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "qrcode.react@npm:3.2.0"
+"qrcode.react@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "qrcode.react@npm:4.2.0"
   peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 10/00d3625f9be5333ff18b638b6bb4b2839ddddf79b71be9a8054bac5e30d78dc36ec3d77247a365ea4aaabd5c8b97f810e6ee28173523156879194079371e41b5
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/665036d88b160e6d5de4e24d101bc63bd2b76712802e874bbffe56c6b6e5fe50c63f02c3cba2975b2e2b555c1f1e112cbb42987f8cb3a626ce2d17023cfde6ac
   languageName: node
   linkType: hard
 

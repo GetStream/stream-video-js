@@ -30,7 +30,7 @@
     "nanoid": "^5.1.6",
     "next": "^15.5.4",
     "next-auth": "^4.24.11",
-    "qrcode.react": "^3.2.0",
+    "qrcode.react": "^4.2.0",
     "raw-body": "^3.0.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
