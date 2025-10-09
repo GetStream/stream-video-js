@@ -12,9 +12,9 @@
     "@floating-ui/dom": "^1.6.13",
     "@floating-ui/react": "^0.27.6",
     "@next/third-parties": "^15.5.4",
-    "@sentry/nextjs": "^8.55.0",
+    "@sentry/nextjs": "^10.19.0",
     "@stream-io/audio-filters-web": "workspace:^",
-    "@stream-io/node-sdk": "^0.7.6",
+    "@stream-io/node-sdk": "^0.7.7",
     "@stream-io/video-filters-web": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
@@ -37,7 +37,7 @@
     "stream-chat": "^9.22.0",
     "stream-chat-react": "^13.9.0",
     "swr": "^2.3.6",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",

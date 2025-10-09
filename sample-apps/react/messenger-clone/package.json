@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@mui/icons-material": "^6.5.0",
+    "@mui/material": "^6.5.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.6",
