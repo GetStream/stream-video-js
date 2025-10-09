@@ -46,7 +46,7 @@
     "@types/react-dom": "~19.1.11",
     "@types/yargs": "^17.0.33",
     "rimraf": "^6.0.1",
-    "sass": "^1.89.2",
+    "sass": "^1.93.2",
     "source-map-loader": "^5.0.0"
   }
 }
