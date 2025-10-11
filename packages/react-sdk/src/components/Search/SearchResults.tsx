@@ -1,6 +1,6 @@
-import { ComponentType } from 'react';
+import { type ComponentType } from 'react';
 import { LoadingIndicator as DefaultLoadingIndicator } from '../LoadingIndicator';
-import { SearchController } from './hooks';
+import { type SearchController } from './hooks';
 
 export type SearchResultListProps<T> = {
   data: T[];

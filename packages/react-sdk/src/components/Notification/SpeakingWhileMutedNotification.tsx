@@ -1,5 +1,5 @@
-import { PropsWithChildren } from 'react';
-import { Placement } from '@floating-ui/react';
+import type { PropsWithChildren } from 'react';
+import type { Placement } from '@floating-ui/react';
 
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Notification } from './Notification';

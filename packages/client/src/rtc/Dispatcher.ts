@@ -1,4 +1,4 @@
-import { CallEventListener, EventTypes } from '../coordinator/connection/types';
+import type { CallEventListener, EventTypes } from '../coordinator/connection/types';
 import type { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 

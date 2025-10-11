@@ -6,13 +6,13 @@ import {
   createAudioConstraints,
 } from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './DeviceManagerState';
+import type { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
-  AudioSettingsResponse,
+  type AudioSettingsResponse,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../gen/coordinator';

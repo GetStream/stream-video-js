@@ -1,4 +1,4 @@
-import { ICEServer } from '../../gen/coordinator';
+import type { ICEServer } from '../../gen/coordinator';
 
 export const toRtcConfiguration = (config: ICEServer[]): RTCConfiguration => {
   return {

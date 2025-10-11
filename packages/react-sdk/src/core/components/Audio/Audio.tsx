@@ -1,5 +1,5 @@
-import { ComponentPropsWithoutRef, useEffect, useState } from 'react';
-import {
+import { type ComponentPropsWithoutRef, useEffect, useState } from 'react';
+import type {
   AudioTrackType,
   StreamVideoParticipant,
 } from '@stream-io/video-client';

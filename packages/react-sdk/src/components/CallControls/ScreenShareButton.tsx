@@ -3,7 +3,7 @@ import {
   Restricted,
   useCallStateHooks,
   useI18n,
-  UseInputMediaDeviceOptions,
+  type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
@@ -11,7 +11,7 @@ import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 import {
-  PropsWithErrorHandler,
+  type PropsWithErrorHandler,
   createCallControlHandler,
 } from '../../utilities/callControlHandler';
 

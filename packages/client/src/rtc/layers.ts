@@ -7,7 +7,7 @@ import {
   VideoQuality,
 } from '../gen/video/sfu/models/models';
 import { isAudioTrackType } from './helpers/tracks';
-import { TrackPublishOptions } from './types';
+import type { TrackPublishOptions } from './types';
 
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;

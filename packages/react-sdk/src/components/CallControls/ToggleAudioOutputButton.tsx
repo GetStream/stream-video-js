@@ -1,4 +1,4 @@
-import { CompositeButton, IconButtonWithMenuProps } from '../Button';
+import { CompositeButton, type IconButtonWithMenuProps } from '../Button';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../Icon';
 import { DeviceSelectorAudioOutput } from '../DeviceSettings';

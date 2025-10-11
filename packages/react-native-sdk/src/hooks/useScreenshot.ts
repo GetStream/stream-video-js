@@ -3,7 +3,7 @@ import { useScreenshotIosContext } from '../contexts/internal/ScreenshotIosConte
 import { NativeModules, Platform } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import {
-  StreamVideoParticipant,
+  type StreamVideoParticipant,
   getLogger,
   type VideoTrackType,
 } from '@stream-io/video-client';

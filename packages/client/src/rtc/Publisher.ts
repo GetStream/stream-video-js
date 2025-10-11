@@ -1,5 +1,5 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import {
+import type {
   PublishBundle,
   PublisherConstructorOpts,
   TrackPublishOptions,

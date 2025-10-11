@@ -4,7 +4,7 @@ import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
 import { voipPushNotificationCallCId$ } from './rxSubjects';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canAddPushWSSubscriptionsRef, shouldCallBeEnded } from './utils';
-import { StreamVideoConfig } from '../../StreamVideoRN/types';
+import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 
 export const onVoipNotificationReceived = async (
   notification: any,

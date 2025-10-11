@@ -13,10 +13,10 @@ import {
 } from '../gen/video/sfu/models/models';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { AllSfuEvents, Dispatcher } from './Dispatcher';
+import { type AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.

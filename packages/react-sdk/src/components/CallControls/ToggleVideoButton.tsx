@@ -2,11 +2,11 @@ import {
   Restricted,
   useCallStateHooks,
   useI18n,
-  UseInputMediaDeviceOptions,
+  type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
-import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
+import { CompositeButton, type IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -15,7 +15,7 @@ import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 import {
   createCallControlHandler,
-  PropsWithErrorHandler,
+  type PropsWithErrorHandler,
 } from '../../utilities/callControlHandler';
 
 export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<

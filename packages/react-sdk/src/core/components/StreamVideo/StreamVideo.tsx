@@ -1,8 +1,8 @@
 import {
-  StreamVideoProps,
+  type StreamVideoProps,
   StreamVideoProvider,
 } from '@stream-io/video-react-bindings';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { translations } from '../../../translations';
 
 export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {

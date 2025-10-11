@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { CallRecording } from '@stream-io/video-client';
+import type { CallRecording } from '@stream-io/video-client';
 import { Icon } from '../Icon';
 
 export type CallRecordingListItemProps = {

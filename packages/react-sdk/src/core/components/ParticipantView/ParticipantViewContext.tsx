@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { ParticipantViewProps } from './ParticipantView';
+import type { ParticipantViewProps } from './ParticipantView';
 
 export type ParticipantViewContextValue = Required<
   Pick<ParticipantViewProps, 'participant' | 'trackType'>

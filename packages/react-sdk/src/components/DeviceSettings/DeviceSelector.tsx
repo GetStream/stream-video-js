@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, useCallback } from 'react';
+import { type ChangeEventHandler, useCallback } from 'react';
 
 import { useDeviceList } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';

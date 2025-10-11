@@ -13,7 +13,7 @@ import {
   storeUser,
 } from '../utils';
 import type { StreamChat } from 'stream-chat';
-import type { User } from '../types/';
+import type { User } from '../types';
 
 const envApiKey =
   (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'mmhfdzb5evj2';

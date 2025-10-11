@@ -4,8 +4,8 @@ import {
   Call,
   RxUtils,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
+import type { User }  from '@stream-io/video-react-sdk';
 import { getLayoutSettings } from './useLayoutSwitcher';
 
 type GleapReportPayload = {

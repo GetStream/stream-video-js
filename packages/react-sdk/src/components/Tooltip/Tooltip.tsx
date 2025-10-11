@@ -1,7 +1,7 @@
-import { PropsWithChildren, useEffect, useRef } from 'react';
+import { type PropsWithChildren, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { useFloatingUIPreset } from '../../hooks';
-import { FloatingArrow, Placement, arrow } from '@floating-ui/react';
+import { FloatingArrow, type Placement, arrow } from '@floating-ui/react';
 
 export type TooltipProps<T extends HTMLElement> = PropsWithChildren<{
   /** Reference element to which the tooltip should attach to */

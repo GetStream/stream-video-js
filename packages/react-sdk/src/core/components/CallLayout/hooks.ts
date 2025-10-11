@@ -3,7 +3,7 @@ import {
   Call,
   CallTypes,
   combineComparators,
-  Comparator,
+  type Comparator,
   defaultSortPreset,
   hasAudio,
   hasVideo,
@@ -11,10 +11,10 @@ import {
   paginatedLayoutSortPreset,
   screenSharing,
   speakerLayoutSortPreset,
-  StreamVideoParticipant,
+  type StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { applyFilter, Filter } from '../../../utilities/filter';
+import { applyFilter, type Filter } from '../../../utilities/filter';
 
 export type FilterableParticipant = Pick<
   StreamVideoParticipant,

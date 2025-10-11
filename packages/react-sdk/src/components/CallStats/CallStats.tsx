@@ -1,8 +1,15 @@
-import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import {
+  lazy,
+  type ReactNode,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import clsx from 'clsx';
 import {
-  AggregatedStatsReport,
-  CallStatsReport,
+  type AggregatedStatsReport,
+  type CallStatsReport,
   SfuModels,
 } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';

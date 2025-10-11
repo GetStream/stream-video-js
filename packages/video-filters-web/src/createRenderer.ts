@@ -1,5 +1,5 @@
 import { WorkerTimer } from '@stream-io/worker-timer';
-import { TFLite } from './tflite';
+import type { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 import { getSegmentationParams, SegmentationLevel } from './segmentation';
 

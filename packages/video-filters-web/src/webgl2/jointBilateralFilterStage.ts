@@ -3,7 +3,7 @@ import {
   createPipelineStageProgram,
   glsl,
 } from '../helpers/webglHelper';
-import { SegmentationParams } from '../segmentation';
+import type { SegmentationParams } from '../segmentation';
 
 export function buildJointBilateralFilterStage(
   gl: WebGL2RenderingContext,
