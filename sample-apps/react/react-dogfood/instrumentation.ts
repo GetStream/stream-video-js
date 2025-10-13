@@ -5,10 +5,13 @@ import * as Sentry from '@sentry/nextjs';
 
 const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 
+export const onRequestError = Sentry.captureRequestError;
+
 export function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     Sentry.init({
       dsn: SENTRY_DSN,
+      sendDefaultPii: true,
 
       // Adjust this value in production, or use tracesSampler for greater control
       tracesSampler: (samplingContext) => {
@@ -26,6 +29,7 @@ export function register() {
   } else if (process.env.NEXT_RUNTIME === 'edge') {
     Sentry.init({
       dsn: SENTRY_DSN,
+      sendDefaultPii: true,
 
       // Adjust this value in production, or use tracesSampler for greater control
       tracesSampleRate: 1,

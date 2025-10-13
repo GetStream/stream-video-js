@@ -5,6 +5,7 @@ export class JwtTokenGenerator {
   constructor(secret: string) {
     this.key = crypto.subtle.importKey(
       'raw',
+      // @ts-expect-error - types changed in TS 5.9.3
       stringToUint8Array(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
@@ -32,6 +33,7 @@ export class JwtTokenGenerator {
     const signature = await crypto.subtle.sign(
       { name: 'HMAC', hash: 'SHA-256' },
       await this.key,
+      // @ts-expect-error - types changed in TS 5.9.3
       stringToUint8Array(headerAndPayload),
     );
 
