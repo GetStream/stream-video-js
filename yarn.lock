@@ -7204,6 +7204,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/logger@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@stream-io/logger@npm:1.2.0"
+  checksum: 10/ce1daf96ae9b3a5d4da8b8e002c08a1152e744e80126c521abf82a488debfa8a80a70cd9ad7ef5874891b86a4b8e41578a456aaf4e1e1e4e1bca7ac446ff58e1
+  languageName: node
+  linkType: hard
+
 "@stream-io/messenger-clone-react@workspace:sample-apps/react/messenger-clone":
   version: 0.0.0-use.local
   resolution: "@stream-io/messenger-clone-react@workspace:sample-apps/react/messenger-clone"
@@ -7323,6 +7330,7 @@ __metadata:
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/audio-filters-web": "workspace:^"
+    "@stream-io/logger": "npm:^1.2.0"
     "@stream-io/node-sdk": "npm:^0.7.9"
     "@stream-io/worker-timer": "npm:^1.2.4"
     "@total-typescript/shoehorn": "npm:^0.1.2"
