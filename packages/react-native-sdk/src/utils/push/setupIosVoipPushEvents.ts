@@ -12,24 +12,22 @@ export function setupIosVoipPushEvents(
   if (Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
     return;
   }
-  const logger = getLogger(['setupIosVoipPushEvents']);
+  const logger = getLogger('setupIosVoipPushEvents');
   if (!pushConfig.ios.pushProviderName) {
     // TODO: remove this check and find a better way once we have telecom integration for android
-    logger(
-      'debug',
+    logger.debug(
       'ios pushProviderName is not defined, so skipping the setupIosVoipPushEvents',
     );
     return;
   }
   const voipPushNotification = getVoipPushNotificationLib();
 
-  logger('debug', 'notification event listener added');
+  logger.debug('notification event listener added');
   voipPushNotification.addEventListener('notification', (notification) => {
     onVoipNotificationReceived(notification, pushConfig);
   });
   setPushLogoutCallback(async () => {
-    getLogger(['setPushLogoutCallback'])(
-      'debug',
+    getLogger('setPushLogoutCallback').debug(
       'notification event listener removed',
     );
     voipPushNotification.removeEventListener('notification');

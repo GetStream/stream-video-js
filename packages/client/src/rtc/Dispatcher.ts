@@ -53,7 +53,7 @@ export const isSfuEvent = (
 };
 
 export class Dispatcher {
-  private readonly logger = getLogger(['Dispatcher']);
+  private readonly logger = getLogger('Dispatcher');
   private subscribers: Partial<
     Record<SfuEventKinds, CallEventListener<any>[] | undefined>
   > = {};
@@ -65,14 +65,14 @@ export class Dispatcher {
     const eventKind = message.eventPayload.oneofKind;
     if (!eventKind) return;
     const payload = message.eventPayload[eventKind];
-    this.logger('debug', `Dispatching ${eventKind}, tag=${tag}`, payload);
+    this.logger.debug(`Dispatching ${eventKind}, tag=${tag}`, payload);
     const listeners = this.subscribers[eventKind];
     if (!listeners) return;
     for (const fn of listeners) {
       try {
         fn(payload);
       } catch (e) {
-        this.logger('warn', 'Listener failed with error', e);
+        this.logger.warn('Listener failed with error', e);
       }
     }
   };

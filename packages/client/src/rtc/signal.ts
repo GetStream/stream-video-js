@@ -10,23 +10,23 @@ export const createWebSocketSignalChannel = (opts: {
   tracer: Tracer | undefined;
 }) => {
   const { endpoint, onMessage, tag, tracer } = opts;
-  const logger = getLogger(['SfuClientWS', tag]);
-  logger('debug', 'Creating signaling WS channel:', endpoint);
+  const logger = getLogger('SfuClientWS', { tags: [tag] });
+  logger.debug('Creating signaling WS channel:', endpoint);
   const ws = new WebSocket(endpoint);
   ws.binaryType = 'arraybuffer'; // do we need this?
 
   ws.addEventListener('error', (e) => {
-    logger('error', 'Signaling WS channel error', e);
+    logger.error('Signaling WS channel error', e);
     tracer?.trace('signal.ws.error', e);
   });
 
   ws.addEventListener('close', (e) => {
-    logger('info', 'Signaling WS channel is closed', e);
+    logger.info('Signaling WS channel is closed', e);
     tracer?.trace('signal.ws.close', e);
   });
 
   ws.addEventListener('open', (e) => {
-    logger('info', 'Signaling WS channel is open', e);
+    logger.info('Signaling WS channel is open', e);
     tracer?.trace('signal.ws.open', e);
   });
 
@@ -41,7 +41,7 @@ export const createWebSocketSignalChannel = (opts: {
     } catch (err) {
       const message =
         'Failed to decode a message. Check whether the Proto models match.';
-      logger('error', message, { event: e, error: err });
+      logger.error(message, { event: e, error: err });
       tracer?.trace('signal.ws.message.error', message);
     }
   });

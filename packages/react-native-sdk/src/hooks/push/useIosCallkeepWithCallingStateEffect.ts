@@ -38,9 +38,9 @@ const unsubscribeCallkeepEvents = async (activeCallCid: string | undefined) => {
   );
 };
 
-const logger = getLogger(['useIosCallkeepWithCallingStateEffect']);
+const logger = getLogger('useIosCallkeepWithCallingStateEffect');
 const log = (message: string) => {
-  logger('warn', message);
+  logger.warn(message);
 };
 
 /**

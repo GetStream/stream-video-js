@@ -34,7 +34,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
     if (!this.isDirectionSupportedByDevice()) {
-      this.logger('warn', 'Setting direction is not supported on this device');
+      this.logger.warn('Setting direction is not supported on this device');
       return;
     }
 
@@ -85,7 +85,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         await this.statusChangeSettled();
       } catch (error) {
         // couldn't enable device, target resolution will be applied the next time user attempts to start the device
-        this.logger('warn', 'could not apply target resolution', error);
+        this.logger.warn('could not apply target resolution', error);
       }
     }
     if (this.enabled && this.state.mediaStream) {
@@ -97,8 +97,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         height !== this.targetResolution.height
       ) {
         await this.applySettingsToStream();
-        this.logger(
-          'debug',
+        this.logger.debug(
           `${width}x${height} target resolution applied to media stream`,
         );
       }

@@ -22,7 +22,7 @@ export class Subscriber extends BasePeerConnection {
 
     this.on('subscriberOffer', async (subscriberOffer) => {
       return this.negotiate(subscriberOffer).catch((err) => {
-        this.logger('error', `Negotiation failed.`, err);
+        this.logger.error(`Negotiation failed.`, err);
       });
     });
   }
@@ -41,14 +41,13 @@ export class Subscriber extends BasePeerConnection {
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
-    this.logger('debug', 'Restarting ICE connection');
+    this.logger.debug('Restarting ICE connection');
     if (this.pc.signalingState === 'have-remote-offer') {
-      this.logger('debug', 'ICE restart is already in progress');
+      this.logger.debug('ICE restart is already in progress');
       return;
     }
     if (this.pc.connectionState === 'new') {
-      this.logger(
-        'debug',
+      this.logger.debug(
         `ICE connection is not yet established, skipping restart.`,
       );
       return;
@@ -74,8 +73,7 @@ export class Subscriber extends BasePeerConnection {
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
-    this.logger(
-      'debug',
+    this.logger.debug(
       `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
       e.track.id,
       e.track,
@@ -83,28 +81,27 @@ export class Subscriber extends BasePeerConnection {
 
     const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
     e.track.addEventListener('mute', () => {
-      this.logger('info', `[onTrack]: Track muted: ${trackDebugInfo}`);
+      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
     });
 
     e.track.addEventListener('unmute', () => {
-      this.logger('info', `[onTrack]: Track unmuted: ${trackDebugInfo}`);
+      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
     });
 
     e.track.addEventListener('ended', () => {
-      this.logger('info', `[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
       this.state.removeOrphanedTrack(primaryStream.id);
     });
 
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
-      return this.logger('error', `Unknown track type: ${rawTrackType}`);
+      return this.logger.error(`Unknown track type: ${rawTrackType}`);
     }
 
     this.trackIdToTrackType.set(e.track.id, trackType);
 
     if (!participantToUpdate) {
-      this.logger(
-        'warn',
+      this.logger.warn(
         `[onTrack]: Received track for unknown participant: ${trackId}`,
         e,
       );
@@ -119,7 +116,7 @@ export class Subscriber extends BasePeerConnection {
 
     const streamKindProp = trackTypeToParticipantStreamKey(trackType);
     if (!streamKindProp) {
-      this.logger('error', `Unknown track type: ${rawTrackType}`);
+      this.logger.error(`Unknown track type: ${rawTrackType}`);
       return;
     }
 
@@ -135,8 +132,7 @@ export class Subscriber extends BasePeerConnection {
 
     // now, dispose the previous stream if it exists
     if (previousStream) {
-      this.logger(
-        'info',
+      this.logger.info(
         `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {

@@ -32,8 +32,7 @@ export const useProcessPushCallEffect = () => {
       return;
     }
 
-    getLogger(['useProcessPushCallEffect'])(
-      'debug',
+    getLogger('useProcessPushCallEffect').debug(
       `Adding subscriptions to process incoming call from push notification`,
     );
 
@@ -96,8 +95,7 @@ const createCallSubscription = (
   return behaviourSubjectWithCallCid
     .pipe(distinctUntilChanged(), filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
-      getLogger(['useProcessPushCallEffect'])(
-        'debug',
+      getLogger('useProcessPushCallEffect').debug(
         `Processing call from push notification with action: ${action} and callCId: ${callCId}`,
       );
       await processCallFromPush(client, callCId, action, pushConfig);

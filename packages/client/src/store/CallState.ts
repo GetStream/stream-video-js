@@ -312,7 +312,7 @@ export class CallState {
    */
   closedCaptions$: Observable<CallClosedCaption[]>;
 
-  readonly logger = getLogger(['CallState']);
+  readonly logger = getLogger('CallState');
 
   /**
    * A list of comparators that are used to sort the participants.
@@ -997,7 +997,7 @@ export class CallState {
   ) => {
     const participant = this.findParticipantBySessionId(sessionId);
     if (!participant) {
-      this.logger('warn', `Participant with sessionId ${sessionId} not found`);
+      this.logger.warn(`Participant with sessionId ${sessionId} not found`);
       return;
     }
 

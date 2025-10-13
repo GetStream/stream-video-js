@@ -77,7 +77,7 @@ export const createStatsReporter = ({
   datacenter,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
-  const logger = getLogger(['stats']);
+  const logger = getLogger('stats');
   const getRawStatsForTrack = async (
     kind: PeerConnectionKind,
     selector?: MediaStreamTrack,
@@ -148,7 +148,7 @@ export const createStatsReporter = ({
               ];
           participantStats[sessionId] = await getStatsForStream(kind, tracks);
         } catch (e) {
-          logger('warn', `Failed to collect ${kind} stats for ${userId}`, e);
+          logger.warn(`Failed to collect ${kind} stats for ${userId}`, e);
         }
       }
     }
@@ -186,7 +186,7 @@ export const createStatsReporter = ({
       // (they are expensive) if no one is listening to them
       if (state.isCallStatsReportObserved) {
         await run().catch((e) => {
-          logger('debug', 'Failed to collect stats', e);
+          logger.debug('Failed to collect stats', e);
         });
       }
       timeoutId = setTimeout(loop, pollingIntervalInMs);

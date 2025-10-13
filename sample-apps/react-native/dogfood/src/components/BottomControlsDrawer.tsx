@@ -1,6 +1,4 @@
 import {
-  BackgroundFiltersProvider,
-  getLogger,
   SendReactionRequest,
   useCall,
   useTheme,
@@ -119,8 +117,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   const onCloseReaction = (reaction?: SendReactionRequest) => {
     if (reaction) {
       call?.sendReaction(reaction).catch((e) => {
-        const logger = getLogger(['ReactionsPicker']);
-        logger('error', 'Error on onClose-sendReaction', e, reaction);
+        console.log('Error on onClose-sendReaction: ', e);
       });
     }
     Animated.timing(elasticAnimRef.current, {

@@ -39,8 +39,8 @@ export const JoinCallButton = ({
         onJoinCallHandler();
       }
     } catch (error) {
-      const logger = getLogger(['JoinCallButton']);
-      logger('error', 'Error joining call:', error);
+      const logger = getLogger('JoinCallButton');
+      logger.error('Error joining call:', error);
     } finally {
       setIsLoading(false);
     }

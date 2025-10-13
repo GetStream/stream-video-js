@@ -60,7 +60,7 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
     call.state.setBackstage(true);
     if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)) {
       call.leave({ message: 'live ended' }).catch((err) => {
-        call.logger('error', 'Failed to leave call after live ended', err);
+        call.logger.error('Failed to leave call after live ended', err);
       });
     }
   });
@@ -72,9 +72,9 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
   return dispatcher.on('error', (e) => {
     if (!e.error) return;
-    const logger = getLogger(['SfuClient']);
+    const logger = getLogger('SfuClient');
     const { error, reconnectStrategy } = e;
-    logger('error', 'SFU reported error', {
+    logger.error('SFU reported error', {
       code: ErrorCode[error.code],
       reconnectStrategy: WebsocketReconnectStrategy[reconnectStrategy],
       message: error.message,

@@ -60,8 +60,8 @@ export const HangUpCallButton = ({
         onHangupCallHandler();
       }
     } catch (error) {
-      const logger = getLogger(['HangUpCallButton']);
-      logger('error', 'Error leaving Call', error);
+      const logger = getLogger('HangUpCallButton');
+      logger.error('Error leaving Call', error);
     }
   };
 

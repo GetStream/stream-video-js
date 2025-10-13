@@ -27,13 +27,12 @@ export function setupIosCallKeepEvents(
   }
   if (!pushConfig.android.incomingCallChannel) {
     // TODO: remove this check and find a better way once we have telecom integration for android
-    getLogger(['setupIosCallKeepEvents'])(
-      'debug',
+    getLogger('setupIosCallKeepEvents').debug(
       'android incomingCallChannel is not defined, so skipping the setupIosCallKeepEvents',
     );
     return;
   }
-  const logger = getLogger(['setupIosCallKeepEvents']);
+  const logger = getLogger('setupIosCallKeepEvents');
   const callkeep = getCallKeepLib();
 
   async function getCallCid(callUUID: string): Promise<string | undefined> {
@@ -46,16 +45,14 @@ export function setupIosCallKeepEvents(
         voipPushNotificationCallCId$,
       );
       if (!voipPushNotificationCallCId) {
-        logger(
-          'debug',
+        logger.debug(
           `voipPushNotificationCallCId$ is empty, updating it with the call_cid: ${call_cid} for callUUID: ${callUUID}`,
         );
         voipPushNotificationCallCId$.next(call_cid);
       }
       return call_cid;
     } catch {
-      logger(
-        'debug',
+      logger.debug(
         `Error in getting call cid from native module for callUUID: ${callUUID} - probably the call was already processed, so ignoring this callkeep event`,
       );
     }
@@ -64,14 +61,14 @@ export function setupIosCallKeepEvents(
 
   function answerCall(callUUID: string) {
     getCallCid(callUUID).then((call_cid) => {
-      logger('debug', `answerCall event with call_cid: ${call_cid}`);
+      logger.debug(`answerCall event with call_cid: ${call_cid}`);
       iosCallkeepAcceptCall(call_cid, callUUID);
     });
   }
 
   function endCall(callUUID: string) {
     getCallCid(callUUID).then((call_cid) => {
-      logger('debug', `endCall event with call_cid: ${call_cid}`);
+      logger.debug(`endCall event with call_cid: ${call_cid}`);
       iosCallkeepRejectCall(call_cid, callUUID, pushConfig!);
     });
   }
@@ -80,8 +77,7 @@ export function setupIosCallKeepEvents(
     const voipPushNotification = getVoipPushNotificationLib();
     // @ts-expect-error - call_cid is not part of RNCallKeepEventPayload
     const call_cid = payload?.call_cid as string | undefined;
-    logger(
-      'debug',
+    logger.debug(
       `didDisplayIncomingCall event with callUUID: ${callUUID} call_cid: ${call_cid}`,
     );
     if (call_cid) {

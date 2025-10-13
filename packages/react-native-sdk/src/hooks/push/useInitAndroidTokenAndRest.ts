@@ -23,8 +23,7 @@ export const useInitAndroidTokenAndRest = () => {
     initAndroidPushToken(client, pushConfig, (unsubscribeListener) => {
       unsubscribe = unsubscribeListener;
     }).catch((error) => {
-      getLogger(['useInitAndroidTokenAndRest'])(
-        'warn',
+      getLogger('useInitAndroidTokenAndRest').warn(
         'Error in initializing android push token',
         error,
       );

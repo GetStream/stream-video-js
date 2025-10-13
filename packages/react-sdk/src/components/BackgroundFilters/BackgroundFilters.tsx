@@ -198,8 +198,7 @@ export const BackgroundFiltersProvider = (
 
   const handleError = useCallback(
     (error: any) => {
-      getLogger(['filters'])(
-        'warn',
+      getLogger('filters').warn(
         'Filter encountered an error and will be disabled',
       );
       disableBackgroundFilter();

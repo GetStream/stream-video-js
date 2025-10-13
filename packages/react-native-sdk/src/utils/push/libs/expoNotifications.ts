@@ -22,8 +22,7 @@ export function getExpoNotificationsLib() {
 
 export function getExpoNotificationsLibNoThrow() {
   if (!expoNotificationsLib) {
-    getLogger(['getExpoNotificationsLibNoThrow'])(
-      'debug',
+    getLogger('getExpoNotificationsLibNoThrow').debug(
       'expo-notifications library is not installed. It is required for non ringing push notifications and not for ringing',
     );
   }

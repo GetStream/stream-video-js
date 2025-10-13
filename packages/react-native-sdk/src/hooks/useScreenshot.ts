@@ -49,11 +49,7 @@ export function useScreenshot(): UseScreenshotResult {
               videoStreamForScreenshot.toURL(),
             );
           } catch (error) {
-            getLogger(['useScreenshot'])(
-              'error',
-              'Error taking screenshot',
-              error,
-            );
+            getLogger('useScreenshot').error('Error taking screenshot', error);
             return null;
           }
         }
@@ -62,11 +58,7 @@ export function useScreenshot(): UseScreenshotResult {
         try {
           return await take(participant, videoTrackType);
         } catch (error) {
-          getLogger(['useScreenshot'])(
-            'error',
-            'Error taking screenshot',
-            error,
-          );
+          getLogger('useScreenshot').error('Error taking screenshot', error);
           return null;
         }
       }

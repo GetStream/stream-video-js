@@ -29,6 +29,7 @@
     "@protobuf-ts/runtime": "^2.9.4",
     "@protobuf-ts/runtime-rpc": "^2.9.4",
     "@protobuf-ts/twirp-transport": "^2.9.4",
+    "@stream-io/logger": "^1.2.0",
     "@stream-io/worker-timer": "^1.2.4",
     "axios": "^1.8.1",
     "rxjs": "~7.8.1",
