@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import {
   emitDeviceIds,
   mockAudioDevices,
@@ -80,11 +81,13 @@ describe('SpeakerManager.test', () => {
 
   it('set participant volume', () => {
     const call = manager['call'];
-    // @ts-expect-error - incomplete data
-    call.state.updateOrAddParticipant('session-id', {
-      audioVolume: undefined,
-      sessionId: 'session-id',
-    });
+    call.state.updateOrAddParticipant(
+      'session-id',
+      fromPartial({
+        audioVolume: undefined,
+        sessionId: 'session-id',
+      }),
+    );
 
     manager.setParticipantVolume('session-id', 0.5);
     let participant = call.state.findParticipantBySessionId('session-id');
