@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import {
   Channel,
   MESSAGE_ACTIONS,
@@ -74,18 +75,22 @@ export const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
 
 export const ChatUI = ({
   onClose,
+  channelType = CHANNEL_TYPE,
   channelId,
 }: {
   onClose: () => void;
+  channelType?: string;
   channelId: string;
 }) => {
   const { client, setActiveChannel } = useChatContext();
 
+  const router = useRouter();
   useEffect(() => {
-    const channel = client.channel(CHANNEL_TYPE, channelId);
+    const type = (router.query['channel_type'] as string) || channelType;
+    const channel = client.channel(type, channelId);
 
     setActiveChannel(channel);
-  }, [channelId, client, setActiveChannel]);
+  }, [channelId, channelType, client, router.query, setActiveChannel]);
 
   return (
     <Channel
