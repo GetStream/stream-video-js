@@ -73,7 +73,7 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.3",
+    "lint-staged": "^16.2.4",
     "nx": "^21.6.4",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
