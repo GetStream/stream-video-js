@@ -1,0 +1,12 @@
+{
+  "name": "@krispai/javascript-sdk",
+  "version": "2.3.4_updated_models",
+  "description": "Krisp Javascript SDK",
+  "types": "./dist/krispsdk.d.ts",
+  "main": "./dist/krispsdk.js",
+  "module": "./dist/krispsdk.mjs",
+  "files": [
+    "./dist/*"
+  ],
+  "license": "ISC"
+}
