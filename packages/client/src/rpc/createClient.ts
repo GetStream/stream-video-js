@@ -10,10 +10,9 @@ import {
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
-import { LogLevel } from '../coordinator/connection/types';
 import type { Trace } from '../stats';
 import type { SfuResponseWithError } from './retryable';
-import { ScopedLogger } from '../logger';
+import type { ScopedLogger, ScopedLogLevel } from '../logger';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -42,7 +41,7 @@ export const withHeaders = (
 
 export const withRequestLogger = (
   logger: ScopedLogger,
-  level: LogLevel,
+  level: ScopedLogLevel,
 ): RpcInterceptor => {
   return {
     interceptUnary: (

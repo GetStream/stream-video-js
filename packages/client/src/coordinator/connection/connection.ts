@@ -7,7 +7,8 @@ import {
   retryInterval,
   sleep,
 } from './utils';
-import type { LogLevel, StreamVideoEvent, UR } from './types';
+import type { StreamVideoEvent, UR } from './types';
+import type { ScopedLogLevel } from '../../logger';
 import type {
   ConnectedEvent,
   ConnectionErrorEvent,
@@ -87,7 +88,7 @@ export class StableWSConnection {
     addConnectionEventListeners(this.onlineStatusChanged);
   }
 
-  _log = (msg: string, extra: UR = {}, level: LogLevel = 'info') => {
+  _log = (msg: string, extra: UR = {}, level: ScopedLogLevel = 'info') => {
     this.client.logger[level](`connection:${msg}`, extra);
   };
 

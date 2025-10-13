@@ -56,5 +56,5 @@ export type ScopedLogger = scopedLogger.Logger<string>;
 
 export const configureLoggers = scopedLogger.configureLoggers<string>;
 
-export type { LogLevel, Sink } from '@stream-io/logger';
+export type { LogLevel as ScopedLogLevel, Sink } from '@stream-io/logger';
 export { LogLevelEnum, restoreDefaults } from '@stream-io/logger';
