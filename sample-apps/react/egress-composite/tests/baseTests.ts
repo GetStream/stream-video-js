@@ -10,6 +10,7 @@ export const testWithCallId = base.extend<{ callId: string }>({
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // run tests
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(callId);
   },
 });

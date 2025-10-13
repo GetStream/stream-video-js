@@ -17,7 +17,7 @@ import { AuthenticationProgress } from '../../components/AuthenticatingProgress'
 import { Channel as ChannelType } from 'stream-chat';
 import { MeetingStackParamList } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -33,7 +33,6 @@ const ChannelHeader = () => {
   const chatLabelNoted = useAppGlobalStoreValue(
     (store) => store.chatLabelNoted,
   );
-  const { t } = useI18n();
   const appStoreSetState = useAppGlobalStoreSetState();
   const [isNoted, setIsNoted] = useState<boolean>(!!chatLabelNoted);
 
@@ -44,10 +43,8 @@ const ChannelHeader = () => {
   return (
     <View style={styles.header}>
       <Text style={styles.headerText}>
-        ℹ️{' '}
-        {t(
-          'Messages are currently visible to anyone with the link and valid session.',
-        )}
+        ℹ️ Messages are currently visible to anyone with the link and valid
+        session.
       </Text>
       <Pressable
         style={styles.notedButton}
@@ -56,7 +53,7 @@ const ChannelHeader = () => {
           appStoreSetState({ chatLabelNoted: true });
         }}
       >
-        <Text style={styles.notedButtonText}>{t('Noted')}</Text>
+        <Text style={styles.notedButtonText}>Noted</Text>
       </Pressable>
     </View>
   );
@@ -81,8 +78,8 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
 
   return (
     <SafeAreaView>
-      <StatusBar barStyle={'light-content'} />
-      <Channel channel={channel}>
+      <StatusBar barStyle="default" />
+      <Channel channel={channel} keyboardVerticalOffset={120}>
         <ChannelHeader />
         <MessageList />
         <MessageInput />
