@@ -7074,11 +7074,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/audio-filters-web@workspace:packages/audio-filters-web"
   dependencies:
-    "@rollup/plugin-replace": "npm:^6.0.2"
-    "@rollup/plugin-typescript": "npm:^12.1.4"
+    concurrently: "npm:^9.2.1"
     rimraf: "npm:^6.0.1"
-    rollup: "npm:^4.52.4"
     typescript: "npm:^5.9.3"
+    vite: "npm:^7.1.9"
     wasm-feature-detect: "npm:^1.8.0"
   languageName: unknown
   linkType: soft
@@ -10475,7 +10474,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:9.2.1":
+"concurrently@npm:9.2.1, concurrently@npm:^9.2.1":
   version: 9.2.1
   resolution: "concurrently@npm:9.2.1"
   dependencies:
