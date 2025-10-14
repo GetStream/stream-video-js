@@ -12,8 +12,8 @@
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "rollup -c -w",
-    "build": "rimraf ./dist && concurrently 'vite build' 'tsc'"
+    "start": "vite build --watch",
+    "build": "yarn clean && concurrently 'vite build' 'tsc'"
   },
   "repository": {
     "type": "git",
