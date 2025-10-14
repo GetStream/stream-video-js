@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.21.2...@stream-io/video-react-native-sdk-1.22.0) (2025-10-14)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.0`
+- `@stream-io/video-filters-react-native` updated to version `0.8.0`
+- `@stream-io/video-client` updated to version `1.34.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.0`
+
+- add useEffectEvent shim to bindings with react 19.2 dev dep ([#1944](https://github.com/GetStream/stream-video-js/issues/1944)) ([26ca6bd](https://github.com/GetStream/stream-video-js/commit/26ca6bd7702d4960c098104e12db18f7d8afc7ce))
+- update react-native peer dep to 0.73.0 ([#1958](https://github.com/GetStream/stream-video-js/issues/1958)) ([0dfcbf3](https://github.com/GetStream/stream-video-js/commit/0dfcbf36dcf5136881109bef39470e4d5d7a10e7))
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+- move audio route manager inside SDK ([#1840](https://github.com/GetStream/stream-video-js/issues/1840)) ([847dd30](https://github.com/GetStream/stream-video-js/commit/847dd30d6240a0780fe3d58d681554bc392f6f51)), closes [#1829](https://github.com/GetStream/stream-video-js/issues/1829)
+
+### Bug Fixes
+
+- add useIsInPiPMode for ios ([#1947](https://github.com/GetStream/stream-video-js/issues/1947)) ([2fe1f9f](https://github.com/GetStream/stream-video-js/commit/2fe1f9fde5f0d25bdc43394b65f8eb002dea7b5f))
+- compatibility with RN 0.80+ ([#1950](https://github.com/GetStream/stream-video-js/issues/1950)) ([58e0bc4](https://github.com/GetStream/stream-video-js/commit/58e0bc499117381e6f0dad977cc9a5279164179d))
+
 ## [1.21.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.21.1...@stream-io/video-react-native-sdk-1.21.2) (2025-10-02)
 
 ### Dependency Updates
