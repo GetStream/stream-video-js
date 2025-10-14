@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.7.0...@stream-io/video-filters-react-native-0.8.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
 ## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.3...@stream-io/video-filters-react-native-0.7.0) (2025-09-29)
 
 ### Features
