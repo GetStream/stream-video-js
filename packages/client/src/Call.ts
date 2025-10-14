@@ -2238,13 +2238,10 @@ export class Call {
 
   /**
    * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
-   *
    * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
-   *
    * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
    *
    * `call.permissions_updated` event is sent to all members of the call.
-   *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
     return this.streamClient.post<
@@ -2559,6 +2556,33 @@ export class Call {
     const endpoint = `${this.streamClientBasePath}/report`;
     const params = callSessionID !== '' ? { session_id: callSessionID } : {};
     return this.streamClient.get<GetCallReportResponse>(endpoint, params);
+  };
+
+  /**
+   * Loads the call report for the given session ID.
+   */
+  getCallParticipantsStats = async (opts: {
+    sessionId?: string;
+    userId?: string;
+    userSessionId?: string;
+    kind?: 'timeline' | 'details';
+  }): Promise<any> => {
+    const {
+      sessionId = this.state.session?.id,
+      userId = this.currentUserId,
+      userSessionId = this.unifiedSessionId,
+      kind = 'details',
+    } = opts;
+    // FIXME OL: not yet part of the API
+    if (!sessionId) return;
+    const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
+    const endpoint =
+      userId && userSessionId
+        ? kind === 'details'
+          ? `${base}/participant/${userId}/${userSessionId}/details`
+          : `${base}/participants/${userId}/${userSessionId}/timeline`
+        : `${base}/participants`;
+    return this.streamClient.get(endpoint);
   };
 
   /**
