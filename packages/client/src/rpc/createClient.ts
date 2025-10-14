@@ -12,7 +12,8 @@ import {
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 import type { Trace } from '../stats';
 import type { SfuResponseWithError } from './retryable';
-import type { ScopedLogger, ScopedLogLevel } from '../logger';
+import type { ScopedLogger } from '../logger';
+import type { LogLevel } from '@stream-io/logger';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -41,7 +42,7 @@ export const withHeaders = (
 
 export const withRequestLogger = (
   logger: ScopedLogger,
-  level: ScopedLogLevel,
+  level: LogLevel,
 ): RpcInterceptor => {
   return {
     interceptUnary: (

@@ -1,7 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
-import { ConfigureLoggersOptions } from '@stream-io/logger';
+import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 
 export type UR = Record<string, unknown>;
 
@@ -24,8 +24,6 @@ export type UserWithId =
 export type { OwnUserResponse } from '../../gen/coordinator';
 
 export type ConnectAPIResponse = Promise<void | ConnectedEvent>;
-
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 type ErrorResponseDetails = {
   code: number;

@@ -1,7 +1,7 @@
 import * as scopedLogger from '@stream-io/logger';
-import { Logger, LogLevel } from './coordinator/connection/types';
+import { Logger } from './coordinator/connection/types';
 import { isReactNative } from './helpers/platforms';
-import { ConfigureLoggersOptions } from '@stream-io/logger';
+import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 
 export const logToConsole: Logger = (logLevel, message, ...args) => {
   let logMethod;
@@ -52,9 +52,12 @@ export const setLogger = (
  */
 export const getLogger = scopedLogger.getLogger<string>;
 
+/**
+ * @internal
+ */
 export type ScopedLogger = scopedLogger.Logger<string>;
 
 export const configureLoggers = scopedLogger.configureLoggers<string>;
 
-export type { LogLevel as ScopedLogLevel, Sink } from '@stream-io/logger';
+export type { LogLevel, Sink } from '@stream-io/logger';
 export { LogLevelEnum, restoreDefaults } from '@stream-io/logger';
