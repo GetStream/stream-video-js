@@ -19,8 +19,6 @@ enum DefaultAudioDevice {
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
     
-    private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
-    
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
@@ -46,60 +44,55 @@ class StreamInCallManager: RCTEventEmitter {
     
     @objc(setAudioRole:)
     func setAudioRole(audioRole: String) {
-        audioSessionQueue.async { [self] in
-            if audioManagerActivated {
-                log("AudioManager is already activated, audio role cannot be changed.")
-                return
-            }
-            self.callAudioRole = audioRole.lowercased() == "listener" ? .listener : .communicator
+        if audioManagerActivated {
+            log("AudioManager is already activated, audio role cannot be changed.")
+            return
         }
+        self.callAudioRole = audioRole.lowercased() == "listener" ? .listener : .communicator
+        
     }
     
     @objc(setDefaultAudioDeviceEndpointType:)
     func setDefaultAudioDeviceEndpointType(endpointType: String) {
-        audioSessionQueue.async { [self] in
-            if audioManagerActivated {
-                log("AudioManager is already activated, default audio device cannot be changed.")
-                return
-            }
-            self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
+        if audioManagerActivated {
+            log("AudioManager is already activated, default audio device cannot be changed.")
+            return
         }
+        self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
+        
     }
     
     @objc
     func start() {
-        audioSessionQueue.async { [self] in
-            if audioManagerActivated {
-                return
-            }
-            let session = AVAudioSession.sharedInstance()
-            previousAudioSessionState = AudioSessionState(
-                category: session.category,
-                mode: session.mode,
-                options: session.categoryOptions
-            )
-            configureAudioSession()
-            audioManagerActivated = true
+        if audioManagerActivated {
+            return
         }
+        let session = AVAudioSession.sharedInstance()
+        previousAudioSessionState = AudioSessionState(
+            category: session.category,
+            mode: session.mode,
+            options: session.categoryOptions
+        )
+        configureAudioSession()
+        audioManagerActivated = true
     }
     
     @objc
     func stop() {
-        audioSessionQueue.async { [self] in
-            if !audioManagerActivated {
-                return
-            }
-            if let prev = previousAudioSessionState {
-                let session = AVAudioSession.sharedInstance()
-                do {
-                    try session.setCategory(prev.category, mode: prev.mode, options: prev.options)
-                } catch {
-                    log("Error restoring previous audio session: \(error.localizedDescription)")
-                }
-                previousAudioSessionState = nil
-            }
-            audioManagerActivated = false
+        if !audioManagerActivated {
+            return
         }
+        if let prev = previousAudioSessionState {
+            let session = AVAudioSession.sharedInstance()
+            do {
+                try session.setCategory(prev.category, mode: prev.mode, options: prev.options)
+            } catch {
+                log("Error restoring previous audio session: \(error.localizedDescription)")
+            }
+            previousAudioSessionState = nil
+        }
+        audioManagerActivated = false
+        
     }
     
     private func configureAudioSession() {
@@ -142,6 +135,9 @@ class StreamInCallManager: RCTEventEmitter {
         
         if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions || !currentIsActive {
             session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
             do {
                 try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
                 try session.setActive(true)
@@ -156,7 +152,6 @@ class StreamInCallManager: RCTEventEmitter {
                     log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
                 }
             }
-            session.unlockForConfiguration()
         } else {
             log("configureAudioSession: no change needed")
         }
@@ -293,6 +288,11 @@ class StreamInCallManager: RCTEventEmitter {
         } else {
             return UIApplication.shared.keyWindow
         }
+    }
+    
+    @objc
+    func methodQueue() -> DispatchQueue {
+        return DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
     }
     
     // MARK: - Logging Helper
