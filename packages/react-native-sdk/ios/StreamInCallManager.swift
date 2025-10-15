@@ -292,7 +292,7 @@ class StreamInCallManager: RCTEventEmitter {
     
     @objc
     func methodQueue() -> DispatchQueue {
-        return DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
+        return DispatchQueue(label: "io.getstream.rn.audioSessionQueue", qos: .userInitiated)
     }
     
     // MARK: - Logging Helper
