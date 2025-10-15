@@ -39,7 +39,7 @@ export const logToConsole: Logger = (logLevel, message, ...args) => {
 export const setLogger = (
   logger: Logger,
   level: LogLevel,
-  loggersConfig?: ConfigureLoggersOptions<string>,
+  loggersConfig?: ConfigureLoggersOptions,
 ) => {
   scopedLogger.configureLoggers<string>({
     default: { sink: logger, level: level },
@@ -50,14 +50,16 @@ export const setLogger = (
 /**
  * @internal
  */
-export const getLogger = scopedLogger.getLogger<string>;
+export const getLogger = scopedLogger.getLogger;
 
 /**
  * @internal
  */
-export type ScopedLogger = scopedLogger.Logger<string>;
-
-export const configureLoggers = scopedLogger.configureLoggers<string>;
+export type ScopedLogger = scopedLogger.Logger;
 
 export type { LogLevel, Sink } from '@stream-io/logger';
-export { LogLevelEnum, restoreDefaults } from '@stream-io/logger';
+export {
+  LogLevelEnum,
+  restoreDefaults,
+  configureLoggers,
+} from '@stream-io/logger';

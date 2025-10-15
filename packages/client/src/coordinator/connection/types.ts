@@ -175,7 +175,7 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * The `default` scope is reserved is used to set defaults for all loggers.
    *
    */
-  logOptions?: ConfigureLoggersOptions<string>;
+  logOptions?: ConfigureLoggersOptions;
 
   /**
    * The URL to use for the location hint.
