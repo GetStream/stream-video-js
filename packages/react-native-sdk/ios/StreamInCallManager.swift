@@ -19,7 +19,7 @@ enum DefaultAudioDevice {
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
     
-    private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
+    private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue", qos: .userInitiated)
     
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
