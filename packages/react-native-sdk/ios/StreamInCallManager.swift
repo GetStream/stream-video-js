@@ -142,6 +142,7 @@ class StreamInCallManager: RCTEventEmitter {
         
         if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions || !currentIsActive {
             session.lockForConfiguration()
+            defer { session.unlockForConfiguration() }
             do {
                 try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
                 try session.setActive(true)
@@ -156,7 +157,6 @@ class StreamInCallManager: RCTEventEmitter {
                     log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
                 }
             }
-            session.unlockForConfiguration()
         } else {
             log("configureAudioSession: no change needed")
         }
