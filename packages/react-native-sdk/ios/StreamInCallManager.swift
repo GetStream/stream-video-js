@@ -19,7 +19,7 @@ enum DefaultAudioDevice {
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
     
-    private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
+    private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue", qos: .userInitiated)
     
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
@@ -142,6 +142,7 @@ class StreamInCallManager: RCTEventEmitter {
         
         if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions || !currentIsActive {
             session.lockForConfiguration()
+            defer { session.unlockForConfiguration() }
             do {
                 try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
                 try session.setActive(true)
@@ -156,7 +157,6 @@ class StreamInCallManager: RCTEventEmitter {
                     log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
                 }
             }
-            session.unlockForConfiguration()
         } else {
             log("configureAudioSession: no change needed")
         }
