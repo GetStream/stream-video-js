@@ -7204,10 +7204,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/logger@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@stream-io/logger@npm:1.2.1"
-  checksum: 10/89edacddfe2aae15cffed7b797a95bcda37098292e00eb2c96c57db446f0f21c87ed5b6b285ad607dada1c913eedb9bd04814e89bd9b1d803f9e6ddf3d56c90c
+"@stream-io/logger@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "@stream-io/logger@npm:1.2.2"
+  checksum: 10/8cfd998acb65a04a4258848a2cf41720b36440d3f12af6b82325ab9d0156745789b40e50e108b6c6d02d90f5c916da27e894d2f332bfc3500e3ace249e802062
   languageName: node
   linkType: hard
 
@@ -7330,7 +7330,7 @@ __metadata:
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/audio-filters-web": "workspace:^"
-    "@stream-io/logger": "npm:^1.2.1"
+    "@stream-io/logger": "npm:^1.2.2"
     "@stream-io/node-sdk": "npm:^0.7.9"
     "@stream-io/worker-timer": "npm:^1.2.4"
     "@total-typescript/shoehorn": "npm:^0.1.2"
