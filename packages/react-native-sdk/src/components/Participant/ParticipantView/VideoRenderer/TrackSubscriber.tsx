@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useMemo } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import {
   Call,
@@ -42,9 +42,11 @@ type TrackSubscriberProps = {
 const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
   (props, ref) => {
     const { call, participantSessionId, trackType, isVisible } = props;
-    const dimensions$Ref = useRef(
-      new BehaviorSubject<SfuModels.VideoDimension | undefined>(undefined),
-    );
+    const dimensions$ = useMemo(() => {
+      return new BehaviorSubject<SfuModels.VideoDimension | undefined>(
+        undefined,
+      );
+    }, []);
 
     useEffect(() => {
       const requestTrackWithDimensions = (
@@ -63,7 +65,6 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         });
         call.dynascaleManager.applyTrackSubscriptions(debounceType);
       };
-      const dimensions$ = dimensions$Ref.current;
       const isPublishingTrack$ = call.state.participants$.pipe(
         map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
         takeWhile((p) => !!p),
@@ -99,17 +100,21 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
       return () => {
         subscription.unsubscribe();
       };
-    }, [call, participantSessionId, trackType, isVisible]);
+    }, [call, participantSessionId, trackType, isVisible, dimensions$]);
 
-    useImperativeHandle(ref, () => ({
-      onLayoutUpdate: (event) => {
-        const dimension = {
-          width: Math.trunc(event.nativeEvent.layout.width),
-          height: Math.trunc(event.nativeEvent.layout.height),
-        };
-        dimensions$Ref.current.next(dimension);
-      },
-    }));
+    useImperativeHandle(
+      ref,
+      () => ({
+        onLayoutUpdate: (event) => {
+          const dimension = {
+            width: Math.trunc(event.nativeEvent.layout.width),
+            height: Math.trunc(event.nativeEvent.layout.height),
+          };
+          dimensions$.next(dimension);
+        },
+      }),
+      [dimensions$],
+    );
 
     return null;
   },
