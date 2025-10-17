@@ -24,7 +24,6 @@ import type {
 import {
   AllClientEvents,
   ClientEventListener,
-  Logger,
   StreamClientOptions,
   TokenOrProvider,
   TokenProvider,
@@ -38,7 +37,7 @@ import {
   getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
-import { getLogger, logToConsole, setLogger } from './logger';
+import { getLogger, logToConsole, ScopedLogger, setLogger } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 
@@ -63,7 +62,7 @@ export class StreamVideoClient {
    * @deprecated use the `client.state` getter.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  readonly logger: Logger;
+  readonly logger: ScopedLogger;
 
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
@@ -94,9 +93,14 @@ export class StreamVideoClient {
     if (clientOptions?.enableTimerWorker) enableTimerWorker();
 
     const rootLogger = clientOptions?.logger || logToConsole;
-    setLogger(rootLogger, clientOptions?.logLevel || 'warn');
 
-    this.logger = getLogger(['client']);
+    setLogger(
+      rootLogger,
+      clientOptions?.logLevel || 'warn',
+      clientOptions?.logOptions,
+    );
+
+    this.logger = getLogger('client');
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
@@ -113,7 +117,7 @@ export class StreamVideoClient {
 
       const tokenOrProvider = createTokenOrProvider(apiKeyOrArgs);
       this.connectUser(user, tokenOrProvider).catch((err) => {
-        this.logger('error', 'Failed to connect', err);
+        this.logger.error('Failed to connect', err);
       });
     }
   }
@@ -149,8 +153,7 @@ export class StreamVideoClient {
   private registerClientInstance = (apiKey: string, user: User) => {
     const instanceKey = getInstanceKey(apiKey, user);
     if (StreamVideoClient._instances.has(instanceKey)) {
-      this.logger(
-        'warn',
+      this.logger.warn(
         `A StreamVideoClient already exists for ${user.id}; Prefer using getOrCreateInstance method`,
       );
     }
@@ -178,13 +181,13 @@ export class StreamVideoClient {
           .map((call) => call.cid);
         if (callsToReWatch.length <= 0) return;
 
-        this.logger('info', `Rewatching calls ${callsToReWatch.join(', ')}`);
+        this.logger.info(`Rewatching calls ${callsToReWatch.join(', ')}`);
         this.queryCalls({
           watch: true,
           filter_conditions: { cid: { $in: callsToReWatch } },
           sort: [{ field: 'cid', direction: 1 }],
         }).catch((err) => {
-          this.logger('error', 'Failed to re-watch calls', err);
+          this.logger.error('Failed to re-watch calls', err);
         });
       }),
     );
@@ -198,7 +201,7 @@ export class StreamVideoClient {
    */
   private initCallFromEvent = async (e: CallCreatedEvent | CallRingEvent) => {
     if (this.state.connectedUser?.id === e.call.created_by.id) {
-      this.logger('debug', `Ignoring ${e.type} event sent by the current user`);
+      this.logger.debug(`Ignoring ${e.type} event sent by the current user`);
       return;
     }
 
@@ -210,8 +213,7 @@ export class StreamVideoClient {
         if (call) {
           if (ringing) {
             if (this.shouldRejectCall(call.cid)) {
-              this.logger(
-                'info',
+              this.logger.info(
                 `Leaving call with busy reject reason ${call.cid} because user is busy`,
               );
               // remove the instance from the state store
@@ -238,10 +240,7 @@ export class StreamVideoClient {
 
         if (ringing) {
           if (this.shouldRejectCall(call.cid)) {
-            this.logger(
-              'info',
-              `Rejecting call ${call.cid} because user is busy`,
-            );
+            this.logger.info(`Rejecting call ${call.cid} because user is busy`);
             // call is not in the state store yet, so just reject api is enough
             await call.reject('busy');
           } else {
@@ -251,11 +250,11 @@ export class StreamVideoClient {
         } else {
           call.state.updateFromCallResponse(e.call);
           this.writeableStateStore.registerCall(call);
-          this.logger('info', `New call created and registered: ${call.cid}`);
+          this.logger.info(`New call created and registered: ${call.cid}`);
         }
       });
     } catch (err) {
-      this.logger('error', `Failed to init call from event ${e.type}`, err);
+      this.logger.error(`Failed to init call from event ${e.type}`, err);
     }
   };
 
@@ -288,12 +287,12 @@ export class StreamVideoClient {
         const errorQueue: Error[] = [];
         for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {
           try {
-            this.logger('trace', `Connecting user (${attempt})`, user);
+            this.logger.trace(`Connecting user (${attempt})`, user);
             return user.type === 'guest'
               ? await client.connectGuestUser(user)
               : await client.connectUser(user, tokenOrProvider);
           } catch (err) {
-            this.logger('warn', `Failed to connect a user (${attempt})`, err);
+            this.logger.warn(`Failed to connect a user (${attempt})`, err);
             errorQueue.push(err as Error);
             if (attempt === maxConnectUserRetries - 1) {
               onConnectUserError?.(err as Error, errorQueue);

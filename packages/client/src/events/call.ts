@@ -38,8 +38,7 @@ export const watchCallRejected = (call: Call) => {
     const { session: callSession } = eventCall;
 
     if (!callSession) {
-      call.logger(
-        'warn',
+      call.logger.warn(
         'No call session provided. Ignoring call.rejected event.',
         event,
       );
@@ -49,8 +48,7 @@ export const watchCallRejected = (call: Call) => {
     const rejectedBy = callSession.rejected_by;
     const { members, callingState } = call.state;
     if (callingState !== CallingState.RINGING) {
-      call.logger(
-        'info',
+      call.logger.info(
         'Call is not in ringing mode (it is either accepted or rejected already). Ignoring call.rejected event.',
         event,
       );
@@ -61,7 +59,7 @@ export const watchCallRejected = (call: Call) => {
         .filter((m) => m.user_id !== call.currentUserId)
         .every((m) => rejectedBy[m.user_id]);
       if (everyoneElseRejected) {
-        call.logger('info', 'everyone rejected, leaving the call');
+        call.logger.info('everyone rejected, leaving the call');
         await call.leave({
           reject: true,
           reason: 'cancel',
@@ -70,7 +68,7 @@ export const watchCallRejected = (call: Call) => {
       }
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
-        call.logger('info', 'call creator rejected, leaving call');
+        call.logger.info('call creator rejected, leaving call');
         await call.leave({ message: 'ring: creator rejected' });
       }
     }
@@ -90,7 +88,7 @@ export const watchCallEnded = (call: Call) => {
       call
         .leave({ message: 'call.ended event received', reject: false })
         .catch((err) => {
-          call.logger('error', 'Failed to leave call after call.ended ', err);
+          call.logger.error('Failed to leave call after call.ended ', err);
         });
     }
   };
@@ -117,8 +115,7 @@ export const watchSfuCallEnded = (call: Call) => {
       const reason = CallEndedReason[e.reason];
       await call.leave({ message: `callEnded received: ${reason}` });
     } catch (err) {
-      call.logger(
-        'error',
+      call.logger.error(
         'Failed to leave call after being ended by the SFU',
         err,
       );

@@ -23,7 +23,7 @@ const NativeComponent: HostComponent<RTCViewPipNativeProps> =
   requireNativeComponent(COMPONENT_NAME);
 
 export function onNativeCallClosed(reactTag: number) {
-  getLogger(['RTCViewPipNative'])('debug', 'onNativeCallClosed');
+  getLogger('RTCViewPipNative').debug('onNativeCallClosed');
   const commandId =
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed;
   if (!commandId) return;
@@ -35,7 +35,7 @@ export function onNativeDimensionsUpdated(
   width: number,
   height: number,
 ) {
-  getLogger(['RTCViewPipNative'])('debug', 'onNativeDimensionsUpdated', {
+  getLogger('RTCViewPipNative').debug('onNativeDimensionsUpdated', {
     width,
     height,
   });

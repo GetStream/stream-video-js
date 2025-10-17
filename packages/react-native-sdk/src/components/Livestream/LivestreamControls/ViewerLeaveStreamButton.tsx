@@ -43,8 +43,8 @@ export const ViewerLeaveStreamButton = ({
       await call?.leave();
       setIsAwaitingResponse(false);
     } catch (error) {
-      const logger = getLogger(['ViewerLeaveStreamButton']);
-      logger('error', 'Error stopping livestream', error);
+      const logger = getLogger('ViewerLeaveStreamButton');
+      logger.error('Error stopping livestream', error);
     }
   };
 

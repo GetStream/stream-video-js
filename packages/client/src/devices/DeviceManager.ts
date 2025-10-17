@@ -6,8 +6,7 @@ import { createSubscription } from '../store/rxUtils';
 import { DeviceManagerState } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { Logger } from '../coordinator/connection/types';
-import { getLogger } from '../logger';
+import { getLogger, ScopedLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
@@ -29,7 +28,7 @@ export abstract class DeviceManager<
    * if true, stops the media stream when call is left
    */
   stopOnLeave = true;
-  logger: Logger;
+  logger: ScopedLogger;
 
   state: S;
 
@@ -48,7 +47,7 @@ export abstract class DeviceManager<
     this.call = call;
     this.state = state;
     this.trackType = trackType;
-    this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+    this.logger = getLogger(`${TrackType[trackType].toLowerCase()} manager`);
     this.setup();
   }
 
@@ -300,7 +299,7 @@ export abstract class DeviceManager<
   protected async muteStream(stopTracks: boolean = true) {
     const mediaStream = this.state.mediaStream;
     if (!mediaStream) return;
-    this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
+    this.logger.debug(`${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream();
     }
@@ -347,7 +346,7 @@ export abstract class DeviceManager<
   }
 
   protected async unmuteStream() {
-    this.logger('debug', 'Starting stream');
+    this.logger.debug('Starting stream');
     let stream: MediaStream;
     let rootStream: Promise<MediaStream> | undefined;
     if (
@@ -435,8 +434,7 @@ export abstract class DeviceManager<
               return output;
             })
             .then(chainWith(parent), (error) => {
-              this.logger(
-                'warn',
+              this.logger.warn(
                 'Filter failed to start and will be ignored',
                 error,
               );
@@ -463,7 +461,7 @@ export abstract class DeviceManager<
       const createTrackMuteHandler = (muted: boolean) => () => {
         if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
         this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
-          this.logger('warn', 'Error while notifying track mute state', err);
+          this.logger.warn('Error while notifying track mute state', err);
         });
       };
       stream.getTracks().forEach((track) => {
@@ -534,8 +532,7 @@ export abstract class DeviceManager<
               }
             }
           } catch (err) {
-            this.logger(
-              'warn',
+            this.logger.warn(
               'Unexpected error while handling disconnected or replaced device',
               err,
             );

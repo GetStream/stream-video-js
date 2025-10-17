@@ -82,8 +82,8 @@ export const ReactionsPicker = ({
   const onClose = (reaction?: SendReactionRequest) => {
     if (reaction) {
       call?.sendReaction(reaction).catch((e) => {
-        const logger = getLogger(['ReactionsPicker']);
-        logger('error', 'Error on onClose-sendReaction', e, reaction);
+        const logger = getLogger('ReactionsPicker');
+        logger.error('Error on onClose-sendReaction', e, reaction);
       });
     }
     Animated.timing(elasticAnimRef.current, {

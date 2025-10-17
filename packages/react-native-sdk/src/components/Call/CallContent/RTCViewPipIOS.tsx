@@ -72,16 +72,12 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
     };
     const unsubFunc = call?.on('call.ended', () => {
-      getLogger(['RTCViewPipIOS'])(
-        'debug',
-        `onCallClosed due to call.ended event`,
-      );
+      getLogger('RTCViewPipIOS').debug(`onCallClosed due to call.ended event`);
       onCallClosed();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
       if (state === CallingState.LEFT) {
-        getLogger(['RTCViewPipIOS'])(
-          'debug',
+        getLogger('RTCViewPipIOS').debug(
           `onCallClosed due to callingState: ${state}`,
         );
         onCallClosed();

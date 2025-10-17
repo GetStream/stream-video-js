@@ -87,9 +87,8 @@ export const useScreenShareButton = (
 
   const onPress = async () => {
     if (!hasScreenSharingPermissions) {
-      const logger = getLogger(['useScreenShareButton']);
-      logger(
-        'info',
+      const logger = getLogger('useScreenShareButton');
+      logger.info(
         'User does not have permissions to stream the screen share media, calling onMissingScreenShareStreamPermission handler if present',
       );
       onMissingScreenShareStreamPermission?.();
@@ -106,9 +105,8 @@ export const useScreenShareButton = (
           onScreenShareStartedHandler?.();
         } catch (error) {
           // ignored.. user didnt allow the screen share in the popup
-          const logger = getLogger(['useScreenShareButton']);
-          logger(
-            'info',
+          const logger = getLogger('useScreenShareButton');
+          logger.info(
             'User opted to not give permissions to start a screen share stream',
             error,
           );

@@ -48,7 +48,10 @@ export const retryable = async <
         err.code === TwirpErrorCode[TwirpErrorCode.cancelled];
       const isAborted = signal?.aborted ?? false;
       if (isRequestCancelled || isAborted) throw err;
-      getLogger(['sfu-client', 'rpc'])('debug', `rpc failed (${attempt})`, err);
+      getLogger('sfu-client', { tags: ['rpc'] }).debug(
+        `rpc failed (${attempt})`,
+        err,
+      );
       attempt++;
     }
   } while (!result || result.response.error?.shouldRetry);

@@ -29,7 +29,7 @@ export type SfuStatsReporterOptions = {
 };
 
 export class SfuStatsReporter {
-  private readonly logger = getLogger(['SfuStatsReporter']);
+  private readonly logger = getLogger('SfuStatsReporter');
 
   readonly options: StatsOptions;
 
@@ -153,7 +153,7 @@ export class SfuStatsReporter {
     // intentionally not awaiting the promise here
     // to avoid impeding with the ongoing actions.
     this.run(telemetryData).catch((err) => {
-      this.logger('warn', 'Failed to send telemetry data', err);
+      this.logger.warn('Failed to send telemetry data', err);
     });
   };
 
@@ -217,7 +217,7 @@ export class SfuStatsReporter {
     clearInterval(this.intervalId);
     this.intervalId = setInterval(() => {
       this.run().catch((err) => {
-        this.logger('warn', 'Failed to report stats', err);
+        this.logger.warn('Failed to report stats', err);
       });
     }, this.options.reporting_interval_ms);
   };
@@ -237,7 +237,7 @@ export class SfuStatsReporter {
 
   flush = () => {
     this.run().catch((err) => {
-      this.logger('warn', 'Failed to flush report stats', err);
+      this.logger.warn('Failed to flush report stats', err);
     });
   };
 
@@ -245,7 +245,7 @@ export class SfuStatsReporter {
     clearTimeout(this.timeoutId);
     this.timeoutId = setTimeout(() => {
       this.run().catch((err) => {
-        this.logger('warn', 'Failed to report stats', err);
+        this.logger.warn('Failed to report stats', err);
       });
     }, timeout);
   };

@@ -92,7 +92,7 @@ export const createSubscription = <T>(
   observable: Observable<T>,
   handler: (value: T) => void,
   onError: (error: any) => void = (error) =>
-    getLogger(['RxUtils'])('warn', 'An observable emitted an error', error),
+    getLogger('RxUtils').warn('An observable emitted an error', error),
 ) => {
   const subscription = observable.subscribe({ next: handler, error: onError });
   return () => {

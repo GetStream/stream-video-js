@@ -100,8 +100,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     call.microphone
       .enableNoiseCancellation(ncInstance)
       .catch((err) =>
-        getLogger(['NoiseCancellationProvider'])(
-          'error',
+        getLogger('NoiseCancellationProvider').error(
           `Can't initialize noise suppression`,
           err,
         ),
@@ -111,8 +110,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
       call.microphone
         .disableNoiseCancellation()
         .catch((err) =>
-          getLogger(['NoiseCancellationProvider'])(
-            'error',
+          getLogger('NoiseCancellationProvider').error(
             `Can't disable noise suppression`,
             err,
           ),

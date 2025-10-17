@@ -55,8 +55,8 @@ export const LivestreamPlayer = ({
     return () => {
       if (myCall.state.callingState !== CallingState.LEFT) {
         myCall.leave().catch((e) => {
-          const logger = getLogger(['LivestreamPlayer']);
-          logger('error', 'Error leaving call:', e);
+          const logger = getLogger('LivestreamPlayer');
+          logger.error('Error leaving call:', e);
         });
       }
       setCall(undefined);
@@ -68,8 +68,8 @@ export const LivestreamPlayer = ({
       // this handles unmount on metro reloads
       if (call?.state.callingState !== CallingState.LEFT) {
         call?.leave().catch((e) => {
-          const logger = getLogger(['LivestreamPlayer']);
-          logger('error', 'Error leaving call:', e);
+          const logger = getLogger('LivestreamPlayer');
+          logger.error('Error leaving call:', e);
         });
       }
     };

@@ -1,17 +1,7 @@
-import { Logger, LogLevel } from './coordinator/connection/types';
+import * as scopedLogger from '@stream-io/logger';
+import { Logger } from './coordinator/connection/types';
 import { isReactNative } from './helpers/platforms';
-
-// log levels, sorted by verbosity
-export const logLevels: Record<LogLevel, number> = Object.freeze({
-  trace: 0,
-  debug: 1,
-  info: 2,
-  warn: 3,
-  error: 4,
-});
-
-let logger: Logger | undefined;
-let level: LogLevel = 'info';
+import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 
 export const logToConsole: Logger = (logLevel, message, ...args) => {
   let logMethod;
@@ -46,26 +36,30 @@ export const logToConsole: Logger = (logLevel, message, ...args) => {
   logMethod(message, ...args);
 };
 
-export const setLogger = (l: Logger, lvl?: LogLevel) => {
-  logger = l;
-  if (lvl) {
-    setLogLevel(lvl);
-  }
+export const setLogger = (
+  logger: Logger,
+  level: LogLevel,
+  loggersConfig?: ConfigureLoggersOptions,
+) => {
+  scopedLogger.configureLoggers<string>({
+    default: { sink: logger, level: level },
+    ...loggersConfig,
+  });
 };
 
-export const setLogLevel = (l: LogLevel) => {
-  level = l;
-};
+/**
+ * @internal
+ */
+export const getLogger = scopedLogger.getLogger;
 
-export const getLogLevel = (): LogLevel => level;
+/**
+ * @internal
+ */
+export type ScopedLogger = scopedLogger.Logger;
 
-export const getLogger = (withTags?: string[]) => {
-  const loggerMethod = logger || logToConsole;
-  const tags = (withTags || []).filter(Boolean).join(':');
-  const result: Logger = (logLevel, message, ...args) => {
-    if (logLevels[logLevel] >= logLevels[level]) {
-      loggerMethod(logLevel, `[${tags}]: ${message}`, ...args);
-    }
-  };
-  return result;
-};
+export type { LogLevel, Sink } from '@stream-io/logger';
+export {
+  LogLevelEnum,
+  restoreDefaults,
+  configureLoggers,
+} from '@stream-io/logger';

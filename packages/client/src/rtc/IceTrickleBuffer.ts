@@ -20,8 +20,8 @@ export class IceTrickleBuffer {
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
       this.publisherCandidates.next(iceCandidate);
     } else {
-      const logger = getLogger(['sfu-client']);
-      logger('warn', `ICETrickle, Unknown peer type`, iceTrickle);
+      const logger = getLogger('sfu-client');
+      logger.warn(`ICETrickle, Unknown peer type`, iceTrickle);
     }
   };
 
@@ -37,8 +37,8 @@ const toIceCandidate = (
   try {
     return JSON.parse(iceTrickle.iceCandidate);
   } catch (e) {
-    const logger = getLogger(['sfu-client']);
-    logger('error', `Failed to parse ICE Trickle`, e, iceTrickle);
+    const logger = getLogger('sfu-client');
+    logger.error(`Failed to parse ICE Trickle`, e, iceTrickle);
     return undefined;
   }
 };

@@ -74,8 +74,8 @@ export const RejectCallButton = ({
         onRejectCallHandler();
       }
     } catch (error) {
-      const logger = getLogger(['RejectCallButton']);
-      logger('error', 'Error rejecting Call', error);
+      const logger = getLogger('RejectCallButton');
+      logger.error('Error rejecting Call', error);
     } finally {
       setIsLoading(false);
     }

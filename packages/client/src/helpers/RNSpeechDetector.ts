@@ -64,8 +64,8 @@ export class RNSpeechDetector {
         this.stop();
       };
     } catch (error) {
-      const logger = getLogger(['RNSpeechDetector']);
-      logger('error', 'error handling permissions: ', error);
+      const logger = getLogger('RNSpeechDetector');
+      logger.error('error handling permissions: ', error);
       return () => {};
     }
   }
@@ -164,8 +164,8 @@ export class RNSpeechDetector {
           }
         }
       } catch (error) {
-        const logger = getLogger(['RNSpeechDetector']);
-        logger('error', 'error checking audio level from stats', error);
+        const logger = getLogger('RNSpeechDetector');
+        logger.error('error checking audio level from stats', error);
       }
     };
 

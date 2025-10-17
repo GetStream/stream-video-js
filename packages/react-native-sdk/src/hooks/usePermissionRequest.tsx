@@ -39,8 +39,8 @@ export const usePermissionRequest = () => {
             await call?.revokePermissions(user.id, permissions);
           }
         } catch (err) {
-          const logger = getLogger(['usePermissionRequest']);
-          logger('error', 'error handling permissions: ', err);
+          const logger = getLogger('usePermissionRequest');
+          logger.error('error handling permissions: ', err);
         }
       };
     },

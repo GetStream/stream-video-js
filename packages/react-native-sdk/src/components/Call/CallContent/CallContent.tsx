@@ -151,16 +151,12 @@ export const CallContent = ({
   useEffect(() => {
     if (isInPiPMode && Platform.OS === 'android') {
       const unsubFunc = call?.on('call.ended', () => {
-        getLogger(['CallContent'])(
-          'debug',
-          `exiting PiP mode due to call.ended`,
-        );
+        getLogger('CallContent').debug(`exiting PiP mode due to call.ended`);
         NativeModules.StreamVideoReactNative.exitPipMode();
       });
       const subscription = call?.state.callingState$.subscribe((state) => {
         if (state === CallingState.LEFT) {
-          getLogger(['CallContent'])(
-            'debug',
+          getLogger('CallContent').debug(
             `exiting PiP mode due to callingState: LEFT`,
           );
           NativeModules.StreamVideoReactNative.exitPipMode();

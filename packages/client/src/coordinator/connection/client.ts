@@ -11,7 +11,6 @@ import {
   addConnectionEventListeners,
   generateUUIDv4,
   isErrorResponse,
-  isFunction,
   KnownCodes,
   removeConnectionEventListeners,
   retryInterval,
@@ -24,7 +23,6 @@ import {
   ClientEventListener,
   ConnectAPIResponse,
   ErrorFromResponse,
-  Logger,
   StreamClientOptions,
   StreamVideoEvent,
   TokenOrProvider,
@@ -38,7 +36,7 @@ import {
   CreateGuestResponse,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
-import { getLogLevel } from '../../logger';
+import { getLogger, ScopedLogger } from '../../logger';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -52,7 +50,7 @@ export class StreamClient {
   listeners: Partial<
     Record<AllClientEventTypes, ClientEventListener<any>[] | undefined>
   > = {};
-  logger: Logger;
+  logger: ScopedLogger;
 
   private locationHint: Promise<string> | undefined;
 
@@ -150,9 +148,7 @@ export class StreamClient {
 
     this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
 
-    this.logger = isFunction(inputOptions.logger)
-      ? inputOptions.logger
-      : () => null;
+    this.logger = getLogger('coordinator');
   }
 
   getAuthType = () => {
@@ -206,8 +202,7 @@ export class StreamClient {
      * If the user id remains the same we don't throw error
      */
     if (this.userID === user.id && this.connectUserTask) {
-      this.logger(
-        'warn',
+      this.logger.warn(
         'Consecutive calls to connectUser is detected, ideally you should only call this function once in your app.',
       );
       return this.connectUserTask;
@@ -220,8 +215,7 @@ export class StreamClient {
     }
 
     if ((this.secret || this.node) && !this.options.allowServerSideConnect) {
-      this.logger(
-        'warn',
+      this.logger.warn(
         'Please do not use connectUser server side. Use our @stream-io/node-sdk instead: https://getstream.io/video/docs/api/',
       );
     }
@@ -288,16 +282,14 @@ export class StreamClient {
 
     const wsPromise = this.wsPromiseSafe?.();
     if (this.wsConnection?.isConnecting && wsPromise) {
-      this.logger(
-        'info',
+      this.logger.info(
         'client:openConnection() - connection already in progress',
       );
       return await wsPromise;
     }
 
     if (this.wsConnection?.isHealthy && this._hasConnectionID()) {
-      this.logger(
-        'info',
+      this.logger.info(
         'client:openConnection() - openConnection called twice, healthy connection already exists',
       );
 
@@ -319,7 +311,7 @@ export class StreamClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    this.logger('info', 'client:disconnect() - Disconnecting the client');
+    this.logger.info('client:disconnect() - Disconnecting the client');
 
     // remove the user specific fields
     delete this.user;
@@ -390,7 +382,7 @@ export class StreamClient {
       this.listeners[eventName] = [];
     }
 
-    this.logger('debug', `Adding listener for ${eventName} event`);
+    this.logger.debug(`Adding listener for ${eventName} event`);
     this.listeners[eventName]?.push(callback as ClientEventListener<any>);
     return () => {
       this.off(eventName, callback);
@@ -408,7 +400,7 @@ export class StreamClient {
       this.listeners[eventName] = [];
     }
 
-    this.logger('debug', `Removing listener for ${eventName} event`);
+    this.logger.debug(`Removing listener for ${eventName} event`);
     this.listeners[eventName] = this.listeners[eventName]?.filter(
       (value) => value !== callback,
     );
@@ -447,8 +439,8 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     },
   ) => {
-    if (getLogLevel() !== 'trace') return;
-    this.logger('trace', `client: ${type} - Request - ${url}`, {
+    if (this.logger.getLogLevel() !== 'trace') return;
+    this.logger.trace(`client: ${type} - Request - ${url}`, {
       payload: data,
       config,
     });
@@ -459,9 +451,8 @@ export class StreamClient {
     url: string,
     response: AxiosResponse<T>,
   ) => {
-    if (getLogLevel() !== 'trace') return;
-    this.logger(
-      'trace',
+    if (this.logger.getLogLevel() !== 'trace') return;
+    this.logger.trace(
       `client:${type} - Response - url: ${url} > status ${response.status}`,
       {
         response,
@@ -529,14 +520,14 @@ export class StreamClient {
       this.consecutiveFailures += 1;
       const { response } = e;
       if (!response || !isErrorResponse(response)) {
-        this.logger('error', `client:${type} url: ${url}`, e);
+        this.logger.error(`client:${type} url: ${url}`, e);
         throw e as AxiosError<APIErrorResponse>;
       }
 
       const { data: responseData, status } = response;
       const isTokenExpired = responseData.code === KnownCodes.TOKEN_EXPIRED;
       if (isTokenExpired && !this.tokenManager.isStatic()) {
-        this.logger('warn', `client:${type}: url: ${url}`, response);
+        this.logger.warn(`client:${type}: url: ${url}`, response);
         if (this.consecutiveFailures > 1) {
           await sleep(retryInterval(this.consecutiveFailures));
         }
@@ -544,7 +535,7 @@ export class StreamClient {
         await this.tokenManager.loadToken();
         return await this.doAxiosRequest<T, D>(type, url, data, options);
       } else {
-        this.logger('error', `client:${type} url: ${url}`, response);
+        this.logger.error(`client:${type} url: ${url}`, response);
         throw new ErrorFromResponse<APIErrorResponse>({
           message: `Stream error code ${responseData.code}: ${responseData.message}`,
           code: responseData.code ?? null,
@@ -593,7 +584,7 @@ export class StreamClient {
   };
 
   dispatchEvent = (event: StreamVideoEvent) => {
-    this.logger('debug', `Dispatching event: ${event.type}`, event);
+    this.logger.debug(`Dispatching event: ${event.type}`, event);
     if (!this.listeners) return;
 
     // call generic listeners
@@ -622,7 +613,7 @@ export class StreamClient {
     // The StableWSConnection handles all the reconnection logic.
     this.wsConnection = new StableWSConnection(this);
 
-    this.logger('info', 'StreamClient.connect: this.wsConnection.connect()');
+    this.logger.info('StreamClient.connect: this.wsConnection.connect()');
     return await this.wsConnection.connect(this.defaultWSTimeout);
   };
 
@@ -704,10 +695,10 @@ export class StreamClient {
     event: { type: 'online' | 'offline' } | Event,
   ) => {
     if (event.type === 'offline') {
-      this.logger('debug', 'device went offline');
+      this.logger.debug('device went offline');
       this.dispatchEvent({ type: 'network.changed', online: false });
     } else if (event.type === 'online') {
-      this.logger('debug', 'device went online');
+      this.logger.debug('device went online');
       this.dispatchEvent({ type: 'network.changed', online: true });
     }
   };

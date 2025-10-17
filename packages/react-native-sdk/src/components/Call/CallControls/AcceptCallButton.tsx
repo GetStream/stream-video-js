@@ -52,8 +52,8 @@ export const AcceptCallButton = ({
         onAcceptCallHandler();
       }
     } catch (error) {
-      const logger = getLogger(['AcceptCallButton']);
-      logger('error', 'Error joining Call', error);
+      const logger = getLogger('AcceptCallButton');
+      logger.error('Error joining Call', error);
     } finally {
       setIsLoading(false);
     }

@@ -27,8 +27,7 @@ export const useProcessPushNonRingingCallEffect = () => {
     const subscription = pushNonRingingCallData$
       .pipe(filter(NotUndefined))
       .subscribe(async ({ cid, type }) => {
-        getLogger(['useProcessPushNonRingingCallEffect'])(
-          'debug',
+        getLogger('useProcessPushNonRingingCallEffect').debug(
           `processNonIncomingCallFromPush with callCId: ${cid} and type: ${type}`,
         );
         await processNonIncomingCallFromPush(client, cid, type);

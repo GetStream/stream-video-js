@@ -68,8 +68,8 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
         await call.get();
       } catch (err) {
         if (err instanceof Error) {
-          const logger = getLogger(['ViewerLobby']);
-          logger('error', 'Error getting call:', err);
+          const logger = getLogger('ViewerLobby');
+          logger.error('Error getting call:', err);
           setError(err);
         }
       }

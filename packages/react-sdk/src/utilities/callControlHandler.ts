@@ -20,7 +20,7 @@ export const createCallControlHandler = (
   props: PropsWithErrorHandler,
   handler: () => Promise<void>,
 ): (() => Promise<void>) => {
-  const logger = getLogger(['react-sdk']);
+  const logger = getLogger('react-sdk');
 
   return async () => {
     try {
@@ -32,7 +32,7 @@ export const createCallControlHandler = (
       }
 
       if (!isNotAllowedError(error)) {
-        logger('error', 'Call control handler failed', error);
+        logger.error('Call control handler failed', error);
       }
     }
   };

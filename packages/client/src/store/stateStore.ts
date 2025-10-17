@@ -23,15 +23,15 @@ export class StreamVideoWriteableStateStore {
     this.connectedUserSubject.subscribe(async (user) => {
       // leave all calls when the user disconnects.
       if (!user) {
-        const logger = getLogger(['client-state']);
+        const logger = getLogger('client-state');
         for (const call of this.calls) {
           if (call.state.callingState === CallingState.LEFT) continue;
 
-          logger('info', `User disconnected, leaving call: ${call.cid}`);
+          logger.info(`User disconnected, leaving call: ${call.cid}`);
           await call
             .leave({ message: 'client.disconnectUser() called' })
             .catch((err) => {
-              logger('error', `Error leaving call: ${call.cid}`, err);
+              logger.error(`Error leaving call: ${call.cid}`, err);
             });
         }
       }
@@ -87,8 +87,8 @@ export class StreamVideoWriteableStateStore {
    * @param call the call to remove
    */
   unregisterCall = (call: Call) => {
-    const logger = getLogger(['client-state']);
-    logger('trace', `Unregistering call: ${call.cid}`);
+    const logger = getLogger('client-state');
+    logger.trace(`Unregistering call: ${call.cid}`);
     return this.setCalls((calls) => calls.filter((c) => c !== call));
   };
 
