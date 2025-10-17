@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.0...@stream-io/video-react-sdk-1.24.1) (2025-10-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.34.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.1`
+
+### Bug Fixes
+
+- make it possible to filter screensharing participants ([#1965](https://github.com/GetStream/stream-video-js/issues/1965)) ([885394e](https://github.com/GetStream/stream-video-js/commit/885394e486ecdfdcf7b91a6973b7225c84975804))
+
 ## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.23.1...@stream-io/video-react-sdk-1.24.0) (2025-10-14)
 
 ### Dependency Updates
