@@ -14,8 +14,6 @@
     "@emotion/css": "^11.13.5",
     "@sentry/react": "^10.19.0",
     "@stream-io/video-react-sdk": "workspace:^",
-    "clsx": "^2.0.0",
-    "js-base64": "^3.7.8",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },

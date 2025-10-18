@@ -1,0 +1,4 @@
+@layer video-sdk-layer, base-layer, overrides-layer;
+
+@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(video-sdk-layer);
+  

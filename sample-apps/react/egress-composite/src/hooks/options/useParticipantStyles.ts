@@ -1,5 +1,4 @@
-import { css } from '@emotion/css';
-import clsx from 'clsx';
+import { css, cx } from '@emotion/css';
 import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from '../../ConfigurationContext';
@@ -19,12 +18,6 @@ export const useParticipantStyles = () => {
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const styles = [
-    participantBorderRadius &&
-      css`
-        & .str-video__participant-view {
-          border-radius: ${participantBorderRadius};
-        }
-      `,
     // we don't want to apply the aspect ratio when screen share is
     // enabled, as it breaks our layouts.
     // we should think about this later, and most likely introduce
@@ -32,22 +25,27 @@ export const useParticipantStyles = () => {
     participantAspectRatio &&
       !hasScreenShare &&
       css`
-        & .str-video__participant-view {
-          aspect-ratio: ${participantAspectRatio};
+        @layer overrides-layer {
+          & .str-video__participant-view {
+            aspect-ratio: ${participantAspectRatio};
+          }
         }
       `,
     css`
-      & .str-video__participant-view.str-video__participant-view--speaking {
-        outline: ${participantOutlineWidth} solid ${participantOutlineColor};
-      }
-    `,
-    participantPlaceholderBackgroundColor &&
-      css`
+      @layer overrides-layer {
+        & .str-video__participant-view.str-video__participant-view--speaking {
+          outline: ${participantOutlineWidth} solid ${participantOutlineColor};
+        }
+
         & .str-video__video-placeholder {
           background-color: ${participantPlaceholderBackgroundColor};
         }
-      `,
+        & .str-video__participant-view {
+          border-radius: ${participantBorderRadius};
+        }
+      }
+    `,
   ];
 
-  return clsx(styles);
+  return cx(styles);
 };

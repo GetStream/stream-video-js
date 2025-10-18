@@ -1,5 +1,4 @@
-import { css } from '@emotion/css';
-import clsx from 'clsx';
+import { css, cx } from '@emotion/css';
 
 import {
   objectFitMap,
@@ -16,25 +15,24 @@ export const useVideoStyles = () => {
   } = useConfigurationContext();
 
   const styles = [
-    videoBackgroundColor &&
-      css`
+    css`
+      @layer overrides-layer {
         & .str-video__video {
           background-color: ${videoBackgroundColor};
         }
-      `,
-    videoScaleMode &&
-      css`
+
         & .str-video__video {
-          object-fit: ${objectFitMap[videoScaleMode]};
+          object-fit: ${typeof videoScaleMode === 'undefined'
+            ? undefined
+            : objectFitMap[videoScaleMode]};
         }
-      `,
-    videoScreenshareScaleMode &&
-      css`
+
         & .str-video__video.str-video__video--screen-share {
           object-fit: ${objectFitMap[videoScreenshareScaleMode]};
         }
-      `,
+      }
+    `,
   ];
 
-  return clsx(styles);
+  return cx(styles);
 };

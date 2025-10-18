@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { clsx as concatStrings } from 'clsx';
+import { cx as concatStrings } from '@emotion/css';
 
 import { testWithCallId as test } from './baseTests';
 import {

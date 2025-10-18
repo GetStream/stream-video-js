@@ -99,9 +99,7 @@ export const useInitializeClientAndCall = () => {
   // join call and proceed normally
   useJoinCall({ client, call, enabled: !testEnvironment });
 
-  // @ts-expect-error expose the client and call for debugging
   window.client = client;
-  // @ts-expect-error expose the client and call for debugging
   window.call = call;
 
   return { client, call };

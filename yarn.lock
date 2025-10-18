@@ -7112,8 +7112,6 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    clsx: "npm:^2.0.0"
-    js-base64: "npm:^3.7.8"
     nanoid: "npm:^5.1.6"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -15744,13 +15742,6 @@ __metadata:
   version: 4.15.5
   resolution: "jose@npm:4.15.5"
   checksum: 10/17944fcc0d9afa07387eef23127c30ecfcc77eafddc4b4f1a349a8eee0536bee9b08ecd745406eaa0af65d531f738b94d2467976479cbfe8b3b60f8fc8082b8d
-  languageName: node
-  linkType: hard
-
-"js-base64@npm:^3.7.8":
-  version: 3.7.8
-  resolution: "js-base64@npm:3.7.8"
-  checksum: 10/4baa9a222bc094b072933e4894735653b59992477c731879784e3112f21862b08dd5c56b8b23b0b8e43bc5bb514d957621d1892a6c58950f29e12b731fe087b6
   languageName: node
   linkType: hard
 
