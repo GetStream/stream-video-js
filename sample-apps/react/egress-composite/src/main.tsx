@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
+import './main.scss';
 
 import {
   applyConfigurationDefaults,
@@ -8,7 +9,6 @@ import {
 } from './ConfigurationContext';
 import { CompositeApp } from './CompositeApp';
 
-import '@stream-io/video-react-sdk/dist/css/styles.css';
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
 
@@ -29,7 +29,6 @@ if (import.meta.env.MODE === 'production') {
   });
 }
 
-// @ts-expect-error TODO: this is a global function, we need to declare it
 window.setupLayout = (configuration: ConfigurationValue) => {
   const newConfiguration = applyConfigurationDefaults(configuration);
   console.log('Mounting with config:', { configuration: newConfiguration });

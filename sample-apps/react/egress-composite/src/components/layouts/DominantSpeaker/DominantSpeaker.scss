@@ -1,11 +1,13 @@
-.eca__dominant-speaker__container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@layer base-layer {
+  .eca__dominant-speaker__container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-  .str-video__participant-view {
-    max-width: unset;
+    .str-video__participant-view {
+      max-width: unset;
+    }
   }
 }
