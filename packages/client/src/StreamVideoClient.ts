@@ -37,9 +37,10 @@ import {
   getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
-import { getLogger, logToConsole, ScopedLogger, setLogger } from './logger';
+import { logToConsole, ScopedLogger, setLogger } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
+import { getLogger } from '@stream-io/logger';
 
 export type StreamVideoClientOptions = {
   apiKey: string;

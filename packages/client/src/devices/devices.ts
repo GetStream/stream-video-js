@@ -9,7 +9,7 @@ import {
   startWith,
   tap,
 } from 'rxjs';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';

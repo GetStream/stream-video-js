@@ -18,11 +18,7 @@ import {
   type HangUpCallButtonProps,
 } from '../CallControls';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import {
-  CallingState,
-  getLogger,
-  type StreamReaction,
-} from '@stream-io/video-client';
+import { CallingState, type StreamReaction } from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -43,6 +39,7 @@ import {
 } from '../../utility/ScreenShareOverlay';
 import { RTCViewPipIOS } from './RTCViewPipIOS';
 import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
+import { getLogger } from '@stream-io/logger';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;

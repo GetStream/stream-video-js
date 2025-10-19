@@ -4,7 +4,7 @@ import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
 import { CallingState } from './CallingState';
 import type { OwnUserResponse } from '../gen/coordinator';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 
 export class StreamVideoWriteableStateStore {
   /**

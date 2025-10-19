@@ -25,6 +25,7 @@ import {
   createSubscription,
   getCurrentValue,
 } from './store/rxUtils';
+import type { ScopedLogger } from './logger';
 import type {
   AcceptCallResponse,
   BlockUserRequest,
@@ -140,7 +141,7 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
-import { getLogger, ScopedLogger } from './logger';
+import { getLogger } from '@stream-io/logger';
 import {
   CameraManager,
   MicrophoneManager,

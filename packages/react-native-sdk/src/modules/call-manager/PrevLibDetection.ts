@@ -1,4 +1,4 @@
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 declare class RNInCallManagerLib {
   start(setup?: {

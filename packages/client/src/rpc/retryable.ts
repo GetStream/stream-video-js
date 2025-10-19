@@ -6,7 +6,7 @@ import {
 import { TwirpErrorCode } from '@protobuf-ts/twirp-transport';
 import { retryInterval, sleep } from '../coordinator/connection/utils';
 import { Error as SfuError } from '../gen/video/sfu/models/models';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * An internal interface which asserts that "retryable" SFU responses

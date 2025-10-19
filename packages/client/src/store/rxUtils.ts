@@ -1,6 +1,6 @@
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { withoutConcurrency } from '../helpers/concurrency';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 
 type FunctionPatch<T> = (currentValue: T) => T;
 

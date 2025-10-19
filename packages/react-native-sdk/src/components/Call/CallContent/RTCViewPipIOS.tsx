@@ -1,6 +1,5 @@
 import {
   CallingState,
-  getLogger,
   hasScreenShare,
   speakerLayoutSortPreset,
   type StreamVideoParticipant,
@@ -19,6 +18,7 @@ import { useDebouncedValue } from '../../../utils/hooks';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
+import { getLogger } from '@stream-io/logger';
 
 type Props = {
   includeLocalParticipantVideo?: boolean;

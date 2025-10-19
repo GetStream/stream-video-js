@@ -9,7 +9,8 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
-import { getLogger, StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 const logger = getLogger('useIosVoipPushEventsSetupEffect');
 

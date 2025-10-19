@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { PhoneDown } from '../../../icons';
 import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * Props for the ViewerLeaveStreamButton component.

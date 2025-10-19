@@ -14,7 +14,7 @@ import {
   getClosestSnapAlignment,
   getSnapAlignments,
 } from './common';
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 const AnimatedFloatingView = ({
   initialAlignment,

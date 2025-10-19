@@ -1,9 +1,4 @@
-import {
-  Call,
-  CallingState,
-  getLogger,
-  StreamVideoClient,
-} from '@stream-io/video-client';
+import { Call, CallingState, StreamVideoClient } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
@@ -36,6 +31,7 @@ import {
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { getAndroidDefaultRingtoneUrl } from '../getAndroidDefaultRingtoneUrl';
 import { StreamVideoRN } from '../StreamVideoRN';
+import { getLogger } from '@stream-io/logger';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';

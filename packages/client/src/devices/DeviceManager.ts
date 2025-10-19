@@ -6,7 +6,8 @@ import { createSubscription } from '../store/rxUtils';
 import { DeviceManagerState } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { getLogger, ScopedLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
+import { ScopedLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
@@ -256,6 +257,7 @@ export abstract class DeviceManager<
   };
 
   protected async applySettingsToStream() {
+    console.log('applySettingsToStream ');
     await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
       if (this.enabled) {
         try {

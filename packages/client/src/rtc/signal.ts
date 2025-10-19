@@ -1,5 +1,5 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 import { Tracer } from '../stats';
 

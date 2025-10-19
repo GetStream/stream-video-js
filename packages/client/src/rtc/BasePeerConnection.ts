@@ -1,4 +1,4 @@
-import { getLogger, ScopedLogger } from '../logger';
+import type { ScopedLogger } from '../logger';
 import type { CallEventListener } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
@@ -14,6 +14,7 @@ import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.

@@ -1,4 +1,4 @@
-import { getLogger } from '../../logger';
+import { getLogger } from '@stream-io/logger';
 
 export const getLocationHint = async (
   hintUrl = `https://hint.stream-io-video.com/`,

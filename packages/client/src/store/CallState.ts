@@ -55,7 +55,7 @@ import {
   CallGrants,
 } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { hasScreenShare } from '../helpers/participantUtils';
 
 /**

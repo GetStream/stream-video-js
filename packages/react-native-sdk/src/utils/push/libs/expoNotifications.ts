@@ -1,5 +1,5 @@
-import { getLogger } from '@stream-io/video-client';
 import type { Notification } from 'expo-notifications';
+import { getLogger } from '@stream-io/logger';
 
 export type ExpoNotificationsLib = typeof import('expo-notifications');
 

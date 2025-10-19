@@ -1,6 +1,6 @@
 import { CallEventListener, EventTypes } from '../coordinator/connection/types';
 import type { SfuEvent } from '../gen/video/sfu/event/events';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
 export type AllSfuEvents = {

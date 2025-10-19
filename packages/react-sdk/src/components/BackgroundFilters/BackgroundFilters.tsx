@@ -10,7 +10,7 @@ import {
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
-import { Call, disposeOfMediaStream, getLogger } from '@stream-io/video-client';
+import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
   BackgroundFilter,
@@ -198,8 +198,8 @@ export const BackgroundFiltersProvider = (
 
   const handleError = useCallback(
     (error: any) => {
-      getLogger('filters').warn(
-        'Filter encountered an error and will be disabled',
+      console.warn(
+        '[filters] Filter encountered an error and will be disabled',
       );
       disableBackgroundFilter();
       onError?.(error);

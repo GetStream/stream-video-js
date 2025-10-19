@@ -29,7 +29,7 @@ import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
-import { getLogger, ScopedLogger } from './logger';
+import { ScopedLogger } from './logger';
 import {
   makeSafePromise,
   PromiseWithResolvers,
@@ -38,6 +38,7 @@ import {
 } from './helpers/promise';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
+import { getLogger } from '@stream-io/logger';
 
 export type StreamSfuClientConstructor = {
   /**

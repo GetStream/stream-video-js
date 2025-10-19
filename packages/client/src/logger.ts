@@ -42,15 +42,10 @@ export const setLogger = (
   loggersConfig?: ConfigureLoggersOptions,
 ) => {
   scopedLogger.configureLoggers<string>({
-    default: { sink: logger, level: level },
+    default: { sink: logger, level: 'error' },
     ...loggersConfig,
   });
 };
-
-/**
- * @internal
- */
-export const getLogger = scopedLogger.getLogger;
 
 /**
  * @internal

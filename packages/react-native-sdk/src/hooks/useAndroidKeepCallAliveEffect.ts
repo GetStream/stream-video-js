@@ -7,11 +7,12 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import { Call, CallingState, getLogger } from '@stream-io/video-client';
+import { Call, CallingState } from '@stream-io/video-client';
 import {
   getKeepCallAliveForegroundServiceTypes,
   getNotifeeLibNoThrowForKeepCallAlive,
 } from '../utils/push/libs/notifee';
+import { getLogger } from '@stream-io/logger';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 const callToPassToForegroundService: { current: Call | undefined } = {

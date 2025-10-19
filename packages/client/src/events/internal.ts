@@ -2,7 +2,7 @@ import { Dispatcher } from '../rtc';
 import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import type {
   InboundStateNotification,

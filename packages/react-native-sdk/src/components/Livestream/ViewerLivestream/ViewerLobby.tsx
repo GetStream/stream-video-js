@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { CallingState } from '@stream-io/video-client';
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 type LobbyProps = {
   isLive: boolean;

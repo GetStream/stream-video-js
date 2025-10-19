@@ -45,6 +45,7 @@
     "!**/.*"
   ],
   "dependencies": {
+    "@stream-io/logger": "^1.2.2",
     "@stream-io/video-client": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",
     "intl-pluralrules": "2.0.1",

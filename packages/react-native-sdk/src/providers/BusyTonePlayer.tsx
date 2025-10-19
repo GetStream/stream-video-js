@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils';
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 const BUSY_TONE_DURATION_IN_MS = 1500;
 

@@ -7594,6 +7594,7 @@ __metadata:
     "@react-native-firebase/app": "npm:^23.4.0"
     "@react-native-firebase/messaging": "npm:^23.4.0"
     "@react-native/babel-preset": "npm:^0.81.4"
+    "@stream-io/logger": "npm:^1.2.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:125.4.4"
     "@stream-io/video-client": "workspace:*"

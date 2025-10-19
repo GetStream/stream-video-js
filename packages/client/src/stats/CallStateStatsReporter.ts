@@ -8,7 +8,7 @@ import type {
 } from './types';
 import { CallState } from '../store';
 import { Publisher, Subscriber } from '../rtc';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { flatten } from './utils';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isFirefox } from '../helpers/browsers';

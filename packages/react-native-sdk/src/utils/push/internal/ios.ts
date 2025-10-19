@@ -1,10 +1,10 @@
-import { getLogger } from '@stream-io/video-client';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
 import { voipPushNotificationCallCId$ } from './rxSubjects';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canAddPushWSSubscriptionsRef, shouldCallBeEnded } from './utils';
 import { StreamVideoConfig } from '../../StreamVideoRN/types';
+import { getLogger } from '@stream-io/logger';
 
 export const onVoipNotificationReceived = async (
   notification: any,

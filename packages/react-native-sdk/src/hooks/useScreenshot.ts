@@ -4,9 +4,9 @@ import { NativeModules, Platform } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import {
   StreamVideoParticipant,
-  getLogger,
   type VideoTrackType,
 } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 const { StreamVideoReactNative } = NativeModules;
 

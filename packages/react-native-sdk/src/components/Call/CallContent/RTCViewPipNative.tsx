@@ -1,4 +1,3 @@
-import { getLogger } from '@stream-io/video-client';
 import React from 'react';
 import {
   type HostComponent,
@@ -7,6 +6,7 @@ import {
   StyleSheet,
   UIManager,
 } from 'react-native';
+import { getLogger } from '@stream-io/logger';
 
 const COMPONENT_NAME = 'RTCViewPip';
 

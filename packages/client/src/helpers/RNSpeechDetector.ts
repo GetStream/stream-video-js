@@ -1,7 +1,7 @@
 import { BaseStats } from '../stats';
 import { SoundStateChangeHandler } from './sound-detector';
 import { flatten } from '../stats/utils';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 
 export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});

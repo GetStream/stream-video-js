@@ -1,5 +1,5 @@
-import { getLogger } from '@stream-io/video-client';
 import { NativeModules, Platform } from 'react-native';
+import { getLogger } from '@stream-io/logger';
 
 export async function getAndroidDefaultRingtoneUrl(): Promise<
   string | undefined

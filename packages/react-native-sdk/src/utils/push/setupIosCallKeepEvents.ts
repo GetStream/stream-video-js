@@ -4,7 +4,7 @@ import {
   voipCallkeepCallOnForegroundMap$,
   voipPushNotificationCallCId$,
 } from './internal/rxSubjects';
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { RxUtils } from '@stream-io/video-client';
 import { getCallKeepLib, getVoipPushNotificationLib } from './libs';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
@@ -13,6 +13,7 @@ import {
 } from './internal/utils';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
+import { getLogger } from '@stream-io/logger';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 

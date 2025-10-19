@@ -2,8 +2,9 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, PhoneDown } from '../../../icons';
-import { CallingState, getLogger } from '@stream-io/video-client';
+import { CallingState } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * The props for the Reject Call button.
@@ -27,7 +28,7 @@ type RejectCallButtonProps = {
   /**
    * Optional: Reason for rejecting the call.
    * Pass a predefined or a custom reason.
-   * There are four predefined reasons for rejecting the call: 
+   * There are four predefined reasons for rejecting the call:
     - `busy` - when the callee is busy and cannot accept the call.
     - `decline` - when the callee intentionally declines the call.
     - `cancel` - when the caller cancels the call.

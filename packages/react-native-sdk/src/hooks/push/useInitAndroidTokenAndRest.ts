@@ -5,7 +5,7 @@ import {
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
 import { initAndroidPushToken } from '../../utils/push/android';
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * This hook is used to initialize the push token for Android.

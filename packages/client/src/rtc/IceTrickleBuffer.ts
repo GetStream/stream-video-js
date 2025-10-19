@@ -1,7 +1,7 @@
 import { ReplaySubject } from 'rxjs';
 import { ICETrickle } from '../gen/video/sfu/event/events';
 import { PeerType } from '../gen/video/sfu/models/models';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * A buffer for ICE Candidates. Used for ICE Trickle:

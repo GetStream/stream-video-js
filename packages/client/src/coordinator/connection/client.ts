@@ -36,7 +36,8 @@ import {
   CreateGuestResponse,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
-import { getLogger, ScopedLogger } from '../../logger';
+import { ScopedLogger } from '../../logger';
+import { getLogger } from '@stream-io/logger';
 
 export class StreamClient {
   _user?: UserWithId;

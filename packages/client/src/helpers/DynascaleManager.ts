@@ -15,7 +15,7 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { isFirefox, isSafari } from './browsers';
 import {
   hasScreenShare,

@@ -1,9 +1,9 @@
 import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger } from '@stream-io/video-client';
 import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Phone } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * The props for the Accept Call button.

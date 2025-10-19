@@ -1,7 +1,6 @@
 import {
   StreamVideoParticipant,
   type VideoTrackType,
-  getLogger,
 } from '@stream-io/video-client';
 import React, {
   createContext,
@@ -11,6 +10,7 @@ import React, {
   useMemo,
 } from 'react';
 import { NativeModules, findNodeHandle, Platform } from 'react-native';
+import { getLogger } from '@stream-io/logger';
 
 const { StreamVideoReactNative } = NativeModules;
 

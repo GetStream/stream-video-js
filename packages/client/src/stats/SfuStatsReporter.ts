@@ -1,7 +1,7 @@
 import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { Publisher, Subscriber } from '../rtc';
 import { Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
