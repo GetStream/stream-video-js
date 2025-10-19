@@ -42,7 +42,7 @@ export const setLogger = (
   loggersConfig?: ConfigureLoggersOptions,
 ) => {
   scopedLogger.configureLoggers<string>({
-    default: { sink: logger, level: 'error' },
+    default: { sink: logger, level: level },
     ...loggersConfig,
   });
 };
