@@ -1,13 +1,10 @@
-import {
-  getLogger,
-  hasScreenShare,
-  OwnCapability,
-} from '@stream-io/video-client';
+import { hasScreenShare, OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useEffect, useRef } from 'react';
 import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { usePrevious } from '../utils/hooks';
 import { useIsIosScreenshareBroadcastStarted } from './useIsIosScreenshareBroadcastStarted';
+import { getLogger } from '@stream-io/logger';
 
 // ios >= 14.0 or android - platform restrictions
 const CanDeviceScreenShare =

@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
-import { SfuModels, getLogger } from '@stream-io/video-client';
+import { SfuModels } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * Props for the HostStartStreamButton component.

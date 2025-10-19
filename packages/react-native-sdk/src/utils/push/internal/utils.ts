@@ -1,15 +1,11 @@
-import {
-  Call,
-  CallingState,
-  getLogger,
-  StreamVideoClient,
-} from '@stream-io/video-client';
+import { Call, CallingState, StreamVideoClient } from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
 import { pushUnsubscriptionCallbacks } from './constants';
+import { getLogger } from '@stream-io/logger';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 

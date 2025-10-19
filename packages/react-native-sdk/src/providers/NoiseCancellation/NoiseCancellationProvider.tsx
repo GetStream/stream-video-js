@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  getLogger,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '@stream-io/video-client';
@@ -16,6 +15,7 @@ import {
   getNoiseCancellationLibThrowIfNotInstalled,
   NoiseCancellationWrapper,
 } from './lib';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * The Noise Cancellation API.

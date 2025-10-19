@@ -8,11 +8,12 @@ import {
   getPushNotificationIosLib,
   type PushNotificationiOSType,
 } from './libs';
-import { getLogger, StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import type { Event } from '@notifee/react-native';
 import { StreamVideoRN } from '../StreamVideoRN';
 import type { StreamPushPayload } from './utils';
+import { getLogger } from '@stream-io/logger';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 

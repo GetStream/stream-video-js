@@ -7,11 +7,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger, type SendReactionRequest } from '@stream-io/video-client';
+import { type SendReactionRequest } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import type { ReactionsButtonProps } from '../ReactionsButton';
 import { defaultEmojiReactions } from '../../../../constants';
+import { getLogger } from '@stream-io/logger';
 
 type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {
   reactionsButtonLayoutRectangle?: LayoutRectangle;

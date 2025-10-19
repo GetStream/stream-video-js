@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { RxUtils } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
