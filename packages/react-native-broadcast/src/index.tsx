@@ -1,5 +1,5 @@
 import Broadcast from './NativeBroadcast';
 
-export function multiply(a: number, b: number): number {
+export function multiply(a: number, b: number): Promise<number> {
   return Broadcast.multiply(a, b);
 }

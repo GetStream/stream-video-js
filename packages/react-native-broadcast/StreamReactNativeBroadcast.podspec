@@ -21,6 +21,6 @@ Pod::Spec.new do |s|
   spm_dependency(s,
     url: 'https://github.com/HaishinKit/HaishinKit.swift',
     requirement: { kind: 'upToNextMajorVersion', minimumVersion: '2.2.0' },
-    products: ['RTMPHaishinKit']
+    products: ['HaishinKit', 'RTMPHaishinKit', 'SRTHaishinKit', 'MoQTHaishinKit', 'RTCHaishinKit']
   )
 end

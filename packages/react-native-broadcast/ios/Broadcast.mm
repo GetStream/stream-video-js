@@ -3,9 +3,15 @@
 
 @implementation Broadcast
 
-- (NSNumber *)multiply:(double)a b:(double)b
+- (void)multiply:(double)a b:(double)b resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-    return [BroadcastSwift multiply:a b:b];
+    [BroadcastSwift multiply:a b:b completion:^(NSNumber * _Nullable result, NSError * _Nullable error) {
+        if (error != nil) {
+            reject(@"multiply_error", error.localizedDescription, error);
+        } else {
+            resolve(result);
+        }
+    }];
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

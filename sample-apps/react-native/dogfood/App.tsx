@@ -88,7 +88,7 @@ const StackNavigator = () => {
   }, []);
 
   useEffect(() => {
-    console.log('OL: multiply', multiply(3, 7));
+    multiply(3, 7).then((r) => console.log(`OL: multiply ${r}`));
   }, []);
 
   let mode;
