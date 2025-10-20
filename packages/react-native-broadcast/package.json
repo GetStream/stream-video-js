@@ -1,0 +1,92 @@
+{
+  "name": "@stream-io/video-react-native-broadcast",
+  "version": "0.1.0",
+  "description": "a",
+  "main": "./dist/module/index.js",
+  "types": "./dist/typescript/src/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.tsx",
+      "types": "./dist/typescript/src/index.d.ts",
+      "default": "./dist/module/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "*.podspec",
+    "react-native.config.js",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "prepare": "bob build",
+    "build": "bob build"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GetStream/stream-video-js.git"
+  },
+  "author": "GetStream <dev@getstream.io> (https://github.com/GetStream)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
+  "homepage": "https://github.com/GetStream/stream-video-js",
+  "devDependencies": {
+    "@react-native-community/cli": "20.0.0",
+    "@react-native/babel-preset": "^0.81.4",
+    "@types/react": "~19.1.17",
+    "react": "19.1.0",
+    "react-native": "^0.81.4",
+    "react-native-builder-bob": "^0.40.13",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": ">=0.79.0"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "dist",
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.json"
+        }
+      ]
+    ]
+  },
+  "codegenConfig": {
+    "name": "BroadcastSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "io.getstream.rn.broadcast"
+    }
+  }
+}

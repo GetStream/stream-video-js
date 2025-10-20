@@ -44,6 +44,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
 import { appTheme } from './src/theme';
+import { multiply } from '@stream-io/video-react-native-broadcast';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -84,6 +85,10 @@ const StackNavigator = () => {
     return () => {
       PushNotificationIOS.removeEventListener('notification');
     };
+  }, []);
+
+  useEffect(() => {
+    console.log('OL: multiply', multiply(3, 7));
   }, []);
 
   let mode;

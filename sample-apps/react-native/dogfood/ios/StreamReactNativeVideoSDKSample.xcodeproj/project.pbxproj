@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		4D2CFA4A1D21793DD346776C /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		4D2CFA4A1D21793DD346776C /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		4D971DCC2E57B61BFEDC0B7D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		971245789A3DE3BC5BE05B7A /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EE5915852699CCF75559F04 /* Pods_StreamReactNativeVideoSDKSample.framework */; };
@@ -107,7 +107,7 @@
 			files = (
 				DD6FC6042987E2E800B13B16 /* CallKit.framework in Frameworks */,
 				DD6FC6022987E2D700B13B16 /* Intents.framework in Frameworks */,
-				4D2CFA4A1D21793DD346776C /* BuildFile in Frameworks */,
+				4D2CFA4A1D21793DD346776C /* (null) in Frameworks */,
 				971245789A3DE3BC5BE05B7A /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
