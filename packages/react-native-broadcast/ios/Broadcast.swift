@@ -25,8 +25,8 @@ public class BroadcastSwift: NSObject {
                 try? await mixer.configuration(video: 0) { video in
                     try? video.setFrameRate(30)
                 }
-                
-                
+
+
                 await mixer.setMonitoringEnabled(true)
                 print("[RTMP] Mixer created")
 
@@ -37,13 +37,14 @@ public class BroadcastSwift: NSObject {
                 await mixer.stopCapturing()
 
                 let front = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
-                try? await mixer.attachVideo(front, track: 0) { unit in unit.isVideoMirrored = true }
+                try? await mixer.attachVideo(front) { unit in unit.isVideoMirrored = true }
 
                 let mic = AVCaptureDevice.default(for: .audio)
                 try? await mixer.attachAudio(mic);
 
-                await mixer.startRunning()
+                // Start capturing first, then running
                 await mixer.startCapturing()
+                await mixer.startRunning()
 
                 print("[RTMP] Mixer configured")
 
@@ -74,6 +75,7 @@ public class BroadcastSwift: NSObject {
                     print("[RTMP] session connected")
                 }
 
+                print("[RTMP] connection established successfully")
                 completion(NSNumber(value: a * b), nil)
             } catch {
                 print("[RTMP] error", error)
