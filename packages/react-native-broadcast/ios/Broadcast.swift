@@ -8,74 +8,71 @@ public class BroadcastSwift: NSObject {
 
     @objc
     public static func multiply(_ a: Double, b: Double, completion: @escaping (NSNumber?, NSError?) -> Void) {
-        let uri = "rtmps://ingress.stream-io-video.com:443/par8f5s3gn2j.default.RdcC9Qr4j7pzr62FZbo8N/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3Byb250by5nZXRzdHJlYW0uaW8iLCJzdWIiOiJ1c2VyL2phbmUiLCJ1c2VyX2lkIjoiamFuZSIsInZhbGlkaXR5X2luX3NlY29uZHMiOjYwNDgwMCwiZW52aXJvbm1lbnQiOiJwcm9udG8iLCJpYXQiOjE3NjA5NzM3OTcsImV4cCI6MTc2MTU3ODU5N30.SlaGVdXvSWiGFf_Bx8GcIekRj4H71hNPRQynJkR6P5c"
+        let uri = "rtmps://ingress.stream-io-video.com:443/par8f5s3gn2j.default.RdcC9Qr4j7pzr62FZbo8Q/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3Byb250by5nZXRzdHJlYW0uaW8iLCJzdWIiOiJ1c2VyL2phbmUiLCJ1c2VyX2lkIjoiamFuZSIsInZhbGlkaXR5X2luX3NlY29uZHMiOjYwNDgwMCwiZW52aXJvbm1lbnQiOiJwcm9udG8iLCJpYXQiOjE3NjA5Njc0MzMsImV4cCI6MTc2MTU3MjIzM30.pkBwlOMlo7wUJG4DSG7fk8QAxF912Y5UaErm4H6a59I"
 
-        print("RTMP begin publishing")
-
+        print("[RTMP] Broadcast starting")
+        
         Task {
             do {
                 let audioSourceService = AudioSourceService()
                 await audioSourceService.setUp()
+                
+                print("[RTMP] Audio source created")
 
                 let mixer = MediaMixer(captureSessionMode: .single)
                 await mixer.configuration { session in
                     session.automaticallyConfiguresApplicationAudioSession = false
                     session.sessionPreset = .hd1280x720
                 }
-                try? await mixer.configuration(video: 0) { video in
-                    try? video.setFrameRate(30)
-                }
-
-
                 await mixer.setMonitoringEnabled(true)
-                print("[RTMP] Mixer created")
-
+                
                 var videoMixerSettings = await mixer.videoMixerSettings
                 videoMixerSettings.mode = .offscreen
                 await mixer.setVideoMixerSettings(videoMixerSettings)
-
-                await mixer.stopCapturing()
+                
+                print("[RTMP] Mixer created")
 
                 let front = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
-                try? await mixer.attachVideo(front) { unit in unit.isVideoMirrored = true }
-
+                try? await mixer.attachVideo(front, track: 0) { unit in unit.isVideoMirrored = true }
+                
                 let mic = AVCaptureDevice.default(for: .audio)
-                try? await mixer.attachAudio(mic);
+                try? await mixer.attachAudio(mic)
 
-                // Start capturing first, then running
                 await mixer.startCapturing()
                 await mixer.startRunning()
-
-                print("[RTMP] Mixer configured")
-
+                
+                print("[RTMP] Mixer running")
+        
                 await SessionBuilderFactory.shared.register(RTMPSessionFactory())
                 let session = try await SessionBuilderFactory.shared.make(URL(string: uri))
                     .setMode(.publish)
                     .build()
                 guard let session else {
-                    print("[RTMP] failed to create a session")
+                    print("[RTMP] session is null")
                     return completion(-1, nil)
                 }
-
-                print("[RTMP] session created")
+                
+                print("[RTMP] Session created")
 
                 await mixer.addOutput(session.stream)
-
+                
                 var audioSettings = await session.stream.audioSettings
                 audioSettings.format = .aac
+                audioSettings.bitRate = 48000
                 try await session.stream.setAudioSettings(audioSettings)
 
                 var videoSettings = await session.stream.videoSettings
                 videoSettings.isLowLatencyRateControlEnabled = false
+                videoSettings.bitRateMode = .average
+//                videoSettings.bitRate = 4000000
                 videoSettings.videoSize = CGSize(width: 720, height: 1280)
                 try await session.stream.setVideoSettings(videoSettings)
 
-                print("[RTMP] session connecting")
+                print("[RTMP] Session connecting")
                 try await session.connect {
-                    print("[RTMP] session connected")
+                    print("[RTMP] Session connected")
                 }
 
-                print("[RTMP] connection established successfully")
                 completion(NSNumber(value: a * b), nil)
             } catch {
                 print("[RTMP] error", error)
