@@ -37,7 +37,7 @@ import {
   getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
-import { logToConsole, ScopedLogger, setLogger } from './logger';
+import { configureLoggers, logToConsole, ScopedLogger } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 import { getLogger } from '@stream-io/logger';
@@ -95,11 +95,10 @@ export class StreamVideoClient {
 
     const rootLogger = clientOptions?.logger || logToConsole;
 
-    setLogger(
-      rootLogger,
-      clientOptions?.logLevel || 'warn',
-      clientOptions?.logOptions,
-    );
+    configureLoggers<string>({
+      default: { sink: rootLogger, level: clientOptions?.logLevel || 'warn' },
+      ...clientOptions?.logOptions,
+    });
 
     this.logger = getLogger('client');
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
