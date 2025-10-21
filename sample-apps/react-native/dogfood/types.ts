@@ -28,6 +28,10 @@ export type LiveStreamParamList = {
   QRScanner: { onScan: (callId: string) => void };
 };
 
+export type RTMPParamList = {
+  RTMPBroadcast: undefined;
+};
+
 export type AppModeParamList = {
   ChooseAppModeScreen: undefined;
 };
@@ -38,6 +42,7 @@ export type RootStackParamList = {
   AudioRoom: undefined;
   ChooseAppMode: undefined;
   LiveStream: undefined;
+  RTMP: undefined;
 };
 
 export type ScreenTypes =

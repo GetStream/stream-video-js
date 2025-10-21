@@ -34,6 +34,7 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Alert, LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
+import { RTMP } from './src/navigators/RTMP';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
   defaultTheme,
@@ -44,7 +45,6 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
 import { appTheme } from './src/theme';
-import { multiply } from '@stream-io/video-react-native-broadcast';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -87,10 +87,6 @@ const StackNavigator = () => {
     };
   }, []);
 
-  useEffect(() => {
-    multiply(3, 7).then((r) => console.log(`OL: multiply ${r}`));
-  }, []);
-
   let mode;
   switch (appMode) {
     case 'Meeting':
@@ -125,6 +121,15 @@ const StackNavigator = () => {
         <Stack.Screen
           name="LiveStream"
           component={LiveStream}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
+    case 'RTMP':
+      mode = (
+        <Stack.Screen
+          name="RTMP"
+          component={RTMP}
           options={{ headerShown: false }}
         />
       );

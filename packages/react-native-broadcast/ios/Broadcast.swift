@@ -4,6 +4,18 @@ import HaishinKit
 import RTMPHaishinKit
 
 @objc
+public class BroadcastManager: NSObject {
+    @objc public static let shared = BroadcastManager()
+
+    var mixer: MediaMixer?
+    var audioSourceService: AudioSourceService?
+
+    private override init() {
+        super.init()
+    }
+}
+
+@objc
 public class BroadcastSwift: NSObject {
 
     @objc
@@ -29,6 +41,10 @@ public class BroadcastSwift: NSObject {
                 var videoMixerSettings = await mixer.videoMixerSettings
                 videoMixerSettings.mode = .offscreen
                 await mixer.setVideoMixerSettings(videoMixerSettings)
+
+                // Store in manager for video view access
+                BroadcastManager.shared.mixer = mixer
+                BroadcastManager.shared.audioSourceService = audioSourceService
 
                 print("[RTMP] Mixer created")
 
@@ -75,3 +91,4 @@ public class BroadcastSwift: NSObject {
         }
     }
 }
+

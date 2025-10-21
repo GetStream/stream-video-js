@@ -1,6 +1,12 @@
 import createStoreContext from './createStoreContext';
 
-export type AppMode = 'Meeting' | 'Call' | 'Audio-Room' | 'LiveStream' | 'None';
+export type AppMode =
+  | 'Meeting'
+  | 'Call'
+  | 'Audio-Room'
+  | 'LiveStream'
+  | 'RTMP'
+  | 'None';
 export type ThemeMode = 'dark' | 'light';
 
 type AppGlobalStore = {
