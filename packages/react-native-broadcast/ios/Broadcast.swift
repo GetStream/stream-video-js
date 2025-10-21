@@ -64,7 +64,7 @@ public class BroadcastSwift: NSObject {
                 var videoSettings = await session.stream.videoSettings
                 videoSettings.isLowLatencyRateControlEnabled = false
                 videoSettings.bitRateMode = .average
-//                videoSettings.bitRate = 4000000
+                videoSettings.bitRate = 4200000
                 videoSettings.videoSize = CGSize(width: 720, height: 1280)
                 try await session.stream.setVideoSettings(videoSettings)
 
