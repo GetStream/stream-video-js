@@ -4,8 +4,8 @@ import HaishinKit
 import RTMPHaishinKit
 
 @objc
-public class BroadcastManager: NSObject {
-    @objc public static let shared = BroadcastManager()
+public class BroadcastManagerState: NSObject {
+    @objc public static let shared = BroadcastManagerState()
 
     var mixer: MediaMixer?
     var audioSourceService: AudioSourceService?
@@ -19,17 +19,30 @@ public class BroadcastManager: NSObject {
     private override init() {
         super.init()
     }
+    
+    func reset() {
+        session = nil
+        mixer = nil
+        audioSourceService = nil
+        isRunning = false
+    }
 }
 
 @objc
-public class BroadcastSwift: NSObject {
+public class BroadcastManager: NSObject {
 
     // MARK: - Public Bridged APIs
 
     @objc(startWithEndpoint:streamName:completion:)
-    public static func start(endpoint: String, streamName: String, completion: @escaping (NSError?) -> Void) {
+    public static func start(
+        endpoint: String,
+        streamName: String,
+        completion: @escaping (NSError?) -> Void
+    ) {
+        let state = BroadcastManagerState.shared
+        
         print("[Broadcast] start called")
-        if BroadcastManager.shared.isRunning {
+        if state.isRunning {
             print("[Broadcast] already running, ignoring start")
             completion(nil)
             return
@@ -44,8 +57,19 @@ public class BroadcastSwift: NSObject {
         } else {
             fullURLString = endpoint + "/" + streamName
         }
-        guard let url = URL(string: fullURLString), let scheme = url.scheme, scheme == "rtmp" || scheme == "rtmps" else {
-            completion(NSError(domain: "Broadcast", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid RTMP endpoint or stream name"]))
+        guard let url = URL(string: fullURLString), let scheme = url.scheme,
+            scheme == "rtmp" || scheme == "rtmps"
+        else {
+            completion(
+                NSError(
+                    domain: "Broadcast",
+                    code: -1,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "Invalid RTMP endpoint or stream name"
+                    ]
+                )
+            )
             return
         }
 
@@ -59,21 +83,28 @@ public class BroadcastSwift: NSObject {
                     session.automaticallyConfiguresApplicationAudioSession = false
                     session.sessionPreset = .hd1280x720
                 }
-                await mixer.setMonitoringEnabled(DeviceUtil.isHeadphoneConnected())
+                await mixer.setMonitoringEnabled(
+                    DeviceUtil.isHeadphoneConnected()
+                )
 
                 var videoMixerSettings = await mixer.videoMixerSettings
                 videoMixerSettings.mode = .offscreen
                 await mixer.setVideoMixerSettings(videoMixerSettings)
 
                 // Attach devices based on current state
-                if BroadcastManager.shared.cameraEnabled {
-                    let position = BroadcastManager.shared.cameraPosition
-                    let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position)
+                if state.cameraEnabled {
+                    let position = BroadcastManagerState.shared.cameraPosition
+                    let camera = AVCaptureDevice.default(
+                        .builtInWideAngleCamera,
+                        for: .video,
+                        position: position
+                    )
                     try? await mixer.attachVideo(camera, track: 0) { unit in
                         unit.isVideoMirrored = position == .front
                     }
                 }
-                if BroadcastManager.shared.micEnabled {
+                
+                if state.micEnabled {
                     let mic = AVCaptureDevice.default(for: .audio)
                     try? await mixer.attachAudio(mic)
                 }
@@ -82,7 +113,11 @@ public class BroadcastSwift: NSObject {
                 await mixer.startRunning()
 
                 let factory = RTMPSessionFactory()
-                let session = factory.make(url, mode: .publish, configuration: nil)
+                let session = factory.make(
+                    url,
+                    mode: .publish,
+                    configuration: nil
+                )
 
                 await mixer.addOutput(session.stream)
 
@@ -103,10 +138,10 @@ public class BroadcastSwift: NSObject {
                 }
 
                 // Save state
-                BroadcastManager.shared.mixer = mixer
-                BroadcastManager.shared.audioSourceService = audioSourceService
-                BroadcastManager.shared.session = session
-                BroadcastManager.shared.isRunning = true
+                state.mixer = mixer
+                state.audioSourceService = audioSourceService
+                state.session = session
+                state.isRunning = true
 
                 completion(nil)
             } catch {
@@ -120,41 +155,41 @@ public class BroadcastSwift: NSObject {
     @objc(stopWithCompletion:)
     public static func stop(completion: @escaping (NSError?) -> Void) {
         print("[Broadcast] stop called")
-        guard BroadcastManager.shared.isRunning else {
+        guard BroadcastManagerState.shared.isRunning else {
             completion(nil)
             return
         }
         Task {
-            do {
-                if let session = BroadcastManager.shared.session {
-                    try? await session.close()
-                }
-                if let mixer = BroadcastManager.shared.mixer {
-                    await mixer.stopRunning()
-                    await mixer.stopCapturing()
-                    try? await mixer.attachAudio(nil)
-                    try? await mixer.attachVideo(nil, track: 0)
-                    if let session = BroadcastManager.shared.session {
-                        await mixer.removeOutput(session.stream)
-                    }
-                }
-                await cleanup()
-                completion(nil)
-            } catch {
-                print("[Broadcast] stop error: \(error)")
-                await cleanup()
-                completion(error as NSError)
+
+            if let session = BroadcastManagerState.shared.session {
+                try? await session.close()
             }
+            if let mixer = BroadcastManagerState.shared.mixer {
+                await mixer.stopRunning()
+                await mixer.stopCapturing()
+                try? await mixer.attachAudio(nil)
+                try? await mixer.attachVideo(nil, track: 0)
+                if let session = BroadcastManagerState.shared.session {
+                    await mixer.removeOutput(session.stream)
+                }
+            }
+            await cleanup()
+            completion(nil)
         }
     }
 
     @objc(setCameraDirectionWithDirection:)
     public static func setCameraDirection(direction: String) {
-        let position: AVCaptureDevice.Position = (direction.lowercased() == "back") ? .back : .front
-        BroadcastManager.shared.cameraPosition = position
-        guard let mixer = BroadcastManager.shared.mixer else { return }
+        let position: AVCaptureDevice.Position =
+            (direction.lowercased() == "back") ? .back : .front
+        BroadcastManagerState.shared.cameraPosition = position
+        guard let mixer = BroadcastManagerState.shared.mixer else { return }
         Task {
-            let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position)
+            let camera = AVCaptureDevice.default(
+                .builtInWideAngleCamera,
+                for: .video,
+                position: position
+            )
             try? await mixer.attachVideo(camera, track: 0) { unit in
                 unit.isVideoMirrored = position == .front
             }
@@ -163,12 +198,16 @@ public class BroadcastSwift: NSObject {
 
     @objc(setCameraEnabledWithEnabled:)
     public static func setCameraEnabled(enabled: Bool) {
-        BroadcastManager.shared.cameraEnabled = enabled
-        guard let mixer = BroadcastManager.shared.mixer else { return }
+        BroadcastManagerState.shared.cameraEnabled = enabled
+        guard let mixer = BroadcastManagerState.shared.mixer else { return }
         Task {
             if enabled {
-                let position = BroadcastManager.shared.cameraPosition
-                let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position)
+                let position = BroadcastManagerState.shared.cameraPosition
+                let camera = AVCaptureDevice.default(
+                    .builtInWideAngleCamera,
+                    for: .video,
+                    position: position
+                )
                 try? await mixer.attachVideo(camera, track: 0) { unit in
                     unit.isVideoMirrored = position == .front
                 }
@@ -180,8 +219,8 @@ public class BroadcastSwift: NSObject {
 
     @objc(setMicrophoneEnabledWithEnabled:)
     public static func setMicrophoneEnabled(enabled: Bool) {
-        BroadcastManager.shared.micEnabled = enabled
-        guard let mixer = BroadcastManager.shared.mixer else { return }
+        BroadcastManagerState.shared.micEnabled = enabled
+        guard let mixer = BroadcastManagerState.shared.mixer else { return }
         Task {
             if enabled {
                 let mic = AVCaptureDevice.default(for: .audio)
@@ -195,10 +234,6 @@ public class BroadcastSwift: NSObject {
     // MARK: - Helpers
     @MainActor
     private static func cleanup() {
-        BroadcastManager.shared.session = nil
-        BroadcastManager.shared.mixer = nil
-        BroadcastManager.shared.audioSourceService = nil
-        BroadcastManager.shared.isRunning = false
+        BroadcastManagerState.shared.reset();
     }
 }
-

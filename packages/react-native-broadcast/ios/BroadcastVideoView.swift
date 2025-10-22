@@ -36,7 +36,7 @@ public class BroadcastVideoView: UIView {
     }
 
     private func tryAttachMixer() {
-        guard !isAttached, let mixer = BroadcastManager.shared.mixer else {
+        guard !isAttached, let mixer = BroadcastManagerState.shared.mixer else {
             // Schedule retry if mixer not ready yet
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.tryAttachMixer()
