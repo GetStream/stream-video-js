@@ -1,7 +1,6 @@
 import * as scopedLogger from '@stream-io/logger';
 import { Logger } from './coordinator/connection/types';
 import { isReactNative } from './helpers/platforms';
-import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 
 export const logToConsole: Logger = (logLevel, message, ...args) => {
   let logMethod;
@@ -34,21 +33,6 @@ export const logToConsole: Logger = (logLevel, message, ...args) => {
   }
 
   logMethod(message, ...args);
-};
-
-/**
- * @deprecated This method is deprecated and will be removed in a future release.
- * Use {@link configureLoggers} instead for all logger configuration.
- */
-export const setLogger = (
-  logger: Logger,
-  level: LogLevel,
-  loggersConfig?: ConfigureLoggersOptions,
-) => {
-  scopedLogger.configureLoggers<string>({
-    default: { sink: logger, level: level },
-    ...loggersConfig,
-  });
 };
 
 /**
