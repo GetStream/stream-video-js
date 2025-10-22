@@ -3,15 +3,41 @@
 
 @implementation Broadcast
 
-- (void)multiply:(double)a b:(double)b resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+- (void)start:(NSString *)endpoint streamName:(NSString *)streamName resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-    [BroadcastSwift multiply:a b:b completion:^(NSNumber * _Nullable result, NSError * _Nullable error) {
+    [BroadcastSwift startWithEndpoint:endpoint streamName:streamName completion:^(NSError * _Nullable error) {
         if (error != nil) {
-            reject(@"multiply_error", error.localizedDescription, error);
+            reject(@"start_error", error.localizedDescription, error);
         } else {
-            resolve(result);
+            resolve(nil);
         }
     }];
+}
+
+- (void)stop:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+    [BroadcastSwift stopWithCompletion:^(NSError * _Nullable error) {
+        if (error != nil) {
+            reject(@"stop_error", error.localizedDescription, error);
+        } else {
+            resolve(nil);
+        }
+    }];
+}
+
+- (void)setCameraDirection:(NSString *)direction
+{
+    [BroadcastSwift setCameraDirectionWithDirection:direction];
+}
+
+- (void)setCameraEnabled:(BOOL)enabled
+{
+    [BroadcastSwift setCameraEnabledWithEnabled:enabled];
+}
+
+- (void)setMicrophoneEnabled:(BOOL)enabled
+{
+    [BroadcastSwift setMicrophoneEnabledWithEnabled:enabled];
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

@@ -7,17 +7,27 @@ import {
   View,
 } from 'react-native';
 import {
+  Broadcast,
   BroadcastVideoView,
-  multiply,
 } from '@stream-io/video-react-native-broadcast';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 
+const RTMP_ENDPOINT =
+  'rtmps://ingress.stream-io-video.com:443/par8f5s3gn2j.default.RdcC9Qr4j7pzr62FZbo8Q';
+const RTMP_STREAM_NAME =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3Byb250by5nZXRzdHJlYW0uaW8iLCJzdWIiOiJ1c2VyL2phbmUiLCJ1c2VyX2lkIjoiamFuZSIsInZhbGlkaXR5X2luX3NlY29uZHMiOjYwNDgwMCwiZW52aXJvbm1lbnQiOiJwcm9udG8iLCJpYXQiOjE3NjA5Njc0MzMsImV4cCI6MTc2MTU3MjIzM30.pkBwlOMlo7wUJG4DSG7fk8QAxF912Y5UaErm4H6a59I';
+
 export const RTMPBroadcastScreen = () => {
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [microphoneEnabled, setMicrophoneEnabled] = useState(true);
+  const [cameraDirection, setCameraDirection] = useState<'front' | 'back'>(
+    'front',
+  );
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
 
   const startBroadcast = async () => {
@@ -26,9 +36,7 @@ export const RTMPBroadcastScreen = () => {
       setError(null);
       console.log('[RTMP] Starting broadcast...');
 
-      const result = await multiply(3, 7);
-      console.log(`[RTMP] Broadcast started with result: ${result}`);
-
+      await Broadcast.start(RTMP_ENDPOINT, RTMP_STREAM_NAME);
       setIsBroadcasting(true);
     } catch (err) {
       console.error('[RTMP] Failed to start broadcast:', err);
@@ -37,6 +45,54 @@ export const RTMPBroadcastScreen = () => {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const stopBroadcast = async () => {
+    try {
+      setIsLoading(true);
+      await Broadcast.stop();
+      setIsBroadcasting(false);
+    } catch (err) {
+      console.error('[RTMP] Failed to stop broadcast:', err);
+      setError(err instanceof Error ? err.message : 'Failed to stop broadcast');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleCamera = async () => {
+    try {
+      const next = !cameraEnabled;
+      setCameraEnabled(next);
+      Broadcast.setCameraEnabled(next);
+    } catch (err) {
+      console.error('[RTMP] Failed to toggle camera:', err);
+      setError(err instanceof Error ? err.message : 'Failed to toggle camera');
+    }
+  };
+
+  const toggleMicrophone = async () => {
+    try {
+      const next = !microphoneEnabled;
+      setMicrophoneEnabled(next);
+      Broadcast.setMicrophoneEnabled(next);
+    } catch (err) {
+      console.error('[RTMP] Failed to toggle microphone:', err);
+      setError(
+        err instanceof Error ? err.message : 'Failed to toggle microphone',
+      );
+    }
+  };
+
+  const switchCamera = async () => {
+    try {
+      const next = cameraDirection === 'front' ? 'back' : 'front';
+      setCameraDirection(next);
+      Broadcast.setCameraDirection(next);
+    } catch (err) {
+      console.error('[RTMP] Failed to switch camera:', err);
+      setError(err instanceof Error ? err.message : 'Failed to switch camera');
     }
   };
 
@@ -90,10 +146,38 @@ export const RTMPBroadcastScreen = () => {
           />
         )}
         {isBroadcasting && (
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoText}>Broadcasting to RTMP server</Text>
-            <Text style={styles.infoSubText}>Stream is live</Text>
-          </View>
+          <>
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoText}>Broadcasting to RTMP server</Text>
+              <Text style={styles.infoSubText}>Stream is live</Text>
+            </View>
+            <View style={{ height: 12 }} />
+            <Button
+              title={cameraEnabled ? 'Mute Camera' : 'Unmute Camera'}
+              onPress={toggleCamera}
+              disabled={isLoading}
+            />
+            <View style={{ height: 8 }} />
+            <Button
+              title={
+                microphoneEnabled ? 'Mute Microphone' : 'Unmute Microphone'
+              }
+              onPress={toggleMicrophone}
+              disabled={isLoading}
+            />
+            <View style={{ height: 8 }} />
+            <Button
+              title={`Switch Camera (${cameraDirection === 'front' ? 'Back' : 'Front'})`}
+              onPress={switchCamera}
+              disabled={isLoading}
+            />
+            <View style={{ height: 8 }} />
+            <Button
+              title="Stop Broadcast"
+              onPress={stopBroadcast}
+              disabled={isLoading}
+            />
+          </>
         )}
       </View>
     </View>
