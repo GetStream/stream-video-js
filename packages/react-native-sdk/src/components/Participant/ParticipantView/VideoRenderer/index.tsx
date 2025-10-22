@@ -2,21 +2,20 @@ import React, { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
-import type { ParticipantViewProps } from './ParticipantView';
+import type { ParticipantViewProps } from '../ParticipantView';
 import {
-  CallingState,
   hasPausedTrack,
   hasScreenShare,
   hasVideo,
-  SfuModels,
   type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
-import { useScreenshotIosContext } from '../../../contexts/internal/ScreenshotIosContext';
+import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../ParticipantVideoFallback';
+import { useTheme } from '../../../../contexts/ThemeContext';
+import { useTrackDimensions } from '../../../../hooks/useTrackDimensions';
+import { useScreenshotIosContext } from '../../../../contexts/internal/ScreenshotIosContext';
+import TrackSubscriber, { TrackSubscriberHandle } from './TrackSubscriber';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -56,16 +55,9 @@ export const VideoRenderer = ({
     theme: { videoRenderer },
   } = useTheme();
   const call = useCall();
-  const { useCallCallingState, useCameraState, useIncomingVideoSettings } =
-    useCallStateHooks();
+  const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
+  const trackSubscriberRef = useRef<TrackSubscriberHandle>(null);
   const { isParticipantVideoEnabled } = useIncomingVideoSettings();
-  const callingState = useCallCallingState();
-  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension | undefined>(
-    undefined,
-  );
-  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension | undefined>(
-    undefined,
-  );
   const { direction } = useCameraState();
   const viewRef = useRef(null);
   const {
@@ -91,7 +83,6 @@ export const VideoRenderer = ({
     ? hasScreenShare(participant)
     : hasVideo(participant);
 
-  const hasJoinedCall = callingState === CallingState.JOINED;
   const videoStreamToRender = (isScreenSharing
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
@@ -179,11 +170,6 @@ export const VideoRenderer = ({
           },
         }));
       }
-      if (subscribedVideoLayoutRef.current) {
-        // when video is enabled again, we want to use the last subscribed dimension to resubscribe
-        pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
-        subscribedVideoLayoutRef.current = undefined;
-      }
     }
   }, [
     sessionId,
@@ -194,94 +180,10 @@ export const VideoRenderer = ({
     isLocalParticipant,
   ]);
 
-  useEffect(() => {
-    if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
-      // when call is joined again, we want to use the last subscribed dimension to resubscribe
-      pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
-      subscribedVideoLayoutRef.current = undefined;
-    }
-  }, [hasJoinedCall]);
-
-  /**
-   * This effect updates the subscription either
-   * 1. when video tracks are published and was unpublished before
-   * 2. when the view's visibility changes
-   * 3. when call was rejoined
-   */
-  useEffect(() => {
-    if (!call || isLocalParticipant) {
-      return;
-    }
-    // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
-    const updateIsNeeded = pendingVideoLayoutRef.current;
-
-    if (!updateIsNeeded || !isPublishingVideoTrack || !hasJoinedCall) {
-      return;
-    }
-
-    // NOTE: When the view is not visible, we want to subscribe to audio only.
-    // We unsubscribe their video by setting the dimension to undefined
-    const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
-    call.state.updateParticipantTracks(trackType, {
-      [sessionId]: { dimension },
-    });
-    call.dynascaleManager.applyTrackSubscriptions();
-
-    if (dimension) {
-      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
-      pendingVideoLayoutRef.current = undefined;
-    }
-  }, [
-    call,
-    isPublishingVideoTrack,
-    trackType,
-    isVisible,
-    sessionId,
-    hasJoinedCall,
-    isLocalParticipant,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      subscribedVideoLayoutRef.current = undefined;
-      pendingVideoLayoutRef.current = undefined;
-    };
-  }, [trackType, sessionId]);
-
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
     event,
   ) => {
-    if (!call || isLocalParticipant) {
-      return;
-    }
-    const dimension = {
-      width: Math.trunc(event.nativeEvent.layout.width),
-      height: Math.trunc(event.nativeEvent.layout.height),
-    };
-
-    // NOTE: If the participant hasn't published a video track yet,
-    // or the view is not viewable, we store the dimensions and handle it
-    // when the track is published or the video is enabled.
-    if (!isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
-      pendingVideoLayoutRef.current = dimension;
-      return;
-    }
-
-    // NOTE: We don't want to update the subscription if the dimension hasn't changed
-    if (
-      subscribedVideoLayoutRef.current?.width === dimension.width &&
-      subscribedVideoLayoutRef.current?.height === dimension.height
-    ) {
-      return;
-    }
-    call.state.updateParticipantTracks(trackType, {
-      [sessionId]: {
-        dimension,
-      },
-    });
-    call.dynascaleManager.applyTrackSubscriptions();
-    subscribedVideoLayoutRef.current = dimension;
-    pendingVideoLayoutRef.current = undefined;
+    trackSubscriberRef.current?.onLayoutUpdate(event);
   };
 
   return (
@@ -289,6 +191,15 @@ export const VideoRenderer = ({
       onLayout={onLayout}
       style={[styles.container, videoRenderer.container]}
     >
+      {call && !isLocalParticipant && (
+        <TrackSubscriber
+          ref={trackSubscriberRef}
+          call={call}
+          participantSessionId={sessionId}
+          trackType={trackType}
+          isVisible={isVisible}
+        />
+      )}
       {canShowVideo &&
       videoStreamToRender &&
       (objectFit || isVideoDimensionsValid) ? (

@@ -20,6 +20,7 @@ import {
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
+import { useRouter } from 'next/router';
 
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
@@ -107,6 +108,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const showChat = sidebarContent === 'chat';
   const showStats = sidebarContent === 'stats';
   const showClosedCaptions = sidebarContent === 'closed-captions';
+  const router = useRouter();
+  const chatDisabled =
+    router.query['disable_chat'] === 'true' ||
+    process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
@@ -339,35 +344,40 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 setSidebarContent(showParticipants ? null : 'participants');
               }}
             />
-            <NewMessageNotification
-              chatClient={chatClient}
-              channelWatched={channelWatched}
-              disableOnChatOpen={showChat}
-            >
-              <div className="str-chat__chat-button__wrapper">
-                <WithTooltip title={t('Chat')}>
-                  <CompositeButton
-                    active={showChat}
-                    disabled={!chatClient}
-                    onClick={() => {
-                      if (isTourActive && currentTourStep === StepNames.Chat) {
-                        nextTourStep();
-                      }
-                      setSidebarContent(showChat ? null : 'chat');
-                    }}
-                  >
-                    <Icon icon="chat" />
-                  </CompositeButton>
-                </WithTooltip>
-                {!showChat && (
-                  <UnreadCountBadge
-                    channelWatched={channelWatched}
-                    chatClient={chatClient}
-                    channelId={activeCall.id}
-                  />
-                )}
-              </div>
-            </NewMessageNotification>
+            {!chatDisabled && (
+              <NewMessageNotification
+                chatClient={chatClient}
+                channelWatched={channelWatched}
+                disableOnChatOpen={showChat}
+              >
+                <div className="str-chat__chat-button__wrapper">
+                  <WithTooltip title={t('Chat')}>
+                    <CompositeButton
+                      active={showChat}
+                      disabled={!chatClient}
+                      onClick={() => {
+                        if (
+                          isTourActive &&
+                          currentTourStep === StepNames.Chat
+                        ) {
+                          nextTourStep();
+                        }
+                        setSidebarContent(showChat ? null : 'chat');
+                      }}
+                    >
+                      <Icon icon="chat" />
+                    </CompositeButton>
+                  </WithTooltip>
+                  {!showChat && (
+                    <UnreadCountBadge
+                      channelWatched={channelWatched}
+                      chatClient={chatClient}
+                      channelId={activeCall.id}
+                    />
+                  )}
+                </div>
+              </NewMessageNotification>
+            )}
           </div>
         </div>
       </div>

@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.10.0...@stream-io/video-react-bindings-1.10.1) (2025-10-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.34.1`
+
+## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.9.1...@stream-io/video-react-bindings-1.10.0) (2025-10-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.34.0`
+
+- add useEffectEvent shim to bindings with react 19.2 dev dep ([#1944](https://github.com/GetStream/stream-video-js/issues/1944)) ([26ca6bd](https://github.com/GetStream/stream-video-js/commit/26ca6bd7702d4960c098104e12db18f7d8afc7ce))
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
 ## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.9.0...@stream-io/video-react-bindings-1.9.1) (2025-10-02)
 
 ### Dependency Updates

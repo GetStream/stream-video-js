@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.2...@stream-io/video-filters-web-0.3.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
 ## [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.1...@stream-io/video-filters-web-0.2.2) (2025-09-17)
 
 ### Bug Fixes

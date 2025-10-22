@@ -1,6 +1,7 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallingState } from '../CallingState';
 import { CallState } from '../CallState';
@@ -56,8 +57,7 @@ describe('CallState', () => {
     it(`shouldn't emit when primitive (backstage) values didn't change`, () => {
       const state = new CallState();
       const updateWith = (value: boolean) => {
-        // @ts-expect-error incomplete data
-        state.updateFromCallResponse({ backstage: value });
+        state.updateFromCallResponse(fromPartial({ backstage: value }));
       };
 
       updateWith(false);
@@ -138,8 +138,7 @@ describe('CallState', () => {
     it(`shouldn't emit when string arrays (blockedUserIds) value didn't change`, () => {
       const state = new CallState();
       const updateWith = (value: string[]) => {
-        // @ts-expect-error incomplete data
-        state.updateFromCallResponse({ blocked_user_ids: value });
+        state.updateFromCallResponse(fromPartial({ blocked_user_ids: value }));
       };
 
       updateWith(['a', 'b']);
@@ -640,25 +639,21 @@ describe('CallState', () => {
     describe('recording and broadcasting events', () => {
       it('handles call.recording_started events', () => {
         const state = new CallState();
-        // @ts-expect-error incomplete data
-        state.updateFromEvent({ type: 'call.recording_started' });
+        state.updateFromEvent(fromPartial({ type: 'call.recording_started' }));
         expect(state.recording).toBe(true);
       });
 
       it('handles call.recording_stopped events', () => {
         const state = new CallState();
-        // @ts-expect-error incomplete data
-        state.updateFromEvent({ type: 'call.recording_stopped' });
+        state.updateFromEvent(fromPartial({ type: 'call.recording_stopped' }));
         expect(state.recording).toBe(false);
       });
 
       it('handles call.recording_failed events', () => {
         const state = new CallState();
-        // @ts-expect-error incomplete data
-        state.updateFromEvent({ type: 'call.recording_started' });
+        state.updateFromEvent(fromPartial({ type: 'call.recording_started' }));
         expect(state.recording).toBe(true);
-        // @ts-expect-error incomplete data
-        state.updateFromEvent({ type: 'call.recording_failed' });
+        state.updateFromEvent(fromPartial({ type: 'call.recording_failed' }));
         expect(state.recording).toBe(false);
       });
 
