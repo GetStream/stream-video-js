@@ -1,6 +1,6 @@
 import * as scopedLogger from '@stream-io/logger';
-import { Logger } from './coordinator/connection/types';
 import { isReactNative } from './helpers/platforms';
+import type { Logger } from './coordinator/connection/types';
 
 export const logToConsole: Logger = (logLevel, message, ...args) => {
   let logMethod;
