@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   StatusBar,
@@ -29,6 +29,12 @@ export const RTMPBroadcastScreen = () => {
     'front',
   );
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const broadcast = useMemo(() => Broadcast.create(), []);
+  useEffect(() => {
+    return () => {
+      broadcast.stop().then(() => broadcast.destroy());
+    };
+  }, [broadcast]);
 
   const startBroadcast = async () => {
     try {
@@ -36,7 +42,7 @@ export const RTMPBroadcastScreen = () => {
       setError(null);
       console.log('[RTMP] Starting broadcast...');
 
-      await Broadcast.start(RTMP_ENDPOINT, RTMP_STREAM_NAME);
+      await broadcast.start(RTMP_ENDPOINT, RTMP_STREAM_NAME);
       setIsBroadcasting(true);
     } catch (err) {
       console.error('[RTMP] Failed to start broadcast:', err);
@@ -51,7 +57,7 @@ export const RTMPBroadcastScreen = () => {
   const stopBroadcast = async () => {
     try {
       setIsLoading(true);
-      await Broadcast.stop();
+      await broadcast.stop();
       setIsBroadcasting(false);
     } catch (err) {
       console.error('[RTMP] Failed to stop broadcast:', err);
@@ -65,7 +71,7 @@ export const RTMPBroadcastScreen = () => {
     try {
       const next = !cameraEnabled;
       setCameraEnabled(next);
-      Broadcast.setCameraEnabled(next);
+      broadcast?.setCameraEnabled(next);
     } catch (err) {
       console.error('[RTMP] Failed to toggle camera:', err);
       setError(err instanceof Error ? err.message : 'Failed to toggle camera');
@@ -76,7 +82,7 @@ export const RTMPBroadcastScreen = () => {
     try {
       const next = !microphoneEnabled;
       setMicrophoneEnabled(next);
-      Broadcast.setMicrophoneEnabled(next);
+      broadcast?.setMicrophoneEnabled(next);
     } catch (err) {
       console.error('[RTMP] Failed to toggle microphone:', err);
       setError(
@@ -89,7 +95,7 @@ export const RTMPBroadcastScreen = () => {
     try {
       const next = cameraDirection === 'front' ? 'back' : 'front';
       setCameraDirection(next);
-      Broadcast.setCameraDirection(next);
+      broadcast?.setCameraDirection(next);
     } catch (err) {
       console.error('[RTMP] Failed to switch camera:', err);
       setError(err instanceof Error ? err.message : 'Failed to switch camera');
@@ -116,7 +122,7 @@ export const RTMPBroadcastScreen = () => {
 
       <View style={styles.videoContainer}>
         {isBroadcasting ? (
-          <BroadcastVideoView style={styles.video} />
+          <BroadcastVideoView broadcast={broadcast} style={styles.video} />
         ) : (
           <View style={styles.placeholder}>
             <Text style={styles.placeholderText}>

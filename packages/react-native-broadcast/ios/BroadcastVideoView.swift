@@ -35,10 +35,27 @@ public class BroadcastVideoView: UIView {
         tryAttachMixer()
     }
 
+    @objc public var instanceId: String? {
+        didSet {
+            isAttached = false
+            tryAttachMixer()
+        }
+    }
+
     private func tryAttachMixer() {
-        guard !isAttached, let mixer = BroadcastManagerState.shared.mixer else {
-            // Schedule retry if mixer not ready yet
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        guard let instanceId = instanceId else {
+            // wait for instance id to be set
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                [weak self] in
+                self?.tryAttachMixer()
+            }
+            return
+        }
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+        guard !isAttached, let mixer = state.mixer else {
+            // Schedule retry if mixer not ready yet or already attached
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                [weak self] in
                 self?.tryAttachMixer()
             }
             return
@@ -46,10 +63,11 @@ public class BroadcastVideoView: UIView {
 
         Task { @MainActor in
             guard let hkView = self.hkView else { return }
-//            await hkView.attachStream(mixer)
             await mixer.addOutput(hkView)
             self.isAttached = true
-            print("[BroadcastVideoView] Mixer attached to view")
+            print(
+                "[BroadcastVideoView] Mixer attached to view for instanceId=\(instanceId)"
+            )
         }
     }
 
@@ -62,4 +80,3 @@ public class BroadcastVideoView: UIView {
         print("[BroadcastVideoView] View deinitialized")
     }
 }
-

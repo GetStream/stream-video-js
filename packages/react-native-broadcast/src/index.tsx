@@ -1,4 +1,2 @@
-import Broadcast from './NativeBroadcast';
-
-export { Broadcast };
+export { Broadcast } from './Broadcast';
 export * from './BroadcastVideoView';

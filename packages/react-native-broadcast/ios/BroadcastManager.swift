@@ -4,46 +4,32 @@ import HaishinKit
 import RTMPHaishinKit
 
 @objc
-public class BroadcastManagerState: NSObject {
-    @objc public static let shared = BroadcastManagerState()
-
-    var mixer: MediaMixer?
-    var audioSourceService: AudioSourceService?
-    var session: Session?
-
-    var isRunning: Bool = false
-    var cameraPosition: AVCaptureDevice.Position = .front
-    var cameraEnabled: Bool = true
-    var micEnabled: Bool = true
-
-    private override init() {
-        super.init()
-    }
-    
-    func reset() {
-        session = nil
-        mixer = nil
-        audioSourceService = nil
-        isRunning = false
-    }
-}
-
-@objc
 public class BroadcastManager: NSObject {
 
-    // MARK: - Public Bridged APIs
+    // MARK: - Multi-instance APIs
 
-    @objc(startWithEndpoint:streamName:completion:)
+    @objc(createInstance)
+    public static func createInstance() -> String {
+        return UUID().uuidString
+    }
+
+    @objc(destroyInstanceWithInstanceId:)
+    public static func destroyInstance(instanceId: String) {
+        BroadcastRegistry.shared.remove(instanceId)
+    }
+
+    @objc(startWithInstanceId:endpoint:streamName:completion:)
     public static func start(
+        instanceId: String,
         endpoint: String,
         streamName: String,
         completion: @escaping (NSError?) -> Void
     ) {
-        let state = BroadcastManagerState.shared
-        
-        print("[Broadcast] start called")
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+
+        print("[Broadcast][\(instanceId)] start called")
         if state.isRunning {
-            print("[Broadcast] already running, ignoring start")
+            print("[Broadcast][\(instanceId)] already running, ignoring start")
             completion(nil)
             return
         }
@@ -93,7 +79,7 @@ public class BroadcastManager: NSObject {
 
                 // Attach devices based on current state
                 if state.cameraEnabled {
-                    let position = BroadcastManagerState.shared.cameraPosition
+                    let position = state.cameraPosition
                     let camera = AVCaptureDevice.default(
                         .builtInWideAngleCamera,
                         for: .video,
@@ -103,7 +89,7 @@ public class BroadcastManager: NSObject {
                         unit.isVideoMirrored = position == .front
                     }
                 }
-                
+
                 if state.micEnabled {
                     let mic = AVCaptureDevice.default(for: .audio)
                     try? await mixer.attachAudio(mic)
@@ -134,7 +120,7 @@ public class BroadcastManager: NSObject {
                 try await session.stream.setVideoSettings(videoSettings)
 
                 try await session.connect {
-                    print("[Broadcast] RTMP connected")
+                    print("[Broadcast][\(instanceId)] RTMP connected")
                 }
 
                 // Save state
@@ -145,45 +131,52 @@ public class BroadcastManager: NSObject {
 
                 completion(nil)
             } catch {
-                print("[Broadcast] start error: \(error)")
-                await cleanup()
+                print("[Broadcast][\(instanceId)] start error: \(error)")
+                await BroadcastManager.cleanupInstance(instanceId: instanceId)
                 completion(error as NSError)
             }
         }
     }
 
-    @objc(stopWithCompletion:)
-    public static func stop(completion: @escaping (NSError?) -> Void) {
-        print("[Broadcast] stop called")
-        guard BroadcastManagerState.shared.isRunning else {
+    @objc(stopWithInstanceId:completion:)
+    public static func stop(
+        instanceId: String,
+        completion: @escaping (NSError?) -> Void
+    ) {
+        print("[Broadcast][\(instanceId)] stop called")
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+        guard state.isRunning else {
             completion(nil)
             return
         }
         Task {
-
-            if let session = BroadcastManagerState.shared.session {
+            if let session = state.session {
                 try? await session.close()
             }
-            if let mixer = BroadcastManagerState.shared.mixer {
+            if let mixer = state.mixer {
                 await mixer.stopRunning()
                 await mixer.stopCapturing()
                 try? await mixer.attachAudio(nil)
                 try? await mixer.attachVideo(nil, track: 0)
-                if let session = BroadcastManagerState.shared.session {
+                if let session = state.session {
                     await mixer.removeOutput(session.stream)
                 }
             }
-            await cleanup()
+            await BroadcastManager.cleanupInstance(instanceId: instanceId)
             completion(nil)
         }
     }
 
-    @objc(setCameraDirectionWithDirection:)
-    public static func setCameraDirection(direction: String) {
+    @objc(setCameraDirectionWithInstanceId:direction:)
+    public static func setCameraDirection(
+        instanceId: String,
+        direction: String
+    ) {
+        let state = BroadcastRegistry.shared.state(for: instanceId)
         let position: AVCaptureDevice.Position =
             (direction.lowercased() == "back") ? .back : .front
-        BroadcastManagerState.shared.cameraPosition = position
-        guard let mixer = BroadcastManagerState.shared.mixer else { return }
+        state.cameraPosition = position
+        guard let mixer = state.mixer else { return }
         Task {
             let camera = AVCaptureDevice.default(
                 .builtInWideAngleCamera,
@@ -196,13 +189,17 @@ public class BroadcastManager: NSObject {
         }
     }
 
-    @objc(setCameraEnabledWithEnabled:)
-    public static func setCameraEnabled(enabled: Bool) {
-        BroadcastManagerState.shared.cameraEnabled = enabled
-        guard let mixer = BroadcastManagerState.shared.mixer else { return }
+    @objc(setCameraEnabledWithInstanceId:enabled:)
+    public static func setCameraEnabled(
+        instanceId: String,
+        enabled: Bool
+    ) {
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+        state.cameraEnabled = enabled
+        guard let mixer = state.mixer else { return }
         Task {
             if enabled {
-                let position = BroadcastManagerState.shared.cameraPosition
+                let position = state.cameraPosition
                 let camera = AVCaptureDevice.default(
                     .builtInWideAngleCamera,
                     for: .video,
@@ -217,10 +214,14 @@ public class BroadcastManager: NSObject {
         }
     }
 
-    @objc(setMicrophoneEnabledWithEnabled:)
-    public static func setMicrophoneEnabled(enabled: Bool) {
-        BroadcastManagerState.shared.micEnabled = enabled
-        guard let mixer = BroadcastManagerState.shared.mixer else { return }
+    @objc(setMicrophoneEnabledWithInstanceId:enabled:)
+    public static func setMicrophoneEnabled(
+        instanceId: String,
+        enabled: Bool
+    ) {
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+        state.micEnabled = enabled
+        guard let mixer = state.mixer else { return }
         Task {
             if enabled {
                 let mic = AVCaptureDevice.default(for: .audio)
@@ -231,9 +232,10 @@ public class BroadcastManager: NSObject {
         }
     }
 
-    // MARK: - Helpers
+    // Per-instance cleanup
     @MainActor
-    private static func cleanup() {
-        BroadcastManagerState.shared.reset();
+    private static func cleanupInstance(instanceId: String) {
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+        state.reset()
     }
 }
