@@ -1,8 +1,16 @@
 import { type TurboModule, TurboModuleRegistry } from 'react-native';
 
+export type Preset = {
+  width: number;
+  height: number;
+  frameRate: number;
+  videoBitrate: number;
+  audioBitrate: number;
+};
+
 export interface Spec extends TurboModule {
-  // Synchronous creation
-  createInstance: () => string;
+  // Synchronous creation with preset
+  createInstance: (preset: Preset) => string;
 
   destroyInstance: (instanceId: string) => void;
 

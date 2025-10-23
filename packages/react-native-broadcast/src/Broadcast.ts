@@ -1,6 +1,10 @@
-import NativeBroadcast from './NativeBroadcast';
+import NativeBroadcast, { type Preset } from './NativeBroadcast';
 import { BehaviorSubject } from 'rxjs';
-import { NativeEventEmitter, NativeModules } from 'react-native';
+import {
+  type EventSubscription,
+  NativeEventEmitter,
+  NativeModules,
+} from 'react-native';
 import {
   type CameraDirection,
   type MediaState,
@@ -10,6 +14,31 @@ import {
 const BroadcastEvents = new TypedNativeEventEmitter(
   new NativeEventEmitter(NativeModules.BroadcastEventEmitter),
 );
+
+export class Presets {
+  /**
+   * HD portrait mode preset. Recommended for most use cases.
+   */
+  static PORTRAIT_HD: Preset = {
+    width: 720,
+    height: 1280,
+    frameRate: 30,
+    videoBitrate: 3_000_000,
+    audioBitrate: 128_000,
+  };
+
+  /**
+   * Full HD portrait mode preset. Recommended for high-resolution broadcasts,
+   * but it can be slow on older devices.
+   */
+  static PORTRAIT_FULL_HD: Preset = {
+    width: 1080,
+    height: 1920,
+    frameRate: 30,
+    videoBitrate: 4_000_000,
+    audioBitrate: 128_000,
+  };
+}
 
 export class Broadcast {
   private readonly instanceId: string;
@@ -22,7 +51,7 @@ export class Broadcast {
     cameraDirection: 'front',
   });
 
-  private subscriptions: { remove: () => void }[] = [];
+  private subscriptions: EventSubscription[] = [];
 
   private constructor(instanceId: string) {
     this.instanceId = instanceId;
@@ -44,8 +73,8 @@ export class Broadcast {
     );
   }
 
-  static create() {
-    const instanceId = NativeBroadcast.createInstance();
+  static create(preset: Preset = Presets.PORTRAIT_HD): Broadcast {
+    const instanceId = NativeBroadcast.createInstance(preset);
     return new Broadcast(instanceId);
   }
 

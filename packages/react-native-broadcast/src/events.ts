@@ -1,4 +1,4 @@
-import { NativeEventEmitter } from 'react-native';
+import { type EventSubscription, NativeEventEmitter } from 'react-native';
 
 export type CameraDirection = 'front' | 'back';
 
@@ -29,7 +29,7 @@ export class TypedNativeEventEmitter {
   addListener<
     E extends Extract<keyof BroadcastEvents, string>,
     V = BroadcastEvents[E],
-  >(event: E, listener: (payload: V) => void) {
+  >(event: E, listener: (payload: V) => void): EventSubscription {
     return this.emitter.addListener(
       event,
       listener as unknown as (...args: any[]) => any,

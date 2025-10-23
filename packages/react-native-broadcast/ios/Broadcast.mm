@@ -1,12 +1,20 @@
 #import "Broadcast.h"
 #import <StreamReactNativeBroadcast/StreamReactNativeBroadcast-Swift.h>
+#import <React/RCTCxxUtils.h>
 
 @implementation Broadcast
 
 
-- (NSString *)createInstance
+- (NSString *)createInstance:(JS::NativeBroadcast::Preset &)preset
 {
-    return [BroadcastManager createInstance];
+    BroadcastPreset *p = [BroadcastPreset alloc];
+    p = [p initWithWidth:(NSInteger)preset.width()
+                  height:(NSInteger)preset.height()
+               frameRate:(double)preset.frameRate()
+            videoBitrate:(NSInteger)preset.videoBitrate()
+            audioBitrate:(NSInteger)preset.audioBitrate()];
+    
+    return [BroadcastManager createInstanceWithPreset:p];
 }
 
 - (void)destroyInstance:(NSString *)instanceId
@@ -63,3 +71,4 @@
 }
 
 @end
+

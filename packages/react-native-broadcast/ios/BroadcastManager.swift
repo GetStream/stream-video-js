@@ -8,9 +8,12 @@ public class BroadcastManager: NSObject {
 
     // MARK: - Multi-instance APIs
 
-    @objc(createInstance)
-    public static func createInstance() -> String {
-        return UUID().uuidString
+    @objc(createInstanceWithPreset:)
+    public static func createInstance(preset: BroadcastPreset) -> String {
+        let id = UUID().uuidString
+        let state = BroadcastRegistry.shared.state(for: id)
+        state.withPreset(preset: preset)
+        return id
     }
 
     @objc(destroyInstanceWithInstanceId:)
@@ -65,11 +68,17 @@ public class BroadcastManager: NSObject {
                 await audioSourceService.setUp()
 
                 let mixer = MediaMixer(captureSessionMode: .single)
-                try await mixer.setFrameRate(30)
+                try await mixer.setFrameRate(state.preset.frameRate)
 
                 await mixer.configuration { session in
-                    session.automaticallyConfiguresApplicationAudioSession = false
-                    session.sessionPreset = .hd1280x720
+                    session.automaticallyConfiguresApplicationAudioSession =
+                        false
+                    // Choose a capture preset based on desired dimensions (best-effort)
+                    if max(state.preset.width, state.preset.height) >= 1920 {
+                        session.sessionPreset = .hd1920x1080
+                    } else {
+                        session.sessionPreset = .hd1280x720
+                    }
                 }
                 await mixer.setMonitoringEnabled(
                     DeviceUtil.isHeadphoneConnected()
@@ -111,14 +120,17 @@ public class BroadcastManager: NSObject {
 
                 var audioSettings = await session.stream.audioSettings
                 audioSettings.format = .aac
-                audioSettings.bitRate = 48_000
+                audioSettings.bitRate = state.preset.audioBitrate
                 try await session.stream.setAudioSettings(audioSettings)
 
                 var videoSettings = await session.stream.videoSettings
                 videoSettings.isLowLatencyRateControlEnabled = false
                 videoSettings.bitRateMode = .average
-                videoSettings.bitRate = 2_500_000
-                videoSettings.videoSize = CGSize(width: 720, height: 1280)
+                videoSettings.bitRate = state.preset.videoBitrate
+                videoSettings.videoSize = CGSize(
+                    width: state.preset.width,
+                    height: state.preset.height
+                )
                 try await session.stream.setVideoSettings(videoSettings)
 
                 try await session.connect {

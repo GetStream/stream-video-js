@@ -3,12 +3,40 @@ import Foundation
 import HaishinKit
 import RTMPHaishinKit
 
+@objcMembers
+public class BroadcastPreset: NSObject {
+    var width: Int = 720
+    var height: Int = 1280
+    var frameRate: Double = 30
+    var videoBitrate: Int = 3_000_000
+    var audioBitrate: Int = 128_000
+
+    override init() { super.init() }
+
+    @objc public init(
+        width: Int,
+        height: Int,
+        frameRate: Double,
+        videoBitrate: Int,
+        audioBitrate: Int
+    ) {
+        self.width = width
+        self.height = height
+        self.frameRate = frameRate
+        self.videoBitrate = videoBitrate
+        self.audioBitrate = audioBitrate
+        super.init()
+    }
+}
+
 @objc
 public class BroadcastInstanceState: NSObject {
     // Identifier for correlating events with JS instances
     var instanceId: String = ""
 
     var suppressEvents: Bool = false
+
+    var preset: BroadcastPreset = BroadcastPreset()
 
     var mixer: MediaMixer?
     var audioSourceService: AudioSourceService?
@@ -17,10 +45,13 @@ public class BroadcastInstanceState: NSObject {
     var isRunning: Bool = false {
         didSet {
             guard !suppressEvents else { return }
-            BroadcastEventEmitter.emit("broadcast.started", body: [
-                "instanceId": instanceId,
-                "running": isRunning
-            ])
+            BroadcastEventEmitter.emit(
+                "broadcast.started",
+                body: [
+                    "instanceId": instanceId,
+                    "running": isRunning,
+                ]
+            )
         }
     }
 
@@ -44,21 +75,28 @@ public class BroadcastInstanceState: NSObject {
         super.init()
     }
 
+    func withPreset(preset: BroadcastPreset) {
+        self.preset = preset
+    }
+
     private func emitMediaStateUpdated() {
         guard !suppressEvents else { return }
         let direction = cameraPosition == .back ? "back" : "front"
-        BroadcastEventEmitter.emit("broadcast.mediaStateUpdated", body: [
-            "instanceId": instanceId,
-            "cameraEnabled": cameraEnabled,
-            "microphoneEnabled": micEnabled,
-            "cameraDirection": direction
-        ])
+        BroadcastEventEmitter.emit(
+            "broadcast.mediaStateUpdated",
+            body: [
+                "instanceId": instanceId,
+                "cameraEnabled": cameraEnabled,
+                "microphoneEnabled": micEnabled,
+                "cameraDirection": direction,
+            ]
+        )
     }
 
     @MainActor
     func reset() {
         suppressEvents = true
-        
+
         session = nil
         mixer = nil
         audioSourceService = nil
@@ -66,10 +104,10 @@ public class BroadcastInstanceState: NSObject {
         cameraPosition = .front
         cameraEnabled = true
         micEnabled = true
-        
+
         // send an update
         suppressEvents = false
-        emitMediaStateUpdated();
+        emitMediaStateUpdated()
     }
 }
 
