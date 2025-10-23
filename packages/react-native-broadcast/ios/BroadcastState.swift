@@ -19,6 +19,13 @@ public class BroadcastState: NSObject {
     var audioSourceService: AudioSourceService?
     var session: Session?
 
+    // Reconnection state
+    var lastURL: URL?
+    var shouldReconnect: Bool = false
+    var reconnectAttempts: Int = 0
+    var maxReconnectAttempts: Int = 5
+    var reconnectTask: Task<Void, Never>?
+
     var isRunning: Bool = false {
         didSet {
             guard !suppressEvents else { return }
@@ -73,6 +80,13 @@ public class BroadcastState: NSObject {
     @MainActor
     func reset() {
         suppressEvents = true
+
+        // cancel any pending reconnect
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        shouldReconnect = false
+        reconnectAttempts = 0
+        lastURL = nil
 
         session = nil
         mixer = nil

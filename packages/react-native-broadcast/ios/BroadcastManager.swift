@@ -62,6 +62,10 @@ public class BroadcastManager: NSObject {
             return
         }
 
+        state.lastURL = url
+        state.shouldReconnect = true
+        state.reconnectAttempts = 0
+
         Task {
             do {
                 let audioSourceService = AudioSourceService()
@@ -134,8 +138,13 @@ public class BroadcastManager: NSObject {
                 try await session.stream.setVideoSettings(videoSettings)
 
                 try await session.connect {
-                    print("[Broadcast][\(instanceId)] RTMP connected")
+                    print(
+                        "[Broadcast][\(instanceId)] RTMP connection closed unexpectedly"
+                    )
+                    BroadcastManager.scheduleReconnect(instanceId: instanceId)
                 }
+
+                print("[Broadcast][\(instanceId)] RTMP connected")
 
                 // Save state
                 state.mixer = mixer
@@ -164,6 +173,11 @@ public class BroadcastManager: NSObject {
             return
         }
         Task {
+            // Disable any auto-reconnects and cancel pending tasks
+            state.shouldReconnect = false
+            state.reconnectTask?.cancel()
+            state.reconnectTask = nil
+
             if let session = state.session {
                 try? await session.close()
             }
@@ -244,6 +258,55 @@ public class BroadcastManager: NSObject {
                 try? await mixer.attachAudio(mic)
             } else {
                 try? await mixer.attachAudio(nil)
+            }
+        }
+    }
+
+    // Schedule a reconnect with exponential backoff using the current session.
+    private static func scheduleReconnect(instanceId: String) {
+        let state = BroadcastRegistry.shared.state(for: instanceId)
+        guard state.shouldReconnect, state.isRunning else { return }
+
+        let nextAttempt = state.reconnectAttempts + 1
+        if nextAttempt > state.maxReconnectAttempts {
+            print(
+                "[Broadcast][\(instanceId)] Reconnect: max attempts reached, giving up"
+            )
+            Task { @MainActor in
+                state.isRunning = false
+                BroadcastManager.cleanupInstance(instanceId: instanceId)
+            }
+            return
+        }
+        state.reconnectAttempts = nextAttempt
+
+        let delay = min(2.5, pow(2.0, Double(nextAttempt - 1)))
+        print(
+            "[Broadcast][\(instanceId)] Reconnect scheduled in \(delay)s (attempt \(nextAttempt)/\(state.maxReconnectAttempts))"
+        )
+
+        state.reconnectTask?.cancel()
+        state.reconnectTask = Task { [instanceId] in
+            do {
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+
+                let state = BroadcastRegistry.shared.state(for: instanceId)
+                guard state.shouldReconnect, state.isRunning,let session = state.session else { return }
+
+                try await session.close()
+                try await session.connect {
+                    print(
+                        "[Broadcast][\(instanceId)] RTMP connection closed unexpectedly"
+                    )
+                    BroadcastManager.scheduleReconnect(instanceId: instanceId)
+                }
+
+                print("[Broadcast][\(instanceId)] RTMP reconnected")
+                state.reconnectAttempts = 0
+            } catch {
+                print(
+                    "[Broadcast][\(instanceId)] Reconnect task error: \(error)"
+                )
             }
         }
     }
