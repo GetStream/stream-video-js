@@ -2,14 +2,14 @@
 public class BroadcastRegistry: NSObject {
     @objc public static let shared = BroadcastRegistry()
 
-    private var states: [String: BroadcastInstanceState] = [:]
+    private var states: [String: BroadcastState] = [:]
 
     private override init() { super.init() }
 
     @objc
-    public func state(for instanceId: String) -> BroadcastInstanceState {
+    public func state(for instanceId: String) -> BroadcastState {
         if let existing = states[instanceId] { return existing }
-        let state = BroadcastInstanceState()
+        let state = BroadcastState()
         state.instanceId = instanceId
         states[instanceId] = state
         return state

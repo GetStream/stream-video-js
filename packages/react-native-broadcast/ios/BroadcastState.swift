@@ -1,5 +1,5 @@
 //
-//  BroadcastInstanceState.swift
+//  BroadcastState.swift
 //
 //  Created by Oliver Lazoroski on 23.10.25.
 //
@@ -7,7 +7,7 @@ import HaishinKit
 import AVFoundation
 
 @objc
-public class BroadcastInstanceState: NSObject {
+public class BroadcastState: NSObject {
     // Identifier for correlating events with JS instances
     var instanceId: String = ""
 
