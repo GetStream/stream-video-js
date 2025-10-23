@@ -3197,29 +3197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gorhom/bottom-sheet@npm:5.1.6":
-  version: 5.1.6
-  resolution: "@gorhom/bottom-sheet@npm:5.1.6"
-  dependencies:
-    "@gorhom/portal": "npm:1.0.14"
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    "@types/react": "*"
-    "@types/react-native": "*"
-    react: "*"
-    react-native: "*"
-    react-native-gesture-handler: ">=2.16.1"
-    react-native-reanimated: ">=3.16.0"
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-native":
-      optional: true
-  checksum: 10/321d85abac24cfab5ce6c77623381c73d95a09d8b1d95c0e7e968540af5c9d1bd3369b669459df483a962f65a363ea929940f006a1b4f3acf8f4b31500c4863f
-  languageName: node
-  linkType: hard
-
-"@gorhom/bottom-sheet@npm:^5.1.8":
+"@gorhom/bottom-sheet@npm:5.2.6, @gorhom/bottom-sheet@npm:^5.1.8":
   version: 5.2.6
   resolution: "@gorhom/bottom-sheet@npm:5.2.6"
   dependencies:
@@ -7477,7 +7455,7 @@ __metadata:
     "@babel/core": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
-    "@gorhom/bottom-sheet": "npm:5.1.6"
+    "@gorhom/bottom-sheet": "npm:5.2.6"
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-camera-roll/camera-roll": "npm:7.10.2"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"

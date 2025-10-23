@@ -11,7 +11,7 @@
     "setup": "yarn && yarn build:react-native:deps && npx pod-install"
   },
   "dependencies": {
-    "@gorhom/bottom-sheet": "5.1.6",
+    "@gorhom/bottom-sheet": "5.2.6",
     "@notifee/react-native": "9.1.8",
     "@react-native-camera-roll/camera-roll": "7.10.2",
     "@react-native-clipboard/clipboard": "^1.16.3",
