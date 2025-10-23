@@ -131,26 +131,10 @@ public class BroadcastManager: NSObject {
                 state.session = session
                 state.isRunning = true
 
-                // Emit events: started and current media state
-                BroadcastEventEmitter.emit("broadcast.started", body: [
-                    "instanceId": instanceId,
-                    "running": true
-                ])
-                BroadcastEventEmitter.emit("broadcast.mediaStateUpdated", body: [
-                    "instanceId": instanceId,
-                    "cameraEnabled": state.cameraEnabled,
-                    "microphoneEnabled": state.micEnabled,
-                    "cameraDirection": state.cameraPosition == .back ? "back" : "front"
-                ])
-
                 completion(nil)
             } catch {
                 print("[Broadcast][\(instanceId)] start error: \(error)")
                 await BroadcastManager.cleanupInstance(instanceId: instanceId)
-                BroadcastEventEmitter.emit("broadcast.started", body:[
-                    "instanceId": instanceId,
-                    "running": false
-                ])
                 completion(error as NSError)
             }
         }
@@ -180,11 +164,9 @@ public class BroadcastManager: NSObject {
                     await mixer.removeOutput(session.stream)
                 }
             }
+            // Reactive emission via didSet
+            state.isRunning = false
             await BroadcastManager.cleanupInstance(instanceId: instanceId)
-            BroadcastEventEmitter.emit("broadcast.started", body: [
-                "instanceId": instanceId,
-                "running": false
-            ])
             completion(nil)
         }
     }
@@ -198,13 +180,6 @@ public class BroadcastManager: NSObject {
         let position: AVCaptureDevice.Position =
             (direction.lowercased() == "back") ? .back : .front
         state.cameraPosition = position
-        // Emit media state update
-        BroadcastEventEmitter.emit("broadcast.mediaStateUpdated", body: [
-            "instanceId": instanceId,
-            "cameraEnabled": state.cameraEnabled,
-            "microphoneEnabled": state.micEnabled,
-            "cameraDirection": position == .back ? "back" : "front"
-        ])
         guard let mixer = state.mixer else { return }
         Task {
             let camera = AVCaptureDevice.default(
@@ -225,13 +200,6 @@ public class BroadcastManager: NSObject {
     ) {
         let state = BroadcastRegistry.shared.state(for: instanceId)
         state.cameraEnabled = enabled
-        // Emit media state update
-        BroadcastEventEmitter.emit("broadcast.mediaStateUpdated", body:[
-            "instanceId": instanceId,
-            "cameraEnabled": state.cameraEnabled,
-            "microphoneEnabled": state.micEnabled,
-            "cameraDirection": state.cameraPosition == .back ? "back" : "front"
-        ])
         guard let mixer = state.mixer else { return }
         Task {
             if enabled {
@@ -257,13 +225,6 @@ public class BroadcastManager: NSObject {
     ) {
         let state = BroadcastRegistry.shared.state(for: instanceId)
         state.micEnabled = enabled
-        // Emit media state update
-        BroadcastEventEmitter.emit("broadcast.mediaStateUpdated", body:[
-            "instanceId": instanceId,
-            "cameraEnabled": state.cameraEnabled,
-            "microphoneEnabled": state.micEnabled,
-            "cameraDirection": state.cameraPosition == .back ? "back" : "front"
-        ])
         guard let mixer = state.mixer else { return }
         Task {
             if enabled {
