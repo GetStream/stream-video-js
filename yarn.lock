@@ -5714,6 +5714,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-camera-roll/camera-roll@npm:7.10.2":
+  version: 7.10.2
+  resolution: "@react-native-camera-roll/camera-roll@npm:7.10.2"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: 10/5bb5ce386d8c3b5695397e24f303d4fbee505d8f4bf2a2e07f4d6ed4026b95a6b7509cda9ed7db3548c41df9b41ec80e24ed31e160b7390608d8d52e3c000e78
+  languageName: node
+  linkType: hard
+
 "@react-native-clipboard/clipboard@npm:^1.16.3":
   version: 1.16.3
   resolution: "@react-native-clipboard/clipboard@npm:1.16.3"
@@ -7470,6 +7479,7 @@ __metadata:
     "@babel/runtime": "npm:^7.28.4"
     "@gorhom/bottom-sheet": "npm:5.1.6"
     "@notifee/react-native": "npm:9.1.8"
+    "@react-native-camera-roll/camera-roll": "npm:7.10.2"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
     "@react-native-community/cli": "npm:20.0.0"
     "@react-native-community/cli-platform-android": "npm:20.0.0"
