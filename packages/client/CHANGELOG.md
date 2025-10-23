@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.34.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.34.0...@stream-io/video-client-1.34.1) (2025-10-17)
+
+### Bug Fixes
+
+- camera toggle along with flip ([#1961](https://github.com/GetStream/stream-video-js/issues/1961)) ([2703121](https://github.com/GetStream/stream-video-js/commit/2703121d27aee7a54bdc07b99a30feea9a4e4512))
+
 ## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.33.1...@stream-io/video-client-1.34.0) (2025-10-14)
 
 - use fromPartial instead of suppressing ts-errors ([#1949](https://github.com/GetStream/stream-video-js/issues/1949)) ([95e5654](https://github.com/GetStream/stream-video-js/commit/95e5654e2bac5dc7c5126079795fca9951652290))

@@ -8,6 +8,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
+import { useConfigurationContext } from '../../../ConfigurationContext';
 
 import './DominantSpeakerScreenShare.scss';
 
@@ -23,6 +24,12 @@ export const DominantSpeakerScreenShare = () => {
       SfuModels.TrackType.SCREEN_SHARE,
     );
 
+  const {
+    options: {
+      'layout.single-participant.presenter_visible': presenterVisible = true,
+    },
+  } = useConfigurationContext();
+
   return (
     <div
       className="eca__dominant-speaker-screen-share__container"
@@ -36,18 +43,20 @@ export const DominantSpeakerScreenShare = () => {
         muteAudio // audio is handled by <ParticipantsAudio />
         ParticipantViewUI={null}
       />
-      <div className="eca__dominant-speaker-screen-share__current-speaker">
-        <ParticipantView
-          participant={screensharingParticipant}
-          muteAudio // audio is handled by <ParticipantsAudio />
-          ParticipantViewUI={
-            <DefaultParticipantViewUI
-              indicatorsVisible={false}
-              showMenuButton={false}
-            />
-          }
-        />
-      </div>
+      {presenterVisible && (
+        <div className="eca__dominant-speaker-screen-share__current-speaker">
+          <ParticipantView
+            participant={screensharingParticipant}
+            muteAudio // audio is handled by <ParticipantsAudio />
+            ParticipantViewUI={
+              <DefaultParticipantViewUI
+                indicatorsVisible={false}
+                showMenuButton={false}
+              />
+            }
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -6,6 +6,7 @@ import {
   Comparator,
   defaultSortPreset,
   hasAudio,
+  hasScreenShare,
   hasVideo,
   isPinned,
   paginatedLayoutSortPreset,
@@ -23,11 +24,12 @@ export type FilterableParticipant = Pick<
   isPinned: boolean;
   hasVideo: boolean;
   hasAudio: boolean;
+  hasScreenShare: boolean;
 };
 
 export type ParticipantFilter = Filter<FilterableParticipant>;
 export type ParticipantPredicate = (
-  paritcipant: StreamVideoParticipant,
+  participant: StreamVideoParticipant,
 ) => boolean;
 
 export const useFilteredParticipants = ({
@@ -74,6 +76,7 @@ export const applyParticipantsFilter = (
               isPinned: isPinned(participant),
               hasVideo: hasVideo(participant),
               hasAudio: hasAudio(participant),
+              hasScreenShare: hasScreenShare(participant),
             },
             filter,
           );
@@ -111,10 +114,10 @@ export const useSpeakerLayoutSortPreset = (
 
 export const useRawRemoteParticipants = () => {
   const { useRawParticipants } = useCallStateHooks();
-  const rawParicipants = useRawParticipants();
+  const rawParticipants = useRawParticipants();
   return useMemo(
-    () => rawParicipants.filter((p) => !p.isLocalParticipant),
-    [rawParicipants],
+    () => rawParticipants.filter((p) => !p.isLocalParticipant),
+    [rawParticipants],
   );
 };
 

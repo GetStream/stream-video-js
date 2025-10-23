@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.0...@stream-io/video-react-native-sdk-1.22.1) (2025-10-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.34.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.1`
+
+### Bug Fixes
+
+- videorenderer didnt call update subscriptions on remote reconnect ([#1964](https://github.com/GetStream/stream-video-js/issues/1964)) ([cb85bb4](https://github.com/GetStream/stream-video-js/commit/cb85bb495fe0fbe6ab803de2765e4c38bc74cd2f))
+
 ## [1.22.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.21.2...@stream-io/video-react-native-sdk-1.22.0) (2025-10-14)
 
 ### Dependency Updates
