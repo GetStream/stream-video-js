@@ -39,6 +39,7 @@ import type {
   EndCallResponse,
   GetCallReportResponse,
   GetCallResponse,
+  GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -55,6 +56,8 @@ import type {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  QueryCallSessionParticipantStatsResponse,
+  QueryCallSessionParticipantStatsTimelineResponse,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
@@ -2559,30 +2562,40 @@ export class Call {
   };
 
   /**
-   * Loads the call report for the given session ID.
+   * Loads the call participant stats for the given parameters.
    */
   getCallParticipantsStats = async (opts: {
     sessionId?: string;
     userId?: string;
     userSessionId?: string;
     kind?: 'timeline' | 'details';
-  }): Promise<any> => {
+  }): Promise<
+    | QueryCallSessionParticipantStatsResponse
+    | GetCallSessionParticipantStatsDetailsResponse
+    | QueryCallSessionParticipantStatsTimelineResponse
+    | undefined
+  > => {
     const {
       sessionId = this.state.session?.id,
       userId = this.currentUserId,
       userSessionId = this.unifiedSessionId,
       kind = 'details',
     } = opts;
-    // FIXME OL: not yet part of the API
     if (!sessionId) return;
     const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
-    const endpoint =
-      userId && userSessionId
-        ? kind === 'details'
-          ? `${base}/participant/${userId}/${userSessionId}/details`
-          : `${base}/participants/${userId}/${userSessionId}/timeline`
-        : `${base}/participants`;
-    return this.streamClient.get(endpoint);
+    if (!userId || !userSessionId) {
+      return this.streamClient.get<QueryCallSessionParticipantStatsResponse>(
+        `${base}/participants`,
+      );
+    }
+    if (kind === 'details') {
+      return this.streamClient.get<GetCallSessionParticipantStatsDetailsResponse>(
+        `${base}/participant/${userId}/${userSessionId}/details`,
+      );
+    }
+    return this.streamClient.get<QueryCallSessionParticipantStatsTimelineResponse>(
+      `${base}/participants/${userId}/${userSessionId}/timeline`,
+    );
   };
 
   /**
