@@ -65,6 +65,8 @@ public class BroadcastManager: NSObject {
                 await audioSourceService.setUp()
 
                 let mixer = MediaMixer(captureSessionMode: .single)
+                try await mixer.setFrameRate(30)
+                
                 await mixer.configuration { session in
                     session.automaticallyConfiguresApplicationAudioSession = false
                     session.sessionPreset = .hd1280x720
