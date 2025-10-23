@@ -50,6 +50,9 @@
     "url": "https://github.com/GetStream/stream-video-js/issues"
   },
   "homepage": "https://github.com/GetStream/stream-video-js",
+  "dependencies": {
+    "rxjs": "^7.8.1"
+  },
   "devDependencies": {
     "@react-native-community/cli": "20.0.0",
     "@react-native/babel-preset": "^0.81.4",
