@@ -7496,6 +7496,7 @@ __metadata:
     react: "npm:19.1.0"
     react-native: "npm:^0.81.4"
     react-native-builder-bob: "npm:^0.40.13"
+    rxjs: "npm:^7.8.2"
     typescript: "npm:^5.9.3"
   peerDependencies:
     react: "*"
@@ -21186,7 +21187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.8.2, rxjs@npm:^7.5.5, rxjs@npm:~7.8.2":
+"rxjs@npm:7.8.2, rxjs@npm:^7.5.5, rxjs@npm:^7.8.2, rxjs@npm:~7.8.2":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
