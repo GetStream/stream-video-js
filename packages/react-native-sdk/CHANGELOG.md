@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.22.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.1...@stream-io/video-react-native-sdk-1.22.2) (2025-10-24)
+
+### Bug Fixes
+
+- compilation error in older kotlin versions ([cedb942](https://github.com/GetStream/stream-video-js/commit/cedb94296ca659a1ad5584d3bd3d29f6be12c3ab))
+
 ## [1.22.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.0...@stream-io/video-react-native-sdk-1.22.1) (2025-10-17)
 
 ### Dependency Updates
