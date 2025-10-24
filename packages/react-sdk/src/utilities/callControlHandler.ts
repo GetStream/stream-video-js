@@ -1,5 +1,3 @@
-import { getLogger } from '@stream-io/video-client';
-
 export type PropsWithErrorHandler<T = unknown> = T & {
   /**
    * Will be called if the call control action failed with an error (e.g. user didn't grant a
@@ -20,8 +18,6 @@ export const createCallControlHandler = (
   props: PropsWithErrorHandler,
   handler: () => Promise<void>,
 ): (() => Promise<void>) => {
-  const logger = getLogger(['react-sdk']);
-
   return async () => {
     try {
       await handler();
@@ -32,7 +28,7 @@ export const createCallControlHandler = (
       }
 
       if (!isNotAllowedError(error)) {
-        logger('error', 'Call control handler failed', error);
+        console.error('Call control handler failed', error);
       }
     }
   };

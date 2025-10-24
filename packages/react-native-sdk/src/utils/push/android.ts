@@ -1,9 +1,4 @@
-import {
-  Call,
-  CallingState,
-  getLogger,
-  StreamVideoClient,
-} from '@stream-io/video-client';
+import { Call, CallingState, StreamVideoClient } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
@@ -36,6 +31,7 @@ import {
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { getAndroidDefaultRingtoneUrl } from '../getAndroidDefaultRingtoneUrl';
 import { StreamVideoRN } from '../StreamVideoRN';
+import { getLogger } from '@stream-io/logger';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -59,19 +55,18 @@ export async function initAndroidPushToken(
   if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
     return;
   }
-  const logger = getLogger(['initAndroidPushToken']);
+  const logger = getLogger('initAndroidPushToken');
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
     if (client.streamClient.anonymous) {
-      logger('debug', 'Skipped sending firebase token for anonymous user');
+      logger.debug('Skipped sending firebase token for anonymous user');
       return;
     }
     if (
       lastFirebaseToken.token === token &&
       lastFirebaseToken.userId === userId
     ) {
-      logger(
-        'debug',
+      logger.debug(
         `Skipping setting the same token again for userId: ${userId} and token: ${token}`,
       );
       return;
@@ -80,14 +75,14 @@ export async function initAndroidPushToken(
     setPushLogoutCallback(async () => {
       lastFirebaseToken = { token: '', userId: '' };
       try {
-        logger('debug', `Logout removeDeviceToken: ${token}`);
+        logger.debug(`Logout removeDeviceToken: ${token}`);
         await client.removeDevice(token);
       } catch (err) {
-        logger('warn', 'Failed to remove firebase token from stream', err);
+        logger.warn('Failed to remove firebase token from stream', err);
       }
     });
     const push_provider_name = pushConfig.android.pushProviderName;
-    logger('debug', `sending firebase token: ${token} for userId: ${userId}`);
+    logger.debug(`sending firebase token: ${token} for userId: ${userId}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
   if (pushConfig.isExpo) {
@@ -95,7 +90,7 @@ export async function initAndroidPushToken(
       ? getExpoNotificationsLib()
       : getExpoNotificationsLibNoThrow();
     if (expoNotificationsLib) {
-      logger('debug', `setting expo notification token listeners`);
+      logger.debug(`setting expo notification token listeners`);
       const subscription = expoNotificationsLib.addPushTokenListener(
         (devicePushToken) => {
           setDeviceToken(devicePushToken.data);
@@ -114,7 +109,7 @@ export async function initAndroidPushToken(
       ? getFirebaseMessagingLibNoThrow(true)
       : getFirebaseMessagingLib();
   if (messaging) {
-    logger('debug', `setting firebase token listeners`);
+    logger.debug(`setting firebase token listeners`);
     const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
       setDeviceToken(refreshedToken),
     );
@@ -155,9 +150,8 @@ export const firebaseDataHandler = async (
   const notifee = notifeeLib.default;
   const settings = await notifee.getNotificationSettings();
   if (settings.authorizationStatus !== 1) {
-    const logger = getLogger(['firebaseDataHandler']);
-    logger(
-      'debug',
+    const logger = getLogger('firebaseDataHandler');
+    logger.debug(
       `Notification permission not granted, unable to post ${data.type} notifications`,
     );
     return;
@@ -192,8 +186,7 @@ export const firebaseDataHandler = async (
         return new Promise(async () => {
           const client = await pushConfig.createStreamVideoClient();
           if (!client) {
-            getLogger(['firebaseMessagingOnMessageHandler'])(
-              'debug',
+            getLogger('firebaseMessagingOnMessageHandler').debug(
               `Closing fg service as there is no client to create from push config`,
             );
             notifee.stopForegroundService();
@@ -202,8 +195,7 @@ export const firebaseDataHandler = async (
           const callFromPush = await client.onRingingCall(call_cid);
           let _shouldCallBeClosed = shouldCallBeClosed(callFromPush);
           if (_shouldCallBeClosed) {
-            getLogger(['firebaseMessagingOnMessageHandler'])(
-              'debug',
+            getLogger('firebaseMessagingOnMessageHandler').debug(
               `Closing fg service callCid: ${call_cid} shouldCallBeClosed: ${_shouldCallBeClosed}`,
             );
             notifee.stopForegroundService();
@@ -214,8 +206,7 @@ export const firebaseDataHandler = async (
           const unsubscribe = callFromPush.on('all', (event) => {
             const _canListenToWS = canListenToWS();
             if (!_canListenToWS) {
-              getLogger(['firebaseMessagingOnMessageHandler'])(
-                'debug',
+              getLogger('firebaseMessagingOnMessageHandler').debug(
                 `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
                 { event },
               );
@@ -225,8 +216,7 @@ export const firebaseDataHandler = async (
             }
             _shouldCallBeClosed = shouldCallBeClosed(callFromPush);
             if (_shouldCallBeClosed) {
-              getLogger(['firebaseMessagingOnMessageHandler'])(
-                'debug',
+              getLogger('firebaseMessagingOnMessageHandler').debug(
                 `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed: ${_shouldCallBeClosed}`,
                 { event },
               );
@@ -241,8 +231,7 @@ export const firebaseDataHandler = async (
                 callingState === CallingState.IDLE ||
                 callingState === CallingState.LEFT
               ) {
-                getLogger(['firebaseMessagingOnMessageHandler'])(
-                  'debug',
+                getLogger('firebaseMessagingOnMessageHandler').debug(
                   `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
                 );
                 unsubscribeFunctions.forEach((fn) => fn());
@@ -261,9 +250,8 @@ export const firebaseDataHandler = async (
     const incomingCallNotificationTextGetters =
       pushConfig.android.incomingCallNotificationTextGetters;
     if (!incomingCallChannel || !incomingCallNotificationTextGetters) {
-      const logger = getLogger(['firebaseMessagingOnMessageHandler']);
-      logger(
-        'error',
+      const logger = getLogger('firebaseMessagingOnMessageHandler');
+      logger.error(
         "Can't show incoming call notification as either or both incomingCallChannel and incomingCallNotificationTextGetters were not provided",
       );
       return;
@@ -284,8 +272,7 @@ export const firebaseDataHandler = async (
     const title = getTitle(createdUserName);
     const body = getBody(createdUserName);
 
-    getLogger(['firebaseMessagingOnMessageHandler'])(
-      'debug',
+    getLogger('firebaseMessagingOnMessageHandler').debug(
       `Displaying incoming call notification with callCid: ${call_cid} title: ${title} body: ${body} asForegroundService: ${asForegroundService}`,
     );
 
@@ -346,8 +333,7 @@ export const firebaseDataHandler = async (
     const callFromPush = await client.onRingingCall(call_cid);
 
     if (shouldCallBeClosed(callFromPush)) {
-      getLogger(['firebaseMessagingOnMessageHandler'])(
-        'debug',
+      getLogger('firebaseMessagingOnMessageHandler').debug(
         `Removing incoming call notification immediately with callCid: ${call_cid} as it should be closed`,
       );
       notifee.cancelDisplayedNotification(call_cid);
@@ -358,9 +344,8 @@ export const firebaseDataHandler = async (
     const callNotificationTextGetters =
       pushConfig.android.callNotificationTextGetters;
     if (!callChannel || !callNotificationTextGetters) {
-      const logger = getLogger(['firebaseMessagingOnMessageHandler']);
-      logger(
-        'debug',
+      const logger = getLogger('firebaseMessagingOnMessageHandler');
+      logger.debug(
         "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
       );
       return;
@@ -375,8 +360,7 @@ export const firebaseDataHandler = async (
     const title = getTitle(type, createdUserName);
     const body = getBody(type, createdUserName);
 
-    getLogger(['firebaseMessagingOnMessageHandler'])(
-      'debug',
+    getLogger('firebaseMessagingOnMessageHandler').debug(
       `Displaying NonRingingPushEvent ${type} notification with title: ${title} body: ${body}`,
     );
     await notifee.displayNotification({
@@ -450,8 +434,7 @@ export const onAndroidNotifeeEvent = async ({
       mustDecline ||
       type === notifeeLib.EventType.ACTION_PRESS
     ) {
-      getLogger(['onAndroidNotifeeEvent'])(
-        'debug',
+      getLogger('onAndroidNotifeeEvent').debug(
         `clearPushWSEventSubscriptions for callCId: ${call_cid} mustAccept: ${mustAccept} mustDecline: ${mustDecline}`,
       );
       clearPushWSEventSubscriptions(call_cid);
@@ -459,42 +442,36 @@ export const onAndroidNotifeeEvent = async ({
     }
 
     if (mustAccept) {
-      getLogger(['onAndroidNotifeeEvent'])(
-        'debug',
+      getLogger('onAndroidNotifeeEvent').debug(
         `pushAcceptedIncomingCallCId$ added with callCId: ${call_cid}`,
       );
       pushAcceptedIncomingCallCId$.next(call_cid);
       // NOTE: accept will be handled by the app with rxjs observers as the app will go to foreground always
     } else if (mustDecline) {
-      getLogger(['onAndroidNotifeeEvent'])(
-        'debug',
+      getLogger('onAndroidNotifeeEvent').debug(
         `pushRejectedIncomingCallCId$ added with callCId: ${call_cid}`,
       );
       pushRejectedIncomingCallCId$.next(call_cid);
       if (hasObservers) {
         // if we had observers we can return here as the observers will handle the call as the app is in the foreground state
-        getLogger(['onAndroidNotifeeEvent'])(
-          'debug',
+        getLogger('onAndroidNotifeeEvent').debug(
           `Skipped processCallFromPushInBackground for Declining call with callCId: ${call_cid} as the app is in the foreground state`,
         );
         return;
       }
-      getLogger(['onAndroidNotifeeEvent'])(
-        'debug',
+      getLogger('onAndroidNotifeeEvent').debug(
         `start processCallFromPushInBackground - Declining call with callCId: ${call_cid}`,
       );
       await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
     } else {
       if (type === notifeeLib.EventType.PRESS) {
-        getLogger(['onAndroidNotifeeEvent'])(
-          'debug',
+        getLogger('onAndroidNotifeeEvent').debug(
           `pushTappedIncomingCallCId$ added with callCId: ${call_cid}`,
         );
         pushTappedIncomingCallCId$.next(call_cid);
         // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
       } else if (isBackground && type === notifeeLib.EventType.DELIVERED) {
-        getLogger(['onAndroidNotifeeEvent'])(
-          'debug',
+        getLogger('onAndroidNotifeeEvent').debug(
           `pushAndroidBackgroundDeliveredIncomingCallCId$ added with callCId: ${call_cid}`,
         );
         pushAndroidBackgroundDeliveredIncomingCallCId$.next(call_cid);
@@ -504,8 +481,7 @@ export const onAndroidNotifeeEvent = async ({
   } else {
     const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
     if (type === notifeeLib.EventType.PRESS) {
-      getLogger(['onAndroidNotifeeEvent'])(
-        'debug',
+      getLogger('onAndroidNotifeeEvent').debug(
         `onTapNonRingingCallNotification with callCId: ${call_cid}`,
       );
       pushConfig.onTapNonRingingCallNotification?.(

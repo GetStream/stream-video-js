@@ -1,7 +1,6 @@
 import {
   StreamVideoParticipant,
   type VideoTrackType,
-  getLogger,
 } from '@stream-io/video-client';
 import React, {
   createContext,
@@ -11,6 +10,7 @@ import React, {
   useMemo,
 } from 'react';
 import { NativeModules, findNodeHandle, Platform } from 'react-native';
+import { getLogger } from '@stream-io/logger';
 
 const { StreamVideoReactNative } = NativeModules;
 
@@ -85,8 +85,7 @@ export const ScreenshotIosContextProvider = ({
           `${participant.userId}-${videoTrackType}`,
         );
         if (!ref || !ref.current) {
-          getLogger(['ScreenshotIosContextProvider'])(
-            'error',
+          getLogger('ScreenshotIosContextProvider').error(
             'Cannot take snapshot: No registered view for this participant',
           );
           return null;
@@ -95,8 +94,7 @@ export const ScreenshotIosContextProvider = ({
         // Get the native handle for the view
         const tag = findNodeHandle(ref.current);
         if (!tag) {
-          getLogger(['ScreenshotIosContextProvider'])(
-            'error',
+          getLogger('ScreenshotIosContextProvider').error(
             'Cannot take snapshot: Cannot get native handle for view',
           );
           return null;
@@ -107,8 +105,7 @@ export const ScreenshotIosContextProvider = ({
 
         return base64Image;
       } catch (error) {
-        getLogger(['ScreenshotIosContextProvider'])(
-          'error',
+        getLogger('ScreenshotIosContextProvider').error(
           'Error taking participant snapshot:',
           error,
         );

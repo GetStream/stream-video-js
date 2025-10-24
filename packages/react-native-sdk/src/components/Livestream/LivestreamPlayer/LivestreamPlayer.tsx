@@ -3,9 +3,10 @@ import {
   ViewerLivestream as DefaultViewerLivestream,
   type ViewerLivestreamProps,
 } from '../ViewerLivestream';
-import { Call, CallingState, getLogger } from '@stream-io/video-client';
+import { Call, CallingState } from '@stream-io/video-client';
 import { StreamCall } from '../../../providers/StreamCall';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { getLogger } from '@stream-io/logger';
 
 export type LivestreamPlayerProps = {
   /**
@@ -55,8 +56,8 @@ export const LivestreamPlayer = ({
     return () => {
       if (myCall.state.callingState !== CallingState.LEFT) {
         myCall.leave().catch((e) => {
-          const logger = getLogger(['LivestreamPlayer']);
-          logger('error', 'Error leaving call:', e);
+          const logger = getLogger('LivestreamPlayer');
+          logger.error('Error leaving call:', e);
         });
       }
       setCall(undefined);
@@ -68,8 +69,8 @@ export const LivestreamPlayer = ({
       // this handles unmount on metro reloads
       if (call?.state.callingState !== CallingState.LEFT) {
         call?.leave().catch((e) => {
-          const logger = getLogger(['LivestreamPlayer']);
-          logger('error', 'Error leaving call:', e);
+          const logger = getLogger('LivestreamPlayer');
+          logger.error('Error leaving call:', e);
         });
       }
     };

@@ -18,8 +18,7 @@ export const handleRemoteSoftMute = (call: Call) => {
       sessionId === localParticipant?.sessionId
     ) {
       const logger = call.logger;
-      logger(
-        'info',
+      logger.info(
         `Local participant's ${TrackType[type]} track is muted remotely`,
       );
       try {
@@ -33,14 +32,10 @@ export const handleRemoteSoftMute = (call: Call) => {
         ) {
           await call.screenShare.disable();
         } else {
-          logger(
-            'warn',
-            'Unsupported track type to soft mute',
-            TrackType[type],
-          );
+          logger.warn('Unsupported track type to soft mute', TrackType[type]);
         }
       } catch (error) {
-        logger('error', 'Failed to stop publishing', error);
+        logger.error('Failed to stop publishing', error);
       }
     }
   });

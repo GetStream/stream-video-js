@@ -18,11 +18,7 @@ import {
   type HangUpCallButtonProps,
 } from '../CallControls';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import {
-  CallingState,
-  getLogger,
-  type StreamReaction,
-} from '@stream-io/video-client';
+import { CallingState, type StreamReaction } from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -43,6 +39,7 @@ import {
 } from '../../utility/ScreenShareOverlay';
 import { RTCViewPipIOS } from './RTCViewPipIOS';
 import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
+import { getLogger } from '@stream-io/logger';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -151,16 +148,12 @@ export const CallContent = ({
   useEffect(() => {
     if (isInPiPMode && Platform.OS === 'android') {
       const unsubFunc = call?.on('call.ended', () => {
-        getLogger(['CallContent'])(
-          'debug',
-          `exiting PiP mode due to call.ended`,
-        );
+        getLogger('CallContent').debug(`exiting PiP mode due to call.ended`);
         NativeModules.StreamVideoReactNative.exitPipMode();
       });
       const subscription = call?.state.callingState$.subscribe((state) => {
         if (state === CallingState.LEFT) {
-          getLogger(['CallContent'])(
-            'debug',
+          getLogger('CallContent').debug(
             `exiting PiP mode due to callingState: LEFT`,
           );
           NativeModules.StreamVideoReactNative.exitPipMode();

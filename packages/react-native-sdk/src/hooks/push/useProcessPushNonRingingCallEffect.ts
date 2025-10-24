@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { filter } from 'rxjs/operators';
 import { processNonIncomingCallFromPush } from '../../utils/push/internal/utils';
-import { getLogger } from '@stream-io/video-client';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * This hook is used to process the non ringing call data via push notifications using the relevant rxjs subject
@@ -27,8 +27,7 @@ export const useProcessPushNonRingingCallEffect = () => {
     const subscription = pushNonRingingCallData$
       .pipe(filter(NotUndefined))
       .subscribe(async ({ cid, type }) => {
-        getLogger(['useProcessPushNonRingingCallEffect'])(
-          'debug',
+        getLogger('useProcessPushNonRingingCallEffect').debug(
           `processNonIncomingCallFromPush with callCId: ${cid} and type: ${type}`,
         );
         await processNonIncomingCallFromPush(client, cid, type);

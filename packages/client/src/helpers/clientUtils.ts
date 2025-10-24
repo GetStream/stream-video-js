@@ -4,7 +4,6 @@ import type {
   TokenOrProvider,
   User,
 } from '../coordinator/connection/types';
-import { getLogger } from '../logger';
 import { StreamClient } from '../coordinator/connection/client';
 import { getSdkInfo } from './client-details';
 import { SdkType } from '../gen/video/sfu/models/models';
@@ -50,12 +49,11 @@ export const createCoordinatorClient = (
   options: StreamClientOptions | undefined,
 ) => {
   const clientAppIdentifier = getClientAppIdentifier(options);
-  const coordinatorLogger = getLogger(['coordinator']);
+
   return new StreamClient(apiKey, {
     persistUserOnConnectionFailure: true,
     ...options,
     clientAppIdentifier,
-    logger: coordinatorLogger,
   });
 };
 

@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  getLogger,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '@stream-io/video-client';
@@ -16,6 +15,7 @@ import {
   getNoiseCancellationLibThrowIfNotInstalled,
   NoiseCancellationWrapper,
 } from './lib';
+import { getLogger } from '@stream-io/logger';
 
 /**
  * The Noise Cancellation API.
@@ -100,8 +100,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     call.microphone
       .enableNoiseCancellation(ncInstance)
       .catch((err) =>
-        getLogger(['NoiseCancellationProvider'])(
-          'error',
+        getLogger('NoiseCancellationProvider').error(
           `Can't initialize noise suppression`,
           err,
         ),
@@ -111,8 +110,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
       call.microphone
         .disableNoiseCancellation()
         .catch((err) =>
-          getLogger(['NoiseCancellationProvider'])(
-            'error',
+          getLogger('NoiseCancellationProvider').error(
             `Can't disable noise suppression`,
             err,
           ),

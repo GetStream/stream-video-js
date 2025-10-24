@@ -1,11 +1,11 @@
 import {
-  getLogger,
   OwnCapability,
   type PermissionRequestEvent,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
+import { getLogger } from '@stream-io/logger';
 
 export const usePermissionRequest = () => {
   const call = useCall();
@@ -39,8 +39,8 @@ export const usePermissionRequest = () => {
             await call?.revokePermissions(user.id, permissions);
           }
         } catch (err) {
-          const logger = getLogger(['usePermissionRequest']);
-          logger('error', 'error handling permissions: ', err);
+          const logger = getLogger('usePermissionRequest');
+          logger.error('error handling permissions: ', err);
         }
       };
     },

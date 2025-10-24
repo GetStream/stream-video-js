@@ -1,15 +1,11 @@
-import {
-  Call,
-  CallingState,
-  getLogger,
-  StreamVideoClient,
-} from '@stream-io/video-client';
+import { Call, CallingState, StreamVideoClient } from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
 import { pushUnsubscriptionCallbacks } from './constants';
+import { getLogger } from '@stream-io/logger';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -56,8 +52,7 @@ export const shouldCallBeEnded = (
       callkeepReason = 4;
     }
   }
-  getLogger(['shouldCallBeEnded'])(
-    'debug',
+  getLogger('shouldCallBeEnded').debug(
     `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} callkeepReason: ${callkeepReason}`,
   );
   return { mustEndCall, callkeepReason };
@@ -80,8 +75,8 @@ export const processCallFromPushInBackground = async (
       return;
     }
   } catch (e) {
-    const logger = getLogger(['processCallFromPushInBackground']);
-    logger('error', 'failed to create video client', e);
+    const logger = getLogger('processCallFromPushInBackground');
+    logger.error('failed to create video client', e);
     return;
   }
   await processCallFromPush(videoClient, call_cid, action, pushConfig);
@@ -104,8 +99,8 @@ export const processCallFromPush = async (
   try {
     callFromPush = await client.onRingingCall(call_cid);
   } catch (e) {
-    const logger = getLogger(['processCallFromPush']);
-    logger('error', 'failed to fetch call from push notification', e);
+    const logger = getLogger('processCallFromPush');
+    logger.error('failed to fetch call from push notification', e);
     return;
   }
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
@@ -114,27 +109,21 @@ export const processCallFromPush = async (
       if (pushConfig.publishOptions) {
         callFromPush.updatePublishOptions(pushConfig.publishOptions);
       }
-      getLogger(['processCallFromPush'])(
-        'debug',
+      getLogger('processCallFromPush').debug(
         `joining call from push notification with callCid: ${callFromPush.cid}`,
       );
       await callFromPush.join();
     } else if (action === 'decline') {
       const canReject =
         callFromPush.state.callingState === CallingState.RINGING;
-      getLogger(['processCallFromPush'])(
-        'debug',
+      getLogger('processCallFromPush').debug(
         `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
       );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
-    const logger = getLogger(['processCallFromPush']);
-    logger(
-      'warn',
-      `failed to process ${action} call from push notification`,
-      e,
-    );
+    const logger = getLogger('processCallFromPush');
+    logger.warn(`failed to process ${action} call from push notification`, e);
   }
 };
 
@@ -162,8 +151,8 @@ export const processNonIncomingCallFromPush = async (
       await callFromPush.get();
     }
   } catch (e) {
-    const logger = getLogger(['processNonIncomingCallFromPush']);
-    logger('error', 'failed to fetch call from push notification', e);
+    const logger = getLogger('processNonIncomingCallFromPush');
+    logger.error('failed to fetch call from push notification', e);
     return;
   }
   onNewCallNotification(callFromPush, nonRingingNotificationType);

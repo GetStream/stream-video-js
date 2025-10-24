@@ -55,7 +55,7 @@ import {
   CallGrants,
 } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
-import { getLogger } from '../logger';
+import { getLogger } from '@stream-io/logger';
 import { hasScreenShare } from '../helpers/participantUtils';
 
 /**
@@ -312,7 +312,7 @@ export class CallState {
    */
   closedCaptions$: Observable<CallClosedCaption[]>;
 
-  readonly logger = getLogger(['CallState']);
+  readonly logger = getLogger('CallState');
 
   /**
    * A list of comparators that are used to sort the participants.
@@ -997,7 +997,7 @@ export class CallState {
   ) => {
     const participant = this.findParticipantBySessionId(sessionId);
     if (!participant) {
-      this.logger('warn', `Participant with sessionId ${sessionId} not found`);
+      this.logger.warn(`Participant with sessionId ${sessionId} not found`);
       return;
     }
 
