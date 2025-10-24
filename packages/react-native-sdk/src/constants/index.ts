@@ -1,11 +1,5 @@
 import { type StreamReactionType } from '../components';
 
-export const FLOATING_VIDEO_VIEW_STYLE = {
-  height: 140,
-  width: 80,
-  borderRadius: 10,
-};
-
 export const defaultEmojiReactions: StreamReactionType[] = [
   {
     type: 'reaction',
