@@ -7,7 +7,6 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { decode } from 'js-base64';
 import {
   LogLevel,
   ParticipantFilter,
@@ -179,7 +178,7 @@ export const extractPayloadFromToken = (
   if (!payload) throw new Error('Malformed token, missing payload');
 
   try {
-    return JSON.parse(decode(payload)) ?? {};
+    return JSON.parse(atob(payload)) ?? {};
   } catch (e) {
     console.log('Error parsing token payload', e);
     return {};
