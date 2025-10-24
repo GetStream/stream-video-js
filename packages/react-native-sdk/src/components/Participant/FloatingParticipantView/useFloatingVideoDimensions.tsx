@@ -17,7 +17,7 @@ export const useFloatingVideoDimensions = (
   const containerWidth = containerDimensions?.width ?? 0;
   const { width, height } = useTrackDimensions(participant, trackType);
 
-  if (width === 0 || height === 0) {
+  if (width === 0 || height === 0 || containerWidth === 0) {
     return undefined;
   }
 
