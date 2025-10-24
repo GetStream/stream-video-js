@@ -23,6 +23,7 @@
     "@stream-io/noise-cancellation-react-native": "workspace:^",
     "@stream-io/react-native-webrtc": "125.4.4",
     "@stream-io/video-filters-react-native": "workspace:^",
+    "@stream-io/video-react-native-broadcast": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "axios": "^1.12.2",
     "react": "19.1.0",

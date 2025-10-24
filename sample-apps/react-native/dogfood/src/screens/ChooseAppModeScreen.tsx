@@ -38,6 +38,10 @@ export const ChooseAppModeScreen = () => {
     setState({ appMode: 'Call' });
   };
 
+  const onRTMPSelect = () => {
+    setState({ appMode: 'RTMP' });
+  };
+
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
@@ -69,6 +73,11 @@ export const ChooseAppModeScreen = () => {
         <Button
           title={t('Livestreaming')}
           onPress={onLiveStreamSelect}
+          buttonStyle={styles.callButton}
+        />
+        <Button
+          title={t('RTMP Broadcast')}
+          onPress={onRTMPSelect}
           buttonStyle={styles.callButton}
         />
       </View>

@@ -12,6 +12,7 @@ config.watchFolders = [
   path.join(workspaceRoot, 'packages/client'),
   path.join(workspaceRoot, 'packages/react-bindings'),
   path.join(workspaceRoot, 'packages/react-native-sdk'),
+  path.join(workspaceRoot, 'packages/react-native-broadcast'),
   path.join(workspaceRoot, 'packages/video-filters-react-native'),
   path.join(workspaceRoot, 'packages/noise-cancellation-react-native'),
 ];
