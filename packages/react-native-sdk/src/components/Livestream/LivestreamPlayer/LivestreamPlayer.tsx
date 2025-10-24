@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import {
   ViewerLivestream as DefaultViewerLivestream,
   type ViewerLivestreamProps,
@@ -27,7 +27,7 @@ export type LivestreamPlayerProps = {
    *
    * `"asap"` behavior means joining the call as soon as it is possible
    * (either the `join_ahead_time_seconds` setting allows it, or the user
-   * has a the capability to join backstage).
+   * has the capability to join backstage).
    *
    * `"live"` behavior means joining the call when it goes live.
    *
@@ -41,7 +41,8 @@ export const LivestreamPlayer = ({
   callId,
   ViewerLivestream = DefaultViewerLivestream,
   joinBehavior = 'asap',
-}: LivestreamPlayerProps) => {
+  children,
+}: PropsWithChildren<LivestreamPlayerProps>) => {
   const client = useStreamVideoClient();
 
   const [call, setCall] = useState<Call>();
@@ -82,6 +83,7 @@ export const LivestreamPlayer = ({
   return (
     <StreamCall call={call}>
       <ViewerLivestream joinBehavior={joinBehavior} />
+      {children}
     </StreamCall>
   );
 };
