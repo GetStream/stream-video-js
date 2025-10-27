@@ -7204,13 +7204,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/logger@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@stream-io/logger@npm:1.2.2"
-  checksum: 10/8cfd998acb65a04a4258848a2cf41720b36440d3f12af6b82325ab9d0156745789b40e50e108b6c6d02d90f5c916da27e894d2f332bfc3500e3ace249e802062
-  languageName: node
-  linkType: hard
-
 "@stream-io/logger@npm:^2.0.0":
   version: 2.0.0
   resolution: "@stream-io/logger@npm:2.0.0"
@@ -7601,7 +7594,6 @@ __metadata:
     "@react-native-firebase/app": "npm:^23.4.0"
     "@react-native-firebase/messaging": "npm:^23.4.0"
     "@react-native/babel-preset": "npm:^0.81.4"
-    "@stream-io/logger": "npm:^1.2.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:125.4.4"
     "@stream-io/video-client": "workspace:*"
