@@ -33,7 +33,8 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     private var previousAudioSessionState: AudioSessionState?
-    
+    private var hasRegisteredRouteObserver = false
+
     override func invalidate() {
         stop()
         super.invalidate()
@@ -278,7 +279,60 @@ class StreamInCallManager: RCTEventEmitter {
             }
         }
     }
-    
+
+    // MARK: - Proximity Handling
+    private func registerAudioRouteObserver() {
+        if hasRegisteredRouteObserver { return }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioRouteChange(_:)),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil
+        )
+        hasRegisteredRouteObserver = true
+        log("Registered AVAudioSession.routeChangeNotification observer")
+    }
+
+    private func unregisterAudioRouteObserver() {
+        if !hasRegisteredRouteObserver { return }
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        hasRegisteredRouteObserver = false
+        log("Unregistered AVAudioSession.routeChangeNotification observer")
+    }
+
+    @objc private func handleAudioRouteChange(_ notification: Notification) {
+        // Route changes can arrive on arbitrary queues; ensure UI-safe work on main
+        DispatchQueue.main.async { [weak self] in
+            self?.updateProximityMonitoring()
+        }
+    }
+
+    private func updateProximityMonitoring() {
+        // Proximity is only meaningful while a call is active
+        guard audioManagerActivated else {
+            setProximityMonitoringEnabled(false)
+            return
+        }
+        let session = AVAudioSession.sharedInstance()
+        let port = session.currentRoute.outputs.first?.portType
+        let isEarpiece = (port == .builtInReceiver)
+        setProximityMonitoringEnabled(isEarpiece)
+    }
+
+    private func setProximityMonitoringEnabled(_ enabled: Bool) {
+        // Always toggle on the main thread
+        if Thread.isMainThread {
+            if UIDevice.current.isProximityMonitoringEnabled != enabled {
+                UIDevice.current.isProximityMonitoringEnabled = enabled
+                log("Proximity monitoring \(enabled ? "ENABLED" : "DISABLED")")
+            }
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.setProximityMonitoringEnabled(enabled)
+            }
+        }
+    }
+
     // MARK: - RCTEventEmitter
 
     override func supportedEvents() -> [String]! {
