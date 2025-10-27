@@ -9,10 +9,9 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
-import { StreamVideoClient } from '@stream-io/video-client';
-import { getLogger } from '@stream-io/logger';
+import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
 
-const logger = getLogger('useIosVoipPushEventsSetupEffect');
+const logger = videoLoggerSystem.getLogger('useIosVoipPushEventsSetupEffect');
 
 /* VoipPushNotificationLib has support for only one listener type at a time
  hence to support login and logout scenario of multiple users we keep of the last count of the listener that was added

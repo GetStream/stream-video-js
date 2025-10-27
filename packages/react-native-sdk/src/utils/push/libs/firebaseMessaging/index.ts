@@ -1,5 +1,5 @@
 import { lib, type Type } from './lib';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 export type FirebaseMessagingType = Type;
@@ -19,7 +19,9 @@ export function getFirebaseMessagingLib() {
 
 export function getFirebaseMessagingLibNoThrow(isExpo: boolean) {
   if (!lib) {
-    const logger = getLogger('getFirebaseMessagingLibNoThrow');
+    const logger = videoLoggerSystem.getLogger(
+      'getFirebaseMessagingLibNoThrow',
+    );
     logger.debug(
       `${
         isExpo

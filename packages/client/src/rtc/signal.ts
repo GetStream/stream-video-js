@@ -1,7 +1,7 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
-import { getLogger } from '@stream-io/logger';
 import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 import { Tracer } from '../stats';
+import { videoLoggerSystem } from '../logger';
 
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
@@ -10,7 +10,7 @@ export const createWebSocketSignalChannel = (opts: {
   tracer: Tracer | undefined;
 }) => {
   const { endpoint, onMessage, tag, tracer } = opts;
-  const logger = getLogger('SfuClientWS', { tags: [tag] });
+  const logger = videoLoggerSystem.getLogger('SfuClientWS', { tags: [tag] });
   logger.debug('Creating signaling WS channel:', endpoint);
   const ws = new WebSocket(endpoint);
   ws.binaryType = 'arraybuffer'; // do we need this?

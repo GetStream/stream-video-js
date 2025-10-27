@@ -1,6 +1,6 @@
 import { CallEventListener, EventTypes } from '../coordinator/connection/types';
 import type { SfuEvent } from '../gen/video/sfu/event/events';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '../logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
 export type AllSfuEvents = {
@@ -53,7 +53,7 @@ export const isSfuEvent = (
 };
 
 export class Dispatcher {
-  private readonly logger = getLogger('Dispatcher');
+  private readonly logger = videoLoggerSystem.getLogger('Dispatcher');
   private subscribers: Partial<
     Record<SfuEventKinds, CallEventListener<any>[] | undefined>
   > = {};

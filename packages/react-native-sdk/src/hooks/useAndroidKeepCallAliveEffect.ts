@@ -7,12 +7,11 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import { Call, CallingState } from '@stream-io/video-client';
+import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import {
   getKeepCallAliveForegroundServiceTypes,
   getNotifeeLibNoThrowForKeepCallAlive,
 } from '../utils/push/libs/notifee';
-import { getLogger } from '@stream-io/logger';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 const callToPassToForegroundService: { current: Call | undefined } = {
@@ -24,7 +23,9 @@ function setForegroundService() {
   NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
     (isConfigured: boolean) => {
       if (!isConfigured) {
-        const logger = getLogger('setForegroundService method');
+        const logger = videoLoggerSystem.getLogger(
+          'setForegroundService method',
+        );
         logger.info(
           'KeepCallAlive is not configured. Skipping foreground service setup.',
         );
@@ -32,7 +33,9 @@ function setForegroundService() {
       }
       notifeeLib.default.registerForegroundService(() => {
         const task = new Promise((resolve) => {
-          const logger = getLogger('setForegroundService method');
+          const logger = videoLoggerSystem.getLogger(
+            'setForegroundService method',
+          );
           logger.info('Foreground service running for call in progress');
           // any task to run from SDK in the foreground service must be added
           resolve(true);
@@ -42,7 +45,9 @@ function setForegroundService() {
         const { taskToRun } = foregroundServiceConfig.android;
         const call = callToPassToForegroundService.current;
         if (!call) {
-          const logger = getLogger('setForegroundService method');
+          const logger = videoLoggerSystem.getLogger(
+            'setForegroundService method',
+          );
           logger.warn('No call to pass to foreground service');
           return task.then(() => new Promise(() => {}));
         }
@@ -57,7 +62,7 @@ async function startForegroundService(call_cid: string) {
   const isCallAliveConfigured =
     await NativeModules.StreamVideoReactNative.isCallAliveConfigured();
   if (!isCallAliveConfigured) {
-    const logger = getLogger('startForegroundService');
+    const logger = videoLoggerSystem.getLogger('startForegroundService');
     logger.info(
       'KeepCallAlive is not configured. Skipping foreground service setup.',
     );
@@ -69,7 +74,7 @@ async function startForegroundService(call_cid: string) {
   if (
     settings.authorizationStatus !== notifeeLib.AuthorizationStatus.AUTHORIZED
   ) {
-    const logger = getLogger('startForegroundService');
+    const logger = videoLoggerSystem.getLogger('startForegroundService');
     logger.info(
       'Notification permission not granted, can not start foreground service to keep the call alive',
     );

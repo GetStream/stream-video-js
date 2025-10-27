@@ -1,8 +1,8 @@
 import { fromEventPattern, map } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
-import { getLogger } from '@stream-io/logger';
 import { disposeOfMediaStream } from './utils';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { videoLoggerSystem } from '../logger';
 
 interface BrowserPermissionConfig {
   constraints: DisplayMediaStreamOptions;
@@ -17,7 +17,7 @@ export class BrowserPermission {
   private state: BrowserPermissionState | undefined;
   private wasPrompted: boolean = false;
   private listeners = new Set<(state: BrowserPermissionState) => void>();
-  private logger = getLogger('permissions');
+  private logger = videoLoggerSystem.getLogger('permissions');
 
   constructor(private readonly permission: BrowserPermissionConfig) {
     const signal = this.disposeController.signal;

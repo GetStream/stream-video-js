@@ -1,7 +1,7 @@
 import { ReplaySubject } from 'rxjs';
 import { ICETrickle } from '../gen/video/sfu/event/events';
 import { PeerType } from '../gen/video/sfu/models/models';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '../logger';
 
 /**
  * A buffer for ICE Candidates. Used for ICE Trickle:
@@ -20,7 +20,7 @@ export class IceTrickleBuffer {
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
       this.publisherCandidates.next(iceCandidate);
     } else {
-      const logger = getLogger('sfu-client');
+      const logger = videoLoggerSystem.getLogger('sfu-client');
       logger.warn(`ICETrickle, Unknown peer type`, iceTrickle);
     }
   };
@@ -37,7 +37,7 @@ const toIceCandidate = (
   try {
     return JSON.parse(iceTrickle.iceCandidate);
   } catch (e) {
-    const logger = getLogger('sfu-client');
+    const logger = videoLoggerSystem.getLogger('sfu-client');
     logger.error(`Failed to parse ICE Trickle`, e, iceTrickle);
     return undefined;
   }

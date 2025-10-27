@@ -8,8 +8,7 @@ import {
 } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
-import { RxUtils } from '@stream-io/video-client';
-import { getLogger } from '@stream-io/logger';
+import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -30,7 +29,7 @@ export const AppStateListener = () => {
     }
 
     const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
-    const logger = getLogger('AppStateListener');
+    const logger = videoLoggerSystem.getLogger('AppStateListener');
     const initialPipMode =
       !disablePiP && AppState.currentState === 'background';
     isInPiPMode$.next(initialPipMode);
@@ -67,7 +66,7 @@ export const AppStateListener = () => {
     // we dont check for inactive states
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      const logger = getLogger('AppStateListener');
+      const logger = videoLoggerSystem.getLogger('AppStateListener');
       if (appState.current.match(/background/) && nextAppState === 'active') {
         if (call?.camera?.state.status === 'enabled') {
           // Android: when device is locked and resumed, the status isnt made disabled but stays enabled

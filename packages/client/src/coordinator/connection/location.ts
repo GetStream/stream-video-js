@@ -1,11 +1,11 @@
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '../../logger';
 
 export const getLocationHint = async (
   hintUrl = `https://hint.stream-io-video.com/`,
   timeout = 2000,
   maxAttempts = 3,
 ): Promise<string> => {
-  const logger = getLogger('location-hint');
+  const logger = videoLoggerSystem.getLogger('location-hint');
 
   let attempt = 0;
   let locationHint = 'ERR';

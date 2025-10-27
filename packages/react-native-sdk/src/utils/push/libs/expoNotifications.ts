@@ -1,5 +1,5 @@
 import type { Notification } from 'expo-notifications';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 export type ExpoNotificationsLib = typeof import('expo-notifications');
 
@@ -22,9 +22,11 @@ export function getExpoNotificationsLib() {
 
 export function getExpoNotificationsLibNoThrow() {
   if (!expoNotificationsLib) {
-    getLogger('getExpoNotificationsLibNoThrow').debug(
-      'expo-notifications library is not installed. It is required for non ringing push notifications and not for ringing',
-    );
+    videoLoggerSystem
+      .getLogger('getExpoNotificationsLibNoThrow')
+      .debug(
+        'expo-notifications library is not installed. It is required for non ringing push notifications and not for ringing',
+      );
   }
   return expoNotificationsLib;
 }

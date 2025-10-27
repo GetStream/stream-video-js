@@ -4,7 +4,7 @@ import {
   voipCallkeepCallOnForegroundMap$,
   voipPushNotificationCallCId$,
 } from './internal/rxSubjects';
-import { RxUtils } from '@stream-io/video-client';
+import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
 import { getCallKeepLib, getVoipPushNotificationLib } from './libs';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
@@ -13,7 +13,6 @@ import {
 } from './internal/utils';
 import { AppState, NativeModules, Platform } from 'react-native';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import { getLogger } from '@stream-io/logger';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -28,12 +27,14 @@ export function setupIosCallKeepEvents(
   }
   if (!pushConfig.android.incomingCallChannel) {
     // TODO: remove this check and find a better way once we have telecom integration for android
-    getLogger('setupIosCallKeepEvents').debug(
-      'android incomingCallChannel is not defined, so skipping the setupIosCallKeepEvents',
-    );
+    videoLoggerSystem
+      .getLogger('setupIosCallKeepEvents')
+      .debug(
+        'android incomingCallChannel is not defined, so skipping the setupIosCallKeepEvents',
+      );
     return;
   }
-  const logger = getLogger('setupIosCallKeepEvents');
+  const logger = videoLoggerSystem.getLogger('setupIosCallKeepEvents');
   const callkeep = getCallKeepLib();
 
   async function getCallCid(callUUID: string): Promise<string | undefined> {

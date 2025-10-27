@@ -8,10 +8,10 @@ import type {
 } from './types';
 import { CallState } from '../store';
 import { Publisher, Subscriber } from '../rtc';
-import { getLogger } from '@stream-io/logger';
 import { flatten } from './utils';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isFirefox } from '../helpers/browsers';
+import { videoLoggerSystem } from '../logger';
 
 export type StatsReporterOpts = {
   subscriber: Subscriber;
@@ -77,7 +77,7 @@ export const createStatsReporter = ({
   datacenter,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
-  const logger = getLogger('stats');
+  const logger = videoLoggerSystem.getLogger('stats');
   const getRawStatsForTrack = async (
     kind: PeerConnectionKind,
     selector?: MediaStreamTrack,

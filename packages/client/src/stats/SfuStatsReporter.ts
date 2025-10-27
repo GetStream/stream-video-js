@@ -1,7 +1,6 @@
 import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
-import { getLogger } from '@stream-io/logger';
 import { Publisher, Subscriber } from '../rtc';
 import { Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
@@ -15,6 +14,7 @@ import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
 import { CallState } from '../store';
 import { Telemetry } from '../gen/video/sfu/signal_rpc/signal';
+import { videoLoggerSystem } from '../logger';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
@@ -29,7 +29,7 @@ export type SfuStatsReporterOptions = {
 };
 
 export class SfuStatsReporter {
-  private readonly logger = getLogger('SfuStatsReporter');
+  private readonly logger = videoLoggerSystem.getLogger('SfuStatsReporter');
 
   readonly options: StatsOptions;
 

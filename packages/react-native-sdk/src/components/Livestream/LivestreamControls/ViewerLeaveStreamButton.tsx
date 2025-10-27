@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { PhoneDown } from '../../../icons';
 import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 /**
  * Props for the ViewerLeaveStreamButton component.
@@ -43,7 +43,7 @@ export const ViewerLeaveStreamButton = ({
       await call?.leave();
       setIsAwaitingResponse(false);
     } catch (error) {
-      const logger = getLogger('ViewerLeaveStreamButton');
+      const logger = videoLoggerSystem.getLogger('ViewerLeaveStreamButton');
       logger.error('Error stopping livestream', error);
     }
   };

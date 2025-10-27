@@ -36,8 +36,7 @@ import {
   CreateGuestResponse,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
-import { ScopedLogger } from '../../logger';
-import { getLogger } from '@stream-io/logger';
+import { ScopedLogger, videoLoggerSystem } from '../../logger';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -149,7 +148,7 @@ export class StreamClient {
 
     this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
 
-    this.logger = getLogger('coordinator');
+    this.logger = videoLoggerSystem.getLogger('coordinator');
   }
 
   getAuthType = () => {

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 const BUSY_TONE_DURATION_IN_MS = 1500;
 
@@ -23,7 +23,7 @@ const BusyTonePlayer = () => {
 
       let busyToneTimeout: ReturnType<typeof setTimeout> | undefined;
 
-      const logger = getLogger('RejectCallWhenBusy');
+      const logger = videoLoggerSystem.getLogger('RejectCallWhenBusy');
 
       if (isCalleeBusy) {
         if (busyToneTimeout) {

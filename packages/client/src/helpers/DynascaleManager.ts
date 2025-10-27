@@ -15,7 +15,6 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
-import { getLogger } from '@stream-io/logger';
 import { isFirefox, isSafari } from './browsers';
 import {
   hasScreenShare,
@@ -27,6 +26,7 @@ import type { CallState } from '../store';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
+import { videoLoggerSystem } from '../logger';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -66,7 +66,7 @@ export class DynascaleManager {
    */
   readonly viewportTracker = new ViewportTracker();
 
-  private logger = getLogger('DynascaleManager');
+  private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
   private audioContext: AudioContext | undefined;

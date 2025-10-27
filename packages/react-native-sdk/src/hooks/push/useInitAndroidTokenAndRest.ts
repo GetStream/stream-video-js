@@ -5,7 +5,7 @@ import {
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
 import { initAndroidPushToken } from '../../utils/push/android';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 /**
  * This hook is used to initialize the push token for Android.
@@ -23,10 +23,9 @@ export const useInitAndroidTokenAndRest = () => {
     initAndroidPushToken(client, pushConfig, (unsubscribeListener) => {
       unsubscribe = unsubscribeListener;
     }).catch((error) => {
-      getLogger('useInitAndroidTokenAndRest').warn(
-        'Error in initializing android push token',
-        error,
-      );
+      videoLoggerSystem
+        .getLogger('useInitAndroidTokenAndRest')
+        .warn('Error in initializing android push token', error);
     });
     return () => {
       unsubscribe();

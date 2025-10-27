@@ -40,9 +40,7 @@ export const logToConsole: Logger = (logLevel, message, ...args) => {
  */
 export type ScopedLogger = scopedLogger.Logger;
 
+export { LogLevelEnum } from '@stream-io/logger';
 export type { LogLevel, Sink } from '@stream-io/logger';
-export {
-  LogLevelEnum,
-  restoreDefaults,
-  configureLoggers,
-} from '@stream-io/logger';
+
+export const videoLoggerSystem = scopedLogger.createLoggerSystem();

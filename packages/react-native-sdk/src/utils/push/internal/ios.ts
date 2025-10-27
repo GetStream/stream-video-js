@@ -4,7 +4,7 @@ import { voipPushNotificationCallCId$ } from './rxSubjects';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canAddPushWSSubscriptionsRef, shouldCallBeEnded } from './utils';
 import { StreamVideoConfig } from '../../StreamVideoRN/types';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 export const onVoipNotificationReceived = async (
   notification: any,
@@ -42,7 +42,7 @@ export const onVoipNotificationReceived = async (
   if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
     return;
   }
-  const logger = getLogger('setupIosVoipPushEvents');
+  const logger = videoLoggerSystem.getLogger('setupIosVoipPushEvents');
   const client = await pushConfig.createStreamVideoClient();
 
   if (!client) {

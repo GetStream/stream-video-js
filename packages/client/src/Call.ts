@@ -25,7 +25,7 @@ import {
   createSubscription,
   getCurrentValue,
 } from './store/rxUtils';
-import type { ScopedLogger } from './logger';
+import { ScopedLogger, videoLoggerSystem } from './logger';
 import type {
   AcceptCallResponse,
   BlockUserRequest,
@@ -141,7 +141,6 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
-import { getLogger } from '@stream-io/logger';
 import {
   CameraManager,
   MicrophoneManager,
@@ -309,7 +308,7 @@ export class Call {
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
-    this.logger = getLogger('Call');
+    this.logger = videoLoggerSystem.getLogger('Call');
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =

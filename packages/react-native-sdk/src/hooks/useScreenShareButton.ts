@@ -1,10 +1,13 @@
-import { hasScreenShare, OwnCapability } from '@stream-io/video-client';
+import {
+  hasScreenShare,
+  OwnCapability,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useEffect, useRef } from 'react';
 import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { usePrevious } from '../utils/hooks';
 import { useIsIosScreenshareBroadcastStarted } from './useIsIosScreenshareBroadcastStarted';
-import { getLogger } from '@stream-io/logger';
 
 // ios >= 14.0 or android - platform restrictions
 const CanDeviceScreenShare =
@@ -84,7 +87,7 @@ export const useScreenShareButton = (
 
   const onPress = async () => {
     if (!hasScreenSharingPermissions) {
-      const logger = getLogger('useScreenShareButton');
+      const logger = videoLoggerSystem.getLogger('useScreenShareButton');
       logger.info(
         'User does not have permissions to stream the screen share media, calling onMissingScreenShareStreamPermission handler if present',
       );
@@ -102,7 +105,7 @@ export const useScreenShareButton = (
           onScreenShareStartedHandler?.();
         } catch (error) {
           // ignored.. user didnt allow the screen share in the popup
-          const logger = getLogger('useScreenShareButton');
+          const logger = videoLoggerSystem.getLogger('useScreenShareButton');
           logger.info(
             'User opted to not give permissions to start a screen share stream',
             error,

@@ -13,8 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
-import { SfuModels } from '@stream-io/video-client';
-import { getLogger } from '@stream-io/logger';
+import { SfuModels, videoLoggerSystem } from '@stream-io/video-client';
 
 /**
  * Props for the HostStartStreamButton component.
@@ -80,7 +79,7 @@ export const HostStartStreamButton = ({
         onStartStreamHandler();
       }
     } catch (error) {
-      const logger = getLogger('HostStartStreamButton');
+      const logger = videoLoggerSystem.getLogger('HostStartStreamButton');
       logger.error('Error starting livestream', error);
     }
   };
@@ -103,7 +102,7 @@ export const HostStartStreamButton = ({
         onEndStreamHandler();
       }
     } catch (error) {
-      const logger = getLogger('HostStartStreamButton');
+      const logger = videoLoggerSystem.getLogger('HostStartStreamButton');
       logger.error('Error stopping livestream', error);
     }
   };

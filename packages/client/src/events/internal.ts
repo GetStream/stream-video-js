@@ -2,7 +2,6 @@ import { Dispatcher } from '../rtc';
 import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
-import { getLogger } from '@stream-io/logger';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import type {
   InboundStateNotification,
@@ -13,6 +12,7 @@ import {
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
+import { videoLoggerSystem } from '../logger';
 
 export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
@@ -72,7 +72,7 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
   return dispatcher.on('error', (e) => {
     if (!e.error) return;
-    const logger = getLogger('SfuClient');
+    const logger = videoLoggerSystem.getLogger('SfuClient');
     const { error, reconnectStrategy } = e;
     logger.error('SFU reported error', {
       code: ErrorCode[error.code],

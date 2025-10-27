@@ -6,8 +6,7 @@ import { createSubscription } from '../store/rxUtils';
 import { DeviceManagerState } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { getLogger } from '@stream-io/logger';
-import { ScopedLogger } from '../logger';
+import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
@@ -48,7 +47,9 @@ export abstract class DeviceManager<
     this.call = call;
     this.state = state;
     this.trackType = trackType;
-    this.logger = getLogger(`${TrackType[trackType].toLowerCase()} manager`);
+    this.logger = videoLoggerSystem.getLogger(
+      `${TrackType[trackType].toLowerCase()} manager`,
+    );
     this.setup();
   }
 

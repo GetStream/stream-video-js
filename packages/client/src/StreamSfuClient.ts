@@ -29,7 +29,7 @@ import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
-import { ScopedLogger } from './logger';
+import { ScopedLogger, videoLoggerSystem } from './logger';
 import {
   makeSafePromise,
   PromiseWithResolvers,
@@ -38,7 +38,6 @@ import {
 } from './helpers/promise';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
-import { getLogger } from '@stream-io/logger';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -219,7 +218,7 @@ export class StreamSfuClient {
     this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
     this.tag = tag;
-    this.logger = getLogger('SfuClient', { tags: [tag] });
+    this.logger = videoLoggerSystem.getLogger('SfuClient', { tags: [tag] });
     this.tracer = enableTracing
       ? new Tracer(`${tag}-${this.edgeName}`)
       : undefined;

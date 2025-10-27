@@ -12,8 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { CallingState } from '@stream-io/video-client';
-import { getLogger } from '@stream-io/logger';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 
 type LobbyProps = {
   isLive: boolean;
@@ -68,7 +67,7 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
         await call.get();
       } catch (err) {
         if (err instanceof Error) {
-          const logger = getLogger('ViewerLobby');
+          const logger = videoLoggerSystem.getLogger('ViewerLobby');
           logger.error('Error getting call:', err);
           setError(err);
         }

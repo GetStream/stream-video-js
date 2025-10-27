@@ -6,7 +6,7 @@ import {
   StyleSheet,
   UIManager,
 } from 'react-native';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 const COMPONENT_NAME = 'RTCViewPip';
 
@@ -23,7 +23,7 @@ const NativeComponent: HostComponent<RTCViewPipNativeProps> =
   requireNativeComponent(COMPONENT_NAME);
 
 export function onNativeCallClosed(reactTag: number) {
-  getLogger('RTCViewPipNative').debug('onNativeCallClosed');
+  videoLoggerSystem.getLogger('RTCViewPipNative').debug('onNativeCallClosed');
   const commandId =
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed;
   if (!commandId) return;
@@ -35,10 +35,12 @@ export function onNativeDimensionsUpdated(
   width: number,
   height: number,
 ) {
-  getLogger('RTCViewPipNative').debug('onNativeDimensionsUpdated', {
-    width,
-    height,
-  });
+  videoLoggerSystem
+    .getLogger('RTCViewPipNative')
+    .debug('onNativeDimensionsUpdated', {
+      width,
+      height,
+    });
   const commandId =
     UIManager.getViewManagerConfig(COMPONENT_NAME).Commands
       .setPreferredContentSize;

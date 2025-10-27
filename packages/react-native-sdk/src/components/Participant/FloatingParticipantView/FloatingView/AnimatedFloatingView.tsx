@@ -14,7 +14,7 @@ import {
   getClosestSnapAlignment,
   getSnapAlignments,
 } from './common';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 const AnimatedFloatingView = ({
   initialAlignment,
@@ -115,7 +115,7 @@ const AnimatedFloatingView = ({
   ).current;
 
   useEffect(() => {
-    const logger = getLogger('AnimatedFloatingView');
+    const logger = videoLoggerSystem.getLogger('AnimatedFloatingView');
     logger.info(
       'react-native-reanimated and/or react-native-gesture-handler libraries are not installed. Please install them to get a more performant draggable local video component',
     );

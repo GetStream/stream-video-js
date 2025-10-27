@@ -4,7 +4,7 @@ import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
 import { CallingState } from './CallingState';
 import type { OwnUserResponse } from '../gen/coordinator';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '../logger';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -23,7 +23,7 @@ export class StreamVideoWriteableStateStore {
     this.connectedUserSubject.subscribe(async (user) => {
       // leave all calls when the user disconnects.
       if (!user) {
-        const logger = getLogger('client-state');
+        const logger = videoLoggerSystem.getLogger('client-state');
         for (const call of this.calls) {
           if (call.state.callingState === CallingState.LEFT) continue;
 
@@ -87,7 +87,7 @@ export class StreamVideoWriteableStateStore {
    * @param call the call to remove
    */
   unregisterCall = (call: Call) => {
-    const logger = getLogger('client-state');
+    const logger = videoLoggerSystem.getLogger('client-state');
     logger.trace(`Unregistering call: ${call.cid}`);
     return this.setCalls((calls) => calls.filter((c) => c !== call));
   };

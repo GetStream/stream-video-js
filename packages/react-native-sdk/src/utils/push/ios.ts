@@ -8,12 +8,11 @@ import {
   getPushNotificationIosLib,
   type PushNotificationiOSType,
 } from './libs';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import type { Event } from '@notifee/react-native';
 import { StreamVideoRN } from '../StreamVideoRN';
 import type { StreamPushPayload } from './utils';
-import { getLogger } from '@stream-io/logger';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -28,7 +27,9 @@ function processNonRingingNotificationStreamPayload(
   ) {
     const cid = streamPayload.call_cid;
     const type = streamPayload.type;
-    const logger = getLogger('processNonRingingNotificationStreamPayload');
+    const logger = videoLoggerSystem.getLogger(
+      'processNonRingingNotificationStreamPayload',
+    );
     logger.trace(`cid, type - ${cid}, ${type}`);
     pushNonRingingCallData$.next({ cid, type });
     return { cid, type };
@@ -48,7 +49,9 @@ export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {
       trigger.payload?.stream
     ) {
       const streamPayload = trigger.payload.stream as StreamPushPayload;
-      const logger = getLogger('processNonRingingNotificationStreamPayload');
+      const logger = videoLoggerSystem.getLogger(
+        'processNonRingingNotificationStreamPayload',
+      );
       logger.trace(
         `processNonRingingNotificationStreamPayload - ${JSON.stringify(
           streamPayload,
@@ -75,7 +78,7 @@ export const oniOSNotifeeEvent = ({
       | undefined;
     const result = processNonRingingNotificationStreamPayload(streamPayload);
     if (result) {
-      const logger = getLogger('oniOSNotifeeEvent');
+      const logger = videoLoggerSystem.getLogger('oniOSNotifeeEvent');
       logger.debug(
         `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`,
       );
@@ -90,7 +93,9 @@ export function onPushNotificationiOSStreamVideoEvent(
   const pushNotificationIosLib = getPushNotificationIosLib();
   const data = notification.getData();
   const streamPayload = data?.stream as StreamPushPayload;
-  const logger = getLogger('onPushNotificationiOSStreamVideoEvent');
+  const logger = videoLoggerSystem.getLogger(
+    'onPushNotificationiOSStreamVideoEvent',
+  );
   if (!streamPayload) {
     logger.trace(
       `skipping process: no stream payload found in notification data - ${JSON.stringify(
@@ -133,7 +138,7 @@ export async function initIosNonVoipToken(
     return;
   }
 
-  const logger = getLogger('initIosNonVoipToken');
+  const logger = videoLoggerSystem.getLogger('initIosNonVoipToken');
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
     if (lastApnToken.token === token && lastApnToken.userId === userId) {

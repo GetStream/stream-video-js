@@ -1,6 +1,6 @@
 import { PermissionsAndroid } from 'react-native';
 import { lib, type Type } from './lib';
-import { getLogger } from '@stream-io/logger';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 export type NotifeeLib = Type;
 
@@ -37,7 +37,7 @@ export function getNotifeeLibThrowIfNotInstalledForPush() {
 
 export function getNotifeeLibNoThrowForKeepCallAlive() {
   if (!lib) {
-    const logger = getLogger('getNotifeeLibNoThrow');
+    const logger = videoLoggerSystem.getLogger('getNotifeeLibNoThrow');
     logger.info(
       `${'@notifee/react-native library not installed. It is required to keep call alive in the background for Android. '}${INSTALLATION_INSTRUCTION}`,
     );

@@ -3,10 +3,9 @@ import { CallControlsButton } from './CallControlsButton';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { IconWrapper } from '../../../icons/IconWrapper';
-import { getLogger } from '@stream-io/logger';
 
 /**
  * The props for the Hang up call button in the Call Controls.
@@ -60,7 +59,7 @@ export const HangUpCallButton = ({
         onHangupCallHandler();
       }
     } catch (error) {
-      const logger = getLogger('HangUpCallButton');
+      const logger = videoLoggerSystem.getLogger('HangUpCallButton');
       logger.error('Error leaving Call', error);
     }
   };

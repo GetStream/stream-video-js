@@ -13,9 +13,8 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { processCallFromPush } from '../../utils/push/internal/utils';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
-import { getLogger } from '@stream-io/logger';
 
 /**
  * This hook is used to process the incoming call data via push notifications using the relevant rxjs subjects
@@ -33,9 +32,11 @@ export const useProcessPushCallEffect = () => {
       return;
     }
 
-    getLogger('useProcessPushCallEffect').debug(
-      `Adding subscriptions to process incoming call from push notification`,
-    );
+    videoLoggerSystem
+      .getLogger('useProcessPushCallEffect')
+      .debug(
+        `Adding subscriptions to process incoming call from push notification`,
+      );
 
     // if the user accepts the call from push notification we join the call
     const acceptedCallSubscription = createCallSubscription(
@@ -96,9 +97,11 @@ const createCallSubscription = (
   return behaviourSubjectWithCallCid
     .pipe(distinctUntilChanged(), filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
-      getLogger('useProcessPushCallEffect').debug(
-        `Processing call from push notification with action: ${action} and callCId: ${callCId}`,
-      );
+      videoLoggerSystem
+        .getLogger('useProcessPushCallEffect')
+        .debug(
+          `Processing call from push notification with action: ${action} and callCId: ${callCId}`,
+        );
       await processCallFromPush(client, callCId, action, pushConfig);
       behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
     });

@@ -2,9 +2,8 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, PhoneDown } from '../../../icons';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { getLogger } from '@stream-io/logger';
 
 /**
  * The props for the Reject Call button.
@@ -75,7 +74,7 @@ export const RejectCallButton = ({
         onRejectCallHandler();
       }
     } catch (error) {
-      const logger = getLogger('RejectCallButton');
+      const logger = videoLoggerSystem.getLogger('RejectCallButton');
       logger.error('Error rejecting Call', error);
     } finally {
       setIsLoading(false);
