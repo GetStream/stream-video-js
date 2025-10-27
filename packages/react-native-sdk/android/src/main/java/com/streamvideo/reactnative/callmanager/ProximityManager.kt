@@ -8,7 +8,6 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.PowerManager
 import android.util.Log
-import com.streamvideo.reactnative.audio.utils.CallAudioRole
 
 /**
  * Encapsulates Android proximity sensor handling for in-call UX.
