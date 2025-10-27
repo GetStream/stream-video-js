@@ -96,7 +96,6 @@ export class StreamVideoClient {
 
     videoLoggerSystem.configureLoggers({
       default: { sink: rootLogger, level: clientOptions?.logLevel || 'warn' },
-      coordinator: { sink: rootLogger, level: 'error' },
       ...clientOptions?.logOptions,
     });
 
