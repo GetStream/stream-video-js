@@ -197,11 +197,6 @@ export class StreamVideoClient {
    * @param e the event.
    */
   private initCallFromEvent = async (e: CallCreatedEvent | CallRingEvent) => {
-    if (this.state.connectedUser?.id === e.call.created_by.id) {
-      this.logger('debug', `Ignoring ${e.type} event sent by the current user`);
-      return;
-    }
-
     try {
       const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
       await withoutConcurrency(concurrencyTag, async () => {
