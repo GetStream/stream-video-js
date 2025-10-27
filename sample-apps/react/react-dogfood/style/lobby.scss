@@ -49,6 +49,29 @@
       border-radius: var(--str-video__border-radius-md);
       border-color: transparent;
     }
+
+    .rd__display-name {
+      background-color: #1d29380f;
+      border: 1px solid #ffffff08;
+      border-radius: var(--str-video__border-radius-xl);
+      padding: var(--str-video__spacing-lg);
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(10px);
+
+      &-label {
+        color: var(--str-video__text-color2);
+        font-weight: 600;
+        font-size: var(--str-video__font-size-xs);
+        letter-spacing: 0.25ex;
+        text-transform: uppercase;
+        margin-bottom: var(--str-video__spacing-md);
+      }
+
+      &-input {
+        text-align: center;
+      }
+    }
   }
 
   &-edge-network {
@@ -108,7 +131,7 @@
   }
 
   &-join {
-    margin-top: var(--str-video__spacing-lg);
+    margin-top: var(--str-video__spacing-md);
   }
 
   &-media {

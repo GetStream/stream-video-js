@@ -16,22 +16,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-
-export type OnReconnectionNeeded = (
-  kind: WebsocketReconnectStrategy,
-  reason: string,
-) => void;
-
-export type BasePeerConnectionOpts = {
-  sfuClient: StreamSfuClient;
-  state: CallState;
-  connectionConfig?: RTCConfiguration;
-  dispatcher: Dispatcher;
-  onReconnectionNeeded?: OnReconnectionNeeded;
-  logTag: string;
-  enableTracing: boolean;
-  iceRestartDelay?: number;
-};
+import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.
@@ -71,7 +56,7 @@ export abstract class BasePeerConnection {
       state,
       dispatcher,
       onReconnectionNeeded,
-      logTag,
+      tag,
       enableTracing,
       iceRestartDelay = 2500,
     }: BasePeerConnectionOpts,
@@ -84,13 +69,14 @@ export abstract class BasePeerConnection {
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = getLogger([
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
-      logTag,
+      tag,
     ]);
     this.pc = this.createPeerConnection(connectionConfig);
     this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
     if (enableTracing) {
-      const tag = `${logTag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`;
-      this.tracer = new Tracer(tag);
+      this.tracer = new Tracer(
+        `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,
+      );
       this.tracer.trace('create', {
         url: sfuClient.edgeName,
         ...connectionConfig,

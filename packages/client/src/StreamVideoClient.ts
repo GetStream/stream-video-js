@@ -1,10 +1,13 @@
 import { Call } from './Call';
 import { StreamClient } from './coordinator/connection/client';
 import {
+  CallingState,
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
 import type {
+  CallCreatedEvent,
+  CallRingEvent,
   ConnectedEvent,
   CreateDeviceRequest,
   CreateGuestRequest,
@@ -32,6 +35,7 @@ import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
   createTokenOrProvider,
+  getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
 import { getLogger, logToConsole, setLogger } from './logger';
@@ -71,6 +75,7 @@ export class StreamVideoClient {
   );
 
   private static _instances = new Map<string, StreamVideoClient>();
+  private rejectCallWhenBusy = false;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -92,6 +97,7 @@ export class StreamVideoClient {
     setLogger(rootLogger, clientOptions?.logLevel || 'warn');
 
     this.logger = getLogger(['client']);
+    this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
 
@@ -162,6 +168,8 @@ export class StreamVideoClient {
     if (this.effectsRegistered) return;
 
     this.eventHandlersToUnregister.push(
+      this.on('call.created', (event) => this.initCallFromEvent(event)),
+      this.on('call.ring', (event) => this.initCallFromEvent(event)),
       this.on('connection.changed', (event) => {
         if (!event.online) return;
 
@@ -181,54 +189,69 @@ export class StreamVideoClient {
       }),
     );
 
-    this.eventHandlersToUnregister.push(
-      this.on('call.created', (event) => {
-        const { call, members } = event;
-        if (this.state.connectedUser?.id === call.created_by.id) {
-          this.logger(
-            'warn',
-            'Received `call.created` sent by the current user',
-          );
+    this.effectsRegistered = true;
+  };
+
+  /**
+   * Initializes a call from a call created or ringing event.
+   * @param e the event.
+   */
+  private initCallFromEvent = async (e: CallCreatedEvent | CallRingEvent) => {
+    try {
+      const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
+      await withoutConcurrency(concurrencyTag, async () => {
+        const ringing = e.type === 'call.ring';
+        let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
+        if (call) {
+          if (ringing) {
+            if (this.shouldRejectCall(call.cid)) {
+              this.logger(
+                'info',
+                `Leaving call with busy reject reason ${call.cid} because user is busy`,
+              );
+              // remove the instance from the state store
+              await call.leave();
+              // explicitly reject the call with busy reason as calling state was not ringing before and leave would not call it therefore
+              await call.reject('busy');
+            } else {
+              await call.updateFromRingingEvent(e as CallRingEvent);
+            }
+          } else {
+            call.state.updateFromCallResponse(e.call);
+          }
           return;
         }
-        this.logger('info', `New call created and registered: ${call.cid}`);
-        const newCall = new Call({
+
+        call = new Call({
           streamClient: this.streamClient,
-          type: call.type,
-          id: call.id,
-          members,
+          type: e.call.type,
+          id: e.call.id,
+          members: e.members,
           clientStore: this.writeableStateStore,
+          ringing,
         });
-        newCall.state.updateFromCallResponse(call);
-        this.writeableStateStore.registerCall(newCall);
-      }),
-    );
 
-    this.eventHandlersToUnregister.push(
-      this.on('call.ring', async (event) => {
-        const { call, members } = event;
-        // if `call.created` was received before `call.ring`.
-        // the client already has the call instance and we just need to update the state
-        const theCall = this.writeableStateStore.findCall(call.type, call.id);
-        if (theCall) {
-          await theCall.updateFromRingingEvent(event);
+        if (ringing) {
+          if (this.shouldRejectCall(call.cid)) {
+            this.logger(
+              'info',
+              `Rejecting call ${call.cid} because user is busy`,
+            );
+            // call is not in the state store yet, so just reject api is enough
+            await call.reject('busy');
+          } else {
+            await call.updateFromRingingEvent(e as CallRingEvent);
+            await call.get();
+          }
         } else {
-          // if client doesn't have the call instance, create the instance and fetch the latest state
-          // Note: related - we also have onRingingCall method to handle this case from push notifications
-          const newCallInstance = new Call({
-            streamClient: this.streamClient,
-            type: call.type,
-            id: call.id,
-            members,
-            clientStore: this.writeableStateStore,
-            ringing: true,
-          });
-          await newCallInstance.get();
+          call.state.updateFromCallResponse(e.call);
+          this.writeableStateStore.registerCall(call);
+          this.logger('info', `New call created and registered: ${call.cid}`);
         }
-      }),
-    );
-
-    this.effectsRegistered = true;
+      });
+    } catch (err) {
+      this.logger('error', `Failed to init call from event ${e.type}`, err);
+    }
   };
 
   /**
@@ -353,7 +376,7 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call.
-   * @param options additional options for the call.
+   * @param options additional options for call creation.
    */
   call = (
     type: string,
@@ -534,23 +557,24 @@ export class StreamVideoClient {
    * @returns
    */
   onRingingCall = async (call_cid: string) => {
-    // if we find the call and is already ringing, we don't need to create a new call
-    // as client would have received the call.ring state because the app had WS alive when receiving push notifications
-    let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
-    if (!call) {
-      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-      const [callType, callId] = call_cid.split(':');
-      call = new Call({
-        streamClient: this.streamClient,
-        type: callType,
-        id: callId,
-        clientStore: this.writeableStateStore,
-        ringing: true,
-      });
-      await call.get();
-    }
-
-    return call;
+    return withoutConcurrency(getCallInitConcurrencyTag(call_cid), async () => {
+      // if we find the call and is already ringing, we don't need to create a new call
+      // as client would have received the call.ring state because the app had WS alive when receiving push notifications
+      let call = this.state.calls.find((c) => c.cid === call_cid && c.ringing);
+      if (!call) {
+        // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
+        const [callType, callId] = call_cid.split(':');
+        call = new Call({
+          streamClient: this.streamClient,
+          type: callType,
+          id: callId,
+          clientStore: this.writeableStateStore,
+          ringing: true,
+        });
+        await call.get();
+      }
+      return call;
+    });
   };
 
   /**
@@ -566,5 +590,20 @@ export class StreamVideoClient {
     return withoutConcurrency(this.connectionConcurrencyTag, () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );
+  };
+
+  private shouldRejectCall = (currentCallId: string) => {
+    if (!this.rejectCallWhenBusy) return false;
+
+    const hasOngoingRingingCall = this.state.calls.some(
+      (c) =>
+        c.cid !== currentCallId &&
+        c.ringing &&
+        c.state.callingState !== CallingState.IDLE &&
+        c.state.callingState !== CallingState.LEFT &&
+        c.state.callingState !== CallingState.RECONNECTING_FAILED,
+    );
+
+    return hasOngoingRingingCall;
   };
 }

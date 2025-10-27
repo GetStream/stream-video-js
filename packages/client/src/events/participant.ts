@@ -106,10 +106,13 @@ export const watchTrackUnpublished = (state: CallState) => {
     if (e.participant) {
       const orphanedTracks = reconcileOrphanedTracks(state, e.participant);
       const participant = Object.assign(e.participant, orphanedTracks);
-      state.updateOrAddParticipant(sessionId, participant);
+      state.updateOrAddParticipant(sessionId, participant, (p) => ({
+        pausedTracks: p.pausedTracks?.filter((t) => t !== type),
+      }));
     } else {
       state.updateParticipant(sessionId, (p) => ({
         publishedTracks: p.publishedTracks.filter((t) => t !== type),
+        pausedTracks: p.pausedTracks?.filter((t) => t !== type),
       }));
     }
   };

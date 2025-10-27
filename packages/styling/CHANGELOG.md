@@ -2,6 +2,37 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.5.1...@stream-io/video-styling-1.6.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
+## [1.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.5.0...@stream-io/video-styling-1.5.1) (2025-09-02)
+
+### Bug Fixes
+
+- CallParticipantListContentHeader visibility ([#1902](https://github.com/GetStream/stream-video-js/issues/1902)) ([a3ec9d9](https://github.com/GetStream/stream-video-js/commit/a3ec9d990633eb8a068401cfe17cb40595ea1ee4))
+- layout shift when call control is in loading state ([#1901](https://github.com/GetStream/stream-video-js/issues/1901)) ([7eb24a1](https://github.com/GetStream/stream-video-js/commit/7eb24a1e26b08091e887535f685ff19092b0157a))
+
+## [1.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.4.0...@stream-io/video-styling-1.5.0) (2025-08-21)
+
+### Features
+
+- Kick user from a call ([#1894](https://github.com/GetStream/stream-video-js/issues/1894)) ([32e2afc](https://github.com/GetStream/stream-video-js/commit/32e2afca0ea59e3f57e1ff9d05828c1e07fbff78))
+
+## [1.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.3.0...@stream-io/video-styling-1.4.0) (2025-07-18)
+
+### Features
+
+- Inbound Video Pause ([#1841](https://github.com/GetStream/stream-video-js/issues/1841)) ([5c7eb3a](https://github.com/GetStream/stream-video-js/commit/5c7eb3ac8b0fcfd663226d537279c8a941dedc21))
+
+## [1.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.2.1...@stream-io/video-styling-1.3.0) (2025-07-11)
+
+### Features
+
+- clean up stylesheets ([#1845](https://github.com/GetStream/stream-video-js/issues/1845)) ([e42a26b](https://github.com/GetStream/stream-video-js/commit/e42a26bda131bdcd7169147466d6c6c0791382d0))
+
 ## [1.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.2.0...@stream-io/video-styling-1.2.1) (2025-06-30)
 
 ### Bug Fixes

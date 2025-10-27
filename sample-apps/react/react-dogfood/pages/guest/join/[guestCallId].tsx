@@ -7,6 +7,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useCallStateHooks,
   User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
@@ -29,6 +30,18 @@ type GuestCallRoomProps = {
 };
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+const HeadComponent = ({ callId }: { callId: string }) => {
+  const { useCallCustomData } = useCallStateHooks();
+  const customData = useCallCustomData();
+
+  return (
+    <Head>
+      <title>Stream Calls (Guest): {customData.name || callId}</title>
+      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    </Head>
+  );
+};
 
 export default function GuestCallRoom(props: GuestCallRoomProps) {
   const { apiKey, user, token, gleapApiKey } = props;
@@ -108,12 +121,9 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   }
   return (
     <>
-      <Head>
-        <title>Stream Calls (Guest): {callId}</title>
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
       <StreamVideo client={client}>
         <StreamCall call={call}>
+          <HeadComponent callId={callId} />
           <BackgroundFiltersProvider
             basePath={`${basePath}/tf`}
             backgroundImages={[
@@ -154,7 +164,7 @@ export const getServerSideProps = async (
   };
 
   // anonymous user tokens must have "!anon" as the user_id
-  const token = createToken('!anon', apiKey, secretKey, {
+  const token = await createToken('!anon', apiKey, secretKey, {
     user_id: '!anon',
     call_cids: [`${callType}:${callId}`],
   });

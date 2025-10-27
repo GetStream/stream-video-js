@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
+import {
+  NativeModules,
+  Platform,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import {
   CallParticipantsGrid,
   type CallParticipantsGridProps,
@@ -12,8 +17,12 @@ import {
   CallControls as DefaultCallControls,
   type HangUpCallButtonProps,
 } from '../CallControls';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { type StreamReaction } from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  CallingState,
+  getLogger,
+  type StreamReaction,
+} from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -32,7 +41,8 @@ import {
   ScreenShareOverlay as DefaultScreenShareOverlay,
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
-import RTCViewPipIOS from './RTCViewPipIOS';
+import { RTCViewPipIOS } from './RTCViewPipIOS';
+import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -85,7 +95,8 @@ export type CallContentProps = Pick<
      */
     disablePictureInPicture?: boolean;
     /**
-     * Props to set the audio mode for the InCallManager.
+     * @deprecated This prop is deprecated and will be removed in the future. Use `StreamInCallManager` instead.
+     * Props to set the audio mode for the react-native-incall-manager library
      * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
      * Changing the mode on the fly is not supported.
      * Manually invoke `InCallManager.start({ media })` to achieve this.
@@ -109,9 +120,9 @@ export const CallContent = ({
   layout = 'grid',
   landscape = false,
   supportedReactions,
+  initialInCallManagerAudioMode = 'video',
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
-  initialInCallManagerAudioMode = 'video',
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -121,6 +132,7 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
+  const call = useCall();
   const {
     useHasOngoingScreenShare,
     useRemoteParticipants,
@@ -129,14 +141,37 @@ export const CallContent = ({
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
-
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
   const isInPiPMode = useIsInPiPMode();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+
+  useEffect(() => {
+    if (isInPiPMode && Platform.OS === 'android') {
+      const unsubFunc = call?.on('call.ended', () => {
+        getLogger(['CallContent'])(
+          'debug',
+          `exiting PiP mode due to call.ended`,
+        );
+        NativeModules.StreamVideoReactNative.exitPipMode();
+      });
+      const subscription = call?.state.callingState$.subscribe((state) => {
+        if (state === CallingState.LEFT) {
+          getLogger(['CallContent'])(
+            'debug',
+            `exiting PiP mode due to callingState: LEFT`,
+          );
+          NativeModules.StreamVideoReactNative.exitPipMode();
+        }
+      });
+      return () => {
+        unsubFunc?.();
+        subscription?.unsubscribe();
+      };
+    }
+  }, [isInPiPMode, call]);
 
   const showFloatingView =
     !showSpotlightLayout &&
@@ -152,10 +187,15 @@ export const CallContent = ({
   /**
    * This hook is used to handle IncallManager specs of the application.
    */
+  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
   useEffect(() => {
-    InCallManager.start({ media: incallManagerModeRef.current });
-
-    return () => InCallManager.stop();
+    const prevInCallManager = getRNInCallManagerLibNoThrow();
+    if (prevInCallManager) {
+      prevInCallManager.start({ media: incallManagerModeRef.current });
+      return () => {
+        prevInCallManager.stop();
+      };
+    }
   }, []);
 
   const handleFloatingViewParticipantSwitch = () => {

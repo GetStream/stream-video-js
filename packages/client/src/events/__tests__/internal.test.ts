@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { Call } from '../../Call';
 import { Dispatcher } from '../../rtc';
 import { CallState } from '../../store';
+import { noopComparator } from '../../sorting';
 import {
   watchConnectionQualityChanged,
+  watchInboundStateNotification,
   watchLiveEnded,
   watchParticipantCountChanged,
   watchPinsUpdated,
@@ -11,6 +14,7 @@ import {
 import {
   ConnectionQuality,
   ErrorCode,
+  TrackType,
 } from '../../gen/video/sfu/models/models';
 
 describe('internal events', () => {
@@ -27,13 +31,12 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'connectionQualityChanged',
-        // @ts-expect-error incomplete data
         connectionQualityChanged: {
           connectionQualityUpdates: [
-            {
+            fromPartial({
               sessionId: 'session-1',
               connectionQuality: ConnectionQuality.EXCELLENT,
-            },
+            }),
           ],
         },
       },
@@ -57,7 +60,6 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'healthCheckResponse',
-        // @ts-expect-error incomplete data
         healthCheckResponse: { participantCount: { total: 5, anonymous: 2 } },
       },
     });
@@ -115,20 +117,110 @@ describe('internal events', () => {
   it('handles pinUpdated', () => {
     const state = new CallState();
     state.setParticipants([
-      // @ts-expect-error incomplete data
-      { userId: 'u1', sessionId: 'session-1', pin: { isLocalPin: false } },
-      // @ts-expect-error incomplete data
-      { userId: 'u2', sessionId: 'session-2', pin: { isLocalPin: false } },
+      fromPartial({
+        userId: 'u1',
+        sessionId: 'session-1',
+        publishedTracks: [],
+      }),
+      fromPartial({
+        userId: 'u2',
+        sessionId: 'session-2',
+        publishedTracks: [],
+      }),
     ]);
-    const update = watchPinsUpdated(state);
-    update({ pins: [{ userId: 'u1', sessionId: 'session-1' }] });
+
+    watchPinsUpdated(state)({
+      pins: [{ userId: 'u1', sessionId: 'session-1' }],
+    });
+
     expect(state.participants).toEqual([
       {
         userId: 'u1',
         sessionId: 'session-1',
         pin: { isLocalPin: false, pinnedAt: expect.any(Number) },
+        publishedTracks: [],
       },
-      { userId: 'u2', sessionId: 'session-2', pin: undefined },
+      {
+        userId: 'u2',
+        sessionId: 'session-2',
+        pin: undefined,
+        publishedTracks: [],
+      },
     ]);
+  });
+
+  it('handles InboundStateNotification', () => {
+    const state = new CallState();
+    state.setSortParticipantsBy(noopComparator());
+    state.setParticipants([
+      // @ts-expect-error incomplete data
+      { sessionId: 'session-1' },
+      // @ts-expect-error incomplete data
+      { sessionId: 'session-2' },
+    ]);
+
+    const update = watchInboundStateNotification(state);
+    update({
+      inboundVideoStates: [
+        {
+          userId: '1',
+          sessionId: 'session-1',
+          trackType: TrackType.VIDEO,
+          paused: true,
+        },
+        {
+          userId: '2',
+          sessionId: 'session-2',
+          trackType: TrackType.VIDEO,
+          paused: false,
+        },
+      ],
+    });
+    expect(
+      state.findParticipantBySessionId('session-1')?.pausedTracks,
+    ).toContain(TrackType.VIDEO);
+    expect(
+      state.findParticipantBySessionId('session-2')?.pausedTracks,
+    ).not.toContain(TrackType.VIDEO);
+
+    update({
+      inboundVideoStates: [
+        {
+          userId: '2',
+          sessionId: 'session-2',
+          trackType: TrackType.VIDEO,
+          paused: true,
+        },
+      ],
+    });
+    expect(
+      state.findParticipantBySessionId('session-1')?.pausedTracks,
+    ).toContain(TrackType.VIDEO);
+    expect(
+      state.findParticipantBySessionId('session-2')?.pausedTracks,
+    ).toContain(TrackType.VIDEO);
+
+    update({
+      inboundVideoStates: [
+        {
+          userId: '1',
+          sessionId: 'session-1',
+          trackType: TrackType.VIDEO,
+          paused: false,
+        },
+        {
+          userId: '2',
+          sessionId: 'session-2',
+          trackType: TrackType.VIDEO,
+          paused: false,
+        },
+      ],
+    });
+    expect(
+      state.findParticipantBySessionId('session-1')?.pausedTracks,
+    ).not.toContain(TrackType.VIDEO);
+    expect(
+      state.findParticipantBySessionId('session-2')?.pausedTracks,
+    ).not.toContain(TrackType.VIDEO);
   });
 });

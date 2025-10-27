@@ -100,9 +100,9 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation project(':stream-io_react-native-webrtc')
-  implementation "io.github.crow-misia.libyuv:libyuv-android:0.34.0"
+  implementation "io.github.crow-misia.libyuv:libyuv-android:0.36.0"
   implementation "androidx.annotation:annotation:1.8.0"
-  implementation 'com.google.mlkit:segmentation-selfie:16.0.0-beta5'
-  implementation "com.github.android:renderscript-intrinsics-replacement-toolkit:344be3f"
+  implementation 'com.google.mlkit:segmentation-selfie:16.0.0-beta6'
+  implementation 'io.getstream:stream-video-renderscript-android:0.0.1'
 }
 

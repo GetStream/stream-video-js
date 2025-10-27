@@ -1,6 +1,7 @@
 import {
   type ClientPublishOptions,
   StreamVideoClient,
+  type Call,
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
 
@@ -23,6 +24,7 @@ export type StreamVideoConfig = {
      * @internal
      */
     publishOptions?: ClientPublishOptions;
+
     ios: {
       /**
        * The name for the alias of push provider used for iOS
@@ -154,6 +156,11 @@ export type StreamVideoConfig = {
         title: string;
         body: string;
       };
+      /**
+       * The task to run in the foreground service
+       * The task must resolve a promise once complete
+       */
+      taskToRun: (call: Call) => Promise<void>;
     };
   };
 };

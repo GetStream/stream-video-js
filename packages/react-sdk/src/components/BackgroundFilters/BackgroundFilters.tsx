@@ -10,18 +10,19 @@ import {
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useCall } from '@stream-io/video-react-bindings';
-import { disposeOfMediaStream, getLogger } from '@stream-io/video-client';
+import { Call, disposeOfMediaStream, getLogger } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
   BackgroundFilter,
   createRenderer,
   isPlatformSupported,
   loadTFLite,
+  PlatformSupportFlags,
   Renderer,
   TFLite,
 } from '@stream-io/video-filters-web';
 
-export type BackgroundFiltersProps = {
+export type BackgroundFiltersProps = PlatformSupportFlags & {
   /**
    * A list of URLs to use as background images.
    */
@@ -150,6 +151,8 @@ export const BackgroundFiltersProvider = (
     modelFilePath,
     basePath,
     onError,
+    forceSafariSupport,
+    forceMobileSupport,
   } = props;
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
@@ -178,8 +181,11 @@ export const BackgroundFiltersProvider = (
 
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
-    isPlatformSupported().then(setIsSupported);
-  }, []);
+    isPlatformSupported({
+      forceSafariSupport,
+      forceMobileSupport,
+    }).then(setIsSupported);
+  }, [forceMobileSupport, forceSafariSupport]);
 
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
@@ -228,7 +234,7 @@ export const BackgroundFiltersProvider = (
 
 const BackgroundFilters = (props: { tfLite: TFLite }) => {
   const call = useCall();
-  const { children, start } = useRenderer(props.tfLite);
+  const { children, start } = useRenderer(props.tfLite, call);
   const { backgroundFilter, onError } = useBackgroundFilters();
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
   handleErrorRef.current = onError;
@@ -246,7 +252,7 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
   return children;
 };
 
-const useRenderer = (tfLite: TFLite) => {
+const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
   const { backgroundFilter, backgroundBlurLevel, backgroundImage } =
     useBackgroundFilters();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -297,6 +303,11 @@ const useRenderer = (tfLite: TFLite) => {
                 height: trackSettings.height ?? 0,
               }),
             );
+            call?.tracer.trace('backgroundFilters.enable', {
+              backgroundFilter,
+              backgroundBlurLevel,
+              backgroundImage,
+            });
             renderer = createRenderer(
               tfLite,
               videoEl,
@@ -320,13 +331,20 @@ const useRenderer = (tfLite: TFLite) => {
       return {
         output,
         stop: () => {
+          call?.tracer.trace('backgroundFilters.disable', null);
           renderer?.dispose();
           if (videoRef.current) videoRef.current.srcObject = null;
           if (outputStream) disposeOfMediaStream(outputStream);
         },
       };
     },
-    [backgroundBlurLevel, backgroundFilter, backgroundImage, tfLite],
+    [
+      backgroundBlurLevel,
+      backgroundFilter,
+      backgroundImage,
+      call?.tracer,
+      tfLite,
+    ],
   );
 
   const children = (
@@ -348,6 +366,7 @@ const useRenderer = (tfLite: TFLite) => {
           className="str-video__background-filters__background-image"
           alt="Background"
           ref={bgImageRef}
+          crossOrigin="anonymous"
           src={backgroundImage}
           {...videoSize}
         />

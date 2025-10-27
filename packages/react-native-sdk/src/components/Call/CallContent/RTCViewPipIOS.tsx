@@ -3,20 +3,34 @@ import {
   getLogger,
   hasScreenShare,
   speakerLayoutSortPreset,
+  type StreamVideoParticipant,
+  type VideoTrackType,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { findNodeHandle } from 'react-native';
-import { onNativeCallClosed, RTCViewPipNative } from './RTCViewPipNative';
-import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
+import {
+  onNativeCallClosed,
+  onNativeDimensionsUpdated,
+  RTCViewPipNative,
+} from './RTCViewPipNative';
+import { useDebouncedValue } from '../../../utils/hooks';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
+import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
+import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
+  /**
+   * Callback that is called when the PiP mode state changes.
+   * @param active - true when PiP started, false when PiP stopped
+   */
+  onPiPChange?: (active: boolean) => void;
 };
 
-const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
+export const RTCViewPipIOS = React.memo((props: Props) => {
+  const { includeLocalParticipantVideo, onPiPChange } = props;
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
@@ -31,7 +45,8 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
 
   // show the dominant remote speaker in PiP mode
   // local speaker is shown only if remote doesn't exist
-  let participantInSpotlight = dominantSpeaker;
+  let participantInSpotlight: StreamVideoParticipant | undefined =
+    dominantSpeaker;
   if (dominantSpeaker?.isLocalParticipant && dominantSpeaker2) {
     participantInSpotlight = dominantSpeaker2;
   }
@@ -61,16 +76,14 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
         'debug',
         `onCallClosed due to call.ended event`,
       );
-      unsubFunc?.();
       onCallClosed();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
-      if (state === CallingState.LEFT || state === CallingState.IDLE) {
+      if (state === CallingState.LEFT) {
         getLogger(['RTCViewPipIOS'])(
           'debug',
           `onCallClosed due to callingState: ${state}`,
         );
-        subscription?.unsubscribe();
         onCallClosed();
       }
     });
@@ -81,25 +94,73 @@ const RTCViewPipIOS = React.memo(({ includeLocalParticipantVideo }: Props) => {
     };
   }, [call]);
 
+  const onDimensionsUpdated = useCallback((width: number, height: number) => {
+    const node = findNodeHandle(nativeRef.current);
+    if (node !== null && width > 0 && height > 0) {
+      onNativeDimensionsUpdated(node, width, height);
+    }
+  }, []);
+
+  const { videoStream, screenShareStream } = participantInSpotlight || {};
+
+  const isScreenSharing = participantInSpotlight
+    ? hasScreenShare(participantInSpotlight)
+    : false;
+
+  const videoStreamToRender = (isScreenSharing
+    ? screenShareStream
+    : videoStream) as unknown as MediaStream | undefined;
+
   const streamURL = useMemo(() => {
-    if (!participantInSpotlight) {
+    if (!videoStreamToRender) {
       return undefined;
     }
-
-    const { videoStream, screenShareStream } = participantInSpotlight;
-
-    const isScreenSharing = hasScreenShare(participantInSpotlight);
-
-    const videoStreamToRender = (isScreenSharing
-      ? screenShareStream
-      : videoStream) as unknown as MediaStream | undefined;
-
     return videoStreamToRender?.toURL();
-  }, [participantInSpotlight]);
+  }, [videoStreamToRender]);
 
-  return <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />;
+  const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
+    isInPiPMode$.next(event.nativeEvent.active);
+    onPiPChange?.(event.nativeEvent.active);
+  };
+
+  return (
+    <>
+      <RTCViewPipNative
+        streamURL={streamURL}
+        ref={nativeRef}
+        onPiPChange={handlePiPChange}
+      />
+      {participantInSpotlight && (
+        <DimensionsUpdatedRenderless
+          participant={participantInSpotlight}
+          trackType={isScreenSharing ? 'screenShareTrack' : 'videoTrack'}
+          onDimensionsUpdated={onDimensionsUpdated}
+          key={streamURL}
+        />
+      )}
+    </>
+  );
 });
 
-RTCViewPipIOS.displayName = 'RTCViewPipIOS';
+const DimensionsUpdatedRenderless = React.memo(
+  ({
+    participant,
+    trackType,
+    onDimensionsUpdated,
+  }: {
+    participant: StreamVideoParticipant;
+    trackType: VideoTrackType;
+    onDimensionsUpdated: (width: number, height: number) => void;
+  }) => {
+    const { width, height } = useTrackDimensions(participant, trackType);
 
-export default RTCViewPipIOS;
+    useEffect(() => {
+      onDimensionsUpdated(width, height);
+    }, [width, height, onDimensionsUpdated]);
+
+    return null;
+  },
+);
+
+DimensionsUpdatedRenderless.displayName = 'DimensionsUpdatedRenderless';
+RTCViewPipIOS.displayName = 'RTCViewPipIOS';

@@ -126,6 +126,11 @@ export const DialerPage = ({
       .filter((uid) => uid !== '')
       .map((uid) => ({ user_id: uid }));
 
+    const currentUser = videoClient.state.connectedUser?.id;
+    if (currentUser) {
+      members.push({ user_id: currentUser });
+    }
+
     try {
       setRingingCall(call);
       await call.getOrCreate({
@@ -151,7 +156,11 @@ export const DialerPage = ({
 
   const handleJoin = () => {
     if (ringingCall) {
-      router.push(`/join/${ringingCall.id}?skip_lobby=true`);
+      const params = new URLSearchParams(
+        router.query as Record<string, string>,
+      );
+      params.set('skip_lobby', 'true');
+      router.push(`/join/${ringingCall.id}?${params.toString()}`);
     }
   };
 

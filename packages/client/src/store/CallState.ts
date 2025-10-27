@@ -1,9 +1,12 @@
 import {
   BehaviorSubject,
+  combineLatest,
   distinctUntilChanged,
   map,
   Observable,
+  ReplaySubject,
   shareReplay,
+  startWith,
 } from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
@@ -49,6 +52,7 @@ import {
   CallState as SfuCallState,
   Pin,
   TrackType,
+  CallGrants,
 } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
 import { getLogger } from '../logger';
@@ -127,6 +131,8 @@ export class CallState {
   // This happens when the participantJoined event hasn't been received yet.
   // We keep these tracks around until we can associate them with a participant.
   private orphanedTracks: OrphanedTrack[] = [];
+
+  private callGrantsSubject = new ReplaySubject<CallGrants>(1);
 
   // Derived state
 
@@ -394,8 +400,12 @@ export class CallState {
      */
     const isShallowEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
       if (a.length !== b.length) return false;
-      for (const item of a) if (!b.includes(item)) return false;
-      for (const item of b) if (!a.includes(item)) return false;
+      for (const item of a) {
+        if (!b.includes(item)) return false;
+      }
+      for (const item of b) {
+        if (!a.includes(item)) return false;
+      }
       return true;
     };
 
@@ -406,8 +416,7 @@ export class CallState {
     const duc = <T>(
       subject: BehaviorSubject<T>,
       comparator?: (a: T, b: T) => boolean,
-    ): Observable<T> =>
-      subject.asObservable().pipe(distinctUntilChanged(comparator));
+    ): Observable<T> => subject.pipe(distinctUntilChanged(comparator));
 
     // primitive values should only emit once the value they hold changes
     this.anonymousParticipantCount$ = duc(
@@ -416,7 +425,41 @@ export class CallState {
     this.blockedUserIds$ = duc(this.blockedUserIdsSubject, isShallowEqual);
     this.backstage$ = duc(this.backstageSubject);
     this.callingState$ = duc(this.callingStateSubject);
-    this.ownCapabilities$ = duc(this.ownCapabilitiesSubject, isShallowEqual);
+    this.ownCapabilities$ = combineLatest([
+      this.ownCapabilitiesSubject,
+      this.callGrantsSubject.pipe(startWith(undefined)),
+    ]).pipe(
+      map(([capabilities, grants]) => {
+        if (!grants) return capabilities;
+
+        const { canPublishAudio, canPublishVideo, canScreenshare } = grants;
+
+        const update = {
+          [OwnCapability.SEND_AUDIO]: canPublishAudio,
+          [OwnCapability.SEND_VIDEO]: canPublishVideo,
+          [OwnCapability.SCREENSHARE]: canScreenshare,
+        } as const;
+
+        const nextCapabilities = [...capabilities];
+
+        for (const _capability in update) {
+          const capability = _capability as keyof typeof update;
+          const allowed = update[capability];
+
+          // grants take precedence over capabilities, reconstruct the capabilities
+          if (allowed && !nextCapabilities.includes(capability)) {
+            nextCapabilities.push(capability);
+          } else if (!allowed && nextCapabilities.includes(capability)) {
+            const index = nextCapabilities.indexOf(capability);
+            nextCapabilities.splice(index, 1);
+          }
+        }
+
+        return nextCapabilities;
+      }),
+      distinctUntilChanged(isShallowEqual),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
@@ -425,6 +468,7 @@ export class CallState {
     this.eventHandlers = {
       // these events are not updating the call state:
       'call.frame_recording_ready': undefined,
+      'call.kicked_user': undefined,
       'call.moderation_blur': undefined,
       'call.moderation_warning': undefined,
       'call.permission_request': undefined,
@@ -434,6 +478,7 @@ export class CallState {
       'call.rtmp_broadcast_stopped': undefined,
       'call.stats_report_ready': undefined,
       'call.transcription_ready': undefined,
+      'call.user_feedback_submitted': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
@@ -766,6 +811,16 @@ export class CallState {
   };
 
   /**
+   * Sets the call grants (used for own capabilities).
+   *
+   * @internal
+   * @param grants the grants to set.
+   */
+  setCallGrants = (grants: Patch<CallGrants>) => {
+    return this.setCurrentValue(this.callGrantsSubject, grants);
+  };
+
+  /**
    * The backstage state.
    */
   get backstage() {
@@ -965,20 +1020,23 @@ export class CallState {
    *
    * @param sessionId the session ID of the participant to update.
    * @param participant the participant to update or add.
+   * @param patch an optional patch to apply to the participant.
    */
   updateOrAddParticipant = (
     sessionId: string,
     participant: StreamVideoParticipant,
+    patch?:
+      | StreamVideoParticipantPatch
+      | ((p: StreamVideoParticipant) => StreamVideoParticipantPatch),
   ) => {
     return this.setParticipants((participants) => {
       let add = true;
       const nextParticipants = participants.map((p) => {
         if (p.sessionId === sessionId) {
           add = false;
-          return {
-            ...p,
-            ...participant,
-          };
+          const updated: StreamVideoParticipant = { ...p, ...participant };
+          const thePatch = typeof patch === 'function' ? patch(updated) : patch;
+          return Object.assign(updated, thePatch);
         }
         return p;
       });
@@ -1069,19 +1127,42 @@ export class CallState {
    * @param pins the latest pins from the server.
    */
   setServerSidePins = (pins: Pin[]) => {
-    const pinsLookup = pins.reduce<{ [sessionId: string]: number | undefined }>(
-      (lookup, pin) => {
-        lookup[pin.sessionId] = Date.now();
-        return lookup;
-      },
-      {},
-    );
+    const now = Date.now();
+    const unknownSymbol = Symbol('unknown');
+
+    // generate a lookup table of pinnedAt timestamps by userId and sessionId
+    // if there are multiple pins for the same userId, then we set the pinnedAt
+    // to `unknown` (for that userId lookup) so that we don't apply any pin for that participant
+    // this is to avoid conflicts during reconstruction of the pin state after reconnections
+    // as sessionIds can change
+    const pinnedAtByIdentifier = pins.reduce<
+      Record<string, number | undefined | typeof unknownSymbol>
+    >((lookup, pin, index) => {
+      const pinnedAt = now + (pins.length - index);
+
+      if (lookup[pin.userId]) {
+        lookup[pin.userId] = unknownSymbol;
+      } else {
+        lookup[pin.userId] = pinnedAt;
+      }
+
+      lookup[pin.sessionId] ??= pinnedAt;
+
+      return lookup;
+    }, {});
 
     return this.setParticipants((participants) =>
       participants.map((participant) => {
-        const serverSidePinnedAt = pinsLookup[participant.sessionId];
+        // first check by sessionId as that is 100% correct, then by attempt reconstruction by userId
+        const serverSidePinnedAt =
+          pinnedAtByIdentifier[participant.sessionId] ??
+          pinnedAtByIdentifier[participant.userId];
+
         // the participant is newly pinned
-        if (serverSidePinnedAt) {
+        if (
+          typeof serverSidePinnedAt === 'number' &&
+          typeof participant.pin?.pinnedAt !== 'number'
+        ) {
           return {
             ...participant,
             pin: {
@@ -1092,7 +1173,10 @@ export class CallState {
         }
         // the participant is no longer pinned server side
         // we need to reset the pin
-        if (participant.pin && !participant.pin.isLocalPin) {
+        if (
+          typeof serverSidePinnedAt !== 'number' &&
+          participant.pin?.isLocalPin === false
+        ) {
           return {
             ...participant,
             pin: undefined,
@@ -1407,7 +1491,7 @@ export class CallState {
 
   private updateOwnCapabilities = (event: UpdatedCallPermissionsEvent) => {
     if (event.user.id === this.localParticipant?.userId) {
-      this.setCurrentValue(this.ownCapabilitiesSubject, event.own_capabilities);
+      this.setOwnCapabilities(event.own_capabilities);
     }
   };
 

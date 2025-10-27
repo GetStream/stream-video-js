@@ -17,4 +17,25 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+  // Uncomment this if you're debugging a recording layout with a dev server
+  // and a reverse proxy. For example:
+  //
+  // yarn run dev
+  // ssh -R 80:localhost:5173 nokey@localhost.run
+  //
+  // Add setupProxyLogging() call to main.tsx, and you should see client logs
+  // in dev server's console.
+  //
+  // server: {
+  //   proxy: {
+  //     '/log': {
+  //       bypass(req) {
+  //         const log = decodeURIComponent(req.url.slice('/log/'.length));
+  //         console.log('[client log]', log);
+  //         return '/ok.txt';
+  //       },
+  //     },
+  //   },
+  //   allowedHosts: true,
+  // },
 });

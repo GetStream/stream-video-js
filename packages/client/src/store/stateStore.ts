@@ -119,14 +119,6 @@ export class StreamVideoReadOnlyStateStore {
    */
   calls$: Observable<Call[]>;
 
-  /**
-   * This method allows you the get the current value of a state variable.
-   *
-   * @param observable the observable to get the current value of.
-   * @returns the current value of the observable.
-   */
-  getCurrentValue = RxUtils.getCurrentValue;
-
   constructor(store: StreamVideoWriteableStateStore) {
     // convert and expose subjects as observables
     this.connectedUser$ = store.connectedUserSubject.asObservable();

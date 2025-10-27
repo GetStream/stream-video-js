@@ -15,6 +15,7 @@ export {
   usePersistedDevicePreferences,
   useDeviceList,
 } from './src/hooks';
+export { applyFilter, type Filter } from './src/utilities/filter';
 
 const [major, minor, patch] = (
   process.env.PKG_VERSION || '0.0.0-development'

@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.5.0...@stream-io/audio-filters-web-0.6.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.3...@stream-io/audio-filters-web-0.5.0) (2025-09-30)
+
+### Features
+
+- Audio profiles and Hi-Fi stereo audio ([#1887](https://github.com/GetStream/stream-video-js/issues/1887)) ([3b60c89](https://github.com/GetStream/stream-video-js/commit/3b60c89b8c0dbc40544fe13be79c10e93bbddd3d))
+
+## [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.2...@stream-io/audio-filters-web-0.4.3) (2025-07-25)
+
+### Bug Fixes
+
+- improved audio and video filter tracing ([#1862](https://github.com/GetStream/stream-video-js/issues/1862)) ([701ea4b](https://github.com/GetStream/stream-video-js/commit/701ea4b3266f68072c1325b70221fdefd77137ec))
+
 ## [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.4.1...@stream-io/audio-filters-web-0.4.2) (2025-06-02)
 
 ### Bug Fixes

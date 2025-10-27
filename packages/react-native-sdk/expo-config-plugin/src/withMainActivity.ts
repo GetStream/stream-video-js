@@ -65,7 +65,9 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
       @Override
       public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
           super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
-
+          if (isFinishing()) {
+            return;
+          }
           if (lifecycleOwner.getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
               // When user clicks on Close button of PIP
               finishAndRemoveTask();
@@ -78,6 +80,9 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
       statementToInsert = `         
       override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        if (isFinishing) {
+          return
+        }
         if (lifecycle.currentState === Lifecycle.State.CREATED) {
             // when user clicks on Close button of PIP
             finishAndRemoveTask()

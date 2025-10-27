@@ -2,7 +2,11 @@ import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { SfuModels } from '@stream-io/video-client';
 
 const trackMock = {
-  getSettings: jest.fn(() => ({ deviceId: '123' })),
+  getSettings: jest.fn(() => ({
+    deviceId: '123',
+    width: 100,
+    height: 100,
+  })),
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
 };

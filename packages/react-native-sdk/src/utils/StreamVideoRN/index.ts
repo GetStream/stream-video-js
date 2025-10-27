@@ -5,6 +5,42 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { NativeModules } from 'react-native';
+
+// Utility type for deep partial
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+// Helper function for deep merging
+function deepMerge<T extends Record<string, any>>(
+  target: T,
+  source: DeepPartial<T>,
+): T {
+  const result = { ...target };
+
+  for (const key in source) {
+    if (source[key] !== undefined) {
+      if (
+        typeof source[key] === 'object' &&
+        source[key] !== null &&
+        !Array.isArray(source[key]) &&
+        typeof target[key] === 'object' &&
+        target[key] !== null &&
+        !Array.isArray(target[key])
+      ) {
+        result[key] = deepMerge(
+          target[key],
+          source[key] as DeepPartial<T[typeof key]>,
+        );
+      } else {
+        result[key] = source[key] as T[typeof key];
+      }
+    }
+  }
+
+  return result;
+}
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
@@ -20,23 +56,24 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
         title: 'Call in progress',
         body: 'Tap to return to the call',
       },
+      taskToRun: () => new Promise(() => {}),
     },
   },
 };
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
+  private static busyToneTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Update the global config for StreamVideoRN except for push config.
    * To set push config use `StreamVideoRN.setPushConfig` instead.
-   * This function accepts a partial config object that will be merged with the default config.
+   * This function accepts a partial config object that will be deeply merged with the default config.
    */
-  static updateConfig(updateConfig: Partial<Omit<StreamVideoConfig, 'push'>>) {
-    this.config = {
-      ...this.config,
-      ...updateConfig,
-    };
+  static updateConfig(
+    updateConfig: DeepPartial<Omit<StreamVideoConfig, 'push'>>,
+  ) {
+    this.config = deepMerge(this.config, updateConfig);
   }
 
   static updateAndroidIncomingCallChannel(
@@ -128,5 +165,19 @@ export class StreamVideoRN {
       newNotificationCallbacks.current =
         newNotificationCallbacks.current?.filter((cb) => cb !== callback);
     };
+  }
+
+  /**
+   * Play native busy tone for call rejection
+   */
+  static async playBusyTone() {
+    return NativeModules.StreamVideoReactNative?.playBusyTone();
+  }
+
+  /**
+   * Stop native busy tone
+   */
+  static async stopBusyTone() {
+    return NativeModules.StreamVideoReactNative?.stopBusyTone();
   }
 }

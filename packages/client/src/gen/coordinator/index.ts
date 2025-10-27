@@ -91,6 +91,12 @@ export interface AudioSettingsRequest {
    * @type {boolean}
    * @memberof AudioSettingsRequest
    */
+  hifi_audio_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
   mic_default_on?: boolean;
   /**
    *
@@ -146,6 +152,12 @@ export interface AudioSettingsResponse {
    * @memberof AudioSettingsResponse
    */
   default_device: AudioSettingsResponseDefaultDeviceEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsResponse
+   */
+  hifi_audio_enabled: boolean;
   /**
    *
    * @type {boolean}
@@ -413,6 +425,24 @@ export interface CallClosedCaption {
    * @type {string}
    * @memberof CallClosedCaption
    */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  language: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  service?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
   speaker_id: string;
   /**
    *
@@ -426,6 +456,12 @@ export interface CallClosedCaption {
    * @memberof CallClosedCaption
    */
   text: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallClosedCaption
+   */
+  translated: boolean;
   /**
    *
    * @type {UserResponse}
@@ -917,6 +953,18 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   rtmp: RTMPIngress;
+  /**
+   *
+   * @type {SRTIngress}
+   * @memberof CallIngressResponse
+   */
+  srt: SRTIngress;
+  /**
+   *
+   * @type {WHIPIngress}
+   * @memberof CallIngressResponse
+   */
+  whip: WHIPIngress;
 }
 /**
  * This event is sent when a call is started. Clients receiving this event should start the call.
@@ -1345,6 +1393,37 @@ export interface CallParticipantResponse {
   user_session_id: string;
 }
 /**
+ *
+ * @export
+ * @interface CallParticipantTimeline
+ */
+export interface CallParticipantTimeline {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallParticipantTimeline
+   */
+  data: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  severity: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  timestamp: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  type: string;
+}
+/**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
  * @export
  * @interface CallReactionEvent
@@ -1618,6 +1697,12 @@ export interface CallReportResponse {
 export interface CallRequest {
   /**
    *
+   * @type {string}
+   * @memberof CallRequest
+   */
+  channel_cid?: string;
+  /**
+   *
    * @type {{ [key: string]: any; }}
    * @memberof CallRequest
    */
@@ -1677,6 +1762,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   captioning: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof CallResponse
+   */
+  channel_cid?: string;
   /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
@@ -1779,6 +1870,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   transcribing: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  translating: boolean;
   /**
    * The type of call
    * @type {string}
@@ -2088,6 +2185,12 @@ export interface CallSessionParticipantLeftEvent {
    */
   participant: CallParticipantResponse;
   /**
+   * The reason why the participant left the session
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  reason?: string;
+  /**
    * Call session ID
    * @type {string}
    * @memberof CallSessionParticipantLeftEvent
@@ -2260,6 +2363,12 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   /**
    *
+   * @type {IngressSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  ingress?: IngressSettingsRequest;
+  /**
+   *
    * @type {LimitsSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -2345,6 +2454,12 @@ export interface CallSettingsResponse {
   geofencing: GeofenceSettingsResponse;
   /**
    *
+   * @type {IngressSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  ingress?: IngressSettingsResponse;
+  /**
+   *
    * @type {LimitsSettingsResponse}
    * @memberof CallSettingsResponse
    */
@@ -2422,6 +2537,129 @@ export interface CallStateResponseFields {
    * @memberof CallStateResponseFields
    */
   own_capabilities: Array<OwnCapability>;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipant
+ */
+export interface CallStatsParticipant {
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  latest_activity_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  name?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallStatsParticipant
+   */
+  roles?: Array<string>;
+  /**
+   *
+   * @type {Array<CallStatsParticipantSession>}
+   * @memberof CallStatsParticipant
+   */
+  sessions: Array<CallStatsParticipantSession>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipantCounts
+ */
+export interface CallStatsParticipantCounts {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  live_sessions: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  participants: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  publishers: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  sessions: number;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipantSession
+ */
+export interface CallStatsParticipantSession {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  cq_score?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsParticipantSession
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {PublishedTrackFlags}
+   * @memberof CallStatsParticipantSession
+   */
+  published_tracks: PublishedTrackFlags;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  publisher_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  unified_session_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  user_session_id: string;
 }
 /**
  * This event is sent when the insights report is ready
@@ -2714,11 +2952,78 @@ export interface CallUpdatedEvent {
    */
   created_at: string;
   /**
-   * The type of event: "call.ended" in this case
+   * The type of event: "call.updated" in this case
    * @type {string}
    * @memberof CallUpdatedEvent
    */
   type: string;
+}
+/**
+ * This event is sent when a user submits feedback for a call.
+ * @export
+ * @interface CallUserFeedbackSubmittedEvent
+ */
+export interface CallUserFeedbackSubmittedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  created_at: string;
+  /**
+   * Custom data provided by the user
+   * @type {{ [key: string]: any; }}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  custom?: { [key: string]: any };
+  /**
+   * The rating given by the user (1-5)
+   * @type {number}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  rating: number;
+  /**
+   * The reason provided by the user for the rating
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  reason?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  sdk?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  sdk_version?: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event, "call.user_feedback" in this case
+   * @type {string}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallUserFeedbackSubmittedEvent
+   */
+  user: UserResponse;
 }
 /**
  * This event is sent when a call member is muted
@@ -2750,6 +3055,12 @@ export interface CallUserMutedEvent {
    * @memberof CallUserMutedEvent
    */
   muted_user_ids: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserMutedEvent
+   */
+  reason: string;
   /**
    * The type of event: "call.user_muted" in this case
    * @type {string}
@@ -3704,6 +4015,12 @@ export interface GetCallReportResponse {
   report: ReportResponse;
   /**
    *
+   * @type {CallSessionResponse}
+   * @memberof GetCallReportResponse
+   */
+  session?: CallSessionResponse;
+  /**
+   *
    * @type {string}
    * @memberof GetCallReportResponse
    */
@@ -3751,6 +4068,73 @@ export interface GetCallResponse {
    * @memberof GetCallResponse
    */
   own_capabilities: Array<OwnCapability>;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface GetCallSessionParticipantStatsDetailsResponse
+ */
+export interface GetCallSessionParticipantStatsDetailsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {ParticipantSeriesPublisherStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  publisher?: ParticipantSeriesPublisherStats;
+  /**
+   *
+   * @type {ParticipantSeriesSubscriberStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  subscriber?: ParticipantSeriesSubscriberStats;
+  /**
+   *
+   * @type {ParticipantSeriesTimeframe}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  timeframe?: ParticipantSeriesTimeframe;
+  /**
+   *
+   * @type {ParticipantSeriesUserStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user?: ParticipantSeriesUserStats;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user_session_id: string;
 }
 /**
  * Basic response information
@@ -4053,6 +4437,303 @@ export interface ICEServer {
 /**
  *
  * @export
+ * @interface IngressAudioEncodingOptionsRequest
+ */
+export interface IngressAudioEncodingOptionsRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingOptionsRequest
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingOptionsRequest
+   */
+  channels: IngressAudioEncodingOptionsRequestChannelsEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressAudioEncodingOptionsRequest
+   */
+  enable_dtx?: boolean;
+}
+
+/**
+ * @export
+ */
+export const IngressAudioEncodingOptionsRequestChannelsEnum = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+} as const;
+export type IngressAudioEncodingOptionsRequestChannelsEnum =
+  (typeof IngressAudioEncodingOptionsRequestChannelsEnum)[keyof typeof IngressAudioEncodingOptionsRequestChannelsEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressAudioEncodingResponse
+ */
+export interface IngressAudioEncodingResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingResponse
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressAudioEncodingResponse
+   */
+  channels: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressAudioEncodingResponse
+   */
+  enable_dtx: boolean;
+}
+/**
+ *
+ * @export
+ * @interface IngressSettingsRequest
+ */
+export interface IngressSettingsRequest {
+  /**
+   *
+   * @type {IngressAudioEncodingOptionsRequest}
+   * @memberof IngressSettingsRequest
+   */
+  audio_encoding_options?: IngressAudioEncodingOptionsRequest;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressSettingsRequest
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {{ [key: string]: IngressVideoEncodingOptionsRequest; }}
+   * @memberof IngressSettingsRequest
+   */
+  video_encoding_options?: {
+    [key: string]: IngressVideoEncodingOptionsRequest;
+  };
+}
+/**
+ *
+ * @export
+ * @interface IngressSettingsResponse
+ */
+export interface IngressSettingsResponse {
+  /**
+   *
+   * @type {IngressAudioEncodingResponse}
+   * @memberof IngressSettingsResponse
+   */
+  audio_encoding_options?: IngressAudioEncodingResponse;
+  /**
+   *
+   * @type {boolean}
+   * @memberof IngressSettingsResponse
+   */
+  enabled: boolean;
+  /**
+   *
+   * @type {{ [key: string]: IngressVideoEncodingResponse; }}
+   * @memberof IngressSettingsResponse
+   */
+  video_encoding_options?: { [key: string]: IngressVideoEncodingResponse };
+}
+/**
+ *
+ * @export
+ * @interface IngressSourceRequest
+ */
+export interface IngressSourceRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  fps: IngressSourceRequestFpsEnum;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  width: number;
+}
+
+/**
+ * @export
+ */
+export const IngressSourceRequestFpsEnum = {
+  NUMBER_30: 30,
+  NUMBER_60: 60,
+} as const;
+export type IngressSourceRequestFpsEnum =
+  (typeof IngressSourceRequestFpsEnum)[keyof typeof IngressSourceRequestFpsEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressSourceResponse
+ */
+export interface IngressSourceResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  fps: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  width: number;
+}
+/**
+ *
+ * @export
+ * @interface IngressVideoEncodingOptionsRequest
+ */
+export interface IngressVideoEncodingOptionsRequest {
+  /**
+   *
+   * @type {Array<IngressVideoLayerRequest>}
+   * @memberof IngressVideoEncodingOptionsRequest
+   */
+  layers: Array<IngressVideoLayerRequest>;
+  /**
+   *
+   * @type {IngressSourceRequest}
+   * @memberof IngressVideoEncodingOptionsRequest
+   */
+  source: IngressSourceRequest;
+}
+/**
+ *
+ * @export
+ * @interface IngressVideoEncodingResponse
+ */
+export interface IngressVideoEncodingResponse {
+  /**
+   *
+   * @type {Array<IngressVideoLayerResponse>}
+   * @memberof IngressVideoEncodingResponse
+   */
+  layers: Array<IngressVideoLayerResponse>;
+  /**
+   *
+   * @type {IngressSourceResponse}
+   * @memberof IngressVideoEncodingResponse
+   */
+  source: IngressSourceResponse;
+}
+/**
+ *
+ * @export
+ * @interface IngressVideoLayerRequest
+ */
+export interface IngressVideoLayerRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {string}
+   * @memberof IngressVideoLayerRequest
+   */
+  codec: IngressVideoLayerRequestCodecEnum;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  frame_rate_limit: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  max_dimension: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerRequest
+   */
+  min_dimension: number;
+}
+
+/**
+ * @export
+ */
+export const IngressVideoLayerRequestCodecEnum = {
+  H264: 'h264',
+  VP8: 'vp8',
+} as const;
+export type IngressVideoLayerRequestCodecEnum =
+  (typeof IngressVideoLayerRequestCodecEnum)[keyof typeof IngressVideoLayerRequestCodecEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressVideoLayerResponse
+ */
+export interface IngressVideoLayerResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {string}
+   * @memberof IngressVideoLayerResponse
+   */
+  codec: string;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  frame_rate_limit: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  max_dimension: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressVideoLayerResponse
+   */
+  min_dimension: number;
+}
+/**
+ *
+ * @export
  * @interface JoinCallRequest
  */
 export interface JoinCallRequest {
@@ -4161,6 +4842,75 @@ export interface JoinCallResponse {
   stats_options: StatsOptions;
 }
 /**
+ * KickUserRequest is the payload for kicking a user from a call. Optionally block the user as well.
+ * @export
+ * @interface KickUserRequest
+ */
+export interface KickUserRequest {
+  /**
+   * If true, also block the user from rejoining the call
+   * @type {boolean}
+   * @memberof KickUserRequest
+   */
+  block?: boolean;
+  /**
+   * The user to kick
+   * @type {string}
+   * @memberof KickUserRequest
+   */
+  user_id: string;
+}
+/**
+ * KickUserResponse is the payload for kicking a user from a call.
+ * @export
+ * @interface KickUserResponse
+ */
+export interface KickUserResponse {
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof KickUserResponse
+   */
+  duration: string;
+}
+/**
+ * This event is sent to call participants to notify when a user is kicked from a call. Clients should make the kicked user leave the call UI.
+ * @export
+ * @interface KickedUserEvent
+ */
+export interface KickedUserEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof KickedUserEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof KickedUserEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof KickedUserEvent
+   */
+  kicked_by_user?: UserResponse;
+  /**
+   * The type of event: "call.kicked_user" in this case
+   * @type {string}
+   * @memberof KickedUserEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof KickedUserEvent
+   */
+  user: UserResponse;
+}
+/**
  *
  * @export
  * @interface LayoutSettingsRequest
@@ -4229,6 +4979,18 @@ export interface LimitsSettingsRequest {
    * @memberof LimitsSettingsRequest
    */
   max_participants?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof LimitsSettingsRequest
+   */
+  max_participants_exclude_owner?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof LimitsSettingsRequest
+   */
+  max_participants_exclude_roles?: Array<string>;
 }
 /**
  *
@@ -4248,6 +5010,18 @@ export interface LimitsSettingsResponse {
    * @memberof LimitsSettingsResponse
    */
   max_participants?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof LimitsSettingsResponse
+   */
+  max_participants_exclude_owner?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof LimitsSettingsResponse
+   */
+  max_participants_exclude_roles: Array<string>;
 }
 /**
  * List devices response
@@ -4396,6 +5170,43 @@ export interface MessageStatsResponse {
 /**
  *
  * @export
+ * @interface MetricThreshold
+ */
+export interface MetricThreshold {
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  level: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  operator: string;
+  /**
+   *
+   * @type {number}
+   * @memberof MetricThreshold
+   */
+  value: number;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  value_unit?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof MetricThreshold
+   */
+  window_seconds?: number;
+}
+/**
+ *
+ * @export
  * @interface MuteUsersRequest
  */
 export interface MuteUsersRequest {
@@ -4519,12 +5330,14 @@ export const OwnCapability = {
   JOIN_BACKSTAGE: 'join-backstage',
   JOIN_CALL: 'join-call',
   JOIN_ENDED_CALL: 'join-ended-call',
+  KICK_USER: 'kick-user',
   MUTE_USERS: 'mute-users',
   PIN_FOR_EVERYONE: 'pin-for-everyone',
   READ_CALL: 'read-call',
   REMOVE_CALL_MEMBER: 'remove-call-member',
   SCREENSHARE: 'screenshare',
   SEND_AUDIO: 'send-audio',
+  SEND_CLOSED_CAPTIONS_CALL: 'send-closed-captions-call',
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
@@ -4549,6 +5362,12 @@ export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
  * @interface OwnUserResponse
  */
 export interface OwnUserResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof OwnUserResponse
+   */
+  avg_response_time?: number;
   /**
    *
    * @type {Array<string>}
@@ -4778,6 +5597,186 @@ export interface ParticipantReportResponse {
 /**
  *
  * @export
+ * @interface ParticipantSeriesPublisherStats
+ */
+export interface ParticipantSeriesPublisherStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global_thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {{ [key: string]: Array<ParticipantSeriesTrackMetrics>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  tracks?: { [key: string]: Array<ParticipantSeriesTrackMetrics> };
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesSubscriberStats
+ */
+export interface ParticipantSeriesSubscriberStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global_thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {Array<ParticipantSeriesSubscriptionTrackMetrics>}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  subscriptions?: Array<ParticipantSeriesSubscriptionTrackMetrics>;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesSubscriptionTrackMetrics
+ */
+export interface ParticipantSeriesSubscriptionTrackMetrics {
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_user_session_id?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<ParticipantSeriesTrackMetrics>; }}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  tracks?: { [key: string]: Array<ParticipantSeriesTrackMetrics> };
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesTimeframe
+ */
+export interface ParticipantSeriesTimeframe {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  max_points: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  since: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  step_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  until: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesTrackMetrics
+ */
+export interface ParticipantSeriesTrackMetrics {
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  codec?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  label?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  metrics?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  rid?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  track_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  track_type?: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesUserStats
+ */
+export interface ParticipantSeriesUserStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  metrics?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  thresholds?: { [key: string]: Array<MetricThreshold> };
+}
+/**
+ *
+ * @export
  * @interface PerSDKUsageReport
  */
 export interface PerSDKUsageReport {
@@ -4863,6 +5862,37 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface PublishedTrackFlags
+ */
+export interface PublishedTrackFlags {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  audio: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  screenshare: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  screenshare_audio: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  video: boolean;
 }
 /**
  *
@@ -5161,6 +6191,128 @@ export interface QueryCallParticipantsResponse {
    * @memberof QueryCallParticipantsResponse
    */
   total_participants: number;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionParticipantStatsResponse
+ */
+export interface QueryCallSessionParticipantStatsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_type: string;
+  /**
+   *
+   * @type {CallStatsParticipantCounts}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {Array<CallStatsParticipant>}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  participants: Array<CallStatsParticipant>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  prev?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  tmp_data_source?: string;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionParticipantStatsTimelineResponse
+ */
+export interface QueryCallSessionParticipantStatsTimelineResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<CallParticipantTimeline>}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  events: Array<CallParticipantTimeline>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  user_session_id: string;
 }
 /**
  *
@@ -5778,6 +6930,19 @@ export interface SFUResponse {
 /**
  *
  * @export
+ * @interface SRTIngress
+ */
+export interface SRTIngress {
+  /**
+   *
+   * @type {string}
+   * @memberof SRTIngress
+   */
+  address: string;
+}
+/**
+ *
+ * @export
  * @interface ScreensharingSettingsRequest
  */
 export interface ScreensharingSettingsRequest {
@@ -5943,6 +7108,25 @@ export interface SortParamRequest {
 /**
  *
  * @export
+ * @interface SpeechSegmentConfig
+ */
+export interface SpeechSegmentConfig {
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  max_speech_caption_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  silence_duration_ms?: number;
+}
+/**
+ *
+ * @export
  * @interface StartClosedCaptionsRequest
  */
 export interface StartClosedCaptionsRequest {
@@ -5964,6 +7148,12 @@ export interface StartClosedCaptionsRequest {
    * @memberof StartClosedCaptionsRequest
    */
   language?: StartClosedCaptionsRequestLanguageEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof StartClosedCaptionsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
 }
 
 /**
@@ -6528,7 +7718,19 @@ export interface TranscriptionSettingsRequest {
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  mode: TranscriptionSettingsRequestModeEnum;
+  mode?: TranscriptionSettingsRequestModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsRequest
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -6622,6 +7824,18 @@ export interface TranscriptionSettingsResponse {
    * @memberof TranscriptionSettingsResponse
    */
   mode: TranscriptionSettingsResponseModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsResponse
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsResponse
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -6691,6 +7905,25 @@ export const TranscriptionSettingsResponseModeEnum = {
 export type TranscriptionSettingsResponseModeEnum =
   (typeof TranscriptionSettingsResponseModeEnum)[keyof typeof TranscriptionSettingsResponseModeEnum];
 
+/**
+ *
+ * @export
+ * @interface TranslationSettings
+ */
+export interface TranslationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof TranslationSettings
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof TranslationSettings
+   */
+  languages?: Array<string>;
+}
 /**
  * UnblockUserRequest is the payload for unblocking a user.
  * @export
@@ -7064,6 +8297,12 @@ export interface UserRequest {
 export interface UserResponse {
   /**
    *
+   * @type {number}
+   * @memberof UserResponse
+   */
+  avg_response_time?: number;
+  /**
+   *
    * @type {Array<string>}
    * @memberof UserResponse
    */
@@ -7159,6 +8398,12 @@ export interface UserResponse {
  * @interface UserResponsePrivacyFields
  */
 export interface UserResponsePrivacyFields {
+  /**
+   *
+   * @type {number}
+   * @memberof UserResponsePrivacyFields
+   */
+  avg_response_time?: number;
   /**
    *
    * @type {Array<string>}
@@ -7325,6 +8570,7 @@ export type VideoEvent =
   | ({
       type: 'call.hls_broadcasting_stopped';
     } & CallHLSBroadcastingStoppedEvent)
+  | ({ type: 'call.kicked_user' } & KickedUserEvent)
   | ({ type: 'call.live_started' } & CallLiveStartedEvent)
   | ({ type: 'call.member_added' } & CallMemberAddedEvent)
   | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
@@ -7366,6 +8612,7 @@ export type VideoEvent =
   | ({ type: 'call.transcription_stopped' } & CallTranscriptionStoppedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.user_feedback_submitted' } & CallUserFeedbackSubmittedEvent)
   | ({ type: 'call.user_muted' } & CallUserMutedEvent)
   | ({ type: 'connection.error' } & ConnectionErrorEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)
@@ -7502,6 +8749,19 @@ export const VideoSettingsResponseCameraFacingEnum = {
 export type VideoSettingsResponseCameraFacingEnum =
   (typeof VideoSettingsResponseCameraFacingEnum)[keyof typeof VideoSettingsResponseCameraFacingEnum];
 
+/**
+ *
+ * @export
+ * @interface WHIPIngress
+ */
+export interface WHIPIngress {
+  /**
+   * URL for a new whip input, every time a new link is created
+   * @type {string}
+   * @memberof WHIPIngress
+   */
+  address: string;
+}
 /**
  * Websocket auth message
  * @export

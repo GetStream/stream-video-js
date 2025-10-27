@@ -8,27 +8,40 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { TourProvider } from '../../context/TourContext';
-import { createTokenProvider, getClient } from '../../helpers/client';
+import { getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
-  getServerSideCredentialsProps,
+  getServerSideCredentialsPropsWithOptions,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import appTranslations from '../../translations';
 import { RingingCallNotification } from '../../components/Ringing/RingingCallNotification';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+const HeadComponent = ({ callId }: { callId: string }) => {
+  const { useCallCustomData } = useCallStateHooks();
+  const customData = useCallCustomData();
+
+  return (
+    <Head>
+      <title>Stream Calls: {customData.name || callId}</title>
+      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    </Head>
+  );
+};
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -37,6 +50,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
+  const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
+  const coordinatorUrl = useLocalCoordinator
+    ? 'http://localhost:3030/video'
+    : (router.query['coordinator_url'] as string | undefined);
 
   const { apiKey, userToken, user, gleapApiKey } = props;
 
@@ -44,7 +61,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     setClient(_client);
     window.client = _client;
 
@@ -52,15 +72,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       setClient(undefined);
       window.client = undefined;
     };
-  }, [apiKey, environment, user, userToken]);
+  }, [apiKey, coordinatorUrl, environment, user, userToken]);
 
-  const tokenProvider = useMemo(
-    () => createTokenProvider(user.id, environment),
-    [environment, user.id],
-  );
   const chatClient = useCreateStreamChatClient({
     apiKey,
-    tokenOrProvider: tokenProvider,
+    tokenOrProvider: userToken,
     userData: {
       id: '!anon',
       ...(user as Omit<User, 'type' | 'push_notifications'>),
@@ -69,6 +85,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   const [call, setCall] = useState<Call>();
+  const [callError, setCallError] = useState<string | null>(null);
   useEffect(() => {
     if (!client) return;
     const _call = client.call(callType, callId, { reuseInstance: true });
@@ -97,6 +114,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
     call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
+      setCallError(
+        err instanceof Error ? err.message : 'Could not get or create call',
+      );
     });
   }, [call, callType, user.id]);
 
@@ -137,13 +157,30 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   if (!client || !call) return null;
 
+  if (callError) {
+    return (
+      <div className="str-video__call">
+        <div className="str-video__call__loading-screen">
+          <div className="rd__call-not-found">
+            Call not found.
+            <br />
+            It may have already ended, or the call ID is incorrect.
+            <button
+              className="rd__button rd__button--secondary rd__button--large rd__call-not-found-button"
+              onClick={() => {
+                router.push('/');
+              }}
+            >
+              Join another call
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <Head>
-        <title>Stream Calls: {callId}</title>
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
-
       <StreamVideo
         client={client}
         language={language}
@@ -151,9 +188,12 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         translationsOverrides={appTranslations}
       >
         <StreamCall call={call}>
+          <HeadComponent callId={callId} />
+
           <TourProvider>
             <BackgroundFiltersProvider
               basePath={`${basePath}/tf`}
+              forceSafariSupport
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
                 `${basePath}/backgrounds/amsterdam-2.jpg`,
@@ -182,4 +222,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
 export default CallRoom;
 
-export const getServerSideProps = getServerSideCredentialsProps;
+export const getServerSideProps = getServerSideCredentialsPropsWithOptions({
+  signInAutomatically: true,
+});

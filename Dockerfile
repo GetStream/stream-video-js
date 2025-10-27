@@ -1,4 +1,4 @@
-FROM node:20-alpine as packager
+FROM node:22-alpine AS packager
 WORKDIR /e2e
 
 COPY sample-apps/ sample-apps/
@@ -7,11 +7,11 @@ RUN find sample-apps \! -name "package.json" -mindepth 3 -maxdepth 3 -print | xa
 COPY packages/ packages/
 RUN find packages \! -name "package.json" -mindepth 2 -maxdepth 2 -print | xargs rm -rf
 
-FROM node:20-bullseye as runner
+FROM node:22-bullseye AS runner
 WORKDIR /e2e
 
 COPY .yarn/ ./.yarn/
-COPY yarn.lock package.json .yarnrc.yml tsconfig.json ./
+COPY yarn.lock package.json .yarnrc.yml ./
 COPY --from=packager /e2e/packages ./packages
 COPY --from=packager /e2e/sample-apps ./sample-apps
 

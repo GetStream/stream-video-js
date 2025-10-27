@@ -62,10 +62,12 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
     'granted' | 'revoked'
   >();
   useEffect(() => {
-    if (hasPermission && !prevHasPermission.current) {
+    if (prevHasPermission.current === hasPermission) return;
+
+    if (hasPermission) {
       setShowNotification('granted');
       prevHasPermission.current = true;
-    } else if (!hasPermission && prevHasPermission.current) {
+    } else {
       setShowNotification('revoked');
       prevHasPermission.current = false;
     }

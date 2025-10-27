@@ -1,7 +1,8 @@
 import {
   Call,
-  StreamCall,
+  callManager,
   HostLivestream,
+  StreamCall,
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -73,6 +74,13 @@ export const HostLiveStreamScreen = ({
 
     getOrCreateCall();
   }, [call, connectedUser, navigation]);
+
+  useEffect(() => {
+    callManager.start();
+    return () => {
+      callManager.stop();
+    };
+  }, []);
 
   const CustomHostLivestreamMediaControls = useCallback(() => {
     return (

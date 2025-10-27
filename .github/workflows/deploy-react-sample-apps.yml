@@ -51,6 +51,9 @@ jobs:
           - name: react-dogfood - https://getstream.io/video/demos
             project-id: prj_tTLn3XMVal4D1Nnel9nPJ0hoI9wA
             base-path: /video/demos
+          - name: pronto-sales - https://hello.getstream.io
+            project-id: prj_iviLZfey1DBTO2wKCiBCXzCOMpm0
+            manual-only: true
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -88,7 +91,7 @@ jobs:
 
       ### Vercel deployment (Preview) ###
       - name: Vercel Pull/Build/Deploy (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && matrix.application.manual-only != true }}
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
@@ -98,7 +101,7 @@ jobs:
 
       ### Vercel deployment (Production) ###
       - name: Vercel Pull/Build/Deploy (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' && (matrix.application.manual-only != true || github.event_name == 'workflow_dispatch') }}
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >

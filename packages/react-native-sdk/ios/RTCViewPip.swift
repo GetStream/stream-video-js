@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import React
 
 @objc(RTCViewPip)
 class RTCViewPip: UIView {
@@ -13,16 +14,7 @@ class RTCViewPip: UIView {
     private var pictureInPictureController = StreamPictureInPictureController()
     private var webRtcModule: WebRTCModule?
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupNotificationObserver()
-        self.pictureInPictureController?.sourceView = self
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setupNotificationObserver()
-    }
+    @objc var onPiPChange: RCTBubblingEventBlock?
     
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(
@@ -31,10 +23,6 @@ class RTCViewPip: UIView {
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
     }
     
     func setWebRtcModule(_ module: WebRTCModule) {
@@ -64,7 +52,7 @@ class RTCViewPip: UIView {
             }
             
             DispatchQueue.main.async {
-                NSLog("PiP - Setting video track for streamURL: -\(streamURLString)")
+                NSLog("PiP - Setting video track for streamURL: -\(streamURLString) trackId: \(videoTrack.trackId)")
                 self.pictureInPictureController?.track = videoTrack
             }
         }
@@ -82,16 +70,47 @@ class RTCViewPip: UIView {
         self.pictureInPictureController = nil
     }
     
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        let isVisible = self.superview != nil && self.window != nil;
-        if (!isVisible) {
-            // view is detached so we cleanup the pip controller
-            // taken from:  https://github.com/software-mansion/react-native-screens/blob/main/Example/ios/ScreensExample/RNSSampleLifecycleAwareView.m
+    @objc
+    func setPreferredContentSize(_ size: CGSize) {
+        NSLog("PiP - RTCViewPip setPreferredContentSize \(size)")
+        self.pictureInPictureController?.setPreferredContentSize(size)
+    }
+    
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        if self.superview == nil {
+            NSLog("PiP - RTCViewPip has been removed from its superview.")
+            NotificationCenter.default.removeObserver(self)
             DispatchQueue.main.async {
                 NSLog("PiP - onCallClosed called due to view detaching")
                 self.onCallClosed()
             }
+        } else {
+            NSLog("PiP - RTCViewPip has been added to a superview.")
+            setupNotificationObserver()
+            DispatchQueue.main.async {
+                self.pictureInPictureController?.sourceView = self
+                // Set up PiP state change callback
+                self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in
+                    self?.sendPiPChangeEvent(isActive: isActive)
+                }
+                if let reactTag = self.reactTag, let bridge = self.webRtcModule?.bridge {
+                    if let manager = bridge.module(for: RTCViewPipManager.self) as? RTCViewPipManager,
+                       let size = manager.getCachedSize(for: reactTag) {
+                        NSLog("PiP - Applying cached size \(size) for reactTag \(reactTag)")
+                        self.setPreferredContentSize(size)
+                    }
+                }
+            }
         }
+    }
+    
+    private func sendPiPChangeEvent(isActive: Bool) {
+        guard let onPiPChange = onPiPChange else {
+            return
+        }
+        
+        NSLog("PiP - Sending PiP state change event: \(isActive)")
+        onPiPChange(["active": isActive])
     }
 }

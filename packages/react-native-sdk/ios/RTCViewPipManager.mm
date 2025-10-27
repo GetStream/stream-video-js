@@ -11,6 +11,8 @@
 @interface RCT_EXTERN_MODULE(RTCViewPipManager, RCTViewManager)
 
 RCT_EXPORT_VIEW_PROPERTY(streamURL, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onPiPChange, RCTBubblingEventBlock)
 RCT_EXTERN_METHOD(onCallClosed:(nonnull NSNumber*) reactTag)
+RCT_EXTERN_METHOD(setPreferredContentSize:(nonnull NSNumber *)reactTag width:(CGFloat)w height:(CGFloat)h);
 
 @end

@@ -9,6 +9,7 @@ import {
   Restricted,
   useCall,
   useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import {
   name,
@@ -46,8 +47,6 @@ const UserListTypes = {
   active: 'Active users',
   blocked: 'Blocked users',
 } as const;
-
-const DEFAULT_DEBOUNCE_SEARCH_INTERVAL = 200 as const;
 
 export const CallParticipantsList = ({
   onClose,
@@ -102,10 +101,11 @@ const CallParticipantListContentHeader = ({
   setUserListType: Dispatch<SetStateAction<keyof typeof UserListTypes>>;
 }) => {
   const call = useCall();
+  const { t } = useI18n();
 
-  const muteAll = () => {
+  const muteAll = useCallback(() => {
     call?.muteAllUsers('audio');
-  };
+  }, [call]);
 
   return (
     <div className="str-video__participant-list__content-header">
@@ -115,7 +115,7 @@ const CallParticipantListContentHeader = ({
             requiredGrants={[OwnCapability.MUTE_USERS]}
             hasPermissionsOnly
           >
-            <TextButton onClick={muteAll}>Mute all</TextButton>
+            <TextButton onClick={muteAll}>{t('Mute all')}</TextButton>
           </Restricted>
         )}
       </div>
@@ -141,7 +141,7 @@ const CallParticipantListContentHeader = ({
 const ActiveUsersSearchResults = ({
   searchQuery,
   activeUsersSearchFn: activeUsersSearchFnFromProps,
-  debounceSearchInterval = DEFAULT_DEBOUNCE_SEARCH_INTERVAL,
+  debounceSearchInterval,
 }: Pick<
   CallParticipantListProps,
   'activeUsersSearchFn' | 'debounceSearchInterval'
@@ -150,23 +150,18 @@ const ActiveUsersSearchResults = ({
   const participants = useParticipants({ sortBy: name });
 
   const activeUsersSearchFn = useCallback(
-    (queryString: string) => {
+    async (queryString: string) => {
       const queryRegExp = new RegExp(queryString, 'i');
-      return Promise.resolve(
-        participants.filter((participant) => {
-          return participant.name.match(queryRegExp);
-        }),
-      );
+      return participants.filter((p) => p.name.match(queryRegExp));
     },
     [participants],
   );
 
-  const { searchQueryInProgress, searchResults } =
-    useSearch<StreamVideoParticipant>({
-      searchFn: activeUsersSearchFnFromProps ?? activeUsersSearchFn,
-      debounceInterval: debounceSearchInterval,
-      searchQuery,
-    });
+  const { searchQueryInProgress, searchResults } = useSearch({
+    searchFn: activeUsersSearchFnFromProps ?? activeUsersSearchFn,
+    debounceInterval: debounceSearchInterval,
+    searchQuery,
+  });
 
   return (
     <SearchResults<StreamVideoParticipant>
@@ -181,7 +176,7 @@ const ActiveUsersSearchResults = ({
 
 const BlockedUsersSearchResults = ({
   blockedUsersSearchFn: blockedUsersSearchFnFromProps,
-  debounceSearchInterval = DEFAULT_DEBOUNCE_SEARCH_INTERVAL,
+  debounceSearchInterval,
   searchQuery,
 }: Pick<
   CallParticipantListProps,
@@ -191,18 +186,14 @@ const BlockedUsersSearchResults = ({
   const blockedUsers = useCallBlockedUserIds();
 
   const blockedUsersSearchFn = useCallback(
-    (queryString: string) => {
+    async (queryString: string) => {
       const queryRegExp = new RegExp(queryString, 'i');
-      return Promise.resolve(
-        blockedUsers.filter((blockedUser) => {
-          return blockedUser.match(queryRegExp);
-        }),
-      );
+      return blockedUsers.filter((userId) => userId.match(queryRegExp));
     },
     [blockedUsers],
   );
 
-  const { searchQueryInProgress, searchResults } = useSearch<string>({
+  const { searchQueryInProgress, searchResults } = useSearch({
     searchFn: blockedUsersSearchFnFromProps ?? blockedUsersSearchFn,
     debounceInterval: debounceSearchInterval,
     searchQuery,

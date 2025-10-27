@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
     "jsx": "react"
   },
   "include": ["src"]

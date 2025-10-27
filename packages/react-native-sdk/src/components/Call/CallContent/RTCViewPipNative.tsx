@@ -10,8 +10,13 @@ import {
 
 const COMPONENT_NAME = 'RTCViewPip';
 
+export type PiPChangeEvent = {
+  active: boolean;
+};
+
 type RTCViewPipNativeProps = {
   streamURL?: string;
+  onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
 };
 
 const NativeComponent: HostComponent<RTCViewPipNativeProps> =
@@ -19,11 +24,26 @@ const NativeComponent: HostComponent<RTCViewPipNativeProps> =
 
 export function onNativeCallClosed(reactTag: number) {
   getLogger(['RTCViewPipNative'])('debug', 'onNativeCallClosed');
-  UIManager.dispatchViewManagerCommand(
-    reactTag,
-    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed,
-    [],
-  );
+  const commandId =
+    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed;
+  if (!commandId) return;
+  UIManager.dispatchViewManagerCommand(reactTag, commandId, []);
+}
+
+export function onNativeDimensionsUpdated(
+  reactTag: number,
+  width: number,
+  height: number,
+) {
+  getLogger(['RTCViewPipNative'])('debug', 'onNativeDimensionsUpdated', {
+    width,
+    height,
+  });
+  const commandId =
+    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands
+      .setPreferredContentSize;
+  if (!commandId) return;
+  UIManager.dispatchViewManagerCommand(reactTag, commandId, [width, height]);
 }
 
 /** Wrapper for the native view
@@ -33,6 +53,7 @@ export const RTCViewPipNative = React.memo(
     React.Ref<any>,
     {
       streamURL?: string;
+      onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
     }
   >((props, ref) => {
     if (Platform.OS !== 'ios') return null;
@@ -43,6 +64,8 @@ export const RTCViewPipNative = React.memo(
         pointerEvents={'none'}
         // eslint-disable-next-line react/prop-types
         streamURL={props.streamURL}
+        // eslint-disable-next-line react/prop-types
+        onPiPChange={props.onPiPChange}
         // @ts-expect-error - types issue
         ref={ref}
       />

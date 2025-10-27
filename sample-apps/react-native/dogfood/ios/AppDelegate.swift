@@ -75,7 +75,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       completion() // Ensure completion handler is called even if parsing fails
       return
     }
-    
+        
+    // Check if user is busy BEFORE registering the call
+    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
+    let hasAnyActiveCall = StreamVideoReactNative.hasAnyActiveCall()
+        
+    if shouldReject && hasAnyActiveCall {
+        // Complete the VoIP notification without showing CallKit UI
+        completion()
+        return
+    }
+        
     let uuid = UUID().uuidString
     let videoIncluded = stream["video"] as? String
     let hasVideo = videoIncluded == "false" ? false : true
@@ -119,6 +129,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    // Uncomment the next line to enable verbose WebRTC logs
+    // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
+    
     let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
     let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
     RNCallKeep.setup([

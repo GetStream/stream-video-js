@@ -33,6 +33,7 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
+      - 'packages/noise-cancellation-react-native/**'
       - 'packages/video-filters-react-native/**'
       - '!**.md'
   workflow_dispatch:
@@ -70,6 +71,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Select XCode version
+        run: sudo xcode-select --switch /Applications/Xcode_26.0.1.app
+
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 20
         env:
@@ -94,9 +98,12 @@ jobs:
     needs: build_ios
     timeout-minutes: 60
     if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select XCode version
+        run: sudo xcode-select --switch /Applications/Xcode_26.0.1.app
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15

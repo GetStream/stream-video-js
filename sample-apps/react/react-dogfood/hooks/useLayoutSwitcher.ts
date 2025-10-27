@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import {
   LivestreamLayout,
   PaginatedGridLayout,
@@ -95,7 +96,7 @@ export const LayoutMap = {
 };
 
 const SETTINGS_KEY = '@pronto/layout-settings';
-const DEFAULT_LAYOUT: keyof typeof LayoutMap = 'SpeakerBottom';
+const DEFAULT_LAYOUT: keyof typeof LayoutMap = 'SpeakerLeft';
 
 export const getLayoutSettings = () => {
   if (typeof window === 'undefined') return;
@@ -110,10 +111,15 @@ export const getLayoutSettings = () => {
 };
 
 export const useLayoutSwitcher = () => {
+  const router = useRouter();
+  const layoutOverride = router.query['layout'] as
+    | keyof typeof LayoutMap
+    | undefined;
+
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
-    const storedLayout = getLayoutSettings()?.selectedLayout;
-    if (!storedLayout) return DEFAULT_LAYOUT;
-    return LayoutMap[storedLayout] ? storedLayout : DEFAULT_LAYOUT;
+    const layoutToUse =
+      layoutOverride || getLayoutSettings()?.selectedLayout || DEFAULT_LAYOUT;
+    return LayoutMap[layoutToUse] ? layoutToUse : DEFAULT_LAYOUT;
   });
 
   const { useHasOngoingScreenShare } = useCallStateHooks();
@@ -123,11 +129,12 @@ export const useLayoutSwitcher = () => {
     if (hasScreenShare) {
       return setLayout((currentLayout) => {
         if (currentLayout.startsWith('Speaker')) return currentLayout;
-        return 'SpeakerBottom';
+        return 'SpeakerRight';
       });
     }
 
-    const storedLayout = getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
+    const storedLayout =
+      layoutOverride ?? getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
     const isStoredLayoutInMap = LayoutMap[storedLayout];
     setLayout(
       // reset to "stored" layout, use default if incompatible layout is used
@@ -135,7 +142,7 @@ export const useLayoutSwitcher = () => {
         ? DEFAULT_LAYOUT
         : storedLayout,
     );
-  }, [hasScreenShare]);
+  }, [hasScreenShare, layoutOverride]);
 
   const switchLayout = useCallback((newLayout: keyof typeof LayoutMap) => {
     setLayout(newLayout);

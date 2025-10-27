@@ -8,6 +8,7 @@ import {
   Publisher,
   Subscriber,
   toRtcConfiguration,
+  TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
 import {
@@ -38,12 +39,15 @@ import type {
   EndCallResponse,
   GetCallReportResponse,
   GetCallResponse,
+  GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
   GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
+  KickUserRequest,
+  KickUserResponse,
   ListRecordingsResponse,
   ListTranscriptionsResponse,
   MuteUsersRequest,
@@ -52,6 +56,8 @@ import type {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  QueryCallSessionParticipantStatsResponse,
+  QueryCallSessionParticipantStatsTimelineResponse,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
@@ -107,8 +113,10 @@ import {
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
+  ClientCapability,
   ClientDetails,
   Codec,
+  ParticipantSource,
   PublishOption,
   SubscribeOption,
   TrackType,
@@ -272,6 +280,13 @@ export class Call {
   private streamClientEventHandlers = new Map<Function, () => void>();
 
   /**
+   * A list of capabilities that the client supports and are enabled.
+   */
+  private clientCapabilities = new Set<ClientCapability>([
+    ClientCapability.SUBSCRIBER_VIDEO_PAUSE,
+  ]);
+
+  /**
    * Constructs a new `Call` instance.
    *
    * NOTE: Don't call the constructor directly, instead
@@ -389,6 +404,21 @@ export class Call {
       }),
     );
 
+    if (this.ringing) {
+      // if the call is ringing, we need to register the ringing call effects
+      this.handleRingingCall();
+    } else {
+      // if the call is not ringing, we need to register the ringing call subscriptions
+      // to handle the case when the call gets ringing flag after creation event
+      this.leaveCallHooks.add(
+        // "ringing" mode effects and event handlers
+        createSubscription(this.ringingSubject, (isRinging) => {
+          if (!isRinging) return;
+          this.handleRingingCall();
+        }),
+      );
+    }
+
     this.leaveCallHooks.add(
       // cancel auto-drop when call is accepted or rejected
       createSubscription(this.state.session$, (session) => {
@@ -420,50 +450,46 @@ export class Call {
         }
       }),
     );
+  };
 
-    this.leaveCallHooks.add(
-      // "ringing" mode effects and event handlers
-      createSubscription(this.ringingSubject, (isRinging) => {
-        if (!isRinging) return;
-        const callSession = this.state.session;
-        const receiver_id = this.clientStore.connectedUser?.id;
-        const ended_at = callSession?.ended_at;
-        const created_by_id = this.state.createdBy?.id;
-        const rejected_by = callSession?.rejected_by;
-        const accepted_by = callSession?.accepted_by;
-        let leaveCallIdle = false;
-        if (ended_at) {
-          // call was ended before it was accepted or rejected so we should leave it to idle
-          leaveCallIdle = true;
-        } else if (created_by_id && rejected_by) {
-          if (rejected_by[created_by_id]) {
-            // call was cancelled by the caller
-            leaveCallIdle = true;
-          }
-        } else if (receiver_id && rejected_by) {
-          if (rejected_by[receiver_id]) {
-            // call was rejected by the receiver in some other device
-            leaveCallIdle = true;
-          }
-        } else if (receiver_id && accepted_by) {
-          if (accepted_by[receiver_id]) {
-            // call was accepted by the receiver in some other device
-            leaveCallIdle = true;
-          }
-        }
-        if (leaveCallIdle) {
-          if (this.state.callingState !== CallingState.IDLE) {
-            this.state.setCallingState(CallingState.IDLE);
-          }
-        } else {
-          if (this.state.callingState === CallingState.IDLE) {
-            this.state.setCallingState(CallingState.RINGING);
-          }
-          this.scheduleAutoDrop();
-          this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
-        }
-      }),
-    );
+  private handleRingingCall = () => {
+    const callSession = this.state.session;
+    const receiver_id = this.clientStore.connectedUser?.id;
+    const ended_at = callSession?.ended_at;
+    const created_by_id = this.state.createdBy?.id;
+    const rejected_by = callSession?.rejected_by;
+    const accepted_by = callSession?.accepted_by;
+    let leaveCallIdle = false;
+    if (ended_at) {
+      // call was ended before it was accepted or rejected so we should leave it to idle
+      leaveCallIdle = true;
+    } else if (created_by_id && rejected_by) {
+      if (rejected_by[created_by_id]) {
+        // call was cancelled by the caller
+        leaveCallIdle = true;
+      }
+    } else if (receiver_id && rejected_by) {
+      if (rejected_by[receiver_id]) {
+        // call was rejected by the receiver in some other device
+        leaveCallIdle = true;
+      }
+    } else if (receiver_id && accepted_by) {
+      if (accepted_by[receiver_id]) {
+        // call was accepted by the receiver in some other device
+        leaveCallIdle = true;
+      }
+    }
+    if (leaveCallIdle) {
+      if (this.state.callingState !== CallingState.IDLE) {
+        this.state.setCallingState(CallingState.IDLE);
+      }
+    } else {
+      if (this.state.callingState === CallingState.IDLE) {
+        this.state.setCallingState(CallingState.RINGING);
+      }
+      this.scheduleAutoDrop();
+      this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
+    }
   };
 
   private handleOwnCapabilitiesUpdated = async (
@@ -860,18 +886,35 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    this.state.setCallingState(CallingState.JOINING);
-
+    // we will count the number of join failures per SFU.
+    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+    // field to force the coordinator to provide us another SFU
+    const sfuJoinFailures = new Map<string, number>();
+    const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
         this.logger('trace', `Joining call (${attempt})`, this.cid);
-        return await this.doJoin(data);
+        await this.doJoin(data);
+        delete joinData.migrating_from;
+        break;
       } catch (err) {
         this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+        if (err instanceof ErrorFromResponse && err.unrecoverable) {
+          // if the error is unrecoverable, we should not retry as that signals
+          // that connectivity is good, but the coordinator doesn't allow the user
+          // to join the call due to some reason (e.g., ended call, expired token...)
+          throw err;
+        }
+
+        const sfuId = this.credentials?.server.edge_name || '';
+        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+        sfuJoinFailures.set(sfuId, failures);
+        if (failures >= 2) {
+          joinData.migrating_from = sfuId;
+        }
+
         if (attempt === maxJoinRetries - 1) {
-          // restore the previous call state if the join-flow fails
-          this.state.setCallingState(callingState);
           throw err;
         }
       }
@@ -886,7 +929,7 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  doJoin = async (data?: JoinCallData): Promise<void> => {
+  private doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
 
@@ -932,7 +975,8 @@ export class Call {
     const sfuClient =
       performingRejoin || performingMigration || !isWsHealthy
         ? new StreamSfuClient({
-            logTag: String(++this.sfuClientTag),
+            tag: String(this.sfuClientTag++),
+            cid: this.cid,
             dispatcher: this.dispatcher,
             credentials: this.credentials,
             streamClient: this.streamClient,
@@ -945,6 +989,7 @@ export class Call {
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
+    this.unifiedSessionId ??= sfuClient.sessionId;
     this.dynascaleManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
@@ -972,6 +1017,7 @@ export class Call {
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
           await sfuClient.join({
+            unifiedSessionId: this.unifiedSessionId,
             subscriberSdp,
             publisherSdp,
             clientDetails,
@@ -979,6 +1025,8 @@ export class Call {
             reconnectDetails,
             preferredPublishOptions,
             preferredSubscribeOptions,
+            capabilities: Array.from(this.clientCapabilities),
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
           });
 
         this.currentPublishOptions = publishOptions;
@@ -1023,6 +1071,7 @@ export class Call {
         statsOptions,
         publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
+        unifiedSessionId: this.unifiedSessionId,
       });
     }
 
@@ -1184,6 +1233,7 @@ export class Call {
     clientDetails: ClientDetails;
     publishOptions: PublishOption[];
     closePreviousInstances: boolean;
+    unifiedSessionId: string;
   }) => {
     const {
       sfuClient,
@@ -1192,6 +1242,7 @@ export class Call {
       statsOptions,
       publishOptions,
       closePreviousInstances,
+      unifiedSessionId,
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
@@ -1202,7 +1253,7 @@ export class Call {
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
-      logTag: String(this.sfuClientTag),
+      tag: sfuClient.tag,
       enableTracing,
       onReconnectionNeeded: (kind, reason) => {
         this.reconnect(kind, reason).catch((err) => {
@@ -1225,7 +1276,7 @@ export class Call {
         state: this.state,
         connectionConfig,
         publishOptions,
-        logTag: String(this.sfuClientTag),
+        tag: sfuClient.tag,
         enableTracing,
         onReconnectionNeeded: (kind, reason) => {
           this.reconnect(kind, reason).catch((err) => {
@@ -1248,9 +1299,9 @@ export class Call {
     }
 
     this.tracer.setEnabled(enableTracing);
+    this.sfuStatsReporter?.flush();
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
-      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1260,7 +1311,7 @@ export class Call {
         camera: this.camera,
         state: this.state,
         tracer: this.tracer,
-        unifiedSessionId: this.unifiedSessionId,
+        unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }
@@ -1732,9 +1783,14 @@ export class Call {
    *
    * @param mediaStream the media stream to publish.
    * @param trackType the type of the track to announce.
+   * @param options the publish options.
    */
-  publish = async (mediaStream: MediaStream, trackType: TrackType) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
+  publish = async (
+    mediaStream: MediaStream,
+    trackType: TrackType,
+    options?: TrackPublishOptions,
+  ) => {
+    if (!this.sfuClient) throw new Error(`Call is not joined yet`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
 
@@ -1759,15 +1815,16 @@ export class Call {
     }
 
     pushToIfMissing(this.trackPublishOrder, trackType);
-    await this.publisher.publish(track, trackType);
+    await this.publisher.publish(track, trackType, options);
 
     const trackTypes = [trackType];
     if (trackType === TrackType.SCREEN_SHARE) {
       const [audioTrack] = mediaStream.getAudioTracks();
       if (audioTrack) {
-        pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
-        await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
-        trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
+        const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
+        pushToIfMissing(this.trackPublishOrder, screenShareAudio);
+        await this.publisher.publish(audioTrack, screenShareAudio, options);
+        trackTypes.push(screenShareAudio);
       }
     }
 
@@ -1867,10 +1924,13 @@ export class Call {
    * @internal
    */
   notifyTrackMuteState = async (muted: boolean, ...trackTypes: TrackType[]) => {
-    if (!this.sfuClient) return;
-    await this.sfuClient.updateMuteStates(
-      trackTypes.map((trackType) => ({ trackType, muted })),
-    );
+    const key = `muteState.${this.cid}.${trackTypes.join('-')}`;
+    await withoutConcurrency(key, async () => {
+      if (!this.sfuClient) return;
+      await this.sfuClient.updateMuteStates(
+        trackTypes.map((trackType) => ({ trackType, muted })),
+      );
+    });
   };
 
   /**
@@ -1961,6 +2021,17 @@ export class Call {
       {
         user_id: userId,
       },
+    );
+  };
+
+  /**
+   * Kicks the user with the given `userId`.
+   * @param data the kick request.
+   */
+  kickUser = async (data: KickUserRequest): Promise<KickUserResponse> => {
+    return this.streamClient.post<KickUserResponse, KickUserRequest>(
+      `${this.streamClientBasePath}/kick`,
+      data,
     );
   };
 
@@ -2178,13 +2249,10 @@ export class Call {
 
   /**
    * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
-   *
    * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
-   *
    * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
    *
    * `call.permissions_updated` event is sent to all members of the call.
-   *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
     return this.streamClient.post<
@@ -2502,6 +2570,43 @@ export class Call {
   };
 
   /**
+   * Loads the call participant stats for the given parameters.
+   */
+  getCallParticipantsStats = async (opts: {
+    sessionId?: string;
+    userId?: string;
+    userSessionId?: string;
+    kind?: 'timeline' | 'details';
+  }): Promise<
+    | QueryCallSessionParticipantStatsResponse
+    | GetCallSessionParticipantStatsDetailsResponse
+    | QueryCallSessionParticipantStatsTimelineResponse
+    | undefined
+  > => {
+    const {
+      sessionId = this.state.session?.id,
+      userId = this.currentUserId,
+      userSessionId = this.unifiedSessionId,
+      kind = 'details',
+    } = opts;
+    if (!sessionId) return;
+    const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
+    if (!userId || !userSessionId) {
+      return this.streamClient.get<QueryCallSessionParticipantStatsResponse>(
+        `${base}/participants`,
+      );
+    }
+    if (kind === 'details') {
+      return this.streamClient.get<GetCallSessionParticipantStatsDetailsResponse>(
+        `${base}/participant/${userId}/${userSessionId}/details`,
+      );
+    }
+    return this.streamClient.get<QueryCallSessionParticipantStatsTimelineResponse>(
+      `${base}/participants/${userId}/${userSessionId}/timeline`,
+    );
+  };
+
+  /**
    * Submit user feedback for the call
    *
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
@@ -2737,5 +2842,23 @@ export class Call {
    */
   setDisconnectionTimeout = (timeoutSeconds: number) => {
     this.disconnectionTimeoutSeconds = timeoutSeconds;
+  };
+
+  /**
+   * Enables the provided client capabilities.
+   */
+  enableClientCapabilities = (...capabilities: ClientCapability[]) => {
+    for (const capability of capabilities) {
+      this.clientCapabilities.add(capability);
+    }
+  };
+
+  /**
+   * Disables the provided client capabilities.
+   */
+  disableClientCapabilities = (...capabilities: ClientCapability[]) => {
+    for (const capability of capabilities) {
+      this.clientCapabilities.delete(capability);
+    }
   };
 }

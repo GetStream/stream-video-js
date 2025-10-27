@@ -247,6 +247,72 @@ describe('Participant events', () => {
       });
     });
 
+    it('resets the paused track list if the track is unpublished', () => {
+      const state = new CallState();
+      state.setParticipants([
+        // @ts-expect-error setup one participant
+        {
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
+          pausedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
+        },
+      ]);
+
+      const trackUnpublish = watchTrackUnpublished(state);
+      // @ts-expect-error incomplete data
+      trackUnpublish({ sessionId: 'session-id', type: TrackType.VIDEO });
+      expect(state.findParticipantBySessionId('session-id')).toEqual({
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.SCREEN_SHARE],
+        pausedTracks: [TrackType.SCREEN_SHARE],
+      });
+
+      // @ts-expect-error incomplete data
+      trackUnpublish({ sessionId: 'session-id', type: TrackType.SCREEN_SHARE });
+      expect(state.findParticipantBySessionId('session-id')).toEqual({
+        sessionId: 'session-id',
+        publishedTracks: [],
+        pausedTracks: [],
+      });
+    });
+
+    it('resets the paused track list if the track is unpublished on full participant update', () => {
+      const state = new CallState();
+      state.setParticipants([
+        // @ts-expect-error setup one participant
+        {
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
+          pausedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
+        },
+      ]);
+
+      const trackUnpublished = watchTrackUnpublished(state);
+      trackUnpublished({
+        sessionId: 'session-id',
+        type: TrackType.VIDEO,
+        // @ts-expect-error incomplete data
+        participant: { publishedTracks: [TrackType.SCREEN_SHARE] },
+      });
+      expect(state.findParticipantBySessionId('session-id')).toEqual({
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.SCREEN_SHARE],
+        pausedTracks: [TrackType.SCREEN_SHARE],
+      });
+
+      trackUnpublished({
+        sessionId: 'session-id',
+        type: TrackType.SCREEN_SHARE,
+        // @ts-expect-error incomplete data
+        participant: { publishedTracks: [] },
+      });
+      expect(state.findParticipantBySessionId('session-id')).toEqual({
+        sessionId: 'session-id',
+        publishedTracks: [],
+        pausedTracks: [],
+      });
+    });
+
     it('adds the participant to the list of participants if provided', () => {
       const state = new CallState();
       const handler = watchTrackUnpublished(state);

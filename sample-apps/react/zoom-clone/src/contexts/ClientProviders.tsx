@@ -32,7 +32,7 @@ export const ClientProviders = ({
         .catch((error) => console.error(`Couldn't disconnect user`, error));
       setVideoClient(undefined);
     };
-  }, [user]);
+  }, [apiKey, token, tokenProvider, user]);
 
   if (!chatClient || !videoClient) return null;
 

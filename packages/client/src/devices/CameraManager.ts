@@ -1,14 +1,14 @@
 import { Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { DeviceManager } from './DeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { OwnCapability, VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 
-export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
+export class CameraManager extends DeviceManager<CameraManagerState> {
   private targetResolution = {
     width: 1280,
     height: 720,
@@ -38,18 +38,18 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
       return;
     }
 
-    // providing both device id and direction doesn't work, so we deselect the device
-    this.state.setDirection(direction);
-    this.state.setDevice(undefined);
-
     if (isReactNative()) {
       const videoTrack = this.getTracks()[0] as MediaStreamTrack | undefined;
       await videoTrack?.applyConstraints({
         facingMode: direction === 'front' ? 'user' : 'environment',
       });
+    }
+    // providing both device id and direction doesn't work, so we deselect the device
+    this.state.setDirection(direction);
+    this.state.setDevice(undefined);
+    if (isReactNative()) {
       return;
     }
-
     this.getTracks().forEach((track) => track.stop());
     try {
       await this.unmuteStream();
@@ -122,7 +122,8 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
 
-    const { target_resolution, camera_facing, camera_default_on } = settings;
+    const { target_resolution, camera_facing, camera_default_on, enabled } =
+      settings;
     // normalize target resolution to landscape format.
     // on mobile devices, the device itself adjusts the resolution to portrait or landscape
     // depending on the orientation of the device. using portrait resolution
@@ -142,17 +143,21 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     if (this.enabled && mediaStream) {
       // The camera is already enabled (e.g. lobby screen). Publish the stream
       await this.publishStream(mediaStream);
-    } else if (this.state.status === undefined && camera_default_on) {
+    } else if (
+      this.state.status === undefined &&
+      camera_default_on &&
+      enabled
+    ) {
       // Start camera if backend config specifies, and there is no local setting
       await this.enable();
     }
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
-    return getVideoDevices();
+  protected override getDevices(): Observable<MediaDeviceInfo[]> {
+    return getVideoDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     constraints.width = this.targetResolution.width;

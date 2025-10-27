@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import {
   useCall,
   useCallStateHooks,
+  useEffectEvent,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import {
@@ -12,7 +13,6 @@ import {
   LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
-import { useEffectEvent } from '../../hooks/useEffectEvent';
 
 export type LivestreamPlayerProps = {
   /**
@@ -28,7 +28,7 @@ export type LivestreamPlayerProps = {
    *
    * `"asap"` behavior means joining the call as soon as it is possible
    * (either the `join_ahead_time_seconds` setting allows it, or the user
-   * has a the capability to join backstage).
+   * has the capability to join backstage).
    *
    * `"live"` behavior means joining the call when it goes live.
    *
@@ -49,11 +49,13 @@ export type LivestreamPlayerProps = {
   onError?: (error: any) => void;
 };
 
-export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
-  const { callType, callId, ...restProps } = props;
+export const LivestreamPlayer = (
+  props: PropsWithChildren<LivestreamPlayerProps>,
+) => {
+  const { callType, callId, children, ...restProps } = props;
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call>();
-  const onError = useEffectEvent(props.onError);
+  const onError = useEffectEvent(props.onError ?? (() => {}));
 
   useEffect(() => {
     if (!client) return;
@@ -69,7 +71,7 @@ export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
       });
       setCall(undefined);
     };
-  }, [callId, callType, client, onError]);
+  }, [callId, callType, client]);
 
   if (!call) {
     return null;
@@ -78,6 +80,7 @@ export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
   return (
     <StreamCall call={call}>
       <LivestreamCall {...restProps} />
+      {children}
     </StreamCall>
   );
 };
@@ -116,7 +119,7 @@ const useLivestreamCall = (props: {
   const canJoin =
     (joinBehavior === 'asap' && canJoinAsap) ||
     (joinBehavior === 'live' && canJoinLive);
-  const onError = useEffectEvent(props.onError);
+  const onError = useEffectEvent(props.onError ?? (() => {}));
 
   useEffect(() => {
     if (call && call.state.callingState === CallingState.IDLE && canJoin) {
@@ -125,7 +128,7 @@ const useLivestreamCall = (props: {
         onError(e);
       });
     }
-  }, [call, canJoin, onError]);
+  }, [call, canJoin]);
 
   return call;
 };

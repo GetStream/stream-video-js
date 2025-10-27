@@ -4,6 +4,10 @@ import { authOptions } from '../pages/api/auth/[...nextauth]';
 import { createToken, decodeToken } from '../helpers/jwt';
 import type { User } from '@stream-io/video-react-sdk';
 
+export type ServerSideCredentialOptions = {
+  signInAutomatically?: boolean;
+};
+
 export type ServerSideCredentialsProps = {
   user: User;
   userToken: string;
@@ -17,51 +21,84 @@ type QueryParams = {
   user_id?: string;
 };
 
-export const getServerSideCredentialsProps = async (
-  context: GetServerSidePropsContext,
-): Promise<GetServerSidePropsResult<ServerSideCredentialsProps>> => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    const url = context.req.url;
+export const getServerSideCredentialsPropsWithOptions =
+  (options: ServerSideCredentialOptions = {}) =>
+  async (
+    context: GetServerSidePropsContext,
+  ): Promise<GetServerSidePropsResult<ServerSideCredentialsProps>> => {
+    const session = await getServerSession(
+      context.req,
+      context.res,
+      authOptions,
+    );
+    if (!session) {
+      const url = context.req.url;
+      const params = new URLSearchParams();
+      if (url) params.append('callbackUrl', url);
+      if (options.signInAutomatically) params.append('signIn', '1');
+      return {
+        redirect: {
+          destination: `/auth/signin?${params}`,
+          permanent: false,
+        },
+      };
+    }
+
+    const query = context.query as QueryParams;
+
+    const apiKey = query.api_key || (process.env.STREAM_API_KEY as string);
+    const secretKey = process.env.STREAM_SECRET_KEY as string;
+    const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
+
+    const userIdOverride =
+      query.token &&
+      (decodeToken(query.token)['user_id'] as string | undefined);
+    const userId =
+      userIdOverride || query.user_id || session.user?.streamUserId;
+
+    if (!userId) {
+      return {
+        redirect: {
+          destination: `/auth/signout`,
+          permanent: false,
+        },
+      };
+    }
+
+    // Chat does not allow for Id's to include special characters
+    const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+
+    const token =
+      query.token ||
+      (await createToken(
+        streamUserId,
+        apiKey,
+        secretKey,
+        session.user?.stream
+          ? {
+              ...(process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales'
+                ? { role: 'stream' }
+                : {}),
+              name: session.user?.name,
+              image: session.user?.image,
+              email: session.user?.email,
+            }
+          : undefined,
+      ));
+
     return {
-      redirect: {
-        destination: `/auth/signin?callbackUrl=${encodeURIComponent(url || '')}`,
-        permanent: false,
+      props: {
+        apiKey,
+        userToken: token,
+        user: {
+          id: streamUserId,
+          ...(session.user?.name ? { name: session.user.name } : {}),
+          ...(session.user?.image ? { image: session.user.image } : {}),
+        },
+        gleapApiKey,
       },
     };
-  }
-
-  const query = context.query as QueryParams;
-
-  const apiKey = query.api_key || (process.env.STREAM_API_KEY as string);
-  const secretKey = process.env.STREAM_SECRET_KEY as string;
-  const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
-
-  const userIdOverride = query.token
-    ? (decodeToken(query.token)['user_id'] as string | undefined)
-    : query.user_id;
-  const userId = (
-    userIdOverride ||
-    session?.user?.name ||
-    'unknown-user'
-  ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
-
-  // Chat does not allow for Id's to include special characters
-  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
-  const userName = session.user?.name || userId;
-
-  const token = query.token || createToken(streamUserId, apiKey, secretKey);
-  return {
-    props: {
-      apiKey,
-      userToken: token,
-      user: {
-        id: streamUserId,
-        name: userIdOverride || userName,
-        // @ts-expect-error - undefined is not serializable
-        image: session.user?.image || null,
-      },
-      gleapApiKey,
-    },
   };
-};
+
+export const getServerSideCredentialsProps =
+  getServerSideCredentialsPropsWithOptions();

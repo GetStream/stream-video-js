@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.7.0...@stream-io/video-filters-react-native-0.8.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.3...@stream-io/video-filters-react-native-0.7.0) (2025-09-29)
+
+### Features
+
+- 16KB page size support for noise cancellation & screenshot ([#1933](https://github.com/GetStream/stream-video-js/issues/1933)) ([7e3b046](https://github.com/GetStream/stream-video-js/commit/7e3b046820bde9d331871718a6f841bff88a73ce)), closes [#1937](https://github.com/GetStream/stream-video-js/issues/1937)
+
+## [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.2...@stream-io/video-filters-react-native-0.6.3) (2025-09-05)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.3 ([#1908](https://github.com/GetStream/stream-video-js/issues/1908)) ([24b2f95](https://github.com/GetStream/stream-video-js/commit/24b2f958f4430212116ddd78800a1ea71adbea4d))
+
+## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.1...@stream-io/video-filters-react-native-0.6.2) (2025-08-21)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.2 ([#1895](https://github.com/GetStream/stream-video-js/issues/1895)) ([9a102a9](https://github.com/GetStream/stream-video-js/commit/9a102a964d4b350eb9223272cfe294e4805c6533))
+
+## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.0...@stream-io/video-filters-react-native-0.6.1) (2025-08-05)
+
+### Bug Fixes
+
+- support setting iOS pip window sizes ([#1876](https://github.com/GetStream/stream-video-js/issues/1876)) ([2c553c9](https://github.com/GetStream/stream-video-js/commit/2c553c967b4ceedaf7209c1e98ab4c8025c84ca5))
+
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.5.0...@stream-io/video-filters-react-native-0.6.0) (2025-07-25)
+
+### Features
+
+- do not detect video dimensions through rtc stats ([#1852](https://github.com/GetStream/stream-video-js/issues/1852)) ([280e008](https://github.com/GetStream/stream-video-js/commit/280e0087d646188e71dec6e4d4e5e8b93878904d))
+
 ## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.4.0...@stream-io/video-filters-react-native-0.5.0) (2025-06-12)
 
 ### Features

@@ -137,6 +137,10 @@ export interface Participant {
    * @generated from protobuf field: repeated string roles = 13;
    */
   roles: string[];
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.ParticipantSource source = 14;
+   */
+  source: ParticipantSource;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.StreamQuality
@@ -297,6 +301,12 @@ export interface PublishOption {
    * @generated from protobuf field: bool use_single_layer = 9;
    */
   useSingleLayer: boolean;
+  /**
+   * Audio bitrate profiles for different audio quality profiles.
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.AudioBitrate audio_bitrate_profiles = 10;
+   */
+  audioBitrateProfiles: AudioBitrate[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
@@ -339,6 +349,19 @@ export interface ICETrickle {
    * @generated from protobuf field: string session_id = 3;
    */
   sessionId: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.AudioBitrate
+ */
+export interface AudioBitrate {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.AudioBitrateProfile profile = 1;
+   */
+  profile: AudioBitrateProfile;
+  /**
+   * @generated from protobuf field: int32 bitrate = 2;
+   */
+  bitrate: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.TrackInfo
@@ -760,6 +783,54 @@ export enum TrackType {
   SCREEN_SHARE_AUDIO = 4,
 }
 /**
+ * must be aligned with kit
+ *
+ * @generated from protobuf enum stream.video.sfu.models.ParticipantSource
+ */
+export enum ParticipantSource {
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_WEBRTC_UNSPECIFIED = 0;
+   */
+  WEBRTC_UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_RTMP = 1;
+   */
+  RTMP = 1,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_WHIP = 2;
+   */
+  WHIP = 2,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_SIP = 3;
+   */
+  SIP = 3,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_RTSP = 4;
+   */
+  RTSP = 4,
+  /**
+   * @generated from protobuf enum value: PARTICIPANT_SOURCE_SRT = 5;
+   */
+  SRT = 5,
+}
+/**
+ * @generated from protobuf enum stream.video.sfu.models.AudioBitrateProfile
+ */
+export enum AudioBitrateProfile {
+  /**
+   * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_VOICE_STANDARD_UNSPECIFIED = 0;
+   */
+  VOICE_STANDARD_UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_VOICE_HIGH_QUALITY = 1;
+   */
+  VOICE_HIGH_QUALITY = 1,
+  /**
+   * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_MUSIC_HIGH_QUALITY = 2;
+   */
+  MUSIC_HIGH_QUALITY = 2,
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.ErrorCode
  */
 export enum ErrorCode {
@@ -819,6 +890,10 @@ export enum ErrorCode {
    * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
    */
   CALL_NOT_FOUND = 300,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_CALL_PARTICIPANT_LIMIT_REACHED = 301;
+   */
+  CALL_PARTICIPANT_LIMIT_REACHED = 301,
   /**
    * @generated from protobuf enum value: ERROR_CODE_REQUEST_VALIDATION_FAILED = 400;
    */
@@ -1080,6 +1155,23 @@ export enum AppleThermalState {
    */
   CRITICAL = 4,
 }
+/**
+ * ClientCapability defines a feature that client supports
+ *
+ * @generated from protobuf enum stream.video.sfu.models.ClientCapability
+ */
+export enum ClientCapability {
+  /**
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * Enables SFU pausing inbound video
+   *
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_SUBSCRIBER_VIDEO_PAUSE = 1;
+   */
+  SUBSCRIBER_VIDEO_PAUSE = 1,
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
   constructor() {
@@ -1189,6 +1281,16 @@ class Participant$Type extends MessageType<Participant> {
         kind: 'scalar',
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 14,
+        name: 'source',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.ParticipantSource',
+          ParticipantSource,
+          'PARTICIPANT_SOURCE_',
+        ],
       },
     ]);
   }
@@ -1332,6 +1434,13 @@ class PublishOption$Type extends MessageType<PublishOption> {
         kind: 'scalar',
         T: 8 /*ScalarType.BOOL*/,
       },
+      {
+        no: 10,
+        name: 'audio_bitrate_profiles',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => AudioBitrate,
+      },
     ]);
   }
 }
@@ -1394,6 +1503,28 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
  * @generated MessageType for protobuf message stream.video.sfu.models.ICETrickle
  */
 export const ICETrickle = new ICETrickle$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AudioBitrate$Type extends MessageType<AudioBitrate> {
+  constructor() {
+    super('stream.video.sfu.models.AudioBitrate', [
+      {
+        no: 1,
+        name: 'profile',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.AudioBitrateProfile',
+          AudioBitrateProfile,
+          'AUDIO_BITRATE_PROFILE_',
+        ],
+      },
+      { no: 2, name: 'bitrate', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.AudioBitrate
+ */
+export const AudioBitrate = new AudioBitrate$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TrackInfo$Type extends MessageType<TrackInfo> {
   constructor() {

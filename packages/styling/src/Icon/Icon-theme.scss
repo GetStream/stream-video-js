@@ -200,4 +200,9 @@
     -webkit-mask-image: var(--str-video__icon--refresh);
     mask-image: var(--str-video__icon--refresh);
   }
+
+  &--kick-user {
+    -webkit-mask-image: var(--str-video__icon--kick-user);
+    mask-image: var(--str-video__icon--kick-user);
+  }
 }

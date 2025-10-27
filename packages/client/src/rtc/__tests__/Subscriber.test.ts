@@ -35,7 +35,8 @@ describe('Subscriber', () => {
       dispatcher,
       sessionId: 'sessionId',
       streamClient: new StreamClient('abc'),
-      logTag: 'logTag',
+      cid: 'test:123',
+      tag: 'logTag',
       credentials: {
         server: {
           url: 'https://getstream.io/',
@@ -55,7 +56,7 @@ describe('Subscriber', () => {
       dispatcher,
       state,
       connectionConfig: { iceServers: [] },
-      logTag: 'test',
+      tag: 'test',
       enableTracing: true,
     });
   });

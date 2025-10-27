@@ -9,6 +9,7 @@ import {
   watchCallRejected,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
+  watchInboundStateNotification,
   watchLiveEnded,
   watchParticipantCountChanged,
   watchParticipantJoined,
@@ -60,14 +61,10 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
 
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
     call.on('pinsUpdated', watchPinsUpdated(state)),
+    call.on('inboundStateNotification', watchInboundStateNotification(state)),
 
     handleRemoteSoftMute(call),
   ];
-
-  if (call.ringing) {
-    // these events are only relevant when the call is ringing
-    eventHandlers.push(registerRingingCallEventHandlers(call));
-  }
 
   return () => {
     eventHandlers.forEach((unsubscribe) => unsubscribe());

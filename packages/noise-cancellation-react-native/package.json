@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/noise-cancellation-react-native",
-  "version": "0.1.1",
+  "version": "0.4.0",
   "description": "Noise cancellation for the Stream React Native Video SDK",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
@@ -47,11 +47,12 @@
   },
   "homepage": "https://github.com/GetStream/stream-video-js#readme",
   "devDependencies": {
-    "@stream-io/react-native-webrtc": "^125.3.1",
-    "react-native": "^0.79.2",
+    "@stream-io/react-native-webrtc": "125.4.4",
+    "react": "19.1.0",
+    "react-native": "^0.81.4",
     "react-native-builder-bob": "^0.37.0",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@stream-io/react-native-webrtc": ">=125.3.0",
