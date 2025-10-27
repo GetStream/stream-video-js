@@ -20,7 +20,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     private var audioManagerActivated = false
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
-
+    private val proximityManager = ProximityManager(reactContext)
 
     override fun getName(): String {
         return TAG
@@ -40,6 +40,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     override fun invalidate() {
+        // Ensure we cleanup proximity and screen flags too
+        stop()
         mAudioDeviceManager.close()
         super.invalidate()
     }
@@ -87,6 +89,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                     mAudioDeviceManager.start(it)
                     setKeepScreenOn(true)
                     audioManagerActivated = true
+                    // Initialize and evaluate proximity monitoring via controller
+                    proximityManager.start()
                 }
             }
         }
@@ -99,6 +103,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 Log.d(TAG, "stop() mAudioDeviceManager")
                 mAudioDeviceManager.stop()
                 setMicrophoneMute(false)
+                // Disable proximity monitoring via controller and clear keep-screen-on
+                proximityManager.stop()
                 setKeepScreenOn(false)
                 audioManagerActivated = false
             }
@@ -127,6 +133,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
             return
         }
         mAudioDeviceManager.setSpeakerphoneOn(enable)
+        // Re-evaluate proximity monitoring when route may change
+        this.proximityManager.update()
     }
 
     @ReactMethod
@@ -152,6 +160,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         mAudioDeviceManager.switchDeviceFromDeviceName(
             endpointDeviceName
         )
+        // Re-evaluate proximity monitoring when endpoint changes
+        this.proximityManager.update()
     }
 
     @ReactMethod
@@ -163,6 +173,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     fun unmuteAudioOutput() {
         mAudioDeviceManager.unmuteAudioOutput()
     }
+
 
     override fun onHostResume() {
     }
