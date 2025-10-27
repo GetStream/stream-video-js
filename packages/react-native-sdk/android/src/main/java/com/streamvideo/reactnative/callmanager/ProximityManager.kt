@@ -16,7 +16,7 @@ import android.util.Log
  * - Initialize proximity sensor + PowerManager wake lock lazily
  * - Register/unregister sensor listener
  * - Acquire/release PROXIMITY_SCREEN_OFF_WAKE_LOCK when near/away
- * - Provide a simple API: start(), stop(), updateMonitoring(shouldEnable)
+ * - Provide a simple API: start(), stop(), update()
  */
 class ProximityManager(
     private val context: Context,

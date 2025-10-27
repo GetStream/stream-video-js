@@ -1,8 +1,5 @@
 package com.streamvideo.reactnative.callmanager
 
-import android.content.Context
-import android.media.AudioDeviceInfo
-import android.media.AudioManager
 import android.util.Log
 import android.view.WindowManager
 import com.facebook.react.bridge.LifecycleEventListener
@@ -23,7 +20,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     private var audioManagerActivated = false
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
-    private val proximityManager = ProximityManager(reactApplicationContext)
+    private val proximityManager = ProximityManager(reactContext)
 
     override fun getName(): String {
         return TAG
