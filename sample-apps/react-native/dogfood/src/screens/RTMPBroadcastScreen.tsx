@@ -11,7 +11,10 @@ import {
   BroadcastVideoView,
 } from '@stream-io/video-react-native-broadcast';
 import { useObservableValue } from '@stream-io/video-react-native-sdk';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 
@@ -26,6 +29,7 @@ export const RTMPBroadcastScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
+  const setAppStore = useAppGlobalStoreSetState();
   const broadcast = useMemo(() => Broadcast.create(), []);
   const running = useObservableValue(broadcast.running$);
   const mediaState = useObservableValue(broadcast.mediaState$);
@@ -98,6 +102,22 @@ export const RTMPBroadcastScreen = () => {
 
   const styles = useStyles(themeMode);
 
+  const onChangeMode = async () => {
+    try {
+      setIsLoading(true);
+      if (running) {
+        try {
+          await broadcast.stop();
+        } catch (e) {
+          console.warn('[RTMP] Error while stopping before changing mode', e);
+        }
+      }
+      setAppStore({ appMode: 'None' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -106,12 +126,21 @@ export const RTMPBroadcastScreen = () => {
 
       <View style={styles.header}>
         <Text style={styles.title}>RTMP Broadcast</Text>
-        {running && (
-          <View style={styles.liveIndicator}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>LIVE</Text>
-          </View>
-        )}
+        <View style={styles.headerActions}>
+          {running && (
+            <View style={styles.liveIndicator}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
+          )}
+          {!running && (
+            <Button
+              title="Choose Mode"
+              onPress={onChangeMode}
+              disabled={isLoading}
+            />
+          )}
+        </View>
       </View>
 
       <View style={styles.videoContainer}>
@@ -201,6 +230,11 @@ const useStyles = (themeMode: 'light' | 'dark') => {
       alignItems: 'center',
       padding: 16,
       paddingTop: 60,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     title: {
       fontSize: 24,
