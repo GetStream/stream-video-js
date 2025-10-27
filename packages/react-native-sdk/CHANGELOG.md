@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.23.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.3...@stream-io/video-react-native-sdk-1.23.0) (2025-10-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.3`
+
+### Features
+
+- adaptive floating video dimensions ([#1969](https://github.com/GetStream/stream-video-js/issues/1969)) ([5a213d2](https://github.com/GetStream/stream-video-js/commit/5a213d2571610846bdcd9b4554a5a8d1a3def6c4))
+
+### Bug Fixes
+
+- **react-native:** restore screen wake lock and proximity sensing ([#1971](https://github.com/GetStream/stream-video-js/issues/1971)) ([f20ef70](https://github.com/GetStream/stream-video-js/commit/f20ef70a5958fddf52075233f9f3d64a2ce01895)), closes [#1840](https://github.com/GetStream/stream-video-js/issues/1840)
+
 ## [1.22.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.2...@stream-io/video-react-native-sdk-1.22.3) (2025-10-24)
 
 ### Dependency Updates
