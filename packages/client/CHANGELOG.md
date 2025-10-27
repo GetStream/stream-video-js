@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.35.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.35.0...@stream-io/video-client-1.35.1) (2025-10-27)
+
+- **deps-dev:** bump happy-dom from 20.0.0 to 20.0.2 ([#1970](https://github.com/GetStream/stream-video-js/issues/1970)) ([702f409](https://github.com/GetStream/stream-video-js/commit/702f409b2e5529e7b8f1cfc757e2e776c75deacf)), closes [#1934](https://github.com/GetStream/stream-video-js/issues/1934) [#1932](https://github.com/GetStream/stream-video-js/issues/1932) [#0](https://github.com/GetStream/stream-video-js/issues/0) [#1934](https://github.com/GetStream/stream-video-js/issues/1934) [#0](https://github.com/GetStream/stream-video-js/issues/0) [#1932](https://github.com/GetStream/stream-video-js/issues/1932)
+
 ## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.34.1...@stream-io/video-client-1.35.0) (2025-10-24)
 
 ### Features
