@@ -78,6 +78,13 @@ class StreamInCallManager: RCTEventEmitter {
                 options: session.categoryOptions
             )
             configureAudioSession()
+            // Enable wake lock to prevent the screen from dimming/locking during a call
+            DispatchQueue.main.async {
+                UIApplication.shared.isIdleTimerDisabled = true
+                self.registerAudioRouteObserver()
+                self.updateProximityMonitoring()
+                self.log("Wake lock enabled (idle timer disabled)")
+            }
             audioManagerActivated = true
         }
     }
@@ -99,6 +106,13 @@ class StreamInCallManager: RCTEventEmitter {
             }
             audioManagerActivated = false
         }
+        // Disable wake lock and proximity when call manager stops so the device can sleep again
+        DispatchQueue.main.async {
+            self.setProximityMonitoringEnabled(false)
+            self.unregisterAudioRouteObserver()
+            UIApplication.shared.isIdleTimerDisabled = false
+            self.log("Wake lock disabled (idle timer enabled)")
+        }
     }
 
     private func configureAudioSession() {
@@ -117,10 +131,10 @@ class StreamInCallManager: RCTEventEmitter {
 
             if (defaultAudioDevice == .speaker) {
                 // defaultToSpeaker will route to speaker if nothing else is connected
-                intendedOptions = [.allowBluetooth, .defaultToSpeaker]
+                intendedOptions = [.allowBluetoothHFP, .defaultToSpeaker]
             } else {
                 // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
-                intendedOptions = [.allowBluetooth]
+                intendedOptions = [.allowBluetoothHFP]
             }
         }
 
