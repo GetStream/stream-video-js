@@ -7222,10 +7222,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/logger@npm:^1.1.4":
-  version: 1.1.4
-  resolution: "@stream-io/logger@npm:1.1.4"
-  checksum: 10/fe3a2d08739a981ca1794662b35d1ee980d8a3b8db4c65bd8223cd9617523fb1a83116cbfc777ca50d317e29dbd9505f6fae3e735b7539e41e988d54c7aebf0d
+"@stream-io/logger@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@stream-io/logger@npm:2.0.0"
+  checksum: 10/f448977dbf1525677f9a39abe8672ef902008312caa7f4c742ffabff0139f2cacf20b48f961c0714f5126e386acf60d54684eacba7ca6fce0792fe63f49e498c
   languageName: node
   linkType: hard
 
@@ -7348,15 +7348,16 @@ __metadata:
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/audio-filters-web": "workspace:^"
+    "@stream-io/logger": "npm:^2.0.0"
     "@stream-io/node-sdk": "npm:^0.7.9"
-    "@stream-io/worker-timer": "npm:^1.2.4"
+    "@stream-io/worker-timer": "npm:^1.2.5"
     "@total-typescript/shoehorn": "npm:^0.1.2"
     "@types/sdp-transform": "npm:^2.15.0"
     "@types/ua-parser-js": "npm:^0.7.39"
     "@vitest/coverage-v8": "npm:^3.2.4"
     axios: "npm:^1.12.2"
     dotenv: "npm:^16.6.1"
-    happy-dom: "npm:^20.0.0"
+    happy-dom: "npm:^20.0.2"
     prettier: "npm:^3.6.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
@@ -7392,7 +7393,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.4"
-    "@stream-io/worker-timer": "npm:^1.2.4"
+    "@stream-io/worker-timer": "npm:^1.2.5"
     "@types/emscripten": "npm:^1.41.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
@@ -7751,12 +7752,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/worker-timer@npm:^1.2.4":
-  version: 1.2.4
-  resolution: "@stream-io/worker-timer@npm:1.2.4"
-  dependencies:
-    "@stream-io/logger": "npm:^1.1.4"
-  checksum: 10/15c4017aedf7c4e1862ee0d652f0b2b7047dae56ac5668bfc520506babaf4481022e3cf30bcafcd6898843d5943e461e45c96973bedcba1fa2accca00bab54c2
+"@stream-io/worker-timer@npm:^1.2.5":
+  version: 1.2.5
+  resolution: "@stream-io/worker-timer@npm:1.2.5"
+  checksum: 10/586d4ce60cdc84b728eecb748acba2a66728b544b06e53e3aaeefc7a4ae8a02fc67480acf6d018897cfd12dc051b6b323ab9340853cf6b396c0f75c10692a9a6
   languageName: node
   linkType: hard
 
@@ -13861,14 +13860,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^20.0.0":
-  version: 20.0.0
-  resolution: "happy-dom@npm:20.0.0"
+"happy-dom@npm:^20.0.2":
+  version: 20.0.8
+  resolution: "happy-dom@npm:20.0.8"
   dependencies:
     "@types/node": "npm:^20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/0fa626e2051dfa5f1ea0da9e3776b5986d3700c261a8ba7c496e7ad89f4df0318920b7c286d3b310481712b378ffb7dee35ed782ff039e4166f4ba957a76b6df
+  checksum: 10/d16e9c2a04155ac666b892e382aba4bf48783937f6e877e8d7ede90b8e2148d76c5a6965757f928d35a2ebe51698fa3debd0ec110339c8eb395dc81d67dc5406
   languageName: node
   linkType: hard
 

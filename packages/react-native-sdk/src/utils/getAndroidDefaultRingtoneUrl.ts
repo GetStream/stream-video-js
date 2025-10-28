@@ -1,5 +1,5 @@
-import { getLogger } from '@stream-io/video-client';
 import { NativeModules, Platform } from 'react-native';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 export async function getAndroidDefaultRingtoneUrl(): Promise<
   string | undefined
@@ -12,8 +12,8 @@ export async function getAndroidDefaultRingtoneUrl(): Promise<
       await NativeModules.StreamVideoReactNative?.getDefaultRingtoneUrl();
     return url;
   } catch (e) {
-    const logger = getLogger(['getAndroidDefaultRingtoneUrl']);
-    logger('warn', 'Failed to get default ringtone from native module', e);
+    const logger = videoLoggerSystem.getLogger('getAndroidDefaultRingtoneUrl');
+    logger.warn('Failed to get default ringtone from native module', e);
   }
 
   return undefined;

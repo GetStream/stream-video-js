@@ -7,7 +7,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger, type SendReactionRequest } from '@stream-io/video-client';
+import {
+  type SendReactionRequest,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import type { ReactionsButtonProps } from '../ReactionsButton';
@@ -82,8 +85,8 @@ export const ReactionsPicker = ({
   const onClose = (reaction?: SendReactionRequest) => {
     if (reaction) {
       call?.sendReaction(reaction).catch((e) => {
-        const logger = getLogger(['ReactionsPicker']);
-        logger('error', 'Error on onClose-sendReaction', e, reaction);
+        const logger = videoLoggerSystem.getLogger('ReactionsPicker');
+        logger.error('Error on onClose-sendReaction', e, reaction);
       });
     }
     Animated.timing(elasticAnimRef.current, {
