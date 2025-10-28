@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react';
 import {
   DefaultParticipantViewUI,
   ParticipantsAudio,
   ParticipantView,
   SfuModels,
+  StreamVideoParticipant,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -15,6 +17,7 @@ import './DominantSpeaker.scss';
 export const DominantSpeaker = () => {
   const activeCall = useCall();
   const speakerInSpotlight = useSpotlightParticipant();
+  const lastSpeakerInSpotlight = useRef<StreamVideoParticipant | null>(null);
   const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
   const { setVideoElement, setVideoPlaceholderElement } =
@@ -22,6 +25,14 @@ export const DominantSpeaker = () => {
       speakerInSpotlight!,
       SfuModels.TrackType.VIDEO,
     );
+
+  useEffect(() => {
+    const sessionId = lastSpeakerInSpotlight.current?.sessionId;
+    if (speakerInSpotlight.sessionId === sessionId || !activeCall) return;
+    const tag = 'recorder.dominant_speaker_layout.spotlight_speaker_changed';
+    activeCall.tracer.trace(tag, speakerInSpotlight);
+    lastSpeakerInSpotlight.current = speakerInSpotlight;
+  }, [activeCall, speakerInSpotlight]);
 
   if (!activeCall) return <h2>No active call</h2>;
   return (
