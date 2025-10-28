@@ -8,7 +8,7 @@ import {
   getPushNotificationIosLib,
   type PushNotificationiOSType,
 } from './libs';
-import { getLogger, StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import type { Event } from '@notifee/react-native';
 import { StreamVideoRN } from '../StreamVideoRN';
@@ -27,8 +27,10 @@ function processNonRingingNotificationStreamPayload(
   ) {
     const cid = streamPayload.call_cid;
     const type = streamPayload.type;
-    const logger = getLogger(['processNonRingingNotificationStreamPayload']);
-    logger('trace', `cid, type - ${cid}, ${type}`);
+    const logger = videoLoggerSystem.getLogger(
+      'processNonRingingNotificationStreamPayload',
+    );
+    logger.trace(`cid, type - ${cid}, ${type}`);
     pushNonRingingCallData$.next({ cid, type });
     return { cid, type };
   }
@@ -47,9 +49,10 @@ export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {
       trigger.payload?.stream
     ) {
       const streamPayload = trigger.payload.stream as StreamPushPayload;
-      const logger = getLogger(['processNonRingingNotificationStreamPayload']);
-      logger(
-        'trace',
+      const logger = videoLoggerSystem.getLogger(
+        'processNonRingingNotificationStreamPayload',
+      );
+      logger.trace(
         `processNonRingingNotificationStreamPayload - ${JSON.stringify(
           streamPayload,
         )}`,
@@ -75,9 +78,8 @@ export const oniOSNotifeeEvent = ({
       | undefined;
     const result = processNonRingingNotificationStreamPayload(streamPayload);
     if (result) {
-      const logger = getLogger(['oniOSNotifeeEvent']);
-      logger(
-        'debug',
+      const logger = videoLoggerSystem.getLogger('oniOSNotifeeEvent');
+      logger.debug(
         `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`,
       );
       pushConfig.onTapNonRingingCallNotification?.(result.cid, result.type);
@@ -91,10 +93,11 @@ export function onPushNotificationiOSStreamVideoEvent(
   const pushNotificationIosLib = getPushNotificationIosLib();
   const data = notification.getData();
   const streamPayload = data?.stream as StreamPushPayload;
-  const logger = getLogger(['onPushNotificationiOSStreamVideoEvent']);
+  const logger = videoLoggerSystem.getLogger(
+    'onPushNotificationiOSStreamVideoEvent',
+  );
   if (!streamPayload) {
-    logger(
-      'trace',
+    logger.trace(
       `skipping process: no stream payload found in notification data - ${JSON.stringify(
         data,
       )}`,
@@ -104,8 +107,7 @@ export function onPushNotificationiOSStreamVideoEvent(
   const isClicked = data.userInteraction === 1;
   const pushConfig = StreamVideoRN.getConfig().push;
   if (!isClicked || !pushConfig) {
-    logger(
-      'debug',
+    logger.debug(
       `notification.finish called and returning - isClicked: ${isClicked}, pushConfig: ${!!pushConfig}`,
     );
     notification.finish(pushNotificationIosLib.FetchResult.NoData);
@@ -114,8 +116,7 @@ export function onPushNotificationiOSStreamVideoEvent(
   // listen to foreground notifications
   const result = processNonRingingNotificationStreamPayload(streamPayload);
   if (result) {
-    logger(
-      'debug',
+    logger.debug(
       `onTapNonRingingCallNotification?.(${result.cid}, ${result.type})`,
     );
     pushConfig.onTapNonRingingCallNotification?.(result.cid, result.type);
@@ -137,12 +138,11 @@ export async function initIosNonVoipToken(
     return;
   }
 
-  const logger = getLogger(['initIosNonVoipToken']);
+  const logger = videoLoggerSystem.getLogger('initIosNonVoipToken');
   const setDeviceToken = async (token: string) => {
     const userId = client.streamClient._user?.id ?? '';
     if (lastApnToken.token === token && lastApnToken.userId === userId) {
-      logger(
-        'debug',
+      logger.debug(
         'Skipped sending device token to stream as it was already sent',
         token,
       );
@@ -151,33 +151,31 @@ export async function initIosNonVoipToken(
     setPushLogoutCallback(async () => {
       lastApnToken = { token: '', userId: '' };
       try {
-        logger('debug', 'Remove device token - setPushLogoutCallback', token);
+        logger.debug('Remove device token - setPushLogoutCallback', token);
         await client.removeDevice(token);
       } catch (err) {
-        logger(
-          'warn',
+        logger.warn(
           'setPushLogoutCallback - Failed to remove apn token from stream',
           err,
         );
       }
     });
     const push_provider_name = pushConfig.ios.pushProviderName;
-    logger('debug', 'Add device token to stream', token);
+    logger.debug('Add device token to stream', token);
     await client
       .addDevice(token, 'apn', push_provider_name)
       .then(() => {
         lastApnToken = { token, userId };
       })
       .catch((err) => {
-        logger('warn', 'Failed to add apn token to stream', err);
+        logger.warn('Failed to add apn token to stream', err);
       });
   };
   if (pushConfig.isExpo) {
     const expoNotificationsLib = getExpoNotificationsLib();
     if (expoNotificationsLib) {
       expoNotificationsLib.getDevicePushTokenAsync().then((devicePushToken) => {
-        logger(
-          'debug',
+        logger.debug(
           'Got device token - expoNotificationsLib.getDevicePushTokenAsync',
           devicePushToken.data,
         );
@@ -185,8 +183,7 @@ export async function initIosNonVoipToken(
       });
       const subscription = expoNotificationsLib.addPushTokenListener(
         (devicePushToken) => {
-          logger(
-            'debug',
+          logger.debug(
             'Got device token - expoNotificationsLib.addPushTokenListener',
             devicePushToken.data,
           );
@@ -194,22 +191,21 @@ export async function initIosNonVoipToken(
         },
       );
       setUnsubscribeListener(() => {
-        logger('debug', `removed expo addPushTokenListener`);
+        logger.debug(`removed expo addPushTokenListener`);
         subscription.remove();
       });
     }
   } else {
     const pushNotificationIosLib = getPushNotificationIosLib();
     pushNotificationIosLib.addEventListener('register', (token) => {
-      logger(
-        'debug',
+      logger.debug(
         `Got device token - pushNotificationIosLib.addEventListener('register')`,
         token,
       );
       setDeviceToken(token);
     });
     setUnsubscribeListener(() => {
-      logger('debug', `pushNotificationIosLib.removeEventListener('register')`);
+      logger.debug(`pushNotificationIosLib.removeEventListener('register')`);
       pushNotificationIosLib.removeEventListener('register');
     });
   }

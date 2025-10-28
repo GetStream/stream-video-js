@@ -9,12 +9,12 @@ import {
   startWith,
   tap,
 } from 'rxjs';
-import { getLogger } from '../logger';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
 import { getCurrentValue } from '../store/rxUtils';
+import { videoLoggerSystem } from '../logger';
 
 /**
  * Returns an Observable that emits the list of available devices
@@ -266,15 +266,16 @@ export const getAudioStream = async (
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
-      getLogger(['devices'])(
-        'warn',
-        'Failed to get audio stream, will try again with relaxed constraints',
-        { error, constraints, relaxedConstraints },
-      );
+      videoLoggerSystem
+        .getLogger('devices')
+        .warn(
+          'Failed to get audio stream, will try again with relaxed constraints',
+          { error, constraints, relaxedConstraints },
+        );
       return getAudioStream(relaxedConstraints);
     }
 
-    getLogger(['devices'])('error', 'Failed to get audio stream', {
+    videoLoggerSystem.getLogger('devices').error('Failed to get audio stream', {
       error,
       constraints,
     });
@@ -310,15 +311,16 @@ export const getVideoStream = async (
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
-      getLogger(['devices'])(
-        'warn',
-        'Failed to get video stream, will try again with relaxed constraints',
-        { error, constraints, relaxedConstraints },
-      );
+      videoLoggerSystem
+        .getLogger('devices')
+        .warn(
+          'Failed to get video stream, will try again with relaxed constraints',
+          { error, constraints, relaxedConstraints },
+        );
       return getVideoStream(relaxedConstraints);
     }
 
-    getLogger(['devices'])('error', 'Failed to get video stream', {
+    videoLoggerSystem.getLogger('devices').error('Failed to get video stream', {
       error,
       constraints,
     });
@@ -373,7 +375,9 @@ export const getScreenShareStream = async (
     return stream;
   } catch (e) {
     tracer?.trace(`${tag}OnFailure`, (e as Error).name);
-    getLogger(['devices'])('error', 'Failed to get screen share stream', e);
+    videoLoggerSystem
+      .getLogger('devices')
+      .error('Failed to get screen share stream', e);
     throw e;
   }
 };
