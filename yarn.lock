@@ -7276,16 +7276,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:137.0.0-alpha.3":
-  version: 137.0.0-alpha.3
-  resolution: "@stream-io/react-native-webrtc@npm:137.0.0-alpha.3"
+"@stream-io/react-native-webrtc@npm:137.0.0-alpha.4":
+  version: 137.0.0-alpha.4
+  resolution: "@stream-io/react-native-webrtc@npm:137.0.0-alpha.4"
   dependencies:
     base64-js: "npm:1.5.1"
     debug: "npm:4.3.4"
     event-target-shim: "npm:6.0.2"
   peerDependencies:
     react-native: ">=0.73.0"
-  checksum: 10/643f41e032b7af075a9942ddad09946e41681134339bbee9c269d782d490766fce72edc174315b9acf1037f45bd0309c75669b47d12cd084ac2d6ac5860f4592
+  checksum: 10/63e61d99a1c8833b8be73f4272ddfb9059b2cae34532a82869f5c25bf150dee07dece48a5e1186e1cf36094eee30726c399725c6ec8598b4aa6e2666705b1847
   languageName: node
   linkType: hard
 
@@ -7501,7 +7501,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.0.0-alpha.3"
+    "@stream-io/react-native-webrtc": "npm:137.0.0-alpha.4"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
